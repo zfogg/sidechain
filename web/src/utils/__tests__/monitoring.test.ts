@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import monitor from '../monitoring'
 
 describe('PerformanceMonitor', () => {
@@ -32,7 +32,7 @@ describe('PerformanceMonitor', () => {
     })
 
     it('should warn on slow operations', () => {
-      const warnSpy = vi.spyOn(console, 'warn').mockImplementation()
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
       monitor.recordMetric('slow_operation', 1500)
 
       expect(warnSpy).toHaveBeenCalledWith(

@@ -1,11 +1,11 @@
 import { create } from 'zustand'
 import { StoryClient } from '@/api/StoryClient'
-import type { Story } from '@/models/Story'
+import type { Ephemeral } from '@/models/Ephemeral'
 
 interface StoryStoreState {
-  userActivities: Story[]
-  followingActivities: Story[]
-  globalActivities: Story[]
+  userActivities: Ephemeral[]
+  followingActivities: Ephemeral[]
+  globalActivities: Ephemeral[]
   currentUserId: string | null
   isLoading: boolean
   error: string
@@ -18,7 +18,7 @@ interface StoryStoreActions {
   clearError: () => void
 }
 
-export const useStoryStore = create<StoryStoreState & StoryStoreActions>((set, get) => ({
+export const useStoryStore = create<StoryStoreState & StoryStoreActions>((set, _get) => ({
   userActivities: [],
   followingActivities: [],
   globalActivities: [],
@@ -29,7 +29,7 @@ export const useStoryStore = create<StoryStoreState & StoryStoreActions>((set, g
   loadUserActivities: async (userId) => {
     set({ isLoading: true, error: '', currentUserId: userId })
 
-    const result = await StoryClient.getUserActivityTimeline(userId)
+    const result = await StoryClient.getUserStories(userId)
 
     if (result.isOk()) {
       set({

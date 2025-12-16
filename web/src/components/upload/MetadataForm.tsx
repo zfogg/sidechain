@@ -11,7 +11,7 @@ interface MetadataFormProps {
     genre: string[]
     isPublic: boolean
   }
-  onChange: (field: string, value: any) => void
+  onChange: (field: 'title' | 'description' | 'bpm' | 'key' | 'daw' | 'genre' | 'isPublic', value: string | number | string[] | boolean | null) => void
   errors: Record<string, string>
 }
 

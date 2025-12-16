@@ -71,7 +71,7 @@ interface ChatStoreActions {
   clearChat: () => void
 }
 
-export const useChatStore = create<ChatStoreState & ChatStoreActions>((set, get) => ({
+export const useChatStore = create<ChatStoreState & ChatStoreActions>((set, _get) => ({
   // Initial state
   streamToken: null,
   isStreamConnected: false,

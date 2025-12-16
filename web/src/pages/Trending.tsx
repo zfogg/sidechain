@@ -8,6 +8,14 @@ import { useState } from 'react'
 
 type TimePeriod = 'weekly' | 'monthly' | 'alltime'
 
+function getPagesFromData(data: unknown): FeedPost[] {
+  if (data === null || typeof data !== 'object') return []
+  if (!('pages' in data)) return []
+  const pages = (data as { pages: unknown }).pages
+  if (!Array.isArray(pages)) return []
+  return pages.flatMap((page) => (Array.isArray(page) ? page : []))
+}
+
 /**
  * Trending - Display trending loops/posts with time period filter
  * Shows the most popular posts by engagement (likes, plays, comments)
@@ -16,19 +24,12 @@ export function Trending() {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('weekly')
 
   // Fetch trending posts with infinite scroll
-  const {
-    data,
-    isLoading,
-    isError,
-    error,
-    hasNextPage,
-    fetchNextPage,
-    isFetchingNextPage,
-  } = useInfiniteQuery({
+  const query = useInfiniteQuery<FeedPost[], Error>({
     queryKey: ['trending', timePeriod],
-    queryFn: async ({ pageParam = 0 }) => {
+    queryFn: async ({ pageParam }) => {
       // Backend supports time period as query param
-      const result = await FeedClient.getFeed('trending', 20, pageParam)
+      const offset = typeof pageParam === 'number' ? pageParam : 0
+      const result = await FeedClient.getFeed('trending', 20, offset)
 
       if (result.isError()) {
         throw new Error(result.getError())
@@ -43,7 +44,17 @@ export function Trending() {
     staleTime: 5 * 60 * 1000, // 5 minutes
   })
 
-  const allPosts = data?.pages.flat() || []
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = query
+
+  const allPosts: FeedPost[] = getPagesFromData(data)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-bg-primary via-bg-secondary to-bg-tertiary">
@@ -117,7 +128,7 @@ export function Trending() {
         {/* Posts List */}
         {allPosts.length > 0 && (
           <div className="space-y-6">
-            {allPosts.map((post: FeedPost, index) => (
+            {allPosts.map((post: FeedPost, index: number) => (
               <div key={post.id} className="relative">
                 {/* Rank badge */}
                 <div className="absolute -left-12 top-0 hidden xl:flex items-center justify-center">

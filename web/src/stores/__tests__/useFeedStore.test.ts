@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useFeedStore } from '../useFeedStore'
 import { FeedClient } from '@/api/FeedClient'
+import { Outcome } from '@/api/types'
 import { MockDataBuilder } from '@/test/utils'
 
 // Mock the FeedClient
@@ -11,7 +12,40 @@ describe('useFeedStore', () => {
   beforeEach(() => {
     // Clear store before each test
     useFeedStore.setState({
-      feeds: {},
+      feeds: {
+        timeline: {
+          posts: [],
+          isLoading: false,
+          hasMore: true,
+          offset: 0,
+          error: '',
+          lastUpdated: 0,
+        },
+        global: {
+          posts: [],
+          isLoading: false,
+          hasMore: true,
+          offset: 0,
+          error: '',
+          lastUpdated: 0,
+        },
+        trending: {
+          posts: [],
+          isLoading: false,
+          hasMore: true,
+          offset: 0,
+          error: '',
+          lastUpdated: 0,
+        },
+        forYou: {
+          posts: [],
+          isLoading: false,
+          hasMore: true,
+          offset: 0,
+          error: '',
+          lastUpdated: 0,
+        },
+      },
       currentFeedType: 'timeline',
     })
     vi.clearAllMocks()
@@ -20,7 +54,7 @@ describe('useFeedStore', () => {
   describe('loadFeed', () => {
     it('should load feed data', async () => {
       const mockPost = MockDataBuilder.createFeedPost()
-      vi.mocked(FeedClient.getFeed).mockResolvedValue([mockPost])
+      vi.mocked(FeedClient.getFeed).mockResolvedValue(Outcome.ok([mockPost]))
 
       const { result } = renderHook(() => useFeedStore())
 
@@ -33,7 +67,7 @@ describe('useFeedStore', () => {
     })
 
     it('should handle empty feed', async () => {
-      vi.mocked(FeedClient.getFeed).mockResolvedValue([])
+      vi.mocked(FeedClient.getFeed).mockResolvedValue(Outcome.ok([]))
 
       const { result } = renderHook(() => useFeedStore())
 
@@ -76,7 +110,7 @@ describe('useFeedStore', () => {
 
     it('should update lastUpdated timestamp', async () => {
       const before = Date.now()
-      vi.mocked(FeedClient.getFeed).mockResolvedValue([])
+      vi.mocked(FeedClient.getFeed).mockResolvedValue(Outcome.ok([]))
 
       const { result } = renderHook(() => useFeedStore())
 
@@ -103,7 +137,7 @@ describe('useFeedStore', () => {
 
     it('should load feed if not cached', async () => {
       const mockPost = MockDataBuilder.createFeedPost()
-      vi.mocked(FeedClient.getFeed).mockResolvedValue([mockPost])
+      vi.mocked(FeedClient.getFeed).mockResolvedValue(Outcome.ok([mockPost]))
 
       const { result } = renderHook(() => useFeedStore())
 
@@ -123,8 +157,8 @@ describe('useFeedStore', () => {
         likeCount: 5,
       })
 
-      vi.mocked(FeedClient.getFeed).mockResolvedValue([mockPost])
-      vi.mocked(FeedClient.toggleLike).mockResolvedValue(undefined)
+      vi.mocked(FeedClient.getFeed).mockResolvedValue(Outcome.ok([mockPost]))
+      vi.mocked(FeedClient.toggleLike).mockResolvedValue(Outcome.ok(undefined))
 
       const { result } = renderHook(() => useFeedStore())
 
@@ -148,7 +182,7 @@ describe('useFeedStore', () => {
         likeCount: 5,
       })
 
-      vi.mocked(FeedClient.getFeed).mockResolvedValue([mockPost])
+      vi.mocked(FeedClient.getFeed).mockResolvedValue(Outcome.ok([mockPost]))
       vi.mocked(FeedClient.toggleLike).mockRejectedValue(new Error('API error'))
 
       const { result } = renderHook(() => useFeedStore())
@@ -174,7 +208,7 @@ describe('useFeedStore', () => {
       const page1 = [MockDataBuilder.createFeedPost({ id: 'post-1' })]
       const page2 = [MockDataBuilder.createFeedPost({ id: 'post-2' })]
 
-      vi.mocked(FeedClient.getFeed).mockResolvedValueOnce(page1).mockResolvedValueOnce(page2)
+      vi.mocked(FeedClient.getFeed).mockResolvedValueOnce(Outcome.ok(page1)).mockResolvedValueOnce(Outcome.ok(page2))
 
       const { result } = renderHook(() => useFeedStore())
 
@@ -193,7 +227,7 @@ describe('useFeedStore', () => {
 
     it('should update hasMore flag', async () => {
       const mockPost = MockDataBuilder.createFeedPost()
-      vi.mocked(FeedClient.getFeed).mockResolvedValue([mockPost])
+      vi.mocked(FeedClient.getFeed).mockResolvedValue(Outcome.ok([mockPost]))
 
       const { result } = renderHook(() => useFeedStore())
 
@@ -209,7 +243,7 @@ describe('useFeedStore', () => {
       vi.mocked(FeedClient.getFeed).mockImplementation(
         () =>
           new Promise((resolve) =>
-            setTimeout(() => resolve([MockDataBuilder.createFeedPost()]), 100)
+            setTimeout(() => resolve(Outcome.ok([MockDataBuilder.createFeedPost()])), 100)
           )
       )
 
@@ -228,7 +262,7 @@ describe('useFeedStore', () => {
   describe('updatePost', () => {
     it('should update post in all feeds', async () => {
       const mockPost = MockDataBuilder.createFeedPost({ id: 'post-1', playCount: 0 })
-      vi.mocked(FeedClient.getFeed).mockResolvedValue([mockPost])
+      vi.mocked(FeedClient.getFeed).mockResolvedValue(Outcome.ok([mockPost]))
 
       const { result } = renderHook(() => useFeedStore())
 
@@ -249,7 +283,7 @@ describe('useFeedStore', () => {
   describe('incrementPlayCount', () => {
     it('should increment play count', async () => {
       const mockPost = MockDataBuilder.createFeedPost({ id: 'post-1', playCount: 10 })
-      vi.mocked(FeedClient.getFeed).mockResolvedValue([mockPost])
+      vi.mocked(FeedClient.getFeed).mockResolvedValue(Outcome.ok([mockPost]))
 
       const { result } = renderHook(() => useFeedStore())
 
@@ -266,7 +300,7 @@ describe('useFeedStore', () => {
 
     it('should track play event on server', async () => {
       const mockPost = MockDataBuilder.createFeedPost({ id: 'post-1' })
-      vi.mocked(FeedClient.getFeed).mockResolvedValue([mockPost])
+      vi.mocked(FeedClient.getFeed).mockResolvedValue(Outcome.ok([mockPost]))
 
       const { result } = renderHook(() => useFeedStore())
 

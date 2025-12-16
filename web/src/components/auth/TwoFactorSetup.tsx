@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Spinner } from '@/components/ui/spinner'
-import { useState as useStateLib } from 'react'
 
 interface TwoFactorSetupProps {
   isOpen: boolean
@@ -18,7 +17,7 @@ export function TwoFactorSetup({ isOpen, onClose, onSuccess }: TwoFactorSetupPro
   const [error, setError] = useState('')
   const [qrCode, setQrCode] = useState('')
   const [secret, setSecret] = useState('')
-  const [backupCodes, setBackupCodes] = useState<string[]>([])
+  const [_backupCodes, setBackupCodes] = useState<string[]>([])
   const [totpCode, setTotpCode] = useState('')
   const [copied, setCopied] = useState(false)
 

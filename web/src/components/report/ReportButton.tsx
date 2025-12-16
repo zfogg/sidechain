@@ -8,7 +8,7 @@ interface ReportButtonProps {
   targetId: string
   targetName?: string
   variant?: 'default' | 'ghost' | 'outline'
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'sm' | 'lg' | 'default'
   showLabel?: boolean
 }
 

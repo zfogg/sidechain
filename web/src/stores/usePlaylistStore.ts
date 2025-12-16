@@ -20,7 +20,7 @@ interface PlaylistsActions {
   toggleFollowPlaylist: (playlistId: string, shouldFollow: boolean) => Promise<void>
 }
 
-export const usePlaylistStore = create<PlaylistsState & PlaylistsActions>((set, get) => ({
+export const usePlaylistStore = create<PlaylistsState & PlaylistsActions>((set, _get) => ({
   userPlaylists: [],
   currentPlaylist: null,
   isLoading: false,

@@ -58,7 +58,7 @@ export class StoryModel {
   }
 
   static isValid(story: Story): boolean {
-    return story.id !== '' && story.userId !== '' && story.verb !== ''
+    return story.id !== '' && story.userId !== ''
   }
 
   static toJson(story: Story): any {

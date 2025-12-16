@@ -1,11 +1,12 @@
 import { useNavigate } from 'react-router-dom'
 import { Avatar } from '@/components/ui/avatar'
 import type { Story } from '@/models/Story'
+import type { Ephemeral } from '@/models/Ephemeral'
 import { formatDistanceToNow } from '@/utils/format'
 
 interface StoryCardProps {
-  story: Story
-  onStoryClick?: (story: Story) => void
+  story: Story | Ephemeral
+  onStoryClick?: (story: Story | Ephemeral) => void
 }
 
 const verbEmoji: Record<string, string> = {
@@ -19,11 +20,51 @@ const verbEmoji: Record<string, string> = {
   joined: '👋',
 }
 
+function isStory(story: Story | Ephemeral): story is Story {
+  return 'verb' in story && 'description' in story
+}
+
 /**
  * StoryCard - Display a single activity/story in the timeline
  */
 export function StoryCard({ story, onStoryClick }: StoryCardProps) {
   const navigate = useNavigate()
+
+  if (!isStory(story)) {
+    // Handle Ephemeral (visual story) differently
+    return (
+      <div
+        className="bg-card border border-border rounded-lg p-4 hover:border-coral-pink/50 transition-colors cursor-pointer"
+        onClick={() => onStoryClick?.(story)}
+      >
+        <div className="flex gap-3">
+          <Avatar
+            src={story.profilePictureUrl}
+            alt={story.displayName}
+            size="md"
+            className="flex-shrink-0"
+          />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between mb-2">
+              <div>
+                <p className="font-semibold text-foreground">{story.displayName}</p>
+                <p className="text-xs text-muted-foreground">@{story.username}</p>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {formatDistanceToNow(story.createdAt)}
+              </span>
+            </div>
+            {story.caption && (
+              <p className="text-sm text-foreground mb-2">{story.caption}</p>
+            )}
+            <p className="text-xs text-muted-foreground">
+              {story.viewCount} views • {story.likeCount} likes
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   const handleUserClick = (e: React.MouseEvent) => {
     e.stopPropagation()

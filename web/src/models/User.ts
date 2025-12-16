@@ -19,6 +19,16 @@ export interface User {
   // Privacy
   isPrivate: boolean;
   isFollowing: boolean;
+  isPublic: boolean;
+  allowComments: boolean;
+  allowDmsFromFollowersOnly: boolean;
+
+  // Social links
+  socialLinks: {
+    twitter?: string;
+    instagram?: string;
+    website?: string;
+  };
 
   // Timestamps
   createdAt: Date;
@@ -43,6 +53,15 @@ export class UserModel {
 
       isPrivate: json.is_private || json.private || false,
       isFollowing: json.is_following || false,
+      isPublic: json.is_public !== false,
+      allowComments: json.allow_comments !== false,
+      allowDmsFromFollowersOnly: json.allow_dms_from_followers_only || false,
+
+      socialLinks: {
+        twitter: json.social_links?.twitter || '',
+        instagram: json.social_links?.instagram || '',
+        website: json.social_links?.website || '',
+      },
 
       createdAt: new Date(json.created_at || Date.now()),
       lastActiveAt: json.last_active_at ? new Date(json.last_active_at) : undefined,

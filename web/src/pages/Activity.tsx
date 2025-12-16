@@ -1,12 +1,20 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { StoryClient } from '@/api/StoryClient'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { StoryCard } from '@/components/stories/StoryCard'
-import type { Story } from '@/models/Story'
+import type { Ephemeral } from '@/models/Ephemeral'
 
 type ActivityFilter = 'following' | 'global'
+
+function getPagesFromData(data: unknown): Ephemeral[] {
+  if (data === null || typeof data !== 'object') return []
+  if (!('pages' in data)) return []
+  const pages = (data as { pages: unknown }).pages
+  if (!Array.isArray(pages)) return []
+  return pages.flatMap((page) => (Array.isArray(page) ? page : []))
+}
 
 /**
  * Activity - Display user activity timeline from followed users
@@ -16,21 +24,14 @@ export function Activity() {
   const [filter, setFilter] = useState<ActivityFilter>('following')
 
   // Fetch activity timeline
-  const {
-    data,
-    isLoading,
-    isError,
-    error,
-    hasNextPage,
-    fetchNextPage,
-    isFetchingNextPage,
-  } = useInfiniteQuery({
+  const query = useInfiniteQuery<Ephemeral[], Error>({
     queryKey: ['activity', filter],
-    queryFn: async ({ pageParam = 0 }) => {
+    queryFn: async ({ pageParam }) => {
+      const offset = typeof pageParam === 'number' ? pageParam : 0
       const result =
         filter === 'following'
-          ? await StoryClient.getFollowingActivityTimeline(20, pageParam)
-          : await StoryClient.getGlobalActivityTimeline(20, pageParam)
+          ? await StoryClient.getFollowingActivityTimeline(20, offset)
+          : await StoryClient.getGlobalActivityTimeline(20, offset)
 
       if (result.isError()) {
         throw new Error(result.getError())
@@ -45,7 +46,17 @@ export function Activity() {
     staleTime: 2 * 60 * 1000, // 2 minutes
   })
 
-  const allStories = data?.pages.flat() || []
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = query
+
+  const allStories: Ephemeral[] = getPagesFromData(data)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-bg-primary via-bg-secondary to-bg-tertiary">
@@ -111,7 +122,7 @@ export function Activity() {
         {/* Stories Timeline */}
         {allStories.length > 0 && (
           <div className="space-y-4">
-            {allStories.map((story: Story) => (
+            {allStories.map((story: Ephemeral) => (
               <StoryCard key={story.id} story={story} />
             ))}
           </div>

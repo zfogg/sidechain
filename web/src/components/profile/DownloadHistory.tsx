@@ -1,8 +1,7 @@
-import { useQuery } from '@tanstack/react-query'
+import { useInfiniteQuery } from '@tanstack/react-query'
 import { DownloadClient } from '@/api/DownloadClient'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
-import { formatTime } from '@/utils/format'
 
 /**
  * DownloadHistory - Display user's download history
@@ -16,24 +15,30 @@ import { formatTime } from '@/utils/format'
  */
 export function DownloadHistory() {
   const {
-    data: downloads = [],
+    data,
     isLoading,
     error,
     hasNextPage,
     fetchNextPage,
     isFetchingNextPage,
-  } = useQuery<any>({
+  } = useInfiniteQuery<any, Error, any, string[], number>({
     queryKey: ['downloadHistory'],
-    queryFn: async () => {
-      const result = await DownloadClient.getDownloadHistory(20, 0)
+    queryFn: async ({ pageParam = 0 }) => {
+      const result = await DownloadClient.getDownloadHistory(20, Number(pageParam))
       if (result.isError()) {
         throw new Error(result.getError())
       }
-      return result.getValue()
+      return result.getValue() || []
     },
+    getNextPageParam: (lastPage: any) => {
+      return lastPage.length === 20 ? (lastPage.length || 0) + 20 : undefined
+    },
+    initialPageParam: 0,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 30 * 60 * 1000, // 30 minutes
   })
+
+  const downloads = data?.pages.flat() || []
 
   if (isLoading) {
     return (
