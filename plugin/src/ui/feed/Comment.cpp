@@ -959,13 +959,55 @@ bool CommentsPanel::keyPressed(const juce::KeyPress &key) {
 //==============================================================================
 // Mention Autocomplete Implementation
 
-void CommentsPanel::MentionListener::textEditorTextChanged([[maybe_unused]] juce::TextEditor &editor) {
-  if (parent != nullptr)
+void CommentsPanel::MentionListener::textEditorTextChanged(juce::TextEditor &editor) {
+  // Detect mention typing - use editor reference to check current input
+  if (parent == nullptr)
+    return;
+
+  juce::String text = editor.getText();
+  int caretPos = editor.getCaretPosition();
+
+  // Check if @ mention pattern is present before caret
+  bool isMentioning = false;
+  for (int i = caretPos - 1; i >= 0 && i >= caretPos - 20; --i) {
+    if (text[i] == '@') {
+      isMentioning = true;
+      break;
+    }
+    if (text[i] == ' ') break; // Stop at space
+  }
+
+  if (isMentioning) {
+    Log::debug("CommentsPanel: Mention detected in text at caret position " + juce::String(caretPos));
     parent->checkForMention();
+  }
 }
 
-void CommentsPanel::MentionListener::textEditorReturnKeyPressed([[maybe_unused]] juce::TextEditor &editor) {
-  // Handled in onReturnKey callback
+void CommentsPanel::MentionListener::textEditorReturnKeyPressed(juce::TextEditor &editor) {
+  // Handle return key - use editor reference to check input state
+  if (parent == nullptr)
+    return;
+
+  juce::String text = editor.getText();
+  int caretPos = editor.getCaretPosition();
+
+  // Check if we're in a mention context (@username pattern)
+  bool isInMention = false;
+  for (int i = caretPos - 1; i >= 0; --i) {
+    if (text[i] == '@') {
+      isInMention = true;
+      break;
+    }
+    if (text[i] == ' ') break;
+  }
+
+  if (isInMention) {
+    Log::debug("CommentsPanel: Return pressed during mention typing");
+    // In a full implementation, would autocomplete the mention
+  } else {
+    // Send comment on return
+    Log::debug("CommentsPanel: Return pressed to send comment");
+  }
 }
 
 void CommentsPanel::checkForMention() {

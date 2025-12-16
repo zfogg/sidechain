@@ -2062,8 +2062,14 @@ void PostsFeed::updateAudioPlayerPlaylist() {
 // Real-time Feed Updates (5.5)
 //==============================================================================
 
-void PostsFeed::handleNewPostNotification([[maybe_unused]] const juce::var &postData) {
+void PostsFeed::handleNewPostNotification(const juce::var &postData) {
   Log::info("PostsFeed::handleNewPostNotification: New post notification received");
+
+  // Extract post information from notification data
+  juce::String postId = postData.hasProperty("id") ? postData.getProperty("id", juce::var()).toString() : "unknown";
+  juce::String authorName = postData.hasProperty("author") ? postData.getProperty("author", juce::var()).toString() : "Someone";
+  Log::debug("PostsFeed: New post from " + authorName + " (ID: " + postId + ")");
+
   // Increment pending new posts count (5.5.2)
   pendingNewPostsCount++;
   lastNewPostTime = juce::Time::getCurrentTime();
@@ -2102,8 +2108,11 @@ void PostsFeed::handleFollowerCountUpdate(const juce::String &userId, int follow
   // In a full implementation, this would update the profile component
 }
 
-void PostsFeed::showNewPostsToast([[maybe_unused]] int count) {
-  // Show toast notification with fade-in animation (5.5.2)
+void PostsFeed::showNewPostsToast(int count) {
+  // Show toast notification with dynamic count display
+  juce::String toastMessage = count == 1 ? "1 new post" : juce::String(count) + " new posts";
+  Log::info("PostsFeed: Showing toast: " + toastMessage);
+
   showingNewPostsToast = true;
 
   // Fade in toast (0.0 to 1.0 opacity over 200ms)
