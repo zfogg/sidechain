@@ -6,24 +6,9 @@
 #include "../../util/Async.h"
 #include "../../util/Log.h"
 #include "../NetworkClient.h"
+#include "Common.h"
 
-//==============================================================================
-// Helper to build API endpoint paths consistently
-static juce::String buildApiPath(const char *path) {
-  return juce::String("/api/v1") + path;
-}
-
-// Helper to convert RequestResult to Outcome<juce::var>
-static Outcome<juce::var> requestResultToOutcome(const NetworkClient::RequestResult &result) {
-  if (result.success && result.isSuccess()) {
-    return Outcome<juce::var>::ok(result.data);
-  } else {
-    juce::String errorMsg = result.getUserFriendlyError();
-    if (errorMsg.isEmpty())
-      errorMsg = "Request failed (HTTP " + juce::String(result.httpStatus) + ")";
-    return Outcome<juce::var>::error(errorMsg);
-  }
-}
+using namespace Sidechain::Network::Api;
 
 //==============================================================================
 void NetworkClient::registerAccount(const juce::String &email, const juce::String &username,
