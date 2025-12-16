@@ -179,7 +179,13 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     appStore.logout();
     showView(AppView::Authentication);
   };
-  postsFeedComponent->onStartRecording = [this]() { showView(AppView::Recording); };
+  postsFeedComponent->onStartRecording = [this]() {
+    // Clear challenge context for regular recording
+    if (recordingComponent) {
+      recordingComponent->setChallengeId("");
+    }
+    showView(AppView::Recording);
+  };
   postsFeedComponent->onGoToDiscovery = [this]() { showView(AppView::Discovery); };
   postsFeedComponent->onSendPostToMessage = [this](const FeedPost &post) { showSharePostToMessage(post); };
   postsFeedComponent->onSoundClicked = [this](const juce::String &soundId) { showSoundPage(soundId); };
@@ -219,7 +225,13 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   // Create DraftsView
   draftsViewComponent = std::make_unique<DraftsView>(&appStore);
   draftsViewComponent->onClose = [this]() { navigateBack(); };
-  draftsViewComponent->onNewRecording = [this]() { showView(AppView::Recording); };
+  draftsViewComponent->onNewRecording = [this]() {
+    // Clear challenge context for regular recording from drafts
+    if (recordingComponent) {
+      recordingComponent->setChallengeId("");
+    }
+    showView(AppView::Recording);
+  };
   draftsViewComponent->onDraftSelected = [this](const juce::var &draft) {
     if (uploadComponent && draft.isObject()) {
       // Load draft data into upload component
@@ -451,8 +463,10 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   midiChallengeDetailComponent->setCurrentUserId(appStore.getState().user.userId);
   midiChallengeDetailComponent->onBackPressed = [this]() { navigateBack(); };
   midiChallengeDetailComponent->onSubmitEntry = [this]() {
-    // Navigate to recording view with challenge context
-    // TODO: Pass challenge ID to recording component for constraint validation
+    // Pass challenge ID to recording component for constraint validation
+    if (recordingComponent && challengeIdToView.isNotEmpty()) {
+      recordingComponent->setChallengeId(challengeIdToView);
+    }
     showView(AppView::Recording);
   };
   midiChallengeDetailComponent->onEntrySelected = [](const juce::String &entryId) {
@@ -849,7 +863,13 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
       showView(AppView::ProfileSetup); // Fallback to setup if no user ID
     }
   };
-  headerComponent->onRecordClicked = [this]() { showView(AppView::Recording); };
+  headerComponent->onRecordClicked = [this]() {
+    // Clear challenge context for regular recording
+    if (recordingComponent) {
+      recordingComponent->setChallengeId("");
+    }
+    showView(AppView::Recording);
+  };
   headerComponent->onStoryClicked = [this]() { showView(AppView::StoryRecording); };
   headerComponent->onMessagesClicked = [this]() { showView(AppView::Messages); };
   headerComponent->onProfileStoryClicked = [this]() {
@@ -2223,9 +2243,17 @@ void SidechainAudioProcessorEditor::loadLoginState() {
     *unsubscriber = appStore.subscribeToUser([this, unsubscriber, fetchAttempts](const Sidechain::Stores::UserState &userState) {
       // Check if fetch is complete (either success or failure)
       if (!userState.isFetchingProfile) {
-        // If we got an error with expired token, invalidate and show auth
-        if (!userState.userError.isEmpty() && userState.userError.containsIgnoreCase("expired")) {
-          Log::warn("loadLoginState: Auth token expired, invalidating token and showing auth screen");
+        // If we got an auth error, invalidate token and show auth screen
+        // Check for various auth error patterns: expired, invalid, unauthorized, invalid claims
+        bool isAuthError = !userState.userError.isEmpty() &&
+                          (userState.userError.containsIgnoreCase("expired") ||
+                           userState.userError.containsIgnoreCase("invalid token") ||
+                           userState.userError.containsIgnoreCase("unauthorized") ||
+                           userState.userError.containsIgnoreCase("invalid claims") ||
+                           userState.userError.containsIgnoreCase("401"));
+
+        if (isAuthError) {
+          Log::warn("loadLoginState: Auth error detected, invalidating token and showing auth screen: " + userState.userError);
 
           // Clear the invalid token from persistent storage
           auto appProperties =
