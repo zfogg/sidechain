@@ -6,6 +6,7 @@
 #include "network/WebSocketClient.h"
 #include "stores/ChatStore.h"
 #include "stores/DraftStorage.h"
+#include "stores/PostsStore.h"
 #include "stores/UserDataStore.h"
 #include "ui/animations/ViewTransitionManager.h"
 #include "ui/auth/Auth.h"
@@ -252,7 +253,7 @@ private:
   //==============================================================================
   // Centralized stores
   std::unique_ptr<UserDataStore> userDataStore;
-  std::unique_ptr<Sidechain::Stores::FeedStore> feedStore;
+  std::unique_ptr<Sidechain::Stores::PostsStore> postsStore;
   // ChatStore is a singleton, accessed via getInstance()
 
   // Legacy user state (to be removed as we migrate to UserDataStore)

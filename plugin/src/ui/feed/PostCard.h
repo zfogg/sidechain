@@ -15,7 +15,7 @@
 class NetworkClient;
 namespace Sidechain {
 namespace Stores {
-class FeedStore;
+class PostsStore;
 }
 } // namespace Sidechain
 
@@ -68,14 +68,14 @@ public:
    */
   void setNetworkClient(NetworkClient *client);
 
-  /** Set the FeedStore for reactive state updates (Task 2.5)
-   * @param store Pointer to the FeedStore instance
+  /** Set the PostsStore for reactive state updates (Task 2.5)
+   * @param store Pointer to the PostsStore instance
    */
-  void setFeedStore(Sidechain::Stores::FeedStore *store);
+  void setPostsStore(Sidechain::Stores::PostsStore *store);
 
   //==============================================================================
-  // Update UI state (not persisted to FeedStore)
-  // Note: Post data updates now come automatically via FeedStore subscription
+  // Update UI state (not persisted to PostsStore)
+  // Note: Post data updates now come automatically via PostsStore subscription
   // (Task 2.5)
 
   /** Set the playback progress indicator
@@ -303,8 +303,8 @@ private:
   //==============================================================================
   FeedPost post;
 
-  // FeedStore subscription for reactive updates (Task 2.5)
-  Sidechain::Stores::FeedStore *feedStore = nullptr;
+  // PostsStore subscription for reactive updates (Task 2.5)
+  Sidechain::Stores::PostsStore *postsStore = nullptr;
   std::function<void()> storeUnsubscribe;
 
   // UI state
@@ -353,8 +353,8 @@ private:
   void handleEmojiSelected(const juce::String &emoji);
 
   //==============================================================================
-  // FeedStore subscription (type-safe lazy pattern)
-  void subscribeToFeedStore();
+  // PostsStore subscription (type-safe lazy pattern)
+  void subscribeToPostsStore();
 
   //==============================================================================
   // Hit testing helpers
