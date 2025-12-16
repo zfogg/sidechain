@@ -41,6 +41,11 @@ export function ChatProvider({ children }: ChatProviderProps) {
       setError(null)
 
       try {
+        // Validate user has required fields
+        if (!user.id) {
+          throw new Error('User ID is not set. Please log in again.')
+        }
+
         // Create Stream Chat instance if not already created
         let client = chatClient
         if (!client) {
@@ -49,19 +54,29 @@ export function ChatProvider({ children }: ChatProviderProps) {
         }
 
         // Get Stream token from backend
+        console.log('[Chat] Fetching Stream token for user:', user.id)
         const result = await AuthClient.getStreamToken()
         if (result.isError()) {
           throw new Error(`Failed to get Stream token: ${result.getError()}`)
         }
 
         const streamToken = result.getValue().token
+        if (!streamToken) {
+          throw new Error('Stream token is empty')
+        }
+
         setStreamToken(streamToken)
 
         // Connect user to Stream Chat
+        console.log('[Chat] Connecting user to Stream Chat:', {
+          userId: user.id,
+          displayName: user.displayName,
+        })
+
         await client.connectUser(
           {
             id: user.id,
-            name: user.displayName,
+            name: user.displayName || user.username,
             image: user.profilePictureUrl,
           },
           streamToken
@@ -69,10 +84,14 @@ export function ChatProvider({ children }: ChatProviderProps) {
 
         setStreamConnected(true)
         setIsConnecting(false)
-        console.log('[Chat] Connected to Stream Chat')
+        console.log('[Chat] Successfully connected to Stream Chat')
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to connect to Stream Chat'
-        console.error('[Chat] Error:', errorMessage)
+        console.error('[Chat] Connection failed:', {
+          error: errorMessage,
+          userId: user.id,
+          hasToken: !!token,
+        })
         setError(errorMessage)
         setIsConnecting(false)
       }
