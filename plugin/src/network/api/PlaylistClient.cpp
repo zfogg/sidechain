@@ -6,6 +6,9 @@
 #include "../../util/Async.h"
 #include "../../util/Log.h"
 #include "../NetworkClient.h"
+#include "Common.h"
+
+using namespace Sidechain::Network::Api;
 
 //==============================================================================
 void NetworkClient::createPlaylist(const juce::String &name, const juce::String &description, bool isCollaborative,
@@ -20,14 +23,14 @@ void NetworkClient::createPlaylist(const juce::String &name, const juce::String 
   obj->setProperty("is_collaborative", isCollaborative);
   obj->setProperty("is_public", isPublic);
 
-  post("/api/v1/playlists", juce::var(obj), callback);
+  post(buildApiPath("/playlists"), juce::var(obj), callback);
 }
 
 void NetworkClient::getPlaylists(const juce::String &filter, ResponseCallback callback) {
   if (callback == nullptr)
     return;
 
-  juce::String endpoint = "/api/v1/playlists";
+  juce::String endpoint = buildApiPath("/playlists");
   if (filter.isNotEmpty() && filter != "all")
     endpoint += "?filter=" + filter;
 
@@ -38,7 +41,7 @@ void NetworkClient::getPlaylist(const juce::String &playlistId, ResponseCallback
   if (callback == nullptr)
     return;
 
-  get("/api/v1/playlists/" + playlistId, callback);
+  get(buildApiPath("/playlists/") + playlistId, callback);
 }
 
 void NetworkClient::addPlaylistEntry(const juce::String &playlistId, const juce::String &postId, int position,
@@ -48,12 +51,12 @@ void NetworkClient::addPlaylistEntry(const juce::String &playlistId, const juce:
   if (position >= 0)
     obj->setProperty("position", position);
 
-  post("/api/v1/playlists/" + playlistId + "/entries", juce::var(obj), callback);
+  post(buildApiPath("/playlists/") + playlistId + "/entries", juce::var(obj), callback);
 }
 
 void NetworkClient::removePlaylistEntry(const juce::String &playlistId, const juce::String &entryId,
                                         ResponseCallback callback) {
-  del("/api/v1/playlists/" + playlistId + "/entries/" + entryId, callback);
+  del(buildApiPath("/playlists/") + playlistId + "/entries/" + entryId, callback);
 }
 
 void NetworkClient::addPlaylistCollaborator(const juce::String &playlistId, const juce::String &userId,
@@ -62,10 +65,10 @@ void NetworkClient::addPlaylistCollaborator(const juce::String &playlistId, cons
   obj->setProperty("user_id", userId);
   obj->setProperty("role", role);
 
-  post("/api/v1/playlists/" + playlistId + "/collaborators", juce::var(obj), callback);
+  post(buildApiPath("/playlists/") + playlistId + "/collaborators", juce::var(obj), callback);
 }
 
 void NetworkClient::removePlaylistCollaborator(const juce::String &playlistId, const juce::String &userId,
                                                ResponseCallback callback) {
-  del("/api/v1/playlists/" + playlistId + "/collaborators/" + userId, callback);
+  del(buildApiPath("/playlists/") + playlistId + "/collaborators/" + userId, callback);
 }
