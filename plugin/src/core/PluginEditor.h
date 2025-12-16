@@ -4,13 +4,8 @@
 #include "network/NetworkClient.h"
 #include "network/StreamChatClient.h"
 #include "network/WebSocketClient.h"
-#include "stores/ChallengeStore.h"
-#include "stores/ChatStore.h"
+#include "stores/AppStore.h"
 #include "stores/DraftStorage.h"
-#include "stores/PlaylistStore.h"
-#include "stores/PostsStore.h"
-#include "stores/UploadStore.h"
-#include "stores/UserDataStore.h"
 #include "ui/animations/ViewTransitionManager.h"
 #include "ui/auth/Auth.h"
 #include "ui/challenges/MidiChallengeDetail.h"
@@ -254,13 +249,8 @@ private:
   void handleLogout();
 
   //==============================================================================
-  // Centralized stores
-  std::unique_ptr<UserDataStore> userDataStore;
-  std::unique_ptr<Sidechain::Stores::PostsStore> postsStore;
-  std::shared_ptr<Sidechain::Stores::PlaylistStore> playlistStore;
-  std::shared_ptr<Sidechain::Stores::UploadStore> uploadStore;
-  std::shared_ptr<Sidechain::Stores::ChallengeStore> challengeStore;
-  // ChatStore is a singleton, accessed via getInstance()
+  // Unified AppStore (single source of truth for all application state)
+  Sidechain::Stores::AppStore &appStore = Sidechain::Stores::AppStore::getInstance();
 
   // Legacy user state (to be removed as we migrate to UserDataStore)
   juce::String username;
