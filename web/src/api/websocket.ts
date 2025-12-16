@@ -40,7 +40,13 @@ export class BackendWebSocketClient {
     // Convert http/https URL to ws/wss
     const wsProtocol = baseUrl.startsWith('https') ? 'wss' : 'ws'
     const cleanUrl = baseUrl.replace(/^https?:\/\//, '')
-    this.url = `${wsProtocol}://${cleanUrl}/api/v1/ws`
+
+    // Strip /api/v1 suffix if already present to avoid doubling
+    const baseWithoutApi = cleanUrl.endsWith('/api/v1')
+      ? cleanUrl.slice(0, -7) // Remove '/api/v1'
+      : cleanUrl
+
+    this.url = `${wsProtocol}://${baseWithoutApi}/api/v1/ws`
   }
 
   /**

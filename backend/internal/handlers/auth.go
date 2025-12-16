@@ -573,16 +573,21 @@ func (h *AuthHandlers) GetStreamToken(c *gin.Context) {
 		return
 	}
 
+	// Use database user ID consistently for Stream Chat (frontend expects this)
+	// This ensures the token's user_id claim matches the frontend's user.id
+	streamUserID := user.ID
+
 	// Create user in getstream.io if needed
-	if err := h.stream.CreateUser(user.StreamUserID, user.Username); err != nil {
+	if err := h.stream.CreateUser(streamUserID, user.Username); err != nil {
 		// Log but continue - user might already exist
-		fmt.Printf("Warning: failed to create/getstream.io user: %v\n", err)
+		fmt.Printf("[Auth] Warning: failed to create getstream.io user: %v\n", err)
 	}
 
 	// Generate token (24 hour expiration)
 	expiration := time.Now().Add(24 * time.Hour)
-	token, err := h.stream.CreateToken(user.StreamUserID, expiration)
+	token, err := h.stream.CreateToken(streamUserID, expiration)
 	if err != nil {
+		fmt.Printf("[Auth] Error creating Stream token: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "token_generation_failed", "message": err.Error()})
 		return
 	}
@@ -594,10 +599,12 @@ func (h *AuthHandlers) GetStreamToken(c *gin.Context) {
 		return
 	}
 
+	fmt.Printf("[Auth] Generated Stream token for user:%s (userID=%s)\n", user.Username, streamUserID)
+
 	c.JSON(http.StatusOK, gin.H{
 		"token":      token,
 		"api_key":    apiKey,
-		"user_id":    user.StreamUserID,
+		"user_id":    streamUserID,
 		"expires_at": expiration,
 	})
 }
