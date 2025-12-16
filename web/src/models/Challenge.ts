@@ -58,8 +58,50 @@ export interface Challenge {
   updatedAt: Date
 }
 
+// API DTO Types
+interface ChallengeConstraintJSON {
+  type: 'bpm' | 'key' | 'genre' | 'daw' | 'duration'
+  value: string | number
+  min_value?: number
+  max_value?: number
+}
+
+interface ChallengeSubmissionJSON {
+  id: string
+  user_id: string
+  username: string
+  display_name: string
+  user_avatar_url?: string
+  audio_url: string
+  midi_url?: string
+  vote_count: number
+  has_user_voted: boolean
+  submitted_at: string
+}
+
+export interface ChallengeJSON {
+  id: string
+  title: string
+  description: string
+  creator_id: string
+  creator_username: string
+  status: ChallengeStatus
+  constraints: ChallengeConstraintJSON[]
+  start_date: string
+  end_date: string
+  voting_end_date: string
+  submissions: ChallengeSubmissionJSON[]
+  submission_count: number
+  prize?: string
+  prize_description?: string
+  participant_count: number
+  view_count: number
+  created_at: string
+  updated_at: string
+}
+
 export class ChallengeModel {
-  static fromJson(json: any): Challenge {
+  static fromJson(json: ChallengeJSON): Challenge {
     if (!json) throw new Error('Cannot create Challenge from null/undefined')
 
     return {
@@ -70,7 +112,7 @@ export class ChallengeModel {
       creatorUsername: json.creator_username || '',
 
       status: (json.status || 'active') as ChallengeStatus,
-      constraints: (json.constraints || []).map((c: any) => ({
+      constraints: (json.constraints || []).map((c) => ({
         type: c.type,
         value: c.value,
         minValue: c.min_value,
@@ -81,7 +123,7 @@ export class ChallengeModel {
       endDate: new Date(json.end_date || Date.now() + 7 * 24 * 60 * 60 * 1000),
       votingEndDate: new Date(json.voting_end_date || Date.now() + 14 * 24 * 60 * 60 * 1000),
 
-      submissions: (json.submissions || []).map((s: any) => ({
+      submissions: (json.submissions || []).map((s) => ({
         id: s.id,
         userId: s.user_id,
         username: s.username,
@@ -109,7 +151,7 @@ export class ChallengeModel {
     return challenge.id !== '' && challenge.title !== ''
   }
 
-  static toJson(challenge: Challenge): any {
+  static toJson(challenge: Challenge): Partial<ChallengeJSON> {
     return {
       id: challenge.id,
       title: challenge.title,
