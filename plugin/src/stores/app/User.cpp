@@ -50,9 +50,12 @@ void AppStore::fetchUserProfile(bool forceRefresh) {
   });
 
   networkClient->getCurrentUser([this](Outcome<juce::var> result) {
+    Log::debug("fetchUserProfile callback: result.isOk=" + juce::String(result.isOk() ? "true" : "false"));
     if (result.isOk()) {
+      Log::debug("fetchUserProfile callback: Success");
       handleProfileFetchSuccess(result.getValue());
     } else {
+      Log::debug("fetchUserProfile callback: Error - " + result.getError());
       handleProfileFetchError(result.getError());
     }
   });
@@ -284,12 +287,12 @@ void AppStore::uploadProfilePicture(const juce::File &imageFile) {
 // Internal Helpers
 
 void AppStore::downloadProfileImage(const juce::String &url) {
-  if (url.isEmpty())
-    return;
-
-  // Download profile image for current user (get user ID from state)
-  auto currentState = getState();
-  downloadProfileImage(currentState.user.userId, url);
+  // For backward compatibility, extract userId from current state
+  // Called from refreshProfileImage() only
+  auto state = getState();
+  if (!state.user.userId.isEmpty()) {
+    downloadProfileImage(state.user.userId, url);
+  }
 }
 
 void AppStore::downloadProfileImage(const juce::String &userId, const juce::String &url) {
@@ -359,16 +362,18 @@ void AppStore::handleProfileFetchSuccess(const juce::var &data) {
   // Download profile image if URL changed
   if (!currentState.user.profilePictureUrl.isEmpty() &&
       (!currentState.user.profileImage.isValid() || currentState.user.isLoadingImage)) {
-    downloadProfileImage(currentState.user.profilePictureUrl);
+    downloadProfileImage(currentState.user.userId, currentState.user.profilePictureUrl);
   }
 }
 
 void AppStore::handleProfileFetchError(const juce::String &error) {
   Util::logError("AppStore", "Profile fetch failed: " + error);
+  Log::error("handleProfileFetchError called with error: " + error);
 
   updateUserState([error](UserState &state) {
     state.isFetchingProfile = false;
     state.userError = error;
+    Log::debug("handleProfileFetchError: Updated user state - isFetchingProfile=false, userError='" + error + "'");
   });
 }
 
