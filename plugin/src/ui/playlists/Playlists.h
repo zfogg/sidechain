@@ -6,8 +6,6 @@
 #include <JuceHeader.h>
 #include <memory>
 
-class NetworkClient;
-
 //==============================================================================
 /**
  * Playlists displays user's playlists and allows creating new ones (R.3.1.3.1)
@@ -33,8 +31,6 @@ public:
   void scrollBarMoved(juce::ScrollBar *scrollBar, double newRangeStart) override;
 
   //==============================================================================
-  // Network client integration
-  void setNetworkClient(NetworkClient *client);
   void setCurrentUserId(const juce::String &userId) {
     currentUserId = userId;
   }
@@ -63,7 +59,6 @@ private:
 
   //==============================================================================
   // Data
-  NetworkClient *networkClient = nullptr;
   juce::String currentUserId;
   juce::Array<Playlist> playlists;
   bool isLoading = false;

@@ -45,6 +45,9 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   // Initialize network client with development config
   networkClient = std::make_unique<NetworkClient>(NetworkClient::Config::development());
 
+  // Initialize PlaylistStore with NetworkClient
+  playlistStore = std::make_shared<Sidechain::Stores::PlaylistStore>(networkClient.get());
+
   // Wire up UserDataStore with NetworkClient
   userDataStore->setNetworkClient(networkClient.get());
 
@@ -358,7 +361,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   //==========================================================================
   // Create Playlists
   playlistsComponent = std::make_unique<Playlists>();
-  playlistsComponent->setNetworkClient(networkClient.get());
+  playlistsComponent->bindToStore(playlistStore);
   if (userDataStore)
     playlistsComponent->setCurrentUserId(userDataStore->getUserId());
   playlistsComponent->onBackPressed = [this]() { navigateBack(); };
