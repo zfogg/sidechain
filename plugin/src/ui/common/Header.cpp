@@ -29,9 +29,22 @@ void Header::setUserInfo(const juce::String &user, const juce::String &picUrl) {
   Log::info("Header::setUserInfo: Setting user info - username: " + user);
   username = user;
 
-  // Fetch avatar image via AppStore (handles all three cache levels: memory -> file -> HTTP)
+  // Fetch avatar image via AppStore reactive observable (with caching)
   if (picUrl.isNotEmpty() && appStore) {
-    appStore->getImage(picUrl, [this](const juce::Image &) { repaint(); });
+    juce::Component::SafePointer<Header> safeThis(this);
+    appStore->loadImageObservable(picUrl).subscribe(
+        [safeThis](const juce::Image &image) {
+          if (safeThis == nullptr)
+            return;
+          if (image.isValid()) {
+            safeThis->repaint();
+          }
+        },
+        [safeThis](std::exception_ptr) {
+          if (safeThis == nullptr)
+            return;
+          Log::warn("Header: Failed to load profile image");
+        });
   }
 
   profilePicUrl = picUrl;
@@ -236,9 +249,23 @@ void Header::drawCircularProfilePic(juce::Graphics &g, juce::Rectangle<int> boun
     g.drawEllipse(bounds.toFloat().expanded(2.0f), 2.5f);
   }
 
-  // Use unified getImage() - handles all three cache levels automatically (memory -> file -> HTTP)
+  // Use reactive observable to load profile image (with caching)
   if (appStore && profilePicUrl.isNotEmpty()) {
-    appStore->getImage(profilePicUrl, [this](const juce::Image &) { repaint(); });
+    juce::Component::SafePointer<Header> safeThis(this);
+    appStore->loadImageObservable(profilePicUrl)
+        .subscribe(
+            [safeThis](const juce::Image &image) {
+              if (safeThis == nullptr)
+                return;
+              if (image.isValid()) {
+                safeThis->repaint();
+              }
+            },
+            [safeThis](std::exception_ptr) {
+              if (safeThis == nullptr)
+                return;
+              Log::warn("Header: Failed to load profile image in paint");
+            });
   }
 
   // Draw placeholder circle (will be replaced with actual image when loaded)
