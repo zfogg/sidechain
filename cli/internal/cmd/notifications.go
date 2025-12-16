@@ -28,9 +28,10 @@ var notificationsListCmd = &cobra.Command{
 var notificationsWatchCmd = &cobra.Command{
 	Use:   "watch",
 	Short: "Watch for real-time notifications",
+	Long:  "Stream real-time notifications via WebSocket",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// TODO: Implement WebSocket streaming for real-time notifications
-		return nil
+		watcherService := service.NewNotificationWatcherService()
+		return watcherService.WatchNotifications(cmd.Context())
 	},
 }
 
