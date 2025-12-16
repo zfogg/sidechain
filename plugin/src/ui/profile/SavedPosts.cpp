@@ -36,6 +36,9 @@ SavedPosts::SavedPosts() {
 
 SavedPosts::~SavedPosts() {
   scrollBar.removeListener(this);
+  if (storeUnsubscriber) {
+    storeUnsubscriber();
+  }
   // RAII: Arrays will clean up automatically
 }
 
@@ -120,18 +123,41 @@ void SavedPosts::setNetworkClient(NetworkClient *client) {
   networkClient = client;
 }
 
-void SavedPosts::loadSavedPosts() {
-  savedPosts.clear();
-  currentOffset = 0;
-  hasMore = true;
-  errorMessage.clear();
-  postCards.clear();
+void SavedPosts::setSavedPostsStore(std::shared_ptr<Sidechain::Stores::SavedPostsStore> store) {
+  // Unsubscribe from old store
+  if (storeUnsubscriber) {
+    storeUnsubscriber();
+  }
 
-  fetchSavedPosts();
+  savedPostsStore = store;
+
+  if (savedPostsStore) {
+    // Subscribe to store updates
+    storeUnsubscriber = savedPostsStore->subscribe([this](const Sidechain::Stores::SavedPostsState &state) {
+      savedPosts = state.posts;
+      isLoading = state.isLoading;
+      errorMessage = state.error;
+      rebuildPostCards();
+      repaint();
+    });
+  }
+}
+
+void SavedPosts::loadSavedPosts() {
+  if (savedPostsStore) {
+    savedPostsStore->loadSavedPosts();
+  } else if (networkClient) {
+    // Fallback to direct network client if store not available
+    fetchSavedPosts();
+  }
 }
 
 void SavedPosts::refresh() {
-  loadSavedPosts();
+  if (savedPostsStore) {
+    savedPostsStore->refreshSavedPosts();
+  } else if (networkClient) {
+    loadSavedPosts();
+  }
 }
 
 //==============================================================================
@@ -271,7 +297,7 @@ void SavedPosts::fetchSavedPosts() {
 }
 
 void SavedPosts::loadMoreIfNeeded() {
-  if (isLoading || !hasMore)
+  if (isLoading)
     return;
 
   auto contentHeight = calculateContentHeight();
@@ -280,7 +306,12 @@ void SavedPosts::loadMoreIfNeeded() {
   // Load more when scrolled near the bottom
   if (scrollOffset + visibleHeight >= contentHeight - 200) {
     Log::debug("SavedPosts: Loading more posts...");
-    fetchSavedPosts();
+    if (savedPostsStore) {
+      savedPostsStore->loadMoreSavedPosts();
+    } else if (networkClient) {
+      // Fallback to direct network client
+      fetchSavedPosts();
+    }
   }
 }
 
@@ -359,27 +390,30 @@ void SavedPosts::setupPostCardCallbacks(PostCard *card) {
 
   // Handle unsave - remove from list
   card->onSaveToggled = [this](const FeedPost &post, bool saved) {
-    if (!saved && networkClient != nullptr) {
-      Log::info("SavedPosts: Unsaving post: " + post.id);
-
-      networkClient->unsavePost(post.id, [this, postId = post.id](Outcome<juce::var> result) {
-        if (result.isError()) {
-          Log::error("SavedPosts: Failed to unsave post: " + result.getError());
-          return;
-        }
-
-        // Remove from list
-        juce::MessageManager::callAsync([this, postId]() {
-          for (int i = 0; i < savedPosts.size(); ++i) {
-            if (savedPosts[i].id == postId) {
-              savedPosts.remove(i);
-              rebuildPostCards();
-              repaint();
-              break;
-            }
+    if (!saved) {
+      if (savedPostsStore) {
+        Log::info("SavedPosts: Unsaving post: " + post.id);
+        savedPostsStore->unsavePost(post.id);
+      } else if (networkClient != nullptr) {
+        Log::info("SavedPosts: Unsaving post: " + post.id);
+        networkClient->unsavePost(post.id, [this, postId = post.id](Outcome<juce::var> result) {
+          if (result.isError()) {
+            Log::error("SavedPosts: Failed to unsave post: " + result.getError());
+            return;
           }
+          // Remove from list
+          juce::MessageManager::callAsync([this, postId]() {
+            for (int i = 0; i < savedPosts.size(); ++i) {
+              if (savedPosts[i].id == postId) {
+                savedPosts.remove(i);
+                rebuildPostCards();
+                repaint();
+                break;
+              }
+            }
+          });
         });
-      });
+      }
     }
   };
 
