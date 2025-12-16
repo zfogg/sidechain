@@ -1,6 +1,5 @@
 import { useParams } from 'react-router-dom'
-import { Channel } from 'stream-chat-react'
-import { useChatContext } from 'stream-chat-react'
+import { Channel, Chat, useChatContext } from 'stream-chat-react'
 import { useEffect, useState } from 'react'
 import { ChannelList } from '@/components/chat/ChannelList'
 import { MessageThread } from '@/components/chat/MessageThread'
@@ -9,18 +8,10 @@ import { Spinner } from '@/components/ui/spinner'
 import { Button } from '@/components/ui/button'
 
 /**
- * Messages - Direct messaging page
- *
- * Features:
- * - Channel list sidebar with conversations
- * - New message dialog with user search
- * - Message thread view with inline replies
- * - File uploads via message input
- * - Typing indicators
- * - Reactions on messages
- * - Search within conversation
+ * MessagesContent - Inner component that uses Chat context
+ * Must be wrapped in Chat component to use useChatContext
  */
-export function Messages() {
+function MessagesContent() {
   const { channelId } = useParams<{ channelId: string }>()
   const { client } = useChatContext()
   const [channel, setChannel] = useState<any>(null)
@@ -125,4 +116,23 @@ export function Messages() {
       <NewMessageDialog isOpen={showNewMessageDialog} onClose={() => setShowNewMessageDialog(false)} />
     </div>
   )
+}
+
+/**
+ * Messages - Direct messaging page
+ *
+ * Features:
+ * - Channel list sidebar with conversations
+ * - New message dialog with user search
+ * - Message thread view with inline replies
+ * - File uploads via message input
+ * - Typing indicators
+ * - Reactions on messages
+ * - Search within conversation
+ *
+ * Note: Wrapped by ChatProvider at app level which provides Chat context
+ */
+export function Messages() {
+  // MessagesContent is already wrapped in Chat context from ChatProvider
+  return <MessagesContent />
 }
