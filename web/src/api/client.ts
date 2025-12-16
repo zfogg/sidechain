@@ -86,48 +86,48 @@ export class ApiClient {
   /**
    * GET request with Outcome<T> return type
    */
-  async get<T>(url: string, params?: Record<string, any>): Promise<Outcome<T>> {
+  async get<T>(url: string, params?: Record<string, string | number | boolean | (string | number)[]>): Promise<Outcome<T>> {
     try {
       const response = await this.client.get<T>(url, { params });
       return Outcome.ok(response.data);
     } catch (error) {
-      return this.handleError<T>(error);
+      return this.handleError<T>(error as Error | axios.AxiosError);
     }
   }
 
   /**
    * POST request with Outcome<T> return type
    */
-  async post<T>(url: string, data?: any): Promise<Outcome<T>> {
+  async post<T>(url: string, data?: object): Promise<Outcome<T>> {
     try {
       const response = await this.client.post<T>(url, data);
       return Outcome.ok(response.data);
     } catch (error) {
-      return this.handleError<T>(error);
+      return this.handleError<T>(error as Error | axios.AxiosError);
     }
   }
 
   /**
    * PUT request with Outcome<T> return type
    */
-  async put<T>(url: string, data?: any): Promise<Outcome<T>> {
+  async put<T>(url: string, data?: object): Promise<Outcome<T>> {
     try {
       const response = await this.client.put<T>(url, data);
       return Outcome.ok(response.data);
     } catch (error) {
-      return this.handleError<T>(error);
+      return this.handleError<T>(error as Error | axios.AxiosError);
     }
   }
 
   /**
    * PATCH request with Outcome<T> return type
    */
-  async patch<T>(url: string, data?: any): Promise<Outcome<T>> {
+  async patch<T>(url: string, data?: object): Promise<Outcome<T>> {
     try {
       const response = await this.client.patch<T>(url, data);
       return Outcome.ok(response.data);
     } catch (error) {
-      return this.handleError<T>(error);
+      return this.handleError<T>(error as Error | axios.AxiosError);
     }
   }
 
@@ -139,14 +139,14 @@ export class ApiClient {
       const response = await this.client.delete<T>(url);
       return Outcome.ok(response.data);
     } catch (error) {
-      return this.handleError<T>(error);
+      return this.handleError<T>(error as Error | axios.AxiosError);
     }
   }
 
   /**
    * Handle errors and convert to Outcome
    */
-  private handleError<T>(error: any): Outcome<T> {
+  private handleError<T>(error: Error | axios.AxiosError): Outcome<T> {
     if (axios.isAxiosError(error)) {
       const message = error.response?.data?.message ||
                       error.response?.data?.error ||
