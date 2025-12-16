@@ -62,11 +62,39 @@ export function NewMessageDialog({ isOpen, onClose }: { isOpen: boolean; onClose
 
       setIsCreatingChannel(true)
       try {
-        // Create a channel with the selected user
-        // Channel ID is typically "user_id_1-user_id_2" format (sorted)
-        const userIds = [currentUser.id, targetUser.id].sort()
-        const channelId = `direct-${userIds.join('-')}`
+        // Step 1: Sync the target user to Stream Chat with backend admin credentials
+        // This ensures they exist in Stream Chat before channel creation
+        const syncResponse = await fetch(`${import.meta.env.VITE_API_URL}/auth/sync-user/${targetUser.id}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+            'Content-Type': 'application/json',
+          },
+        })
 
+        if (!syncResponse.ok) {
+          const error = await syncResponse.json()
+          console.error('Failed to sync user to Stream Chat:', error)
+          // Continue anyway - user might already be synced
+        }
+
+        // Step 2: Create a deterministic channel ID using hash of sorted user IDs
+        // Channel ID must be ≤64 characters for Stream Chat
+        const userIds = [currentUser.id, targetUser.id].sort()
+        const combinedIds = userIds.join('|')
+
+        // Simple hash function to create a short, deterministic ID
+        let hash = 0
+        for (let i = 0; i < combinedIds.length; i++) {
+          const char = combinedIds.charCodeAt(i)
+          hash = ((hash << 5) - hash) + char
+          hash = hash & hash // Convert to 32bit integer
+        }
+        const hashStr = Math.abs(hash).toString(36)
+        const channelId = `dm-${hashStr}`
+
+        // Step 3: Create the channel with both users as members
+        // Following the C++ plugin pattern: just create the channel directly
         const channel = client.channel('messaging', channelId, {
           members: [currentUser.id, targetUser.id],
         })

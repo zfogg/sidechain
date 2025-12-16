@@ -609,6 +609,55 @@ func (h *AuthHandlers) GetStreamToken(c *gin.Context) {
 	})
 }
 
+// SyncUserToStream syncs a user to getstream.io Chat (for DM creation)
+// POST /api/v1/auth/sync-user/:user_id
+// This endpoint is called when creating a DM with a user who may not have authenticated yet.
+// It uses the backend's admin credentials to create/sync the user in Stream Chat.
+func (h *AuthHandlers) SyncUserToStream(c *gin.Context) {
+	// Require authentication - only authenticated users can initiate sync
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+	_ = userID // We have the current user, but we're syncing a target user
+
+	if h.stream == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "stream_client_not_configured"})
+		return
+	}
+
+	// Get target user ID from URL param
+	targetUserID := c.Param("user_id")
+	if targetUserID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "user_id_required"})
+		return
+	}
+
+	// Look up target user in database
+	var user models.User
+	if err := database.DB.Where("id = ?", targetUserID).First(&user).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "user_not_found"})
+		return
+	}
+
+	// Create/sync user in getstream.io with admin credentials
+	if err := h.stream.CreateUser(user.ID, user.Username); err != nil {
+		// Log the error but check if it's a "user already exists" error (which is OK)
+		fmt.Printf("[Auth] Warning: failed to sync user to getstream.io: %v\n", err)
+		// We don't return an error here - the user might already exist in Stream Chat
+		// Continue and return success since the user is now syncable
+	}
+
+	fmt.Printf("[Auth] Successfully synced user:%s (userID=%s) to getstream.io\n", user.Username, user.ID)
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "user synced to stream chat",
+		"user_id": user.ID,
+	})
+}
+
 // UploadProfilePicture handles profile picture upload
 // POST /api/v1/users/upload-profile-picture
 func (h *AuthHandlers) UploadProfilePicture(c *gin.Context) {

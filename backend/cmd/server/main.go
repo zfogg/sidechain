@@ -391,6 +391,9 @@ func main() {
 			// getstream.io Chat token generation (protected)
 			authGroup.GET("/stream-token", authHandlers.AuthMiddleware(), authHandlers.GetStreamToken)
 
+			// Sync user to Stream Chat (for DM creation) (protected)
+			authGroup.POST("/sync-user/:user_id", authHandlers.AuthMiddleware(), authHandlers.SyncUserToStream)
+
 			// Two-Factor Authentication
 			twoFactor := authGroup.Group("/2fa")
 			{
