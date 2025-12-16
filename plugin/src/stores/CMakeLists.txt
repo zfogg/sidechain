@@ -18,8 +18,6 @@ add_library(SidechainStores STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Store.h
     ${CMAKE_CURRENT_SOURCE_DIR}/CommentStore.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CommentStore.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/FeedStore.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/FeedStore.h
     ${CMAKE_CURRENT_SOURCE_DIR}/PostsStore.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/PostsStore.h
     ${CMAKE_CURRENT_SOURCE_DIR}/UserStore.cpp
@@ -28,8 +26,6 @@ add_library(SidechainStores STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/ChatStore.h
     ${CMAKE_CURRENT_SOURCE_DIR}/DraftStore.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/DraftStore.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/UserDiscoveryStore.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/UserDiscoveryStore.h
     ${CMAKE_CURRENT_SOURCE_DIR}/NotificationStore.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/NotificationStore.h
     ${CMAKE_CURRENT_SOURCE_DIR}/UploadStore.cpp
