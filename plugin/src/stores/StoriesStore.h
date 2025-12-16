@@ -134,6 +134,11 @@ public:
   void refreshHighlights();
 
   //==============================================================================
+  // Story Actions
+  void markStoryAsViewed(const juce::String &storyId);
+  void deleteStory(const juce::String &storyId);
+
+  //==============================================================================
   // Current State Access - Feed
   bool isFeedLoading() const {
     return getState().feedIsLoading;
