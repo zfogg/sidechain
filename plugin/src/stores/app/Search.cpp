@@ -21,8 +21,11 @@ void AppStore::searchPosts(const juce::String &query) {
     state.search.results.offset = 0;
   });
 
+  // Get current genre filter from state
+  auto currentGenre = getState().search.results.currentGenre;
+
   // searchPosts signature: query, genre="", bpmMin=0, bpmMax=200, key="", limit=20, offset=0, callback
-  networkClient->searchPosts(query, "", 0, 200, "", 20, 0, [this, query](Outcome<juce::var> result) {
+  networkClient->searchPosts(query, currentGenre, 0, 200, "", 20, 0, [this, query](Outcome<juce::var> result) {
     if (result.isOk()) {
       const auto data = result.getValue();
       juce::Array<FeedPost> postsList;
@@ -115,7 +118,7 @@ void AppStore::loadMoreSearchResults() {
 
   // Search for posts if there were posts in the last search
   if (!currentState.search.results.posts.isEmpty()) {
-    networkClient->searchPosts(currentState.search.results.searchQuery, "", 0, 200, "", 20,
+    networkClient->searchPosts(currentState.search.results.searchQuery, currentState.search.results.currentGenre, 0, 200, "", 20,
                                currentState.search.results.offset, [this](Outcome<juce::var> result) {
                                  if (result.isOk()) {
                                    const auto data = result.getValue();
@@ -146,6 +149,7 @@ void AppStore::clearSearchResults() {
     state.search.results.posts.clear();
     state.search.results.users.clear();
     state.search.results.searchQuery = "";
+    state.search.results.currentGenre = "";
     state.search.results.isSearching = false;
     state.search.results.totalResults = 0;
     state.search.results.offset = 0;
@@ -195,9 +199,26 @@ void AppStore::loadGenres() {
 void AppStore::filterByGenre(const juce::String &genre) {
   Util::logInfo("AppStore", "Filtering by genre: " + genre);
 
-  // This would typically update search results to filter by genre
-  // For now, just log it
-  // TODO: Implement genre filtering in search
+  const auto &currentState = getState();
+
+  // If no active search query, nothing to filter
+  if (currentState.search.results.searchQuery.isEmpty()) {
+    Util::logWarning("AppStore", "No active search to filter by genre");
+    return;
+  }
+
+  // Store the selected genre in state and reset pagination
+  updateState([genre](AppState &state) {
+    state.search.results.currentGenre = genre;
+    state.search.results.offset = 0;
+    state.search.results.posts.clear();
+    state.search.results.totalResults = 0;
+    state.search.results.hasMoreResults = false;
+    Util::logInfo("AppStore", "Applied genre filter: " + genre);
+  });
+
+  // Re-run the search with the new genre filter
+  searchPosts(currentState.search.results.searchQuery);
 }
 
 } // namespace Stores
