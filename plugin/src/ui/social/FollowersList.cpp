@@ -9,6 +9,8 @@
 #include "../../util/Result.h"
 #include "../../util/UIHelpers.h"
 
+using namespace Sidechain::Stores;
+
 //==============================================================================
 // Forward declarations
 //==============================================================================
@@ -338,24 +340,14 @@ void FollowersList::handleFollowToggled(const FollowListUser &user, bool willFol
     }
   }
 
-  // Send to server
-  auto revertCallback = [this, userId = user.id, wasFollowing = user.isFollowing](Outcome<juce::var> responseOutcome) {
-    bool success = responseOutcome.isOk();
-    if (!success) {
-      // Revert on failure
-      for (auto *row : userRows) {
-        if (row->getUser().id == userId) {
-          row->setFollowing(wasFollowing);
-          break;
-        }
-      }
-    }
-  };
+  // Use AppStore to handle follow/unfollow with cache invalidation
+  auto &appStore = AppStore::getInstance();
 
-  if (willFollow)
-    networkClient->followUser(user.id, revertCallback);
-  else
-    networkClient->unfollowUser(user.id, revertCallback);
+  if (willFollow) {
+    appStore.followUser(user.id);
+  } else {
+    appStore.unfollowUser(user.id);
+  }
 }
 
 void FollowersList::timerCallback() {

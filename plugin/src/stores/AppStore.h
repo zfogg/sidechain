@@ -122,6 +122,22 @@ public:
   void updateFollowingCount(int count);
   void updatePostCount(int count);
 
+  /**
+   * Follow a user by userId (not by post).
+   * Invalidates user search cache so followers list updates immediately.
+   *
+   * @param userId User ID to follow
+   */
+  void followUser(const juce::String &userId);
+
+  /**
+   * Unfollow a user by userId.
+   * Invalidates user search cache so followers list updates immediately.
+   *
+   * @param userId User ID to unfollow
+   */
+  void unfollowUser(const juce::String &userId);
+
   //==============================================================================
   // Chat Methods (Chat.cpp)
 
