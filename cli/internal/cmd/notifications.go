@@ -1,0 +1,92 @@
+package cmd
+
+import (
+	"github.com/spf13/cobra"
+	"github.com/zfogg/sidechain/cli/pkg/service"
+)
+
+var (
+	notifPage     int
+	notifPageSize int
+)
+
+var notificationsCmd = &cobra.Command{
+	Use:   "notifications",
+	Short: "Notification commands",
+	Long:  "View and manage notifications",
+}
+
+var notificationsListCmd = &cobra.Command{
+	Use:   "list",
+	Short: "List notifications",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		notifService := service.NewNotificationService()
+		return notifService.ListNotifications(notifPage, notifPageSize)
+	},
+}
+
+var notificationsWatchCmd = &cobra.Command{
+	Use:   "watch",
+	Short: "Watch for real-time notifications",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		// TODO: Implement WebSocket streaming for real-time notifications
+		return nil
+	},
+}
+
+var notificationsCountCmd = &cobra.Command{
+	Use:   "count",
+	Short: "Show unread notification count",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		notifService := service.NewNotificationService()
+		return notifService.GetUnreadCount()
+	},
+}
+
+var notificationsMarkReadCmd = &cobra.Command{
+	Use:   "mark-read [notification-id]",
+	Short: "Mark notifications as read",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		notifService := service.NewNotificationService()
+
+		if len(args) == 0 {
+			// Mark all as read
+			return notifService.MarkAllAsRead()
+		}
+
+		// Mark specific notification as read
+		return notifService.MarkNotificationAsRead(args[0])
+	},
+}
+
+var notificationsPreferencesCmd = &cobra.Command{
+	Use:   "preferences [view|edit]",
+	Short: "Manage notification preferences",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		notifService := service.NewNotificationService()
+
+		action := "view"
+		if len(args) > 0 {
+			action = args[0]
+		}
+
+		if action == "edit" {
+			return notifService.EditPreferences()
+		}
+
+		return notifService.ViewPreferences()
+	},
+}
+
+func init() {
+	// Pagination flags
+	notificationsListCmd.Flags().IntVar(&notifPage, "page", 1, "Page number")
+	notificationsListCmd.Flags().IntVar(&notifPageSize, "page-size", 10, "Results per page")
+
+	// Add subcommands
+	notificationsCmd.AddCommand(notificationsListCmd)
+	notificationsCmd.AddCommand(notificationsWatchCmd)
+	notificationsCmd.AddCommand(notificationsCountCmd)
+	notificationsCmd.AddCommand(notificationsMarkReadCmd)
+	notificationsCmd.AddCommand(notificationsPreferencesCmd)
+}
