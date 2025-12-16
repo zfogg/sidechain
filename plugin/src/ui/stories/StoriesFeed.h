@@ -1,7 +1,9 @@
 #pragma once
 
 #include "../../models/FeedPost.h"
+#include "../../stores/StoriesStore.h"
 #include <JuceHeader.h>
+#include <memory>
 
 class NetworkClient;
 
@@ -98,6 +100,11 @@ public:
   bool hasOwnStory() const;
 
   //==============================================================================
+  // Store integration (reactive pattern)
+  void bindToStore(std::shared_ptr<Sidechain::Stores::StoriesStore> store);
+  void unbindFromStore();
+
+  //==============================================================================
   // Callbacks
 
   // Called when user taps on "Create Story" / own story
@@ -122,6 +129,10 @@ private:
   };
 
   std::vector<UserStories> userStoriesGroups;
+
+  // Store integration
+  std::shared_ptr<Sidechain::Stores::StoriesStore> storiesStore;
+  std::function<void()> storeUnsubscriber;
 
   // Scroll state
   float scrollOffset = 0.0f;
