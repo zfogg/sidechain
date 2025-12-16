@@ -3,7 +3,7 @@
 # Sidechain Makefile
 # Builds both the VST plugin (via CMake) and Go backend
 
-.PHONY: all install install-deps backend plugin clean test test-plugin-unit test-plugin-coverage help format format-check tidy tidy-check tidy-diff
+.PHONY: all install install-deps check-prefix backend cli plugin clean test test-plugin-unit test-plugin-coverage help format format-check tidy tidy-check tidy-diff
 
 # Default target
 all: backend plugin plugin-install
@@ -33,6 +33,8 @@ BUILD_DIR = plugin/build
 # Build type (defaults to Debug, can be overridden: make CMAKE_BUILD_TYPE=Release)
 CMAKE_BUILD_TYPE ?= Debug
 
+# Installation prefix (defaults to /usr on both macOS and Linux, can be overridden: make install PREFIX=/usr/local)
+PREFIX ?= /usr
 
 # Platform-specific settings
 ifeq ($(UNAME_S),Darwin)
@@ -73,10 +75,8 @@ install-juce:
 	fi
 
 # Backend targets
-backend: backend-deps
-	@echo "🔄 Building Go backend..."
-	@cd backend && go build -o bin/sidechain-server cmd/server/main.go
-	@echo "✅ Backend built successfully"
+backend: backend/bin/sidechain-server
+	@echo "✅ Backend ready"
 
 backend-deps:
 	@echo "📦 Installing Go dependencies..."
@@ -92,11 +92,30 @@ backend-dev:
 	@cd backend && go run cmd/server/main.go
 
 # Plugin targets using CMake
-plugin: plugin-configure
+plugin: $(BUILD_DIR)/CMakeCache.txt
 	@echo "🔄 Building VST plugin for $(PLATFORM) ($(CMAKE_BUILD_TYPE))..."
 	@cmake --build $(BUILD_DIR) --config $(CMAKE_BUILD_TYPE) --parallel
 	@echo "✅ Plugin built successfully"
 
+# CMakeCache.txt target - only reconfigure if cache is missing or source files change
+$(BUILD_DIR)/CMakeCache.txt: plugin/CMakeLists.txt
+	@echo "🔄 Configuring CMake build for $(PLATFORM) ($(CMAKE_BUILD_TYPE))..."
+	@mkdir -p $(BUILD_DIR)
+	@# Use Ninja if available, otherwise fall back to platform default
+	@if command -v ninja >/dev/null 2>&1; then \
+		echo "✅ Using Ninja generator (faster parallel builds)"; \
+		cmake -S plugin -B $(BUILD_DIR) -G Ninja -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE) -DCMAKE_EXPORT_COMPILE_COMMANDS=ON $(if $(SIDECHAIN_BUILD_STANDALONE),-DSIDECHAIN_BUILD_STANDALONE=ON,); \
+	else \
+		echo "⚠️  Ninja not found, using $(CMAKE_GENERATOR). Install ninja for faster builds."; \
+		cmake -S plugin -B $(BUILD_DIR) $(CMAKE_GENERATOR) -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE) -DCMAKE_EXPORT_COMPILE_COMMANDS=ON $(if $(SIDECHAIN_BUILD_STANDALONE),-DSIDECHAIN_BUILD_STANDALONE=ON,); \
+	fi
+	@echo "✅ CMake configuration complete"
+	@if [ -f "$(BUILD_DIR)/compile_commands.json" ]; then \
+		ln -sf "$(BUILD_DIR)/compile_commands.json" compile_commands.json 2>/dev/null || true; \
+		echo "✅ Linked compile_commands.json to project root"; \
+	fi
+
+# Explicit plugin-configure target for manual reconfiguration
 plugin-configure:
 	@echo "🔄 Configuring CMake build for $(PLATFORM) ($(CMAKE_BUILD_TYPE))..."
 	@# Use Ninja if available, otherwise fall back to platform default
@@ -142,11 +161,73 @@ plugin-rebuild: plugin-configure
 	@cmake --build $(BUILD_DIR) --config $(CMAKE_BUILD_TYPE) --parallel
 	@echo "✅ Plugin rebuilt successfully (dependencies cached)"
 
-# CMake install (use with sudo for system-wide install)
-install: plugin
-	@echo "📦 Installing plugin using cmake --install..."
-	@cmake --install $(BUILD_DIR) --config $(CMAKE_BUILD_TYPE)
-	@echo "✅ Plugin installed successfully"
+# Check if PREFIX is writable
+check-prefix:
+	@mkdir -p "$(PREFIX)"
+	@if [ ! -w "$(PREFIX)" ]; then \
+		echo "❌ Error: Cannot write to $(PREFIX) - you may need to run: sudo make install"; \
+		exit 1; \
+	fi
+
+# CMake install (respects PREFIX variable, default /usr)
+# Usage: sudo make install              # Uses /usr (requires sudo for system-wide install)
+#        make install PREFIX=/usr/local # User-level install to /usr/local (no sudo needed)
+#        make install PREFIX=$HOME/.local # Local user install (no sudo needed)
+#        make install-completions      # Install shell completions separately
+install: check-prefix backend/bin/sidechain-server cli/bin/sidechain plugin install-completions
+	@echo "📦 Installing backend server to $(PREFIX)/bin..."
+	@mkdir -p "$(PREFIX)/bin"
+	@cp backend/bin/sidechain-server "$(PREFIX)/bin/"
+	@echo "✅ Backend installed to $(PREFIX)/bin/sidechain-server"
+	@echo ""
+	@echo "📦 Installing CLI to $(PREFIX)/bin..."
+	@mkdir -p "$(PREFIX)/bin"
+	@cp cli/bin/sidechain "$(PREFIX)/bin/"
+	@echo "✅ CLI installed to $(PREFIX)/bin/sidechain"
+	@echo ""
+	@echo "📦 Installing VST plugin to $(PREFIX)/lib/vst3..."
+	@mkdir -p "$(PREFIX)/lib/vst3"
+	@rm -rf "$(PREFIX)/lib/vst3/Sidechain.vst3"
+	@cp -r "$(PLUGIN_OUTPUT)" "$(PREFIX)/lib/vst3/"
+	@echo "✅ VST plugin installed to $(PREFIX)/lib/vst3/Sidechain.vst3"
+ifeq ($(PLATFORM),macos)
+	@echo "📦 Installing AU plugin to $(PREFIX)/lib/au..."
+	@mkdir -p "$(PREFIX)/lib/au"
+	@rm -rf "$(PREFIX)/lib/au/Sidechain.component"
+	@cp -r "$(AU_OUTPUT)" "$(PREFIX)/lib/au/"
+	@echo "✅ AU plugin installed to $(PREFIX)/lib/au/Sidechain.component"
+endif
+	@echo ""
+	@echo "🎉 All components installed successfully to $(PREFIX)!"
+
+# Install shell completions
+install-completions:
+	@echo "📦 Installing shell completions to $(PREFIX)/share..."
+	@mkdir -p "$(PREFIX)/share/bash-completion/completions"
+	@cp cli/share/completions/bash/sidechain "$(PREFIX)/share/bash-completion/completions/"
+	@echo "✅ Bash completion installed to $(PREFIX)/share/bash-completion/completions/"
+	@mkdir -p "$(PREFIX)/share/zsh/site-functions"
+	@cp cli/share/completions/zsh/_sidechain "$(PREFIX)/share/zsh/site-functions/"
+	@echo "✅ Zsh completion installed to $(PREFIX)/share/zsh/site-functions/"
+	@mkdir -p "$(PREFIX)/share/fish/completions"
+	@cp cli/share/completions/fish/sidechain.fish "$(PREFIX)/share/fish/completions/"
+	@echo "✅ Fish completion installed to $(PREFIX)/share/fish/completions/"
+
+# CLI target
+cli: cli/bin/sidechain
+	@echo "✅ CLI ready"
+
+# Ensure CLI binary exists
+cli/bin/sidechain:
+	@echo "🔄 Building CLI..."
+	@cd cli && go build -o bin/sidechain ./cmd/main.go
+	@echo "✅ CLI built successfully"
+
+# Ensure backend binary exists
+backend/bin/sidechain-server: backend-deps
+	@echo "🔄 Building Go backend..."
+	@cd backend && go build -o bin/sidechain-server cmd/server/main.go
+	@echo "✅ Backend built successfully"
 
 plugin-install: plugin
 	@echo "📦 Installing VST plugin to $(PLUGIN_INSTALL_DIR)..."
