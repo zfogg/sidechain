@@ -80,6 +80,7 @@ func init() {
 	rootCmd.AddCommand(reportCmd)
 	rootCmd.AddCommand(muteCmd)
 	rootCmd.AddCommand(errorCmd)
+	rootCmd.AddCommand(recommendCmd)
 	rootCmd.AddCommand(adminCmd)
 	rootCmd.AddCommand(versionCmd)
 }
