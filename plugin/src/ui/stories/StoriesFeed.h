@@ -1,8 +1,8 @@
 #pragma once
-#include "../../stores/AppStore.h"
 
 #include "../../models/FeedPost.h"
 #include "../../stores/AppStore.h"
+#include "../common/AppStoreComponent.h"
 #include <JuceHeader.h>
 #include <memory>
 
@@ -64,9 +64,9 @@ struct StoryData {
  * - Story count badge for multiple stories
  * - Tap to open story viewer
  */
-class StoriesFeed : public juce::Component, public juce::Timer {
+class StoriesFeed : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::StoriesState>, public juce::Timer {
 public:
-  StoriesFeed();
+  StoriesFeed(Sidechain::Stores::AppStore *store = nullptr);
   ~StoriesFeed() override;
 
   //==============================================================================
@@ -101,18 +101,13 @@ public:
   bool hasOwnStory() const;
 
   //==============================================================================
-  // Store integration (reactive pattern)
-  void bindToStore(std::shared_ptr<Sidechain::Stores::AppStore> store);
-  void unbindFromStore();
-
-  //==============================================================================
   // Callbacks
-
-  // Called when user taps on "Create Story" / own story
   std::function<void()> onCreateStory;
-
-  // Called when user taps on a story circle (userId, storyIndex)
   std::function<void(const juce::String &userId, int storyIndex)> onStoryTapped;
+
+protected:
+  void onAppStateChanged(const Sidechain::Stores::StoriesState &state) override;
+  void subscribeToAppStore() override;
 
 private:
   //==============================================================================
@@ -131,10 +126,6 @@ private:
 
   std::vector<UserStories> userStoriesGroups;
 
-  // Store integration
-  std::shared_ptr<Sidechain::Stores::AppStore> storiesStore;
-  std::function<void()> storeUnsubscriber;
-
   // Scroll state
   float scrollOffset = 0.0f;
   float targetScrollOffset = 0.0f;
@@ -149,7 +140,6 @@ private:
   // Cached avatar images
   std::map<juce::String, juce::Image> avatarCache;
 
-  //==============================================================================
   // Drawing helpers
   void drawCreateStoryCircle(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawStoryCircle(juce::Graphics &g, juce::Rectangle<int> bounds, const UserStories &userStories, int index);

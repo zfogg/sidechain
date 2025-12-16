@@ -1,6 +1,8 @@
 #pragma once
 
 #include "../../models/Story.h"
+#include "../../stores/AppStore.h"
+#include "../common/AppStoreComponent.h"
 #include <JuceHeader.h>
 
 class NetworkClient;
@@ -12,9 +14,9 @@ class NetworkClient;
  * Similar to Instagram's highlights row on profile pages. Shows circular
  * icons with the highlight name below, scrollable horizontally.
  */
-class StoryHighlights : public juce::Component {
+class StoryHighlights : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::StoriesState> {
 public:
-  StoryHighlights();
+  StoryHighlights(Sidechain::Stores::AppStore *store = nullptr);
   ~StoryHighlights() override;
 
   //==============================================================================
@@ -54,6 +56,10 @@ public:
   int getPreferredHeight() const {
     return HIGHLIGHT_SIZE + NAME_HEIGHT + PADDING * 2;
   }
+
+protected:
+  void onAppStateChanged(const Sidechain::Stores::StoriesState &state) override;
+  void subscribeToAppStore() override;
 
 private:
   //==============================================================================

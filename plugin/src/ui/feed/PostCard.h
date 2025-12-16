@@ -4,9 +4,9 @@
 #include "../../stores/AppStore.h"
 #include "../../ui/animations/Easing.h"
 #include "../../ui/animations/TransitionAnimation.h"
+#include "../../ui/common/AppStoreComponent.h"
 #include "../../util/HoverState.h"
 #include "../../util/LongPressDetector.h"
-#include "../../util/reactive/ReactiveBoundComponent.h"
 #include "../common/WaveformImageView.h"
 #include "EmojiReactionsPanel.h"
 #include <JuceHeader.h>
@@ -32,9 +32,11 @@ class NetworkClient;
  * The component uses a callback-based API for actions to keep it decoupled
  * from network/audio code.
  */
-class PostCard : public Sidechain::Util::ReactiveBoundComponent, public juce::Timer, public juce::TooltipClient {
+class PostCard : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::PostsState>,
+                 public juce::Timer,
+                 public juce::TooltipClient {
 public:
-  PostCard();
+  PostCard(Sidechain::Stores::AppStore *store = nullptr);
   ~PostCard() override;
 
   //==============================================================================
@@ -283,10 +285,6 @@ public:
   juce::String getTooltip() override;
 
   //==============================================================================
-  // Store integration
-  void bindToStore(Sidechain::Stores::AppStore *store);
-
-  //==============================================================================
   // Layout constants
   static constexpr int CARD_HEIGHT = 160;
   static constexpr int AVATAR_SIZE = 56;
@@ -294,13 +292,13 @@ public:
   static constexpr int BUTTON_SIZE = 36;
   static constexpr int RIGHT_PANEL_WIDTH = 200;
 
+protected:
+  void onAppStateChanged(const Sidechain::Stores::PostsState &state) override;
+  void subscribeToAppStore() override;
+
 private:
   //==============================================================================
   FeedPost post;
-
-  // AppStore subscription for reactive updates
-  Sidechain::Stores::AppStore *appStore = nullptr;
-  std::function<void()> storeUnsubscribe;
 
   // UI state
   HoverState hoverState;
@@ -346,10 +344,6 @@ private:
   // Emoji reactions helpers
   void showEmojiReactionsPanel();
   void handleEmojiSelected(const juce::String &emoji);
-
-  //==============================================================================
-  // AppStore subscription (type-safe lazy pattern)
-  void subscribeToAppStore();
 
   //==============================================================================
   // Hit testing helpers

@@ -223,6 +223,36 @@ public:
   /** Subscribe to challenges state slice (for MidiChallenges component) */
   std::function<void()> subscribeToChallenges(std::function<void(const ChallengeState &)> callback);
 
+  /**
+   * Subscribe only to stories state changes
+   */
+  std::function<void()> subscribeToStories(std::function<void(const StoriesState &)> callback);
+
+  /**
+   * Subscribe only to upload state changes
+   */
+  std::function<void()> subscribeToUploads(std::function<void(const UploadState &)> callback);
+
+  /**
+   * Subscribe only to notification state changes
+   */
+  std::function<void()> subscribeToNotifications(std::function<void(const NotificationState &)> callback);
+
+  /**
+   * Subscribe only to search state changes
+   */
+  std::function<void()> subscribeToSearch(std::function<void(const SearchState &)> callback);
+
+  /**
+   * Subscribe only to followers state changes
+   */
+  std::function<void()> subscribeToFollowers(std::function<void(const FollowersState &)> callback);
+
+  /**
+   * Subscribe only to playlist state changes
+   */
+  std::function<void()> subscribeToPlaylists(std::function<void(const PlaylistState &)> callback);
+
 protected:
   /**
    * Constructor
@@ -280,6 +310,12 @@ private:
   std::map<uint64_t, std::function<void(const ChatState &)>> chatSubscribers;
   std::map<uint64_t, std::function<void(const DraftState &)>> draftSubscribers;
   std::map<uint64_t, std::function<void(const ChallengeState &)>> challengeSubscribers;
+  std::map<uint64_t, std::function<void(const StoriesState &)>> storiesSubscribers;
+  std::map<uint64_t, std::function<void(const UploadState &)>> uploadSubscribers;
+  std::map<uint64_t, std::function<void(const NotificationState &)>> notificationSubscribers;
+  std::map<uint64_t, std::function<void(const SearchState &)>> searchSubscribers;
+  std::map<uint64_t, std::function<void(const FollowersState &)>> followersSubscribers;
+  std::map<uint64_t, std::function<void(const PlaylistState &)>> playlistSubscribers;
   std::atomic<uint64_t> nextSliceSubscriberId{1};
 };
 

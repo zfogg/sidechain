@@ -7,7 +7,7 @@
 #include "../../util/Result.h"
 
 //==============================================================================
-MidiChallengeDetail::MidiChallengeDetail() {
+MidiChallengeDetail::MidiChallengeDetail(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   Log::info("MidiChallengeDetail: Initializing");
 
   // Set up scroll bar
@@ -29,6 +29,56 @@ void MidiChallengeDetail::setNetworkClient(NetworkClient *client) {
 
 void MidiChallengeDetail::setAudioPlayer(HttpAudioPlayer *player) {
   audioPlayer = player;
+}
+
+//==============================================================================
+// AppStoreComponent virtual methods
+
+void MidiChallengeDetail::subscribeToAppStore() {
+  Log::debug("MidiChallengeDetail: Subscribing to AppStore");
+
+  if (!appStore) {
+    Log::warn("MidiChallengeDetail: Cannot subscribe to null AppStore");
+    return;
+  }
+
+  // Subscribe to challenge state changes
+  juce::Component::SafePointer<MidiChallengeDetail> safeThis(this);
+  storeUnsubscriber =
+      appStore->subscribeToChallenges([safeThis](const Sidechain::Stores::ChallengeState &challengeState) {
+        // Check if component still exists
+        if (!safeThis)
+          return;
+
+        // Schedule UI update on message thread for thread safety
+        juce::MessageManager::callAsync([safeThis, challengeState]() {
+          // Double-check component still exists after async dispatch
+          if (!safeThis)
+            return;
+
+          safeThis->onAppStateChanged(challengeState);
+        });
+      });
+
+  Log::debug("MidiChallengeDetail: Successfully subscribed to AppStore");
+}
+
+void MidiChallengeDetail::onAppStateChanged(const Sidechain::Stores::ChallengeState &state) {
+  // Update UI when challenge state changes in the store
+  // Could refresh the current challenge if it's been updated
+  Log::debug("MidiChallengeDetail: Handling challenge state change");
+
+  // If the current challenge ID matches one in the state, refresh its data
+  if (!challengeId.isEmpty() && state.challenges.size() > 0) {
+    // Check if our challenge was updated
+    for (const auto &ch : state.challenges) {
+      juce::String chId = ch.getProperty("id", "").toString();
+      if (chId == challengeId) {
+        repaint();
+        break;
+      }
+    }
+  }
 }
 
 //==============================================================================

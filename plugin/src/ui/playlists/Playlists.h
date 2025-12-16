@@ -3,6 +3,7 @@
 
 #include "../../models/Playlist.h"
 #include "../../stores/AppStore.h"
+#include "../common/AppStoreComponent.h"
 #include "../../util/Colors.h"
 #include <JuceHeader.h>
 #include <memory>
@@ -17,9 +18,10 @@
  * - Filter tabs (All, Owned, Collaborated, Public)
  * - Click playlist → Open playlist detail
  */
-class Playlists : public juce::Component, public juce::ScrollBar::Listener {
+class Playlists : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::PlaylistState>,
+                  public juce::ScrollBar::Listener {
 public:
-  Playlists();
+  Playlists(Sidechain::Stores::AppStore *store = nullptr);
   ~Playlists() override;
 
   //==============================================================================
@@ -45,6 +47,10 @@ public:
   std::function<void()> onBackPressed;
   std::function<void(const juce::String &playlistId)> onPlaylistSelected; // Navigate to playlist detail
   std::function<void()> onCreatePlaylist;                                 // Show create playlist dialog
+
+protected:
+  void onAppStateChanged(const Sidechain::Stores::PlaylistState &state) override;
+  void subscribeToAppStore() override;
 
 private:
   //==============================================================================

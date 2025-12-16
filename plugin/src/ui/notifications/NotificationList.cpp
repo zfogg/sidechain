@@ -300,7 +300,8 @@ void NotificationRow::mouseDown(const juce::MouseEvent &) {
 // NotificationList implementation
 //==============================================================================
 
-NotificationList::NotificationList() {
+NotificationList::NotificationList(Sidechain::Stores::AppStore *store)
+    : Sidechain::UI::AppStoreComponent<Sidechain::Stores::NotificationState>(store) {
   Log::info("NotificationList: Initializing");
   addAndMakeVisible(viewport);
   viewport.setViewedComponent(&contentComponent, false);
@@ -313,6 +314,40 @@ NotificationList::NotificationList() {
 NotificationList::~NotificationList() {
   Log::debug("NotificationList: Destroying");
   viewport.getVerticalScrollBar().removeListener(this);
+}
+
+//==============================================================================
+// AppStoreComponent implementation
+
+void NotificationList::onAppStateChanged(const Sidechain::Stores::NotificationState &state) {
+  // Convert juce::Array<juce::var> to juce::Array<NotificationItem>
+  juce::Array<NotificationItem> notificationItems;
+  for (const auto &notifVar : state.notifications) {
+    notificationItems.add(NotificationItem::fromJson(notifVar));
+  }
+
+  setNotifications(notificationItems);
+  setUnseenCount(state.unseenCount);
+  setUnreadCount(state.unreadCount);
+  setLoading(state.isLoading);
+  if (state.notificationError.isNotEmpty()) {
+    setError(state.notificationError);
+  }
+}
+
+void NotificationList::subscribeToAppStore() {
+  if (!appStore)
+    return;
+
+  juce::Component::SafePointer<NotificationList> safeThis(this);
+  storeUnsubscriber = appStore->subscribeToNotifications([safeThis](const Sidechain::Stores::NotificationState &state) {
+    if (!safeThis)
+      return;
+    juce::MessageManager::callAsync([safeThis, state]() {
+      if (safeThis)
+        safeThis->onAppStateChanged(state);
+    });
+  });
 }
 
 //==============================================================================
@@ -481,8 +516,11 @@ void NotificationList::mouseDown(const juce::MouseEvent &event) {
     if (onCloseClicked)
       onCloseClicked();
   } else if (getMarkAllReadButtonBounds().contains(pos) && unreadCount > 0) {
-    // TODO: Update AppStore to mark all notifications as read
-    if (onMarkAllReadClicked) {
+    // Mark all notifications as read via AppStore
+    if (appStore) {
+      appStore->markNotificationsAsRead();
+    } else if (onMarkAllReadClicked) {
+      // Fallback to legacy callback if no store
       onMarkAllReadClicked();
     }
   }

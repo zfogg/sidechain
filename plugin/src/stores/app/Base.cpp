@@ -100,6 +100,90 @@ std::function<void()> AppStore::subscribeToChallenges(std::function<void(const C
   return [this, subscriberId]() { challengeSubscribers.erase(subscriberId); };
 }
 
+std::function<void()> AppStore::subscribeToStories(std::function<void(const StoriesState &)> callback) {
+  if (!callback)
+    return []() {};
+
+  auto subscriberId = nextSliceSubscriberId++;
+  storiesSubscribers[subscriberId] = callback;
+
+  // Call immediately with current stories state
+  callback(getState().stories);
+
+  // Return unsubscriber
+  return [this, subscriberId]() { storiesSubscribers.erase(subscriberId); };
+}
+
+std::function<void()> AppStore::subscribeToUploads(std::function<void(const UploadState &)> callback) {
+  if (!callback)
+    return []() {};
+
+  auto subscriberId = nextSliceSubscriberId++;
+  uploadSubscribers[subscriberId] = callback;
+
+  // Call immediately with current upload state
+  callback(getState().uploads);
+
+  // Return unsubscriber
+  return [this, subscriberId]() { uploadSubscribers.erase(subscriberId); };
+}
+
+std::function<void()> AppStore::subscribeToNotifications(std::function<void(const NotificationState &)> callback) {
+  if (!callback)
+    return []() {};
+
+  auto subscriberId = nextSliceSubscriberId++;
+  notificationSubscribers[subscriberId] = callback;
+
+  // Call immediately with current notification state
+  callback(getState().notifications);
+
+  // Return unsubscriber
+  return [this, subscriberId]() { notificationSubscribers.erase(subscriberId); };
+}
+
+std::function<void()> AppStore::subscribeToSearch(std::function<void(const SearchState &)> callback) {
+  if (!callback)
+    return []() {};
+
+  auto subscriberId = nextSliceSubscriberId++;
+  searchSubscribers[subscriberId] = callback;
+
+  // Call immediately with current search state
+  callback(getState().search);
+
+  // Return unsubscriber
+  return [this, subscriberId]() { searchSubscribers.erase(subscriberId); };
+}
+
+std::function<void()> AppStore::subscribeToFollowers(std::function<void(const FollowersState &)> callback) {
+  if (!callback)
+    return []() {};
+
+  auto subscriberId = nextSliceSubscriberId++;
+  followersSubscribers[subscriberId] = callback;
+
+  // Call immediately with current followers state
+  callback(getState().followers);
+
+  // Return unsubscriber
+  return [this, subscriberId]() { followersSubscribers.erase(subscriberId); };
+}
+
+std::function<void()> AppStore::subscribeToPlaylists(std::function<void(const PlaylistState &)> callback) {
+  if (!callback)
+    return []() {};
+
+  auto subscriberId = nextSliceSubscriberId++;
+  playlistSubscribers[subscriberId] = callback;
+
+  // Call immediately with current playlist state
+  callback(getState().playlists);
+
+  // Return unsubscriber
+  return [this, subscriberId]() { playlistSubscribers.erase(subscriberId); };
+}
+
 //==============================================================================
 // Helper Methods for State Updates
 

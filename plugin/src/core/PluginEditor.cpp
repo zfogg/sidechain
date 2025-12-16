@@ -203,8 +203,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
 
   //==========================================================================
   // Create Upload
-  uploadComponent = std::make_unique<Upload>(audioProcessor, *networkClient);
-  uploadComponent->bindToStore(&appStore);
+  uploadComponent = std::make_unique<Upload>(audioProcessor, *networkClient, &appStore);
   uploadComponent->onUploadComplete = [this]() {
     uploadComponent->reset();
     showView(AppView::PostsFeed);
@@ -218,7 +217,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
 
   //==========================================================================
   // Create DraftsView
-  draftsViewComponent = std::make_unique<DraftsView>();
+  draftsViewComponent = std::make_unique<DraftsView>(&appStore);
   draftsViewComponent->onClose = [this]() { navigateBack(); };
   draftsViewComponent->onNewRecording = [this]() { showView(AppView::Recording); };
   draftsViewComponent->onDraftSelected = [this](const juce::var &draft) {
@@ -289,7 +288,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
 
   //==========================================================================
   // Create StoryViewer
-  storyViewerComponent = std::make_unique<StoryViewer>();
+  storyViewerComponent = std::make_unique<StoryViewer>(&appStore);
   storyViewerComponent->setNetworkClient(networkClient.get());
   storyViewerComponent->setCurrentUserId(appStore.getState().user.userId);
   storyViewerComponent->onClose = [this]() { navigateBack(); };
@@ -445,7 +444,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
 
   //==========================================================================
   // Create SavedPosts component (P0 Social Feature)
-  savedPostsComponent = std::make_unique<SavedPosts>();
+  savedPostsComponent = std::make_unique<SavedPosts>(&appStore);
   savedPostsComponent->setNetworkClient(networkClient.get());
   savedPostsComponent->setCurrentUserId(appStore.getState().user.userId);
   savedPostsComponent->onBackPressed = [this]() { navigateBack(); };
@@ -468,7 +467,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
 
   //==========================================================================
   // Create ArchivedPosts component (Post Archive)
-  archivedPostsComponent = std::make_unique<ArchivedPosts>();
+  archivedPostsComponent = std::make_unique<ArchivedPosts>(&appStore);
   archivedPostsComponent->setNetworkClient(networkClient.get());
   archivedPostsComponent->setCurrentUserId(appStore.getState().user.userId);
   archivedPostsComponent->onBackPressed = [this]() { navigateBack(); };
@@ -589,7 +588,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
 
   //==========================================================================
   // Create NotificationSettings dialog
-  notificationSettingsDialog = std::make_unique<NotificationSettings>();
+  notificationSettingsDialog = std::make_unique<NotificationSettings>(&appStore);
   notificationSettingsDialog->setNetworkClient(networkClient.get());
   notificationSettingsDialog->onClose = []() {
     // Dialog handles its own cleanup - callback is just a notification
@@ -599,7 +598,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
 
   //==========================================================================
   // Create TwoFactorSettings dialog
-  twoFactorSettingsDialog = std::make_unique<TwoFactorSettings>();
+  twoFactorSettingsDialog = std::make_unique<TwoFactorSettings>(&appStore);
   twoFactorSettingsDialog->setNetworkClient(networkClient.get());
   twoFactorSettingsDialog->onClose = []() {
     // Dialog handles its own cleanup - callback is just a notification
@@ -610,7 +609,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
 
   //==========================================================================
   // Create ActivityStatusSettings dialog
-  activityStatusDialog = std::make_unique<ActivityStatusSettings>();
+  activityStatusDialog = std::make_unique<ActivityStatusSettings>(&appStore);
   activityStatusDialog->setNetworkClient(networkClient.get());
   activityStatusDialog->onClose = []() { Log::debug("ActivityStatusSettings dialog closed"); };
   // Not added as child - shown as modal overlay when needed

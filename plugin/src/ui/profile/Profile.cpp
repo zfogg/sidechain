@@ -86,7 +86,7 @@ bool UserProfile::isOwnProfile(const juce::String &currentUserId) const {
 //==============================================================================
 // Profile implementation
 //==============================================================================
-Profile::Profile() {
+Profile::Profile(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   Log::info("Profile: Initializing profile component");
 
   scrollBar = std::make_unique<juce::ScrollBar>(true);
@@ -1628,4 +1628,45 @@ static juce::String getInitialsFromName(const juce::String &name) {
   }
 
   return "?";
+}
+
+//==============================================================================
+// AppStoreComponent overrides
+//==============================================================================
+void Profile::onAppStateChanged(const Sidechain::Stores::UserState &state) {
+  // Update profile data from UserStore if viewing own profile
+  if (isOwnProfile() && currentUserId == state.userId) {
+    profile.id = state.userId;
+    profile.username = state.username;
+    profile.displayName = state.displayName;
+    profile.bio = state.bio;
+    profile.location = state.location;
+    profile.genre = state.genre;
+    profile.dawPreference = state.dawPreference;
+    profile.isPrivate = state.isPrivate;
+    profile.socialLinks = state.socialLinks;
+    profile.profilePictureUrl = state.profilePictureUrl;
+    profile.followerCount = state.followerCount;
+    profile.followingCount = state.followingCount;
+    profile.postCount = state.postCount;
+
+    // Update avatar image
+    if (state.profileImage.isValid()) {
+      avatarImage = state.profileImage;
+    }
+
+    repaint();
+  }
+}
+
+void Profile::subscribeToAppStore() {
+  juce::Component::SafePointer<Profile> safeThis(this);
+  storeUnsubscriber = appStore->subscribeToUser([safeThis](const Sidechain::Stores::UserState &state) {
+    if (!safeThis)
+      return;
+    juce::MessageManager::callAsync([safeThis, state]() {
+      if (safeThis)
+        safeThis->onAppStateChanged(state);
+    });
+  });
 }

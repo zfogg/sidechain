@@ -7,7 +7,7 @@
 #include "../../util/Validate.h"
 
 //==============================================================================
-EditProfile::EditProfile() {
+EditProfile::EditProfile(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   Log::info("EditProfile: Initializing");
   setupEditors();
   // Set size last to avoid resized() being called before components are created
@@ -16,9 +16,6 @@ EditProfile::EditProfile() {
 
 EditProfile::~EditProfile() {
   Log::debug("EditProfile: Destroying");
-  // Task 2.4: Unsubscribe from UserStore
-  if (userStoreUnsubscribe)
-    userStoreUnsubscribe();
 }
 
 //==============================================================================
@@ -144,10 +141,10 @@ void EditProfile::setupEditors() {
   addAndMakeVisible(profileSetupButton.get());
 }
 
-// Task 2.4: Show modal with current profile from UserStore
+// Show modal with current profile from UserStore
 void EditProfile::showWithCurrentProfile(juce::Component *parentComponent) {
-  if (!userStore) {
-    Log::error("EditProfile: Cannot show modal - UserStore not set!");
+  if (!appStore) {
+    Log::error("EditProfile: Cannot show modal - AppStore not set!");
     return;
   }
 
@@ -163,55 +160,34 @@ void EditProfile::showWithCurrentProfile(juce::Component *parentComponent) {
   showModal(parentComponent);
 }
 
-void EditProfile::setUserStore(Sidechain::Stores::AppStore *store) {
-  userStore = store;
-  if (userStore) {
-    Log::debug("EditProfile: UserStore set, subscribing to state changes");
-    // Task 2.4: Subscribe to UserStore for reactive updates
-    userStoreUnsubscribe = userStore->subscribe([this]([[maybe_unused]] const Sidechain::Stores::AppState &state) {
-      Log::debug("EditProfile: UserStore state updated");
-
-      // ReactiveBoundComponent will call repaint() automatically
-      // Update form if there are saved changes (e.g., username change
-      // completed)
-      if (!hasUnsavedChanges && isVisible()) {
-        // Refresh UI from updated UserStore state
-        juce::MessageManager::callAsync([this]() { populateFromUserStore(); });
-      }
-    });
-  } else {
-    Log::warn("EditProfile: UserStore is nullptr!");
-  }
-}
-
-// Task 2.4: Populate form from UserStore (not local state)
+// Populate form from UserStore (not local state)
 void EditProfile::populateFromUserStore() {
-  if (!userStore) {
-    Log::error("EditProfile: Cannot populate - UserStore not set!");
+  if (!appStore) {
+    Log::error("EditProfile: Cannot populate - AppStore not set!");
     return;
   }
 
-  const auto &state = userStore->getState();
+  const auto &state = appStore->getState().user;
 
   // Populate basic fields from UserStore
-  usernameEditor->setText(state.user.username, false);
-  displayNameEditor->setText(state.user.displayName, false);
-  bioEditor->setText(state.user.bio, false);
-  locationEditor->setText(state.user.location, false);
-  genreEditor->setText(state.user.genre, false);
-  dawEditor->setText(state.user.dawPreference, false);
-  privateAccountToggle->setToggleState(state.user.isPrivate, juce::dontSendNotification);
+  usernameEditor->setText(state.username, false);
+  displayNameEditor->setText(state.displayName, false);
+  bioEditor->setText(state.bio, false);
+  locationEditor->setText(state.location, false);
+  genreEditor->setText(state.genre, false);
+  dawEditor->setText(state.dawPreference, false);
+  privateAccountToggle->setToggleState(state.isPrivate, juce::dontSendNotification);
 
   // Store original username for change detection
-  originalUsername = state.user.username;
+  originalUsername = state.username;
 
   // Reset username validation state
   isUsernameValid = true;
   usernameError = "";
 
   // Parse social links from UserStore
-  if (state.user.socialLinks.isObject()) {
-    auto *obj = state.user.socialLinks.getDynamicObject();
+  if (state.socialLinks.isObject()) {
+    auto *obj = state.socialLinks.getDynamicObject();
     if (obj != nullptr) {
       instagramEditor->setText(obj->getProperty("instagram").toString(), false);
       soundcloudEditor->setText(obj->getProperty("soundcloud").toString(), false);
@@ -221,8 +197,8 @@ void EditProfile::populateFromUserStore() {
   }
 
   // Load avatar from UserStore
-  if (state.user.profileImage.isValid()) {
-    avatarImage = state.user.profileImage;
+  if (state.profileImage.isValid()) {
+    avatarImage = state.profileImage;
   }
 
   updateHasChanges();
@@ -280,15 +256,15 @@ juce::var EditProfile::getSocialLinksFromEditors() const {
   return juce::var(linksObj);
 }
 
-// Task 2.4: Compare editors to UserStore to detect changes
+// Compare editors to UserStore to detect changes
 void EditProfile::updateHasChanges() {
-  if (!userStore) {
+  if (!appStore) {
     hasUnsavedChanges = false;
     saveButton->setEnabled(false);
     return;
   }
 
-  const auto &state = userStore->getState();
+  const auto &state = appStore->getState().user;
 
   // Get current editor values
   juce::String currentUsername = usernameEditor->getText().trim().toLowerCase();
@@ -304,11 +280,11 @@ void EditProfile::updateHasChanges() {
   bool usernameChanged = currentUsername != originalUsername;
 
   // Compare all fields to UserStore state
-  hasUnsavedChanges = (usernameChanged || currentDisplayName != state.user.displayName ||
-                       currentBio != state.user.bio || currentLocation != state.user.location ||
-                       currentGenre != state.user.genre || currentDaw != state.user.dawPreference ||
-                       currentPrivate != state.user.isPrivate || pendingAvatarPath.isNotEmpty() ||
-                       juce::JSON::toString(currentSocialLinks) != juce::JSON::toString(state.user.socialLinks));
+  hasUnsavedChanges =
+      (usernameChanged || currentDisplayName != state.displayName || currentBio != state.bio ||
+       currentLocation != state.location || currentGenre != state.genre || currentDaw != state.dawPreference ||
+       currentPrivate != state.isPrivate || pendingAvatarPath.isNotEmpty() ||
+       juce::JSON::toString(currentSocialLinks) != juce::JSON::toString(state.socialLinks));
 
   // Can only save if there are changes AND username is valid (if changed) AND
   // not currently saving
@@ -421,11 +397,11 @@ void EditProfile::drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds) {
     g.setColour(Colors::textPrimary);
     g.setFont(juce::FontOptions(32.0f).withStyle("Bold"));
     juce::String initial = "?";
-    if (userStore) {
-      const auto &state = userStore->getState();
-      initial = state.user.displayName.isEmpty()
-                    ? (state.user.username.isEmpty() ? "?" : state.user.username.substring(0, 1).toUpperCase())
-                    : state.user.displayName.substring(0, 1).toUpperCase();
+    if (appStore) {
+      const auto &state = appStore->getState().user;
+      initial = state.displayName.isEmpty()
+                    ? (state.username.isEmpty() ? "?" : state.username.substring(0, 1).toUpperCase())
+                    : state.displayName.substring(0, 1).toUpperCase();
     }
     g.drawText(initial, bounds, juce::Justification::centred);
   }
@@ -549,10 +525,10 @@ void EditProfile::textEditorTextChanged(juce::TextEditor &editor) {
 }
 
 //==============================================================================
-// Task 2.4: Save editor values to UserStore
+// Save editor values to UserStore
 void EditProfile::handleSave() {
-  if (!userStore || !hasUnsavedChanges) {
-    Log::warn("EditProfile: Cannot save - UserStore not set or no changes");
+  if (!appStore || !hasUnsavedChanges) {
+    Log::warn("EditProfile: Cannot save - AppStore not set or no changes");
     return;
   }
 
@@ -579,9 +555,9 @@ void EditProfile::handleSave() {
 
   // Update profile data (all fields except username)
   juce::String avatarUrl =
-      pendingAvatarPath.isNotEmpty() ? pendingAvatarPath : userStore->getState().user.profilePictureUrl;
-  Sidechain::Stores::AppStore::getInstance().updateProfileComplete(newDisplayName, newBio, newLocation, newGenre,
-                                                                   newDaw, newSocialLinks, newPrivate, avatarUrl);
+      pendingAvatarPath.isNotEmpty() ? pendingAvatarPath : appStore->getState().user.profilePictureUrl;
+  appStore->updateProfileComplete(newDisplayName, newBio, newLocation, newGenre, newDaw, newSocialLinks, newPrivate,
+                                  avatarUrl);
 
   // Reset form state
   hasUnsavedChanges = false;
@@ -596,7 +572,7 @@ void EditProfile::handleSave() {
 }
 
 void EditProfile::validateUsername(const juce::String &username) {
-  // Task 2.4: Compare to originalUsername (from UserStore)
+  // Compare to originalUsername (from UserStore)
   if (username == originalUsername) {
     isUsernameValid = true;
     usernameError = "";
@@ -643,12 +619,12 @@ void EditProfile::handlePhotoSelect() {
                          updateHasChanges();
                          repaint();
 
-                         // Task 2.4: Upload via UserStore instead of callback
-                         if (userStore != nullptr) {
-                           Log::debug("EditProfile: Uploading profile picture via UserStore");
-                           Sidechain::Stores::AppStore::getInstance().uploadProfilePicture(selectedFile);
+                         // Upload via AppStore
+                         if (appStore != nullptr) {
+                           Log::debug("EditProfile: Uploading profile picture via AppStore");
+                           appStore->uploadProfilePicture(selectedFile);
                          } else {
-                           Log::warn("EditProfile: UserStore not set for profile picture upload");
+                           Log::warn("EditProfile: AppStore not set for profile picture upload");
                          }
                        });
 }
@@ -669,5 +645,28 @@ void EditProfile::closeDialog() {
     setVisible(false);
     if (auto *parent = getParentComponent())
       parent->removeChildComponent(this);
+  });
+}
+
+//==============================================================================
+// AppStoreComponent overrides
+//==============================================================================
+void EditProfile::onAppStateChanged(const Sidechain::Stores::UserState &state) {
+  // Update form if there are saved changes (e.g., username change completed)
+  if (!hasUnsavedChanges && isVisible()) {
+    // Refresh UI from updated UserStore state
+    populateFromUserStore();
+  }
+}
+
+void EditProfile::subscribeToAppStore() {
+  juce::Component::SafePointer<EditProfile> safeThis(this);
+  storeUnsubscriber = appStore->subscribeToUser([safeThis](const Sidechain::Stores::UserState &state) {
+    if (!safeThis)
+      return;
+    juce::MessageManager::callAsync([safeThis, state]() {
+      if (safeThis)
+        safeThis->onAppStateChanged(state);
+    });
   });
 }

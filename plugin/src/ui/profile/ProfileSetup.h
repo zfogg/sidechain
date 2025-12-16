@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../../stores/AppStore.h"
+#include "../common/AppStoreComponent.h"
 #include <JuceHeader.h>
 
 //==============================================================================
@@ -17,9 +19,9 @@
  * This component is shown after initial authentication to help users
  * complete their profile before accessing the main feed.
  */
-class ProfileSetup : public juce::Component {
+class ProfileSetup : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::UserState> {
 public:
-  ProfileSetup();
+  ProfileSetup(Sidechain::Stores::AppStore *store = nullptr);
   ~ProfileSetup() override;
 
   void paint(juce::Graphics &) override;
@@ -59,6 +61,12 @@ public:
 
   /** Reset upload state to allow new uploads */
   void resetUploadState();
+
+protected:
+  //==============================================================================
+  // AppStoreComponent overrides
+  void onAppStateChanged(const Sidechain::Stores::UserState &state) override;
+  void subscribeToAppStore() override;
 
 private:
   juce::String username;

@@ -1,5 +1,6 @@
 #include "SavedPosts.h"
 #include "../../network/NetworkClient.h"
+#include "../../stores/AppStore.h"
 #include "../../util/Log.h"
 #include "../feed/PostCard.h"
 
@@ -28,7 +29,7 @@ inline juce::Colour error() {
 } // namespace
 
 //==============================================================================
-SavedPosts::SavedPosts() {
+SavedPosts::SavedPosts(AppStore *store) : AppStoreComponent(store) {
   addAndMakeVisible(scrollBar);
   scrollBar.addListener(this);
   scrollBar.setRangeLimits(0.0, 1.0);
@@ -36,7 +37,37 @@ SavedPosts::SavedPosts() {
 
 SavedPosts::~SavedPosts() {
   scrollBar.removeListener(this);
-  // RAII: Arrays will clean up automatically
+}
+
+//==============================================================================
+void SavedPosts::onAppStateChanged(const PostsState &state) {
+  // Update saved posts from state
+  savedPosts.clear();
+  for (const auto &post : state.savedPosts.posts) {
+    savedPosts.add(post);
+  }
+
+  isLoading = state.savedPosts.isLoading;
+  errorMessage = state.savedPosts.error;
+  hasMore = state.savedPosts.hasMore;
+
+  rebuildPostCards();
+  repaint();
+}
+
+void SavedPosts::subscribeToAppStore() {
+  if (!appStore)
+    return;
+
+  juce::Component::SafePointer<SavedPosts> safeThis(this);
+  storeUnsubscriber = appStore->subscribeToFeed([safeThis](const PostsState &state) {
+    if (!safeThis)
+      return;
+    juce::MessageManager::callAsync([safeThis, state]() {
+      if (safeThis)
+        safeThis->onAppStateChanged(state);
+    });
+  });
 }
 
 //==============================================================================
@@ -121,16 +152,14 @@ void SavedPosts::setNetworkClient(NetworkClient *client) {
 }
 
 void SavedPosts::loadSavedPosts() {
-  // TODO: use AppStore instead of direct NetworkClient
-  if (networkClient) {
-    fetchSavedPosts();
+  if (appStore) {
+    appStore->loadSavedPosts();
   }
 }
 
 void SavedPosts::refresh() {
-  // TODO: use AppStore instead of direct NetworkClient
-  if (networkClient) {
-    loadSavedPosts();
+  if (appStore) {
+    appStore->loadSavedPosts();
   }
 }
 
@@ -271,7 +300,7 @@ void SavedPosts::fetchSavedPosts() {
 }
 
 void SavedPosts::loadMoreIfNeeded() {
-  if (isLoading)
+  if (isLoading || !hasMore)
     return;
 
   auto contentHeight = calculateContentHeight();
@@ -280,9 +309,8 @@ void SavedPosts::loadMoreIfNeeded() {
   // Load more when scrolled near the bottom
   if (scrollOffset + visibleHeight >= contentHeight - 200) {
     Log::debug("SavedPosts: Loading more posts...");
-    // TODO: use AppStore instead
-    if (networkClient) {
-      fetchSavedPosts();
+    if (appStore) {
+      appStore->loadMoreSavedPosts();
     }
   }
 }
@@ -362,43 +390,16 @@ void SavedPosts::setupPostCardCallbacks(PostCard *card) {
 
   // Handle unsave - remove from list
   card->onSaveToggled = [this](const FeedPost &post, bool saved) {
-    if (!saved && networkClient != nullptr) {
+    if (!saved && appStore != nullptr) {
       Log::info("SavedPosts: Unsaving post: " + post.id);
-      networkClient->unsavePost(post.id, [this, postId = post.id](Outcome<juce::var> result) {
-        if (result.isError()) {
-          Log::error("SavedPosts: Failed to unsave post: " + result.getError());
-          return;
-        }
-        // Remove from list
-        juce::MessageManager::callAsync([this, postId]() {
-          for (int i = 0; i < savedPosts.size(); ++i) {
-            if (savedPosts[i].id == postId) {
-              savedPosts.remove(i);
-              rebuildPostCards();
-              repaint();
-              break;
-            }
-          }
-        });
-      });
+      appStore->unsavePost(post.id);
     }
   };
 
   // Like functionality
   card->onLikeToggled = [this](const FeedPost &post, bool liked) {
-    if (networkClient == nullptr)
-      return;
-
-    if (liked) {
-      networkClient->likePost(post.id, "", [](Outcome<juce::var> result) {
-        if (result.isError())
-          Log::error("SavedPosts: Like failed: " + result.getError());
-      });
-    } else {
-      networkClient->unlikePost(post.id, [](Outcome<juce::var> result) {
-        if (result.isError())
-          Log::error("SavedPosts: Unlike failed: " + result.getError());
-      });
+    if (appStore != nullptr) {
+      appStore->toggleLike(post.id);
     }
   };
 }

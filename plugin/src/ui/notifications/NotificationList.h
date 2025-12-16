@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../../stores/AppStore.h"
+#include "../../ui/common/AppStoreComponent.h"
 #include "../../util/HoverState.h"
 #include "NotificationItem.h"
 #include <JuceHeader.h>
@@ -52,10 +54,12 @@ private:
  * - "Mark all as read" button
  * - Empty state when no notifications
  * - Loading state while fetching
+ * - Reactive updates from AppStore NotificationState
  */
-class NotificationList : public juce::Component, public juce::ScrollBar::Listener {
+class NotificationList : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::NotificationState>,
+                         public juce::ScrollBar::Listener {
 public:
-  NotificationList();
+  NotificationList(Sidechain::Stores::AppStore *store = nullptr);
   ~NotificationList() override;
 
   //==============================================================================
@@ -87,6 +91,12 @@ public:
   static constexpr int HEADER_HEIGHT = 50;
   static constexpr int PREFERRED_WIDTH = 360;
   static constexpr int MAX_HEIGHT = 500;
+
+protected:
+  //==============================================================================
+  // AppStoreComponent overrides
+  void onAppStateChanged(const Sidechain::Stores::NotificationState &state) override;
+  void subscribeToAppStore() override;
 
 private:
   //==============================================================================

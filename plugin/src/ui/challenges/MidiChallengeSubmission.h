@@ -2,6 +2,7 @@
 
 #include "../../models/MidiChallenge.h"
 #include "../../util/Colors.h"
+#include "../common/AppStoreComponent.h"
 #include <JuceHeader.h>
 
 class NetworkClient;
@@ -20,9 +21,10 @@ class SidechainAudioProcessor;
  * - Success confirmation
  * - Reuses existing Upload component for audio/MIDI capture
  */
-class MidiChallengeSubmission : public juce::Component {
+class MidiChallengeSubmission : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::ChallengeState> {
 public:
-  MidiChallengeSubmission(SidechainAudioProcessor &processor, NetworkClient &network);
+  MidiChallengeSubmission(SidechainAudioProcessor &processor, NetworkClient &network,
+                          Sidechain::Stores::AppStore *store = nullptr);
   ~MidiChallengeSubmission() override;
 
   //==============================================================================
@@ -44,6 +46,12 @@ public:
   // Callbacks
   std::function<void()> onBackPressed;
   std::function<void()> onSubmissionComplete; // Called after successful submission
+
+protected:
+  //==============================================================================
+  // AppStoreComponent virtual methods
+  void onAppStateChanged(const Sidechain::Stores::ChallengeState &state) override;
+  void subscribeToAppStore() override;
 
 private:
   //==============================================================================

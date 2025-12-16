@@ -2,11 +2,22 @@
 
 #include "../../models/FeedPost.h"
 #include "../../util/Colors.h"
+#include "../common/AppStoreComponent.h"
 #include <JuceHeader.h>
 #include <memory>
 
 class NetworkClient;
 class PostCard;
+
+namespace Sidechain {
+namespace Stores {
+class AppStore;
+struct PostsState;
+} // namespace Stores
+} // namespace Sidechain
+
+using namespace Sidechain::UI;
+using namespace Sidechain::Stores;
 
 //==============================================================================
 /**
@@ -18,9 +29,9 @@ class PostCard;
  * - Click to navigate to post/user
  * - Unsave functionality
  */
-class SavedPosts : public juce::Component, public juce::ScrollBar::Listener {
+class SavedPosts : public AppStoreComponent<PostsState>, public juce::ScrollBar::Listener {
 public:
-  SavedPosts();
+  SavedPosts(AppStore *store = nullptr);
   ~SavedPosts() override;
 
   //==============================================================================
@@ -56,6 +67,12 @@ public:
   void setCurrentlyPlayingPost(const juce::String &postId);
   void setPlaybackProgress(float progress);
   void clearPlayingState();
+
+protected:
+  //==============================================================================
+  // AppStoreComponent overrides
+  void onAppStateChanged(const PostsState &state) override;
+  void subscribeToAppStore() override;
 
 private:
   //==============================================================================

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "../../network/StreamChatClient.h"
+#include "../../stores/AppStore.h"
+#include "../../ui/common/AppStoreComponent.h"
 #include "../../util/reactive/ReactiveBoundComponent.h"
 #include "../common/ErrorState.h"
 #include <JuceHeader.h>
@@ -17,20 +19,20 @@ class SidechainAudioProcessor;
  * - Scrollable list of messages (newest at bottom)
  * - Message input field with send button
  * - Message bubbles with different styling for sent/received
- * - Typing indicators (reactive via ChatStore)
+ * - Typing indicators (reactive via ChatState)
  * - Read receipts (future)
  *
  * Thread Safety:
- * - Inherits from ReactiveBoundComponent for automatic reactive updates
+ * - Uses AppStoreComponent for automatic reactive updates
  * - All UI operations must be on the message thread
- * - ChatStore subscription automatically triggers repaint()
+ * - ChatState subscription automatically triggers repaint()
  */
-class MessageThread : public Sidechain::Util::ReactiveBoundComponent,
+class MessageThread : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::ChatState>,
                       public juce::Timer,
                       public juce::ScrollBar::Listener,
                       public juce::TextEditor::Listener {
 public:
-  MessageThread();
+  MessageThread(Sidechain::Stores::AppStore *store = nullptr);
   ~MessageThread() override;
 
   void paint(juce::Graphics &) override;
@@ -61,6 +63,12 @@ public:
 
   // Timer for auto-refresh
   void timerCallback() override;
+
+protected:
+  //==============================================================================
+  // AppStoreComponent overrides
+  void onAppStateChanged(const Sidechain::Stores::ChatState &state) override;
+  void subscribeToAppStore() override;
 
 private:
   //==============================================================================

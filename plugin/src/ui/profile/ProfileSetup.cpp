@@ -3,7 +3,7 @@
 #include "../../util/Log.h"
 #include <thread>
 
-ProfileSetup::ProfileSetup() {
+ProfileSetup::ProfileSetup(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   Log::info("ProfileSetup: Initializing profile setup component");
   setSize(1000, 800);
   Log::info("ProfileSetup: Initialization complete");
@@ -335,4 +335,32 @@ juce::Rectangle<int> ProfileSetup::getButtonArea(int index, int totalButtons) {
   int startX = (getWidth() - totalWidth) / 2;
 
   return juce::Rectangle<int>(startX + index * (buttonWidth + spacing), 0, buttonWidth, buttonHeight);
+}
+
+//==============================================================================
+// AppStoreComponent overrides
+//==============================================================================
+void ProfileSetup::onAppStateChanged(const Sidechain::Stores::UserState &state) {
+  // Update UI from UserState
+  username = state.username;
+  email = state.email;
+  profilePicUrl = state.profilePictureUrl;
+
+  if (state.profileImage.isValid()) {
+    previewImage = state.profileImage;
+  }
+
+  repaint();
+}
+
+void ProfileSetup::subscribeToAppStore() {
+  juce::Component::SafePointer<ProfileSetup> safeThis(this);
+  storeUnsubscriber = appStore->subscribeToUser([safeThis](const Sidechain::Stores::UserState &state) {
+    if (!safeThis)
+      return;
+    juce::MessageManager::callAsync([safeThis, state]() {
+      if (safeThis)
+        safeThis->onAppStateChanged(state);
+    });
+  });
 }

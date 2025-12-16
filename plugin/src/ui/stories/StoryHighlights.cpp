@@ -5,9 +5,43 @@
 #include "../../util/Log.h"
 
 //==============================================================================
-StoryHighlights::StoryHighlights() {}
+StoryHighlights::StoryHighlights(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {}
 
 StoryHighlights::~StoryHighlights() {}
+
+//==============================================================================
+void StoryHighlights::onAppStateChanged(const Sidechain::Stores::StoriesState &state) {
+  // Update highlights from state
+  auto stateHighlights = state.highlights;
+  highlights.clear();
+  for (int i = 0; i < stateHighlights.size(); ++i) {
+    highlights.add(StoryHighlight::fromJSON(stateHighlights[i]));
+  }
+
+  // Load cover images for new highlights
+  for (const auto &highlight : highlights) {
+    if (coverImages.find(highlight.id) == coverImages.end()) {
+      loadCoverImage(highlight);
+    }
+  }
+
+  repaint();
+}
+
+void StoryHighlights::subscribeToAppStore() {
+  if (!appStore)
+    return;
+
+  juce::Component::SafePointer<StoryHighlights> safeThis(this);
+  storeUnsubscriber = appStore->subscribeToStories([safeThis](const Sidechain::Stores::StoriesState &state) {
+    if (!safeThis)
+      return;
+    juce::MessageManager::callAsync([safeThis, state]() {
+      if (safeThis)
+        safeThis->onAppStateChanged(state);
+    });
+  });
+}
 
 //==============================================================================
 void StoryHighlights::setUserId(const juce::String &id) {

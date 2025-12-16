@@ -1,6 +1,9 @@
 #pragma once
 
 #include "../../network/StreamChatClient.h"
+#include "../../stores/AppStore.h"
+#include "../../ui/common/AppStoreComponent.h"
+#include "../../util/reactive/ReactiveBoundComponent.h"
 #include "../common/ErrorState.h"
 #include <JuceHeader.h>
 #include <map>
@@ -17,10 +20,13 @@ class NetworkClient;
  * - Click to open conversation
  * - "New Message" button to start new conversation
  * - Auto-refreshes channel list
+ * - Reactive updates from AppStore ChatState
  */
-class MessagesList : public juce::Component, public juce::Timer, public juce::ScrollBar::Listener {
+class MessagesList : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::ChatState>,
+                     public juce::Timer,
+                     public juce::ScrollBar::Listener {
 public:
-  MessagesList();
+  MessagesList(Sidechain::Stores::AppStore *store = nullptr);
   ~MessagesList() override;
 
   void paint(juce::Graphics &) override;
@@ -47,6 +53,12 @@ public:
 
   // Timer for auto-refresh
   void timerCallback() override;
+
+protected:
+  //==============================================================================
+  // AppStoreComponent overrides
+  void onAppStateChanged(const Sidechain::Stores::ChatState &state) override;
+  void subscribeToAppStore() override;
 
 private:
   //==============================================================================

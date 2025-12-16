@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../../stores/AppStore.h"
+#include "../../ui/common/AppStoreComponent.h"
 #include "../../util/HoverState.h"
 #include <JuceHeader.h>
 
@@ -14,11 +16,12 @@
  * - "99+" display for overflow counts
  * - Click callback to open notification panel
  * - Tooltip showing notification status
- * - Reactive updates from NotificationStore
+ * - Reactive updates from AppStore NotificationState
  */
-class NotificationBell : public juce::Component, public juce::TooltipClient {
+class NotificationBell : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::NotificationState>,
+                         public juce::TooltipClient {
 public:
-  NotificationBell();
+  NotificationBell(Sidechain::Stores::AppStore *store = nullptr);
   ~NotificationBell() override;
 
   //==============================================================================
@@ -66,6 +69,12 @@ public:
   // Layout constants
   static constexpr int PREFERRED_SIZE = 32;
   static constexpr int BADGE_SIZE = 18;
+
+protected:
+  //==============================================================================
+  // AppStoreComponent overrides
+  void onAppStateChanged(const Sidechain::Stores::NotificationState &state) override;
+  void subscribeToAppStore() override;
 
 private:
   //==============================================================================

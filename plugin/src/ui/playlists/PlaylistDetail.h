@@ -2,6 +2,8 @@
 
 #include "../../models/FeedPost.h"
 #include "../../models/Playlist.h"
+#include "../../stores/AppStore.h"
+#include "../common/AppStoreComponent.h"
 #include "../../util/Colors.h"
 #include <JuceHeader.h>
 
@@ -19,9 +21,10 @@ class NetworkClient;
  * - Remove entry button (if user has edit permission)
  * - Reorder entries (drag and drop - future enhancement)
  */
-class PlaylistDetail : public juce::Component, public juce::ScrollBar::Listener {
+class PlaylistDetail : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::PlaylistState>,
+                       public juce::ScrollBar::Listener {
 public:
-  PlaylistDetail();
+  PlaylistDetail(Sidechain::Stores::AppStore *store = nullptr);
   ~PlaylistDetail() override;
 
   //==============================================================================
@@ -51,6 +54,10 @@ public:
   std::function<void()> onAddTrack;                                    // Show add track dialog
   std::function<void()> onPlayPlaylist;                                // Play all tracks sequentially
   std::function<void(const juce::String &playlistId)> onSharePlaylist; // Share playlist link
+
+protected:
+  void onAppStateChanged(const Sidechain::Stores::PlaylistState &state) override;
+  void subscribeToAppStore() override;
 
 private:
   //==============================================================================

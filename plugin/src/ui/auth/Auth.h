@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../common/AppStoreComponent.h"
 #include <JuceHeader.h>
 
 class NetworkClient;
@@ -16,9 +17,11 @@ class NetworkClient;
  * - Smooth state transitions
  * - Keyboard navigation support
  */
-class Auth : public juce::Component, public juce::Button::Listener, public juce::TextEditor::Listener {
+class Auth : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::AuthState>,
+             public juce::Button::Listener,
+             public juce::TextEditor::Listener {
 public:
-  Auth();
+  Auth(Sidechain::Stores::AppStore *store = nullptr);
   ~Auth() override;
 
   //==============================================================================
@@ -91,6 +94,13 @@ public:
    */
   void clearError();
 
+protected:
+  //==============================================================================
+  // AppStoreComponent virtual methods
+  void onAppStateChanged(const Sidechain::Stores::AuthState &state) override;
+  void subscribeToAppStore() override;
+
+public:
   //==============================================================================
   // OAuth waiting mode (8.3.11.9-12)
 

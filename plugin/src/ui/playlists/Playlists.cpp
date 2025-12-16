@@ -2,7 +2,7 @@
 #include "../../util/Log.h"
 
 //==============================================================================
-Playlists::Playlists() {
+Playlists::Playlists(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   Log::info("PlaylistsComponent: Initializing");
 
   // Set up scroll bar
@@ -14,6 +14,36 @@ Playlists::Playlists() {
 Playlists::~Playlists() {
   Log::debug("PlaylistsComponent: Destroying");
   scrollBar.removeListener(this);
+}
+
+//==============================================================================
+void Playlists::onAppStateChanged(const Sidechain::Stores::PlaylistState &state) {
+  // Update playlists from state
+  playlists.clear();
+  for (int i = 0; i < state.playlists.size(); ++i) {
+    playlists.add(Playlist::fromJSON(state.playlists[i]));
+  }
+
+  isLoading = state.isLoading;
+  errorMessage = state.playlistError;
+
+  updateScrollBounds();
+  repaint();
+}
+
+void Playlists::subscribeToAppStore() {
+  if (!appStore)
+    return;
+
+  juce::Component::SafePointer<Playlists> safeThis(this);
+  storeUnsubscriber = appStore->subscribeToPlaylists([safeThis](const Sidechain::Stores::PlaylistState &state) {
+    if (!safeThis)
+      return;
+    juce::MessageManager::callAsync([safeThis, state]() {
+      if (safeThis)
+        safeThis->onAppStateChanged(state);
+    });
+  });
 }
 
 //==============================================================================
@@ -116,18 +146,26 @@ void Playlists::scrollBarMoved(juce::ScrollBar * /*scrollBar*/, double newRangeS
 
 //==============================================================================
 void Playlists::loadPlaylists() {
+  if (!appStore) {
+    Log::warn("Playlists: Cannot load playlists - no AppStore");
+    return;
+  }
+
   Log::debug("Playlists: Loading playlists from AppStore");
 
   // TODO: Apply filter to playlists based on currentFilter
   // For now, just load all playlists
-  auto &appStore = Sidechain::Stores::AppStore::getInstance();
-  appStore.loadPlaylists();
+  appStore->loadPlaylists();
 }
 
 void Playlists::refresh() {
+  if (!appStore) {
+    Log::warn("Playlists: Cannot refresh playlists - no AppStore");
+    return;
+  }
+
   Log::debug("Playlists: Refreshing playlists");
-  auto &appStore = Sidechain::Stores::AppStore::getInstance();
-  appStore.loadPlaylists();
+  appStore->loadPlaylists();
 }
 
 //==============================================================================

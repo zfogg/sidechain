@@ -1,8 +1,9 @@
 #include "TwoFactorSettings.h"
 #include "../../network/NetworkClient.h"
+#include "../../stores/AppStore.h"
 #include "../../util/Log.h"
 
-TwoFactorSettings::TwoFactorSettings() {
+TwoFactorSettings::TwoFactorSettings(AppStore *store) : AppStoreComponent(store) {
   // Close button
   closeButton = std::make_unique<juce::TextButton>("X");
   closeButton->addListener(this);
@@ -77,6 +78,30 @@ TwoFactorSettings::TwoFactorSettings() {
 
 TwoFactorSettings::~TwoFactorSettings() = default;
 
+//==============================================================================
+void TwoFactorSettings::onAppStateChanged(const AuthState &state) {
+  // Update 2FA status from auth state if available
+  // Note: 2FA status might need to be loaded separately via NetworkClient
+  // as it's not typically part of the core auth state
+  repaint();
+}
+
+void TwoFactorSettings::subscribeToAppStore() {
+  if (!appStore)
+    return;
+
+  juce::Component::SafePointer<TwoFactorSettings> safeThis(this);
+  storeUnsubscriber = appStore->subscribeToAuth([safeThis](const AuthState &state) {
+    if (!safeThis)
+      return;
+    juce::MessageManager::callAsync([safeThis, state]() {
+      if (safeThis)
+        safeThis->onAppStateChanged(state);
+    });
+  });
+}
+
+//==============================================================================
 void TwoFactorSettings::loadStatus() {
   if (!networkClient) {
     showError("Network client not available");

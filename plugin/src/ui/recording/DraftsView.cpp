@@ -4,7 +4,7 @@
 #include "Upload.h" // For key/genre names
 
 //==============================================================================
-DraftsView::DraftsView() {
+DraftsView::DraftsView(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   scrollBar = std::make_unique<juce::ScrollBar>(true);
   scrollBar->addListener(this);
   scrollBar->setAutoHide(true);
@@ -12,54 +12,41 @@ DraftsView::DraftsView() {
 }
 
 DraftsView::~DraftsView() {
-  unbindFromStore();
   if (scrollBar)
     scrollBar->removeListener(this);
 }
 
 //==============================================================================
-void DraftsView::bindToStore() {
-  if (boundToStore) {
-    return; // Already bound
-  }
+void DraftsView::subscribeToAppStore() {
+  if (!appStore)
+    return;
 
-  auto &store = Sidechain::Stores::AppStore::getInstance();
-
-  // Subscribe to store state changes
-  storeSubscription =
-      store.subscribeToDrafts([this](const Sidechain::Stores::DraftState &state) { handleStoreStateChanged(state); });
-
-  boundToStore = true;
-  Log::debug("DraftsView: Bound to AppStore");
-
-  // Load drafts via store
-  store.loadDrafts();
-}
-
-void DraftsView::unbindFromStore() {
-  storeSubscription.reset();
-  boundToStore = false;
-}
-
-void DraftsView::handleStoreStateChanged(const Sidechain::Stores::DraftState &state) {
-  // Update local state from store using SafePointer for thread safety
   juce::Component::SafePointer<DraftsView> safeThis(this);
-
-  juce::MessageManager::callAsync([safeThis, state]() {
-    if (safeThis == nullptr)
+  storeUnsubscriber = appStore->subscribeToDrafts([safeThis](const Sidechain::Stores::DraftState &state) {
+    if (!safeThis)
       return;
 
-    // Update drafts list
-    safeThis->drafts = state.drafts;
-    safeThis->isLoading = false; // TODO: Add loading state to DraftState
-    safeThis->errorMessage = ""; // TODO: Add error state to DraftState
+    juce::MessageManager::callAsync([safeThis, state]() {
+      if (safeThis == nullptr)
+        return;
 
-    // Check for auto-recovery draft via the store
-    safeThis->hasRecoveryDraft = false; // TODO: Implement auto-recovery draft tracking
+      safeThis->drafts = state.drafts;
+      safeThis->isLoading = false;
+      safeThis->errorMessage = "";
+      safeThis->hasRecoveryDraft = false;
 
-    safeThis->resized();
-    safeThis->repaint();
+      safeThis->resized();
+      safeThis->repaint();
+    });
   });
+
+  if (appStore) {
+    appStore->loadDrafts();
+  }
+}
+
+void DraftsView::onAppStateChanged(const Sidechain::Stores::DraftState & /*state*/) {
+  repaint();
 }
 
 //==============================================================================
