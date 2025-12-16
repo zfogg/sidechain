@@ -2009,7 +2009,9 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String &user, con
       Log::info("onLoginSuccess: Profile fetch complete - userId: " + userState.userId +
                 ", profilePictureUrl: " + (userState.profilePictureUrl.isEmpty() ? "empty" : "set"));
 
-      // Sync user profile picture URL
+      // Sync user state to member variables for use by showView()
+      username = userState.username;
+      email = userState.email;
       profilePicUrl = userState.profilePictureUrl;
       saveLoginState();
 
@@ -2024,8 +2026,10 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String &user, con
       // If user has a profile picture (from their S3 storage), skip setup and go straight to feed
       // If they don't have one, show profile setup to let them upload one
       if (!userState.profilePictureUrl.isEmpty()) {
+        Log::info("onLoginSuccess: User has S3 profile picture, showing PostsFeed");
         showView(AppView::PostsFeed);
       } else {
+        Log::info("onLoginSuccess: User has no S3 profile picture, showing ProfileSetup");
         showView(AppView::ProfileSetup);
       }
 
