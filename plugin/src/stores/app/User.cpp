@@ -273,38 +273,21 @@ void AppStore::downloadProfileImage(const juce::String &url) {
 
   updateUserState([](UserState &state) { state.isLoadingImage = true; });
 
-  // Download on background thread
-  Async::run<juce::Image>(
-      [url]() {
-        // Download image data
-        juce::URL imageUrl(url);
-        auto inputStream =
-            imageUrl.createInputStream(juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress));
+  // Use fetchImage which handles caching automatically
+  fetchImage(url, [this](const juce::Image &image) {
+    updateUserState([image](UserState &state) {
+      state.isLoadingImage = false;
+      if (image.isValid()) {
+        state.profileImage = image;
+      }
+    });
 
-        if (inputStream != nullptr) {
-          juce::MemoryBlock imageData;
-          inputStream->readIntoMemoryBlock(imageData);
-
-          // Decode image
-          return juce::ImageFileFormat::loadFrom(imageData.getData(), imageData.getSize());
-        }
-
-        return juce::Image();
-      },
-      [this](const juce::Image &image) {
-        updateUserState([image](UserState &state) {
-          state.isLoadingImage = false;
-          if (image.isValid()) {
-            state.profileImage = image;
-          }
-        });
-
-        if (image.isValid()) {
-          Util::logInfo("AppStore", "Profile image downloaded successfully");
-        } else {
-          Util::logWarning("AppStore", "Failed to download profile image");
-        }
-      });
+    if (image.isValid()) {
+      Util::logInfo("AppStore", "Profile image downloaded successfully");
+    } else {
+      Util::logWarning("AppStore", "Failed to download profile image");
+    }
+  });
 }
 
 void AppStore::handleProfileFetchSuccess(const juce::var &data) {
@@ -353,6 +336,70 @@ void AppStore::handleProfileFetchError(const juce::String &error) {
     state.isFetchingProfile = false;
     state.userError = error;
   });
+}
+
+//==============================================================================
+// Image Fetching with Caching
+
+void AppStore::fetchImage(const juce::String &url, std::function<void(const juce::Image &)> callback) {
+  if (url.isEmpty() || !callback) {
+    if (callback) {
+      callback(juce::Image());
+    }
+    return;
+  }
+
+  // Check cache first
+  auto cachedImage = imageCache.getImage(url);
+  if (cachedImage) {
+    juce::MessageManager::callAsync([callback, cachedImage]() { callback(*cachedImage); });
+    return;
+  }
+
+  // Download from HTTP
+  Async::run<juce::Image>(
+      [this, url]() {
+        try {
+          juce::URL imageUrl(url);
+          auto inputStream =
+              imageUrl.createInputStream(false, nullptr, nullptr, "User-Agent: Sidechain/1.0", 5000, nullptr);
+          if (inputStream == nullptr) {
+            Util::logWarning("AppStore", "Failed to open image stream for " + url);
+            return juce::Image();
+          }
+
+          juce::MemoryBlock imageData;
+          inputStream->readIntoMemoryBlock(imageData);
+
+          if (imageData.isEmpty()) {
+            Util::logWarning("AppStore", "Downloaded image data is empty for " + url);
+            return juce::Image();
+          }
+
+          auto image = juce::ImageFileFormat::loadFrom(imageData.getData(), imageData.getSize());
+          if (!image.isValid()) {
+            Util::logWarning("AppStore", "Failed to decode image from " + url);
+            return juce::Image();
+          }
+
+          // Cache the loaded image
+          imageCache.cacheImage(url, image);
+          return image;
+        } catch (const std::exception &e) {
+          Util::logError("AppStore", "Image fetch error: " + juce::String(e.what()));
+          return juce::Image();
+        }
+      },
+      [callback](const juce::Image &image) { callback(image); });
+}
+
+juce::Image AppStore::getCachedImage(const juce::String &url) {
+  if (url.isEmpty()) {
+    return juce::Image();
+  }
+
+  auto cachedImage = imageCache.getImage(url);
+  return cachedImage ? *cachedImage : juce::Image();
 }
 
 } // namespace Stores
