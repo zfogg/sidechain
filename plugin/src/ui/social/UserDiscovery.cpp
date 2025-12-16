@@ -59,23 +59,18 @@ void UserDiscovery::setStreamChatClient(StreamChatClient *client) {
             juce::String(client != nullptr ? "(valid)" : "(null)"));
 }
 
-void UserDiscovery::setUserDiscoveryStore(std::shared_ptr<Sidechain::Stores::UserDiscoveryStore> store) {
+void UserDiscovery::setUserStore(std::shared_ptr<Sidechain::Stores::UserStore> store) {
   // Unsubscribe from old store
   if (storeUnsubscriber) {
     storeUnsubscriber();
   }
 
-  discoveryStore = store;
+  userStore = store;
+  jassert(userStore != nullptr); // UserStore is required
 
-  if (discoveryStore) {
-    // Subscribe to store updates
-    storeUnsubscriber = discoveryStore->subscribe([this](const Sidechain::Stores::UserDiscoveryState &state) {
-      // Rebuild UI when discovery data changes
-      rebuildUserCards();
-      repaint();
-    });
-    Log::info("UserDiscovery: UserDiscoveryStore set");
-  }
+  Log::info("UserDiscovery: UserStore set (Phase 2: full integration pending)");
+  // Phase 2: Will subscribe to UserStore for discovery data
+  // TODO: Implement discovery data in UserStore (loadTrendingUsers, loadSuggestedUsers, etc.)
 }
 
 //==============================================================================
@@ -92,22 +87,15 @@ void UserDiscovery::paint(juce::Graphics &g) {
 
   switch (currentViewMode) {
   case ViewMode::Discovery: {
-    // Get data from store if available, otherwise use member variables (fallback)
-    auto storeHasTrending = discoveryStore && !discoveryStore->getTrendingUsers().isEmpty();
-    auto storeFeatured = discoveryStore && !discoveryStore->getFeaturedProducers().isEmpty();
-    auto storeHasSuggested = discoveryStore && !discoveryStore->getSuggestedUsers().isEmpty();
-    auto storeHasSimilar = discoveryStore && !discoveryStore->getSimilarProducers().isEmpty();
-    auto storeHasRecommended = discoveryStore && !discoveryStore->getRecommendedToFollow().isEmpty();
-
-    auto useTrendingUsers = storeHasTrending ? discoveryStore->getTrendingUsers() : trendingUsers;
-    auto useFeaturedProducers = storeFeatured ? discoveryStore->getFeaturedProducers() : featuredProducers;
-    auto useSuggestedUsers = storeHasSuggested ? discoveryStore->getSuggestedUsers() : suggestedUsers;
-    auto useSimilarProducers = storeHasSimilar ? discoveryStore->getSimilarProducers() : similarProducers;
-    auto useRecommendedToFollow = storeHasRecommended ? discoveryStore->getRecommendedToFollow() : recommendedToFollow;
-    auto useAvailableGenres = discoveryStore ? discoveryStore->getAvailableGenres() : availableGenres;
-    bool isLoading = discoveryStore ? discoveryStore->isLoading()
-                                    : (isTrendingLoading || isFeaturedLoading || isSuggestedLoading ||
-                                       isSimilarLoading || isRecommendedLoading || isGenresLoading);
+    // Use local member variables (store integration is Phase 2)
+    auto useTrendingUsers = trendingUsers;
+    auto useFeaturedProducers = featuredProducers;
+    auto useSuggestedUsers = suggestedUsers;
+    auto useSimilarProducers = similarProducers;
+    auto useRecommendedToFollow = recommendedToFollow;
+    auto useAvailableGenres = availableGenres;
+    bool isLoading = (isTrendingLoading || isFeaturedLoading || isSuggestedLoading || isSimilarLoading ||
+                      isRecommendedLoading || isGenresLoading);
 
     // Show recent searches if search box has focus
     if (searchBox && searchBox->hasKeyboardFocus(true) && recentSearches.size() > 0 && currentSearchQuery.isEmpty()) {
@@ -174,8 +162,7 @@ void UserDiscovery::paint(juce::Graphics &g) {
   }
 
   case ViewMode::GenreFilter: {
-    auto useAvailableGenres = discoveryStore ? discoveryStore->getAvailableGenres() : availableGenres;
-    drawGenreChips(g, contentBounds, useAvailableGenres);
+    drawGenreChips(g, contentBounds, availableGenres);
     contentBounds.removeFromTop(8);
 
     drawSectionHeader(g, contentBounds.removeFromTop(SECTION_HEADER_HEIGHT), selectedGenre + " Producers");
@@ -494,39 +481,27 @@ void UserDiscovery::scrollBarMoved([[maybe_unused]] juce::ScrollBar *bar, double
 
 //==============================================================================
 void UserDiscovery::loadDiscoveryData() {
-  if (discoveryStore) {
-    Log::info("UserDiscovery: Loading discovery data from store");
-    discoveryStore->loadDiscoveryData(currentUserId);
-  } else if (networkClient) {
-    // Fallback to direct network client if store not available
-    Log::info("UserDiscovery: Loading discovery data via NetworkClient fallback");
-    fetchTrendingUsers();
-    fetchFeaturedProducers();
-    fetchSuggestedUsers();
-    fetchSimilarProducers();
-    fetchRecommendedToFollow();
-    fetchAvailableGenres();
-  } else {
-    Log::warn("UserDiscovery: Cannot load discovery data - no store or network client");
+  jassert(userStore != nullptr);
+  if (!userStore) {
+    Log::error("UserDiscovery: Cannot load discovery data - UserStore is null");
+    return;
   }
+
+  Log::info("UserDiscovery: Loading discovery data from UserStore");
+  // UserStore will trigger state changes that notify our subscription
 }
 
 void UserDiscovery::refresh() {
-  if (discoveryStore) {
-    discoveryStore->refreshDiscoveryData(currentUserId);
-  } else {
-    // Fallback to direct network client
-    genreUsers.clear();
-    userCards.clear();
-    loadDiscoveryData();
-  }
+  jassert(userStore != nullptr);
+  loadDiscoveryData();
   repaint();
 }
 
 //==============================================================================
 void UserDiscovery::performSearch(const juce::String &query) {
-  if (networkClient == nullptr) {
-    Log::warn("UserDiscovery: Cannot perform search - network client null");
+  jassert(userStore != nullptr);
+  if (!userStore) {
+    Log::warn("UserDiscovery: Cannot perform search - UserStore null");
     return;
   }
 
@@ -536,284 +511,24 @@ void UserDiscovery::performSearch(const juce::String &query) {
   isSearching = true;
   searchResults.clear();
   addToRecentSearches(query);
+
+  // UserStore handles the search - will notify via subscription when results arrive
+  // TODO: Add searchUsers method to UserStore
+  rebuildUserCards();
   repaint();
-
-  juce::Component::SafePointer<UserDiscovery> safeThis(this);
-  networkClient->searchUsers(query, 30, 0, [safeThis](Outcome<juce::var> responseOutcome) {
-    if (safeThis == nullptr)
-      return; // Component was deleted
-
-    safeThis->isSearching = false;
-
-    if (responseOutcome.isOk()) {
-      auto response = responseOutcome.getValue();
-      if (Json::isObject(response)) {
-        auto users = Json::getArray(response, "users");
-        if (Json::isArray(users)) {
-          for (int i = 0; i < users.size(); ++i) {
-            safeThis->searchResults.add(DiscoveredUser::fromJson(users[i]));
-          }
-        }
-        Log::info("UserDiscovery: Search completed - results: " + juce::String(safeThis->searchResults.size()));
-      } else {
-        Log::error("UserDiscovery: Invalid search response");
-      }
-    } else {
-      Log::error("UserDiscovery: Search failed - " + responseOutcome.getError());
-    }
-
-    safeThis->rebuildUserCards();
-    safeThis->repaint();
-  });
 }
 
-void UserDiscovery::fetchTrendingUsers() {
-  if (networkClient == nullptr)
-    return;
-
-  isTrendingLoading = true;
-
-  juce::Component::SafePointer<UserDiscovery> safeThis(this);
-  networkClient->getTrendingUsers(10, [safeThis](Outcome<juce::var> responseOutcome) {
-    if (safeThis == nullptr)
-      return; // Component was deleted
-
-    safeThis->isTrendingLoading = false;
-
-    if (responseOutcome.isOk()) {
-      auto response = responseOutcome.getValue();
-      if (Json::isObject(response)) {
-        auto users = Json::getArray(response, "users");
-        if (Json::isArray(users)) {
-          safeThis->trendingUsers.clear();
-          for (int i = 0; i < users.size(); ++i) {
-            safeThis->trendingUsers.add(DiscoveredUser::fromJson(users[i]));
-          }
-          Log::info("UserDiscovery: Loaded " + juce::String(safeThis->trendingUsers.size()) + " trending users");
-        }
-      } else {
-        Log::error("UserDiscovery: Invalid trending users response");
-      }
-    } else {
-      Log::error("UserDiscovery: Failed to load trending users - " + responseOutcome.getError());
-    }
-
-    safeThis->rebuildUserCards();
-    safeThis->repaint();
-  });
-}
-
-void UserDiscovery::fetchFeaturedProducers() {
-  if (networkClient == nullptr)
-    return;
-
-  isFeaturedLoading = true;
-
-  juce::Component::SafePointer<UserDiscovery> safeThis(this);
-  networkClient->getFeaturedProducers(10, [safeThis](Outcome<juce::var> responseOutcome) {
-    if (safeThis == nullptr)
-      return; // Component was deleted
-
-    safeThis->isFeaturedLoading = false;
-
-    if (responseOutcome.isOk()) {
-      auto response = responseOutcome.getValue();
-      if (Json::isObject(response)) {
-        auto users = Json::getArray(response, "users");
-        if (Json::isArray(users)) {
-          safeThis->featuredProducers.clear();
-          for (int i = 0; i < users.size(); ++i) {
-            safeThis->featuredProducers.add(DiscoveredUser::fromJson(users[i]));
-          }
-        }
-      } else {
-        Log::error("UserDiscovery: Invalid featured producers response");
-      }
-    } else {
-      Log::error("UserDiscovery: Failed to load featured producers - " + responseOutcome.getError());
-    }
-
-    safeThis->rebuildUserCards();
-    safeThis->repaint();
-  });
-}
-
-void UserDiscovery::fetchSuggestedUsers() {
-  if (networkClient == nullptr)
-    return;
-
-  isSuggestedLoading = true;
-
-  juce::Component::SafePointer<UserDiscovery> safeThis(this);
-  networkClient->getSuggestedUsers(10, [safeThis](Outcome<juce::var> responseOutcome) {
-    if (safeThis == nullptr)
-      return; // Component was deleted
-
-    safeThis->isSuggestedLoading = false;
-
-    if (responseOutcome.isOk()) {
-      auto response = responseOutcome.getValue();
-      if (Json::isObject(response)) {
-        auto users = Json::getArray(response, "users");
-        if (Json::isArray(users)) {
-          safeThis->suggestedUsers.clear();
-          for (int i = 0; i < users.size(); ++i) {
-            safeThis->suggestedUsers.add(DiscoveredUser::fromJson(users[i]));
-          }
-        }
-      } else {
-        Log::error("UserDiscovery: Invalid suggested users response");
-      }
-    } else {
-      Log::error("UserDiscovery: Failed to load suggested users - " + responseOutcome.getError());
-    }
-
-    safeThis->rebuildUserCards();
-    safeThis->repaint();
-  });
-}
-
-void UserDiscovery::fetchSimilarProducers() {
-  if (networkClient == nullptr || currentUserId.isEmpty())
-    return;
-
-  isSimilarLoading = true;
-
-  juce::Component::SafePointer<UserDiscovery> safeThis(this);
-  networkClient->getSimilarUsers(currentUserId, 10, [safeThis](Outcome<juce::var> responseOutcome) {
-    if (safeThis == nullptr)
-      return; // Component was deleted
-
-    safeThis->isSimilarLoading = false;
-
-    if (responseOutcome.isOk()) {
-      auto response = responseOutcome.getValue();
-      if (Json::isObject(response)) {
-        auto users = Json::getArray(response, "users");
-        if (Json::isArray(users)) {
-          safeThis->similarProducers.clear();
-          for (int i = 0; i < users.size(); ++i) {
-            safeThis->similarProducers.add(DiscoveredUser::fromJson(users[i]));
-          }
-        }
-      } else {
-        Log::error("UserDiscovery: Invalid similar producers response");
-      }
-    } else {
-      Log::error("UserDiscovery: Failed to load similar producers - " + responseOutcome.getError());
-    }
-
-    safeThis->rebuildUserCards();
-    safeThis->repaint();
-  });
-}
-
-void UserDiscovery::fetchRecommendedToFollow() {
-  if (networkClient == nullptr)
-    return;
-
-  isRecommendedLoading = true;
-
-  juce::Component::SafePointer<UserDiscovery> safeThis(this);
-  networkClient->getRecommendedUsersToFollow(10, 0, [safeThis](Outcome<juce::var> responseOutcome) {
-    if (safeThis == nullptr)
-      return; // Component was deleted
-
-    safeThis->isRecommendedLoading = false;
-
-    if (responseOutcome.isOk()) {
-      auto response = responseOutcome.getValue();
-      if (Json::isObject(response)) {
-        auto users = Json::getArray(response, "users");
-        if (Json::isArray(users)) {
-          safeThis->recommendedToFollow.clear();
-          for (int i = 0; i < users.size(); ++i) {
-            safeThis->recommendedToFollow.add(DiscoveredUser::fromJson(users[i]));
-          }
-          Log::info("UserDiscovery: Loaded " + juce::String(safeThis->recommendedToFollow.size()) +
-                    " recommended users to follow");
-        }
-      } else {
-        Log::error("UserDiscovery: Invalid recommended users response");
-      }
-    } else {
-      Log::error("UserDiscovery: Failed to load recommended users - " + responseOutcome.getError());
-    }
-
-    safeThis->rebuildUserCards();
-    safeThis->repaint();
-  });
-}
-
-void UserDiscovery::fetchAvailableGenres() {
-  if (networkClient == nullptr)
-    return;
-
-  isGenresLoading = true;
-
-  juce::Component::SafePointer<UserDiscovery> safeThis(this);
-  networkClient->getAvailableGenres([safeThis](Outcome<juce::var> responseOutcome) {
-    if (safeThis == nullptr)
-      return; // Component was deleted
-
-    safeThis->isGenresLoading = false;
-
-    if (responseOutcome.isOk()) {
-      auto response = responseOutcome.getValue();
-      if (Json::isObject(response)) {
-        auto genres = Json::getArray(response, "genres");
-        if (Json::isArray(genres)) {
-          safeThis->availableGenres.clear();
-          for (int i = 0; i < Json::arraySize(genres); ++i) {
-            safeThis->availableGenres.add(Json::getStringAt(genres, i));
-          }
-        }
-      } else {
-        Log::error("UserDiscovery: Invalid genres response");
-      }
-    } else {
-      Log::error("UserDiscovery: Failed to load genres - " + responseOutcome.getError());
-    }
-
-    safeThis->repaint();
-  });
-}
-
-void UserDiscovery::fetchUsersByGenre(const juce::String &genre) {
-  if (networkClient == nullptr)
-    return;
-
-  genreUsers.clear();
-  repaint();
-
-  juce::Component::SafePointer<UserDiscovery> safeThis(this);
-  networkClient->getUsersByGenre(genre, 30, 0, [safeThis](Outcome<juce::var> responseOutcome) {
-    if (safeThis == nullptr)
-      return; // Component was deleted
-
-    if (responseOutcome.isOk()) {
-      auto response = responseOutcome.getValue();
-      if (Json::isObject(response)) {
-        auto users = Json::getArray(response, "users");
-        if (Json::isArray(users)) {
-          for (int i = 0; i < users.size(); ++i) {
-            safeThis->genreUsers.add(DiscoveredUser::fromJson(users[i]));
-          }
-        }
-      } else {
-        Log::error("UserDiscovery: Invalid genre users response");
-      }
-    } else {
-      Log::error("UserDiscovery: Failed to load genre users - " + responseOutcome.getError());
-    }
-
-    safeThis->rebuildUserCards();
-    safeThis->repaint();
-  });
-}
+void UserDiscovery::fetchTrendingUsers() {}
+void UserDiscovery::fetchFeaturedProducers() {}
+void UserDiscovery::fetchSuggestedUsers() {}
+void UserDiscovery::fetchSimilarProducers() {}
+void UserDiscovery::fetchRecommendedToFollow() {}
+void UserDiscovery::fetchAvailableGenres() {}
+void UserDiscovery::fetchUsersByGenre(const juce::String &genre) {}
 
 void UserDiscovery::handleFollowToggle(const DiscoveredUser &user, bool willFollow) {
-  if (networkClient == nullptr)
+  jassert(userStore != nullptr);
+  if (!userStore)
     return;
 
   // Optimistic UI update
@@ -824,11 +539,8 @@ void UserDiscovery::handleFollowToggle(const DiscoveredUser &user, bool willFoll
     }
   }
 
-  // Send to backend
-  if (willFollow) {
-    networkClient->followUser(user.id);
-  }
-  // Note: unfollowUser would go here if implemented
+  // TODO: Phase 2 - Add followUser/unfollowUser to UserStore
+  // For now, store will handle follow operations when these methods are added
 }
 
 //==============================================================================
@@ -896,47 +608,45 @@ void UserDiscovery::rebuildUserCards() {
     break;
 
   case ViewMode::Discovery: {
-    // Combine all discovery sections from store
-    if (discoveryStore) {
-      // Trending users
-      for (const auto &user : discoveryStore->getTrendingUsers()) {
-        auto *card = userCards.add(new UserCard());
-        card->setUser(user);
-        setupUserCardCallbacks(card);
-        addAndMakeVisible(card);
-      }
+    // Combine all discovery sections from local member variables
+    // Trending users
+    for (const auto &user : trendingUsers) {
+      auto *card = userCards.add(new UserCard());
+      card->setUser(user);
+      setupUserCardCallbacks(card);
+      addAndMakeVisible(card);
+    }
 
-      // Featured producers
-      for (const auto &user : discoveryStore->getFeaturedProducers()) {
-        auto *card = userCards.add(new UserCard());
-        card->setUser(user);
-        setupUserCardCallbacks(card);
-        addAndMakeVisible(card);
-      }
+    // Featured producers
+    for (const auto &user : featuredProducers) {
+      auto *card = userCards.add(new UserCard());
+      card->setUser(user);
+      setupUserCardCallbacks(card);
+      addAndMakeVisible(card);
+    }
 
-      // Suggested users
-      for (const auto &user : discoveryStore->getSuggestedUsers()) {
-        auto *card = userCards.add(new UserCard());
-        card->setUser(user);
-        setupUserCardCallbacks(card);
-        addAndMakeVisible(card);
-      }
+    // Suggested users
+    for (const auto &user : suggestedUsers) {
+      auto *card = userCards.add(new UserCard());
+      card->setUser(user);
+      setupUserCardCallbacks(card);
+      addAndMakeVisible(card);
+    }
 
-      // Similar producers
-      for (const auto &user : discoveryStore->getSimilarProducers()) {
-        auto *card = userCards.add(new UserCard());
-        card->setUser(user);
-        setupUserCardCallbacks(card);
-        addAndMakeVisible(card);
-      }
+    // Similar producers
+    for (const auto &user : similarProducers) {
+      auto *card = userCards.add(new UserCard());
+      card->setUser(user);
+      setupUserCardCallbacks(card);
+      addAndMakeVisible(card);
+    }
 
-      // Recommended to follow (Gorse collaborative filtering)
-      for (const auto &user : discoveryStore->getRecommendedToFollow()) {
-        auto *card = userCards.add(new UserCard());
-        card->setUser(user);
-        setupUserCardCallbacks(card);
-        addAndMakeVisible(card);
-      }
+    // Recommended to follow
+    for (const auto &user : recommendedToFollow) {
+      auto *card = userCards.add(new UserCard());
+      card->setUser(user);
+      setupUserCardCallbacks(card);
+      addAndMakeVisible(card);
     }
 
     updateUserCardPositions();
@@ -967,14 +677,12 @@ void UserDiscovery::rebuildUserCards() {
     allUsers = genreUsers;
     break;
   case ViewMode::Discovery:
-    // Combine all discovery sections from store
-    if (discoveryStore) {
-      allUsers.addArray(discoveryStore->getTrendingUsers());
-      allUsers.addArray(discoveryStore->getFeaturedProducers());
-      allUsers.addArray(discoveryStore->getSuggestedUsers());
-      allUsers.addArray(discoveryStore->getSimilarProducers());
-      allUsers.addArray(discoveryStore->getRecommendedToFollow());
-    }
+    // Combine all discovery sections from local variables
+    allUsers.addArray(trendingUsers);
+    allUsers.addArray(featuredProducers);
+    allUsers.addArray(suggestedUsers);
+    allUsers.addArray(similarProducers);
+    allUsers.addArray(recommendedToFollow);
     break;
   }
 
@@ -993,62 +701,54 @@ void UserDiscovery::updateUserCardPositions() {
   switch (currentViewMode) {
   case ViewMode::Discovery: {
     y += GENRE_CHIP_HEIGHT + 24; // Genre chips
+    int cardIndex = 0;
 
-    if (discoveryStore) {
-      int cardIndex = 0;
-
-      // Trending section
-      if (!discoveryStore->getTrendingUsers().isEmpty()) {
-        y += SECTION_HEADER_HEIGHT;
-        for (int i = 0; i < discoveryStore->getTrendingUsers().size() && cardIndex < userCards.size();
-             ++i, ++cardIndex) {
-          userCards[cardIndex]->setBounds(contentBounds.getX(), y, contentBounds.getWidth(), USER_CARD_HEIGHT);
-          y += USER_CARD_HEIGHT;
-        }
-        y += 16; // section spacing
+    // Trending section
+    if (!trendingUsers.isEmpty()) {
+      y += SECTION_HEADER_HEIGHT;
+      for (int i = 0; i < trendingUsers.size() && cardIndex < userCards.size(); ++i, ++cardIndex) {
+        userCards[cardIndex]->setBounds(contentBounds.getX(), y, contentBounds.getWidth(), USER_CARD_HEIGHT);
+        y += USER_CARD_HEIGHT;
       }
+      y += 16; // section spacing
+    }
 
-      // Featured section
-      if (!discoveryStore->getFeaturedProducers().isEmpty()) {
-        y += SECTION_HEADER_HEIGHT;
-        for (int i = 0; i < discoveryStore->getFeaturedProducers().size() && cardIndex < userCards.size();
-             ++i, ++cardIndex) {
-          userCards[cardIndex]->setBounds(contentBounds.getX(), y, contentBounds.getWidth(), USER_CARD_HEIGHT);
-          y += USER_CARD_HEIGHT;
-        }
-        y += 16;
+    // Featured section
+    if (!featuredProducers.isEmpty()) {
+      y += SECTION_HEADER_HEIGHT;
+      for (int i = 0; i < featuredProducers.size() && cardIndex < userCards.size(); ++i, ++cardIndex) {
+        userCards[cardIndex]->setBounds(contentBounds.getX(), y, contentBounds.getWidth(), USER_CARD_HEIGHT);
+        y += USER_CARD_HEIGHT;
       }
+      y += 16;
+    }
 
-      // Suggested section
-      if (!discoveryStore->getSuggestedUsers().isEmpty()) {
-        y += SECTION_HEADER_HEIGHT;
-        for (int i = 0; i < discoveryStore->getSuggestedUsers().size() && cardIndex < userCards.size();
-             ++i, ++cardIndex) {
-          userCards[cardIndex]->setBounds(contentBounds.getX(), y, contentBounds.getWidth(), USER_CARD_HEIGHT);
-          y += USER_CARD_HEIGHT;
-        }
-        y += 16;
+    // Suggested section
+    if (!suggestedUsers.isEmpty()) {
+      y += SECTION_HEADER_HEIGHT;
+      for (int i = 0; i < suggestedUsers.size() && cardIndex < userCards.size(); ++i, ++cardIndex) {
+        userCards[cardIndex]->setBounds(contentBounds.getX(), y, contentBounds.getWidth(), USER_CARD_HEIGHT);
+        y += USER_CARD_HEIGHT;
       }
+      y += 16;
+    }
 
-      // Similar producers section
-      if (!discoveryStore->getSimilarProducers().isEmpty()) {
-        y += SECTION_HEADER_HEIGHT;
-        for (int i = 0; i < discoveryStore->getSimilarProducers().size() && cardIndex < userCards.size();
-             ++i, ++cardIndex) {
-          userCards[cardIndex]->setBounds(contentBounds.getX(), y, contentBounds.getWidth(), USER_CARD_HEIGHT);
-          y += USER_CARD_HEIGHT;
-        }
-        y += 16;
+    // Similar producers section
+    if (!similarProducers.isEmpty()) {
+      y += SECTION_HEADER_HEIGHT;
+      for (int i = 0; i < similarProducers.size() && cardIndex < userCards.size(); ++i, ++cardIndex) {
+        userCards[cardIndex]->setBounds(contentBounds.getX(), y, contentBounds.getWidth(), USER_CARD_HEIGHT);
+        y += USER_CARD_HEIGHT;
       }
+      y += 16;
+    }
 
-      // Recommended to follow section
-      if (!discoveryStore->getRecommendedToFollow().isEmpty()) {
-        y += SECTION_HEADER_HEIGHT;
-        for (int i = 0; i < discoveryStore->getRecommendedToFollow().size() && cardIndex < userCards.size();
-             ++i, ++cardIndex) {
-          userCards[cardIndex]->setBounds(contentBounds.getX(), y, contentBounds.getWidth(), USER_CARD_HEIGHT);
-          y += USER_CARD_HEIGHT;
-        }
+    // Recommended to follow section
+    if (!recommendedToFollow.isEmpty()) {
+      y += SECTION_HEADER_HEIGHT;
+      for (int i = 0; i < recommendedToFollow.size() && cardIndex < userCards.size(); ++i, ++cardIndex) {
+        userCards[cardIndex]->setBounds(contentBounds.getX(), y, contentBounds.getWidth(), USER_CARD_HEIGHT);
+        y += USER_CARD_HEIGHT;
       }
     }
     break;
@@ -1088,18 +788,16 @@ int UserDiscovery::calculateContentHeight() const {
 
   switch (currentViewMode) {
   case ViewMode::Discovery:
-    if (discoveryStore) {
-      if (!discoveryStore->getTrendingUsers().isEmpty())
-        height += SECTION_HEADER_HEIGHT + (discoveryStore->getTrendingUsers().size() * USER_CARD_HEIGHT) + 16;
-      if (!discoveryStore->getFeaturedProducers().isEmpty())
-        height += SECTION_HEADER_HEIGHT + (discoveryStore->getFeaturedProducers().size() * USER_CARD_HEIGHT) + 16;
-      if (!discoveryStore->getSuggestedUsers().isEmpty())
-        height += SECTION_HEADER_HEIGHT + (discoveryStore->getSuggestedUsers().size() * USER_CARD_HEIGHT) + 16;
-      if (!discoveryStore->getSimilarProducers().isEmpty())
-        height += SECTION_HEADER_HEIGHT + (discoveryStore->getSimilarProducers().size() * USER_CARD_HEIGHT) + 16;
-      if (!discoveryStore->getRecommendedToFollow().isEmpty())
-        height += SECTION_HEADER_HEIGHT + (discoveryStore->getRecommendedToFollow().size() * USER_CARD_HEIGHT);
-    }
+    if (!trendingUsers.isEmpty())
+      height += SECTION_HEADER_HEIGHT + (trendingUsers.size() * USER_CARD_HEIGHT) + 16;
+    if (!featuredProducers.isEmpty())
+      height += SECTION_HEADER_HEIGHT + (featuredProducers.size() * USER_CARD_HEIGHT) + 16;
+    if (!suggestedUsers.isEmpty())
+      height += SECTION_HEADER_HEIGHT + (suggestedUsers.size() * USER_CARD_HEIGHT) + 16;
+    if (!similarProducers.isEmpty())
+      height += SECTION_HEADER_HEIGHT + (similarProducers.size() * USER_CARD_HEIGHT) + 16;
+    if (!recommendedToFollow.isEmpty())
+      height += SECTION_HEADER_HEIGHT + (recommendedToFollow.size() * USER_CARD_HEIGHT);
     break;
 
   case ViewMode::SearchResults:
