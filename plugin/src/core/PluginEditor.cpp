@@ -2218,35 +2218,67 @@ void SidechainAudioProcessorEditor::loadLoginState() {
     // Fetch user profile from backend to get latest data and S3 profile picture
     Log::debug("loadLoginState: Fetching user profile from backend");
     auto unsubscriber = std::make_shared<std::function<void()>>();
-    *unsubscriber = appStore.subscribeToUser([this, unsubscriber](const Sidechain::Stores::UserState &userState) {
-      // Only proceed once we've fetched the profile
-      if (!userState.userId.isEmpty() && !userState.isFetchingProfile) {
-        Log::info("loadLoginState: Profile fetch complete - userId: " + userState.userId +
-                  ", profilePictureUrl: " + (userState.profilePictureUrl.isEmpty() ? "empty" : "set"));
+    auto fetchAttempts = std::make_shared<int>(0);
 
-        // Update header with fresh user data from backend
-        if (headerComponent) {
-          headerComponent->setUserInfo(userState.username, userState.profilePictureUrl);
-          if (userState.profileImage.isValid()) {
-            headerComponent->setProfileImage(userState.profileImage);
+    *unsubscriber = appStore.subscribeToUser([this, unsubscriber, fetchAttempts](const Sidechain::Stores::UserState &userState) {
+      // Check if fetch is complete (either success or failure)
+      if (!userState.isFetchingProfile) {
+        // If we got an error with expired token, invalidate and show auth
+        if (!userState.userError.isEmpty() && userState.userError.containsIgnoreCase("expired")) {
+          Log::warn("loadLoginState: Auth token expired, invalidating token and showing auth screen");
+
+          // Clear the invalid token from persistent storage
+          auto appProperties =
+              std::make_unique<juce::PropertiesFile>(Sidechain::Util::PropertiesFileUtils::getStandardOptions());
+          appProperties->removeValue("authToken");
+          appProperties->save();
+
+          // Also try to clear from secure storage (Release builds)
+#ifdef NDEBUG
+          if (auto *secureStore = Sidechain::Security::SecureTokenStore::getInstance()) {
+            secureStore->deleteToken("auth_token");
           }
-        }
+#endif
 
-        // Show feed if user has a profile picture, otherwise show setup
-        if (!userState.profilePictureUrl.isEmpty()) {
-          Log::info("loadLoginState: User has S3 profile picture, showing PostsFeed");
-          username = userState.username;
-          email = userState.email;
-          profilePicUrl = userState.profilePictureUrl;
-          showView(AppView::PostsFeed);
-        } else {
-          Log::info("loadLoginState: User has no S3 profile picture, showing ProfileSetup");
-          showView(AppView::ProfileSetup);
-        }
+          // Invalidate token in AppStore and NetworkClient via logout
+          appStore.logout();
 
-        // Unsubscribe
-        if (*unsubscriber) {
-          (*unsubscriber)();
+          // Show auth screen
+          showView(AppView::Authentication);
+
+          // Unsubscribe
+          if (*unsubscriber) {
+            (*unsubscriber)();
+          }
+        } else if (!userState.userId.isEmpty()) {
+          // Success - profile fetched successfully
+          Log::info("loadLoginState: Profile fetch complete - userId: " + userState.userId +
+                    ", profilePictureUrl: " + (userState.profilePictureUrl.isEmpty() ? "empty" : "set"));
+
+          // Update header with fresh user data from backend
+          if (headerComponent) {
+            headerComponent->setUserInfo(userState.username, userState.profilePictureUrl);
+            if (userState.profileImage.isValid()) {
+              headerComponent->setProfileImage(userState.profileImage);
+            }
+          }
+
+          // Show feed if user has a profile picture, otherwise show setup
+          if (!userState.profilePictureUrl.isEmpty()) {
+            Log::info("loadLoginState: User has S3 profile picture, showing PostsFeed");
+            username = userState.username;
+            email = userState.email;
+            profilePicUrl = userState.profilePictureUrl;
+            showView(AppView::PostsFeed);
+          } else {
+            Log::info("loadLoginState: User has no S3 profile picture, showing ProfileSetup");
+            showView(AppView::ProfileSetup);
+          }
+
+          // Unsubscribe
+          if (*unsubscriber) {
+            (*unsubscriber)();
+          }
         }
       }
     });
