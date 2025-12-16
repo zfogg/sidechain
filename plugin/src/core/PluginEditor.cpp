@@ -221,7 +221,15 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   draftsViewComponent->onClose = [this]() { navigateBack(); };
   draftsViewComponent->onNewRecording = [this]() { showView(AppView::Recording); };
   draftsViewComponent->onDraftSelected = [this](const juce::var &draft) {
-    if (uploadComponent) {
+    if (uploadComponent && draft.isObject()) {
+      // Load draft data into upload component
+      juce::String filename = draft.getProperty("filename", "").toString();
+      double bpm = draft.getProperty("bpm", 120.0);
+      int keyIdx = draft.getProperty("key_index", 0);
+      int genreIdx = draft.getProperty("genre_index", 0);
+      int commentIdx = draft.getProperty("comment_index", 0);
+
+      uploadComponent->loadFromDraft(filename, bpm, keyIdx, genreIdx, commentIdx);
       showView(AppView::Upload);
     }
   };
@@ -2383,7 +2391,13 @@ void SidechainAudioProcessorEditor::handleWebSocketStateChange(WebSocketClient::
 //==============================================================================
 // ChangeListener - for UserDataStore updates
 void SidechainAudioProcessorEditor::changeListenerCallback(juce::ChangeBroadcaster *source) {
-  // UserDataStore changed - update components with new data
+  // Update UI only if this change is from a relevant broadcaster
+  // source could be from AppStore, UserDataStore, etc.
+  if (source == nullptr) {
+    return;
+  }
+
+  // Update header component with latest user info from AppStore
   if (headerComponent) {
     headerComponent->setUserInfo(appStore.getState().user.username, appStore.getState().user.profilePictureUrl);
 
