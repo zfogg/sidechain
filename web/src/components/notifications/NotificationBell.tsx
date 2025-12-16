@@ -19,7 +19,9 @@ export function NotificationBell() {
       if (result.isOk()) {
         return result.getValue()
       }
-      throw new Error(result.getError())
+      // Return 0 instead of throwing error - handle gracefully if endpoint doesn't exist
+      console.debug('[NotificationBell] Failed to get unread count:', result.getError())
+      return 0
     },
     refetchInterval: 30000, // Update every 30 seconds
     staleTime: 10000, // Consider fresh for 10 seconds

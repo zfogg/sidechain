@@ -127,6 +127,11 @@ export function ChatProvider({ children }: ChatProviderProps) {
     }
   }, [user?.id, token, apiKey])
 
+  // If chat is not configured, just render children without chat
+  if (!apiKey) {
+    return <>{children}</>
+  }
+
   // Ensure we have the connected chat client before rendering
   // Don't fall back to creating an unconnected client
   if (!chatClient) {
@@ -135,9 +140,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
       // Initialize a temporary client just for the Chat wrapper context
       let tempClient: StreamChat | null = null
       try {
-        if (apiKey) {
-          tempClient = StreamChat.getInstance(apiKey)
-        }
+        tempClient = StreamChat.getInstance(apiKey)
       } catch (err) {
         console.error('[Chat] Failed to create temporary Stream Chat instance:', err)
       }
@@ -153,16 +156,9 @@ export function ChatProvider({ children }: ChatProviderProps) {
       }
     }
 
-    // Not connecting and no client - show error
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center space-y-4">
-          <div className="text-red-500">⚠️</div>
-          <p className="text-foreground">Failed to initialize chat</p>
-          <p className="text-sm text-muted-foreground">Please refresh the page</p>
-        </div>
-      </div>
-    )
+    // Not connecting, no client, and chat not initialized - render children anyway
+    // Chat features will be unavailable but app continues to work
+    return <>{children}</>
   }
 
   // If still connecting, show loading state
