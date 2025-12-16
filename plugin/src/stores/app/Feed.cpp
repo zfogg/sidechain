@@ -597,7 +597,11 @@ void AppStore::performFetch(FeedType feedType, int limit, int offset) {
   }
 }
 
-void AppStore::handleFetchSuccess(FeedType feedType, const juce::var &data, [[maybe_unused]] int limit, int offset) {
+void AppStore::handleFetchSuccess(FeedType feedType, const juce::var &data, int limit, int offset) {
+  // Log pagination info for debugging
+  Log::debug("AppStore::handleFetchSuccess: feedType=" + feedTypeToString(feedType) + ", offset=" + juce::String(offset) +
+            ", limit=" + juce::String(limit));
+
   // TODO: Implement aggregated feed handling
   // For now, skip aggregated feed types
   /*
@@ -629,6 +633,12 @@ void AppStore::handleFetchSuccess(FeedType feedType, const juce::var &data, [[ma
     });
   } else {*/
   auto response = parseJsonResponse(data);
+
+  // Validate response size against requested limit
+  if (response.posts.size() > static_cast<size_t>(limit)) {
+    Log::warn("AppStore: Response size (" + juce::String(static_cast<int>(response.posts.size())) +
+             ") exceeds requested limit (" + juce::String(limit) + ")");
+  }
 
   // Cache the feed data in memory cache (5-minute TTL)
   auto cacheKey = "feed:" + feedTypeToString(feedType).toLowerCase();
