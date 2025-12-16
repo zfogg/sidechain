@@ -4,6 +4,45 @@
 namespace Sidechain {
 namespace Stores {
 
+rxcpp::observable<juce::Array<juce::var>> AppStore::getPlaylistsObservable() {
+  return rxcpp::sources::create<juce::Array<juce::var>>([this](auto observer) {
+    if (!networkClient) {
+      Util::logError("AppStore", "Cannot get playlists - network client not set");
+      observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not set")));
+      return;
+    }
+
+    Util::logInfo("AppStore", "Fetching playlists");
+
+    networkClient->getPlaylists("all", [this, observer](Outcome<juce::var> result) {
+      if (result.isOk()) {
+        const auto data = result.getValue();
+        juce::Array<juce::var> playlistsList;
+
+        if (data.isArray()) {
+          for (int i = 0; i < data.size(); ++i) {
+            playlistsList.add(data[i]);
+          }
+        } else if (data.hasProperty("playlists")) {
+          auto playlistsArray = data["playlists"];
+          if (playlistsArray.isArray()) {
+            for (int i = 0; i < playlistsArray.size(); ++i) {
+              playlistsList.add(playlistsArray[i]);
+            }
+          }
+        }
+
+        Util::logInfo("AppStore", "Loaded " + juce::String(playlistsList.size()) + " playlists");
+        observer.on_next(playlistsList);
+        observer.on_completed();
+      } else {
+        Util::logError("AppStore", "Failed to get playlists: " + result.getError());
+        observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+      }
+    });
+  });
+}
+
 void AppStore::loadPlaylists() {
   if (!networkClient) {
     Util::logError("AppStore", "Cannot load playlists - network client not set");
