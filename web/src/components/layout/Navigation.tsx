@@ -64,6 +64,14 @@ export function Navigation() {
               Trending
             </Button>
             <Button
+              variant={isActive('/activity') ? 'default' : 'ghost'}
+              onClick={() => navigate('/activity')}
+              className="gap-2"
+            >
+              <span>📊</span>
+              Activity
+            </Button>
+            <Button
               variant={isActive('/upload') ? 'default' : 'ghost'}
               onClick={() => navigate('/upload')}
               className="gap-2"
@@ -184,6 +192,15 @@ export function Navigation() {
           >
             <span>🔥</span>
             Trending
+          </Button>
+          <Button
+            variant={isActive('/activity') ? 'default' : 'outline'}
+            onClick={() => navigate('/activity')}
+            size="sm"
+            className="gap-1 whitespace-nowrap"
+          >
+            <span>📊</span>
+            Activity
           </Button>
           <Button
             variant={isActive('/upload') ? 'default' : 'outline'}
