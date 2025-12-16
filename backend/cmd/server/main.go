@@ -362,6 +362,7 @@ func main() {
 	// API routes
 	api := r.Group("/api/v1")
 	api.Use(middleware.RateLimit()) // Global rate limit: 100 req/min per IP
+	api.Use(middleware.AdminImpersonationMiddleware()) // Admin user impersonation support
 	{
 		// Authentication routes (public) - stricter rate limit
 		authGroup := api.Group("/auth")
