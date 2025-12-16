@@ -8,6 +8,7 @@
 #include "../util/cache/FileCache.h"
 #include "../util/cache/ImageCache.h"
 #include "../util/cache/AudioCache.h"
+#include "../util/cache/DraftCache.h"
 #include <JuceHeader.h>
 #include <chrono>
 #include <any>
@@ -730,9 +731,10 @@ protected:
 private:
   NetworkClient *networkClient = nullptr;
 
-  // File caching (for binary assets: images, audio, MIDI)
+  // File caching (for binary assets: images, audio, MIDI, drafts)
   SidechainImageCache imageCache{500 * 1024 * 1024};        // 500MB
   SidechainAudioCache audioCache{5LL * 1024 * 1024 * 1024}; // 5GB
+  SidechainDraftCache draftCache{100 * 1024 * 1024};        // 100MB
 
   // Memory cache (for ephemeral data: users, posts, messages, search results)
   struct CacheEntry {
