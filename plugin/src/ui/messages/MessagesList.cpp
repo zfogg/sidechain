@@ -179,12 +179,14 @@ void MessagesList::mouseUp(const juce::MouseEvent &event) {
   }
 }
 
-void MessagesList::mouseWheelMove([[maybe_unused]] const juce::MouseEvent &event,
-                                  const juce::MouseWheelDetails &wheel) {
-  scrollPosition -= wheel.deltaY * 30.0;
-  scrollPosition = juce::jlimit(0.0, scrollBar.getMaximumRangeLimit(), scrollPosition);
-  scrollBar.setCurrentRangeStart(scrollPosition, juce::dontSendNotification);
-  repaint();
+void MessagesList::mouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel) {
+  // Only scroll if wheel is within message list area (not over scroll bar)
+  if (event.x < getWidth() - scrollBar.getWidth()) {
+    scrollPosition -= wheel.deltaY * 30.0;
+    scrollPosition = juce::jlimit(0.0, scrollBar.getMaximumRangeLimit(), scrollPosition);
+    scrollBar.setCurrentRangeStart(scrollPosition, juce::dontSendNotification);
+    repaint();
+  }
 }
 
 //==============================================================================
@@ -724,9 +726,12 @@ juce::Rectangle<int> MessagesList::getChannelItemBounds(int index) const {
   return juce::Rectangle<int>(0, HEADER_HEIGHT + index * ITEM_HEIGHT, getWidth() - scrollBar.getWidth(), ITEM_HEIGHT);
 }
 
-void MessagesList::scrollBarMoved([[maybe_unused]] juce::ScrollBar *scrollBarPtr, double newRangeStart) {
-  scrollPosition = newRangeStart;
-  repaint();
+void MessagesList::scrollBarMoved(juce::ScrollBar *scrollBarPtr, double newRangeStart) {
+  // Verify the scroll bar callback is from our scroll bar
+  if (scrollBarPtr == &scrollBar) {
+    scrollPosition = newRangeStart;
+    repaint();
+  }
 }
 
 bool MessagesList::isGroupChannel(const StreamChatClient::Channel &channel) const {
