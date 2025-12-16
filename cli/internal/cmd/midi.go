@@ -88,79 +88,90 @@ var midiDeleteCmd = &cobra.Command{
 
 // MIDI Challenge Commands
 
+var (
+	challengeStatusFilter string
+)
+
+var challengeCmd = &cobra.Command{
+	Use:   "challenge",
+	Short: "MIDI challenge commands",
+	Long:  "Create, manage, and participate in MIDI challenges",
+}
+
 var challengeListCmd = &cobra.Command{
-	Use:   "challenge list",
+	Use:   "list",
 	Short: "List MIDI challenges",
+	Long:  "List all MIDI challenges with optional status filtering",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		challengeService := service.NewChallengeService()
-		return challengeService.ListChallenges("")
+		midiChallengesService := service.NewMIDIChallengesService()
+		return midiChallengesService.ListChallenges(challengeStatusFilter)
 	},
 }
 
 var challengeListActiveCmd = &cobra.Command{
-	Use:   "challenge active",
+	Use:   "active",
 	Short: "List active MIDI challenges",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		challengeService := service.NewChallengeService()
-		return challengeService.ListChallenges("active")
+		midiChallengesService := service.NewMIDIChallengesService()
+		return midiChallengesService.ListChallenges("active")
 	},
 }
 
 var challengeListVotingCmd = &cobra.Command{
-	Use:   "challenge voting",
+	Use:   "voting",
 	Short: "List challenges in voting phase",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		challengeService := service.NewChallengeService()
-		return challengeService.ListChallenges("voting")
+		midiChallengesService := service.NewMIDIChallengesService()
+		return midiChallengesService.ListChallenges("voting")
 	},
 }
 
 var challengeListUpcomingCmd = &cobra.Command{
-	Use:   "challenge upcoming",
+	Use:   "upcoming",
 	Short: "List upcoming MIDI challenges",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		challengeService := service.NewChallengeService()
-		return challengeService.ListChallenges("upcoming")
+		midiChallengesService := service.NewMIDIChallengesService()
+		return midiChallengesService.ListChallenges("upcoming")
 	},
 }
 
 var challengeViewCmd = &cobra.Command{
-	Use:   "challenge view <challenge-id>",
+	Use:   "view <challenge-id>",
 	Short: "View a MIDI challenge",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		challengeService := service.NewChallengeService()
-		return challengeService.ViewChallenge(args[0])
+		midiChallengesService := service.NewMIDIChallengesService()
+		return midiChallengesService.ViewChallenge(args[0])
 	},
 }
 
 var challengeEntriesCmd = &cobra.Command{
-	Use:   "challenge entries <challenge-id>",
-	Short: "View entries for a challenge",
+	Use:   "entries <challenge-id>",
+	Short: "View leaderboard for a challenge",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		challengeService := service.NewChallengeService()
-		return challengeService.ViewChallengeEntries(args[0])
+		midiChallengesService := service.NewMIDIChallengesService()
+		return midiChallengesService.ViewLeaderboard(args[0])
 	},
 }
 
 var challengeSubmitCmd = &cobra.Command{
-	Use:   "challenge submit <challenge-id> <audio-url>",
+	Use:   "submit <challenge-id>",
 	Short: "Submit an entry to a challenge",
-	Args:  cobra.ExactArgs(2),
+	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		challengeService := service.NewChallengeService()
-		return challengeService.SubmitEntry(args[0], args[1], nil, nil)
+		midiChallengesService := service.NewMIDIChallengesService()
+		return midiChallengesService.SubmitEntry(args[0])
 	},
 }
 
 var challengeVoteCmd = &cobra.Command{
-	Use:   "challenge vote <challenge-id> <entry-id>",
+	Use:   "vote <challenge-id>",
 	Short: "Vote for a challenge entry",
-	Args:  cobra.ExactArgs(2),
+	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		challengeService := service.NewChallengeService()
-		return challengeService.VoteEntry(args[0], args[1])
+		midiChallengesService := service.NewMIDIChallengesService()
+		return midiChallengesService.VoteForEntry(args[0])
 	},
 }
 
@@ -169,21 +180,27 @@ func init() {
 	midiListCmd.Flags().IntVar(&midiLimit, "limit", 20, "Results per page")
 	midiListCmd.Flags().IntVar(&midiOffset, "offset", 0, "Pagination offset")
 
+	// Challenge list status filter
+	challengeListCmd.Flags().StringVar(&challengeStatusFilter, "status", "", "Filter by status (active, voting, upcoming, ended)")
+
 	// Add MIDI pattern subcommands
 	midiCmd.AddCommand(midiListCmd)
 	midiCmd.AddCommand(midiViewCmd)
 	midiCmd.AddCommand(midiUpdateCmd)
 	midiCmd.AddCommand(midiDeleteCmd)
 
-	// Add challenge subcommands
-	midiCmd.AddCommand(challengeListCmd)
-	midiCmd.AddCommand(challengeListActiveCmd)
-	midiCmd.AddCommand(challengeListVotingCmd)
-	midiCmd.AddCommand(challengeListUpcomingCmd)
-	midiCmd.AddCommand(challengeViewCmd)
-	midiCmd.AddCommand(challengeEntriesCmd)
-	midiCmd.AddCommand(challengeSubmitCmd)
-	midiCmd.AddCommand(challengeVoteCmd)
+	// Add challenge subcommands to challenge parent command
+	challengeCmd.AddCommand(challengeListCmd)
+	challengeCmd.AddCommand(challengeListActiveCmd)
+	challengeCmd.AddCommand(challengeListVotingCmd)
+	challengeCmd.AddCommand(challengeListUpcomingCmd)
+	challengeCmd.AddCommand(challengeViewCmd)
+	challengeCmd.AddCommand(challengeEntriesCmd)
+	challengeCmd.AddCommand(challengeSubmitCmd)
+	challengeCmd.AddCommand(challengeVoteCmd)
+
+	// Add challenge parent to midi command
+	midiCmd.AddCommand(challengeCmd)
 
 	// Add midi command to root
 	rootCmd.AddCommand(midiCmd)
