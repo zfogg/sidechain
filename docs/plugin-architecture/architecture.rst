@@ -12,7 +12,7 @@ Complete Architecture Guide
 This is the comprehensive architecture guide for the Sidechain VST Plugin. It covers everything from high-level principles to practical implementation patterns.
 
 Quick Start (5 Minutes)
-======================
+=======================
 
 Your First Store Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

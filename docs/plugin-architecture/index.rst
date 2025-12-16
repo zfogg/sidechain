@@ -31,7 +31,7 @@ The Sidechain plugin architecture is built on three core concepts:
 Key Benefits
 ~~~~~~~~~~~~
 
-* **Single Source of Truth**: All state lives in stores (FeedStore, ChatStore, UserStore)
+* **Single Source of Truth**: All state lives in stores (PostsStore, ChatStore, UserStore)
 * **Automatic UI Updates**: Components automatically repaint when store state changes
 * **Type Safety**: Full C++26 type checking with templates
 * **Thread Safety**: Proper message thread marshalling with JUCE integration
@@ -50,7 +50,7 @@ Architecture Diagram
                          ▼
     ┌─────────────────────────────────────────────────────────────┐
     │                      Store Layer                             │
-    │     (FeedStore, ChatStore, UserStore - Store<TState>)        │
+    │     (PostsStore, ChatStore, UserStore - Store<TState>)       │
     └────────────────────┬────────────────────────────────────────┘
                          │ dispatch()
                          ▼
@@ -90,8 +90,11 @@ Backend Integration
 ~~~~~~~~~~~~~~~~~~~
 
 For information about backend support and requirements:
+
 * `Backend Investigation Notes <../BACKEND_INVESTIGATION_NOTES.md>`_ - Assessment of backend support for real-time collaboration (OT, error tracking, rate limiting)
-* Known Issues:
-  - Operational Transform: Not implemented on backend (required for Task 4.20)
-  - Error Tracking API: Not implemented (required for Task 4.19)
-  - Rate Limiting: Implemented with minor header bug in Retry-After header
+
+**Known Issues:**
+
+* Operational Transform: Not implemented on backend (required for Task 4.20)
+* Error Tracking API: Not implemented (required for Task 4.19)
+* Rate Limiting: Implemented with minor header bug in Retry-After header

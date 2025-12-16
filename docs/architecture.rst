@@ -1,37 +1,52 @@
-Architecture
-===========
+Architecture Overview
+=====================
 
-This document provides an overview of the Sidechain plugin architecture.
+This document provides a high-level overview of the Sidechain plugin architecture.
+For a comprehensive guide covering modern C++26 patterns, reactive state management,
+and implementation patterns, see :doc:`plugin-architecture/index`.
 
 System Overview
 ---------------
 
 The Sidechain plugin is built using the `JUCE framework <https://juce.com>`_ and follows a modular architecture:
 
-.. graphviz::
+.. code-block:: text
 
-   digraph architecture {
-       rankdir=TB;
-       node [shape=box];
+   ┌─────────────────────────────────────────────────────────────┐
+   │                  Plugin Editor (UI Layer)                   │
+   │  ┌─────────────────────────────────────────────────────────┐
+   │  │         UI Components & Components Management           │
+   │  │  (Feed, Messages, Profile, Recording, Stories)          │
+   │  └─────────────────────────────────────────────────────────┘
+   └──┬──────────────────────────────────────────────────────────┘
+      │ dispatch actions
+      ▼
+   ┌─────────────────────────────────────────────────────────────┐
+   │                    Store Layer (State)                       │
+   │  (PostsStore, ChatStore, UserStore, etc.)                  │
+   └──┬──────────────────────────────────────────────────────────┘
+      │ network calls
+      ▼
+   ┌─────────────────────────────────────────────────────────────┐
+   │                  Network Layer                              │
+   │  ┌──────────────────┐  ┌──────────────────┐                │
+   │  │  Network Client  │  │ WebSocket Client │                │
+   │  │  (HTTP API)      │  │ (Real-time)      │                │
+   │  └──────────────────┘  └──────────────────┘                │
+   └──┬──────────────────────────────────────────────────────────┘
+      │
+      ▼
+   ┌─────────────────────────────────────────────────────────────┐
+   │                   Backend Services                          │
+   │  (Go Server + GetStream.io + Audio CDN)                    │
+   └─────────────────────────────────────────────────────────────┘
 
-       "Plugin Editor" -> "UI Components";
-       "Plugin Editor" -> "Network Client";
-       "Plugin Editor" -> "WebSocket Client";
-       "Plugin Editor" -> "User Data Store";
-
-       "Plugin Processor" -> "Audio Capture";
-       "Plugin Processor" -> "MIDI Capture";
-       "Plugin Processor" -> "Audio Players";
-
-       "Network Client" -> "Backend API";
-       "WebSocket Client" -> "Backend WebSocket";
-
-       "UI Components" -> "Feed";
-       "UI Components" -> "Messages";
-       "UI Components" -> "Profile";
-       "UI Components" -> "Recording";
-       "UI Components" -> "Stories";
-   }
+   ┌─────────────────────────────────────────────────────────────┐
+   │              Plugin Processor (Audio Layer)                 │
+   │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
+   │  │ Audio Capture│  │ MIDI Capture │  │ Audio Player │     │
+   │  └──────────────┘  └──────────────┘  └──────────────┘     │
+   └─────────────────────────────────────────────────────────────┘
 
 Core Components
 ---------------
@@ -47,7 +62,7 @@ The ``SidechainAudioProcessorEditor`` class is the main UI component that manage
 * WebSocket connections
 * Notification handling
 
-See :doc:`api/library_root` for detailed API documentation.
+See :doc:`plugin-architecture/reactive-components` for detailed UI component patterns.
 
 Plugin Processor
 ~~~~~~~~~~~~~~~~
@@ -121,3 +136,14 @@ The plugin uses CMake for building:
 * Test framework integration (Catch2)
 
 For more details, see the :doc:`development` guide.
+
+See Also
+--------
+
+For comprehensive architecture documentation:
+
+* :doc:`plugin-architecture/index` - Complete architecture guide with reactive patterns
+* :doc:`plugin-architecture/stores` - Store pattern and state management
+* :doc:`plugin-architecture/observables` - Observable collections reference
+* :doc:`plugin-architecture/threading` - Threading model and safety constraints
+* :doc:`plugin-architecture/data-flow` - Data flow diagrams and patterns
