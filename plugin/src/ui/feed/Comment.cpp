@@ -326,20 +326,32 @@ void CommentsPanel::loadCommentsForPost(const juce::String &postId) {
   Log::info("CommentsPanel::loadCommentsForPost: Loading comments for post: " + postId);
   currentPostId = postId;
 
-  if (networkClient != nullptr) {
-    currentOffset = 0;
-    comments.clear();
-    commentRows.clear();
-    errorMessage = "";
-    isLoading = true;
-    repaint();
+  currentOffset = 0;
+  comments.clear();
+  commentRows.clear();
+  errorMessage = "";
+  isLoading = true;
+  repaint();
 
-    networkClient->getComments(postId, 20, 0, [this](Outcome<std::pair<juce::var, int>> commentsResult) {
-      handleCommentsLoaded(commentsResult);
-    });
-  } else {
-    Log::warn("CommentsPanel::loadCommentsForPost: No NetworkClient available");
-  }
+  auto &appStore = AppStore::getInstance();
+  juce::Component::SafePointer<CommentsPanel> safeThis(this);
+  appStore.getCommentsObservable(postId, 20, 0)
+      .subscribe(
+          [safeThis](const juce::Array<juce::var> &commentsArray) {
+            if (safeThis == nullptr)
+              return;
+            juce::var commentsVar = commentsArray;
+            Outcome<std::pair<juce::var, int>> result = Outcome<std::pair<juce::var, int>>::ok(
+                std::make_pair(commentsVar, static_cast<int>(commentsArray.size())));
+            safeThis->handleCommentsLoaded(result);
+          },
+          [safeThis](std::exception_ptr) {
+            if (safeThis == nullptr)
+              return;
+            Outcome<std::pair<juce::var, int>> errorResult =
+                Outcome<std::pair<juce::var, int>>::error("Failed to load comments");
+            safeThis->handleCommentsLoaded(errorResult);
+          });
 }
 
 void CommentsPanel::refreshComments() {

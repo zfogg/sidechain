@@ -1008,7 +1008,18 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
   // Check save/bookmark button
   if (getSaveButtonBounds().contains(pos)) {
     if (appStore) {
-      appStore->toggleSave(post.id);
+      juce::Component::SafePointer<PostCard> safeThis(this);
+      appStore->toggleSaveObservable(post.id).subscribe(
+          [safeThis](int) {
+            if (safeThis == nullptr)
+              return;
+            Log::debug("PostCard: Post save toggled successfully");
+          },
+          [safeThis](std::exception_ptr error) {
+            if (safeThis == nullptr)
+              return;
+            Log::error("PostCard: Failed to toggle save");
+          });
     } else if (onSaveToggled) {
       // Fallback for when AppStore is not set
       onSaveToggled(post, !post.isSaved);
@@ -1019,7 +1030,18 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
   // Check repost button (not for own posts)
   if (!post.isOwnPost && getRepostButtonBounds().contains(pos)) {
     if (appStore) {
-      appStore->toggleRepost(post.id);
+      juce::Component::SafePointer<PostCard> safeThis(this);
+      appStore->toggleRepostObservable(post.id).subscribe(
+          [safeThis](int) {
+            if (safeThis == nullptr)
+              return;
+            Log::debug("PostCard: Post repost toggled successfully");
+          },
+          [safeThis](std::exception_ptr error) {
+            if (safeThis == nullptr)
+              return;
+            Log::error("PostCard: Failed to toggle repost");
+          });
     } else if (onRepostClicked) {
       // Fallback for when AppStore is not set
       onRepostClicked(post);
@@ -1030,7 +1052,19 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
   // Check pin button (only for own posts)
   if (post.isOwnPost && getPinButtonBounds().contains(pos)) {
     if (appStore) {
-      appStore->togglePin(post.id, !post.isPinned);
+      juce::Component::SafePointer<PostCard> safeThis(this);
+      appStore->togglePinObservable(post.id, !post.isPinned)
+          .subscribe(
+              [safeThis](int) {
+                if (safeThis == nullptr)
+                  return;
+                Log::debug("PostCard: Post pin toggled successfully");
+              },
+              [safeThis](std::exception_ptr error) {
+                if (safeThis == nullptr)
+                  return;
+                Log::error("PostCard: Failed to toggle pin");
+              });
     } else if (onPinToggled) {
       // Fallback for when AppStore is not set
       onPinToggled(post, !post.isPinned);
@@ -1041,7 +1075,19 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
   // Check follow button
   if (getFollowButtonBounds().contains(pos)) {
     if (appStore) {
-      appStore->toggleFollow(post.id, !post.isFollowing);
+      juce::Component::SafePointer<PostCard> safeThis(this);
+      appStore->toggleFollowObservable(post.id, !post.isFollowing)
+          .subscribe(
+              [safeThis](int) {
+                if (safeThis == nullptr)
+                  return;
+                Log::debug("PostCard: Follow toggled successfully");
+              },
+              [safeThis](std::exception_ptr error) {
+                if (safeThis == nullptr)
+                  return;
+                Log::error("PostCard: Failed to toggle follow");
+              });
     } else if (onFollowToggled) {
       // Fallback for when AppStore is not set
       onFollowToggled(post, !post.isFollowing);
@@ -1375,7 +1421,19 @@ void PostCard::handleEmojiSelected(const juce::String &emoji) {
 
   // Use AppStore for reactive update if available
   if (appStore) {
-    appStore->addReaction(post.id, emoji);
+    juce::Component::SafePointer<PostCard> safeThis(this);
+    appStore->addReactionObservable(post.id, emoji)
+        .subscribe(
+            [safeThis](int) {
+              if (safeThis == nullptr)
+                return;
+              Log::debug("PostCard: Reaction added successfully");
+            },
+            [safeThis](std::exception_ptr error) {
+              if (safeThis == nullptr)
+                return;
+              Log::error("PostCard: Failed to add reaction");
+            });
   } else if (onEmojiReaction) {
     // Fallback for when AppStore is not set
     post.userReaction = emoji;
