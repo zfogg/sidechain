@@ -21,13 +21,14 @@ export function useFeedQuery(feedType: FeedType, limit = 20) {
       throw new Error(result.getError())
     },
     initialPageParam: 0,
-    getNextPageParam: (lastPage: any[]) => {
+    getNextPageParam: (lastPage: any[], allPages: any[][]) => {
       // If last page returned fewer items than limit, no more pages
       if ((lastPage || []).length < limit) {
         return undefined
       }
-      // Next page starts at limit (offset for next request)
-      return limit
+      // Calculate offset based on total items already fetched
+      const totalFetched = allPages.flat().length
+      return totalFetched
     },
     // Keep data fresh while user is actively scrolling
     staleTime: 60 * 1000, // 1 minute
