@@ -11,6 +11,16 @@ var authCmd = &cobra.Command{
 	Long:  "Manage authentication with Sidechain",
 }
 
+var registerCmd = &cobra.Command{
+	Use:   "register",
+	Short: "Create a new Sidechain account",
+	Long:  "Register a new user account with Sidechain",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		authSvc := service.NewAuthService()
+		return authSvc.Register()
+	},
+}
+
 var loginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "Login to Sidechain",
@@ -38,6 +48,24 @@ var meCmd = &cobra.Command{
 	},
 }
 
+var resetPasswordCmd = &cobra.Command{
+	Use:   "reset-password",
+	Short: "Request a password reset",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		authSvc := service.NewAuthService()
+		return authSvc.RequestPasswordReset()
+	},
+}
+
+var resetPasswordConfirmCmd = &cobra.Command{
+	Use:   "confirm-reset",
+	Short: "Confirm password reset with token",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		authSvc := service.NewAuthService()
+		return authSvc.ResetPassword()
+	},
+}
+
 var twoFactorCmd = &cobra.Command{
 	Use:   "2fa",
 	Short: "Two-factor authentication",
@@ -58,6 +86,15 @@ var disable2faCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		authSvc := service.NewAuthService()
 		return authSvc.Disable2FA()
+	},
+}
+
+var status2faCmd = &cobra.Command{
+	Use:   "status",
+	Short: "Show two-factor authentication status",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		authSvc := service.NewAuthService()
+		return authSvc.Get2FAStatus()
 	},
 }
 
@@ -84,12 +121,16 @@ var refreshCmd = &cobra.Command{
 }
 
 func init() {
+	authCmd.AddCommand(registerCmd)
 	authCmd.AddCommand(loginCmd)
 	authCmd.AddCommand(logoutCmd)
 	authCmd.AddCommand(meCmd)
+	authCmd.AddCommand(resetPasswordCmd)
+	authCmd.AddCommand(resetPasswordConfirmCmd)
 	authCmd.AddCommand(refreshCmd)
 	authCmd.AddCommand(twoFactorCmd)
 
+	twoFactorCmd.AddCommand(status2faCmd)
 	twoFactorCmd.AddCommand(enable2faCmd)
 	twoFactorCmd.AddCommand(disable2faCmd)
 	twoFactorCmd.AddCommand(backup2faCmd)
