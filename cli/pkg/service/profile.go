@@ -436,3 +436,30 @@ func (s *ProfileService) GetActivity(username string) error {
 	formatter.PrintObject(activity, "Activity")
 	return nil
 }
+
+// UploadProfilePicture uploads a profile picture
+func (s *ProfileService) UploadProfilePicture() error {
+	client.Init()
+
+	creds, _ := credentials.Load()
+	if creds != nil && creds.IsValid() {
+		client.SetAuthToken(creds.AccessToken)
+	}
+
+	filePath, err := prompter.PromptString("Profile picture file path: ")
+	if err != nil {
+		return err
+	}
+
+	formatter.PrintInfo("Uploading profile picture...")
+
+	user, err := api.UploadProfilePicture(filePath)
+	if err != nil {
+		formatter.PrintError("Failed to upload profile picture: %v", err)
+		return err
+	}
+
+	formatter.PrintSuccess("Profile picture uploaded successfully!")
+	fmt.Printf("Profile picture URL: %s\n", user.ProfilePicture)
+	return nil
+}
