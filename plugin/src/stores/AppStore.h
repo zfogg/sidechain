@@ -765,6 +765,7 @@ private:
 
   // User helpers
   void downloadProfileImage(const juce::String &url);
+  void downloadProfileImage(const juce::String &userId, const juce::String &url);
   void handleProfileFetchSuccess(const juce::var &data);
   void handleProfileFetchError(const juce::String &error);
 
