@@ -228,6 +228,38 @@ void ShareToMessageDialog::showModal(juce::Component *parent) {
 }
 
 void ShareToMessageDialog::loadRecentConversations() {
-  // TODO: Implement loading recent conversations from StreamChatClient
-  // For now, this is a stub - would query recent channels from StreamChatClient
+  if (streamChatClient == nullptr) {
+    Log::warn("ShareToMessageDialog: Cannot load recent conversations - no StreamChatClient");
+    return;
+  }
+
+  Log::debug("ShareToMessageDialog: Loading recent conversations from StreamChatClient");
+
+  // Load recent channels (limit to 20, sorted by last message time)
+  streamChatClient->queryChannels(
+      [this](const Outcome<std::vector<StreamChatClient::Channel>> &result) {
+        if (!result) {
+          Log::error("ShareToMessageDialog: Failed to load recent conversations - " + result.getError());
+          return;
+        }
+
+        // Convert Stream Chat channels to ConversationItems
+        recentConversations.clear();
+        const auto &channels = result.getValue();
+        for (const auto &channel : channels) {
+          ConversationItem conversation;
+          conversation.channelType = channel.type;
+          conversation.channelId = channel.id;
+          conversation.channelName = channel.name;
+          conversation.isGroup = (channel.members.size() > 2);
+          conversation.memberCount = static_cast<int>(channel.members.size());
+          recentConversations.push_back(conversation);
+        }
+
+        Log::debug("ShareToMessageDialog: Loaded " + juce::String(recentConversations.size()) + " recent conversations");
+        repaint();
+      },
+      20, // limit
+      0   // offset
+  );
 }
