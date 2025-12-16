@@ -122,20 +122,20 @@ void ArchivedPosts::setNetworkClient(NetworkClient *client) {
   networkClient = client;
 }
 
-void ArchivedPosts::setArchivedPostsStore(std::shared_ptr<Sidechain::Stores::ArchivedPostsStore> store) {
+void ArchivedPosts::setPostsStore(std::shared_ptr<Sidechain::Stores::PostsStore> store) {
   // Unsubscribe from old store
   if (storeUnsubscriber) {
     storeUnsubscriber();
   }
 
-  archivedPostsStore = store;
+  postsStore = store;
 
-  if (archivedPostsStore) {
+  if (postsStore) {
     // Subscribe to store updates
-    storeUnsubscriber = archivedPostsStore->subscribe([this](const Sidechain::Stores::ArchivedPostsState &state) {
-      archivedPosts = state.posts;
-      isLoading = state.isLoading;
-      errorMessage = state.error;
+    storeUnsubscriber = postsStore->subscribe([this](const Sidechain::Stores::PostsState &state) {
+      archivedPosts = state.archivedPosts.posts;
+      isLoading = state.archivedPosts.isLoading;
+      errorMessage = state.archivedPosts.error;
       rebuildPostCards();
       repaint();
     });
@@ -143,8 +143,8 @@ void ArchivedPosts::setArchivedPostsStore(std::shared_ptr<Sidechain::Stores::Arc
 }
 
 void ArchivedPosts::loadArchivedPosts() {
-  if (archivedPostsStore) {
-    archivedPostsStore->loadArchivedPosts();
+  if (postsStore) {
+    postsStore->loadArchivedPosts();
   } else if (networkClient) {
     // Fallback to direct network client if store not available
     archivedPosts.clear();
@@ -157,8 +157,8 @@ void ArchivedPosts::loadArchivedPosts() {
 }
 
 void ArchivedPosts::refresh() {
-  if (archivedPostsStore) {
-    archivedPostsStore->refreshArchivedPosts();
+  if (postsStore) {
+    postsStore->refreshArchivedPosts();
   } else if (networkClient) {
     loadArchivedPosts();
   }
@@ -310,8 +310,8 @@ void ArchivedPosts::loadMoreIfNeeded() {
   // Load more when scrolled near the bottom
   if (scrollOffset + visibleHeight >= contentHeight - 200) {
     Log::debug("ArchivedPosts: Loading more posts...");
-    if (archivedPostsStore) {
-      archivedPostsStore->loadMoreArchivedPosts();
+    if (postsStore) {
+      postsStore->loadMoreArchivedPosts();
     } else if (networkClient) {
       // Fallback to direct network client
       fetchArchivedPosts();
@@ -395,9 +395,9 @@ void ArchivedPosts::setupPostCardCallbacks(PostCard *card) {
   // Handle unarchive - restore post to visible
   card->onArchiveToggled = [this](const FeedPost &post, bool archived) {
     if (!archived) {
-      if (archivedPostsStore) {
+      if (postsStore) {
         Log::info("ArchivedPosts: Unarchiving post: " + post.id);
-        archivedPostsStore->restorePost(post.id);
+        postsStore->restorePost(post.id);
       } else if (networkClient != nullptr) {
         Log::info("ArchivedPosts: Unarchiving post: " + post.id);
         networkClient->unarchivePost(post.id, [this, postId = post.id](Outcome<juce::var> result) {

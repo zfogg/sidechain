@@ -123,20 +123,20 @@ void SavedPosts::setNetworkClient(NetworkClient *client) {
   networkClient = client;
 }
 
-void SavedPosts::setSavedPostsStore(std::shared_ptr<Sidechain::Stores::SavedPostsStore> store) {
+void SavedPosts::setPostsStore(std::shared_ptr<Sidechain::Stores::PostsStore> store) {
   // Unsubscribe from old store
   if (storeUnsubscriber) {
     storeUnsubscriber();
   }
 
-  savedPostsStore = store;
+  postsStore = store;
 
-  if (savedPostsStore) {
+  if (postsStore) {
     // Subscribe to store updates
-    storeUnsubscriber = savedPostsStore->subscribe([this](const Sidechain::Stores::SavedPostsState &state) {
-      savedPosts = state.posts;
-      isLoading = state.isLoading;
-      errorMessage = state.error;
+    storeUnsubscriber = postsStore->subscribe([this](const Sidechain::Stores::PostsState &state) {
+      savedPosts = state.savedPosts.posts;
+      isLoading = state.savedPosts.isLoading;
+      errorMessage = state.savedPosts.error;
       rebuildPostCards();
       repaint();
     });
@@ -144,8 +144,8 @@ void SavedPosts::setSavedPostsStore(std::shared_ptr<Sidechain::Stores::SavedPost
 }
 
 void SavedPosts::loadSavedPosts() {
-  if (savedPostsStore) {
-    savedPostsStore->loadSavedPosts();
+  if (postsStore) {
+    postsStore->loadSavedPosts();
   } else if (networkClient) {
     // Fallback to direct network client if store not available
     fetchSavedPosts();
@@ -153,8 +153,8 @@ void SavedPosts::loadSavedPosts() {
 }
 
 void SavedPosts::refresh() {
-  if (savedPostsStore) {
-    savedPostsStore->refreshSavedPosts();
+  if (postsStore) {
+    postsStore->refreshSavedPosts();
   } else if (networkClient) {
     loadSavedPosts();
   }
@@ -306,8 +306,8 @@ void SavedPosts::loadMoreIfNeeded() {
   // Load more when scrolled near the bottom
   if (scrollOffset + visibleHeight >= contentHeight - 200) {
     Log::debug("SavedPosts: Loading more posts...");
-    if (savedPostsStore) {
-      savedPostsStore->loadMoreSavedPosts();
+    if (postsStore) {
+      postsStore->loadMoreSavedPosts();
     } else if (networkClient) {
       // Fallback to direct network client
       fetchSavedPosts();
@@ -391,9 +391,9 @@ void SavedPosts::setupPostCardCallbacks(PostCard *card) {
   // Handle unsave - remove from list
   card->onSaveToggled = [this](const FeedPost &post, bool saved) {
     if (!saved) {
-      if (savedPostsStore) {
+      if (postsStore) {
         Log::info("SavedPosts: Unsaving post: " + post.id);
-        savedPostsStore->unsavePost(post.id);
+        postsStore->unsavePost(post.id);
       } else if (networkClient != nullptr) {
         Log::info("SavedPosts: Unsaving post: " + post.id);
         networkClient->unsavePost(post.id, [this, postId = post.id](Outcome<juce::var> result) {
