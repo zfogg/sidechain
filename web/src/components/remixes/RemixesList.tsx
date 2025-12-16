@@ -1,4 +1,4 @@
-import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
+import { useInfiniteQuery } from '@tanstack/react-query'
 import { RemixClient } from '@/api/RemixClient'
 import { Spinner } from '@/components/ui/spinner'
 import { Button } from '@/components/ui/button'

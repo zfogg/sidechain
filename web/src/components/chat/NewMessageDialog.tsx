@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { useChatContext } from 'stream-chat-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Spinner } from '@/components/ui/spinner'
 import { useUserStore } from '@/stores/useUserStore'
 import { SearchClient } from '@/api/SearchClient'
 

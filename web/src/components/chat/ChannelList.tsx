@@ -1,7 +1,5 @@
-import { useCallback } from 'react'
 import { ChannelList as StreamChannelList } from 'stream-chat-react'
 import { useChatContext } from 'stream-chat-react'
-import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 
 interface ChannelListProps {
@@ -13,15 +11,7 @@ interface ChannelListProps {
  * Shows all direct message channels with unread indicators
  */
 export function ChannelList({ onNewMessageClick }: ChannelListProps) {
-  const navigate = useNavigate()
   const { client } = useChatContext()
-
-  const handleSelectChannel = useCallback(
-    (channelId: string) => {
-      navigate(`/messages/${channelId}`)
-    },
-    [navigate]
-  )
 
   return (
     <div className="h-full flex flex-col bg-bg-secondary">

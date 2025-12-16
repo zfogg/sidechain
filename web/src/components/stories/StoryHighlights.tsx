@@ -22,6 +22,7 @@ interface StoryHighlightsProps {
  * - Empty state when no highlights
  */
 export function StoryHighlights({ userId }: StoryHighlightsProps) {
+  const [_selectedHighlight, setSelectedHighlight] = useState<string | null>(null)
   const [highlightStories, setHighlightStories] = useState<any[]>([])
   const [isViewerOpen, setIsViewerOpen] = useState(false)
 

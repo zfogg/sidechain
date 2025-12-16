@@ -1,13 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { FeedClient } from '@/api/FeedClient'
 import { FeedPost } from '@/models/FeedPost'
-import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { formatTime } from '@/utils/audio'
 
 interface PinnedPostsSectionProps {
   userId: string
-  displayName: string
 }
 
 /**
@@ -20,7 +18,7 @@ interface PinnedPostsSectionProps {
  * - Loading and empty states
  * - Responsive grid layout
  */
-export function PinnedPostsSection({ userId, displayName }: PinnedPostsSectionProps) {
+export function PinnedPostsSection({ userId }: PinnedPostsSectionProps) {
   const {
     data: pinnedPosts = [],
     isLoading,
@@ -76,8 +74,6 @@ interface PinnedPostCardProps {
  * PinnedPostCard - Individual pinned post card
  */
 function PinnedPostCard({ post }: PinnedPostCardProps) {
-  const timeDisplay = `${formatTime(0)} / ${formatTime(post.durationSeconds || 0)}`
-
   return (
     <div className="bg-bg-secondary border border-border rounded-lg overflow-hidden hover:border-coral-pink/50 hover:shadow-lg transition-all hover:scale-105 cursor-pointer group">
       {/* Cover Art / Waveform Preview */}

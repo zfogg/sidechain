@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { RemixClient } from '@/api/RemixClient'
 import { RemixModel, RemixTree } from '@/models/Remix'
@@ -8,7 +7,6 @@ import { useNavigate } from 'react-router-dom'
 
 interface RemixChainProps {
   postId: string
-  showSourceLink?: boolean
 }
 
 /**
@@ -20,7 +18,7 @@ interface RemixChainProps {
  * - Source download links
  * - Creator attribution
  */
-export function RemixChain({ postId, showSourceLink = true }: RemixChainProps) {
+export function RemixChain({ postId }: RemixChainProps) {
   const navigate = useNavigate()
 
   const {

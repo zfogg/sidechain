@@ -1,26 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 
 interface TypingIndicatorProps {
   usernames: string[]
-  count?: number
 }
 
 /**
  * TypingIndicator - Shows who is typing in comments
  */
-export function TypingIndicator({ usernames, count }: TypingIndicatorProps) {
-  const [dots, setDots] = useState('.')
-
+export function TypingIndicator({ usernames }: TypingIndicatorProps) {
   useEffect(() => {
-    const interval = setInterval(() => {
-      setDots((prev) => {
-        if (prev === '.') return '..'
-        if (prev === '..') return '...'
-        return '.'
-      })
-    }, 400)
-
-    return () => clearInterval(interval)
+    // Animation is handled by CSS animate-bounce classes
   }, [])
 
   if (usernames.length === 0) {
