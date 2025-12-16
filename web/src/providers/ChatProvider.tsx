@@ -108,21 +108,33 @@ export function ChatProvider({ children }: ChatProviderProps) {
     }
   }, [user, token, apiKey, chatClient])
 
-  // If chat not initialized, create a temporary client for context
-  // This ensures useChatContext() works even if not yet connected
-  let client = chatClient
-  if (!client) {
-    try {
-      if (apiKey) {
-        client = StreamChat.getInstance(apiKey)
+  // Ensure we have the connected chat client before rendering
+  // Don't fall back to creating an unconnected client
+  if (!chatClient) {
+    // Still waiting for client initialization
+    if (isConnecting) {
+      // Initialize a temporary client just for the Chat wrapper context
+      let tempClient: StreamChat | null = null
+      try {
+        if (apiKey) {
+          tempClient = StreamChat.getInstance(apiKey)
+        }
+      } catch (err) {
+        console.error('[Chat] Failed to create temporary Stream Chat instance:', err)
       }
-    } catch (err) {
-      console.error('[Chat] Failed to create Stream Chat instance:', err)
-    }
-  }
 
-  // If still no client, show error
-  if (!client) {
+      if (tempClient) {
+        return (
+          <Chat client={tempClient} theme="dark">
+            <div className="flex items-center justify-center h-screen">
+              <Spinner size="lg" />
+            </div>
+          </Chat>
+        )
+      }
+    }
+
+    // Not connecting and no client - show error
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center space-y-4">
@@ -134,10 +146,10 @@ export function ChatProvider({ children }: ChatProviderProps) {
     )
   }
 
-  // If connecting, show loading state over the Chat context
+  // If still connecting, show loading state
   if (isConnecting) {
     return (
-      <Chat client={client} theme="dark">
+      <Chat client={chatClient} theme="dark">
         <div className="flex items-center justify-center h-screen">
           <Spinner size="lg" />
         </div>
@@ -145,14 +157,13 @@ export function ChatProvider({ children }: ChatProviderProps) {
     )
   }
 
-  // Always render Chat wrapper so useChatContext works
-  // If there's an error, log it but still render (graceful degradation)
+  // Connected successfully - render children with the connected client
   if (error) {
-    console.warn('[Chat] Chat connection error:', error)
+    console.warn('[Chat] Chat connection error (graceful degradation):', error)
   }
 
   return (
-    <Chat client={client} theme="dark">
+    <Chat client={chatClient} theme="dark">
       {children}
     </Chat>
   )
