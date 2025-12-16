@@ -33,6 +33,9 @@ manage your music production community directly from the terminal.`,
 
 		logger.Init(verbose)
 
+		// Save output format to config
+		config.SetString("output.format", outputFmt)
+
 		// Validate impersonation usage
 		if asUser != "" {
 			// Load credentials to check if user is admin
