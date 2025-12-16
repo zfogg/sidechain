@@ -1561,6 +1561,132 @@ Move legacy code to match modern structure:
 
 ---
 
+## Part 15: Implementation Best Practices & Patterns
+
+### Subscribing to Stores in Components
+
+**Container Component Pattern** (Smart parent that manages state):
+```cpp
+class PostsFeed : public ReactiveBoundComponent {
+private:
+    std::shared_ptr<PostsStore> postsStore;
+    std::function<void()> storeUnsubscribe;
+
+public:
+    void setPostsStore(std::shared_ptr<PostsStore> store) {
+        postsStore = store;
+        storeUnsubscribe = postsStore->subscribe(
+            [this](const PostsState& state) {
+                // Handle state changes
+                updatePostsList(state.getCurrentFeed().posts);
+                updateSavedCount(state.savedPosts.totalCount);
+                repaint();
+            }
+        );
+    }
+
+    ~PostsFeed() override {
+        if (storeUnsubscribe) storeUnsubscribe();
+    }
+};
+```
+
+**Presentation Component Pattern** (Dumb child that receives props):
+```cpp
+class PostCard : public Component {
+private:
+    FeedPost post;  // Received via props, not managed by component
+
+public:
+    void setPost(const FeedPost& newPost) {
+        post = newPost;
+        repaint();
+    }
+
+    // Callbacks bubble up to parent
+    std::function<void(const FeedPost&)> onLikeClicked;
+    std::function<void(const FeedPost&)> onSaveClicked;
+};
+```
+
+### Optimistic Updates Pattern
+
+**Update immediately, sync with server asynchronously**:
+```cpp
+void PostsStore::toggleLike(const juce::String& postId) {
+    // 1. Optimistic update (immediate UI feedback)
+    auto state = getState();
+    if (auto* post = findPost(postId, state)) {
+        post->isLiked = !post->isLiked;
+        post->likeCount += post->isLiked ? 1 : -1;
+    }
+    setState(state);  // Notify all subscribers immediately
+
+    // 2. Server sync (fire and forget or with rollback)
+    networkClient->likePost(postId, [this, postId](auto result) {
+        if (!result.isOk()) {
+            // Rollback if needed
+            toggleLike(postId);  // Revert to previous state
+        }
+    });
+}
+```
+
+### Error Handling in Stores
+
+**Store errors in state rather than throwing**:
+```cpp
+void PostsStore::loadFeed(FeedType feedType, bool forceRefresh) {
+    auto state = getState();
+    state.feeds[feedType].isLoading = true;
+    setState(state);
+
+    networkClient->getFeed(feedType, [this, feedType](auto result) {
+        auto state = getState();
+        state.feeds[feedType].isLoading = false;
+
+        if (result.isOk()) {
+            state.feeds[feedType].posts = result.value().posts;
+            state.feeds[feedType].error = "";
+        } else {
+            state.feeds[feedType].error = result.error();
+        }
+        setState(state);
+    });
+}
+```
+
+### Testing Stores
+
+**Unit test pattern with mock NetworkClient**:
+```cpp
+class PostsStoreTest : public juce::UnitTest {
+public:
+    PostsStoreTest() : juce::UnitTest("PostsStore") {}
+
+    void runTest() override {
+        // Setup
+        auto mockClient = std::make_shared<MockNetworkClient>();
+        auto store = std::make_shared<PostsStore>(mockClient.get());
+
+        // Subscribe to state changes
+        juce::Array<PostsState> stateHistory;
+        store->subscribe([&](const PostsState& state) {
+            stateHistory.add(state);
+        });
+
+        // Act
+        store->toggleLike("post-123");
+        auto result = stateHistory.back();
+
+        // Assert
+        expect(result.getCurrentFeed().posts[0].isLiked == true);
+    }
+};
+```
+
+---
+
 ## Appendix: Store Architecture Design Principles (December 15, 2024)
 
 ### Consolidated Store Design
@@ -1625,6 +1751,168 @@ The application now follows a **consolidated store architecture** with 9 entity-
 **Phase 4: Remaining Components (IN PROGRESS)** ⚠️
 - Refactor remaining 35 callback-based components
 - Target: 100% reactive patterns across UI layer
+
+---
+
+## Part 16: Quick Start Guide for New Developers
+
+### Understanding the Codebase
+
+**1. The Modern Parts** ✅
+- `plugin/src/stores/` - Reactive state management (PostsStore, ChatStore, UserStore, etc.)
+- `plugin/src/util/reactive/` - Observable patterns (ObservableProperty, ObservableArray)
+- `plugin/src/ui/bindings/` - ReactiveBoundComponent base class
+- `plugin/src/util/cache/` - Multi-tier caching system
+- `plugin/src/network/` - NetworkClient with error tracking and rate limiting
+
+**2. The Legacy Parts** ⚠️
+- Most UI components still use callback patterns
+- Works fine, but different pattern from modern code
+- Gradually being refactored
+
+### How to Add a New Feature
+
+**Option 1: Using Modern Store Pattern** (RECOMMENDED)
+```
+1. Create/extend a store (or use existing one)
+2. Create a smart container component that subscribes to store
+3. Create dumb presentation components that receive props
+4. Wire up event callbacks to store methods
+5. Store handles state mutations and server sync
+6. UI automatically updates when store state changes
+```
+
+**Example: "Add to Favorites" Feature**
+```cpp
+// 1. Store method exists: PostsStore::toggleSave()
+void PostCard::onSaveButtonClicked() {
+    // 2. Container (PostsFeed) calls store
+    postsStore->toggleSave(post.id);
+    // 3. PostsStore updates state
+    // 4. All subscribers notified (including PostsFeed)
+    // 5. PostsFeed updates PostCard with new state
+    // 6. PostCard re-paints with updated save state
+}
+```
+
+**Option 2: Using Legacy Callback Pattern** (NOT RECOMMENDED)
+```
+1. Add callback function to component
+2. Wire up click handlers to callbacks
+3. Parent component (or caller) implements the callback
+4. Make direct NetworkClient calls
+5. Update state manually
+```
+
+### Refactoring a Legacy Component
+
+**Step-by-Step**:
+1. Identify which store owns the data
+2. Add `setStore()` method to component
+3. In `setStore()`, subscribe to store and save unsubscribe function
+4. In destructor, call unsubscribe function
+5. Replace NetworkClient calls with store method calls
+6. Remove manual state management (store handles it)
+7. Update UI from store state in subscription callback
+
+**Example: Refactoring Comment Component**
+```cpp
+// Before (legacy)
+class Comment : public Component {
+    void onReplyClicked() {
+        networkClient->postComment(postId, text, [this](auto result) {
+            if (result.isOk()) {
+                displaySuccess();
+            } else {
+                displayError(result.error());
+            }
+        });
+    }
+};
+
+// After (modern)
+class Comment : public ReactiveBoundComponent {
+    std::shared_ptr<CommentStore> commentStore;
+    std::function<void()> unsubscribe;
+
+    void setCommentStore(std::shared_ptr<CommentStore> store) {
+        commentStore = store;
+        unsubscribe = store->subscribe([this](const CommentState& state) {
+            displayComments(state.comments);
+            displayError(state.error);
+        });
+    }
+
+    ~Comment() override { if (unsubscribe) unsubscribe(); }
+
+    void onReplyClicked() {
+        commentStore->postComment(postId, text);
+        // Store handles: optimistic update, server sync, error recovery
+    }
+};
+```
+
+### Common Mistakes to Avoid
+
+❌ **Creating separate stores for different views of the same data**
+```cpp
+// Wrong
+SavedPostsStore savedPosts;
+FeedStore feed;
+ArchivedPostsStore archived;  // Three stores for posts!
+```
+
+✅ **Use one store with multiple substates**
+```cpp
+// Right
+PostsStore postsStore;  // Handles feeds, savedPosts, archivedPosts
+```
+
+❌ **Storing component state in store**
+```cpp
+// Wrong - UI state doesn't belong in store
+struct FeedState {
+    bool isHoveringOverPostCard = false;
+    int selectedCommentIndex = 0;
+};
+```
+
+✅ **Keep UI state in component, data in store**
+```cpp
+// Right
+struct PostsState {
+    juce::Array<FeedPost> posts;  // Data
+    bool isLoading = false;         // Data loading state
+};
+// Component manages: hover state, selection, animations
+```
+
+❌ **Forgetting to unsubscribe from stores**
+```cpp
+// Wrong - memory leak if component destroyed
+class MyComponent : public Component {
+    void bindToStore(PostsStore* store) {
+        store->subscribe([this](auto state) { /* ... */ });
+        // Never saved unsubscribe function!
+    }
+};
+```
+
+✅ **Always unsubscribe in destructor**
+```cpp
+// Right
+class MyComponent : public Component {
+    std::function<void()> unsubscribe;
+
+    void bindToStore(PostsStore* store) {
+        unsubscribe = store->subscribe([this](auto state) { /* ... */ });
+    }
+
+    ~MyComponent() override {
+        if (unsubscribe) unsubscribe();
+    }
+};
+```
 
 ---
 
