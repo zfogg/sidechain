@@ -29,36 +29,14 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   viewTransitionManager = ViewTransitionManager::create(this);
   viewTransitionManager->setDefaultDuration(300); // < 350ms requirement
 
-  // Initialize centralized user data store
-  userDataStore = std::make_unique<UserDataStore>();
-  userDataStore->addChangeListener(this);
-
-  // Initialize PostsStore (no longer singleton)
-  postsStore = std::make_unique<Sidechain::Stores::PostsStore>(nullptr);
-
-  // ChatStore is a singleton - no need to create it here
-  // It will be accessed via ChatStore::getInstance()
-
   // Initialize draft storage
   draftStorage = std::make_unique<DraftStorage>();
 
   // Initialize network client with development config
   networkClient = std::make_unique<NetworkClient>(NetworkClient::Config::development());
 
-  // Initialize PlaylistStore with NetworkClient
-  playlistStore = std::make_shared<Sidechain::Stores::PlaylistStore>(networkClient.get());
-
-  // Initialize UploadStore with NetworkClient
-  uploadStore = std::make_shared<Sidechain::Stores::UploadStore>(networkClient.get());
-
-  // Initialize ChallengeStore with NetworkClient
-  challengeStore = std::make_shared<Sidechain::Stores::ChallengeStore>(networkClient.get());
-
-  // Wire up UserDataStore with NetworkClient
-  userDataStore->setNetworkClient(networkClient.get());
-
-  // Wire up PostsStore with NetworkClient
-  postsStore->setNetworkClient(networkClient.get());
+  // Inject NetworkClient into unified AppStore
+  appStore.setNetworkClient(networkClient.get());
 
   // Set up ImageLoader with NetworkClient
   ImageLoader::setNetworkClient(networkClient.get());
@@ -154,9 +132,8 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
       // Store local path temporarily for preview
       profileSetupComponent->setLocalPreviewPath(localPath);
 
-      // Also set local preview in UserDataStore
-      if (userDataStore)
-        userDataStore->setLocalPreviewImage(imageFile);
+      // Also set local preview in AppStore
+      appStore.setLocalPreviewImage(imageFile);
 
       // Show uploading state (8.3.11.6)
       if (profileSetupComponent)
@@ -166,12 +143,8 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
         juce::MessageManager::callAsync([this, result]() {
           if (result.isOk() && result.getValue().isNotEmpty()) {
             auto s3Url = result.getValue();
-            // Update UserDataStore with the S3 URL (will trigger image
-            // download)
-            if (userDataStore) {
-              userDataStore->setProfilePictureUrl(s3Url);
-              userDataStore->saveToSettings();
-            }
+            // Update AppStore with the S3 URL (will trigger image download)
+            appStore.setProfilePictureUrl(s3Url);
 
             // Update legacy state
             profilePicUrl = s3Url;
@@ -199,7 +172,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
 
   //==========================================================================
   // Create PostsFeed
-  postsFeedComponent = std::make_unique<PostsFeed>(postsStore.get());
+  postsFeedComponent = std::make_unique<PostsFeed>(&appStore);
   postsFeedComponent->setNetworkClient(networkClient.get());
   postsFeedComponent->setAudioPlayer(&audioProcessor.getAudioPlayer());
   // Note: StreamChatClient will be set after it's created (below)
@@ -209,12 +182,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   postsFeedComponent->onAuthenticationRequired = [this]() {
     Log::warn("PluginEditor: Authentication required - redirecting to auth screen");
     // Clear stored credentials and redirect to auth
-    if (userDataStore) {
-      userDataStore->clearAll();
-    }
-    if (networkClient) {
-      networkClient->setAuthToken("");
-    }
+    appStore.logout();
     showView(AppView::Authentication);
   };
   postsFeedComponent->onStartRecording = [this]() { showView(AppView::Recording); };
@@ -242,7 +210,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   //==========================================================================
   // Create Upload
   uploadComponent = std::make_unique<Upload>(audioProcessor, *networkClient);
-  uploadComponent->bindToStore(uploadStore);
+  uploadComponent->bindToStore(&appStore);
   uploadComponent->onUploadComplete = [this]() {
     uploadComponent->reset();
     showView(AppView::PostsFeed);
@@ -291,8 +259,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   // Create Search
   searchComponent = std::make_unique<Search>();
   searchComponent->setNetworkClient(networkClient.get());
-  if (userDataStore)
-    searchComponent->setCurrentUserId(userDataStore->getUserId());
+  searchComponent->setCurrentUserId(appStore.getState().user.userId);
   searchComponent->onBackPressed = [this]() { navigateBack(); };
   searchComponent->onUserSelected = [this](const juce::String &userId) { showProfile(userId); };
   searchComponent->onPostSelected = [this](const FeedPost &post) {
@@ -339,8 +306,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   // Create StoryViewer
   storyViewerComponent = std::make_unique<StoryViewer>();
   storyViewerComponent->setNetworkClient(networkClient.get());
-  if (userDataStore)
-    storyViewerComponent->setCurrentUserId(userDataStore->getUserId());
+  storyViewerComponent->setCurrentUserId(appStore.getState().user.userId);
   storyViewerComponent->onClose = [this]() { navigateBack(); };
   storyViewerComponent->onDeleteClicked = [this]([[maybe_unused]] const juce::String &storyId) {
     // Story was deleted, refresh story indicators
@@ -368,9 +334,8 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   //==========================================================================
   // Create Playlists
   playlistsComponent = std::make_unique<Playlists>();
-  playlistsComponent->bindToStore(playlistStore);
-  if (userDataStore)
-    playlistsComponent->setCurrentUserId(userDataStore->getUserId());
+  playlistsComponent->bindToStore(&appStore);
+  playlistsComponent->setCurrentUserId(appStore.getState().user.userId);
   playlistsComponent->onBackPressed = [this]() { navigateBack(); };
   playlistsComponent->onPlaylistSelected = [this](const juce::String &playlistId) {
     playlistIdToView = playlistId;
@@ -416,8 +381,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   // Create PlaylistDetail
   playlistDetailComponent = std::make_unique<PlaylistDetail>();
   playlistDetailComponent->setNetworkClient(networkClient.get());
-  if (userDataStore)
-    playlistDetailComponent->setCurrentUserId(userDataStore->getUserId());
+  playlistDetailComponent->setCurrentUserId(appStore.getState().user.userId);
   playlistDetailComponent->onBackPressed = [this]() { navigateBack(); };
   playlistDetailComponent->onPostSelected = [](const juce::String &postId) {
     // Navigate to post (or play post)
@@ -468,9 +432,8 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   //==========================================================================
   // Create MidiChallenges component (R.2.2.4.1)
   midiChallengesComponent = std::make_unique<MidiChallenges>();
-  midiChallengesComponent->bindToStore(challengeStore);
-  if (userDataStore)
-    midiChallengesComponent->setCurrentUserId(userDataStore->getUserId());
+  midiChallengesComponent->bindToStore(&appStore);
+  midiChallengesComponent->setCurrentUserId(appStore.getState().user.userId);
   midiChallengesComponent->onBackPressed = [this]() { navigateBack(); };
   midiChallengesComponent->onChallengeSelected = [this](const juce::String &challengeId) {
     challengeIdToView = challengeId;
@@ -483,8 +446,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   midiChallengeDetailComponent = std::make_unique<MidiChallengeDetail>();
   midiChallengeDetailComponent->setNetworkClient(networkClient.get());
   midiChallengeDetailComponent->setAudioPlayer(&audioProcessor.getAudioPlayer());
-  if (userDataStore)
-    midiChallengeDetailComponent->setCurrentUserId(userDataStore->getUserId());
+  midiChallengeDetailComponent->setCurrentUserId(appStore.getState().user.userId);
   midiChallengeDetailComponent->onBackPressed = [this]() { navigateBack(); };
   midiChallengeDetailComponent->onSubmitEntry = [this]() {
     // Navigate to recording view with challenge context
@@ -501,8 +463,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   // Create SavedPosts component (P0 Social Feature)
   savedPostsComponent = std::make_unique<SavedPosts>();
   savedPostsComponent->setNetworkClient(networkClient.get());
-  if (userDataStore)
-    savedPostsComponent->setCurrentUserId(userDataStore->getUserId());
+  savedPostsComponent->setCurrentUserId(appStore.getState().user.userId);
   savedPostsComponent->onBackPressed = [this]() { navigateBack(); };
   savedPostsComponent->onPostClicked = [this](const FeedPost &post) {
     // Navigate to user profile when post is clicked
@@ -525,8 +486,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   // Create ArchivedPosts component (Post Archive)
   archivedPostsComponent = std::make_unique<ArchivedPosts>();
   archivedPostsComponent->setNetworkClient(networkClient.get());
-  if (userDataStore)
-    archivedPostsComponent->setCurrentUserId(userDataStore->getUserId());
+  archivedPostsComponent->setCurrentUserId(appStore.getState().user.userId);
   archivedPostsComponent->onBackPressed = [this]() { navigateBack(); };
   archivedPostsComponent->onPostClicked = [this](const FeedPost &post) {
     // Navigate to user profile when post is clicked
@@ -586,8 +546,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   userPickerDialog = std::make_unique<UserPickerDialog>();
   userPickerDialog->setNetworkClient(networkClient.get());
   userPickerDialog->setStreamChatClient(streamChatClient.get());
-  if (userDataStore)
-    userPickerDialog->setCurrentUserId(userDataStore->getUserId());
+  userPickerDialog->setCurrentUserId(appStore.getState().user.userId);
 
   userPickerDialog->onUserSelected = [this](const juce::String &userId) {
     // Hide dialog immediately
@@ -648,8 +607,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   // Create NotificationSettings dialog
   notificationSettingsDialog = std::make_unique<NotificationSettings>();
   notificationSettingsDialog->setNetworkClient(networkClient.get());
-  if (userDataStore)
-    notificationSettingsDialog->setUserDataStore(userDataStore.get());
+  notificationSettingsDialog->setAppStore(&appStore);
   notificationSettingsDialog->onClose = []() {
     // Dialog handles its own cleanup - callback is just a notification
     Log::debug("NotificationSettings dialog closed");
@@ -675,10 +633,10 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   // Not added as child - shown as modal overlay when needed
 
   //==========================================================================
-  // Create EditProfile dialog (Settings page) (Task 2.4: Use UserStore)
+  // Create EditProfile dialog (Settings page) (Task 2.4: Use AppStore)
   editProfileDialog = std::make_unique<EditProfile>();
   editProfileDialog->setNetworkClient(networkClient.get());
-  editProfileDialog->setUserStore(&Sidechain::Stores::UserStore::getInstance());
+  editProfileDialog->setAppStore(&appStore);
   // Task 2.4: Profile save is now handled via UserStore subscription in
   // EditProfile Callbacks removed: onCancel, onSave, onProfilePicSelected
   editProfileDialog->onActivityStatusClicked = [this]() { showActivityStatusSettings(); };
@@ -712,14 +670,16 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   // Create StreamChatClient for getstream.io messaging
   streamChatClient = std::make_unique<StreamChatClient>(networkClient.get(), StreamChatClient::Config::development());
 
-  // Set StreamChatClient on ChatStore so it can send/receive messages
+  // Note: StreamChatClient will be wired to AppStore's chat state in a future refactor
+  // For now, keep compatibility with existing ChatStore singleton
   Sidechain::Stores::ChatStore::getInstance().setStreamChatClient(streamChatClient.get());
 
   // Wire up message notification callback to check OS notification setting
   streamChatClient->setMessageNotificationCallback([this](const juce::String &title, const juce::String &message) {
     // Check if OS notifications are enabled before showing
-    if (userDataStore && userDataStore->isOSNotificationsEnabled()) {
-      OSNotification::show(title, message, "", userDataStore->isNotificationSoundEnabled());
+    auto state = appStore.getState();
+    if (state.user.osNotificationsEnabled) {
+      OSNotification::show(title, message, "", state.user.notificationSoundEnabled);
     }
   });
 
@@ -766,8 +726,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     if (userPickerDialog) {
       userPickerDialog->setNetworkClient(networkClient.get());
       userPickerDialog->setStreamChatClient(streamChatClient.get());
-      if (userDataStore)
-        userPickerDialog->setCurrentUserId(userDataStore->getUserId());
+      userPickerDialog->setCurrentUserId(appStore.getState().user.userId);
 
       // Load recent conversations and suggested users
       userPickerDialog->loadRecentConversations();
@@ -783,8 +742,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     if (userPickerDialog) {
       userPickerDialog->setNetworkClient(networkClient.get());
       userPickerDialog->setStreamChatClient(streamChatClient.get());
-      if (userDataStore)
-        userPickerDialog->setCurrentUserId(userDataStore->getUserId());
+      userPickerDialog->setCurrentUserId(appStore.getState().user.userId);
 
       // Load recent conversations and suggested users
       userPickerDialog->loadRecentConversations();
@@ -882,8 +840,8 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   headerComponent->onSearchClicked = [this]() { showView(AppView::Search); };
   headerComponent->onProfileClicked = [this]() {
     // Show current user's profile
-    if (userDataStore && !userDataStore->getUserId().isEmpty()) {
-      juce::String userId = userDataStore->getUserId();
+    if (!appStore.getState().user.userId.isEmpty()) {
+      juce::String userId = appStore.getState().user.userId;
       if (userId.isNotEmpty()) {
         Log::info("Header::onProfileClicked: Showing profile for user: " + userId);
         showProfile(userId);
@@ -902,8 +860,8 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   headerComponent->onMessagesClicked = [this]() { showView(AppView::Messages); };
   headerComponent->onProfileStoryClicked = [this]() {
     // Show current user's story
-    if (userDataStore && !userDataStore->getUserId().isEmpty())
-      showUserStory(userDataStore->getUserId());
+    if (!appStore.getState().user.userId.isEmpty())
+      showUserStory(appStore.getState().user.userId);
   };
   addChildComponent(headerComponent.get()); // Initially hidden until logged in
 
@@ -957,8 +915,7 @@ SidechainAudioProcessorEditor::~SidechainAudioProcessorEditor() {
   stopNotificationPolling();
 
   // Remove as listener from UserDataStore
-  if (userDataStore)
-    userDataStore->removeChangeListener(this);
+  // removed - no longer using change listeners
 
   // Disconnect WebSocket before destruction
   if (webSocketClient)
@@ -1340,12 +1297,12 @@ void SidechainAudioProcessorEditor::showView(AppView view, NavigationDirection d
   bool showHeader = (view != AppView::Authentication);
   if (headerComponent) {
     headerComponent->setVisible(showHeader);
-    if (showHeader && userDataStore) {
-      headerComponent->setUserInfo(userDataStore->getUsername(), userDataStore->getProfilePictureUrl());
+    if (showHeader) {
+      headerComponent->setUserInfo(appStore.getState().user.username, appStore.getState().user.profilePictureUrl);
 
       // Use cached image from UserDataStore if available
-      if (userDataStore->hasProfileImage()) {
-        headerComponent->setProfileImage(userDataStore->getProfileImage());
+      if (appStore.getState().user.profileImage.isValid()) {
+        headerComponent->setProfileImage(appStore.getState().user.profileImage);
       }
       headerComponent->toFront(false);
     }
@@ -1369,8 +1326,8 @@ void SidechainAudioProcessorEditor::showView(AppView view, NavigationDirection d
       profileSetupComponent->setUserInfo(username, email, profilePicUrl);
       // Pass cached profile image from UserDataStore (downloaded via HTTP
       // proxy)
-      if (userDataStore && userDataStore->hasProfileImage()) {
-        profileSetupComponent->setProfileImage(userDataStore->getProfileImage());
+      if (appStore.getState().user.profileImage.isValid()) {
+        profileSetupComponent->setProfileImage(appStore.getState().user.profileImage);
       }
     }
     break;
@@ -1431,16 +1388,14 @@ void SidechainAudioProcessorEditor::showView(AppView view, NavigationDirection d
 
   case AppView::SavedPosts:
     if (savedPostsComponent) {
-      if (userDataStore)
-        savedPostsComponent->setCurrentUserId(userDataStore->getUserId());
+      savedPostsComponent->setCurrentUserId(appStore.getState().user.userId);
       savedPostsComponent->loadSavedPosts();
     }
     break;
 
   case AppView::ArchivedPosts:
     if (archivedPostsComponent) {
-      if (userDataStore)
-        archivedPostsComponent->setCurrentUserId(userDataStore->getUserId());
+      archivedPostsComponent->setCurrentUserId(appStore.getState().user.userId);
       archivedPostsComponent->loadArchivedPosts();
     }
     break;
@@ -1450,7 +1405,7 @@ void SidechainAudioProcessorEditor::showView(AppView view, NavigationDirection d
     if (userDiscoveryComponent) {
       Log::info("showView: calling setCurrentUserId");
       // Get user ID from UserDataStore instead of deprecated authToken
-      juce::String currentUserId = userDataStore ? userDataStore->getUserId() : "";
+      juce::String currentUserId = appStore.getState().user.userId;
       userDiscoveryComponent->setCurrentUserId(currentUserId);
       Log::info("showView: calling loadDiscoveryData");
       userDiscoveryComponent->loadDiscoveryData();
@@ -1461,16 +1416,15 @@ void SidechainAudioProcessorEditor::showView(AppView view, NavigationDirection d
   case AppView::Profile:
     if (profileComponent) {
       // Set current user ID for "is own profile" checks
-      if (userDataStore)
-        profileComponent->setCurrentUserId(userDataStore->getUserId());
+      profileComponent->setCurrentUserId(appStore.getState().user.userId);
 
       // Ensure we have a valid user ID to load
       if (profileUserIdToView.isEmpty()) {
         Log::error("PluginEditor::showView: profileUserIdToView is empty, "
                    "cannot load profile");
         // Fallback to current user's profile if available
-        if (userDataStore && !userDataStore->getUserId().isEmpty()) {
-          profileUserIdToView = userDataStore->getUserId();
+        if (!appStore.getState().user.userId.isEmpty()) {
+          profileUserIdToView = appStore.getState().user.userId;
           Log::info("PluginEditor::showView: Using current user ID as fallback: " + profileUserIdToView);
         } else {
           Log::error("PluginEditor::showView: No user ID available, cannot "
@@ -1488,8 +1442,7 @@ void SidechainAudioProcessorEditor::showView(AppView view, NavigationDirection d
 
   case AppView::Search:
     if (searchComponent) {
-      if (userDataStore)
-        searchComponent->setCurrentUserId(userDataStore->getUserId());
+      searchComponent->setCurrentUserId(appStore.getState().user.userId);
 
       searchComponent->focusSearchInput();
     }
@@ -1503,8 +1456,7 @@ void SidechainAudioProcessorEditor::showView(AppView view, NavigationDirection d
 
   case AppView::MessageThread:
     if (messageThreadComponent) {
-      if (userDataStore)
-        messageThreadComponent->setCurrentUserId(userDataStore->getUserId());
+      messageThreadComponent->setCurrentUserId(appStore.getState().user.userId);
       messageThreadComponent->loadChannel(messageChannelType, messageChannelId);
     }
     break;
@@ -1522,8 +1474,8 @@ void SidechainAudioProcessorEditor::showProfile(const juce::String &userId) {
   if (userId.isEmpty()) {
     Log::error("PluginEditor::showProfile: userId is empty");
     // Fallback to current user's profile if available
-    if (userDataStore && !userDataStore->getUserId().isEmpty()) {
-      profileUserIdToView = userDataStore->getUserId();
+    if (!appStore.getState().user.userId.isEmpty()) {
+      profileUserIdToView = appStore.getState().user.userId;
       Log::info("PluginEditor::showProfile: Using current user ID as fallback: " + profileUserIdToView);
     } else {
       Log::error("PluginEditor::showProfile: No user ID available, cannot show "
@@ -1603,10 +1555,10 @@ void SidechainAudioProcessorEditor::saveCurrentUploadAsDraft() {
 }
 
 void SidechainAudioProcessorEditor::checkForActiveStories() {
-  if (!networkClient || !userDataStore || userDataStore->getUserId().isEmpty())
+  if (!networkClient || appStore.getState().user.userId.isEmpty())
     return;
 
-  juce::String currentUserId = userDataStore->getUserId();
+  juce::String currentUserId = appStore.getState().user.userId;
 
   // Fetch stories feed and check if current user has any active stories
   networkClient->getStoriesFeed([this, currentUserId](Outcome<juce::var> result) {
@@ -1909,8 +1861,7 @@ void SidechainAudioProcessorEditor::showSelectHighlightDialog(const juce::String
   if (!selectHighlightDialog || storyId.isEmpty())
     return;
 
-  if (userDataStore)
-    selectHighlightDialog->setCurrentUserId(userDataStore->getUserId());
+  selectHighlightDialog->setCurrentUserId(appStore.getState().user.userId);
   selectHighlightDialog->setStoryId(storyId);
   selectHighlightDialog->showModal(this);
 }
@@ -1922,8 +1873,7 @@ void SidechainAudioProcessorEditor::showSharePostToMessage(const FeedPost &post)
   // Set up the dialog with required clients
   shareToMessageDialog->setNetworkClient(networkClient.get());
   shareToMessageDialog->setStreamChatClient(streamChatClient.get());
-  if (userDataStore)
-    shareToMessageDialog->setCurrentUserId(userDataStore->getUserId());
+  shareToMessageDialog->setCurrentUserId(appStore.getState().user.userId);
 
   // Set the post to share
   shareToMessageDialog->setPost(post);
@@ -1941,8 +1891,7 @@ void SidechainAudioProcessorEditor::showShareStoryToMessage(const StoryData &sto
   // Set up the dialog with required clients
   shareToMessageDialog->setNetworkClient(networkClient.get());
   shareToMessageDialog->setStreamChatClient(streamChatClient.get());
-  if (userDataStore)
-    shareToMessageDialog->setCurrentUserId(userDataStore->getUserId());
+  shareToMessageDialog->setCurrentUserId(appStore.getState().user.userId);
 
   // Convert StoryData to Story
   Story storyModel;
@@ -1975,8 +1924,7 @@ void SidechainAudioProcessorEditor::showNotificationSettings() {
     return;
 
   // Ensure UserDataStore is set (in case it wasn't set during construction)
-  if (userDataStore)
-    notificationSettingsDialog->setUserDataStore(userDataStore.get());
+  // AppStore already set
 
   // Show the dialog
   notificationSettingsDialog->showModal(this);
@@ -2057,16 +2005,17 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String &user, con
 #else
   // Debug build - store token insecurely in local settings (no Keychain) for
   // persistence
-  if (userDataStore) {
-    userDataStore->setAuthToken(token);
-    userDataStore->saveToSettings();
-    Sidechain::Util::Logger::getInstance().log(LogLevel::Info, "Security",
-                                               "Debug build - token stored insecurely in local settings (not using "
-                                               "Keychain)");
-  } else {
-    Sidechain::Util::Logger::getInstance().log(LogLevel::Warning, "Security",
-                                               "Debug build - UserDataStore unavailable, token not persisted");
-  }
+  if (true) // appStore available {
+    appStore.setAuthToken(token);
+  // TODO: persist auth token;
+  Sidechain::Util::Logger::getInstance().log(LogLevel::Info, "Security",
+                                             "Debug build - token stored insecurely in local settings (not using "
+                                             "Keychain)");
+}
+else {
+  Sidechain::Util::Logger::getInstance().log(LogLevel::Warning, "Security",
+                                             "Debug build - UserDataStore unavailable, token not persisted");
+}
 #endif
 
   // Update legacy state (for backwards compatibility during migration)
@@ -2075,46 +2024,46 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String &user, con
   authToken = ""; // Deprecated - token now stored securely, not in plain text
 
   // Update centralized UserDataStore
-  if (userDataStore) {
-    userDataStore->setAuthToken(token); // TODO: Update UserDataStore to use SecureTokenStore
-    userDataStore->setBasicUserInfo(user, mail);
-  }
+  if (true)                       // appStore available {
+    appStore.setAuthToken(token); // TODO: Update UserDataStore to use SecureTokenStore
+  appStore.setBasicUserInfo(user, mail);
+}
 
-  // Set auth token on network client (NetworkClient needs token in memory for
-  // API requests)
-  if (networkClient && !token.isEmpty())
-    networkClient->setAuthToken(token);
+// Set auth token on network client (NetworkClient needs token in memory for
+// API requests)
+if (networkClient && !token.isEmpty())
+  networkClient->setAuthToken(token);
 
-  // Fetch getstream.io chat token for messaging
-  if (streamChatClient && !token.isEmpty()) {
-    streamChatClient->fetchToken(token, [](::Outcome<StreamChatClient::TokenResult> result) {
-      if (result.isOk()) {
-        auto tokenResult = result.getValue();
-        Log::info("Stream chat token fetched successfully for user: " + tokenResult.userId);
+// Fetch getstream.io chat token for messaging
+if (streamChatClient && !token.isEmpty()) {
+  streamChatClient->fetchToken(token, [](::Outcome<StreamChatClient::TokenResult> result) {
+    if (result.isOk()) {
+      auto tokenResult = result.getValue();
+      Log::info("Stream chat token fetched successfully for user: " + tokenResult.userId);
 
-        // Also set authentication on ChatStore so it can send messages
-        Sidechain::Stores::ChatStore::getInstance().setAuthentication(tokenResult.token, tokenResult.apiKey,
-                                                                      tokenResult.userId);
-        Log::debug("ChatStore authenticated with stream token");
-      } else {
-        Log::warn("Failed to fetch stream chat token: " + result.getError());
-      }
-    });
-  }
+      // Also set authentication on ChatStore so it can send messages
+      Sidechain::Stores::ChatStore::getInstance().setAuthentication(tokenResult.token, tokenResult.apiKey,
+                                                                    tokenResult.userId);
+      Log::debug("ChatStore authenticated with stream token");
+    } else {
+      Log::warn("Failed to fetch stream chat token: " + result.getError());
+    }
+  });
+}
 
-  // Connect WebSocket with auth token
-  connectWebSocket();
+// Connect WebSocket with auth token
+connectWebSocket();
 
-  // Start notification polling
-  startNotificationPolling();
+// Start notification polling
+startNotificationPolling();
 
-  // Fetch full user profile (including profile picture) via UserDataStore
-  if (userDataStore) {
-    userDataStore->fetchUserProfile([this](bool /*success*/) {
+// Fetch full user profile (including profile picture) via UserDataStore
+if (true) // appStore available {
+  appStore.fetchUserProfile([this](bool /*success*/) {
       juce::MessageManager::callAsync([this]() {
-        // Sync legacy state from UserDataStore
-        if (userDataStore) {
-          profilePicUrl = userDataStore->getProfilePictureUrl();
+      // Sync legacy state from UserDataStore
+      if (true) // appStore available {
+        profilePicUrl = appStore.getState().user.profilePictureUrl;
         }
 
         saveLoginState();
@@ -2124,17 +2073,18 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String &user, con
           headerComponent->setVisible(true);
 
         // If user has a profile picture, skip setup and go straight to feed
-        if (userDataStore && !userDataStore->getProfilePictureUrl().isEmpty()) {
-          showView(AppView::PostsFeed);
+        if (!appStore.getState().user.profilePictureUrl.isEmpty()) {
+      showView(AppView::PostsFeed);
         } else {
-          showView(AppView::ProfileSetup);
+      showView(AppView::ProfileSetup);
         }
-      });
-    });
-  } else {
-    saveLoginState();
-    showView(AppView::ProfileSetup);
-  }
+  });
+});
+}
+else {
+  saveLoginState();
+  showView(AppView::ProfileSetup);
+}
 }
 
 void SidechainAudioProcessorEditor::logout() {
@@ -2148,40 +2098,40 @@ void SidechainAudioProcessorEditor::logout() {
   disconnectWebSocket();
 
   // Clear user state via UserDataStore (also clears persisted settings)
-  if (userDataStore) {
-    userDataStore->clearAll();
-  }
+  if (true) // appStore available {
+    appStore.logout();
+}
 
-  // Clear legacy state
-  username = "";
-  email = "";
-  profilePicUrl = "";
-  authToken = "";
+// Clear legacy state
+username = "";
+email = "";
+profilePicUrl = "";
+authToken = "";
 
-  // Clear auth token from secure storage (Release builds only)
+// Clear auth token from secure storage (Release builds only)
 #ifdef NDEBUG
-  auto *secureStore = Sidechain::Security::SecureTokenStore::getInstance();
-  if (secureStore && secureStore->isAvailable()) {
-    if (secureStore->deleteToken("auth_token")) {
-      Sidechain::Util::Logger::getInstance().log(Sidechain::Util::LogLevel::Info, "Security",
-                                                 "Auth token cleared from secure storage");
-    }
+auto *secureStore = Sidechain::Security::SecureTokenStore::getInstance();
+if (secureStore && secureStore->isAvailable()) {
+  if (secureStore->deleteToken("auth_token")) {
+    Sidechain::Util::Logger::getInstance().log(Sidechain::Util::LogLevel::Info, "Security",
+                                               "Auth token cleared from secure storage");
   }
+}
 #else
-  // Debug build - no secure storage to clear
-  Sidechain::Util::Logger::getInstance().log(Sidechain::Util::LogLevel::Info, "Security",
-                                             "Debug build - no Keychain token to clear");
+// Debug build - no secure storage to clear
+Sidechain::Util::Logger::getInstance().log(Sidechain::Util::LogLevel::Info, "Security",
+                                           "Debug build - no Keychain token to clear");
 #endif
 
-  // Clear network client auth
-  if (networkClient)
-    networkClient->setAuthToken("");
+// Clear network client auth
+if (networkClient)
+  networkClient->setAuthToken("");
 
-  // Hide header when logged out
-  if (headerComponent)
-    headerComponent->setVisible(false);
+// Hide header when logged out
+if (headerComponent)
+  headerComponent->setVisible(false);
 
-  showView(AppView::Authentication);
+showView(AppView::Authentication);
 }
 
 void SidechainAudioProcessorEditor::confirmAndLogout() {
@@ -2220,124 +2170,124 @@ void SidechainAudioProcessorEditor::saveLoginState() {
 
 void SidechainAudioProcessorEditor::loadLoginState() {
   // Load user data from UserDataStore (which handles persistence)
-  if (userDataStore) {
-    userDataStore->loadFromSettings();
+  if (true) // appStore available {
+    // TODO: load persisted auth token;
 
-    Log::debug("loadLoginState: isLoggedIn=" + juce::String(userDataStore->isLoggedIn() ? "true" : "false") +
-               ", username=" + userDataStore->getUsername() +
-               ", profilePicUrl=" + userDataStore->getProfilePictureUrl());
+    Log::debug("loadLoginState: isLoggedIn=" + juce::String(appStore.getState().auth.isLoggedIn ? "true" : "false") +
+               ", username=" + appStore.getState().user.username +
+               ", profilePicUrl=" + appStore.getState().user.profilePictureUrl);
 
-    if (userDataStore->isLoggedIn()) {
-      // Load auth token from secure storage (Release) or local settings (Debug)
-      juce::String loadedToken;
+  if (appStore.getState().auth.isLoggedIn) {
+    // Load auth token from secure storage (Release) or local settings (Debug)
+    juce::String loadedToken;
 #ifdef NDEBUG
-      auto *secureStore = Sidechain::Security::SecureTokenStore::getInstance();
+    auto *secureStore = Sidechain::Security::SecureTokenStore::getInstance();
 
-      if (secureStore && secureStore->isAvailable()) {
-        if (auto tokenOpt = secureStore->loadToken("auth_token")) {
-          loadedToken = tokenOpt.value();
-          Sidechain::Util::Logger::getInstance().log(Sidechain::Util::LogLevel::Info, "Security",
-                                                     "Auth token loaded from " + secureStore->getBackendType());
-        } else {
-          Sidechain::Util::Logger::getInstance().log(Sidechain::Util::LogLevel::Warning, "Security",
-                                                     "No auth token found in secure storage");
-        }
-      }
-#else
-      // Debug build - load token from local settings (insecure but persistent)
-      loadedToken = userDataStore->getAuthToken();
-      if (loadedToken.isNotEmpty()) {
+    if (secureStore && secureStore->isAvailable()) {
+      if (auto tokenOpt = secureStore->loadToken("auth_token")) {
+        loadedToken = tokenOpt.value();
         Sidechain::Util::Logger::getInstance().log(Sidechain::Util::LogLevel::Info, "Security",
-                                                   "Debug build - token loaded from local settings (insecure "
-                                                   "storage)");
+                                                   "Auth token loaded from " + secureStore->getBackendType());
       } else {
         Sidechain::Util::Logger::getInstance().log(Sidechain::Util::LogLevel::Warning, "Security",
-                                                   "Debug build - no auth token found in local settings");
+                                                   "No auth token found in secure storage");
       }
+    }
+#else
+    // Debug build - load token from local settings (insecure but persistent)
+    loadedToken = appStore.getState().auth.authToken;
+    if (loadedToken.isNotEmpty()) {
+      Sidechain::Util::Logger::getInstance().log(Sidechain::Util::LogLevel::Info, "Security",
+                                                 "Debug build - token loaded from local settings (insecure "
+                                                 "storage)");
+    } else {
+      Sidechain::Util::Logger::getInstance().log(Sidechain::Util::LogLevel::Warning, "Security",
+                                                 "Debug build - no auth token found in local settings");
+    }
 #endif
 
-      // Sync legacy state from UserDataStore
-      authToken = ""; // Deprecated - using SecureTokenStore
-      username = userDataStore->getUsername();
-      email = userDataStore->getEmail();
-      profilePicUrl = userDataStore->getProfilePictureUrl();
+    // Sync legacy state from UserDataStore
+    authToken = ""; // Deprecated - using SecureTokenStore
+    username = appStore.getState().user.username;
+    email = appStore.getState().user.email;
+    profilePicUrl = appStore.getState().user.profilePictureUrl;
 
-      Log::debug("loadLoginState: authToken loaded from secure storage, length=" + juce::String(loadedToken.length()));
+    Log::debug("loadLoginState: authToken loaded from secure storage, length=" + juce::String(loadedToken.length()));
 
-      // Set auth token on network client
-      if (!loadedToken.isEmpty() && networkClient)
-        networkClient->setAuthToken(loadedToken);
+    // Set auth token on network client
+    if (!loadedToken.isEmpty() && networkClient)
+      networkClient->setAuthToken(loadedToken);
 
-      // Fetch getstream.io chat token for messaging
-      if (streamChatClient && !loadedToken.isEmpty()) {
-        streamChatClient->fetchToken(loadedToken, [](Outcome<StreamChatClient::TokenResult> result) {
-          if (result.isOk()) {
-            auto tokenResult = result.getValue();
-            Log::info("Stream chat token fetched successfully for user: " + tokenResult.userId);
+    // Fetch getstream.io chat token for messaging
+    if (streamChatClient && !loadedToken.isEmpty()) {
+      streamChatClient->fetchToken(loadedToken, [](Outcome<StreamChatClient::TokenResult> result) {
+        if (result.isOk()) {
+          auto tokenResult = result.getValue();
+          Log::info("Stream chat token fetched successfully for user: " + tokenResult.userId);
 
-            // Also set authentication on ChatStore so it can send messages
-            Sidechain::Stores::ChatStore::getInstance().setAuthentication(tokenResult.token, tokenResult.apiKey,
-                                                                          tokenResult.userId);
-            Log::debug("ChatStore authenticated with stream token (from "
-                       "saved state)");
-          } else {
-            Log::warn("Failed to fetch stream chat token: " + result.getError());
-          }
-        });
-      }
-
-      // Connect WebSocket with saved auth token
-      connectWebSocket();
-
-      // Start notification polling
-      startNotificationPolling();
-
-      // Show header for logged-in users
-      if (headerComponent) {
-        headerComponent->setVisible(true);
-        // Set initial user info (image will be updated via
-        // changeListenerCallback when downloaded)
-        headerComponent->setUserInfo(username, profilePicUrl);
-        if (userDataStore->hasProfileImage()) {
-          headerComponent->setProfileImage(userDataStore->getProfileImage());
+          // Also set authentication on ChatStore so it can send messages
+          Sidechain::Stores::ChatStore::getInstance().setAuthentication(tokenResult.token, tokenResult.apiKey,
+                                                                        tokenResult.userId);
+          Log::debug("ChatStore authenticated with stream token (from "
+                     "saved state)");
+        } else {
+          Log::warn("Failed to fetch stream chat token: " + result.getError());
         }
-      }
+      });
+    }
 
-      // Fetch fresh profile to get latest data (including profile picture)
-      userDataStore->fetchUserProfile([this](bool success) {
-        Log::info("fetchUserProfile callback: success=" + juce::String(success ? "true" : "false"));
+    // Connect WebSocket with saved auth token
+    connectWebSocket();
+
+    // Start notification polling
+    startNotificationPolling();
+
+    // Show header for logged-in users
+    if (headerComponent) {
+      headerComponent->setVisible(true);
+      // Set initial user info (image will be updated via
+      // changeListenerCallback when downloaded)
+      headerComponent->setUserInfo(username, profilePicUrl);
+      if (appStore.getState().user.profileImage.isValid()) {
+        headerComponent->setProfileImage(appStore.getState().user.profileImage);
+      }
+    }
+
+    // Fetch fresh profile to get latest data (including profile picture)
+      appStore.fetchUserProfile([this](bool success) {
+      Log::info("fetchUserProfile callback: success=" + juce::String(success ? "true" : "false"));
         juce::MessageManager::callAsync([this, success]() {
-          // If profile fetch failed (e.g., auth token expired/invalid),
-          // redirect to auth
-          if (!success) {
-            Log::warn("Profile fetch failed - auth token may be invalid. "
-                      "Redirecting to auth screen.");
-            // Clear stored login state
-            if (userDataStore) {
-              userDataStore->clearAll();
-            }
-            if (networkClient) {
-              networkClient->setAuthToken("");
-            }
-            showView(AppView::Authentication);
-            return;
+        // If profile fetch failed (e.g., auth token expired/invalid),
+        // redirect to auth
+        if (!success) {
+          Log::warn("Profile fetch failed - auth token may be invalid. "
+                    "Redirecting to auth screen.");
+          // Clear stored login state
+          if (true) // appStore available {
+            appStore.logout();
+        }
+        if (networkClient) {
+          networkClient->setAuthToken("");
+        }
+        showView(AppView::Authentication);
+        return;
           }
 
           // Sync profile URL from UserDataStore
-          if (userDataStore) {
-            profilePicUrl = userDataStore->getProfilePictureUrl();
+          if (true)  // appStore available {
+            profilePicUrl = appStore.getState().user.profilePictureUrl;
             Log::info("After fetchUserProfile: profilePicUrl=" + profilePicUrl +
-                      ", hasImage=" + juce::String(userDataStore->hasProfileImage() ? "true" : "false"));
+                      ", hasImage=" + juce::String(appStore.getState().user.profileImage.isValid() ? "true" : "false"));
 
             // Force update header with latest profile image
             if (headerComponent) {
-              headerComponent->setUserInfo(userDataStore->getUsername(), profilePicUrl);
-              if (userDataStore->hasProfileImage()) {
-                Log::info("Updating header with fetched profile image");
-                headerComponent->setProfileImage(userDataStore->getProfileImage());
-              } else {
-                Log::warn("No profile image available after fetch");
-              }
+        headerComponent->setUserInfo(appStore.getState().user.username, profilePicUrl);
+        if (appStore.getState().user.profileImage.isValid()) {
+          Log::info("Updating header with fetched profile image");
+          headerComponent->setProfileImage(appStore.getState().user.profileImage);
+        } else {
+          Log::warn("No profile image available after fetch");
+        }
             }
           }
 
@@ -2345,19 +2295,21 @@ void SidechainAudioProcessorEditor::loadLoginState() {
           checkForActiveStories();
 
           // If user has a profile picture, skip setup and go straight to feed
-          if (userDataStore && !userDataStore->getProfilePictureUrl().isEmpty()) {
-            showView(AppView::PostsFeed);
+          if (!appStore.getState().user.profilePictureUrl.isEmpty()) {
+      showView(AppView::PostsFeed);
           } else {
-            showView(AppView::ProfileSetup);
+      showView(AppView::ProfileSetup);
           }
-        });
-      });
-    } else {
-      showView(AppView::Authentication);
-    }
-  } else {
-    showView(AppView::Authentication);
-  }
+  });
+});
+}
+else {
+  showView(AppView::Authentication);
+}
+}
+else {
+  showView(AppView::Authentication);
+}
 }
 
 //==============================================================================
@@ -2556,40 +2508,40 @@ void SidechainAudioProcessorEditor::handleWebSocketStateChange(WebSocketClient::
 //==============================================================================
 // ChangeListener - for UserDataStore updates
 void SidechainAudioProcessorEditor::changeListenerCallback(juce::ChangeBroadcaster *source) {
-  if (source == userDataStore.get()) {
+  if (false) // legacy changeListener {
     Log::debug("changeListenerCallback: UserDataStore changed!"
                " hasImage=" +
-               juce::String(userDataStore->hasProfileImage() ? "true" : "false") +
-               " profilePicUrl=" + userDataStore->getProfilePictureUrl());
+               juce::String(appStore.getState().user.profileImage.isValid() ? "true" : "false") +
+               " profilePicUrl=" + appStore.getState().user.profilePictureUrl);
 
-    // UserDataStore changed - update components with new data
-    if (headerComponent && userDataStore) {
-      headerComponent->setUserInfo(userDataStore->getUsername(), userDataStore->getProfilePictureUrl());
+  // UserDataStore changed - update components with new data
+  if (headerComponent) {
+    headerComponent->setUserInfo(appStore.getState().user.username, appStore.getState().user.profilePictureUrl);
 
-      // If UserDataStore has a cached image, use it directly (avoids
-      // re-downloading)
-      if (userDataStore->hasProfileImage()) {
-        Log::debug("changeListenerCallback: Setting profile image on header");
-        headerComponent->setProfileImage(userDataStore->getProfileImage());
-      }
-
-      // Check for active stories
-      checkForActiveStories();
+    // If UserDataStore has a cached image, use it directly (avoids
+    // re-downloading)
+    if (appStore.getState().user.profileImage.isValid()) {
+      Log::debug("changeListenerCallback: Setting profile image on header");
+      headerComponent->setProfileImage(appStore.getState().user.profileImage);
     }
 
-    // Update ProfileSetup with cached image
-    if (profileSetupComponent && userDataStore && userDataStore->hasProfileImage()) {
-      Log::debug("changeListenerCallback: Setting profile image on ProfileSetup");
-      profileSetupComponent->setProfileImage(userDataStore->getProfileImage());
-    }
-
-    // Also sync to legacy state variables during migration
-    if (userDataStore) {
-      username = userDataStore->getUsername();
-      email = userDataStore->getEmail();
-      profilePicUrl = userDataStore->getProfilePictureUrl();
-    }
+    // Check for active stories
+    checkForActiveStories();
   }
+
+  // Update ProfileSetup with cached image
+  if (profileSetupComponent && appStore.getState().user.profileImage.isValid()) {
+    Log::debug("changeListenerCallback: Setting profile image on ProfileSetup");
+    profileSetupComponent->setProfileImage(appStore.getState().user.profileImage);
+  }
+
+  // Also sync to legacy state variables during migration
+  if (true) // appStore available {
+    username = appStore.getState().user.username;
+  email = appStore.getState().user.email;
+  profilePicUrl = appStore.getState().user.profilePictureUrl;
+}
+}
 }
 
 //==============================================================================
@@ -2743,7 +2695,7 @@ void SidechainAudioProcessorEditor::fetchNotifications() {
     }
 
     // Play notification sound if enabled and new notifications arrived
-    if (newNotifications && userDataStore && userDataStore->isNotificationSoundEnabled()) {
+    if (newNotifications && appStore.getState().user.notificationSoundEnabled) {
       NotificationSound::playBeep();
     }
     if (notificationList) {
@@ -2762,14 +2714,15 @@ void SidechainAudioProcessorEditor::fetchNotifications() {
     // Show OS notification for new notifications (most recent first)
     if (newNotifications && items.size() > 0) {
       // Check if OS notifications are enabled
-      if (userDataStore && userDataStore->isOSNotificationsEnabled()) {
+      if (appStore.getState().user.osNotificationsEnabled) {
         // Get the first (most recent) notification to show
         const auto &latestNotification = items.getFirst();
         juce::String notificationTitle = "Sidechain";
         juce::String notificationMessage = latestNotification.getDisplayText();
 
         // Show desktop notification (checks isSupported internally)
-        OSNotification::show(notificationTitle, notificationMessage, "", userDataStore->isNotificationSoundEnabled());
+        OSNotification::show(notificationTitle, notificationMessage, "",
+                             appStore.getState().user.notificationSoundEnabled);
       }
     }
 
@@ -2795,12 +2748,12 @@ void SidechainAudioProcessorEditor::fetchNotificationCounts() {
     }
 
     // Play notification sound if enabled and new notifications arrived
-    if (newNotifications && userDataStore && userDataStore->isNotificationSoundEnabled()) {
+    if (newNotifications && appStore.getState().user.notificationSoundEnabled) {
       NotificationSound::playBeep();
     }
 
     // Fetch and show OS notification for new notifications
-    if (newNotifications && userDataStore && userDataStore->isOSNotificationsEnabled()) {
+    if (newNotifications && appStore.getState().user.osNotificationsEnabled) {
       // Fetch the most recent notification to show in OS notification
       networkClient->getNotifications(1, 0, [this](Outcome<NetworkClient::NotificationResult> result) {
         if (result.isOk()) {
@@ -2812,7 +2765,7 @@ void SidechainAudioProcessorEditor::fetchNotificationCounts() {
 
             // Show desktop notification (checks isSupported internally)
             OSNotification::show(notificationTitle, notificationMessage, "",
-                                 userDataStore && userDataStore->isNotificationSoundEnabled());
+                                 appStore.getState().user.notificationSoundEnabled);
           }
         }
       });
