@@ -1,7 +1,9 @@
 #pragma once
 
 #include "UserCard.h"
+#include "../../stores/UserDiscoveryStore.h"
 #include <JuceHeader.h>
+#include <memory>
 
 class NetworkClient;
 class StreamChatClient;
@@ -24,9 +26,10 @@ public:
   ~UserDiscovery() override;
 
   //==============================================================================
-  // Network client integration
+  // Store and network client integration
   void setNetworkClient(NetworkClient *client);
   void setStreamChatClient(StreamChatClient *client);
+  void setUserDiscoveryStore(std::shared_ptr<Sidechain::Stores::UserDiscoveryStore> store);
   void setCurrentUserId(const juce::String &userId) {
     currentUserId = userId;
   }
@@ -72,6 +75,8 @@ private:
   // Data
   NetworkClient *networkClient = nullptr;
   StreamChatClient *streamChatClient = nullptr;
+  std::shared_ptr<Sidechain::Stores::UserDiscoveryStore> discoveryStore;
+  std::function<void()> storeUnsubscriber;
   juce::String currentUserId;
 
   // Search state
@@ -79,29 +84,29 @@ private:
   juce::Array<DiscoveredUser> searchResults;
   bool isSearching = false;
 
-  // Discovery sections
-  juce::Array<DiscoveredUser> trendingUsers;
-  juce::Array<DiscoveredUser> featuredProducers;
-  juce::Array<DiscoveredUser> suggestedUsers;
-  juce::Array<DiscoveredUser> similarProducers;
-  juce::Array<DiscoveredUser> recommendedToFollow; // Gorse collaborative filtering recommendations
-
   // Recent searches (persisted)
   juce::StringArray recentSearches;
   static constexpr int MAX_RECENT_SEARCHES = 10;
 
-  // Genre filter state
-  juce::StringArray availableGenres;
+  // Discovery sections (fallback when store not available)
+  juce::Array<DiscoveredUser> trendingUsers;
+  juce::Array<DiscoveredUser> featuredProducers;
+  juce::Array<DiscoveredUser> suggestedUsers;
+  juce::Array<DiscoveredUser> similarProducers;
+  juce::Array<DiscoveredUser> recommendedToFollow;
+
+  // Genre filter state (local UI state)
   juce::String selectedGenre;
   juce::Array<DiscoveredUser> genreUsers;
+  juce::StringArray availableGenres;
 
-  // Loading states
-  bool isTrendingLoading = true;
-  bool isFeaturedLoading = true;
-  bool isSuggestedLoading = true;
-  bool isSimilarLoading = true;
-  bool isRecommendedLoading = true;
-  bool isGenresLoading = true;
+  // Loading states (fallback when store not available)
+  bool isTrendingLoading = false;
+  bool isFeaturedLoading = false;
+  bool isSuggestedLoading = false;
+  bool isSimilarLoading = false;
+  bool isRecommendedLoading = false;
+  bool isGenresLoading = false;
 
   // Error state
   juce::String errorMessage;
@@ -135,7 +140,7 @@ private:
   void drawSuggestedSection(juce::Graphics &g, juce::Rectangle<int> &bounds);
   void drawSimilarSection(juce::Graphics &g, juce::Rectangle<int> &bounds);
   void drawRecommendedSection(juce::Graphics &g, juce::Rectangle<int> &bounds);
-  void drawGenreChips(juce::Graphics &g, juce::Rectangle<int> &bounds);
+  void drawGenreChips(juce::Graphics &g, juce::Rectangle<int> &bounds, const juce::StringArray &availableGenres);
   void drawSearchResults(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawLoadingState(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawEmptyState(juce::Graphics &g, juce::Rectangle<int> bounds, const juce::String &message);
