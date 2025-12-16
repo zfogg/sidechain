@@ -1,4 +1,5 @@
-import { test, expect } from '../../fixtures/auth'
+import { test } from '../../fixtures/auth'
+import { expect } from '@playwright/test'
 import { UploadPage } from '../../page-objects/UploadPage'
 
 test.describe('Upload - Audio File Upload', () => {
