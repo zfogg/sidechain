@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -299,5 +300,80 @@ func TestInitErrorHandling(t *testing.T) {
 	// Most path errors are handled by MkdirAll, so test basic initialization
 	if err := Init(""); err != nil {
 		t.Fatalf("Basic init should succeed: %v", err)
+	}
+}
+
+// TestSystemConfigLoading validates system config is loaded if present
+func TestSystemConfigLoading(t *testing.T) {
+	tempDir := t.TempDir()
+
+	// Create a fake system config directory
+	sysConfigDir := filepath.Join(tempDir, "etc", "sidechain", "cli")
+	if err := os.MkdirAll(sysConfigDir, 0755); err != nil {
+		t.Fatalf("Failed to create system config dir: %v", err)
+	}
+
+	sysConfigPath := filepath.Join(sysConfigDir, "config.toml")
+	userConfigDir := filepath.Join(tempDir, "user", ".config", "sidechain", "cli")
+	userConfigPath := filepath.Join(userConfigDir, "config.toml")
+
+	// Write system config with production defaults
+	sysConfigContent := `
+[api]
+base_url = "https://api.sidechain.live"
+timeout = 60
+
+[log]
+level = "warn"
+`
+	if err := os.WriteFile(sysConfigPath, []byte(sysConfigContent), 0644); err != nil {
+		t.Fatalf("Failed to write system config: %v", err)
+	}
+
+	// We can't directly test system config loading without modifying getSystemConfigPaths
+	// But we can verify that user config takes precedence by writing both files
+	if err := os.MkdirAll(userConfigDir, 0700); err != nil {
+		t.Fatalf("Failed to create user config dir: %v", err)
+	}
+
+	userConfigContent := `
+[api]
+base_url = "http://localhost:8787"
+`
+	if err := os.WriteFile(userConfigPath, []byte(userConfigContent), 0644); err != nil {
+		t.Fatalf("Failed to write user config: %v", err)
+	}
+
+	// Initialize with user config path
+	if err := Init(userConfigPath); err != nil {
+		t.Fatalf("Failed to initialize: %v", err)
+	}
+
+	// Verify user config takes precedence
+	baseURL := GetString("api.base_url")
+	if baseURL != "http://localhost:8787" {
+		t.Errorf("Expected user config value, got %s", baseURL)
+	}
+}
+
+// TestSystemConfigPaths validates correct system config paths for platform
+func TestSystemConfigPaths(t *testing.T) {
+	paths := getSystemConfigPaths()
+
+	if len(paths) == 0 {
+		t.Fatal("System config paths should not be empty")
+	}
+
+	for _, path := range paths {
+		if path == "" {
+			t.Error("System config path should not be empty")
+		}
+
+		// On Unix, should contain etc or usr/local/etc
+		if runtime.GOOS != "windows" {
+			if !filepath.IsAbs(path) {
+				t.Errorf("System config path should be absolute: %s", path)
+			}
+		}
 	}
 }

@@ -1,12 +1,22 @@
 # Sidechain CLI Configuration
 #
-# Location:
+# User Configuration Location:
 #   macOS/Linux: ~/.config/sidechain/cli/config.toml
 #   Windows:     %LOCALAPPDATA%\sidechain\cli\config.toml
 #
-# Defaults (if config file not present):
+# System-Wide Configuration Locations (optional):
+#   Linux:   /etc/sidechain/cli/config.toml
+#   macOS:   /usr/local/etc/sidechain/cli/config.toml
+#   Windows: %ProgramFiles%\Sidechain\cli\config.toml
+#
+# Configuration Precedence (highest to lowest):
+#   1. User config (~/.config/sidechain/cli/config.toml)
+#   2. System config (/etc/sidechain/cli/config.toml or /usr/local/etc/sidechain/cli/config.toml)
+#   3. Built-in defaults (see below)
+#
+# Defaults (if no config files present):
 #   Development: http://localhost:8787
-#   Production:  https://api.sidechain.live
+#   Production:  https://api.sidechain.live (set via config file)
 
 [api]
 # API base URL
