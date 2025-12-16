@@ -61,7 +61,7 @@ public:
   }
 
 private:
-  FileCache fileCache;
+  FileCache<juce::String> fileCache;
   std::map<juce::String, juce::Image> memoryCache;
   juce::ReadWriteLock memoryCacheLock;
 

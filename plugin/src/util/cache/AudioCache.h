@@ -62,5 +62,5 @@ public:
   }
 
 private:
-  FileCache fileCache;
+  FileCache<juce::String> fileCache;
 };

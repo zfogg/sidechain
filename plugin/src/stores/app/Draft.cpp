@@ -1,6 +1,6 @@
 #include "../AppStore.h"
 #include "../../util/logging/Logger.h"
-#include "../../util/PropertiesFileUtils.h"
+#include "../../util/cache/DraftCache.h"
 #include <JuceHeader.h>
 
 namespace Sidechain {
@@ -9,23 +9,27 @@ namespace Stores {
 void AppStore::loadDrafts() {
   updateState([](AppState &state) { state.drafts.isLoading = true; });
 
-  // Load drafts from local storage (PropertiesFile)
+  // Load drafts from cache directory
   juce::Array<juce::var> draftsList;
 
   try {
-    auto options = Util::PropertiesFileUtils::getStandardOptions();
-    std::unique_ptr<juce::PropertiesFile> propertiesFile(new juce::PropertiesFile(options));
-
-    // Get the drafts JSON string from properties
-    juce::String draftsJson = propertiesFile->getValue("drafts", "[]");
-
-    // Parse JSON array
-    juce::var parsed = juce::JSON::parse(draftsJson);
-    if (parsed.isArray()) {
-      draftsList = juce::Array<juce::var>(static_cast<const juce::Array<juce::var>&>(parsed));
-      Util::logInfo("AppStore", "Loaded " + juce::String(draftsList.size()) + " drafts from local storage");
+    auto cacheDir = draftCache.getCacheDirectory();
+    if (!cacheDir.exists()) {
+      Util::logInfo("AppStore", "No draft cache directory found");
     } else {
-      Util::logWarning("AppStore", "Drafts JSON is not an array, starting with empty list");
+      // Iterate through cache directory to find all draft files
+      for (const auto &file : cacheDir.findChildFiles(juce::File::findFiles, false, "*.cache")) {
+        try {
+          auto content = file.loadFileAsString();
+          auto draft = juce::JSON::parse(content);
+          if (draft.isObject()) {
+            draftsList.add(draft);
+          }
+        } catch (...) {
+          Util::logWarning("AppStore", "Failed to parse draft file: " + file.getFileName());
+        }
+      }
+      Util::logInfo("AppStore", "Loaded " + juce::String(draftsList.size()) + " drafts from cache");
     }
   } catch (const std::exception &e) {
     Util::logError("AppStore", "Failed to load drafts: " + juce::String(e.what()));
@@ -53,20 +57,13 @@ void AppStore::deleteDraft(const juce::String &draftId) {
     }
   });
 
-  // Persist changes to local storage
+  // Remove from cache
   try {
-    auto options = Util::PropertiesFileUtils::getStandardOptions();
-    std::unique_ptr<juce::PropertiesFile> propertiesFile(new juce::PropertiesFile(options));
-
-    // Convert current drafts to JSON and save
-    juce::var draftsArray = getState().drafts.drafts;
-    juce::String draftsJson = juce::JSON::toString(draftsArray);
-    propertiesFile->setValue("drafts", draftsJson);
-    propertiesFile->save();
-
-    Util::logInfo("AppStore", "Persisted draft deletion to local storage");
+    DraftKey key(static_cast<const juce::String&>(draftId));
+    draftCache.removeDraftFile(key);
+    Util::logInfo("AppStore", "Removed draft from cache: " + draftId);
   } catch (const std::exception &e) {
-    Util::logError("AppStore", "Failed to persist draft deletion: " + juce::String(e.what()));
+    Util::logError("AppStore", "Failed to remove draft from cache: " + juce::String(e.what()));
   }
 
   notifyObservers();
@@ -75,16 +72,11 @@ void AppStore::deleteDraft(const juce::String &draftId) {
 void AppStore::clearAutoRecoveryDraft() {
   Util::logInfo("AppStore", "Clearing auto-recovery draft");
 
-  // Clear auto-recovery draft from local storage
+  // Remove auto-recovery draft from cache
   try {
-    auto options = Util::PropertiesFileUtils::getStandardOptions();
-    std::unique_ptr<juce::PropertiesFile> propertiesFile(new juce::PropertiesFile(options));
-
-    // Remove the auto-recovery draft entry
-    propertiesFile->removeValue("autoRecoveryDraft");
-    propertiesFile->save();
-
-    Util::logInfo("AppStore", "Auto-recovery draft cleared from local storage");
+    DraftKey key(juce::String("autoRecoveryDraft"));
+    draftCache.removeDraftFile(key);
+    Util::logInfo("AppStore", "Auto-recovery draft cleared from cache");
   } catch (const std::exception &e) {
     Util::logError("AppStore", "Failed to clear auto-recovery draft: " + juce::String(e.what()));
   }

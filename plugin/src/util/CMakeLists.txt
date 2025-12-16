@@ -42,6 +42,8 @@ add_library(SidechainUtil STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/cache/ImageCache.h
     ${CMAKE_CURRENT_SOURCE_DIR}/cache/AudioCache.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/cache/AudioCache.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/cache/DraftCache.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/cache/DraftCache.h
     ${CMAKE_CURRENT_SOURCE_DIR}/error/ErrorTracking.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/error/ErrorTracking.h
 )
