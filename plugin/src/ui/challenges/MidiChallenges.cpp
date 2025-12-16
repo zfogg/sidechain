@@ -335,13 +335,13 @@ void MidiChallenges::updateScrollBounds() {
 
 juce::String MidiChallenges::getStatusDisplayText(const MIDIChallenge &challenge) const {
   if (challenge.status == "active")
-    return "🎯 Active";
+    return juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA3\xAF")) + " Active"; // 🎯
   else if (challenge.status == "voting")
-    return "🗳️ Voting";
+    return juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\xB3\xEF\xB8\x8F")) + " Voting"; // 🗳️
   else if (challenge.status == "ended")
-    return "✅ Ended";
+    return juce::String(juce::CharPointer_UTF8("\xE2\x9C\x85")) + " Ended"; // ✅
   else if (challenge.status == "upcoming")
-    return "⏰ Upcoming";
+    return juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xB0")) + " Upcoming"; // ⏰
   return challenge.status;
 }
 
