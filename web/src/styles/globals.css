@@ -187,17 +187,45 @@
   background-color: #2e2e34 !important;
 }
 
+/* Channel and Window */
+.str-chat__channel {
+  width: 100% !important;
+  max-width: none !important;
+  flex: 1 !important;
+}
+
 /* Message Thread Styling */
 .str-chat__window {
   background-color: #26262c !important;
+  width: 100% !important;
+  max-width: none !important;
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 .str-chat__message-list {
   background-color: #26262c !important;
+  width: 100% !important;
+  max-width: none !important;
 }
 
 .str-chat__message-list-scroll {
   background-color: #26262c !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Thread container */
+.str-chat__thread {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Ensure flex containers take full width */
+.str-chat__thread-container {
+  width: 100% !important;
+  max-width: none !important;
 }
 
 .str-chat__message {
