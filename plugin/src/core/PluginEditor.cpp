@@ -2102,10 +2102,6 @@ void SidechainAudioProcessorEditor::confirmAndLogout() {
 
 //==============================================================================
 void SidechainAudioProcessorEditor::saveLoginState() {
-  // DEPRECATED: This method is no longer used as token storage is handled by
-  // SecureTokenStore and other user data is persisted by UserDataStore. Keeping
-  // method for backwards compatibility, but it no longer saves the auth token.
-
   auto appProperties =
       std::make_unique<juce::PropertiesFile>(Sidechain::Util::PropertiesFileUtils::getStandardOptions());
 
@@ -2114,8 +2110,21 @@ void SidechainAudioProcessorEditor::saveLoginState() {
     appProperties->setValue("username", username);
     appProperties->setValue("email", email);
     appProperties->setValue("profilePicUrl", profilePicUrl);
-    // authToken is NO LONGER saved here - it's stored securely via
-    // SecureTokenStore
+
+#ifndef NDEBUG
+    // Debug build - also save token to local settings for persistence
+    // (Release builds use SecureTokenStore)
+    juce::String token = appStore.getState().auth.authToken;
+    if (token.isEmpty()) {
+      // If AppStore doesn't have token, try to retrieve from member variables
+      // This is a fallback for compatibility
+      token = authToken;
+    }
+    if (token.isNotEmpty()) {
+      appProperties->setValue("authToken", token);
+      Log::debug("saveLoginState: Saved authToken to local settings (Debug build)");
+    }
+#endif
   } else {
     appProperties->setValue("isLoggedIn", false);
   }
@@ -2124,54 +2133,60 @@ void SidechainAudioProcessorEditor::saveLoginState() {
 }
 
 void SidechainAudioProcessorEditor::loadLoginState() {
-  // Load user data from UserDataStore (which handles persistence)
-  Log::debug("loadLoginState: isLoggedIn=" + juce::String(appStore.getState().auth.isLoggedIn ? "true" : "false") +
-             ", username=" + appStore.getState().user.username +
-             ", profilePicUrl=" + appStore.getState().user.profilePictureUrl);
+  // First, try to load auth token from persistent storage
+  juce::String loadedToken;
 
-  if (appStore.getState().auth.isLoggedIn) {
-    // Load auth token from secure storage (Release) or local settings (Debug)
-    juce::String loadedToken;
 #ifdef NDEBUG
-    auto *secureStore = Sidechain::Security::SecureTokenStore::getInstance();
-
-    if (secureStore && secureStore->isAvailable()) {
-      if (auto tokenOpt = secureStore->loadToken("auth_token")) {
-        loadedToken = tokenOpt.value();
-        Sidechain::Util::Logger::getInstance().log(Sidechain::Util::LogLevel::Info, "Security",
-                                                   "Auth token loaded from " + secureStore->getBackendType());
-      } else {
-        Sidechain::Util::Logger::getInstance().log(Sidechain::Util::LogLevel::Warning, "Security",
-                                                   "No auth token found in secure storage");
-      }
-    }
-#else
-    // Debug build - load token from local settings (insecure but persistent)
-    loadedToken = appStore.getState().auth.authToken;
-    if (loadedToken.isNotEmpty()) {
+  // Release build - load from secure storage
+  auto *secureStore = Sidechain::Security::SecureTokenStore::getInstance();
+  if (secureStore && secureStore->isAvailable()) {
+    if (auto tokenOpt = secureStore->loadToken("auth_token")) {
+      loadedToken = tokenOpt.value();
       Sidechain::Util::Logger::getInstance().log(Sidechain::Util::LogLevel::Info, "Security",
-                                                 "Debug build - token loaded from local settings (insecure "
-                                                 "storage)");
+                                                 "Auth token loaded from " + secureStore->getBackendType());
     } else {
       Sidechain::Util::Logger::getInstance().log(Sidechain::Util::LogLevel::Warning, "Security",
-                                                 "Debug build - no auth token found in local settings");
+                                                 "No auth token found in secure storage");
     }
+  }
+#else
+  // Debug build - load token from local settings (insecure but persistent)
+  auto appProperties = std::make_unique<juce::PropertiesFile>(Sidechain::Util::PropertiesFileUtils::getStandardOptions());
+  loadedToken = appProperties->getValue("authToken", "");
+  if (loadedToken.isNotEmpty()) {
+    Sidechain::Util::Logger::getInstance().log(Sidechain::Util::LogLevel::Info, "Security",
+                                               "Debug build - token loaded from local settings");
+  } else {
+    Sidechain::Util::Logger::getInstance().log(Sidechain::Util::LogLevel::Info, "Security",
+                                               "Debug build - no auth token found in local settings");
+  }
 #endif
 
-    // Sync legacy state from UserDataStore
-    authToken = ""; // Deprecated - using SecureTokenStore
-    username = appStore.getState().user.username;
-    email = appStore.getState().user.email;
-    profilePicUrl = appStore.getState().user.profilePictureUrl;
+  Log::debug("loadLoginState: Loaded token length=" + juce::String(loadedToken.length()));
 
-    Log::debug("loadLoginState: authToken loaded from secure storage, length=" + juce::String(loadedToken.length()));
+  // If we found a saved token, restore the authenticated state
+  if (loadedToken.isNotEmpty()) {
+    Log::info("loadLoginState: Found saved auth token, restoring authenticated state");
+
+    // Set auth token on AppStore
+    appStore.setAuthToken(loadedToken);
 
     // Set auth token on network client
-    if (!loadedToken.isEmpty() && networkClient)
+    if (networkClient)
       networkClient->setAuthToken(loadedToken);
 
+    // Sync legacy state variables from properties
+    auto restoreProperties =
+        std::make_unique<juce::PropertiesFile>(Sidechain::Util::PropertiesFileUtils::getStandardOptions());
+    username = restoreProperties->getValue("username", "");
+    email = restoreProperties->getValue("email", "");
+    profilePicUrl = restoreProperties->getValue("profilePicUrl", "");
+
+    Log::info("loadLoginState: Restored username=" + username + ", profilePicUrl=" +
+              (profilePicUrl.isEmpty() ? "empty" : "set"));
+
     // Fetch getstream.io chat token for messaging
-    if (streamChatClient && !loadedToken.isEmpty()) {
+    if (streamChatClient) {
       streamChatClient->fetchToken(loadedToken, [](Outcome<StreamChatClient::TokenResult> result) {
         if (result.isOk()) {
           auto tokenResult = result.getValue();
@@ -2191,21 +2206,7 @@ void SidechainAudioProcessorEditor::loadLoginState() {
     // Show header for logged-in users
     if (headerComponent) {
       headerComponent->setVisible(true);
-      // Set initial user info (image will be updated via
-      // changeListenerCallback when downloaded)
       headerComponent->setUserInfo(username, profilePicUrl);
-      if (appStore.getState().user.profileImage.isValid()) {
-        headerComponent->setProfileImage(appStore.getState().user.profileImage);
-      }
-    }
-
-    // Sync profile URL and setup views based on profile data
-    profilePicUrl = appStore.getState().user.profilePictureUrl;
-    Log::info("loadLoginState: profilePicUrl=" + profilePicUrl);
-
-    // Update header with logged-in user data
-    if (headerComponent) {
-      headerComponent->setUserInfo(appStore.getState().user.username, profilePicUrl);
       if (appStore.getState().user.profileImage.isValid()) {
         headerComponent->setProfileImage(appStore.getState().user.profileImage);
       }
@@ -2214,15 +2215,46 @@ void SidechainAudioProcessorEditor::loadLoginState() {
     // Check if user has active stories and update header
     checkForActiveStories();
 
-    // If user has a profile picture, skip setup and go straight to feed
-    if (!appStore.getState().user.profilePictureUrl.isEmpty()) {
-      showView(AppView::PostsFeed);
-    } else {
-      showView(AppView::ProfileSetup);
-    }
+    // Fetch user profile from backend to get latest data and S3 profile picture
+    Log::debug("loadLoginState: Fetching user profile from backend");
+    auto unsubscriber = std::make_shared<std::function<void()>>();
+    *unsubscriber = appStore.subscribeToUser([this, unsubscriber](const Sidechain::Stores::UserState &userState) {
+      // Only proceed once we've fetched the profile
+      if (!userState.userId.isEmpty() && !userState.isFetchingProfile) {
+        Log::info("loadLoginState: Profile fetch complete - userId: " + userState.userId +
+                  ", profilePictureUrl: " + (userState.profilePictureUrl.isEmpty() ? "empty" : "set"));
+
+        // Update header with fresh user data from backend
+        if (headerComponent) {
+          headerComponent->setUserInfo(userState.username, userState.profilePictureUrl);
+          if (userState.profileImage.isValid()) {
+            headerComponent->setProfileImage(userState.profileImage);
+          }
+        }
+
+        // Show feed if user has a profile picture, otherwise show setup
+        if (!userState.profilePictureUrl.isEmpty()) {
+          Log::info("loadLoginState: User has S3 profile picture, showing PostsFeed");
+          username = userState.username;
+          email = userState.email;
+          profilePicUrl = userState.profilePictureUrl;
+          showView(AppView::PostsFeed);
+        } else {
+          Log::info("loadLoginState: User has no S3 profile picture, showing ProfileSetup");
+          showView(AppView::ProfileSetup);
+        }
+
+        // Unsubscribe
+        if (*unsubscriber) {
+          (*unsubscriber)();
+        }
+      }
+    });
+
+    appStore.fetchUserProfile(true);  // Force refresh
   } else {
-    // User is not logged in - show authentication view
-    Log::debug("loadLoginState: User not logged in, showing authentication view");
+    // No saved token - user is not logged in
+    Log::debug("loadLoginState: No saved auth token found, showing authentication view");
     showView(AppView::Authentication);
   }
 }
