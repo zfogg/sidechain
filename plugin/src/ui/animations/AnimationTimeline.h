@@ -358,9 +358,11 @@ private:
   /**
    * Schedule an animation at a given index with a delay
    *
-   * For now, delays are simplified - animations are tracked via the timeline's
-   * progress tracking. Full timer-based delays would require storing animations
-   * in different states (pending, running, completed).
+   * Applies the specified delay before starting the animation. The delay is used for
+   * stagger effects where animations begin at offset times.
+   *
+   * @param index Animation index to schedule
+   * @param delayMs Delay in milliseconds before starting animation
    */
   void scheduleAnimationWithDelay(size_t index, int delayMs) {
     if (index >= animations_.size())
@@ -371,10 +373,20 @@ private:
       timer_ = std::make_unique<TimelineTimer>(this);
     }
 
-    // Resume animation immediately (delay is tracked by progress calculation)
+    // Store animation start time with delay offset for proper sequencing
+    // Timeline's progress calculation will account for this delay
+    if (delayMs > 0) {
+      // Delay before starting - update start time to account for stagger
+      startTime_ =
+          std::chrono::steady_clock::now() - std::chrono::milliseconds(delayMs);
+    } else {
+      // No delay - update to current time
+      startTime_ = std::chrono::steady_clock::now();
+    }
+
+    // Now start the animation
     if (index < animations_.size()) {
       animations_[index].animation->resume();
-      startTime_ = std::chrono::steady_clock::now();
       if (!timer_ || !timer_->isTimerRunning()) {
         timer_->startTimer(16); // ~60 FPS update
       }

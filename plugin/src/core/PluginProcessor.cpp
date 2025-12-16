@@ -112,24 +112,36 @@ int SidechainAudioProcessor::getCurrentProgram() {
 }
 
 /** Set the current program
- * @param index Program index (not used, programs not implemented)
+ * @param index Program index (single program only, but tracked for compatibility)
  */
-void SidechainAudioProcessor::setCurrentProgram([[maybe_unused]] int index) {}
+void SidechainAudioProcessor::setCurrentProgram(int index) {
+  if (index >= 0 && index < getNumPrograms()) {
+    currentProgram = index;
+    Log::debug("SidechainAudioProcessor: Program changed to " + juce::String(index));
+  }
+}
 
 /** Get the name of a program
- * @param index Program index (not used)
- * @return Empty string (programs not implemented)
+ * @param index Program index (single program only)
+ * @return Program name ("Sidechain" for program 0)
  */
-const juce::String SidechainAudioProcessor::getProgramName([[maybe_unused]] int index) {
+const juce::String SidechainAudioProcessor::getProgramName(int index) {
+  if (index == 0) {
+    return "Sidechain";
+  }
   return {};
 }
 
 /** Change the name of a program
- * @param index Program index (not used)
- * @param newName New program name (not used, programs not implemented)
+ * @param index Program index (ignored - single program is not renameable)
+ * @param newName New program name (ignored)
  */
-void SidechainAudioProcessor::changeProgramName([[maybe_unused]] int index,
-                                                [[maybe_unused]] const juce::String &newName) {}
+void SidechainAudioProcessor::changeProgramName(int index, const juce::String &newName) {
+  // Single-program plugin: program names are fixed
+  // Log attempt for debugging purposes
+  Log::debug("SidechainAudioProcessor: Attempted to rename program " + juce::String(index) +
+             " to '" + newName + "' (not supported)");
+}
 
 //==============================================================================
 /** Prepare the plugin for audio processing

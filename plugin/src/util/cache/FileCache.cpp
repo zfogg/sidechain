@@ -277,7 +277,7 @@ FileCache::CacheEntry FileCache::CacheEntry::fromJSON(const juce::var &json) {
   CacheEntry entry;
   entry.url = json.getProperty("url", "").toString();
   entry.filename = json.getProperty("filename", "").toString();
-  entry.fileSize = static_cast<int64_t>(json.getProperty("fileSize", 0.0));
+  entry.fileSize = static_cast<int64_t>(static_cast<double>(json.getProperty("fileSize", 0.0)));
   entry.lastAccessTime = json.getProperty("lastAccessTime", 0.0);
 
   if (entry.url.isEmpty() || entry.filename.isEmpty()) {

@@ -27,6 +27,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/storage"
 	"github.com/zfogg/sidechain/backend/internal/stories"
 	"github.com/zfogg/sidechain/backend/internal/stream"
+	"github.com/zfogg/sidechain/backend/internal/waveform"
 	"github.com/zfogg/sidechain/backend/internal/websocket"
 )
 
@@ -321,6 +322,23 @@ func main() {
 	h := handlers.NewHandlers(streamClient, audioProcessor)
 	h.SetWebSocketHandler(wsHandler) // Enable real-time follow notifications
 	h.SetGorseClient(gorseClient)    // Enable user follow recommendations
+
+	// Initialize waveform generation tools for audio visualization
+	waveformGenerator := waveform.NewGenerator()
+	waveformStorage, err := waveform.NewStorage(
+		os.Getenv("AWS_REGION"),
+		os.Getenv("AWS_BUCKET"),
+		os.Getenv("CDN_URL"),
+	)
+	if err != nil {
+		log.Printf("Warning: Failed to initialize waveform storage: %v", err)
+		log.Println("Waveforms will not be generated for audio posts - check AWS configuration")
+		waveformStorage = nil
+	} else {
+		h.SetWaveformTools(waveformGenerator, waveformStorage)
+		log.Println("✅ Waveform tools initialized successfully")
+	}
+
 	authHandlers := handlers.NewAuthHandlers(authService, s3Uploader, streamClient)
 	authHandlers.SetJWTSecret(jwtSecret)
 	authHandlers.SetEmailService(emailService) // Enable password reset emails

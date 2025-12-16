@@ -114,7 +114,7 @@ static bool initializeLibNotify() {
 }
 
 bool OSNotification::showLinux(const juce::String &title, const juce::String &message, const juce::String &subtitle,
-                               bool sound) {
+                               [[maybe_unused]] bool sound) {
   if (!initializeLibNotify())
     return false;
 
