@@ -25,6 +25,7 @@ add_library(SidechainStores STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/app/Challenges.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/app/Sounds.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/app/Draft.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/app/WebSocket.cpp
 )
 
 # Include directories

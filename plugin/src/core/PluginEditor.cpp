@@ -2269,9 +2269,11 @@ void SidechainAudioProcessorEditor::handleWebSocketMessage(const WebSocketClient
 
   switch (message.type) {
   case WebSocketClient::MessageType::NewPost: {
-    // A new post was created - show toast notification (5.5.1, 5.5.2)
+    // A new post was created - invalidate feed caches and show notification (5.5.1, 5.5.2)
+    auto payload = message.getProperty("payload");
+    appStore.onWebSocketNewPost(payload);
+
     if (postsFeedComponent && postsFeedComponent->isVisible()) {
-      auto payload = message.getProperty("payload");
       postsFeedComponent->handleNewPostNotification(payload);
     }
     break;
@@ -2284,8 +2286,14 @@ void SidechainAudioProcessorEditor::handleWebSocketMessage(const WebSocketClient
     auto postId = payload.getProperty("post_id", juce::var()).toString();
     auto likeCount = static_cast<int>(payload.getProperty("like_count", juce::var(0)));
 
-    if (postsFeedComponent && !postId.isEmpty() && likeCount >= 0) {
-      postsFeedComponent->handleLikeCountUpdate(postId, likeCount);
+    if (!postId.isEmpty() && likeCount >= 0) {
+      // Invalidate caches first
+      appStore.onWebSocketLikeCountUpdate(postId, likeCount);
+
+      // Then update UI
+      if (postsFeedComponent) {
+        postsFeedComponent->handleLikeCountUpdate(postId, likeCount);
+      }
     }
     break;
   }
@@ -2297,8 +2305,14 @@ void SidechainAudioProcessorEditor::handleWebSocketMessage(const WebSocketClient
     auto userId = payload.getProperty("followee_id", juce::var()).toString();
     auto followerCount = static_cast<int>(payload.getProperty("follower_count", juce::var(0)));
 
-    if (postsFeedComponent && !userId.isEmpty() && followerCount >= 0) {
-      postsFeedComponent->handleFollowerCountUpdate(userId, followerCount);
+    if (!userId.isEmpty() && followerCount >= 0) {
+      // Invalidate caches first
+      appStore.onWebSocketFollowerCountUpdate(userId, followerCount);
+
+      // Then update UI
+      if (postsFeedComponent) {
+        postsFeedComponent->handleFollowerCountUpdate(userId, followerCount);
+      }
     }
     break;
   }
@@ -2321,6 +2335,7 @@ void SidechainAudioProcessorEditor::handleWebSocketMessage(const WebSocketClient
     // User online/offline status changed
     auto userId = message.getProperty("user_id").toString();
     auto isOnline = message.getProperty("is_online");
+    appStore.onWebSocketPresenceUpdate(userId, isOnline);
     Log::debug("Presence update - user: " + userId + " online: " + (isOnline ? "yes" : "no"));
     break;
   }
