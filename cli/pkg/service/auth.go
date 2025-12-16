@@ -365,3 +365,275 @@ func (s *AuthService) GetBackupCodes() error {
 
 	return nil
 }
+
+// Register creates a new user account
+func (s *AuthService) Register() error {
+	// Check if already logged in
+	creds, err := credentials.Load()
+	if err != nil {
+		logger.Error("Failed to load credentials", err)
+		return err
+	}
+
+	if creds != nil && creds.IsValid() {
+		formatter.PrintWarning("Already logged in as %s", creds.Username)
+		confirm, err := prompter.PromptConfirm("Continue with new registration?")
+		if err != nil {
+			return err
+		}
+		if !confirm {
+			return nil
+		}
+	}
+
+	formatter.PrintInfo("Create a new Sidechain account")
+	fmt.Printf("\n")
+
+	// Prompt for email
+	email, err := prompter.PromptString("Email: ")
+	if err != nil {
+		return err
+	}
+
+	if email == "" {
+		return fmt.Errorf("email cannot be empty")
+	}
+
+	// Prompt for username
+	username, err := prompter.PromptString("Username (3-30 characters): ")
+	if err != nil {
+		return err
+	}
+
+	if username == "" {
+		return fmt.Errorf("username cannot be empty")
+	}
+
+	if len(username) < 3 || len(username) > 30 {
+		return fmt.Errorf("username must be between 3 and 30 characters")
+	}
+
+	// Prompt for password
+	password, err := prompter.PromptPassword("Password (minimum 8 characters): ")
+	if err != nil {
+		return err
+	}
+
+	if password == "" {
+		return fmt.Errorf("password cannot be empty")
+	}
+
+	if len(password) < 8 {
+		return fmt.Errorf("password must be at least 8 characters")
+	}
+
+	// Prompt for display name
+	displayName, err := prompter.PromptString("Display name: ")
+	if err != nil {
+		return err
+	}
+
+	if displayName == "" {
+		return fmt.Errorf("display name cannot be empty")
+	}
+
+	// Initialize HTTP client
+	client.Init()
+
+	// Call registration API
+	formatter.PrintInfo("Creating account...")
+	registerResp, err := api.Register(email, username, password, displayName)
+	if err != nil {
+		formatter.PrintError("Registration failed: %v", err)
+		return err
+	}
+
+	// Set auth token
+	client.SetAuthToken(registerResp.AccessToken)
+
+	// Calculate expiry time
+	expiresAt := time.Now().Add(time.Duration(registerResp.ExpiresIn) * time.Second)
+
+	// Save credentials
+	creds = &credentials.Credentials{
+		AccessToken:  registerResp.AccessToken,
+		RefreshToken: registerResp.RefreshToken,
+		ExpiresAt:    expiresAt,
+		UserID:       registerResp.User.ID,
+		Username:     registerResp.User.Username,
+		Email:        registerResp.User.Email,
+		IsAdmin:      registerResp.User.IsAdmin,
+	}
+
+	if err := credentials.Save(creds); err != nil {
+		formatter.PrintError("Failed to save credentials: %v", err)
+		return err
+	}
+
+	// Display success message
+	formatter.PrintSuccess("✓ Account created successfully!")
+	fmt.Printf("Welcome, %s!\n\n", formatter.Bold.Sprint(registerResp.User.Username))
+
+	keyValues := map[string]interface{}{
+		"Username":       registerResp.User.Username,
+		"Email":          registerResp.User.Email,
+		"Display Name":   registerResp.User.DisplayName,
+		"Email Verified": registerResp.User.EmailVerified,
+	}
+	formatter.PrintKeyValue(keyValues)
+
+	return nil
+}
+
+// RequestPasswordReset requests a password reset email
+func (s *AuthService) RequestPasswordReset() error {
+	formatter.PrintInfo("Password Reset")
+	fmt.Printf("\n")
+
+	// Prompt for email
+	email, err := prompter.PromptString("Email address: ")
+	if err != nil {
+		return err
+	}
+
+	if email == "" {
+		return fmt.Errorf("email cannot be empty")
+	}
+
+	// Initialize HTTP client
+	client.Init()
+
+	// Call password reset API
+	formatter.PrintInfo("Sending password reset email...")
+	err = api.RequestPasswordReset(email)
+	if err != nil {
+		formatter.PrintError("Failed to request password reset: %v", err)
+		return err
+	}
+
+	formatter.PrintSuccess("✓ Password reset email sent")
+	formatter.PrintInfo("Check your email for reset instructions. The link will expire in 1 hour.")
+	fmt.Printf("\n")
+
+	return nil
+}
+
+// ResetPassword confirms password reset with token
+func (s *AuthService) ResetPassword() error {
+	formatter.PrintInfo("Confirm Password Reset")
+	fmt.Printf("\n")
+
+	// Prompt for token
+	token, err := prompter.PromptString("Reset token (from email): ")
+	if err != nil {
+		return err
+	}
+
+	if token == "" {
+		return fmt.Errorf("reset token cannot be empty")
+	}
+
+	// Prompt for new password
+	newPassword, err := prompter.PromptPassword("New password (minimum 8 characters): ")
+	if err != nil {
+		return err
+	}
+
+	if newPassword == "" {
+		return fmt.Errorf("password cannot be empty")
+	}
+
+	if len(newPassword) < 8 {
+		return fmt.Errorf("password must be at least 8 characters")
+	}
+
+	// Confirm password
+	confirmPassword, err := prompter.PromptPassword("Confirm new password: ")
+	if err != nil {
+		return err
+	}
+
+	if newPassword != confirmPassword {
+		return fmt.Errorf("passwords do not match")
+	}
+
+	// Initialize HTTP client
+	client.Init()
+
+	// Call reset password API
+	formatter.PrintInfo("Resetting password...")
+	err = api.ResetPassword(token, newPassword)
+	if err != nil {
+		formatter.PrintError("Failed to reset password: %v", err)
+		return err
+	}
+
+	formatter.PrintSuccess("✓ Password reset successfully")
+	formatter.PrintInfo("You can now login with your new password")
+	fmt.Printf("\n")
+
+	return nil
+}
+
+// Get2FAStatus displays 2FA status for current user
+func (s *AuthService) Get2FAStatus() error {
+	creds, err := credentials.Load()
+	if err != nil {
+		logger.Error("Failed to load credentials", err)
+		return err
+	}
+
+	if creds == nil || !creds.IsValid() {
+		formatter.PrintError("Not logged in. Please run 'sidechain-cli auth login'")
+		return fmt.Errorf("not authenticated")
+	}
+
+	client.Init()
+	client.SetAuthToken(creds.AccessToken)
+
+	// Refresh token if expired
+	if creds.IsExpired() {
+		if err := s.RefreshToken(); err != nil {
+			formatter.PrintError("Failed to refresh token. Please login again.")
+			return err
+		}
+
+		// Reload credentials
+		creds, _ = credentials.Load()
+		client.SetAuthToken(creds.AccessToken)
+	}
+
+	formatter.PrintInfo("Fetching 2FA status...")
+	status, err := api.Get2FAStatus()
+	if err != nil {
+		if api.IsUnauthorized(err) {
+			formatter.PrintError("Session expired. Please login again.")
+			credentials.Delete()
+			return fmt.Errorf("unauthorized")
+		}
+		formatter.PrintError("Failed to fetch 2FA status: %v", err)
+		return err
+	}
+
+	fmt.Printf("\n")
+	keyValues := map[string]interface{}{}
+
+	if enabled, ok := status["enabled"].(bool); ok {
+		if enabled {
+			keyValues["Status"] = "🔒 Enabled"
+			if twoFactorType, ok := status["type"].(string); ok {
+				keyValues["Type"] = twoFactorType
+			}
+			if backupCodes, ok := status["backup_codes_remaining"].(float64); ok {
+				keyValues["Backup Codes"] = fmt.Sprintf("%d remaining", int(backupCodes))
+			}
+		} else {
+			keyValues["Status"] = "Disabled"
+		}
+	}
+
+	formatter.PrintKeyValue(keyValues)
+	fmt.Printf("\n")
+
+	return nil
+}

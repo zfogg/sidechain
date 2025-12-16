@@ -188,3 +188,103 @@ func GetBackupCodes() ([]string, error) {
 
 	return backupCodes, nil
 }
+
+// Register creates a new user account
+func Register(email, username, password, displayName string) (*LoginResponse, error) {
+	logger.Debug("Attempting registration", "email", email, "username", username)
+
+	req := RegisterRequest{
+		Email:       email,
+		Username:    username,
+		Password:    password,
+		DisplayName: displayName,
+	}
+
+	reqBody, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := client.GetClient().
+		R().
+		SetHeader("Content-Type", "application/json").
+		SetBody(reqBody).
+		Post("/api/v1/auth/register")
+
+	if err := CheckResponse(resp, err); err != nil {
+		return nil, err
+	}
+
+	var registerResp LoginResponse
+	if err := json.Unmarshal(resp.Body(), &registerResp); err != nil {
+		return nil, err
+	}
+
+	logger.Debug("Registration successful", "username", registerResp.User.Username)
+	return &registerResp, nil
+}
+
+// RequestPasswordReset requests a password reset email
+func RequestPasswordReset(email string) error {
+	logger.Debug("Requesting password reset", "email", email)
+
+	req := map[string]string{
+		"email": email,
+	}
+
+	reqBody, err := json.Marshal(req)
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.GetClient().
+		R().
+		SetHeader("Content-Type", "application/json").
+		SetBody(reqBody).
+		Post("/api/v1/auth/reset-password")
+
+	return CheckResponse(resp, err)
+}
+
+// ResetPassword confirms password reset with token
+func ResetPassword(token, newPassword string) error {
+	logger.Debug("Resetting password with token")
+
+	req := map[string]string{
+		"token":        token,
+		"new_password": newPassword,
+	}
+
+	reqBody, err := json.Marshal(req)
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.GetClient().
+		R().
+		SetHeader("Content-Type", "application/json").
+		SetBody(reqBody).
+		Post("/api/v1/auth/reset-password/confirm")
+
+	return CheckResponse(resp, err)
+}
+
+// Get2FAStatus retrieves 2FA status for current user
+func Get2FAStatus() (map[string]interface{}, error) {
+	logger.Debug("Fetching 2FA status")
+
+	resp, err := client.GetClient().
+		R().
+		Get("/api/v1/auth/2fa/status")
+
+	if err := CheckResponse(resp, err); err != nil {
+		return nil, err
+	}
+
+	var result map[string]interface{}
+	if err := json.Unmarshal(resp.Body(), &result); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
