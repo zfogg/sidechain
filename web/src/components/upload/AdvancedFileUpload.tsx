@@ -127,10 +127,10 @@ export function AdvancedFileUpload({
                 className="hidden"
                 id="midi-input"
               />
-              <label htmlFor="midi-input">
-                <Button as="span" variant="outline" className="cursor-pointer">
+              <label htmlFor="midi-input" className="inline-block">
+                <span className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer">
                   Choose MIDI File
-                </Button>
+                </span>
               </label>
             </div>
 
@@ -184,10 +184,10 @@ export function AdvancedFileUpload({
                 className="hidden"
                 id="project-input"
               />
-              <label htmlFor="project-input">
-                <Button as="span" variant="outline" className="cursor-pointer">
+              <label htmlFor="project-input" className="inline-block">
+                <span className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer">
                   Choose Project File
-                </Button>
+                </span>
               </label>
             </div>
 

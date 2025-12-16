@@ -298,14 +298,21 @@ export class StoryClient {
   static async getFollowingActivityTimeline(
     limit: number = 20,
     offset: number = 0
-  ): Promise<Outcome<Record<string, unknown>[]>> {
+  ): Promise<Outcome<Ephemeral[]>> {
     const result = await apiClient.get<StoriesResponse>('/activity/following', {
       limit,
       offset,
     })
 
     if (result.isOk()) {
-      return Outcome.ok(result.getValue().stories || [])
+      try {
+        const ephemerals = (result.getValue().stories || []).map((s: any) =>
+          EphemeralModel.fromJson(s)
+        )
+        return Outcome.ok(ephemerals)
+      } catch (error) {
+        return Outcome.error((error as Error).message)
+      }
     }
 
     return Outcome.error(result.getError())
@@ -317,14 +324,21 @@ export class StoryClient {
   static async getGlobalActivityTimeline(
     limit: number = 20,
     offset: number = 0
-  ): Promise<Outcome<Record<string, unknown>[]>> {
+  ): Promise<Outcome<Ephemeral[]>> {
     const result = await apiClient.get<StoriesResponse>('/activity/global', {
       limit,
       offset,
     })
 
     if (result.isOk()) {
-      return Outcome.ok(result.getValue().stories || [])
+      try {
+        const ephemerals = (result.getValue().stories || []).map((s: any) =>
+          EphemeralModel.fromJson(s)
+        )
+        return Outcome.ok(ephemerals)
+      } catch (error) {
+        return Outcome.error((error as Error).message)
+      }
     }
 
     return Outcome.error(result.getError())

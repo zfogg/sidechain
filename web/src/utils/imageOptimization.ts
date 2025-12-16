@@ -77,7 +77,7 @@ export function preloadImage(url: string): Promise<HTMLImageElement> {
  * Replaces data-src with src when element becomes visible
  */
 export function observeLazyImages(root?: Element): IntersectionObserver {
-  return new IntersectionObserver(
+  const observer = new IntersectionObserver(
     (entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -100,6 +100,7 @@ export function observeLazyImages(root?: Element): IntersectionObserver {
       rootMargin: '50px', // Start loading 50px before visible
     }
   )
+  return observer
 }
 
 /**

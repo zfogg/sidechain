@@ -62,16 +62,17 @@ export function CommentsPanel({
   }
 
   // Separate comments into top-level and replies
-  const topLevelComments = (comments || []).filter((c) => !c.parentId)
-  const replies = (comments || []).reduce(
+  const commentsArray = comments || []
+  const topLevelComments = commentsArray.filter((c) => !c.parentId)
+  const replies = commentsArray.reduce(
     (acc, c) => {
       if (c.parentId) {
         if (!acc[c.parentId]) acc[c.parentId] = []
-        acc[c.parentId].push(c)
+        acc[c.parentId]?.push(c)
       }
       return acc
     },
-    {} as Record<string, typeof comments>
+    {} as Record<string, typeof commentsArray>
   )
 
   return (

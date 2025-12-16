@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { AxiosInstance } from 'axios'
+import type { AxiosInstance, AxiosError } from 'axios'
 import { Outcome } from './types'
 
 /**
@@ -91,7 +91,7 @@ export class ApiClient {
       const response = await this.client.get<T>(url, { params });
       return Outcome.ok(response.data);
     } catch (error) {
-      return this.handleError<T>(error as Error | axios.AxiosError);
+      return this.handleError<T>(error as Error | AxiosError);
     }
   }
 
@@ -103,7 +103,7 @@ export class ApiClient {
       const response = await this.client.post<T>(url, data);
       return Outcome.ok(response.data);
     } catch (error) {
-      return this.handleError<T>(error as Error | axios.AxiosError);
+      return this.handleError<T>(error as Error | AxiosError);
     }
   }
 
@@ -115,7 +115,7 @@ export class ApiClient {
       const response = await this.client.put<T>(url, data);
       return Outcome.ok(response.data);
     } catch (error) {
-      return this.handleError<T>(error as Error | axios.AxiosError);
+      return this.handleError<T>(error as Error | AxiosError);
     }
   }
 
@@ -127,7 +127,7 @@ export class ApiClient {
       const response = await this.client.patch<T>(url, data);
       return Outcome.ok(response.data);
     } catch (error) {
-      return this.handleError<T>(error as Error | axios.AxiosError);
+      return this.handleError<T>(error as Error | AxiosError);
     }
   }
 
@@ -139,14 +139,14 @@ export class ApiClient {
       const response = await this.client.delete<T>(url);
       return Outcome.ok(response.data);
     } catch (error) {
-      return this.handleError<T>(error as Error | axios.AxiosError);
+      return this.handleError<T>(error as Error | AxiosError);
     }
   }
 
   /**
    * Handle errors and convert to Outcome
    */
-  private handleError<T>(error: Error | axios.AxiosError): Outcome<T> {
+  private handleError<T>(error: Error | AxiosError): Outcome<T> {
     if (axios.isAxiosError(error)) {
       const message = error.response?.data?.message ||
                       error.response?.data?.error ||

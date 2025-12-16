@@ -9,7 +9,7 @@
 #include <fstream>
 
 //==============================================================================
-Search::Search() {
+Search::Search(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   Log::info("Search: Initializing");
 
   // Create search input
@@ -64,6 +64,78 @@ Search::Search() {
 Search::~Search() {
   stopTimer();
   // RAII: juce::Array will clean up automatically
+  // AppStoreComponent destructor will handle unsubscribe
+}
+
+//==============================================================================
+// AppStoreComponent virtual methods
+
+void Search::onAppStateChanged(const Sidechain::Stores::SearchState &state) {
+  // Update search results from store
+  isSearching = state.results.isSearching;
+
+  // Update user results
+  userResults.clear();
+  for (const auto &userVar : state.results.users) {
+    if (userVar.isObject()) {
+      userResults.add(DiscoveredUser::fromJson(userVar));
+    }
+  }
+  totalUserResults = state.results.totalResults;
+
+  // Update post results
+  postResults.clear();
+  for (const auto &post : state.results.posts) {
+    if (post.isValid()) {
+      postResults.add(post);
+    }
+  }
+  totalPostResults = state.results.totalResults;
+
+  // Update search state based on results
+  if (currentQuery.isEmpty()) {
+    searchState = SearchState::Empty;
+  } else if (isSearching) {
+    searchState = SearchState::Searching;
+  } else if (state.results.searchError.isNotEmpty()) {
+    searchState = SearchState::Error;
+    if (errorStateComponent) {
+      errorStateComponent->configureFromError(state.results.searchError);
+      errorStateComponent->setVisible(true);
+    }
+  } else if (userResults.isEmpty() && postResults.isEmpty()) {
+    searchState = SearchState::NoResults;
+  } else {
+    searchState = SearchState::Results;
+    if (errorStateComponent) {
+      errorStateComponent->setVisible(false);
+    }
+  }
+
+  Log::debug("Search: Store state changed - " + juce::String(userResults.size()) + " users, " +
+             juce::String(postResults.size()) + " posts");
+  repaint();
+}
+
+void Search::subscribeToAppStore() {
+  if (!appStore) {
+    Log::warn("Search: Cannot subscribe - AppStore is null");
+    return;
+  }
+
+  Log::debug("Search: Subscribing to AppStore search state");
+
+  // Subscribe to search state changes
+  juce::Component::SafePointer<Search> safeThis(this);
+  storeUnsubscriber = appStore->subscribeToSearch([safeThis](const Sidechain::Stores::SearchState &state) {
+    if (!safeThis)
+      return;
+
+    juce::MessageManager::callAsync([safeThis, state]() {
+      if (safeThis)
+        safeThis->onAppStateChanged(state);
+    });
+  });
 }
 
 //==============================================================================
@@ -370,8 +442,13 @@ void Search::clearSearch() {
 
 //==============================================================================
 void Search::performSearch() {
-  if (currentQuery.isEmpty() || networkClient == nullptr) {
-    Log::warn("Search: Cannot perform search - query empty or network client null");
+  if (currentQuery.isEmpty()) {
+    Log::warn("Search: Cannot perform search - query empty");
+    return;
+  }
+
+  if (!appStore) {
+    Log::warn("Search: Cannot perform search - AppStore is null");
     return;
   }
 
@@ -386,86 +463,16 @@ void Search::performSearch() {
   // Add to recent searches
   addToRecentSearches(currentQuery);
 
-  // Perform search based on current tab
+  // Perform search through AppStore based on current tab
+  // State updates will come through onAppStateChanged subscription
   if (currentTab == ResultTab::Users) {
-    networkClient->searchUsers(currentQuery, 20, 0, [this](Outcome<juce::var> result) {
-      isSearching = false;
-
-      if (result.isOk() && result.getValue().isObject()) {
-        auto response = result.getValue();
-        userResults.clear();
-        auto usersArray = response.getProperty("users", juce::var());
-        if (usersArray.isArray()) {
-          for (int i = 0; i < usersArray.size(); ++i) {
-            auto userJson = usersArray[i];
-            userResults.add(DiscoveredUser::fromJson(userJson));
-          }
-        }
-        totalUserResults = static_cast<int>(response.getProperty("meta", juce::var()).getProperty("total", 0));
-
-        Log::info("Search: User search completed - results: " + juce::String(userResults.size()) +
-                  ", total: " + juce::String(totalUserResults));
-        searchState = userResults.isEmpty() ? SearchState::NoResults : SearchState::Results;
-        selectedResultIndex = -1; // Reset keyboard navigation when new results arrive (7.3.8)
-
-        // Hide error state component on success
-        if (errorStateComponent != nullptr)
-          errorStateComponent->setVisible(false);
-      } else {
-        Log::error("Search: User search failed");
-        searchState = SearchState::Error;
-
-        // Configure and show error state component
-        if (errorStateComponent != nullptr) {
-          juce::String errorMsg = result.isError() ? result.getError() : "Search failed";
-          errorStateComponent->configureFromError(errorMsg);
-          errorStateComponent->setVisible(true);
-        }
-      }
-
-      repaint();
-    });
+    appStore->searchUsers(currentQuery);
   } else // Posts tab
   {
-    networkClient->searchPosts(
-        currentQuery, selectedGenre, bpmMin, bpmMax, selectedKey, 20, 0, [this](Outcome<juce::var> result) {
-          isSearching = false;
-
-          if (result.isOk() && result.getValue().isObject()) {
-            auto response = result.getValue();
-            postResults.clear();
-            auto postsArray = response.getProperty("posts", juce::var());
-            if (postsArray.isArray()) {
-              for (int i = 0; i < postsArray.size(); ++i) {
-                auto postJson = postsArray[i];
-                FeedPost post = FeedPost::fromJson(postJson);
-                if (post.isValid()) {
-                  postResults.add(post);
-                }
-              }
-            }
-            totalPostResults = static_cast<int>(response.getProperty("meta", juce::var()).getProperty("total", 0));
-
-            searchState = postResults.isEmpty() ? SearchState::NoResults : SearchState::Results;
-            selectedResultIndex = -1; // Reset keyboard navigation when new results arrive (7.3.8)
-
-            // Hide error state component on success
-            if (errorStateComponent != nullptr)
-              errorStateComponent->setVisible(false);
-          } else {
-            searchState = SearchState::Error;
-
-            // Configure and show error state component
-            if (errorStateComponent != nullptr) {
-              juce::String errorMsg = result.isError() ? result.getError() : "Search failed";
-              errorStateComponent->configureFromError(errorMsg);
-              errorStateComponent->setVisible(true);
-            }
-          }
-
-          repaint();
-        });
+    appStore->searchPosts(currentQuery);
   }
+
+  // Note: Results and state updates will be delivered via onAppStateChanged callback
 }
 
 void Search::loadRecentSearches() {

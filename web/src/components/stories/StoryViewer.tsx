@@ -106,11 +106,11 @@ export function StoryViewer({
 
   // Swipe handling
   const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStart(e.clientX)
+    setTouchStart(e.touches[0]?.clientX || 0)
   }
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    setTouchEnd(e.clientX)
+    setTouchEnd(e.changedTouches[0]?.clientX || 0)
   }
 
   useEffect(() => {

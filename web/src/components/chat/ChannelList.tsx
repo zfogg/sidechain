@@ -42,10 +42,9 @@ export function ChannelList({ onNewMessageClick }: ChannelListProps) {
       {/* Channel List */}
       <div className="flex-1 overflow-y-auto">
         <StreamChannelList
-          filters={{ type: 'messaging', members: { $in: [client?.userID] } }}
+          filters={{ type: 'messaging', members: { $in: client?.userID ? [client.userID] : [] } }}
           sort={{ last_message_at: -1 }}
           options={{ state: true, presence: true }}
-          onSelectChannel={(channel) => handleSelectChannel(channel.id)}
         />
       </div>
     </div>

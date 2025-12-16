@@ -3,7 +3,7 @@ import { useRef, useEffect, useState } from 'react'
 interface WaveformDisplayProps {
   waveformUrl?: string
   progress: number // 0 to 1
-  duration: number // in seconds
+  duration?: number // in seconds (unused but kept for API compatibility)
   isPlaying: boolean
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void
   className?: string
@@ -16,13 +16,12 @@ interface WaveformDisplayProps {
 export function WaveformDisplay({
   waveformUrl,
   progress,
-  duration,
   isPlaying,
   onClick,
   className = '',
 }: WaveformDisplayProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const [containerWidth, setContainerWidth] = useState(0)
+  const [_containerWidth, setContainerWidth] = useState(0)
 
   // Track container width for responsive positioning
   useEffect(() => {
@@ -37,7 +36,7 @@ export function WaveformDisplay({
     return () => window.removeEventListener('resize', updateWidth)
   }, [])
 
-  const positionPercent = (progress * 100).toFixed(2)
+  const positionPercent = progress * 100
 
   // If no waveform URL, show a simple progress bar with gradient
   if (!waveformUrl) {
@@ -112,7 +111,7 @@ export function WaveformDisplay({
       <div
         className="absolute top-0 left-0 bottom-0 bg-black/30 transition-all"
         style={{
-          width: `${100 - positionPercent}%`,
+          width: `${(100 - positionPercent).toFixed(2)}%`,
         }}
       />
 
@@ -120,7 +119,7 @@ export function WaveformDisplay({
       <div
         className="absolute top-0 bottom-0 w-1 bg-gradient-to-b from-coral-pink to-rose-pink shadow-lg transition-none group-hover:w-2 group-hover:shadow-xl group-hover:from-coral-pink/90 group-hover:to-rose-pink/90"
         style={{
-          left: `${positionPercent}%`,
+          left: `${positionPercent.toFixed(2)}%`,
           transform: 'translateX(-50%)',
           zIndex: 10,
         }}

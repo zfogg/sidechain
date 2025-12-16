@@ -20,8 +20,8 @@ export class Outcome<T> {
   /**
    * Create an error outcome
    */
-  static error<T>(error: string): Outcome<T> {
-    return new Outcome(null, error);
+  static error<T = never>(error: string): Outcome<T> {
+    return new Outcome<T>(null as T | null, error);
   }
 
   /**

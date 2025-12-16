@@ -9,6 +9,7 @@ import type {
   ErrorPayload,
   EventPayload,
 } from '@/api/websocket'
+import { FeedPostModel } from '@/models/FeedPost'
 import { useUserStore } from '@/stores/useUserStore'
 import { useFeedStore } from '@/stores/useFeedStore'
 
@@ -53,7 +54,8 @@ export function useWebSocket() {
       console.log('[RT] New post:', newPostPayload)
       // Prepend new post to current feed
       if (newPostPayload.post) {
-        feedStore.addPostToFeed(newPostPayload.post)
+        const post = FeedPostModel.fromJson(newPostPayload.post)
+        feedStore.addPostToFeed(post)
       }
     })
 

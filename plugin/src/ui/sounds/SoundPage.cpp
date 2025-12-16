@@ -1,16 +1,63 @@
 #include "SoundPage.h"
 #include "../../network/NetworkClient.h"
 #include "../../util/Result.h"
+#include "../../util/Log.h"
 
 //==============================================================================
-SoundPage::SoundPage() {
+SoundPage::SoundPage(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
+  Log::info("SoundPage: Initializing");
+
   addAndMakeVisible(scrollBar);
   scrollBar.addListener(this);
   scrollBar.setRangeLimits(0.0, 1.0);
 }
 
 SoundPage::~SoundPage() {
+  Log::debug("SoundPage: Destroying");
   scrollBar.removeListener(this);
+  // AppStoreComponent destructor will handle unsubscribe
+}
+
+//==============================================================================
+// AppStoreComponent virtual methods
+
+void SoundPage::onAppStateChanged(const Sidechain::Stores::SoundState &state) {
+  isLoading = state.isLoading || state.isRefreshing;
+  errorMessage = state.soundError;
+
+  // Update sound data from state if available
+  if (state.soundData.isObject() && !soundId.isEmpty()) {
+    // Check if this is the sound we're displaying
+    auto id = state.soundData.getProperty("id", "").toString();
+    if (id == soundId) {
+      sound = Sound::fromJson(state.soundData);
+      loadCreatorAvatar();
+    }
+  }
+
+  Log::debug("SoundPage: Store state changed - isLoading: " + juce::String(static_cast<int>(isLoading)));
+  repaint();
+}
+
+void SoundPage::subscribeToAppStore() {
+  if (!appStore) {
+    Log::warn("SoundPage: Cannot subscribe - AppStore is null");
+    return;
+  }
+
+  Log::debug("SoundPage: Subscribing to AppStore sounds state");
+
+  // Subscribe to sounds state changes
+  juce::Component::SafePointer<SoundPage> safeThis(this);
+  storeUnsubscriber = appStore->subscribeToSounds([safeThis](const Sidechain::Stores::SoundState &state) {
+    if (!safeThis)
+      return;
+
+    juce::MessageManager::callAsync([safeThis, state]() {
+      if (safeThis)
+        safeThis->onAppStateChanged(state);
+    });
+  });
 }
 
 //==============================================================================

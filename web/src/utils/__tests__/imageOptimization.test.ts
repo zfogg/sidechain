@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import {
   getResponsiveImageSrcSet,
   optimizeImageUrl,
@@ -92,7 +92,7 @@ describe('imageOptimization', () => {
   describe('createImagePlaceholder', () => {
     it('should create valid data URI', () => {
       const placeholder = createImagePlaceholder()
-      expect(placeholder).toStartWith('data:image/svg+xml;base64,')
+      expect(placeholder).toMatch(/^data:image\/svg\+xml;base64,/)
     })
 
     it('should use provided color', () => {

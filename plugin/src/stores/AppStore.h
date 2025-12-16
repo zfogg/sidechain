@@ -5,6 +5,9 @@
 #include "../models/FeedResponse.h"
 #include "../models/AggregatedFeedResponse.h"
 #include "../network/NetworkClient.h"
+#include "../util/cache/FileCache.h"
+#include "../util/cache/ImageCache.h"
+#include "../util/cache/AudioCache.h"
 #include <JuceHeader.h>
 
 namespace Sidechain {
@@ -253,6 +256,28 @@ public:
    */
   std::function<void()> subscribeToPlaylists(std::function<void(const PlaylistState &)> callback);
 
+  /**
+   * Subscribe only to sounds state changes
+   */
+  std::function<void()> subscribeToSounds(std::function<void(const SoundState &)> callback);
+
+  //==============================================================================
+  // Cache accessors
+
+  /**
+   * Get image cache for profile pictures, post thumbnails, etc.
+   */
+  SidechainImageCache &getImageCache() {
+    return imageCache;
+  }
+
+  /**
+   * Get audio cache for downloaded audio clips, stems, etc.
+   */
+  SidechainAudioCache &getAudioCache() {
+    return audioCache;
+  }
+
 protected:
   /**
    * Constructor
@@ -287,6 +312,10 @@ protected:
 private:
   NetworkClient *networkClient = nullptr;
 
+  // File caching
+  SidechainImageCache imageCache{500 * 1024 * 1024};        // 500MB
+  SidechainAudioCache audioCache{5LL * 1024 * 1024 * 1024}; // 5GB
+
   // Feed helpers
   void performFetch(FeedType feedType, int limit, int offset);
   void handleFetchSuccess(FeedType feedType, const juce::var &data, int limit, int offset);
@@ -316,6 +345,7 @@ private:
   std::map<uint64_t, std::function<void(const SearchState &)>> searchSubscribers;
   std::map<uint64_t, std::function<void(const FollowersState &)>> followersSubscribers;
   std::map<uint64_t, std::function<void(const PlaylistState &)>> playlistSubscribers;
+  std::map<uint64_t, std::function<void(const SoundState &)>> soundSubscribers;
   std::atomic<uint64_t> nextSliceSubscriberId{1};
 };
 

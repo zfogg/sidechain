@@ -5,7 +5,7 @@ import { FileUploadZone } from '@/components/upload/FileUploadZone'
 import { MetadataForm } from '@/components/upload/MetadataForm'
 import { UploadProgress } from '@/components/upload/UploadProgress'
 import { AdvancedFileUpload } from '@/components/upload/AdvancedFileUpload'
-import { DraftManager, saveDraft as saveDraftToStorage, Draft } from '@/components/upload/DraftManager'
+import { DraftManager, type Draft } from '@/components/upload/DraftManager'
 import { CommentAudienceSelector, CommentAudience } from '@/components/upload/CommentAudienceSelector'
 import { useUploadMutation } from '@/hooks/mutations/useUploadMutation'
 
@@ -52,7 +52,7 @@ const initialFormData: UploadFormData = {
 export function Upload() {
   const navigate = useNavigate()
   const [formData, setFormData] = useState<UploadFormData>(initialFormData)
-  const [preview, setPreview] = useState<string>('')
+  const [_preview, setPreview] = useState<string>('')
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const { mutate: uploadPost, isPending, progress } = useUploadMutation()
@@ -90,8 +90,8 @@ export function Upload() {
   }
 
   const handleMetadataChange = (
-    field: keyof Omit<UploadFormData, 'file'>,
-    value: any
+    field: 'title' | 'description' | 'bpm' | 'key' | 'daw' | 'genre' | 'isPublic' | 'midiFile' | 'projectFile' | 'commentAudience',
+    value: string | number | string[] | boolean | File | CommentAudience | null
   ) => {
     setFormData((prev) => ({
       ...prev,

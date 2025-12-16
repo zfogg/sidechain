@@ -111,8 +111,6 @@ export const useNotificationStore = create<NotificationStoreState & Notification
     },
 
     markAllAsRead: async () => {
-      const { notifications } = get()
-
       // Optimistic update
       set((state) => ({
         notifications: state.notifications.map((n) => ({ ...n, isRead: true })),

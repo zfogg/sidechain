@@ -110,7 +110,9 @@ export class FeedClient {
 
     if (result.isOk()) {
       try {
-        const post = FeedPostModel.fromJson(result.getValue());
+        const response = result.getValue();
+        const postJson = 'post' in response ? response.post : response;
+        const post = FeedPostModel.fromJson(postJson);
         return Outcome.ok(post);
       } catch (error) {
         return Outcome.error((error as Error).message);
@@ -128,7 +130,9 @@ export class FeedClient {
 
     if (result.isOk()) {
       try {
-        const post = FeedPostModel.fromJson(result.getValue());
+        const response = result.getValue();
+        const postJson = 'post' in response ? response.post : response;
+        const post = FeedPostModel.fromJson(postJson);
         return Outcome.ok(post);
       } catch (error) {
         return Outcome.error((error as Error).message);

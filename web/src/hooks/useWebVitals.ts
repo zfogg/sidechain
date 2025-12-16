@@ -1,6 +1,12 @@
 import { useEffect } from 'react'
 import monitor from '@/utils/monitoring'
 
+interface PerformanceEntryWithTime extends PerformanceEntry {
+  renderTime?: number
+  loadTime?: number
+  processingDuration?: number
+}
+
 export interface WebVital {
   name: string
   value: number
@@ -28,15 +34,16 @@ export function useWebVitals() {
       // Measure LCP (Largest Contentful Paint)
       const lcpObserver = new PerformanceObserver((list) => {
         const entries = list.getEntries()
-        const lastEntry = entries[entries.length - 1]
+        const lastEntry = entries[entries.length - 1] as PerformanceEntryWithTime
+        const value = lastEntry.renderTime || lastEntry.loadTime || 0
 
         const lcp: WebVital = {
           name: 'LCP',
-          value: lastEntry.renderTime || lastEntry.loadTime,
+          value,
           rating:
-            lastEntry.renderTime < 2500 || lastEntry.loadTime < 2500
+            value < 2500
               ? 'good'
-              : lastEntry.renderTime < 4000 || lastEntry.loadTime < 4000
+              : value < 4000
                 ? 'needs-improvement'
                 : 'poor',
         }
@@ -51,13 +58,14 @@ export function useWebVitals() {
         const entries = list.getEntries()
 
         entries.forEach((entry) => {
+          const processingDuration = (entry as PerformanceEntryWithTime).processingDuration || 0
           const fid: WebVital = {
             name: 'FID',
-            value: entry.processingDuration,
+            value: processingDuration,
             rating:
-              entry.processingDuration < 100
+              processingDuration < 100
                 ? 'good'
-                : entry.processingDuration < 300
+                : processingDuration < 300
                   ? 'needs-improvement'
                   : 'poor',
           }

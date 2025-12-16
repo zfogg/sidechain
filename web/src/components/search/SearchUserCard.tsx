@@ -1,12 +1,12 @@
 import { useNavigate } from 'react-router-dom'
-import { SearchUser } from '@/api/SearchClient'
+import type { User } from '@/models/User'
 import { Button } from '@/components/ui/button'
 import { useFollowMutation } from '@/hooks/mutations/useFollowMutation'
 import { DirectMessageButton } from '@/components/chat/DirectMessageButton'
 import { ReportButton } from '@/components/report/ReportButton'
 
 interface SearchUserCardProps {
-  user: SearchUser
+  user: User
 }
 
 /**

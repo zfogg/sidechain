@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { useWebSocketEmit } from '@/hooks/useWebSocket'
+import { getWebSocketClient } from '@/api/websocket'
 import { useUserStore } from '@/stores/useUserStore'
+import type { UserTypingPayload, UserStopTypingPayload } from '@/api/websocket'
 
 interface TypingUser {
   userId: string
@@ -15,10 +16,14 @@ interface TypingUser {
  */
 export function useCommentTyping(postId: string) {
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([])
-  const emit = useWebSocketEmit()
   const { user } = useUserStore()
-  const typingTimeoutRef = useRef<NodeJS.Timeout>()
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const isTypingRef = useRef(false)
+
+  const emit = useCallback((type: 'user_typing' | 'user_stop_typing', payload: UserTypingPayload | UserStopTypingPayload) => {
+    const ws = getWebSocketClient()
+    ws.send(type, payload)
+  }, [])
 
   // Send typing indicator to others
   const sendTypingIndicator = useCallback(() => {
@@ -32,21 +37,23 @@ export function useCommentTyping(postId: string) {
     // Send "user_typing" event
     if (!isTypingRef.current) {
       isTypingRef.current = true
-      emit('user_typing', {
+      const payload: UserTypingPayload = {
         post_id: postId,
         user_id: user.id,
         username: user.username,
         display_name: user.displayName,
-      })
+      }
+      emit('user_typing', payload)
     }
 
     // Stop typing after 3 seconds of inactivity
     typingTimeoutRef.current = setTimeout(() => {
       isTypingRef.current = false
-      emit('user_stop_typing', {
+      const payload: UserStopTypingPayload = {
         post_id: postId,
         user_id: user.id,
-      })
+      }
+      emit('user_stop_typing', payload)
     }, 3000)
   }, [postId, user, emit])
 

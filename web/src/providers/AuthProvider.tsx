@@ -15,7 +15,7 @@ interface AuthProviderProps {
  * - Handle logout on token expiration
  */
 export function AuthProvider({ children }: AuthProviderProps) {
-  const { restoreSession, isAuthenticated } = useUserStore()
+  const { restoreSession } = useUserStore()
 
   // Initialize WebSocket (will only connect if authenticated)
   useWebSocket()
@@ -23,7 +23,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Restore session from localStorage on app load
   useEffect(() => {
     restoreSession()
-  }, [])
+  }, [restoreSession])
 
   return <>{children}</>
 }

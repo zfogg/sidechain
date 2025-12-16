@@ -16,6 +16,8 @@ export type WebSocketMessageType =
   | 'post_saved'
   | 'notification'
   | 'error'
+  | 'user_typing'
+  | 'user_stop_typing'
 
 // WebSocket Event Payload Types
 export interface NewPostPayload {
@@ -69,8 +71,21 @@ export interface ErrorPayload {
   details?: string
 }
 
+export interface UserTypingPayload {
+  post_id: string
+  user_id: string
+  username: string
+  display_name: string
+}
+
+export interface UserStopTypingPayload {
+  post_id: string
+  user_id: string
+}
+
 export type EventPayload = NewPostPayload | PostLikedPayload | PostCommentedPayload | PostSavedPayload |
-                   UserFollowedPayload | CommentLikedPayload | NotificationPayload | ErrorPayload
+                   UserFollowedPayload | CommentLikedPayload | NotificationPayload | ErrorPayload |
+                   UserTypingPayload | UserStopTypingPayload
 
 export interface WebSocketMessage {
   type: WebSocketMessageType
