@@ -53,14 +53,27 @@ void AppStore::loadFeed(FeedType feedType, bool forceRefresh) {
     return;
   }
 
-  Util::logInfo("AppStore", "Loading feed");
+  Util::logInfo("AppStore", "Loading feed", "feedType=" + feedTypeToString(feedType));
 
-  // Check cache first
-  if (!forceRefresh && isCurrentFeedCached()) {
-    auto state = getState();
-    if (state.posts.feeds.count(feedType) > 0 && !state.posts.feeds.at(feedType).posts.isEmpty()) {
-      currentFeedIsFromCache_ = true;
+  // Check memory cache first (if not force refreshing)
+  if (!forceRefresh) {
+    // Try memory cache with 5-minute TTL for feed data
+    auto cacheKey = "feed:" + feedTypeToString(feedType).toLowerCase();
+    auto cachedFeed = getCached<FeedResponse>(cacheKey);
+    if (cachedFeed.has_value()) {
+      Util::logDebug("AppStore", "Using cached feed from memory", "feedType=" + feedTypeToString(feedType));
+      handleFetchSuccess(feedType, juce::var(), 0, 0);
       return;
+    }
+
+    // Also check state-based cache as fallback
+    if (isCurrentFeedCached()) {
+      auto state = getState();
+      if (state.posts.feeds.count(feedType) > 0 && !state.posts.feeds.at(feedType).posts.isEmpty()) {
+        currentFeedIsFromCache_ = true;
+        Util::logDebug("AppStore", "Using cached feed from state", "feedType=" + feedTypeToString(feedType));
+        return;
+      }
     }
   }
 
@@ -298,12 +311,18 @@ void AppStore::toggleLike(const juce::String &postId) {
     networkClient->unlikePost(postId, [this](Outcome<juce::var> result) {
       if (!result.isOk()) {
         Util::logError("AppStore", "Failed to unlike post: " + result.getError());
+      } else {
+        // Invalidate feed caches on successful like/unlike
+        invalidateCachePattern("feed:*");
       }
     });
   } else {
     networkClient->likePost(postId, "", [this](Outcome<juce::var> result) {
       if (!result.isOk()) {
         Util::logError("AppStore", "Failed to like post: " + result.getError());
+      } else {
+        // Invalidate feed caches on successful like/unlike
+        invalidateCachePattern("feed:*");
       }
     });
   }
@@ -358,12 +377,18 @@ void AppStore::toggleSave(const juce::String &postId) {
     networkClient->unsavePost(postId, [this](Outcome<juce::var> result) {
       if (!result.isOk()) {
         Util::logError("AppStore", "Failed to unsave post: " + result.getError());
+      } else {
+        // Invalidate feed caches on successful save/unsave
+        invalidateCachePattern("feed:*");
       }
     });
   } else {
     networkClient->savePost(postId, [this](Outcome<juce::var> result) {
       if (!result.isOk()) {
         Util::logError("AppStore", "Failed to save post: " + result.getError());
+      } else {
+        // Invalidate feed caches on successful save/unsave
+        invalidateCachePattern("feed:*");
       }
     });
   }
@@ -418,12 +443,18 @@ void AppStore::toggleRepost(const juce::String &postId) {
     networkClient->undoRepost(postId, [this](Outcome<juce::var> result) {
       if (!result.isOk()) {
         Util::logError("AppStore", "Failed to undo repost: " + result.getError());
+      } else {
+        // Invalidate feed caches on successful repost/undo repost
+        invalidateCachePattern("feed:*");
       }
     });
   } else {
     networkClient->repostPost(postId, "", [this](Outcome<juce::var> result) {
       if (!result.isOk()) {
         Util::logError("AppStore", "Failed to repost: " + result.getError());
+      } else {
+        // Invalidate feed caches on successful repost/undo repost
+        invalidateCachePattern("feed:*");
       }
     });
   }
@@ -486,12 +517,18 @@ void AppStore::toggleMute(const juce::String &userId, bool willMute) {
     networkClient->muteUser(userId, [this](Outcome<juce::var> result) {
       if (!result.isOk()) {
         Util::logError("AppStore", "Failed to mute user: " + result.getError());
+      } else {
+        // Invalidate feed caches on successful mute (feed may change)
+        invalidateCachePattern("feed:*");
       }
     });
   } else {
     networkClient->unmuteUser(userId, [this](Outcome<juce::var> result) {
       if (!result.isOk()) {
         Util::logError("AppStore", "Failed to unmute user: " + result.getError());
+      } else {
+        // Invalidate feed caches on successful unmute (feed may change)
+        invalidateCachePattern("feed:*");
       }
     });
   }
@@ -593,6 +630,10 @@ void AppStore::handleFetchSuccess(FeedType feedType, const juce::var &data, [[ma
   } else {*/
   auto response = parseJsonResponse(data);
 
+  // Cache the feed data in memory cache (5-minute TTL)
+  auto cacheKey = "feed:" + feedTypeToString(feedType).toLowerCase();
+  setCached<FeedResponse>(cacheKey, response, 300);
+
   updateFeedState([feedType, response, offset](PostsState &s) {
     if (s.feeds.count(feedType) == 0) {
       s.feeds[feedType] = FeedState();
@@ -618,7 +659,7 @@ void AppStore::handleFetchSuccess(FeedType feedType, const juce::var &data, [[ma
   });
   //}
 
-  Util::logDebug("AppStore", "Loaded feed");
+  Util::logDebug("AppStore", "Loaded feed", "feedType=" + feedTypeToString(feedType));
 }
 
 void AppStore::handleFetchError(FeedType feedType, const juce::String &error) {
