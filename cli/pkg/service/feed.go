@@ -264,6 +264,81 @@ func (fs *FeedService) ViewRecommendations(username string, page, pageSize int) 
 	return nil
 }
 
+// ViewEnrichedTimeline displays timeline with reaction counts and enrichment
+func (fs *FeedService) ViewEnrichedTimeline(page, pageSize int) error {
+	logger.Debug("Viewing enriched timeline", "page", page)
+
+	feed, err := api.GetEnrichedTimeline(page, pageSize)
+	if err != nil {
+		return fmt.Errorf("failed to fetch enriched timeline: %w", err)
+	}
+
+	if len(feed.Posts) == 0 {
+		fmt.Println("No posts in your enriched timeline")
+		return nil
+	}
+
+	fs.displayFeed("✨ Enriched Timeline", feed)
+	return nil
+}
+
+// ViewLatestFeed displays recent posts in chronological order
+func (fs *FeedService) ViewLatestFeed(page, pageSize int) error {
+	logger.Debug("Viewing latest feed", "page", page)
+
+	feed, err := api.GetLatestFeed(page, pageSize)
+	if err != nil {
+		return fmt.Errorf("failed to fetch latest feed: %w", err)
+	}
+
+	if len(feed.Posts) == 0 {
+		fmt.Println("No recent posts found")
+		return nil
+	}
+
+	fs.displayFeed("📅 Latest Posts", feed)
+	return nil
+}
+
+// ViewForYouFeedAdvanced displays personalized feed with optional filtering
+func (fs *FeedService) ViewForYouFeedAdvanced(page, pageSize int, genre string, minBPM, maxBPM int) error {
+	logger.Debug("Viewing for-you feed with filters", "page", page, "genre", genre, "min_bpm", minBPM, "max_bpm", maxBPM)
+
+	feed, err := api.GetForYouFeedWithFilters(page, pageSize, genre, minBPM, maxBPM)
+	if err != nil {
+		return fmt.Errorf("failed to fetch for-you feed: %w", err)
+	}
+
+	if len(feed.Posts) == 0 {
+		fmt.Println("No posts found matching your criteria")
+		return nil
+	}
+
+	title := "🎯 For You"
+	if genre != "" || minBPM > 0 || maxBPM > 0 {
+		title += " (Filtered"
+		if genre != "" {
+			title += fmt.Sprintf(": %s", genre)
+		}
+		if minBPM > 0 || maxBPM > 0 {
+			if genre != "" {
+				title += " |"
+			}
+			if minBPM > 0 && maxBPM > 0 {
+				title += fmt.Sprintf(" BPM: %d-%d", minBPM, maxBPM)
+			} else if minBPM > 0 {
+				title += fmt.Sprintf(" BPM: %d+", minBPM)
+			} else {
+				title += fmt.Sprintf(" BPM: up to %d", maxBPM)
+			}
+		}
+		title += ")"
+	}
+
+	fs.displayFeed(title, feed)
+	return nil
+}
+
 // Helper display functions
 
 func (fs *FeedService) displayFeed(title string, feed *api.FeedResponse) {

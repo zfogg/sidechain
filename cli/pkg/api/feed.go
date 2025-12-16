@@ -325,3 +325,93 @@ func GetRecommendations(username string, page, pageSize int) (*UserListResponse,
 
 	return &response, nil
 }
+
+// GetEnrichedTimeline retrieves timeline with reaction counts and enrichment
+func GetEnrichedTimeline(page, pageSize int) (*FeedResponse, error) {
+	logger.Debug("Fetching enriched timeline", "page", page)
+
+	var response FeedResponse
+
+	resp, err := client.GetClient().
+		R().
+		SetQueryParams(map[string]string{
+			"page":      fmt.Sprintf("%d", page),
+			"page_size": fmt.Sprintf("%d", pageSize),
+		}).
+		SetResult(&response).
+		Get("/api/v1/feed/timeline/enriched")
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !resp.IsSuccess() {
+		return nil, fmt.Errorf("failed to fetch enriched timeline: %s", resp.Status())
+	}
+
+	return &response, nil
+}
+
+// GetLatestFeed retrieves recent posts in chronological order
+func GetLatestFeed(page, pageSize int) (*FeedResponse, error) {
+	logger.Debug("Fetching latest feed", "page", page)
+
+	var response FeedResponse
+
+	resp, err := client.GetClient().
+		R().
+		SetQueryParams(map[string]string{
+			"page":      fmt.Sprintf("%d", page),
+			"page_size": fmt.Sprintf("%d", pageSize),
+		}).
+		SetResult(&response).
+		Get("/api/v1/recommendations/latest")
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !resp.IsSuccess() {
+		return nil, fmt.Errorf("failed to fetch latest feed: %s", resp.Status())
+	}
+
+	return &response, nil
+}
+
+// GetForYouFeedWithFilters retrieves personalized feed with optional genre/BPM filtering
+func GetForYouFeedWithFilters(page, pageSize int, genre string, minBPM, maxBPM int) (*FeedResponse, error) {
+	logger.Debug("Fetching for-you feed with filters", "page", page, "genre", genre, "min_bpm", minBPM, "max_bpm", maxBPM)
+
+	var response FeedResponse
+
+	queryParams := map[string]string{
+		"page":      fmt.Sprintf("%d", page),
+		"page_size": fmt.Sprintf("%d", pageSize),
+	}
+
+	if genre != "" {
+		queryParams["genre"] = genre
+	}
+	if minBPM > 0 {
+		queryParams["min_bpm"] = fmt.Sprintf("%d", minBPM)
+	}
+	if maxBPM > 0 {
+		queryParams["max_bpm"] = fmt.Sprintf("%d", maxBPM)
+	}
+
+	resp, err := client.GetClient().
+		R().
+		SetQueryParams(queryParams).
+		SetResult(&response).
+		Get("/api/v1/recommendations/for-you")
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !resp.IsSuccess() {
+		return nil, fmt.Errorf("failed to fetch for-you feed: %s", resp.Status())
+	}
+
+	return &response, nil
+}
