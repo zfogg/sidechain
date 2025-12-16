@@ -1,0 +1,32 @@
+# Sidechain CLI Configuration
+#
+# Location:
+#   macOS/Linux: ~/.config/sidechain/cli/config.toml
+#   Windows:     %LOCALAPPDATA%\sidechain\cli\config.toml
+#
+# Defaults (if config file not present):
+#   Development: http://localhost:8787
+#   Production:  https://api.sidechain.live
+
+[api]
+# API base URL
+# For production, use: https://api.sidechain.live
+# For development, use: http://localhost:8787
+base_url = "https://api.sidechain.live"
+
+# API request timeout in seconds
+timeout = 30
+
+[output]
+# Output format: text, json, table
+format = "text"
+
+# Directory for downloaded files
+download_dir = "~/Music"
+
+[log]
+# Log level: debug, info, warn, error
+level = "info"
+
+# Log file path (leave empty to disable file logging)
+# file = "~/.config/sidechain/cli/sidechain-cli.log"
