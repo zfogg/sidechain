@@ -165,10 +165,9 @@ void Profile::setStreamChatClient(StreamChatClient *client) {
             juce::String(client != nullptr ? "(valid)" : "(null)"));
 }
 
-void Profile::setFeedStore(Sidechain::Stores::FeedStore *store) {
-  feedStore = store;
-  Log::info("Profile::setFeedStore: FeedStore set " + juce::String(store != nullptr ? "(valid)" : "(null)") +
-            " (Task 2.4)");
+void Profile::setPostsStore(Sidechain::Stores::PostsStore *store) {
+  postsStore = store;
+  Log::info("Profile::setPostsStore: PostsStore set " + juce::String(store != nullptr ? "(valid)" : "(null)"));
 }
 
 void Profile::setUserStore(Sidechain::Stores::UserStore *store) {
@@ -1223,10 +1222,9 @@ void Profile::fetchUserPosts(const juce::String &userId) {
 }
 
 void Profile::handleFollowToggle() {
-  // Task 2.4: Use FeedStore for follow/unfollow operations
-  if (feedStore == nullptr || profile.id.isEmpty()) {
-    Log::warn("Profile::handleFollowToggle: Cannot toggle follow - FeedStore: " +
-              juce::String(feedStore != nullptr ? "valid" : "null") + ", profile.id: " + profile.id);
+  if (postsStore == nullptr || profile.id.isEmpty()) {
+    Log::warn("Profile::handleFollowToggle: Cannot toggle follow - PostsStore: " +
+              juce::String(postsStore != nullptr ? "valid" : "null") + ", profile.id: " + profile.id);
     return;
   }
 
@@ -1254,16 +1252,14 @@ void Profile::handleFollowToggle() {
   updatePostCards();
   repaint();
 
-  // Update FeedStore optimistically to sync all posts by this user
-  if (feedStore) {
-    Log::debug("Profile::handleFollowToggle: Optimistically updating FeedStore "
+  // Update PostsStore optimistically to sync all posts by this user
+  if (postsStore) {
+    Log::debug("Profile::handleFollowToggle: Optimistically updating PostsStore "
                "follow state for userId: " +
                profile.id);
-    feedStore->updateFollowStateByUserId(profile.id, willFollow);
+    postsStore->updateFollowStateByUserId(profile.id, willFollow);
   }
 
-  // Task 2.4: Use FeedStore method - now implemented via
-  // updateFollowStateByUserId
   if (!networkClient) {
     Log::error("Profile::handleFollowToggle: NetworkClient not set!");
     return;
@@ -1291,15 +1287,15 @@ void Profile::handleFollowToggle() {
         updatePostCards();
         repaint();
 
-        // Also revert in FeedStore
-        if (feedStore) {
-          feedStore->updateFollowStateByUserId(profile.id, wasFollowing);
+        // Also revert in PostsStore
+        if (postsStore) {
+          postsStore->updateFollowStateByUserId(profile.id, wasFollowing);
         }
       } else {
         Log::info("Profile::handleFollowToggle: Follow toggle successful - "
                   "isFollowing: " +
                   juce::String(profile.isFollowing ? "true" : "false"));
-        // FeedStore was already updated optimistically, no need to update again
+        // PostsStore was already updated optimistically, no need to update again
 
         if (onFollowToggled) {
           Log::debug("Profile::handleFollowToggle: Calling onFollowToggled callback");
@@ -1319,10 +1315,9 @@ void Profile::handleFollowToggle() {
 }
 
 void Profile::handleMuteToggle() {
-  // Task 2.4: Use FeedStore for mute/unmute operations
-  if (feedStore == nullptr || profile.id.isEmpty()) {
-    Log::warn("Profile::handleMuteToggle: Cannot toggle mute - FeedStore: " +
-              juce::String(feedStore != nullptr ? "valid" : "null") + ", profile.id: " + profile.id);
+  if (postsStore == nullptr || profile.id.isEmpty()) {
+    Log::warn("Profile::handleMuteToggle: Cannot toggle mute - PostsStore: " +
+              juce::String(postsStore != nullptr ? "valid" : "null") + ", profile.id: " + profile.id);
     return;
   }
 
@@ -1336,8 +1331,7 @@ void Profile::handleMuteToggle() {
   profile.isMuted = willMute;
   repaint();
 
-  // Task 2.4: Use FeedStore.toggleMute() method
-  feedStore->toggleMute(profile.id, willMute);
+  postsStore->toggleMute(profile.id, willMute);
 
   // Update our local state after the toggle
   juce::MessageManager::callAsync([this]() {
@@ -1357,24 +1351,24 @@ void Profile::shareProfile() {
   Log::debug("Profile::shareProfile: Profile link copied to clipboard");
 }
 
-void Profile::syncFollowStateFromFeedStore() {
-  if (!feedStore) {
-    Log::warn("Profile::syncFollowStateFromFeedStore: FeedStore is null");
+void Profile::syncFollowStateFromPostsStore() {
+  if (!postsStore) {
+    Log::warn("Profile::syncFollowStateFromPostsStore: PostsStore is null");
     return;
   }
 
-  const auto &feedState = feedStore->getState();
+  const auto &postsState = postsStore->getState();
   int syncedCount = 0;
 
-  // Iterate through all posts in userPosts and sync follow state from FeedStore
+  // Iterate through all posts in userPosts and sync follow state from PostsStore
   for (auto &userPost : userPosts) {
-    // Check all feeds in FeedStore for this post
-    for (const auto &feedPair : feedState.feeds) {
+    // Check all feeds in PostsStore for this post
+    for (const auto &feedPair : postsState.feeds) {
       for (const auto &feedPost : feedPair.second.posts) {
         if (feedPost.id == userPost.id || feedPost.userId == userPost.userId) {
           // Sync the follow state
           if (userPost.isFollowing != feedPost.isFollowing) {
-            Log::debug("Profile::syncFollowStateFromFeedStore: Syncing post " + userPost.id +
+            Log::debug("Profile::syncFollowStateFromPostsStore: Syncing post " + userPost.id +
                        " - changing isFollowing from " + juce::String(userPost.isFollowing ? "true" : "false") +
                        " to " + juce::String(feedPost.isFollowing ? "true" : "false"));
             userPost.isFollowing = feedPost.isFollowing;
@@ -1386,12 +1380,12 @@ void Profile::syncFollowStateFromFeedStore() {
     }
 
     // Also check aggregated feeds
-    for (const auto &aggFeedPair : feedState.aggregatedFeeds) {
+    for (const auto &aggFeedPair : postsState.aggregatedFeeds) {
       for (const auto &group : aggFeedPair.second.groups) {
         for (const auto &activity : group.activities) {
           if (activity.id == userPost.id || activity.userId == userPost.userId) {
             if (userPost.isFollowing != activity.isFollowing) {
-              Log::debug("Profile::syncFollowStateFromFeedStore: Syncing post " + userPost.id +
+              Log::debug("Profile::syncFollowStateFromPostsStore: Syncing post " + userPost.id +
                          " from aggregated feed - changing isFollowing from " +
                          juce::String(userPost.isFollowing ? "true" : "false") + " to " +
                          juce::String(activity.isFollowing ? "true" : "false"));
@@ -1405,7 +1399,7 @@ void Profile::syncFollowStateFromFeedStore() {
     }
   }
 
-  Log::info("Profile::syncFollowStateFromFeedStore: Synced " + juce::String(syncedCount) + " posts with FeedStore");
+  Log::info("Profile::syncFollowStateFromPostsStore: Synced " + juce::String(syncedCount) + " posts with PostsStore");
 }
 
 //==============================================================================

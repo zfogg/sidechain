@@ -3,7 +3,7 @@
 #include "../../audio/HttpAudioPlayer.h"
 #include "../../models/FeedResponse.h"
 #include "../../models/Playlist.h"
-#include "../../stores/FeedStore.h"
+#include "../../stores/PostsStore.h"
 #include "../../ui/animations/Easing.h"
 #include "../../ui/animations/TransitionAnimation.h"
 #include "../../util/reactive/ReactiveBoundComponent.h"
@@ -20,7 +20,7 @@ class StreamChatClient;
 // Forward declarations
 namespace Sidechain {
 namespace Stores {
-class FeedStore;
+class PostsStore;
 }
 } // namespace Sidechain
 
@@ -47,7 +47,7 @@ class PostsFeed : public Sidechain::Util::ReactiveBoundComponent,
                   public juce::KeyListener,
                   public juce::Timer {
 public:
-  explicit PostsFeed(Sidechain::Stores::FeedStore *feedStore);
+  explicit PostsFeed(Sidechain::Stores::PostsStore *postsStore);
   ~PostsFeed() override;
 
   void paint(juce::Graphics &) override;
@@ -127,7 +127,7 @@ public:
 private:
   //==============================================================================
   // Feed store subscription (Task 2.6 - reactive refactoring)
-  Sidechain::Stores::FeedStore *feedStore = nullptr;
+  Sidechain::Stores::PostsStore *postsStore = nullptr;
   std::function<void()> storeUnsubscribe;
 
   // Real-time update state (5.5)
@@ -207,7 +207,7 @@ private:
   void setupPostCardCallbacks(PostCard *card);
   void updateAudioPlayerPlaylist();
 
-  // Feed state handling (Task 2.6 - now from FeedStore subscription)
+  // Feed state handling (now from PostsStore subscription)
   void handleFeedStateChanged();
 
   // Presence querying
