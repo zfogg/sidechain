@@ -2,6 +2,8 @@
 
 #include "../../models/FeedPost.h"
 #include "../../models/Sound.h"
+#include "../../stores/AppStore.h"
+#include "../common/AppStoreComponent.h"
 #include <JuceHeader.h>
 
 class NetworkClient;
@@ -18,9 +20,10 @@ class NetworkClient;
  * - Play posts directly from the list
  * - Navigate to post or user profile
  */
-class SoundPage : public juce::Component, public juce::ScrollBar::Listener {
+class SoundPage : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::SoundState>,
+                  public juce::ScrollBar::Listener {
 public:
-  SoundPage();
+  SoundPage(Sidechain::Stores::AppStore *store = nullptr);
   ~SoundPage() override;
 
   //==========================================================================
@@ -61,6 +64,12 @@ public:
   void setCurrentlyPlayingPost(const juce::String &postId);
   void setPlaybackProgress(float progress);
   void clearPlayingState();
+
+protected:
+  //==========================================================================
+  // AppStoreComponent virtual methods
+  void onAppStateChanged(const Sidechain::Stores::SoundState &state) override;
+  void subscribeToAppStore() override;
 
 private:
   //==========================================================================

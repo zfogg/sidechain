@@ -184,6 +184,20 @@ std::function<void()> AppStore::subscribeToPlaylists(std::function<void(const Pl
   return [this, subscriberId]() { playlistSubscribers.erase(subscriberId); };
 }
 
+std::function<void()> AppStore::subscribeToSounds(std::function<void(const SoundState &)> callback) {
+  if (!callback)
+    return []() {};
+
+  auto subscriberId = nextSliceSubscriberId++;
+  soundSubscribers[subscriberId] = callback;
+
+  // Call immediately with current sounds state
+  callback(getState().sounds);
+
+  // Return unsubscriber
+  return [this, subscriberId]() { soundSubscribers.erase(subscriberId); };
+}
+
 //==============================================================================
 // Helper Methods for State Updates
 
