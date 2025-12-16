@@ -17,6 +17,12 @@ if(MSVC AND DEFINED SIDECHAIN_WIN_INCLUDE_DIRS)
     message(STATUS "Added Windows SDK include/lib directories globally")
 endif()
 
+#==============================================================================
+# Global include directories for all targets
+#==============================================================================
+# Add RxCpp header-only library to all targets
+include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/../deps/RxCpp/Rx/v2/src")
+
 # Common warning flags
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
     # GCC/Clang flags - always supported

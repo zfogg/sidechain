@@ -9,7 +9,7 @@
 	url = git@github.com:chriskohlhoff/asio.git
 [submodule "deps/RxCpp"]
 	path = deps/RxCpp
-	url = https://github.com/ReactiveX/RxCpp.git
+	url = git@github.com:zfogg/RxCpp.git
 [submodule "deps/uuid"]
 	path = deps/uuid
 	url = https://github.com/mariusbancila/stduuid.git
