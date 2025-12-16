@@ -1,8 +1,10 @@
 #pragma once
 
 #include "../../models/MidiChallenge.h"
+#include "../../stores/ChallengeStore.h"
 #include "../../util/Colors.h"
 #include <JuceHeader.h>
+#include <memory>
 
 class NetworkClient;
 
@@ -42,6 +44,11 @@ public:
   void refresh();
 
   //==============================================================================
+  // Store integration (reactive pattern)
+  void bindToStore(std::shared_ptr<Sidechain::Stores::ChallengeStore> store);
+  void unbindFromStore();
+
+  //==============================================================================
   // Callbacks
   std::function<void()> onBackPressed;
   std::function<void(const juce::String &challengeId)> onChallengeSelected; // Navigate to challenge detail
@@ -60,6 +67,14 @@ private:
   juce::Array<MIDIChallenge> challenges;
   bool isLoading = false;
   juce::String errorMessage;
+
+  // Store integration
+  std::shared_ptr<Sidechain::Stores::ChallengeStore> challengeStore;
+  std::function<void()> storeUnsubscriber;
+
+  //==============================================================================
+  // Store callback
+  void handleStoreStateChanged(const Sidechain::Stores::ChallengeState &state);
 
   //==============================================================================
   // UI Components

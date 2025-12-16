@@ -17,7 +17,56 @@ MidiChallenges::MidiChallenges() {
 
 MidiChallenges::~MidiChallenges() {
   Log::debug("MidiChallenges: Destroying");
+  unbindFromStore();
   scrollBar.removeListener(this);
+}
+
+//==============================================================================
+// Store integration methods
+void MidiChallenges::bindToStore(std::shared_ptr<Sidechain::Stores::ChallengeStore> store) {
+  Log::debug("MidiChallenges: Binding to ChallengeStore");
+
+  challengeStore = store;
+  if (!challengeStore)
+    return;
+
+  // Subscribe to store changes
+  juce::Component::SafePointer<MidiChallenges> safeThis(this);
+  storeUnsubscriber = challengeStore->subscribe([safeThis](const Sidechain::Stores::ChallengeState &state) {
+    if (!safeThis)
+      return;
+
+    auto challenges = state.filteredChallenges;
+    auto isLoading = state.isLoading;
+    auto errorMsg = state.errorMessage;
+
+    juce::MessageManager::callAsync([safeThis, challenges, isLoading, errorMsg]() {
+      if (!safeThis)
+        return;
+
+      safeThis->challenges = challenges;
+      safeThis->isLoading = isLoading;
+      safeThis->errorMessage = errorMsg;
+      safeThis->updateScrollBounds();
+      safeThis->repaint();
+    });
+  });
+
+  Log::debug("MidiChallenges: Successfully bound to ChallengeStore");
+}
+
+void MidiChallenges::unbindFromStore() {
+  if (storeUnsubscriber) {
+    storeUnsubscriber();
+    storeUnsubscriber = nullptr;
+  }
+  challengeStore = nullptr;
+  Log::debug("MidiChallenges: Unbound from ChallengeStore");
+}
+
+void MidiChallenges::handleStoreStateChanged(const Sidechain::Stores::ChallengeState &state) {
+  // This callback is handled inline in bindToStore via lambda
+  // Keeping this method for consistency with other components
 }
 
 //==============================================================================
