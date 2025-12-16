@@ -42,6 +42,9 @@ UserDiscovery::~UserDiscovery() {
   Log::debug("UserDiscovery: Destroying");
   searchBox->removeListener(this);
   scrollBar.removeListener(this);
+  if (storeUnsubscriber) {
+    storeUnsubscriber();
+  }
 }
 
 //==============================================================================
@@ -54,6 +57,25 @@ void UserDiscovery::setStreamChatClient(StreamChatClient *client) {
   streamChatClient = client;
   Log::info("UserDiscovery::setStreamChatClient: StreamChatClient set " +
             juce::String(client != nullptr ? "(valid)" : "(null)"));
+}
+
+void UserDiscovery::setUserDiscoveryStore(std::shared_ptr<Sidechain::Stores::UserDiscoveryStore> store) {
+  // Unsubscribe from old store
+  if (storeUnsubscriber) {
+    storeUnsubscriber();
+  }
+
+  discoveryStore = store;
+
+  if (discoveryStore) {
+    // Subscribe to store updates
+    storeUnsubscriber = discoveryStore->subscribe([this](const Sidechain::Stores::UserDiscoveryState &state) {
+      // Rebuild UI when discovery data changes
+      rebuildUserCards();
+      repaint();
+    });
+    Log::info("UserDiscovery: UserDiscoveryStore set");
+  }
 }
 
 //==============================================================================
@@ -70,54 +92,71 @@ void UserDiscovery::paint(juce::Graphics &g) {
 
   switch (currentViewMode) {
   case ViewMode::Discovery: {
+    // Get data from store if available, otherwise use member variables (fallback)
+    auto storeHasTrending = discoveryStore && !discoveryStore->getTrendingUsers().isEmpty();
+    auto storeFeatured = discoveryStore && !discoveryStore->getFeaturedProducers().isEmpty();
+    auto storeHasSuggested = discoveryStore && !discoveryStore->getSuggestedUsers().isEmpty();
+    auto storeHasSimilar = discoveryStore && !discoveryStore->getSimilarProducers().isEmpty();
+    auto storeHasRecommended = discoveryStore && !discoveryStore->getRecommendedToFollow().isEmpty();
+
+    auto useTrendingUsers = storeHasTrending ? discoveryStore->getTrendingUsers() : trendingUsers;
+    auto useFeaturedProducers = storeFeatured ? discoveryStore->getFeaturedProducers() : featuredProducers;
+    auto useSuggestedUsers = storeHasSuggested ? discoveryStore->getSuggestedUsers() : suggestedUsers;
+    auto useSimilarProducers = storeHasSimilar ? discoveryStore->getSimilarProducers() : similarProducers;
+    auto useRecommendedToFollow = storeHasRecommended ? discoveryStore->getRecommendedToFollow() : recommendedToFollow;
+    auto useAvailableGenres = discoveryStore ? discoveryStore->getAvailableGenres() : availableGenres;
+    bool isLoading = discoveryStore ? discoveryStore->isLoading()
+                                    : (isTrendingLoading || isFeaturedLoading || isSuggestedLoading ||
+                                       isSimilarLoading || isRecommendedLoading || isGenresLoading);
+
     // Show recent searches if search box has focus
     if (searchBox && searchBox->hasKeyboardFocus(true) && recentSearches.size() > 0 && currentSearchQuery.isEmpty()) {
       drawRecentSearches(g, contentBounds);
     }
 
-    // Genre chips for filtering
-    drawGenreChips(g, contentBounds);
+    // Genre chips for filtering (get from store or member variable)
+    drawGenreChips(g, contentBounds, useAvailableGenres);
     contentBounds.removeFromTop(8); // spacing
 
     // Trending section
-    if (!trendingUsers.isEmpty()) {
+    if (!useTrendingUsers.isEmpty()) {
       drawSectionHeader(g, contentBounds.removeFromTop(SECTION_HEADER_HEIGHT), "Trending");
       drawTrendingSection(g, contentBounds);
       contentBounds.removeFromTop(16);
     }
 
     // Featured section
-    if (!featuredProducers.isEmpty()) {
+    if (!useFeaturedProducers.isEmpty()) {
       drawSectionHeader(g, contentBounds.removeFromTop(SECTION_HEADER_HEIGHT), "Featured Producers");
       drawFeaturedSection(g, contentBounds);
       contentBounds.removeFromTop(16);
     }
 
     // Suggested section
-    if (!suggestedUsers.isEmpty()) {
+    if (!useSuggestedUsers.isEmpty()) {
       drawSectionHeader(g, contentBounds.removeFromTop(SECTION_HEADER_HEIGHT), "Suggested For You");
       drawSuggestedSection(g, contentBounds);
       contentBounds.removeFromTop(16);
     }
 
     // Similar producers section
-    if (!similarProducers.isEmpty()) {
+    if (!useSimilarProducers.isEmpty()) {
       drawSectionHeader(g, contentBounds.removeFromTop(SECTION_HEADER_HEIGHT), "Producers You Might Like");
       drawSimilarSection(g, contentBounds);
       contentBounds.removeFromTop(16);
     }
 
     // Recommended to follow section (Gorse collaborative filtering)
-    if (!recommendedToFollow.isEmpty()) {
+    if (!useRecommendedToFollow.isEmpty()) {
       drawSectionHeader(g, contentBounds.removeFromTop(SECTION_HEADER_HEIGHT), "Recommended to Follow");
       drawRecommendedSection(g, contentBounds);
     }
 
     // Loading state
-    if (isTrendingLoading && isFeaturedLoading && isSuggestedLoading && isSimilarLoading && isRecommendedLoading) {
+    if (isLoading) {
       drawLoadingState(g, getContentBounds());
-    } else if (trendingUsers.isEmpty() && featuredProducers.isEmpty() && suggestedUsers.isEmpty() &&
-               similarProducers.isEmpty() && recommendedToFollow.isEmpty()) {
+    } else if (useTrendingUsers.isEmpty() && useFeaturedProducers.isEmpty() && useSuggestedUsers.isEmpty() &&
+               useSimilarProducers.isEmpty() && useRecommendedToFollow.isEmpty()) {
       drawEmptyState(g, getContentBounds(), "No users to discover yet.\nBe the first to share your music!");
     }
     break;
@@ -135,7 +174,8 @@ void UserDiscovery::paint(juce::Graphics &g) {
   }
 
   case ViewMode::GenreFilter: {
-    drawGenreChips(g, contentBounds);
+    auto useAvailableGenres = discoveryStore ? discoveryStore->getAvailableGenres() : availableGenres;
+    drawGenreChips(g, contentBounds, useAvailableGenres);
     contentBounds.removeFromTop(8);
 
     drawSectionHeader(g, contentBounds.removeFromTop(SECTION_HEADER_HEIGHT), selectedGenre + " Producers");
@@ -271,7 +311,8 @@ void UserDiscovery::drawRecommendedSection([[maybe_unused]] juce::Graphics &g, j
   }
 }
 
-void UserDiscovery::drawGenreChips(juce::Graphics &g, juce::Rectangle<int> &bounds) {
+void UserDiscovery::drawGenreChips(juce::Graphics &g, juce::Rectangle<int> &bounds,
+                                   const juce::StringArray &availableGenres) {
   if (availableGenres.isEmpty())
     return;
 
@@ -453,36 +494,32 @@ void UserDiscovery::scrollBarMoved([[maybe_unused]] juce::ScrollBar *bar, double
 
 //==============================================================================
 void UserDiscovery::loadDiscoveryData() {
-  if (networkClient == nullptr) {
-    Log::warn("UserDiscovery: Cannot load discovery data - network client null");
-    return;
+  if (discoveryStore) {
+    Log::info("UserDiscovery: Loading discovery data from store");
+    discoveryStore->loadDiscoveryData(currentUserId);
+  } else if (networkClient) {
+    // Fallback to direct network client if store not available
+    Log::info("UserDiscovery: Loading discovery data via NetworkClient fallback");
+    fetchTrendingUsers();
+    fetchFeaturedProducers();
+    fetchSuggestedUsers();
+    fetchSimilarProducers();
+    fetchRecommendedToFollow();
+    fetchAvailableGenres();
+  } else {
+    Log::warn("UserDiscovery: Cannot load discovery data - no store or network client");
   }
-
-  Log::info("UserDiscovery: Loading discovery data");
-  fetchTrendingUsers();
-  fetchFeaturedProducers();
-  fetchSuggestedUsers();
-  fetchSimilarProducers();
-  fetchRecommendedToFollow();
-  fetchAvailableGenres();
 }
 
 void UserDiscovery::refresh() {
-  trendingUsers.clear();
-  featuredProducers.clear();
-  suggestedUsers.clear();
-  similarProducers.clear();
-  recommendedToFollow.clear();
-  genreUsers.clear();
-
-  isTrendingLoading = true;
-  isFeaturedLoading = true;
-  isSuggestedLoading = true;
-  isSimilarLoading = true;
-  isRecommendedLoading = true;
-
-  userCards.clear();
-  loadDiscoveryData();
+  if (discoveryStore) {
+    discoveryStore->refreshDiscoveryData(currentUserId);
+  } else {
+    // Fallback to direct network client
+    genreUsers.clear();
+    userCards.clear();
+    loadDiscoveryData();
+  }
   repaint();
 }
 
@@ -859,45 +896,47 @@ void UserDiscovery::rebuildUserCards() {
     break;
 
   case ViewMode::Discovery: {
-    // Combine all discovery sections
-    // Trending users
-    for (auto &user : trendingUsers) {
-      auto *card = userCards.add(new UserCard());
-      card->setUser(user);
-      setupUserCardCallbacks(card);
-      addAndMakeVisible(card);
-    }
+    // Combine all discovery sections from store
+    if (discoveryStore) {
+      // Trending users
+      for (const auto &user : discoveryStore->getTrendingUsers()) {
+        auto *card = userCards.add(new UserCard());
+        card->setUser(user);
+        setupUserCardCallbacks(card);
+        addAndMakeVisible(card);
+      }
 
-    // Featured producers
-    for (auto &user : featuredProducers) {
-      auto *card = userCards.add(new UserCard());
-      card->setUser(user);
-      setupUserCardCallbacks(card);
-      addAndMakeVisible(card);
-    }
+      // Featured producers
+      for (const auto &user : discoveryStore->getFeaturedProducers()) {
+        auto *card = userCards.add(new UserCard());
+        card->setUser(user);
+        setupUserCardCallbacks(card);
+        addAndMakeVisible(card);
+      }
 
-    // Suggested users
-    for (auto &user : suggestedUsers) {
-      auto *card = userCards.add(new UserCard());
-      card->setUser(user);
-      setupUserCardCallbacks(card);
-      addAndMakeVisible(card);
-    }
+      // Suggested users
+      for (const auto &user : discoveryStore->getSuggestedUsers()) {
+        auto *card = userCards.add(new UserCard());
+        card->setUser(user);
+        setupUserCardCallbacks(card);
+        addAndMakeVisible(card);
+      }
 
-    // Similar producers
-    for (auto &user : similarProducers) {
-      auto *card = userCards.add(new UserCard());
-      card->setUser(user);
-      setupUserCardCallbacks(card);
-      addAndMakeVisible(card);
-    }
+      // Similar producers
+      for (const auto &user : discoveryStore->getSimilarProducers()) {
+        auto *card = userCards.add(new UserCard());
+        card->setUser(user);
+        setupUserCardCallbacks(card);
+        addAndMakeVisible(card);
+      }
 
-    // Recommended to follow (Gorse collaborative filtering)
-    for (auto &user : recommendedToFollow) {
-      auto *card = userCards.add(new UserCard());
-      card->setUser(user);
-      setupUserCardCallbacks(card);
-      addAndMakeVisible(card);
+      // Recommended to follow (Gorse collaborative filtering)
+      for (const auto &user : discoveryStore->getRecommendedToFollow()) {
+        auto *card = userCards.add(new UserCard());
+        card->setUser(user);
+        setupUserCardCallbacks(card);
+        addAndMakeVisible(card);
+      }
     }
 
     updateUserCardPositions();
@@ -928,12 +967,14 @@ void UserDiscovery::rebuildUserCards() {
     allUsers = genreUsers;
     break;
   case ViewMode::Discovery:
-    // Combine all discovery sections
-    allUsers.addArray(trendingUsers);
-    allUsers.addArray(featuredProducers);
-    allUsers.addArray(suggestedUsers);
-    allUsers.addArray(similarProducers);
-    allUsers.addArray(recommendedToFollow);
+    // Combine all discovery sections from store
+    if (discoveryStore) {
+      allUsers.addArray(discoveryStore->getTrendingUsers());
+      allUsers.addArray(discoveryStore->getFeaturedProducers());
+      allUsers.addArray(discoveryStore->getSuggestedUsers());
+      allUsers.addArray(discoveryStore->getSimilarProducers());
+      allUsers.addArray(discoveryStore->getRecommendedToFollow());
+    }
     break;
   }
 
@@ -953,54 +994,61 @@ void UserDiscovery::updateUserCardPositions() {
   case ViewMode::Discovery: {
     y += GENRE_CHIP_HEIGHT + 24; // Genre chips
 
-    int cardIndex = 0;
+    if (discoveryStore) {
+      int cardIndex = 0;
 
-    // Trending section
-    if (!trendingUsers.isEmpty()) {
-      y += SECTION_HEADER_HEIGHT;
-      for (int i = 0; i < trendingUsers.size() && cardIndex < userCards.size(); ++i, ++cardIndex) {
-        userCards[cardIndex]->setBounds(contentBounds.getX(), y, contentBounds.getWidth(), USER_CARD_HEIGHT);
-        y += USER_CARD_HEIGHT;
+      // Trending section
+      if (!discoveryStore->getTrendingUsers().isEmpty()) {
+        y += SECTION_HEADER_HEIGHT;
+        for (int i = 0; i < discoveryStore->getTrendingUsers().size() && cardIndex < userCards.size();
+             ++i, ++cardIndex) {
+          userCards[cardIndex]->setBounds(contentBounds.getX(), y, contentBounds.getWidth(), USER_CARD_HEIGHT);
+          y += USER_CARD_HEIGHT;
+        }
+        y += 16; // section spacing
       }
-      y += 16; // section spacing
-    }
 
-    // Featured section
-    if (!featuredProducers.isEmpty()) {
-      y += SECTION_HEADER_HEIGHT;
-      for (int i = 0; i < featuredProducers.size() && cardIndex < userCards.size(); ++i, ++cardIndex) {
-        userCards[cardIndex]->setBounds(contentBounds.getX(), y, contentBounds.getWidth(), USER_CARD_HEIGHT);
-        y += USER_CARD_HEIGHT;
+      // Featured section
+      if (!discoveryStore->getFeaturedProducers().isEmpty()) {
+        y += SECTION_HEADER_HEIGHT;
+        for (int i = 0; i < discoveryStore->getFeaturedProducers().size() && cardIndex < userCards.size();
+             ++i, ++cardIndex) {
+          userCards[cardIndex]->setBounds(contentBounds.getX(), y, contentBounds.getWidth(), USER_CARD_HEIGHT);
+          y += USER_CARD_HEIGHT;
+        }
+        y += 16;
       }
-      y += 16;
-    }
 
-    // Suggested section
-    if (!suggestedUsers.isEmpty()) {
-      y += SECTION_HEADER_HEIGHT;
-      for (int i = 0; i < suggestedUsers.size() && cardIndex < userCards.size(); ++i, ++cardIndex) {
-        userCards[cardIndex]->setBounds(contentBounds.getX(), y, contentBounds.getWidth(), USER_CARD_HEIGHT);
-        y += USER_CARD_HEIGHT;
+      // Suggested section
+      if (!discoveryStore->getSuggestedUsers().isEmpty()) {
+        y += SECTION_HEADER_HEIGHT;
+        for (int i = 0; i < discoveryStore->getSuggestedUsers().size() && cardIndex < userCards.size();
+             ++i, ++cardIndex) {
+          userCards[cardIndex]->setBounds(contentBounds.getX(), y, contentBounds.getWidth(), USER_CARD_HEIGHT);
+          y += USER_CARD_HEIGHT;
+        }
+        y += 16;
       }
-      y += 16;
-    }
 
-    // Similar producers section
-    if (!similarProducers.isEmpty()) {
-      y += SECTION_HEADER_HEIGHT;
-      for (int i = 0; i < similarProducers.size() && cardIndex < userCards.size(); ++i, ++cardIndex) {
-        userCards[cardIndex]->setBounds(contentBounds.getX(), y, contentBounds.getWidth(), USER_CARD_HEIGHT);
-        y += USER_CARD_HEIGHT;
+      // Similar producers section
+      if (!discoveryStore->getSimilarProducers().isEmpty()) {
+        y += SECTION_HEADER_HEIGHT;
+        for (int i = 0; i < discoveryStore->getSimilarProducers().size() && cardIndex < userCards.size();
+             ++i, ++cardIndex) {
+          userCards[cardIndex]->setBounds(contentBounds.getX(), y, contentBounds.getWidth(), USER_CARD_HEIGHT);
+          y += USER_CARD_HEIGHT;
+        }
+        y += 16;
       }
-      y += 16;
-    }
 
-    // Recommended to follow section
-    if (!recommendedToFollow.isEmpty()) {
-      y += SECTION_HEADER_HEIGHT;
-      for (int i = 0; i < recommendedToFollow.size() && cardIndex < userCards.size(); ++i, ++cardIndex) {
-        userCards[cardIndex]->setBounds(contentBounds.getX(), y, contentBounds.getWidth(), USER_CARD_HEIGHT);
-        y += USER_CARD_HEIGHT;
+      // Recommended to follow section
+      if (!discoveryStore->getRecommendedToFollow().isEmpty()) {
+        y += SECTION_HEADER_HEIGHT;
+        for (int i = 0; i < discoveryStore->getRecommendedToFollow().size() && cardIndex < userCards.size();
+             ++i, ++cardIndex) {
+          userCards[cardIndex]->setBounds(contentBounds.getX(), y, contentBounds.getWidth(), USER_CARD_HEIGHT);
+          y += USER_CARD_HEIGHT;
+        }
       }
     }
     break;
@@ -1040,16 +1088,18 @@ int UserDiscovery::calculateContentHeight() const {
 
   switch (currentViewMode) {
   case ViewMode::Discovery:
-    if (!trendingUsers.isEmpty())
-      height += SECTION_HEADER_HEIGHT + (trendingUsers.size() * USER_CARD_HEIGHT) + 16;
-    if (!featuredProducers.isEmpty())
-      height += SECTION_HEADER_HEIGHT + (featuredProducers.size() * USER_CARD_HEIGHT) + 16;
-    if (!suggestedUsers.isEmpty())
-      height += SECTION_HEADER_HEIGHT + (suggestedUsers.size() * USER_CARD_HEIGHT) + 16;
-    if (!similarProducers.isEmpty())
-      height += SECTION_HEADER_HEIGHT + (similarProducers.size() * USER_CARD_HEIGHT) + 16;
-    if (!recommendedToFollow.isEmpty())
-      height += SECTION_HEADER_HEIGHT + (recommendedToFollow.size() * USER_CARD_HEIGHT);
+    if (discoveryStore) {
+      if (!discoveryStore->getTrendingUsers().isEmpty())
+        height += SECTION_HEADER_HEIGHT + (discoveryStore->getTrendingUsers().size() * USER_CARD_HEIGHT) + 16;
+      if (!discoveryStore->getFeaturedProducers().isEmpty())
+        height += SECTION_HEADER_HEIGHT + (discoveryStore->getFeaturedProducers().size() * USER_CARD_HEIGHT) + 16;
+      if (!discoveryStore->getSuggestedUsers().isEmpty())
+        height += SECTION_HEADER_HEIGHT + (discoveryStore->getSuggestedUsers().size() * USER_CARD_HEIGHT) + 16;
+      if (!discoveryStore->getSimilarProducers().isEmpty())
+        height += SECTION_HEADER_HEIGHT + (discoveryStore->getSimilarProducers().size() * USER_CARD_HEIGHT) + 16;
+      if (!discoveryStore->getRecommendedToFollow().isEmpty())
+        height += SECTION_HEADER_HEIGHT + (discoveryStore->getRecommendedToFollow().size() * USER_CARD_HEIGHT);
+    }
     break;
 
   case ViewMode::SearchResults:
