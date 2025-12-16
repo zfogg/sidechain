@@ -301,8 +301,43 @@ juce::Rectangle<int> Playlists::getPlaylistCardBounds(int index) const {
 }
 
 //==============================================================================
-void Playlists::fetchPlaylists([[maybe_unused]] FilterType filter) {
-  // Already handled in loadPlaylists()
+void Playlists::fetchPlaylists(FilterType filter) {
+  // First load all playlists from AppStore
+  loadPlaylists();
+
+  // Then filter by ownership and visibility based on filter type
+  // This is client-side filtering - full implementation would request filtered results from API
+  juce::Array<Playlist> filteredPlaylists;
+
+  for (const auto &playlist : playlists) {
+    bool includePlaylist = false;
+    bool isOwned = playlist.isOwner();
+    bool isCollaborated = playlist.isCollaborative && !isOwned;
+    bool isPublic = playlist.isPublic;
+
+    switch (filter) {
+      case FilterType::All:
+        includePlaylist = true;
+        break;
+      case FilterType::Owned:
+        includePlaylist = isOwned;
+        break;
+      case FilterType::Collaborated:
+        includePlaylist = isCollaborated;
+        break;
+      case FilterType::Public:
+        includePlaylist = isPublic;
+        break;
+    }
+
+    if (includePlaylist) {
+      filteredPlaylists.add(playlist);
+    }
+  }
+
+  playlists = filteredPlaylists;
+  updateScrollBounds();
+  repaint();
 }
 
 int Playlists::calculateContentHeight() const {

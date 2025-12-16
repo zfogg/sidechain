@@ -279,8 +279,43 @@ juce::Rectangle<int> MidiChallenges::getChallengeCardBounds(int index) const {
 }
 
 //==============================================================================
-void MidiChallenges::fetchChallenges([[maybe_unused]] FilterType filter) {
-  // Already handled in loadChallenges()
+void MidiChallenges::fetchChallenges(FilterType filter) {
+  // First load all challenges from AppStore
+  loadChallenges();
+
+  // Then filter by status based on the provided filter type
+  // This is client-side filtering - full implementation would request filtered results from API
+  juce::Array<MIDIChallenge> filteredChallenges;
+
+  for (const auto &challenge : challenges) {
+    bool includeChallenge = false;
+
+    switch (filter) {
+      case FilterType::All:
+        includeChallenge = true;
+        break;
+      case FilterType::Active:
+        includeChallenge = (challenge.status == "active");
+        break;
+      case FilterType::Voting:
+        includeChallenge = (challenge.status == "voting");
+        break;
+      case FilterType::Past:
+        includeChallenge = (challenge.status == "completed" || challenge.status == "closed");
+        break;
+      case FilterType::Upcoming:
+        includeChallenge = (challenge.status == "upcoming" || challenge.status == "scheduled");
+        break;
+    }
+
+    if (includeChallenge) {
+      filteredChallenges.add(challenge);
+    }
+  }
+
+  challenges = filteredChallenges;
+  updateScrollBounds();
+  repaint();
 }
 
 int MidiChallenges::calculateContentHeight() const {

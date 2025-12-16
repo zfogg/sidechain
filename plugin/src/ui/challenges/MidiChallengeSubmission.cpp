@@ -357,8 +357,10 @@ void MidiChallengeSubmission::drawConstraintItem(juce::Graphics &g, juce::Rectan
   }
 }
 
-void MidiChallengeSubmission::drawSubmitButton(juce::Graphics &g, [[maybe_unused]] juce::Rectangle<int> &bounds) {
-  auto buttonBounds = getSubmitButtonBounds();
+void MidiChallengeSubmission::drawSubmitButton(juce::Graphics &g, juce::Rectangle<int> &bounds) {
+  // Use provided bounds for responsive button layout
+  // Center the button within the available space
+  auto buttonBounds = bounds.withSizeKeepingCentre(120, 40);
   bool isHovered = buttonBounds.contains(getMouseXYRelative());
   bool isEnabled = allConstraintsPassed() && submissionState == SubmissionState::Editing;
 
