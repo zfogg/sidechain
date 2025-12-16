@@ -1,9 +1,6 @@
 #include "Playlists.h"
-#include "../../network/NetworkClient.h"
-#include "../../util/Async.h"
-#include "../../util/Json.h"
+#include "../../stores/PlaylistStore.h"
 #include "../../util/Log.h"
-#include "../../util/Result.h"
 
 //==============================================================================
 Playlists::Playlists() {
@@ -22,17 +19,12 @@ Playlists::~Playlists() {
 }
 
 //==============================================================================
-void Playlists::setNetworkClient(NetworkClient *client) {
-  networkClient = client;
-  Log::debug("PlaylistsComponent: NetworkClient set " + juce::String(client != nullptr ? "(valid)" : "(null)"));
-}
-
-//==============================================================================
 // Store integration methods
 void Playlists::bindToStore(std::shared_ptr<Sidechain::Stores::PlaylistStore> store) {
   Log::debug("Playlists: Binding to PlaylistStore");
 
   playlistStore = store;
+  jassert(playlistStore != nullptr); // PlaylistStore is required
   if (!playlistStore)
     return;
 
@@ -175,63 +167,25 @@ void Playlists::scrollBarMoved(juce::ScrollBar * /*scrollBar*/, double newRangeS
 
 //==============================================================================
 void Playlists::loadPlaylists() {
-  if (!networkClient) {
-    Log::warn("PlaylistsComponent: No network client set");
+  jassert(playlistStore != nullptr);
+  if (!playlistStore) {
+    Log::error("Playlists: Cannot load playlists - PlaylistStore is null");
     return;
   }
 
-  isLoading = true;
-  errorMessage = "";
-  repaint();
+  Log::debug("Playlists: Loading playlists from store");
 
-  juce::String filter;
-  switch (currentFilter) {
-  case FilterType::All:
-    filter = "all";
-    break;
-  case FilterType::Owned:
-    filter = "owned";
-    break;
-  case FilterType::Collaborated:
-    filter = "collaborated";
-    break;
-  case FilterType::Public:
-    filter = "public";
-    break;
-  }
-
-  networkClient->getPlaylists(filter, [this](Outcome<juce::var> result) {
-    juce::MessageManager::callAsync([this, result]() {
-      isLoading = false;
-
-      if (!result.isOk()) {
-        errorMessage = "Failed to load playlists: " + result.getError();
-        Log::warn("PlaylistsComponent: " + errorMessage);
-        repaint();
-        return;
-      }
-
-      auto response = result.getValue();
-      playlists.clear();
-
-      if (response.hasProperty("playlists")) {
-        auto playlistsArray = response["playlists"];
-        if (playlistsArray.isArray()) {
-          for (int i = 0; i < playlistsArray.size(); ++i) {
-            playlists.add(Playlist::fromJSON(playlistsArray[i]));
-          }
-        }
-      }
-
-      Log::info("PlaylistsComponent: Loaded " + juce::String(playlists.size()) + " playlists");
-      updateScrollBounds();
-      repaint();
-    });
-  });
+  // Apply filter and load - store will notify via subscription
+  playlistStore->filterPlaylists(static_cast<Sidechain::Stores::PlaylistState::FilterType>(currentFilter));
+  playlistStore->loadPlaylists();
 }
 
 void Playlists::refresh() {
-  loadPlaylists();
+  jassert(playlistStore != nullptr);
+  if (!playlistStore)
+    return;
+
+  playlistStore->refreshPlaylists();
 }
 
 //==============================================================================
