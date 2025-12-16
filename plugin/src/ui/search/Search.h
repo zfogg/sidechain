@@ -63,7 +63,7 @@ public:
   void textEditorEscapeKeyPressed(juce::TextEditor &editor) override;
 
   // ScrollBar::Listener
-  void scrollBarMoved(juce::ScrollBar *scrollBar, double newRangeStart) override;
+  void scrollBarMoved(juce::ScrollBar *movedScrollBar, double newRangeStart) override;
 
   // Bring Component::keyPressed into scope to avoid hiding warning
   using juce::Component::keyPressed;
@@ -157,6 +157,7 @@ private:
   static constexpr int CARD_HEIGHT = 100;
   static constexpr int HEADER_HEIGHT = 120;
   static constexpr int FILTER_HEIGHT = 60;
+  static constexpr int SEARCH_INPUT_HEIGHT = 50;
 
   // Keyboard navigation state (7.3.8)
   int selectedResultIndex = -1;
