@@ -1,7 +1,8 @@
 #pragma once
+#include "../../stores/AppStore.h"
 
 #include "../../models/FeedPost.h"
-#include "../../stores/StoriesStore.h"
+#include "../../stores/AppStore.h"
 #include <JuceHeader.h>
 #include <memory>
 
@@ -101,7 +102,7 @@ public:
 
   //==============================================================================
   // Store integration (reactive pattern)
-  void bindToStore(std::shared_ptr<Sidechain::Stores::StoriesStore> store);
+  void bindToStore(std::shared_ptr<Sidechain::Stores::AppStore> store);
   void unbindFromStore();
 
   //==============================================================================
@@ -131,7 +132,7 @@ private:
   std::vector<UserStories> userStoriesGroups;
 
   // Store integration
-  std::shared_ptr<Sidechain::Stores::StoriesStore> storiesStore;
+  std::shared_ptr<Sidechain::Stores::AppStore> storiesStore;
   std::function<void()> storeUnsubscriber;
 
   // Scroll state

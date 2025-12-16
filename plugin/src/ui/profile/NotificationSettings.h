@@ -25,10 +25,6 @@ public:
   void setNetworkClient(NetworkClient *client) {
     networkClient = client;
   }
-  void setUserDataStore(UserDataStore *store) {
-    userDataStore = store;
-    loadPluginSettings();
-  }
   void loadPreferences();
 
   //==============================================================================
@@ -49,7 +45,6 @@ public:
 private:
   //==============================================================================
   NetworkClient *networkClient = nullptr;
-  UserDataStore *userDataStore = nullptr;
 
   // State
   bool isLoading = false;

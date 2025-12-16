@@ -2,6 +2,8 @@
 
 #include "Store.h"
 #include "app/AppState.h"
+#include "../models/FeedResponse.h"
+#include "../models/AggregatedFeedResponse.h"
 #include "../network/NetworkClient.h"
 #include <JuceHeader.h>
 
@@ -76,6 +78,7 @@ public:
   void toggleSave(const juce::String &postId);
   void toggleRepost(const juce::String &postId);
   void toggleMute(const juce::String &postId, bool isMuted);
+  void togglePin(const juce::String &postId, bool pinned);
   void toggleFollow(const juce::String &postId, bool willFollow);
   void addReaction(const juce::String &postId, const juce::String &emoji);
   void loadSavedPosts();
@@ -138,8 +141,9 @@ public:
   // Notification Methods (Notifications.cpp)
 
   void loadNotifications();
-  void markNotificationAsRead(const juce::String &notificationId);
-  void markAllNotificationsRead();
+  void loadMoreNotifications();
+  void markNotificationsAsRead();
+  void markNotificationsAsSeen();
 
   //==============================================================================
   // Presence Methods (Presence.cpp)
@@ -211,6 +215,14 @@ public:
    */
   std::function<void()> subscribeToChat(std::function<void(const ChatState &)> callback);
 
+  /**
+   * Subscribe only to drafts state changes
+   */
+  std::function<void()> subscribeToDrafts(std::function<void(const DraftState &)> callback);
+
+  /** Subscribe to challenges state slice (for MidiChallenges component) */
+  std::function<void()> subscribeToChallenges(std::function<void(const ChallengeState &)> callback);
+
 protected:
   /**
    * Constructor
@@ -237,8 +249,24 @@ protected:
    */
   void updateChatState(std::function<void(ChatState &)> updater);
 
+  /**
+   * Helper to update upload state
+   */
+  void updateUploadState(std::function<void(UploadState &)> updater);
+
 private:
   NetworkClient *networkClient = nullptr;
+
+  // Feed helpers
+  void performFetch(FeedType feedType, int limit, int offset);
+  void handleFetchSuccess(FeedType feedType, const juce::var &data, int limit, int offset);
+  void handleFetchError(FeedType feedType, const juce::String &error);
+  void handleSavedPostsLoaded(Outcome<juce::var> result);
+  void handleArchivedPostsLoaded(Outcome<juce::var> result);
+  FeedResponse parseJsonResponse(const juce::var &json);
+  AggregatedFeedResponse parseAggregatedJsonResponse(const juce::var &json);
+  bool isCurrentFeedCached() const;
+  bool currentFeedIsFromCache_ = false;
 
   // User helpers
   void downloadProfileImage(const juce::String &url);
@@ -250,6 +278,8 @@ private:
   std::map<uint64_t, std::function<void(const PostsState &)>> feedSubscribers;
   std::map<uint64_t, std::function<void(const UserState &)>> userSubscribers;
   std::map<uint64_t, std::function<void(const ChatState &)>> chatSubscribers;
+  std::map<uint64_t, std::function<void(const DraftState &)>> draftSubscribers;
+  std::map<uint64_t, std::function<void(const ChallengeState &)>> challengeSubscribers;
   std::atomic<uint64_t> nextSliceSubscriberId{1};
 };
 

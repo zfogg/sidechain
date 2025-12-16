@@ -5,7 +5,6 @@
 #include "network/StreamChatClient.h"
 #include "network/WebSocketClient.h"
 #include "stores/AppStore.h"
-#include "stores/DraftStorage.h"
 #include "ui/animations/ViewTransitionManager.h"
 #include "ui/auth/Auth.h"
 #include "ui/challenges/MidiChallengeDetail.h"
@@ -267,8 +266,6 @@ private:
   std::unique_ptr<Upload> uploadComponent;
   std::unique_ptr<DraftsView> draftsViewComponent;
 
-  // Draft storage
-  std::unique_ptr<DraftStorage> draftStorage;
   std::unique_ptr<UserDiscovery> userDiscoveryComponent;
   std::unique_ptr<Profile> profileComponent;
   std::unique_ptr<Search> searchComponent;

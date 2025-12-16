@@ -1,9 +1,9 @@
 #include "Comment.h"
 #include "../../network/NetworkClient.h"
-#include "../../stores/CommentStore.h"
-#include "../../stores/ImageCache.h"
+
 #include "../../ui/common/ToastNotification.h"
 #include "../../ui/feed/EmojiReactionsPanel.h"
+#include "../../util/Async.h"
 #include "../../util/Emoji.h"
 #include "../../util/HoverState.h"
 #include "../../util/Log.h"
@@ -27,16 +27,6 @@ CommentRow::CommentRow() {
 void CommentRow::setComment(const Comment &newComment) {
   comment = newComment;
   avatarImage = juce::Image();
-
-  // Load avatar via backend proxy to work around JUCE SSL/redirect issues on
-  // Linux
-  if (comment.userId.isNotEmpty()) {
-    ImageLoader::loadAvatarForUser(comment.userId, [this](const juce::Image &img) {
-      avatarImage = img;
-      repaint();
-    });
-  }
-
   repaint();
 }
 
@@ -70,8 +60,9 @@ void CommentRow::paint(juce::Graphics &g) {
 }
 
 void CommentRow::drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds) {
-  ImageLoader::drawCircularAvatar(g, bounds, avatarImage, ImageLoader::getInitials(comment.username),
-                                  SidechainColors::surface(), SidechainColors::textPrimary());
+  // Draw colored circle
+  g.setColour(SidechainColors::surface());
+  g.fillEllipse(bounds.toFloat());
 
   // Avatar border
   g.setColour(SidechainColors::border());
@@ -324,28 +315,19 @@ void CommentsPanel::loadCommentsForPost(const juce::String &postId) {
   Log::info("CommentsPanel::loadCommentsForPost: Loading comments for post: " + postId);
   currentPostId = postId;
 
-  // Use CommentStore if available (preferred - reactive pattern)
-  if (commentStore != nullptr) {
-    // Subscribe to comment store updates
-    storeUnsubscriber = commentStore->subscribe([this](const CommentState &state) { onCommentStoreChanged(state); });
-    // Trigger load from store
-    commentStore->loadCommentsForPost(postId);
-  }
-  // Fallback: Use NetworkClient directly if CommentStore not set (backward compatibility)
-  else if (networkClient != nullptr) {
+  if (networkClient != nullptr) {
     currentOffset = 0;
     comments.clear();
     commentRows.clear();
     errorMessage = "";
     isLoading = true;
-    Log::debug("CommentsPanel::loadCommentsForPost: Using NetworkClient fallback");
     repaint();
 
     networkClient->getComments(postId, 20, 0, [this](Outcome<std::pair<juce::var, int>> commentsResult) {
       handleCommentsLoaded(commentsResult);
     });
   } else {
-    Log::warn("CommentsPanel::loadCommentsForPost: No CommentStore or NetworkClient available");
+    Log::warn("CommentsPanel::loadCommentsForPost: No NetworkClient available");
   }
 }
 
@@ -356,20 +338,8 @@ void CommentsPanel::refreshComments() {
   loadCommentsForPost(currentPostId);
 }
 
-void CommentsPanel::onCommentStoreChanged(const CommentState &state) {
-  Log::debug("CommentsPanel::onCommentStoreChanged: Comment store updated for post: " + state.postId);
-
-  // Update local state from store
-  comments = state.comments;
-  isLoading = state.isLoading;
-  totalCommentCount = state.totalCount;
-  hasMoreComments = state.hasMore;
-  currentOffset = state.offset;
-  errorMessage = state.error;
-
-  // Update UI
-  updateCommentsList();
-  repaint();
+void CommentsPanel::onCommentStoreChanged() {
+  // No-op: State updates happen via NetworkClient callbacks
 }
 
 void CommentsPanel::handleCommentsLoaded(Outcome<std::pair<juce::var, int>> commentsResult) {
@@ -495,7 +465,7 @@ void CommentsPanel::setupRowCallbacks(CommentRow *row) {
   // NetworkClient::reportComment()
 
   row->onDeleteClicked = [this](const Comment &comment) {
-    if (commentStore == nullptr && networkClient == nullptr)
+    if (networkClient == nullptr)
       return;
 
     // Confirm delete
@@ -506,17 +476,10 @@ void CommentsPanel::setupRowCallbacks(CommentRow *row) {
                        .withButton("Cancel");
 
     juce::AlertWindow::showAsync(options, [this, commentId = comment.id](int result) {
-      if (result == 1) {
-        // Use CommentStore if available (preferred)
-        if (commentStore != nullptr) {
-          commentStore->deleteComment(commentId);
-        }
-        // Fallback to NetworkClient
-        else if (networkClient != nullptr) {
-          networkClient->deleteComment(commentId, [this, commentId](Outcome<juce::var> responseOutcome) {
-            handleCommentDeleted(responseOutcome.isOk(), commentId);
-          });
-        }
+      if (result == 1 && networkClient != nullptr) {
+        networkClient->deleteComment(commentId, [this, commentId](Outcome<juce::var> responseOutcome) {
+          handleCommentDeleted(responseOutcome.isOk(), commentId);
+        });
       }
     });
   };
@@ -566,15 +529,9 @@ void CommentsPanel::handleCommentLikeToggled(const Comment &comment, bool liked)
   Log::info("CommentsPanel::handleCommentLikeToggled: Toggling like - commentId: " + comment.id +
             ", liked: " + juce::String(liked ? "yes" : "no"));
 
-  // Use CommentStore if available (preferred - handles optimistic updates + sync)
-  if (commentStore != nullptr) {
-    commentStore->toggleCommentLike(comment.id, liked);
-    return;
-  }
-
-  // Fallback: Use NetworkClient directly if CommentStore not set
+  // Use NetworkClient directly
   if (networkClient == nullptr) {
-    Log::warn("CommentsPanel::handleCommentLikeToggled: No CommentStore or networkClient available");
+    Log::warn("CommentsPanel::handleCommentLikeToggled: No networkClient available");
     return;
   }
 
@@ -1119,4 +1076,55 @@ void CommentsPanel::insertEmoji(const juce::String &emoji) {
   inputField->setText(text);
   inputField->setCaretPosition(caretPos + emoji.length());
   inputField->grabKeyboardFocus();
+}
+
+//==============================================================================
+// Helper functions for image loading and avatar rendering
+
+static juce::Image loadImageFromURL(const juce::String &urlStr) {
+  if (urlStr.isEmpty()) {
+    return juce::Image();
+  }
+
+  try {
+    juce::URL url(urlStr);
+    auto inputStream = std::unique_ptr<juce::InputStream>(url.createInputStream(false));
+
+    if (inputStream == nullptr) {
+      Log::error("loadImageFromURL: Failed to create input stream from URL: " + urlStr);
+      return juce::Image();
+    }
+
+    auto image = juce::ImageFileFormat::loadFrom(*inputStream);
+    if (!image.isValid()) {
+      Log::error("loadImageFromURL: Failed to parse image from URL: " + urlStr);
+      return juce::Image();
+    }
+
+    Log::debug("loadImageFromURL: Successfully loaded image from: " + urlStr);
+    return image;
+  } catch (const std::exception &e) {
+    Log::error("loadImageFromURL: Exception loading image from URL: " + juce::String(e.what()));
+    return juce::Image();
+  }
+}
+
+static juce::String getInitialsFromName(const juce::String &name) {
+  if (name.isEmpty()) {
+    return "?";
+  }
+
+  juce::StringArray parts;
+  parts.addTokens(name, " ", "");
+
+  if (parts.size() >= 2) {
+    // Get first letter of first and last name
+    return (parts[0].substring(0, 1) + parts[parts.size() - 1].substring(0, 1)).toUpperCase();
+  } else if (parts.size() == 1) {
+    // Get first two letters of single word name
+    juce::String initials = parts[0].substring(0, 2).toUpperCase();
+    return initials.length() > 0 ? initials : "?";
+  }
+
+  return "?";
 }

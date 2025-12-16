@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../models/FeedPost.h"
+#include "../../stores/AppStore.h"
 #include "../../ui/animations/Easing.h"
 #include "../../ui/animations/TransitionAnimation.h"
 #include "../../util/HoverState.h"
@@ -13,11 +14,6 @@
 
 // Forward declarations
 class NetworkClient;
-namespace Sidechain {
-namespace Stores {
-class PostsStore;
-}
-} // namespace Sidechain
 
 //==============================================================================
 /**
@@ -67,11 +63,6 @@ public:
    * @param client Pointer to the NetworkClient instance
    */
   void setNetworkClient(NetworkClient *client);
-
-  /** Set the PostsStore for reactive state updates (Task 2.5)
-   * @param store Pointer to the PostsStore instance
-   */
-  void setPostsStore(Sidechain::Stores::PostsStore *store);
 
   //==============================================================================
   // Update UI state (not persisted to PostsStore)
@@ -292,6 +283,10 @@ public:
   juce::String getTooltip() override;
 
   //==============================================================================
+  // Store integration
+  void bindToStore(Sidechain::Stores::AppStore *store);
+
+  //==============================================================================
   // Layout constants
   static constexpr int CARD_HEIGHT = 160;
   static constexpr int AVATAR_SIZE = 56;
@@ -303,8 +298,8 @@ private:
   //==============================================================================
   FeedPost post;
 
-  // PostsStore subscription for reactive updates (Task 2.5)
-  Sidechain::Stores::PostsStore *postsStore = nullptr;
+  // AppStore subscription for reactive updates
+  Sidechain::Stores::AppStore *appStore = nullptr;
   std::function<void()> storeUnsubscribe;
 
   // UI state
@@ -353,8 +348,8 @@ private:
   void handleEmojiSelected(const juce::String &emoji);
 
   //==============================================================================
-  // PostsStore subscription (type-safe lazy pattern)
-  void subscribeToPostsStore();
+  // AppStore subscription (type-safe lazy pattern)
+  void subscribeToAppStore();
 
   //==============================================================================
   // Hit testing helpers

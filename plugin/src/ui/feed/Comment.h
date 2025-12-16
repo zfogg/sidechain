@@ -4,6 +4,7 @@
 #include "../../util/HoverState.h"
 #include "../../util/Result.h"
 #include "../../util/Time.h"
+#include "../../stores/AppStore.h"
 #include <JuceHeader.h>
 
 //==============================================================================
@@ -151,12 +152,6 @@ private:
 //==============================================================================
 // Forward declarations
 class NetworkClient;
-namespace Sidechain {
-namespace Stores {
-struct CommentState;
-class CommentStore;
-} // namespace Stores
-} // namespace Sidechain
 
 //==============================================================================
 /**
@@ -180,8 +175,8 @@ public:
   void setNetworkClient(NetworkClient *client) {
     networkClient = client;
   }
-  void setCommentStore(std::shared_ptr<Sidechain::Stores::CommentStore> store) {
-    commentStore = store;
+  void setAppStore(Sidechain::Stores::AppStore *store) {
+    appStore = store;
   }
   void setCurrentUserId(const juce::String &userId) {
     currentUserId = userId;
@@ -220,13 +215,12 @@ private:
 
   //==============================================================================
   // Store subscription callback
-  void onCommentStoreChanged(const Sidechain::Stores::CommentState &state);
+  void onCommentStoreChanged();
 
   //==============================================================================
   // Data
   NetworkClient *networkClient = nullptr;
-  std::shared_ptr<Sidechain::Stores::CommentStore> commentStore;
-  std::function<void()> storeUnsubscriber; // Track subscription for cleanup
+  Sidechain::Stores::AppStore *appStore = nullptr;
   juce::String currentPostId;
   juce::String currentUserId;
   juce::Array<Comment> comments;

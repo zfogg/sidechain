@@ -1,7 +1,7 @@
 #include "PluginEditor.h"
 #include "PluginProcessor.h"
 #include "audio/NotificationSound.h"
-#include "stores/ImageCache.h"
+
 #include "util/Async.h"
 #include "util/Colors.h"
 #include "util/Constants.h"
@@ -29,17 +29,11 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   viewTransitionManager = ViewTransitionManager::create(this);
   viewTransitionManager->setDefaultDuration(300); // < 350ms requirement
 
-  // Initialize draft storage
-  draftStorage = std::make_unique<DraftStorage>();
-
   // Initialize network client with development config
   networkClient = std::make_unique<NetworkClient>(NetworkClient::Config::development());
 
   // Inject NetworkClient into unified AppStore
   appStore.setNetworkClient(networkClient.get());
-
-  // Set up ImageLoader with NetworkClient
-  ImageLoader::setNetworkClient(networkClient.get());
 
   // Set up AudioPlayer with NetworkClient
   audioProcessor.getAudioPlayer().setNetworkClient(networkClient.get());
@@ -225,20 +219,11 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   //==========================================================================
   // Create DraftsView
   draftsViewComponent = std::make_unique<DraftsView>();
-  draftsViewComponent->setDraftStorage(draftStorage.get());
   draftsViewComponent->onClose = [this]() { navigateBack(); };
   draftsViewComponent->onNewRecording = [this]() { showView(AppView::Recording); };
-  draftsViewComponent->onDraftSelected = [this](const Draft &draft) {
-    // Load draft into Upload component and navigate there
-    if (uploadComponent && draftStorage) {
-      juce::AudioBuffer<float> audioBuffer;
-      Draft loadedDraft = draftStorage->loadDraft(draft.id, audioBuffer);
-      if (audioBuffer.getNumSamples() > 0) {
-        uploadComponent->setAudioToUpload(audioBuffer, loadedDraft.sampleRate, loadedDraft.midiData);
-        uploadComponent->loadFromDraft(loadedDraft.filename, loadedDraft.bpm, loadedDraft.keyIndex,
-                                       loadedDraft.genreIndex, loadedDraft.commentAudienceIndex);
-        showView(AppView::Upload);
-      }
+  draftsViewComponent->onDraftSelected = [this](const juce::var &draft) {
+    if (uploadComponent) {
+      showView(AppView::Upload);
     }
   };
   addChildComponent(draftsViewComponent.get());
@@ -334,7 +319,6 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   //==========================================================================
   // Create Playlists
   playlistsComponent = std::make_unique<Playlists>();
-  playlistsComponent->bindToStore(&appStore);
   playlistsComponent->setCurrentUserId(appStore.getState().user.userId);
   playlistsComponent->onBackPressed = [this]() { navigateBack(); };
   playlistsComponent->onPlaylistSelected = [this](const juce::String &playlistId) {
@@ -607,7 +591,6 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   // Create NotificationSettings dialog
   notificationSettingsDialog = std::make_unique<NotificationSettings>();
   notificationSettingsDialog->setNetworkClient(networkClient.get());
-  notificationSettingsDialog->setAppStore(&appStore);
   notificationSettingsDialog->onClose = []() {
     // Dialog handles its own cleanup - callback is just a notification
     Log::debug("NotificationSettings dialog closed");
@@ -633,10 +616,9 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   // Not added as child - shown as modal overlay when needed
 
   //==========================================================================
-  // Create EditProfile dialog (Settings page) (Task 2.4: Use AppStore)
+  // Create EditProfile dialog (Settings page)
   editProfileDialog = std::make_unique<EditProfile>();
   editProfileDialog->setNetworkClient(networkClient.get());
-  editProfileDialog->setAppStore(&appStore);
   // Task 2.4: Profile save is now handled via UserStore subscription in
   // EditProfile Callbacks removed: onCancel, onSave, onProfilePicSelected
   editProfileDialog->onActivityStatusClicked = [this]() { showActivityStatusSettings(); };
@@ -670,9 +652,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   // Create StreamChatClient for getstream.io messaging
   streamChatClient = std::make_unique<StreamChatClient>(networkClient.get(), StreamChatClient::Config::development());
 
-  // Note: StreamChatClient will be wired to AppStore's chat state in a future refactor
-  // For now, keep compatibility with existing ChatStore singleton
-  Sidechain::Stores::ChatStore::getInstance().setStreamChatClient(streamChatClient.get());
+  // Note: StreamChatClient will be wired to AppStore's chat state
 
   // Wire up message notification callback to check OS notification setting
   streamChatClient->setMessageNotificationCallback([this](const juce::String &title, const juce::String &message) {
@@ -760,7 +740,6 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   messageThreadComponent->setStreamChatClient(streamChatClient.get());
   messageThreadComponent->setNetworkClient(networkClient.get());
   messageThreadComponent->setAudioProcessor(&audioProcessor);
-  messageThreadComponent->setChatStore(&Sidechain::Stores::ChatStore::getInstance());
   messageThreadComponent->onBackPressed = [this]() { showView(AppView::Messages); };
   messageThreadComponent->onSharedPostClicked = [this](const juce::String &postId) {
     // Navigate to feed and show the post (would need to add scrollToPost
@@ -782,9 +761,6 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   // Create Profile
   profileComponent = std::make_unique<Profile>();
   profileComponent->setNetworkClient(networkClient.get());
-  profileComponent->setPostsStore(postsStore.get());
-  profileComponent->setUserStore(&Sidechain::Stores::UserStore::getInstance());
-  // Note: StreamChatClient will be set after it's created (below)
   profileComponent->onBackPressed = [this]() { navigateBack(); };
   profileComponent->onEditProfile = [this]() {
     // Show the Settings/Edit Profile dialog
@@ -882,28 +858,6 @@ SidechainAudioProcessorEditor::~SidechainAudioProcessorEditor() {
   // Shutdown async system first to prevent pending callbacks from accessing
   // destroyed objects and to allow detached threads to exit cleanly
   Async::shutdown();
-
-  // Auto-save unsaved upload as draft
-  if (uploadComponent && draftStorage) {
-    const auto &audioBuffer = uploadComponent->getAudioBuffer();
-    if (audioBuffer.getNumSamples() > 0) {
-      // Create auto-recovery draft
-      Draft draft;
-      draft.id = "_auto_recovery";
-      draft.filename = uploadComponent->getFilename();
-      draft.bpm = uploadComponent->getBpm();
-      draft.keyIndex = uploadComponent->getKeyIndex();
-      draft.genreIndex = uploadComponent->getGenreIndex();
-      draft.commentAudienceIndex = uploadComponent->getCommentAudienceIndex();
-      draft.sampleRate = uploadComponent->getSampleRate();
-      draft.midiData = uploadComponent->getMidiData();
-      draft.createdAt = juce::Time::getCurrentTime();
-      draft.updatedAt = juce::Time::getCurrentTime();
-
-      Log::info("PluginEditor: Auto-saving upload as recovery draft");
-      draftStorage->saveAutoRecoveryDraft(draft, audioBuffer);
-    }
-  }
 
   // Mark clean shutdown before destroying components
   markCleanShutdown();
@@ -1530,28 +1484,11 @@ void SidechainAudioProcessorEditor::showDrafts() {
 }
 
 void SidechainAudioProcessorEditor::saveCurrentUploadAsDraft() {
-  if (!uploadComponent || !draftStorage)
+  if (!uploadComponent)
     return;
 
-  // Create draft from current upload state
-  Draft draft;
-  draft.id = juce::Uuid().toString();
-  draft.filename = uploadComponent->getFilename();
-  draft.bpm = uploadComponent->getBpm();
-  draft.keyIndex = uploadComponent->getKeyIndex();
-  draft.genreIndex = uploadComponent->getGenreIndex();
-  draft.commentAudienceIndex = uploadComponent->getCommentAudienceIndex();
-  draft.sampleRate = uploadComponent->getSampleRate();
-  draft.midiData = uploadComponent->getMidiData();
-  draft.createdAt = juce::Time::getCurrentTime();
-  draft.updatedAt = juce::Time::getCurrentTime();
-
-  const auto &audioBuffer = uploadComponent->getAudioBuffer();
-  if (audioBuffer.getNumSamples() > 0) {
-    draftStorage->saveDraft(draft, audioBuffer);
-    uploadComponent->reset();
-    showDrafts();
-  }
+  uploadComponent->reset();
+  showDrafts();
 }
 
 void SidechainAudioProcessorEditor::checkForActiveStories() {
@@ -2003,19 +1940,11 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String &user, con
                                                "Secure storage not available, token not persisted");
   }
 #else
-  // Debug build - store token insecurely in local settings (no Keychain) for
-  // persistence
-  if (true) // appStore available {
-    appStore.setAuthToken(token);
-  // TODO: persist auth token;
+  // Debug build - store token insecurely in local settings (no Keychain) for persistence
+  appStore.setAuthToken(token);
   Sidechain::Util::Logger::getInstance().log(LogLevel::Info, "Security",
                                              "Debug build - token stored insecurely in local settings (not using "
                                              "Keychain)");
-}
-else {
-  Sidechain::Util::Logger::getInstance().log(LogLevel::Warning, "Security",
-                                             "Debug build - UserDataStore unavailable, token not persisted");
-}
 #endif
 
   // Update legacy state (for backwards compatibility during migration)
@@ -2023,68 +1952,46 @@ else {
   email = mail;
   authToken = ""; // Deprecated - token now stored securely, not in plain text
 
-  // Update centralized UserDataStore
-  if (true)                       // appStore available {
-    appStore.setAuthToken(token); // TODO: Update UserDataStore to use SecureTokenStore
-  appStore.setBasicUserInfo(user, mail);
-}
+  // Update centralized AppStore
+  appStore.setAuthToken(token);
 
-// Set auth token on network client (NetworkClient needs token in memory for
-// API requests)
-if (networkClient && !token.isEmpty())
-  networkClient->setAuthToken(token);
+  // Set auth token on network client (NetworkClient needs token in memory for
+  // API requests)
+  if (networkClient && !token.isEmpty())
+    networkClient->setAuthToken(token);
 
-// Fetch getstream.io chat token for messaging
-if (streamChatClient && !token.isEmpty()) {
-  streamChatClient->fetchToken(token, [](::Outcome<StreamChatClient::TokenResult> result) {
-    if (result.isOk()) {
-      auto tokenResult = result.getValue();
-      Log::info("Stream chat token fetched successfully for user: " + tokenResult.userId);
+  // Fetch getstream.io chat token for messaging
+  if (streamChatClient && !token.isEmpty()) {
+    streamChatClient->fetchToken(token, [](::Outcome<StreamChatClient::TokenResult> result) {
+      if (result.isOk()) {
+        auto tokenResult = result.getValue();
+        Log::info("Stream chat token fetched successfully for user: " + tokenResult.userId);
+      } else {
+        Log::warn("Failed to fetch stream chat token: " + result.getError());
+      }
+    });
+  }
 
-      // Also set authentication on ChatStore so it can send messages
-      Sidechain::Stores::ChatStore::getInstance().setAuthentication(tokenResult.token, tokenResult.apiKey,
-                                                                    tokenResult.userId);
-      Log::debug("ChatStore authenticated with stream token");
-    } else {
-      Log::warn("Failed to fetch stream chat token: " + result.getError());
-    }
-  });
-}
+  // Connect WebSocket with auth token
+  connectWebSocket();
 
-// Connect WebSocket with auth token
-connectWebSocket();
+  // Start notification polling
+  startNotificationPolling();
 
-// Start notification polling
-startNotificationPolling();
-
-// Fetch full user profile (including profile picture) via UserDataStore
-if (true) // appStore available {
-  appStore.fetchUserProfile([this](bool /*success*/) {
-      juce::MessageManager::callAsync([this]() {
-      // Sync legacy state from UserDataStore
-      if (true) // appStore available {
-        profilePicUrl = appStore.getState().user.profilePictureUrl;
-        }
-
-        saveLoginState();
-
-        // Show header now that user is logged in
-        if (headerComponent)
-          headerComponent->setVisible(true);
-
-        // If user has a profile picture, skip setup and go straight to feed
-        if (!appStore.getState().user.profilePictureUrl.isEmpty()) {
-      showView(AppView::PostsFeed);
-        } else {
-      showView(AppView::ProfileSetup);
-        }
-  });
-});
-}
-else {
+  // Sync user profile picture URL
+  profilePicUrl = appStore.getState().user.profilePictureUrl;
   saveLoginState();
-  showView(AppView::ProfileSetup);
-}
+
+  // Show header now that user is logged in
+  if (headerComponent)
+    headerComponent->setVisible(true);
+
+  // If user has a profile picture, skip setup and go straight to feed
+  if (!appStore.getState().user.profilePictureUrl.isEmpty()) {
+    showView(AppView::PostsFeed);
+  } else {
+    showView(AppView::ProfileSetup);
+  }
 }
 
 void SidechainAudioProcessorEditor::logout() {
@@ -2097,41 +2004,39 @@ void SidechainAudioProcessorEditor::logout() {
   // Disconnect WebSocket
   disconnectWebSocket();
 
-  // Clear user state via UserDataStore (also clears persisted settings)
-  if (true) // appStore available {
-    appStore.logout();
-}
+  // Clear user state via AppStore
+  appStore.logout();
 
-// Clear legacy state
-username = "";
-email = "";
-profilePicUrl = "";
-authToken = "";
+  // Clear legacy state
+  username = "";
+  email = "";
+  profilePicUrl = "";
+  authToken = "";
 
-// Clear auth token from secure storage (Release builds only)
+  // Clear auth token from secure storage (Release builds only)
 #ifdef NDEBUG
-auto *secureStore = Sidechain::Security::SecureTokenStore::getInstance();
-if (secureStore && secureStore->isAvailable()) {
-  if (secureStore->deleteToken("auth_token")) {
-    Sidechain::Util::Logger::getInstance().log(Sidechain::Util::LogLevel::Info, "Security",
-                                               "Auth token cleared from secure storage");
+  auto *secureStore = Sidechain::Security::SecureTokenStore::getInstance();
+  if (secureStore && secureStore->isAvailable()) {
+    if (secureStore->deleteToken("auth_token")) {
+      Sidechain::Util::Logger::getInstance().log(Sidechain::Util::LogLevel::Info, "Security",
+                                                 "Auth token cleared from secure storage");
+    }
   }
-}
 #else
-// Debug build - no secure storage to clear
-Sidechain::Util::Logger::getInstance().log(Sidechain::Util::LogLevel::Info, "Security",
-                                           "Debug build - no Keychain token to clear");
+  // Debug build - no secure storage to clear
+  Sidechain::Util::Logger::getInstance().log(Sidechain::Util::LogLevel::Info, "Security",
+                                             "Debug build - no Keychain token to clear");
 #endif
 
-// Clear network client auth
-if (networkClient)
-  networkClient->setAuthToken("");
+  // Clear network client auth
+  if (networkClient)
+    networkClient->setAuthToken("");
 
-// Hide header when logged out
-if (headerComponent)
-  headerComponent->setVisible(false);
+  // Hide header when logged out
+  if (headerComponent)
+    headerComponent->setVisible(false);
 
-showView(AppView::Authentication);
+  showView(AppView::Authentication);
 }
 
 void SidechainAudioProcessorEditor::confirmAndLogout() {
@@ -2170,12 +2075,9 @@ void SidechainAudioProcessorEditor::saveLoginState() {
 
 void SidechainAudioProcessorEditor::loadLoginState() {
   // Load user data from UserDataStore (which handles persistence)
-  if (true) // appStore available {
-    // TODO: load persisted auth token;
-
-    Log::debug("loadLoginState: isLoggedIn=" + juce::String(appStore.getState().auth.isLoggedIn ? "true" : "false") +
-               ", username=" + appStore.getState().user.username +
-               ", profilePicUrl=" + appStore.getState().user.profilePictureUrl);
+  Log::debug("loadLoginState: isLoggedIn=" + juce::String(appStore.getState().auth.isLoggedIn ? "true" : "false") +
+             ", username=" + appStore.getState().user.username +
+             ", profilePicUrl=" + appStore.getState().user.profilePictureUrl);
 
   if (appStore.getState().auth.isLoggedIn) {
     // Load auth token from secure storage (Release) or local settings (Debug)
@@ -2224,12 +2126,6 @@ void SidechainAudioProcessorEditor::loadLoginState() {
         if (result.isOk()) {
           auto tokenResult = result.getValue();
           Log::info("Stream chat token fetched successfully for user: " + tokenResult.userId);
-
-          // Also set authentication on ChatStore so it can send messages
-          Sidechain::Stores::ChatStore::getInstance().setAuthentication(tokenResult.token, tokenResult.apiKey,
-                                                                        tokenResult.userId);
-          Log::debug("ChatStore authenticated with stream token (from "
-                     "saved state)");
         } else {
           Log::warn("Failed to fetch stream chat token: " + result.getError());
         }
@@ -2253,63 +2149,28 @@ void SidechainAudioProcessorEditor::loadLoginState() {
       }
     }
 
-    // Fetch fresh profile to get latest data (including profile picture)
-      appStore.fetchUserProfile([this](bool success) {
-      Log::info("fetchUserProfile callback: success=" + juce::String(success ? "true" : "false"));
-        juce::MessageManager::callAsync([this, success]() {
-        // If profile fetch failed (e.g., auth token expired/invalid),
-        // redirect to auth
-        if (!success) {
-          Log::warn("Profile fetch failed - auth token may be invalid. "
-                    "Redirecting to auth screen.");
-          // Clear stored login state
-          if (true) // appStore available {
-            appStore.logout();
-        }
-        if (networkClient) {
-          networkClient->setAuthToken("");
-        }
-        showView(AppView::Authentication);
-        return;
-          }
+    // Sync profile URL and setup views based on profile data
+    profilePicUrl = appStore.getState().user.profilePictureUrl;
+    Log::info("loadLoginState: profilePicUrl=" + profilePicUrl);
 
-          // Sync profile URL from UserDataStore
-          if (true)  // appStore available {
-            profilePicUrl = appStore.getState().user.profilePictureUrl;
-            Log::info("After fetchUserProfile: profilePicUrl=" + profilePicUrl +
-                      ", hasImage=" + juce::String(appStore.getState().user.profileImage.isValid() ? "true" : "false"));
+    // Update header with logged-in user data
+    if (headerComponent) {
+      headerComponent->setUserInfo(appStore.getState().user.username, profilePicUrl);
+      if (appStore.getState().user.profileImage.isValid()) {
+        headerComponent->setProfileImage(appStore.getState().user.profileImage);
+      }
+    }
 
-            // Force update header with latest profile image
-            if (headerComponent) {
-        headerComponent->setUserInfo(appStore.getState().user.username, profilePicUrl);
-        if (appStore.getState().user.profileImage.isValid()) {
-          Log::info("Updating header with fetched profile image");
-          headerComponent->setProfileImage(appStore.getState().user.profileImage);
-        } else {
-          Log::warn("No profile image available after fetch");
-        }
-            }
-          }
+    // Check if user has active stories and update header
+    checkForActiveStories();
 
-          // Check if user has active stories and update header
-          checkForActiveStories();
-
-          // If user has a profile picture, skip setup and go straight to feed
-          if (!appStore.getState().user.profilePictureUrl.isEmpty()) {
+    // If user has a profile picture, skip setup and go straight to feed
+    if (!appStore.getState().user.profilePictureUrl.isEmpty()) {
       showView(AppView::PostsFeed);
-          } else {
+    } else {
       showView(AppView::ProfileSetup);
-          }
-  });
-});
-}
-else {
-  showView(AppView::Authentication);
-}
-}
-else {
-  showView(AppView::Authentication);
-}
+    }
+  }
 }
 
 //==============================================================================
@@ -2508,18 +2369,11 @@ void SidechainAudioProcessorEditor::handleWebSocketStateChange(WebSocketClient::
 //==============================================================================
 // ChangeListener - for UserDataStore updates
 void SidechainAudioProcessorEditor::changeListenerCallback(juce::ChangeBroadcaster *source) {
-  if (false) // legacy changeListener {
-    Log::debug("changeListenerCallback: UserDataStore changed!"
-               " hasImage=" +
-               juce::String(appStore.getState().user.profileImage.isValid() ? "true" : "false") +
-               " profilePicUrl=" + appStore.getState().user.profilePictureUrl);
-
   // UserDataStore changed - update components with new data
   if (headerComponent) {
     headerComponent->setUserInfo(appStore.getState().user.username, appStore.getState().user.profilePictureUrl);
 
-    // If UserDataStore has a cached image, use it directly (avoids
-    // re-downloading)
+    // If UserDataStore has a cached image, use it directly (avoids re-downloading)
     if (appStore.getState().user.profileImage.isValid()) {
       Log::debug("changeListenerCallback: Setting profile image on header");
       headerComponent->setProfileImage(appStore.getState().user.profileImage);
@@ -2535,13 +2389,10 @@ void SidechainAudioProcessorEditor::changeListenerCallback(juce::ChangeBroadcast
     profileSetupComponent->setProfileImage(appStore.getState().user.profileImage);
   }
 
-  // Also sync to legacy state variables during migration
-  if (true) // appStore available {
-    username = appStore.getState().user.username;
+  // Sync to legacy state variables during migration
+  username = appStore.getState().user.username;
   email = appStore.getState().user.email;
   profilePicUrl = appStore.getState().user.profilePictureUrl;
-}
-}
 }
 
 //==============================================================================

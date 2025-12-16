@@ -2,7 +2,7 @@
 
 #include "../../audio/KeyDetector.h"
 #include "../../network/NetworkClient.h"
-#include "../../stores/UploadStore.h"
+#include "../../stores/AppStore.h"
 #include <JuceHeader.h>
 #include <memory>
 
@@ -57,7 +57,7 @@ public:
 
   //==========================================================================
   // Store integration (reactive pattern)
-  void bindToStore(std::shared_ptr<Sidechain::Stores::UploadStore> store);
+  void bindToStore(Sidechain::Stores::AppStore *store);
   void unbindFromStore();
 
   //==========================================================================
@@ -122,7 +122,7 @@ private:
   NetworkClient &networkClient;
 
   // Store integration
-  std::shared_ptr<Sidechain::Stores::UploadStore> uploadStore;
+  Sidechain::Stores::AppStore *appStore = nullptr;
   std::function<void()> storeUnsubscriber;
 
   // Audio data to upload

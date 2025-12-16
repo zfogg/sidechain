@@ -1,8 +1,6 @@
 #pragma once
 
 #include "../../models/FeedPost.h"
-#include "../../stores/PostsStore.h"
-#include "../../stores/UserStore.h"
 #include "../../util/reactive/ReactiveBoundComponent.h"
 #include "../common/ErrorState.h"
 #include "../social/FollowersList.h"
@@ -76,8 +74,6 @@ public:
   // Data binding
   void setNetworkClient(NetworkClient *client);
   void setStreamChatClient(StreamChatClient *client);
-  void setPostsStore(Sidechain::Stores::PostsStore *store);
-  void setUserStore(Sidechain::Stores::UserStore *store);
   void setCurrentUserId(const juce::String &userId);
   void loadProfile(const juce::String &userId);
   void loadOwnProfile();
@@ -143,9 +139,6 @@ private:
   juce::Array<FeedPost> userPosts;
   NetworkClient *networkClient = nullptr;
   StreamChatClient *streamChatClient = nullptr;
-  Sidechain::Stores::PostsStore *postsStore = nullptr;
-  Sidechain::Stores::UserStore *userStore = nullptr;
-  std::function<void()> userStoreUnsubscribe;
 
   // Loading/error states (For other users; own profile uses UserStore state)
   bool isLoading = false;

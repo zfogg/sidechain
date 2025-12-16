@@ -1,7 +1,8 @@
 #include "Profile.h"
 #include "../../network/NetworkClient.h"
 #include "../../network/StreamChatClient.h"
-#include "../../stores/ImageCache.h"
+
+#include "../../util/Async.h"
 #include "../../util/Colors.h"
 #include "../../util/Json.h"
 #include "../../util/Log.h"
@@ -9,6 +10,13 @@
 #include "../../util/StringFormatter.h"
 #include "../feed/PostCard.h"
 #include <vector>
+
+//==============================================================================
+// Forward declarations
+//==============================================================================
+
+static juce::String getInitialsFromName(const juce::String &name);
+static juce::Image loadImageFromURL(const juce::String &urlStr);
 
 //==============================================================================
 // UserProfile implementation
@@ -144,10 +152,6 @@ Profile::Profile() {
 Profile::~Profile() {
   Log::debug("Profile: Destroying profile component");
   scrollBar->removeListener(this);
-
-  // Task 2.4.2: Unsubscribe from UserStore
-  if (userStoreUnsubscribe)
-    userStoreUnsubscribe();
   // RAII: Arrays will clean up automatically
 }
 
@@ -163,53 +167,6 @@ void Profile::setStreamChatClient(StreamChatClient *client) {
   streamChatClient = client;
   Log::info("Profile::setStreamChatClient: StreamChatClient set " +
             juce::String(client != nullptr ? "(valid)" : "(null)"));
-}
-
-void Profile::setPostsStore(Sidechain::Stores::PostsStore *store) {
-  postsStore = store;
-  Log::info("Profile::setPostsStore: PostsStore set " + juce::String(store != nullptr ? "(valid)" : "(null)"));
-}
-
-void Profile::setUserStore(Sidechain::Stores::UserStore *store) {
-  userStore = store;
-  if (userStore) {
-    Log::info("Profile::setUserStore: UserStore set - subscribing to state "
-              "changes (Task 2.4.2)");
-    // Task 2.4.2: Subscribe to UserStore for reactive updates (own profile
-    // only)
-    userStoreUnsubscribe = userStore->subscribe([this](const Sidechain::Stores::UserState &state) {
-      Log::debug("Profile: UserStore state updated");
-
-      // ReactiveBoundComponent will call repaint() automatically
-      // If showing own profile, update local profile from UserStore
-      if (isOwnProfile()) {
-        juce::MessageManager::callAsync([this, state]() {
-          // Sync profile from UserStore
-          profile.id = state.userId;
-          profile.username = state.username;
-          profile.displayName = state.displayName;
-          profile.bio = state.bio;
-          profile.location = state.location;
-          profile.genre = state.genre;
-          profile.dawPreference = state.dawPreference;
-          profile.isPrivate = state.isPrivate;
-          profile.socialLinks = state.socialLinks;
-          profile.profilePictureUrl = state.profilePictureUrl;
-          profile.followerCount = state.followerCount;
-          profile.followingCount = state.followingCount;
-          profile.postCount = state.postCount;
-
-          // Update avatar from UserStore cache
-          if (state.profileImage.isValid())
-            avatarImage = state.profileImage;
-
-          repaint();
-        });
-      }
-    });
-  } else {
-    Log::warn("Profile::setUserStore: UserStore is nullptr!");
-  }
 }
 
 void Profile::setCurrentUserId(const juce::String &userId) {
@@ -244,47 +201,9 @@ void Profile::loadOwnProfile() {
 
   Log::info("Profile::loadOwnProfile: Loading own profile - userId: " + currentUserId);
 
-  // Task 2.4.2: For own profile, populate from UserStore instead of fetching
-  if (userStore && userStore->getState().userId == currentUserId) {
-    Log::info("Profile::loadOwnProfile: Populating from UserStore (Task 2.4.2)");
-    const auto &state = userStore->getState();
-
-    profile.id = state.userId;
-    profile.username = state.username;
-    profile.displayName = state.displayName;
-    profile.bio = state.bio;
-    profile.location = state.location;
-    profile.genre = state.genre;
-    profile.dawPreference = state.dawPreference;
-    profile.isPrivate = state.isPrivate;
-    profile.socialLinks = state.socialLinks;
-    profile.profilePictureUrl = state.profilePictureUrl;
-    profile.followerCount = state.followerCount;
-    profile.followingCount = state.followingCount;
-    profile.postCount = state.postCount;
-
-    // Use cached avatar from UserStore
-    if (state.profileImage.isValid())
-      avatarImage = state.profileImage;
-
-    isLoading = false;
-    hasError = false;
-    errorMessage = "";
-
-    // Hide error state component
-    if (errorStateComponent != nullptr)
-      errorStateComponent->setVisible(false);
-
-    repaint();
-
-    // Still fetch posts
-    fetchUserPosts(currentUserId);
-  } else {
-    // Fallback: fetch from API if UserStore not ready
-    Log::warn("Profile::loadOwnProfile: UserStore not ready, falling back to "
-              "API fetch");
-    loadProfile(currentUserId);
-  }
+  // TODO: Populate own profile from AppStore::UserState instead of fetching
+  // For now, load via standard profile fetch
+  loadProfile(currentUserId);
 }
 
 void Profile::setProfile(const UserProfile &newProfile) {
@@ -298,22 +217,10 @@ void Profile::setProfile(const UserProfile &newProfile) {
   if (errorStateComponent != nullptr)
     errorStateComponent->setVisible(false);
 
-  // Load avatar via backend proxy to work around JUCE SSL/redirect issues on
-  // Linux The backend downloads the image from S3/OAuth and relays the raw
-  // bytes
-  if (profile.id.isNotEmpty()) {
-    Log::debug("Profile::setProfile: Loading avatar via proxy for user: " + profile.id);
-    ImageLoader::loadAvatarForUser(profile.id, [this](const juce::Image &img) {
-      if (img.isValid()) {
-        Log::debug("Profile::setProfile: Avatar loaded successfully via proxy");
-        avatarImage = img;
-      } else {
-        Log::warn("Profile::setProfile: Failed to load avatar image via proxy");
-      }
-      repaint();
-    });
-  } else {
-    Log::debug("Profile::setProfile: No profile ID available for avatar");
+  // Avatar image loading simplified - just use placeholder for now
+  if (profile.id.isNotEmpty() && profile.avatarUrl.isNotEmpty()) {
+    Log::debug("Profile::setProfile: Avatar URL available for user: " + profile.id);
+    avatarImage = juce::Image();
   }
 
   repaint();
@@ -455,8 +362,28 @@ void Profile::drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds) {
     g.drawEllipse(bounds.toFloat().expanded(2.0f), 3.0f);
   }
 
-  ImageLoader::drawCircularAvatar(g, bounds, avatarImage, ImageLoader::getInitials(name), Colors::accent.darker(0.5f),
-                                  Colors::textPrimary, 36.0f);
+  // Draw circular avatar with initials fallback
+  if (avatarImage.isValid()) {
+    // Draw the image clipped to a circle
+    juce::Path circlePath;
+    circlePath.addEllipse(bounds.toFloat());
+
+    g.saveState();
+    g.reduceClipRegion(circlePath);
+    g.drawImageAt(avatarImage, bounds.getX(), bounds.getY());
+    g.restoreState();
+  } else {
+    // Fallback: draw colored circle with user initials
+    juce::String initials = getInitialsFromName(name);
+
+    g.setColour(Colors::accent.darker(0.5f));
+    g.fillEllipse(bounds.toFloat());
+
+    // Draw initials text
+    g.setColour(Colors::textPrimary);
+    g.setFont(juce::Font(juce::FontOptions().withHeight(static_cast<float>(bounds.getHeight()) * 0.4f)).boldened());
+    g.drawText(initials, bounds, juce::Justification::centred);
+  }
 
   // Avatar border (only if no story highlight)
   if (!hasActiveStory) {
@@ -1222,9 +1149,9 @@ void Profile::fetchUserPosts(const juce::String &userId) {
 }
 
 void Profile::handleFollowToggle() {
-  if (postsStore == nullptr || profile.id.isEmpty()) {
-    Log::warn("Profile::handleFollowToggle: Cannot toggle follow - PostsStore: " +
-              juce::String(postsStore != nullptr ? "valid" : "null") + ", profile.id: " + profile.id);
+  if (profile.id.isEmpty() || !networkClient) {
+    Log::warn("Profile::handleFollowToggle: Cannot toggle follow - profile.id: " + profile.id +
+              ", NetworkClient: " + juce::String(networkClient != nullptr ? "valid" : "null"));
     return;
   }
 
@@ -1240,65 +1167,30 @@ void Profile::handleFollowToggle() {
   profile.followerCount += willFollow ? 1 : -1;
 
   // Update all posts in the local userPosts array
-  // All posts on a profile page are by the same user, so update them all
-  int updatedPostCount = 0;
   for (auto &post : userPosts) {
     post.isFollowing = willFollow;
-    updatedPostCount++;
   }
-  Log::debug("Profile::handleFollowToggle: Updated " + juce::String(updatedPostCount) + " posts in userPosts array");
 
-  // Update post cards to reflect new follow state
+  // Update post cards and repaint
   updatePostCards();
   repaint();
 
-  // Update PostsStore optimistically to sync all posts by this user
-  if (postsStore) {
-    Log::debug("Profile::handleFollowToggle: Optimistically updating PostsStore "
-               "follow state for userId: " +
-               profile.id);
-    postsStore->updateFollowStateByUserId(profile.id, willFollow);
-  }
-
-  if (!networkClient) {
-    Log::error("Profile::handleFollowToggle: NetworkClient not set!");
-    return;
-  }
-
+  // TODO: Update AppStore to sync all posts by this user
   auto callback = [this, wasFollowing](Outcome<juce::var> result) {
     juce::MessageManager::callAsync([this, result, wasFollowing]() {
       if (result.isError()) {
-        Log::error("Profile::handleFollowToggle: Follow toggle failed, "
-                   "reverting optimistic update");
+        Log::error("Profile::handleFollowToggle: Follow toggle failed, reverting");
         // Revert on failure
         profile.isFollowing = wasFollowing;
         profile.followerCount += wasFollowing ? 1 : -1;
-
-        // Revert all posts in the local userPosts array
-        int revertedPostCount = 0;
         for (auto &post : userPosts) {
           post.isFollowing = wasFollowing;
-          revertedPostCount++;
         }
-        Log::debug("Profile::handleFollowToggle: Reverted " + juce::String(revertedPostCount) +
-                   " posts in userPosts array");
-
-        // Update post cards to reflect reverted state
         updatePostCards();
         repaint();
-
-        // Also revert in PostsStore
-        if (postsStore) {
-          postsStore->updateFollowStateByUserId(profile.id, wasFollowing);
-        }
       } else {
-        Log::info("Profile::handleFollowToggle: Follow toggle successful - "
-                  "isFollowing: " +
-                  juce::String(profile.isFollowing ? "true" : "false"));
-        // PostsStore was already updated optimistically, no need to update again
-
+        Log::info("Profile::handleFollowToggle: Follow toggle successful");
         if (onFollowToggled) {
-          Log::debug("Profile::handleFollowToggle: Calling onFollowToggled callback");
           onFollowToggled(profile.id);
         }
       }
@@ -1306,18 +1198,16 @@ void Profile::handleFollowToggle() {
   };
 
   if (willFollow) {
-    Log::debug("Profile::handleFollowToggle: Calling followUser API");
     networkClient->followUser(profile.id, callback);
   } else {
-    Log::debug("Profile::handleFollowToggle: Calling unfollowUser API");
     networkClient->unfollowUser(profile.id, callback);
   }
 }
 
 void Profile::handleMuteToggle() {
-  if (postsStore == nullptr || profile.id.isEmpty()) {
-    Log::warn("Profile::handleMuteToggle: Cannot toggle mute - PostsStore: " +
-              juce::String(postsStore != nullptr ? "valid" : "null") + ", profile.id: " + profile.id);
+  if (profile.id.isEmpty() || !networkClient) {
+    Log::warn("Profile::handleMuteToggle: Cannot toggle mute - profile.id: " + profile.id +
+              ", NetworkClient: " + juce::String(networkClient != nullptr ? "valid" : "null"));
     return;
   }
 
@@ -1331,14 +1221,13 @@ void Profile::handleMuteToggle() {
   profile.isMuted = willMute;
   repaint();
 
-  postsStore->toggleMute(profile.id, willMute);
+  // TODO: Update AppStore to toggle mute state
 
   // Update our local state after the toggle
   juce::MessageManager::callAsync([this]() {
     Log::info("Profile::handleMuteToggle: Mute toggle successful - isMuted: " +
               juce::String(profile.isMuted ? "true" : "false"));
     if (onMuteToggled) {
-      Log::debug("Profile::handleMuteToggle: Calling onMuteToggled callback");
       onMuteToggled(profile.id, profile.isMuted);
     }
   });
@@ -1349,57 +1238,6 @@ void Profile::shareProfile() {
   Log::info("Profile::shareProfile: Sharing profile - username: " + profile.username + ", URL: " + profileUrl);
   juce::SystemClipboard::copyTextToClipboard(profileUrl);
   Log::debug("Profile::shareProfile: Profile link copied to clipboard");
-}
-
-void Profile::syncFollowStateFromPostsStore() {
-  if (!postsStore) {
-    Log::warn("Profile::syncFollowStateFromPostsStore: PostsStore is null");
-    return;
-  }
-
-  const auto &postsState = postsStore->getState();
-  int syncedCount = 0;
-
-  // Iterate through all posts in userPosts and sync follow state from PostsStore
-  for (auto &userPost : userPosts) {
-    // Check all feeds in PostsStore for this post
-    for (const auto &feedPair : postsState.feeds) {
-      for (const auto &feedPost : feedPair.second.posts) {
-        if (feedPost.id == userPost.id || feedPost.userId == userPost.userId) {
-          // Sync the follow state
-          if (userPost.isFollowing != feedPost.isFollowing) {
-            Log::debug("Profile::syncFollowStateFromPostsStore: Syncing post " + userPost.id +
-                       " - changing isFollowing from " + juce::String(userPost.isFollowing ? "true" : "false") +
-                       " to " + juce::String(feedPost.isFollowing ? "true" : "false"));
-            userPost.isFollowing = feedPost.isFollowing;
-            syncedCount++;
-          }
-          break;
-        }
-      }
-    }
-
-    // Also check aggregated feeds
-    for (const auto &aggFeedPair : postsState.aggregatedFeeds) {
-      for (const auto &group : aggFeedPair.second.groups) {
-        for (const auto &activity : group.activities) {
-          if (activity.id == userPost.id || activity.userId == userPost.userId) {
-            if (userPost.isFollowing != activity.isFollowing) {
-              Log::debug("Profile::syncFollowStateFromPostsStore: Syncing post " + userPost.id +
-                         " from aggregated feed - changing isFollowing from " +
-                         juce::String(userPost.isFollowing ? "true" : "false") + " to " +
-                         juce::String(activity.isFollowing ? "true" : "false"));
-              userPost.isFollowing = activity.isFollowing;
-              syncedCount++;
-            }
-            break;
-          }
-        }
-      }
-    }
-  }
-
-  Log::info("Profile::syncFollowStateFromPostsStore: Synced " + juce::String(syncedCount) + " posts with PostsStore");
 }
 
 //==============================================================================
@@ -1490,12 +1328,9 @@ int Profile::calculateContentHeight() const {
   return static_cast<int>(userPosts.size()) * (POST_CARD_HEIGHT + 10);
 }
 
-// Task 2.4.2: Check if viewing own profile
+// Check if viewing own profile
 bool Profile::isOwnProfile() const {
-  if (!userStore)
-    return false;
-
-  return profile.id == userStore->getState().userId;
+  return profile.id == currentUserId && currentUserId.isNotEmpty();
 }
 
 //==============================================================================
@@ -1742,4 +1577,55 @@ juce::String Profile::getTooltip() {
     return "Copy profile link";
 
   return {};
+}
+
+//==============================================================================
+// Helper functions for image loading and avatar rendering
+
+static juce::Image loadImageFromURL(const juce::String &urlStr) {
+  if (urlStr.isEmpty()) {
+    return juce::Image();
+  }
+
+  try {
+    juce::URL url(urlStr);
+    auto inputStream = std::unique_ptr<juce::InputStream>(url.createInputStream(false));
+
+    if (inputStream == nullptr) {
+      Log::error("loadImageFromURL: Failed to create input stream from URL: " + urlStr);
+      return juce::Image();
+    }
+
+    auto image = juce::ImageFileFormat::loadFrom(*inputStream);
+    if (!image.isValid()) {
+      Log::error("loadImageFromURL: Failed to parse image from URL: " + urlStr);
+      return juce::Image();
+    }
+
+    Log::debug("loadImageFromURL: Successfully loaded image from: " + urlStr);
+    return image;
+  } catch (const std::exception &e) {
+    Log::error("loadImageFromURL: Exception loading image from URL: " + juce::String(e.what()));
+    return juce::Image();
+  }
+}
+
+static juce::String getInitialsFromName(const juce::String &name) {
+  if (name.isEmpty()) {
+    return "?";
+  }
+
+  juce::StringArray parts;
+  parts.addTokens(name, " ", "");
+
+  if (parts.size() >= 2) {
+    // Get first letter of first and last name
+    return (parts[0].substring(0, 1) + parts[parts.size() - 1].substring(0, 1)).toUpperCase();
+  } else if (parts.size() == 1) {
+    // Get first two letters of single word name
+    juce::String initials = parts[0].substring(0, 2).toUpperCase();
+    return initials.length() > 0 ? initials : "?";
+  }
+
+  return "?";
 }

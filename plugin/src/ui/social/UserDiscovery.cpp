@@ -59,7 +59,7 @@ void UserDiscovery::setStreamChatClient(StreamChatClient *client) {
             juce::String(client != nullptr ? "(valid)" : "(null)"));
 }
 
-void UserDiscovery::setUserStore(std::shared_ptr<Sidechain::Stores::UserStore> store) {
+void UserDiscovery::setUserStore(std::shared_ptr<Sidechain::Stores::AppStore> store) {
   // Unsubscribe from old store
   if (storeUnsubscriber) {
     storeUnsubscriber();

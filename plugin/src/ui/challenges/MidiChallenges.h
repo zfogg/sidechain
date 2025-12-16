@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../models/MidiChallenge.h"
-#include "../../stores/ChallengeStore.h"
+#include "../../stores/AppStore.h"
 #include "../../util/Colors.h"
 #include <JuceHeader.h>
 #include <memory>
@@ -41,7 +41,7 @@ public:
 
   //==============================================================================
   // Store integration (reactive pattern)
-  void bindToStore(std::shared_ptr<Sidechain::Stores::ChallengeStore> store);
+  void bindToStore(Sidechain::Stores::AppStore *store);
   void unbindFromStore();
 
   //==============================================================================
@@ -64,7 +64,7 @@ private:
   juce::String errorMessage;
 
   // Store integration
-  std::shared_ptr<Sidechain::Stores::ChallengeStore> challengeStore;
+  Sidechain::Stores::AppStore *appStore = nullptr;
   std::function<void()> storeUnsubscriber;
 
   //==============================================================================

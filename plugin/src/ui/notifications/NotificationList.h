@@ -1,7 +1,5 @@
 #pragma once
 
-#include "../../stores/NotificationStore.h"
-#include "../../stores/Store.h"
 #include "../../util/HoverState.h"
 #include "NotificationItem.h"
 #include <JuceHeader.h>
@@ -61,19 +59,6 @@ public:
   ~NotificationList() override;
 
   //==============================================================================
-  // Store binding (new reactive pattern)
-  /**
-   * Bind to a NotificationStore for automatic updates
-   * The list will automatically update when the store state changes
-   */
-  void bindToStore(std::shared_ptr<Sidechain::Stores::NotificationStore> store);
-
-  /**
-   * Unbind from the current store
-   */
-  void unbindFromStore();
-
-  //==============================================================================
   // Data binding (legacy - prefer using store binding)
   void setNotifications(const juce::Array<NotificationItem> &notifications);
   void clearNotifications();
@@ -117,14 +102,6 @@ private:
   juce::Viewport viewport;
   juce::Component contentComponent;
   int scrollOffset = 0;
-
-  // Store subscription
-  std::shared_ptr<Sidechain::Stores::NotificationStore> notificationStore;
-  Sidechain::Stores::ScopedSubscription storeSubscription;
-
-  //==============================================================================
-  // Store state handler
-  void handleStoreStateChanged(const Sidechain::Stores::NotificationState &state);
 
   //==============================================================================
   // Drawing helpers

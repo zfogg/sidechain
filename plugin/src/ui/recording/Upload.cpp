@@ -54,55 +54,49 @@ Upload::~Upload() {
 
 //==============================================================================
 // Store integration methods
-void Upload::bindToStore(std::shared_ptr<Sidechain::Stores::UploadStore> store) {
-  Log::debug("Upload: Binding to UploadStore");
+void Upload::bindToStore(Sidechain::Stores::AppStore *store) {
+  Log::debug("Upload: Binding to AppStore");
 
-  uploadStore = store;
-  jassert(uploadStore != nullptr); // UploadStore is required
-  if (!uploadStore)
+  appStore = store;
+  jassert(appStore != nullptr); // AppStore is required
+  if (!appStore)
     return;
 
   // Subscribe to store changes
   juce::Component::SafePointer<Upload> safeThis(this);
-  storeUnsubscriber = uploadStore->subscribe([safeThis](const Sidechain::Stores::UploadState &state) {
+  storeUnsubscriber = appStore->subscribe([safeThis](const Sidechain::Stores::AppState &state) {
     if (!safeThis)
       return;
 
-    auto status = state.status;
-    auto progress = state.progress;
-    auto errorMsg = state.errorMessage;
+    // Extract upload state from unified AppState
+    const auto &uploadState = state.uploads;
+    auto isUploading = uploadState.isUploading;
+    auto progress = uploadState.progress;
+    auto errorMsg = uploadState.uploadError;
 
-    juce::MessageManager::callAsync([safeThis, status, progress, errorMsg]() {
+    juce::MessageManager::callAsync([safeThis, isUploading, progress, errorMsg]() {
       if (!safeThis)
         return;
 
-      // Update upload component state based on store status
-      switch (status) {
-      case Sidechain::Stores::UploadState::Status::Idle:
-        safeThis->uploadState = Upload::UploadState::Editing;
-        safeThis->uploadProgress = 0.0f;
-        safeThis->errorMessage = "";
-        break;
-      case Sidechain::Stores::UploadState::Status::Uploading:
+      // Update upload component state based on store state
+      if (isUploading) {
         safeThis->uploadState = Upload::UploadState::Uploading;
         safeThis->uploadProgress = progress;
         safeThis->errorMessage = "";
-        break;
-      case Sidechain::Stores::UploadState::Status::Success:
+      } else if (!errorMsg.isEmpty()) {
+        safeThis->uploadState = Upload::UploadState::Error;
+        safeThis->errorMessage = errorMsg;
+      } else if (progress > 0) {
         safeThis->uploadState = Upload::UploadState::Success;
         safeThis->uploadProgress = 100.0f;
         safeThis->errorMessage = "";
         if (safeThis->onUploadComplete) {
           safeThis->onUploadComplete();
         }
-        break;
-      case Sidechain::Stores::UploadState::Status::Error:
-        safeThis->uploadState = Upload::UploadState::Error;
-        safeThis->errorMessage = errorMsg;
-        break;
-      default:
+      } else {
         safeThis->uploadState = Upload::UploadState::Editing;
-        break;
+        safeThis->uploadProgress = 0.0f;
+        safeThis->errorMessage = "";
       }
 
       safeThis->repaint();
@@ -117,8 +111,8 @@ void Upload::unbindFromStore() {
     storeUnsubscriber();
     storeUnsubscriber = nullptr;
   }
-  uploadStore = nullptr;
-  Log::debug("Upload: Unbound from UploadStore");
+  appStore = nullptr;
+  Log::debug("Upload: Unbound from AppStore");
 }
 
 //==============================================================================
@@ -1086,15 +1080,15 @@ void Upload::startUpload() {
   repaint();
 
   // Validate store is available
-  jassert(uploadStore != nullptr);
-  if (!uploadStore) {
+  jassert(appStore != nullptr);
+  if (!appStore) {
     uploadState = UploadState::Error;
-    errorMessage = "Upload store not initialized";
+    errorMessage = "App store not initialized";
     repaint();
     return;
   }
 
-  Log::info("Upload::startUpload: Delegating to UploadStore");
+  Log::info("Upload::startUpload: Delegating to AppStore");
 
   // Extract key and genre strings for store
   auto &keys = getMusicalKeys();
@@ -1105,9 +1099,17 @@ void Upload::startUpload() {
   auto genreStr =
       selectedGenreIndex < static_cast<int>(genres.size()) ? genres[static_cast<size_t>(selectedGenreIndex)] : "";
 
-  // Call uploadStore->startUpload which will handle the network request
+  // Create post data object and call appStore->uploadPost which will handle the network request
   // The store will notify us via subscription with progress/success/error updates
-  uploadStore->startUpload(filename, genreStr, keyStr, bpm, audioBuffer, audioSampleRate);
+  juce::DynamicObject::Ptr postData(new juce::DynamicObject());
+  postData->setProperty("filename", filename);
+  postData->setProperty("genre", genreStr);
+  postData->setProperty("key", keyStr);
+  postData->setProperty("bpm", bpm);
+
+  // TODO: Create actual audio file from audioBuffer
+  juce::File audioFile(filename);
+  appStore->uploadPost(postData.get(), audioFile);
 
   // Store upload details for success preview
   lastUploadedFilename = filename;

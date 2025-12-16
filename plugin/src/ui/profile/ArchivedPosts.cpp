@@ -36,9 +36,6 @@ ArchivedPosts::ArchivedPosts() {
 
 ArchivedPosts::~ArchivedPosts() {
   scrollBar.removeListener(this);
-  if (storeUnsubscriber) {
-    storeUnsubscriber();
-  }
 }
 
 //==============================================================================
@@ -122,31 +119,9 @@ void ArchivedPosts::setNetworkClient(NetworkClient *client) {
   networkClient = client;
 }
 
-void ArchivedPosts::setPostsStore(std::shared_ptr<Sidechain::Stores::PostsStore> store) {
-  // Unsubscribe from old store
-  if (storeUnsubscriber) {
-    storeUnsubscriber();
-  }
-
-  postsStore = store;
-
-  if (postsStore) {
-    // Subscribe to store updates
-    storeUnsubscriber = postsStore->subscribe([this](const Sidechain::Stores::PostsState &state) {
-      archivedPosts = state.archivedPosts.posts;
-      isLoading = state.archivedPosts.isLoading;
-      errorMessage = state.archivedPosts.error;
-      rebuildPostCards();
-      repaint();
-    });
-  }
-}
-
 void ArchivedPosts::loadArchivedPosts() {
-  if (postsStore) {
-    postsStore->loadArchivedPosts();
-  } else if (networkClient) {
-    // Fallback to direct network client if store not available
+  // TODO: use AppStore instead of direct NetworkClient
+  if (networkClient) {
     archivedPosts.clear();
     currentOffset = 0;
     hasMore = true;
@@ -157,9 +132,8 @@ void ArchivedPosts::loadArchivedPosts() {
 }
 
 void ArchivedPosts::refresh() {
-  if (postsStore) {
-    postsStore->refreshArchivedPosts();
-  } else if (networkClient) {
+  // TODO: use AppStore instead of direct NetworkClient
+  if (networkClient) {
     loadArchivedPosts();
   }
 }
@@ -310,10 +284,8 @@ void ArchivedPosts::loadMoreIfNeeded() {
   // Load more when scrolled near the bottom
   if (scrollOffset + visibleHeight >= contentHeight - 200) {
     Log::debug("ArchivedPosts: Loading more posts...");
-    if (postsStore) {
-      postsStore->loadMoreArchivedPosts();
-    } else if (networkClient) {
-      // Fallback to direct network client
+    // TODO: use AppStore instead of direct NetworkClient
+    if (networkClient) {
       fetchArchivedPosts();
     }
   }
@@ -394,30 +366,26 @@ void ArchivedPosts::setupPostCardCallbacks(PostCard *card) {
 
   // Handle unarchive - restore post to visible
   card->onArchiveToggled = [this](const FeedPost &post, bool archived) {
-    if (!archived) {
-      if (postsStore) {
-        Log::info("ArchivedPosts: Unarchiving post: " + post.id);
-        postsStore->restorePost(post.id);
-      } else if (networkClient != nullptr) {
-        Log::info("ArchivedPosts: Unarchiving post: " + post.id);
-        networkClient->unarchivePost(post.id, [this, postId = post.id](Outcome<juce::var> result) {
-          if (result.isError()) {
-            Log::error("ArchivedPosts: Failed to unarchive post: " + result.getError());
-            return;
-          }
-          // Remove from list
-          juce::MessageManager::callAsync([this, postId]() {
-            for (int i = 0; i < archivedPosts.size(); ++i) {
-              if (archivedPosts[i].id == postId) {
-                archivedPosts.remove(i);
-                rebuildPostCards();
-                repaint();
-                break;
-              }
+    if (!archived && networkClient != nullptr) {
+      Log::info("ArchivedPosts: Unarchiving post: " + post.id);
+      // TODO: use AppStore instead of direct NetworkClient
+      networkClient->unarchivePost(post.id, [this, postId = post.id](Outcome<juce::var> result) {
+        if (result.isError()) {
+          Log::error("ArchivedPosts: Failed to unarchive post: " + result.getError());
+          return;
+        }
+        // Remove from list
+        juce::MessageManager::callAsync([this, postId]() {
+          for (int i = 0; i < archivedPosts.size(); ++i) {
+            if (archivedPosts[i].id == postId) {
+              archivedPosts.remove(i);
+              rebuildPostCards();
+              repaint();
+              break;
             }
-          });
+          }
         });
-      }
+      });
     }
   };
 

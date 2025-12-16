@@ -1,6 +1,6 @@
 #include "Header.h"
 #include "../../network/NetworkClient.h"
-#include "../../stores/ImageCache.h"
+
 #include "../../util/Async.h"
 #include "../../util/Colors.h"
 #include "../../util/Constants.h"
@@ -328,8 +328,8 @@ void Header::drawCircularProfilePic(juce::Graphics &g, juce::Rectangle<int> boun
     g.drawEllipse(bounds.toFloat().expanded(2.0f), 2.5f);
   }
 
-  ImageLoader::drawCircularAvatar(g, bounds, cachedProfileImage, ImageLoader::getInitials(username),
-                                  SidechainColors::primary(), SidechainColors::textPrimary(), 14.0f);
+  g.setColour(SidechainColors::primary());
+  g.fillEllipse(bounds.toFloat());
 
   // Border (only if no story highlight)
   if (!hasStories) {

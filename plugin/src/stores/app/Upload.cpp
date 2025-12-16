@@ -6,36 +6,38 @@ namespace Stores {
 
 void AppStore::uploadPost(const juce::var &postData, const juce::File &audioFile) {
   if (!networkClient) {
-    Log::error("AppStore: Network client not available");
+    Util::logError("AppStore", "Network client not available");
     updateUploadState([](UploadState &state) {
-      state.status = UploadState::Status::Error;
-      state.errorMessage = "Network client not initialized";
+      state.isUploading = false;
+      state.uploadError = "Network client not initialized";
+      state.progress = 0;
     });
     return;
   }
 
-  Log::info("AppStore: Starting upload - " + audioFile.getFileName());
+  Util::logInfo("AppStore", "Starting upload - " + audioFile.getFileName());
 
   // Update state to uploading
   updateUploadState([](UploadState &state) {
-    state.status = UploadState::Status::Uploading;
-    state.progress = 10.0f;
-    state.errorMessage = "";
-    state.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
+    state.isUploading = true;
+    state.progress = 10;
+    state.uploadError = "";
+    state.currentFileName = "";
+    state.startTime = juce::Time::getCurrentTime().toMilliseconds();
   });
 
   // In a real implementation, would encode audio to MP3/WAV and upload to CDN
-  Log::info("AppStore: Upload initiated for " + audioFile.getFullPathName());
+  Util::logInfo("AppStore", "Upload initiated for " + audioFile.getFullPathName());
 }
 
 void AppStore::cancelUpload() {
-  Log::info("AppStore: Upload cancelled");
+  Util::logInfo("AppStore", "Upload cancelled");
 
   updateUploadState([](UploadState &state) {
-    state.status = UploadState::Status::Idle;
-    state.progress = 0.0f;
-    state.errorMessage = "";
-    state.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
+    state.isUploading = false;
+    state.progress = 0;
+    state.uploadError = "";
+    state.currentFileName = "";
   });
 }
 

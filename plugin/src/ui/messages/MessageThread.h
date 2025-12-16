@@ -1,18 +1,12 @@
 #pragma once
 
 #include "../../network/StreamChatClient.h"
-#include "../../stores/ChatStore.h"
 #include "../../util/reactive/ReactiveBoundComponent.h"
 #include "../common/ErrorState.h"
 #include <JuceHeader.h>
 
 class NetworkClient;
 class SidechainAudioProcessor;
-namespace Sidechain {
-namespace Stores {
-class ChatStore;
-}
-} // namespace Sidechain
 
 //==============================================================================
 /**
@@ -58,7 +52,6 @@ public:
   void setStreamChatClient(StreamChatClient *client);
   void setNetworkClient(NetworkClient *client);
   void setAudioProcessor(SidechainAudioProcessor *processor);
-  void setChatStore(Sidechain::Stores::ChatStore *store);
 
   // Load a specific channel
   void loadChannel(const juce::String &channelType, const juce::String &channelId);
@@ -79,8 +72,6 @@ private:
 
   StreamChatClient *streamChatClient = nullptr;
   NetworkClient *networkClient = nullptr;
-  Sidechain::Stores::ChatStore *chatStore = nullptr;
-  std::function<void()> chatStoreUnsubscribe; // Unsubscribe function for ChatStore
 
   juce::String channelType;
   juce::String channelId;

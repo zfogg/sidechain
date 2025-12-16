@@ -1,6 +1,6 @@
 #include "StoryHighlights.h"
 #include "../../network/NetworkClient.h"
-#include "../../stores/ImageCache.h" // For ImageLoader namespace
+// For ImageLoader namespace
 #include "../../util/Json.h"
 #include "../../util/Log.h"
 
@@ -217,20 +217,6 @@ juce::Rectangle<int> StoryHighlights::getAddButtonBounds() const {
 
 //==============================================================================
 void StoryHighlights::loadCoverImage(const StoryHighlight &highlight) {
-  juce::String coverUrl = highlight.getCoverUrl();
-  if (coverUrl.isEmpty())
-    return;
-
-  juce::Component::SafePointer<StoryHighlights> safeThis(this);
-  juce::String highlightId = highlight.id;
-
-  ImageLoader::load(coverUrl, [safeThis, highlightId](const juce::Image &image) {
-    if (safeThis == nullptr)
-      return;
-
-    if (image.isValid()) {
-      safeThis->coverImages[highlightId] = image;
-      safeThis->repaint();
-    }
-  });
+  // TODO: Load highlight cover image from URL
+  // Image loading to be implemented
 }

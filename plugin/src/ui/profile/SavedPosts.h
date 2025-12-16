@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../../models/FeedPost.h"
-#include "../../stores/PostsStore.h"
 #include "../../util/Colors.h"
 #include <JuceHeader.h>
 #include <memory>
@@ -36,7 +35,6 @@ public:
   //==============================================================================
   // Store and network client integration
   void setNetworkClient(NetworkClient *client);
-  void setPostsStore(std::shared_ptr<Sidechain::Stores::PostsStore> store);
   void setCurrentUserId(const juce::String &userId) {
     currentUserId = userId;
   }
@@ -64,8 +62,6 @@ private:
   // Data
   NetworkClient *networkClient = nullptr;
   juce::String currentUserId;
-  std::shared_ptr<Sidechain::Stores::PostsStore> postsStore;
-  std::function<void()> storeUnsubscriber;
 
   // Cached state from store
   juce::Array<FeedPost> savedPosts;

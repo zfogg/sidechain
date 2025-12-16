@@ -1,6 +1,5 @@
 #include "NotificationSettings.h"
 #include "../../network/NetworkClient.h"
-#include "../../stores/UserDataStore.h"
 #include "../../util/Log.h"
 #include "../../util/Result.h"
 
@@ -118,11 +117,8 @@ void NotificationSettings::populateFromPreferences() {
 }
 
 void NotificationSettings::loadPluginSettings() {
-  if (userDataStore) {
-    osNotificationsEnabled = userDataStore->isOSNotificationsEnabled();
-    if (osNotificationsToggle)
-      osNotificationsToggle->setToggleState(osNotificationsEnabled, juce::dontSendNotification);
-  }
+  if (osNotificationsToggle)
+    osNotificationsToggle->setToggleState(osNotificationsEnabled, juce::dontSendNotification);
 }
 
 void NotificationSettings::handleToggleChange(juce::ToggleButton *toggle) {
@@ -144,12 +140,8 @@ void NotificationSettings::handleToggleChange(juce::ToggleButton *toggle) {
   else if (toggle == challengesToggle.get())
     challengesEnabled = toggle->getToggleState();
   else if (toggle == osNotificationsToggle.get()) {
-    // Plugin setting - save to UserDataStore
     osNotificationsEnabled = toggle->getToggleState();
-    if (userDataStore) {
-      userDataStore->setOSNotificationsEnabled(osNotificationsEnabled);
-    }
-    return; // Don't call savePreferences() for plugin settings
+    return;
   }
 
   // Save immediately when changed (backend preferences only)

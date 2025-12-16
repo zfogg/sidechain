@@ -1,7 +1,8 @@
 #pragma once
+#include "../../stores/AppStore.h"
 
 #include "../../audio/HttpAudioPlayer.h"
-#include "../../stores/StoriesStore.h"
+#include "../../stores/AppStore.h"
 #include "PianoRoll.h"
 #include "StoriesFeed.h"
 #include <JuceHeader.h>
@@ -50,7 +51,7 @@ public:
 
   //==============================================================================
   // Store integration (reactive pattern)
-  void bindToStore(std::shared_ptr<Sidechain::Stores::StoriesStore> store);
+  void bindToStore(std::shared_ptr<Sidechain::Stores::AppStore> store);
   void unbindFromStore();
 
   // Navigation
@@ -104,7 +105,7 @@ private:
   juce::String currentUserId;
 
   // Store integration
-  std::shared_ptr<Sidechain::Stores::StoriesStore> storiesStore;
+  std::shared_ptr<Sidechain::Stores::AppStore> storiesStore;
   std::function<void()> storeUnsubscriber;
 
   // Stories data

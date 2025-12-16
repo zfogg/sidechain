@@ -1,7 +1,8 @@
 #pragma once
+#include "../../stores/AppStore.h"
 
 #include "../../models/Playlist.h"
-#include "../../stores/PlaylistStore.h"
+#include "../../stores/AppStore.h"
 #include "../../util/Colors.h"
 #include <JuceHeader.h>
 #include <memory>
@@ -40,11 +41,6 @@ public:
   void refresh();
 
   //==============================================================================
-  // Store integration (reactive pattern)
-  void bindToStore(std::shared_ptr<Sidechain::Stores::PlaylistStore> store);
-  void unbindFromStore();
-
-  //==============================================================================
   // Callbacks
   std::function<void()> onBackPressed;
   std::function<void(const juce::String &playlistId)> onPlaylistSelected; // Navigate to playlist detail
@@ -63,14 +59,6 @@ private:
   juce::Array<Playlist> playlists;
   bool isLoading = false;
   juce::String errorMessage;
-
-  // Store integration
-  std::shared_ptr<Sidechain::Stores::PlaylistStore> playlistStore;
-  std::function<void()> storeUnsubscriber;
-
-  //==============================================================================
-  // Store callback
-  void handleStoreStateChanged(const Sidechain::Stores::PlaylistState &state);
 
   //==============================================================================
   // UI Components

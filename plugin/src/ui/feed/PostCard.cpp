@@ -1,6 +1,5 @@
 #include "PostCard.h"
-#include "../../stores/PostsStore.h"
-#include "../../stores/ImageCache.h"
+
 #include "../../ui/animations/Easing.h"
 #include "../../ui/animations/TransitionAnimation.h"
 #include "../../util/Colors.h"
@@ -51,7 +50,7 @@ void PostCard::setNetworkClient(NetworkClient *client) {
   waveformView.setNetworkClient(client);
 }
 
-void PostCard::setPostsStore(Sidechain::Stores::PostsStore *store) {
+void PostCard::bindToStore(Sidechain::Stores::AppStore *store) {
   // Type-safe lazy subscription pattern:
   // Store the pointer but don't subscribe yet - subscription happens in
   // setPost() after we have a valid post.id. This makes it impossible to have a
@@ -61,12 +60,12 @@ void PostCard::setPostsStore(Sidechain::Stores::PostsStore *store) {
   if (storeUnsubscribe)
     storeUnsubscribe();
 
-  postsStore = store;
+  appStore = store;
 
   // If we already have a valid post, subscribe now
-  // (handles the case where setPost() was called before setPostsStore())
-  if (postsStore && !post.id.isEmpty()) {
-    subscribeToPostsStore();
+  // (handles the case where setPost() was called before bindToStore())
+  if (appStore && !post.id.isEmpty()) {
+    subscribeToAppStore();
   }
 }
 
@@ -78,10 +77,10 @@ void PostCard::setPost(const FeedPost &newPost) {
              ", isOwnPost: " + juce::String(post.isOwnPost ? "true" : "false"));
 
   // Type-safe lazy subscription: Now that we have a valid post.id, subscribe to
-  // PostsStore This ensures the subscription can never fire before we have a
+  // AppStore This ensures the subscription can never fire before we have a
   // valid post
-  if (postsStore && !post.id.isEmpty()) {
-    subscribeToPostsStore();
+  if (appStore && !post.id.isEmpty()) {
+    subscribeToAppStore();
   }
 
   // Immediately repaint to reflect updated post data (especially follow state)
@@ -105,16 +104,6 @@ void PostCard::setPost(const FeedPost &newPost) {
   // Linux
   if (post.userId.isNotEmpty()) {
     // Use SafePointer to handle case where PostCard is destroyed before
-    // callback executes
-    juce::Component::SafePointer<PostCard> safeThisAvatar(this);
-    ImageLoader::loadAvatarForUser(post.userId, [safeThisAvatar](const juce::Image &img) {
-      // Check if PostCard still exists before
-      // accessing members
-      if (safeThisAvatar == nullptr)
-        return;
-      safeThisAvatar->avatarImage = img;
-      safeThisAvatar->repaint();
-    });
   }
 
   // Load waveform image from CDN
@@ -191,8 +180,8 @@ void PostCard::drawBackground(juce::Graphics &g) {
 }
 
 void PostCard::drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds) {
-  ImageLoader::drawCircularAvatar(g, bounds, avatarImage, ImageLoader::getInitials(post.username),
-                                  SidechainColors::surface(), SidechainColors::textPrimary());
+  g.setColour(SidechainColors::surface());
+  g.fillEllipse(bounds.toFloat());
 
   // Avatar border
   g.setColour(SidechainColors::border());
@@ -998,10 +987,10 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
   // Check like button
   if (getLikeButtonBounds().contains(pos)) {
     if (!wasLongPress) {
-      if (postsStore) {
-        postsStore->toggleLike(post.id);
+      if (appStore) {
+        appStore->toggleLike(post.id);
       } else if (onLikeToggled) {
-        // Fallback for when PostsStore is not set
+        // Fallback for when AppStore is not set
         onLikeToggled(post, !post.isLiked);
       }
     }
@@ -1024,10 +1013,10 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
 
   // Check save/bookmark button
   if (getSaveButtonBounds().contains(pos)) {
-    if (postsStore) {
-      postsStore->toggleSave(post.id);
+    if (appStore) {
+      appStore->toggleSave(post.id);
     } else if (onSaveToggled) {
-      // Fallback for when PostsStore is not set
+      // Fallback for when AppStore is not set
       onSaveToggled(post, !post.isSaved);
     }
     return;
@@ -1035,10 +1024,10 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
 
   // Check repost button (not for own posts)
   if (!post.isOwnPost && getRepostButtonBounds().contains(pos)) {
-    if (postsStore) {
-      postsStore->toggleRepost(post.id);
+    if (appStore) {
+      appStore->toggleRepost(post.id);
     } else if (onRepostClicked) {
-      // Fallback for when PostsStore is not set
+      // Fallback for when AppStore is not set
       onRepostClicked(post);
     }
     return;
@@ -1046,10 +1035,10 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
 
   // Check pin button (only for own posts)
   if (post.isOwnPost && getPinButtonBounds().contains(pos)) {
-    if (postsStore) {
-      postsStore->togglePin(post.id, !post.isPinned);
+    if (appStore) {
+      appStore->togglePin(post.id, !post.isPinned);
     } else if (onPinToggled) {
-      // Fallback for when PostsStore is not set
+      // Fallback for when AppStore is not set
       onPinToggled(post, !post.isPinned);
     }
     return;
@@ -1057,10 +1046,10 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
 
   // Check follow button
   if (getFollowButtonBounds().contains(pos)) {
-    if (postsStore) {
-      postsStore->toggleFollow(post.id, !post.isFollowing);
+    if (appStore) {
+      appStore->toggleFollow(post.id, !post.isFollowing);
     } else if (onFollowToggled) {
-      // Fallback for when PostsStore is not set
+      // Fallback for when AppStore is not set
       onFollowToggled(post, !post.isFollowing);
     }
     return;
@@ -1390,11 +1379,11 @@ void PostCard::handleEmojiSelected(const juce::String &emoji) {
   // Trigger animation (happens immediately for optimistic UI)
   startLikeAnimation();
 
-  // Use PostsStore for reactive update if available
-  if (postsStore) {
-    postsStore->addReaction(post.id, emoji);
+  // Use AppStore for reactive update if available
+  if (appStore) {
+    appStore->addReaction(post.id, emoji);
   } else if (onEmojiReaction) {
-    // Fallback for when PostsStore is not set
+    // Fallback for when AppStore is not set
     post.userReaction = emoji;
     post.isLiked = true;
     onEmojiReaction(post, emoji);
@@ -1404,9 +1393,9 @@ void PostCard::handleEmojiSelected(const juce::String &emoji) {
 }
 
 //==============================================================================
-// PostsStore Subscription (Type-Safe Lazy Pattern)
+// AppStore Subscription (Type-Safe Lazy Pattern)
 
-void PostCard::subscribeToPostsStore() {
+void PostCard::subscribeToAppStore() {
   using namespace Sidechain::Stores;
 
   // Unsubscribe from previous subscription if any
@@ -1422,10 +1411,10 @@ void PostCard::subscribeToPostsStore() {
   // SafePointer automatically becomes nullptr if the Component is deleted
   juce::Component::SafePointer<PostCard> safeThis(this);
 
-  // Subscribe to PostsStore for reactive updates
+  // Subscribe to AppStore for reactive updates
   // At this point we're guaranteed to have a valid post.id, making this
   // type-safe
-  storeUnsubscribe = postsStore->subscribe([safeThis, postId](const PostsState &state) {
+  storeUnsubscribe = appStore->subscribe([safeThis, postId](const AppState &state) {
     // Check if PostCard still exists (SafePointer handles deleted
     // Components) This prevents any access to members if the PostCard has
     // been destroyed
@@ -1436,10 +1425,13 @@ void PostCard::subscribeToPostsStore() {
     if (postId.isEmpty())
       return;
 
-    // Find our post in the current feed
-    const auto &currentFeed = state.getCurrentFeed();
+    // Extract posts state from unified AppState
+    const auto &postsState = state.posts;
 
-    for (const auto &feedPost : currentFeed.posts) {
+    // Find our post in the current feed
+    const auto &currentFeed = postsState.getCurrentFeed();
+
+    for (const auto &feedPost : currentFeed->posts) {
       if (feedPost.id == postId) {
         // Re-check that PostCard still exists before accessing members
         // This is defensive in case state changes while iterating
