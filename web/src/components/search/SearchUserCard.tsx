@@ -1,7 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import type { User } from '@/models/User'
 import { Button } from '@/components/ui/button'
-import { useFollowMutation } from '@/hooks/mutations/useFollowMutation'
 import { DirectMessageButton } from '@/components/chat/DirectMessageButton'
 import { ReportButton } from '@/components/report/ReportButton'
 
@@ -14,7 +13,6 @@ interface SearchUserCardProps {
  */
 export function SearchUserCard({ user }: SearchUserCardProps) {
   const navigate = useNavigate()
-  const { mutate: toggleFollow } = useFollowMutation()
 
   return (
     <div className="bg-card border border-border rounded-lg p-4 hover:border-coral-pink/50 transition-colors">
