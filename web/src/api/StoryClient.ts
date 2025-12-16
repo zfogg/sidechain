@@ -14,23 +14,76 @@ interface CreateStoryPayload {
   caption?: string
   isAudioStory?: boolean
   visualizationType?: 'circular' | 'piano-roll' | 'waveform' | 'note-waterfall'
-  visualizationData?: any
+  visualizationData?: Record<string, unknown>
 }
 
+// API DTO Types
+interface StoryDTO {
+  id: string
+  user_id: string
+  username: string
+  display_name: string
+  profile_picture_url?: string
+  user_avatar_url?: string
+  actor?: string
+  media_url: string
+  media_type: 'image' | 'video' | 'audio'
+  duration: number
+  thumbnail_url?: string
+  caption?: string
+  is_audio_story: boolean
+  visualization_type?: string
+  visualization_data?: Record<string, unknown>
+  view_count: number
+  like_count: number
+  viewer_ids: string[]
+  created_at: string
+  time?: string
+  expires_at: string
+  updated_at: string
+}
+
+interface ViewerDTO {
+  id: string
+  username: string
+  display_name: string
+  profile_picture_url: string
+  viewed_at: string
+}
+
+interface HighlightDTO {
+  id: string
+  title: string
+  cover_image_url?: string
+  story_ids: string[]
+  created_at: string
+  updated_at: string
+}
+
+// API Response Interfaces
 interface StoriesResponse {
-  stories: any[]
+  stories: StoryDTO[]
 }
 
 interface StoryResponse {
-  story: any
+  story: StoryDTO
 }
 
 interface ViewersResponse {
-  viewers: any[]
+  viewers: ViewerDTO[]
 }
 
 interface HighlightsResponse {
-  highlights: any[]
+  highlights: HighlightDTO[]
+}
+
+interface HighlightResponse {
+  highlight: HighlightDTO
+}
+
+interface UpdateHighlightPayload {
+  title?: string
+  story_ids?: string[]
 }
 
 export class StoryClient {
@@ -131,7 +184,7 @@ export class StoryClient {
 
     if (result.isOk()) {
       try {
-        const viewers = (result.getValue().viewers || []).map((v: any) => ({
+        const viewers = (result.getValue().viewers || []).map((v: ViewerDTO) => ({
           id: v.id,
           username: v.username,
           displayName: v.display_name,
@@ -151,7 +204,7 @@ export class StoryClient {
    * Create a story highlight (permanent collection)
    */
   static async createHighlight(title: string, storyIds: string[]): Promise<Outcome<StoryHighlight>> {
-    const result = await apiClient.post<{ highlight: any }>('/story-highlights', {
+    const result = await apiClient.post<HighlightResponse>('/story-highlights', {
       title,
       story_ids: storyIds,
     })
@@ -183,7 +236,7 @@ export class StoryClient {
 
     if (result.isOk()) {
       try {
-        const highlights = (result.getValue().highlights || []).map((h: any) => ({
+        const highlights = (result.getValue().highlights || []).map((h: HighlightDTO) => ({
           id: h.id,
           title: h.title,
           coverImageUrl: h.cover_image_url,
@@ -207,11 +260,11 @@ export class StoryClient {
     highlightId: string,
     updates: { title?: string; storyIds?: string[] }
   ): Promise<Outcome<StoryHighlight>> {
-    const data: any = {}
+    const data: UpdateHighlightPayload = {}
     if (updates.title) data.title = updates.title
     if (updates.storyIds) data.story_ids = updates.storyIds
 
-    const result = await apiClient.put<{ highlight: any }>(`/story-highlights/${highlightId}`, data)
+    const result = await apiClient.put<HighlightResponse>(`/story-highlights/${highlightId}`, data)
 
     if (result.isOk()) {
       try {
@@ -245,7 +298,7 @@ export class StoryClient {
   static async getFollowingActivityTimeline(
     limit: number = 20,
     offset: number = 0
-  ): Promise<Outcome<any[]>> {
+  ): Promise<Outcome<Record<string, unknown>[]>> {
     const result = await apiClient.get<StoriesResponse>('/activity/following', {
       limit,
       offset,
@@ -264,7 +317,7 @@ export class StoryClient {
   static async getGlobalActivityTimeline(
     limit: number = 20,
     offset: number = 0
-  ): Promise<Outcome<any[]>> {
+  ): Promise<Outcome<Record<string, unknown>[]>> {
     const result = await apiClient.get<StoriesResponse>('/activity/global', {
       limit,
       offset,

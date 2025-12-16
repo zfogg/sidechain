@@ -7,12 +7,70 @@ import { apiClient } from './client'
 import { Outcome } from './types'
 import { Playlist, PlaylistModel, PlaylistCollaborator, PlaylistCollaboratorRole } from '@/models/Playlist'
 
+// API DTO Types
+interface PlaylistDTO {
+  id: string
+  user_id: string
+  username: string
+  display_name: string
+  user_avatar_url?: string
+  profile_picture_url?: string
+  title: string
+  description: string
+  cover_url?: string
+  track_ids: string[]
+  track_count: number
+  is_public: boolean
+  is_collaborative: boolean
+  follower_count: number
+  is_following: boolean
+  is_own_playlist: boolean
+  collaborators: CollaboratorDTO[]
+  user_role?: PlaylistCollaboratorRole
+  created_at: string
+  updated_at: string
+}
+
+interface CollaboratorDTO {
+  user_id: string
+  username: string
+  display_name: string
+  user_avatar_url: string
+  role: PlaylistCollaboratorRole
+  added_at: string
+}
+
+// API Response Interfaces
+interface PlaylistResponse {
+  playlist: PlaylistDTO
+}
+
+interface PlaylistsResponse {
+  playlists: PlaylistDTO[]
+}
+
+interface CollaboratorResponse {
+  collaborator: CollaboratorDTO
+}
+
+interface CollaboratorsResponse {
+  collaborators: CollaboratorDTO[]
+}
+
+interface PlaylistUpdatePayload {
+  title?: string
+  description?: string
+  is_public?: boolean
+  is_collaborative?: boolean
+  cover_url?: string
+}
+
 export class PlaylistClient {
   /**
    * Get all playlists for current user
    */
   static async getUserPlaylists(limit: number = 20, offset: number = 0): Promise<Outcome<Playlist[]>> {
-    const result = await apiClient.get<{ playlists: any[] }>('/playlists', { limit, offset })
+    const result = await apiClient.get<PlaylistsResponse>('/playlists', { limit, offset })
 
     if (result.isOk()) {
       const playlists = result.getValue().playlists.map(PlaylistModel.fromJson)
@@ -26,7 +84,7 @@ export class PlaylistClient {
    * Get public playlists (discovery/feed)
    */
   static async getPublicPlaylists(limit: number = 20, offset: number = 0): Promise<Outcome<Playlist[]>> {
-    const result = await apiClient.get<{ playlists: any[] }>('/playlists/public', { limit, offset })
+    const result = await apiClient.get<PlaylistsResponse>('/playlists/public', { limit, offset })
 
     if (result.isOk()) {
       const playlists = result.getValue().playlists.map(PlaylistModel.fromJson)
@@ -40,7 +98,7 @@ export class PlaylistClient {
    * Get playlist by ID
    */
   static async getPlaylist(playlistId: string): Promise<Outcome<Playlist>> {
-    const result = await apiClient.get<{ playlist: any }>(`/playlists/${playlistId}`)
+    const result = await apiClient.get<PlaylistResponse>(`/playlists/${playlistId}`)
 
     if (result.isOk()) {
       const playlist = PlaylistModel.fromJson(result.getValue().playlist)
@@ -54,7 +112,7 @@ export class PlaylistClient {
    * Get playlists for a specific user
    */
   static async getUserPlaylistsByUsername(username: string, limit: number = 20, offset: number = 0): Promise<Outcome<Playlist[]>> {
-    const result = await apiClient.get<{ playlists: any[] }>(`/users/${username}/playlists`, {
+    const result = await apiClient.get<PlaylistsResponse>(`/users/${username}/playlists`, {
       limit,
       offset,
     })
@@ -71,7 +129,7 @@ export class PlaylistClient {
    * Create new playlist
    */
   static async createPlaylist(title: string, description: string = '', isPublic: boolean = false): Promise<Outcome<Playlist>> {
-    const result = await apiClient.post<{ playlist: any }>('/playlists', {
+    const result = await apiClient.post<PlaylistResponse>('/playlists', {
       title,
       description,
       is_public: isPublic,
@@ -98,14 +156,14 @@ export class PlaylistClient {
       coverUrl?: string
     }
   ): Promise<Outcome<Playlist>> {
-    const payload: any = {}
+    const payload: PlaylistUpdatePayload = {}
     if (updates.title) payload.title = updates.title
     if (updates.description) payload.description = updates.description
     if (updates.isPublic !== undefined) payload.is_public = updates.isPublic
     if (updates.isCollaborative !== undefined) payload.is_collaborative = updates.isCollaborative
     if (updates.coverUrl) payload.cover_url = updates.coverUrl
 
-    const result = await apiClient.put<{ playlist: any }>(`/playlists/${playlistId}`, payload)
+    const result = await apiClient.put<PlaylistResponse>(`/playlists/${playlistId}`, payload)
 
     if (result.isOk()) {
       const playlist = PlaylistModel.fromJson(result.getValue().playlist)
@@ -126,7 +184,7 @@ export class PlaylistClient {
    * Add track to playlist
    */
   static async addTrackToPlaylist(playlistId: string, postId: string): Promise<Outcome<Playlist>> {
-    const result = await apiClient.post<{ playlist: any }>(`/playlists/${playlistId}/tracks`, {
+    const result = await apiClient.post<PlaylistResponse>(`/playlists/${playlistId}/tracks`, {
       post_id: postId,
     })
 
@@ -142,7 +200,7 @@ export class PlaylistClient {
    * Remove track from playlist
    */
   static async removeTrackFromPlaylist(playlistId: string, postId: string): Promise<Outcome<Playlist>> {
-    const result = await apiClient.delete<{ playlist: any }>(`/playlists/${playlistId}/tracks?post_id=${postId}`)
+    const result = await apiClient.delete<PlaylistResponse>(`/playlists/${playlistId}/tracks?post_id=${postId}`)
 
     if (result.isOk()) {
       const playlist = PlaylistModel.fromJson(result.getValue().playlist)
@@ -156,7 +214,7 @@ export class PlaylistClient {
    * Reorder tracks in playlist
    */
   static async reorderTracks(playlistId: string, trackIds: string[]): Promise<Outcome<Playlist>> {
-    const result = await apiClient.put<{ playlist: any }>(`/playlists/${playlistId}/reorder`, {
+    const result = await apiClient.put<PlaylistResponse>(`/playlists/${playlistId}/reorder`, {
       track_ids: trackIds,
     })
 
@@ -183,7 +241,7 @@ export class PlaylistClient {
    * Get playlists that contain a specific track
    */
   static async getPlaylistsContainingTrack(postId: string): Promise<Outcome<Playlist[]>> {
-    const result = await apiClient.get<{ playlists: any[] }>(`/playlists/containing/${postId}`)
+    const result = await apiClient.get<PlaylistsResponse>(`/playlists/containing/${postId}`)
 
     if (result.isOk()) {
       const playlists = result.getValue().playlists.map(PlaylistModel.fromJson)
@@ -201,7 +259,7 @@ export class PlaylistClient {
     username: string,
     role: PlaylistCollaboratorRole = 'viewer'
   ): Promise<Outcome<PlaylistCollaborator>> {
-    const result = await apiClient.post<{ collaborator: any }>(
+    const result = await apiClient.post<CollaboratorResponse>(
       `/playlists/${playlistId}/collaborators`,
       { username, role }
     )
@@ -236,7 +294,7 @@ export class PlaylistClient {
     userId: string,
     role: PlaylistCollaboratorRole
   ): Promise<Outcome<PlaylistCollaborator>> {
-    const result = await apiClient.put<{ collaborator: any }>(
+    const result = await apiClient.put<CollaboratorResponse>(
       `/playlists/${playlistId}/collaborators/${userId}`,
       { role }
     )
@@ -260,17 +318,17 @@ export class PlaylistClient {
    * Get all collaborators for a playlist
    */
   static async getCollaborators(playlistId: string): Promise<Outcome<PlaylistCollaborator[]>> {
-    const result = await apiClient.get<{ collaborators: any[] }>(
+    const result = await apiClient.get<CollaboratorsResponse>(
       `/playlists/${playlistId}/collaborators`
     )
 
     if (result.isOk()) {
-      const collaborators = result.getValue().collaborators.map((c: any) => ({
+      const collaborators = result.getValue().collaborators.map((c: CollaboratorDTO) => ({
         userId: c.user_id,
         username: c.username,
         displayName: c.display_name,
         userAvatarUrl: c.user_avatar_url,
-        role: c.role as PlaylistCollaboratorRole,
+        role: c.role,
         addedAt: new Date(c.added_at),
       }))
       return Outcome.ok(collaborators)

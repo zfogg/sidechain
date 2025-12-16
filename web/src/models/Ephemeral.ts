@@ -37,7 +37,7 @@ export interface Ephemeral {
   caption?: string
   isAudioStory?: boolean // true for audio/music stories
   visualizationType?: 'circular' | 'piano-roll' | 'waveform' | 'note-waterfall'
-  visualizationData?: any // data for visualization
+  visualizationData?: Record<string, unknown> // data for visualization
 
   // Engagement
   viewCount: number
@@ -50,8 +50,34 @@ export interface Ephemeral {
   updatedAt: Date
 }
 
+// API DTO Type
+interface EphemeralJSON {
+  id: string
+  user_id: string
+  username: string
+  display_name: string
+  profile_picture_url?: string
+  user_avatar_url?: string
+  actor?: string
+  media_url: string
+  media_type: 'image' | 'video' | 'audio'
+  duration: number
+  thumbnail_url?: string
+  caption?: string
+  is_audio_story: boolean
+  visualization_type?: string
+  visualization_data?: Record<string, unknown>
+  view_count: number
+  like_count: number
+  viewer_ids: string[]
+  created_at: string
+  time?: string
+  expires_at: string
+  updated_at: string
+}
+
 export class EphemeralModel {
-  static fromJson(json: any): Ephemeral {
+  static fromJson(json: EphemeralJSON): Ephemeral {
     if (!json) throw new Error('Cannot create Ephemeral from null/undefined')
 
     return {
@@ -68,7 +94,7 @@ export class EphemeralModel {
 
       caption: json.caption,
       isAudioStory: json.is_audio_story || false,
-      visualizationType: (json.visualization_type || 'circular') as any,
+      visualizationType: (json.visualization_type || 'circular') as 'circular' | 'piano-roll' | 'waveform' | 'note-waterfall',
       visualizationData: json.visualization_data,
 
       viewCount: json.view_count || 0,
@@ -89,7 +115,7 @@ export class EphemeralModel {
     return new Date() > ephemeral.expiresAt
   }
 
-  static toJson(ephemeral: Ephemeral): any {
+  static toJson(ephemeral: Ephemeral): Partial<EphemeralJSON> {
     return {
       id: ephemeral.id,
       user_id: ephemeral.userId,
