@@ -1,111 +1,71 @@
 import { apiClient } from './client'
 import { Outcome } from './types'
-import { FeedPost } from '@/models/FeedPost'
+import { FeedPost, FeedPostModel } from '../models/FeedPost'
 
 export interface SearchFilters {
   query?: string
-  genre?: string[]
-  bpm?: { min: number; max: number }
+  bpmMin?: number
+  bpmMax?: number
   key?: string
+  genres?: string[]
   daw?: string
   limit?: number
   offset?: number
 }
 
-export interface SearchResults {
-  posts: FeedPost[]
-  users: SearchUser[]
+interface SearchResponse {
+  posts: any[]
   total: number
-  took: number // milliseconds
+  limit: number
+  offset: number
 }
 
-export interface SearchUser {
-  id: string
-  username: string
-  displayName: string
-  profilePictureUrl?: string
-  followerCount: number
-  bio?: string
+interface GenresResponse {
+  genres: string[]
+}
+
+interface KeysResponse {
+  keys: string[]
 }
 
 /**
- * SearchClient - Global search across posts, users, and sounds
- *
- * API Endpoints:
- * GET /search - Global search with filters
- * GET /search/posts - Search posts by title, description, tags
- * GET /search/users - Search users by username, display name
- * GET /search/filters/genres - Get available genres
- * GET /search/filters/keys - Get musical keys
- * GET /search/filters/daws - Get DAW list
+ * SearchClient - Advanced search with filters for music discovery
+ * Mirrors C++ SearchClient.cpp pattern
  */
 export class SearchClient {
   /**
-   * Global search across posts and users
+   * Search posts with advanced filters
    */
-  static async search(filters: SearchFilters): Promise<Outcome<SearchResults>> {
-    const params: any = {
-      limit: filters.limit || 20,
-      offset: filters.offset || 0,
-    }
+  static async searchPosts(filters: SearchFilters): Promise<Outcome<{ posts: FeedPost[]; total: number }>> {
+    const params: any = {}
 
     if (filters.query) params.q = filters.query
-    if (filters.genre?.length) params.genre = filters.genre.join(',')
-    if (filters.bpm) {
-      params.bpm_min = filters.bpm.min
-      params.bpm_max = filters.bpm.max
-    }
+    if (filters.bpmMin) params.bpm_min = filters.bpmMin
+    if (filters.bpmMax) params.bpm_max = filters.bpmMax
     if (filters.key) params.key = filters.key
+    if (filters.genres && filters.genres.length > 0) {
+      params.genres = filters.genres.join(',')
+    }
     if (filters.daw) params.daw = filters.daw
+    if (filters.limit) params.limit = filters.limit
+    if (filters.offset) params.offset = filters.offset
 
-    const result = await apiClient.get<any>('/search', params)
+    const result = await apiClient.get<SearchResponse>('/posts/search', params)
 
-    if (result.isError()) {
-      return Outcome.error(result.getError())
+    if (result.isOk()) {
+      try {
+        const data = result.getValue()
+        const posts = (data.posts || []).map(FeedPostModel.fromJson)
+        return Outcome.ok({
+          posts,
+          total: data.total || 0,
+        })
+      } catch (error) {
+        return Outcome.error((error as Error).message)
+      }
     }
 
-    const data = result.getValue()
-    return Outcome.ok({
-      posts: (data.posts || []).map(FeedPost.fromJson),
-      users: (data.users || []).map((user: any) => ({
-        id: user.id,
-        username: user.username,
-        displayName: user.display_name,
-        profilePictureUrl: user.profile_picture_url,
-        followerCount: user.follower_count || 0,
-        bio: user.bio,
-      })),
-      total: data.total || 0,
-      took: data.took || 0,
-    })
-  }
-
-  /**
-   * Search posts with text and metadata filters
-   */
-  static async searchPosts(filters: SearchFilters): Promise<Outcome<FeedPost[]>> {
-    const params: any = {
-      limit: filters.limit || 50,
-      offset: filters.offset || 0,
-    }
-
-    if (filters.query) params.q = filters.query
-    if (filters.genre?.length) params.genre = filters.genre.join(',')
-    if (filters.bpm) {
-      params.bpm_min = filters.bpm.min
-      params.bpm_max = filters.bpm.max
-    }
-    if (filters.key) params.key = filters.key
-    if (filters.daw) params.daw = filters.daw
-
-    const result = await apiClient.get<any>('/search/posts', params)
-
-    if (result.isError()) {
-      return Outcome.error(result.getError())
-    }
-
-    const data = result.getValue()
-    return Outcome.ok((data.posts || []).map(FeedPost.fromJson))
+    return Outcome.error(result.getError())
   }
 
   /**
@@ -113,68 +73,89 @@ export class SearchClient {
    */
   static async searchUsers(
     query: string,
-    limit: number = 20,
-    offset: number = 0
-  ): Promise<Outcome<SearchUser[]>> {
-    const result = await apiClient.get<any>('/search/users', {
-      q: query,
-      limit,
-      offset,
-    })
+    limit: number = 20
+  ): Promise<
+    Outcome<
+      Array<{
+        id: string
+        username: string
+        displayName: string
+        profilePictureUrl?: string
+      }>
+    >
+  > {
+    const result = await apiClient.get<{
+      users: any[]
+    }>('/users/search', { q: query, limit })
 
-    if (result.isError()) {
-      return Outcome.error(result.getError())
+    if (result.isOk()) {
+      try {
+        const users = (result.getValue().users || []).map((u: any) => ({
+          id: u.id,
+          username: u.username,
+          displayName: u.display_name,
+          profilePictureUrl: u.profile_picture_url,
+        }))
+        return Outcome.ok(users)
+      } catch (error) {
+        return Outcome.error((error as Error).message)
+      }
     }
 
-    const data = result.getValue()
-    return Outcome.ok(
-      (data.users || []).map((user: any) => ({
-        id: user.id,
-        username: user.username,
-        displayName: user.display_name,
-        profilePictureUrl: user.profile_picture_url,
-        followerCount: user.follower_count || 0,
-        bio: user.bio,
-      }))
-    )
+    return Outcome.error(result.getError())
   }
 
   /**
-   * Get available genres for filtering
+   * Get all available genres
    */
   static async getGenres(): Promise<Outcome<string[]>> {
-    const result = await apiClient.get<{ genres: string[] }>('/search/filters/genres')
+    const result = await apiClient.get<GenresResponse>('/search/genres')
 
-    if (result.isError()) {
-      return Outcome.error(result.getError())
+    if (result.isOk()) {
+      return Outcome.ok(result.getValue().genres || [])
     }
 
-    return Outcome.ok(result.getValue().genres)
+    return Outcome.error(result.getError())
   }
 
   /**
-   * Get musical keys for filtering
+   * Get all available musical keys
    */
   static async getKeys(): Promise<Outcome<string[]>> {
-    const result = await apiClient.get<{ keys: string[] }>('/search/filters/keys')
+    const result = await apiClient.get<KeysResponse>('/search/keys')
 
-    if (result.isError()) {
-      return Outcome.error(result.getError())
+    if (result.isOk()) {
+      return Outcome.ok(result.getValue().keys || [])
     }
 
-    return Outcome.ok(result.getValue().keys)
+    return Outcome.error(result.getError())
   }
 
   /**
-   * Get DAWs for filtering
+   * Get all available DAWs
    */
   static async getDAWs(): Promise<Outcome<string[]>> {
-    const result = await apiClient.get<{ daws: string[] }>('/search/filters/daws')
+    const result = await apiClient.get<{ daws: string[] }>('/search/daws')
 
-    if (result.isError()) {
-      return Outcome.error(result.getError())
+    if (result.isOk()) {
+      return Outcome.ok(result.getValue().daws || [])
     }
 
-    return Outcome.ok(result.getValue().daws)
+    return Outcome.error(result.getError())
+  }
+
+  /**
+   * Get popular search queries (trending)
+   */
+  static async getTrendingSearches(): Promise<Outcome<Array<{ query: string; count: number }>>> {
+    const result = await apiClient.get<{
+      trending: Array<{ query: string; count: number }>
+    }>('/search/trending')
+
+    if (result.isOk()) {
+      return Outcome.ok(result.getValue().trending || [])
+    }
+
+    return Outcome.error(result.getError())
   }
 }
