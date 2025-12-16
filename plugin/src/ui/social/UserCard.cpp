@@ -10,8 +10,17 @@
 UserCard::UserCard() {
   setInterceptsMouseClicks(true, true);
 
-  // Set up hover state
-  hoverState.onHoverChanged = [this]([[maybe_unused]] bool hovered) { repaint(); };
+  // Set up hover state - triggers visual feedback on hover
+  hoverState.onHoverChanged = [this](bool hovered) {
+    // Repaint to show/hide card elevation and action buttons
+    if (hovered) {
+      // Show hover effects (card elevation, follow button, action menu)
+      repaint();
+    } else {
+      // Hide hover effects when mouse leaves
+      repaint();
+    }
+  };
 }
 
 UserCard::~UserCard() {}

@@ -6,8 +6,17 @@ NotificationBell::NotificationBell(Sidechain::Stores::AppStore *store)
     : Sidechain::UI::AppStoreComponent<Sidechain::Stores::NotificationState>(store) {
   setSize(PREFERRED_SIZE, PREFERRED_SIZE);
 
-  // Set up hover state
-  hoverState.onHoverChanged = [this]([[maybe_unused]] bool hovered) { repaint(); };
+  // Set up hover state - triggers visual feedback on hover
+  hoverState.onHoverChanged = [this](bool hovered) {
+    // Repaint to show/hide hover effects (highlight, unread badge pulse)
+    if (hovered) {
+      // Show hover effects
+      repaint();
+    } else {
+      // Hide hover effects when mouse leaves
+      repaint();
+    }
+  };
 }
 
 NotificationBell::~NotificationBell() = default;

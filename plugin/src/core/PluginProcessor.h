@@ -358,6 +358,9 @@ private:
   // State
   bool authenticated = false;
 
+  // Program management (VST preset system)
+  int currentProgram = 0;
+
   // DAW transport info (updated on audio thread, read from UI thread)
   std::atomic<double> currentBPM{0.0};
   std::atomic<bool> bpmAvailable{false};

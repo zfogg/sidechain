@@ -25,8 +25,17 @@ static juce::Image loadImageFromURL(const juce::String &urlStr);
 FollowUserRow::FollowUserRow() {
   setSize(400, ROW_HEIGHT);
 
-  // Set up hover state
-  hoverState.onHoverChanged = [this]([[maybe_unused]] bool hovered) { repaint(); };
+  // Set up hover state - triggers visual feedback on hover
+  hoverState.onHoverChanged = [this](bool hovered) {
+    // Repaint to show/hide hover effects (highlight, follow button)
+    if (hovered) {
+      // Show hover effects (row highlight, follow/unfollow button)
+      repaint();
+    } else {
+      // Hide hover effects when mouse leaves
+      repaint();
+    }
+  };
 }
 
 void FollowUserRow::setUser(const FollowListUser &newUser) {

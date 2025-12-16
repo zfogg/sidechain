@@ -88,7 +88,7 @@ void AppStore::handlePresenceUpdate(const juce::String &userId, const juce::var 
       info.status = PresenceStatus::Unknown;
     }
 
-    info.lastSeen = presenceData.getProperty("last_seen", 0);
+    info.lastSeen = static_cast<int64_t>(static_cast<double>(presenceData.getProperty("last_seen", 0)));
     info.statusMessage = presenceData.getProperty("status_message", "").toString();
 
     state.presence.userPresence[userId] = info;

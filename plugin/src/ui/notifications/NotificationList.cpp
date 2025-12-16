@@ -144,8 +144,17 @@ juce::String NotificationItem::getVerbIcon() const {
 NotificationRow::NotificationRow() {
   setSize(NotificationList::PREFERRED_WIDTH, ROW_HEIGHT);
 
-  // Set up hover state
-  hoverState.onHoverChanged = [this]([[maybe_unused]] bool hovered) { repaint(); };
+  // Set up hover state - triggers visual feedback on hover
+  hoverState.onHoverChanged = [this](bool hovered) {
+    // Repaint to show/hide row highlight effects
+    if (hovered) {
+      // Show hover effects (row highlight, action buttons)
+      repaint();
+    } else {
+      // Hide hover effects when mouse leaves
+      repaint();
+    }
+  };
 }
 
 void NotificationRow::setNotification(const NotificationItem &notif) {
