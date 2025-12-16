@@ -1,6 +1,7 @@
-import { apiClient } from './client';
-import { Outcome } from './types';
-import { FeedPost, FeedPostModel } from '../models/FeedPost';
+import { apiClient } from './client'
+import { Outcome } from './types'
+import { FeedPostModel } from '../models/FeedPost'
+import type { FeedPost } from '../models/FeedPost'
 
 export type FeedType = 'timeline' | 'global' | 'trending' | 'forYou';
 

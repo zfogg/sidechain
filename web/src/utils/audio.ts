@@ -36,10 +36,10 @@ export function createAudioPlayer(url: string, onEnd?: () => void): AudioPlayer 
         onload: () => {
           console.log('[Audio] Loaded:', url)
         },
-        onerror: () => {
+        onloaderror: () => {
           console.error('[Audio] Error loading:', url)
         },
-      })
+      } as any)
     }
     return howl
   }

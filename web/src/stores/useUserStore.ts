@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { User } from '../models/User';
+import type { User } from '../models/User';
 import { apiClient } from '../api/client';
 
 /**

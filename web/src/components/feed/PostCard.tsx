@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { FeedPost } from '@/models/FeedPost'
+import type { FeedPost } from '@/models/FeedPost'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { useLikeMutation, useSaveMutation, usePlayTrackMutation } from '@/hooks/mutations/useFeedMutations'

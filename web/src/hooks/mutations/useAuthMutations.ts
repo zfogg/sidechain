@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 import { AuthClient } from '@/api/AuthClient'
 import { useUserStore } from '@/stores/useUserStore'
-import { User } from '@/models/User'
+import { UserModel } from '@/models/User'
 
 /**
  * useLoginMutation - Mutation for user login with email and password
@@ -30,7 +30,7 @@ export function useLoginMutation() {
       return result.getValue()
     },
     onSuccess: (data) => {
-      const user = User.fromJson(data.user)
+      const user = UserModel.fromJson(data.user)
       login(data.token, user)
     },
   })
@@ -69,7 +69,7 @@ export function useRegisterMutation() {
       return result.getValue()
     },
     onSuccess: (data) => {
-      const user = User.fromJson(data.user)
+      const user = UserModel.fromJson(data.user)
       login(data.token, user)
     },
   })
@@ -90,7 +90,7 @@ export function useRefreshTokenMutation() {
       return result.getValue()
     },
     onSuccess: (data) => {
-      const user = User.fromJson(data.user)
+      const user = UserModel.fromJson(data.user)
       login(data.token, user)
     },
   })
@@ -129,7 +129,7 @@ export function useClaimDeviceMutation() {
       return result.getValue()
     },
     onSuccess: (data) => {
-      const user = User.fromJson(data.user)
+      const user = UserModel.fromJson(data.user)
       login(data.token, user)
     },
   })

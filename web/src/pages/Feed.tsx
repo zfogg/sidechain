@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { FeedList } from '@/components/feed/FeedList'
 import { Button } from '@/components/ui/button'
-import { FeedType } from '@/api/FeedClient'
+import type { FeedType } from '@/api/FeedClient'
 import { useWebSocket } from '@/hooks/useWebSocket'
 
 /**

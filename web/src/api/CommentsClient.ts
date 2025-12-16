@@ -1,6 +1,7 @@
-import { apiClient } from './client';
-import { Outcome } from './types';
-import { Comment, CommentModel } from '../models/Comment';
+import { apiClient } from './client'
+import { Outcome } from './types'
+import { CommentModel } from '../models/Comment'
+import type { Comment } from '../models/Comment'
 
 /**
  * CommentsClient - Comment CRUD operations

@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { CommentsClient } from '@/api/CommentsClient'
-import { Comment } from '@/models/Comment'
+import type { Comment } from '@/models/Comment'
 
 /**
  * useCreateCommentMutation - Mutation for creating new comments
@@ -49,6 +49,8 @@ export function useCreateCommentMutation() {
         parentId: undefined,
         likeCount: 0,
         isLiked: false,
+        isOwnComment: true,
+        isEdited: false,
         createdAt: new Date(),
         updatedAt: new Date(),
         username: '',

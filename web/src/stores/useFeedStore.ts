@@ -1,6 +1,7 @@
-import { create } from 'zustand';
-import { FeedPost } from '../models/FeedPost';
-import { FeedClient, FeedType } from '../api/FeedClient';
+import { create } from 'zustand'
+import type { FeedPost } from '../models/FeedPost'
+import { FeedClient } from '../api/FeedClient'
+import type { FeedType } from '../api/FeedClient'
 
 /**
  * Single feed state
@@ -44,7 +45,12 @@ const emptyFeedState: SingleFeedState = {
 };
 
 export const useFeedStore = create<FeedStoreState & FeedStoreActions>((set, get) => ({
-  feeds: {},
+  feeds: {
+    timeline: emptyFeedState,
+    global: emptyFeedState,
+    trending: emptyFeedState,
+    forYou: emptyFeedState,
+  },
   currentFeedType: 'timeline',
 
   loadFeed: async (feedType, forceRefresh = false) => {
@@ -233,7 +239,7 @@ export const useFeedStore = create<FeedStoreState & FeedStoreActions>((set, get)
     const result = await FeedClient.toggleSave(postId, shouldSave);
 
     if (result.isError()) {
-      set({ feeds: prevState });
+      set({ feeds: prevState } as any);
     }
   },
 
@@ -250,7 +256,7 @@ export const useFeedStore = create<FeedStoreState & FeedStoreActions>((set, get)
           },
         ])
       ),
-    }));
+    } as any));
   },
 
   incrementPlayCount: (postId) => {

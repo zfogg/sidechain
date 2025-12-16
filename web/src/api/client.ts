@@ -1,5 +1,6 @@
-import axios, { AxiosInstance } from 'axios';
-import { Outcome } from './types';
+import axios from 'axios'
+import type { AxiosInstance } from 'axios'
+import { Outcome } from './types'
 
 /**
  * Base HTTP client using Axios
