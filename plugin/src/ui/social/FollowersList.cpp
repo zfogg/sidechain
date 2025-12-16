@@ -31,9 +31,22 @@ FollowUserRow::FollowUserRow() {
 
 void FollowUserRow::setUser(const FollowListUser &newUser) {
   user = newUser;
-  // Fetch avatar image via AppStore (with caching)
+  // Fetch avatar image via AppStore reactive observable (with caching)
   if (user.avatarUrl.isNotEmpty() && appStore) {
-    appStore->getImage(user.avatarUrl, [this](const juce::Image &) { repaint(); });
+    juce::Component::SafePointer<FollowUserRow> safeThis(this);
+    appStore->loadImageObservable(user.avatarUrl)
+        .subscribe(
+            [safeThis](const juce::Image &image) {
+              if (safeThis == nullptr)
+                return;
+              if (image.isValid())
+                safeThis->repaint();
+            },
+            [safeThis](std::exception_ptr) {
+              if (safeThis == nullptr)
+                return;
+              Log::warn("FollowersList: Failed to load user avatar");
+            });
   }
   repaint();
 }
@@ -58,9 +71,22 @@ void FollowUserRow::paint(juce::Graphics &g) {
   // Avatar
   juce::String name = user.displayName.isNotEmpty() ? user.displayName : user.username;
 
-  // Use unified getImage() - handles all three cache levels automatically (memory -> file -> HTTP)
+  // Use reactive observable for image loading (with caching)
   if (appStore && user.avatarUrl.isNotEmpty()) {
-    appStore->getImage(user.avatarUrl, [this](const juce::Image &) { repaint(); });
+    juce::Component::SafePointer<FollowUserRow> safeThis(this);
+    appStore->loadImageObservable(user.avatarUrl)
+        .subscribe(
+            [safeThis](const juce::Image &image) {
+              if (safeThis == nullptr)
+                return;
+              if (image.isValid())
+                safeThis->repaint();
+            },
+            [safeThis](std::exception_ptr) {
+              if (safeThis == nullptr)
+                return;
+              Log::warn("FollowersList: Failed to load avatar in paint");
+            });
   }
 
   // Fallback: colored circle with user initials (will be replaced with actual image when loaded)

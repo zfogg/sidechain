@@ -287,9 +287,22 @@ void StoriesFeed::drawCreateStoryCircle(juce::Graphics &g, juce::Rectangle<int> 
 
   // Avatar if user has one
   if (currentUserAvatarUrl.isNotEmpty()) {
-    // Use unified getImage() - handles all three cache levels automatically (memory -> file -> HTTP)
+    // Use reactive observable for image loading with caching
     if (appStore) {
-      appStore->getImage(currentUserAvatarUrl, [this](const juce::Image &) { repaint(); });
+      juce::Component::SafePointer<StoriesFeed> safeThis(this);
+      appStore->loadImageObservable(currentUserAvatarUrl)
+          .subscribe(
+              [safeThis](const juce::Image &image) {
+                if (safeThis == nullptr)
+                  return;
+                if (image.isValid())
+                  safeThis->repaint();
+              },
+              [safeThis](std::exception_ptr) {
+                if (safeThis == nullptr)
+                  return;
+                Log::warn("StoriesFeed: Failed to load user avatar");
+              });
     }
   }
 
@@ -337,9 +350,22 @@ void StoriesFeed::drawStoryCircle(juce::Graphics &g, juce::Rectangle<int> bounds
   g.fillEllipse(center.x - gapRadius, center.y - gapRadius, gapRadius * 2, gapRadius * 2);
 
   // Avatar
-  // Use unified getImage() - handles all three cache levels automatically (memory -> file -> HTTP)
+  // Use reactive observable for image loading with caching
   if (userStories.avatarUrl.isNotEmpty() && appStore) {
-    appStore->getImage(userStories.avatarUrl, [this](const juce::Image &) { repaint(); });
+    juce::Component::SafePointer<StoriesFeed> safeThis(this);
+    appStore->loadImageObservable(userStories.avatarUrl)
+        .subscribe(
+            [safeThis](const juce::Image &image) {
+              if (safeThis == nullptr)
+                return;
+              if (image.isValid())
+                safeThis->repaint();
+            },
+            [safeThis](std::exception_ptr) {
+              if (safeThis == nullptr)
+                return;
+              Log::warn("StoriesFeed: Failed to load story avatar");
+            });
   }
 
   // Placeholder avatar (will be replaced with actual image when loaded)
