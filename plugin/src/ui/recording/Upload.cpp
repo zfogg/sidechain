@@ -628,7 +628,11 @@ void Upload::drawStatus(juce::Graphics &g) {
 
 //==============================================================================
 void Upload::drawTextField(juce::Graphics &g, juce::Rectangle<int> bounds, const juce::String &label,
-                           const juce::String &value, bool isActive, [[maybe_unused]] bool isEditable) {
+                           const juce::String &value, bool isActive, bool isEditable) {
+  // Draw state based on isEditable (read-only vs editable mode)
+  if (!isEditable) {
+    g.setColour(juce::Colours::grey.withAlpha(0.5f)); // Dimmed for read-only
+  }
   // Background
   auto bgColor = isActive ? SidechainColors::surfaceHover() : SidechainColors::surface();
   g.setColour(bgColor);

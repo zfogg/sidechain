@@ -421,12 +421,15 @@ void HiddenSynth::mouseDown(const juce::MouseEvent &event) {
   }
 }
 
-void HiddenSynth::mouseUp([[maybe_unused]] const juce::MouseEvent &event) {
-  if (lastKeyPressed >= 0) {
-    keyStates[static_cast<size_t>(lastKeyPressed)] = false;
-    synthEngine.noteOff(startNote + lastKeyPressed);
-    lastKeyPressed = -1;
-    repaint(keyboardArea);
+void HiddenSynth::mouseUp(const juce::MouseEvent &event) {
+  // Only process if click is within keyboard area
+  if (keyboardArea.contains(event.getPosition())) {
+    if (lastKeyPressed >= 0) {
+      keyStates[static_cast<size_t>(lastKeyPressed)] = false;
+      synthEngine.noteOff(startNote + lastKeyPressed);
+      lastKeyPressed = -1;
+      repaint(keyboardArea);
+    }
   }
 }
 
