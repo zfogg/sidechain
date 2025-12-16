@@ -34,6 +34,8 @@ add_library(SidechainStores STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/UserDiscoveryStore.h
     ${CMAKE_CURRENT_SOURCE_DIR}/NotificationStore.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/NotificationStore.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/UploadStore.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/UploadStore.h
 )
 
 # Include directories

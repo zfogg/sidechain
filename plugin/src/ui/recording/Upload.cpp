@@ -48,7 +48,76 @@ Upload::Upload(SidechainAudioProcessor &processor, NetworkClient &network)
 
 Upload::~Upload() {
   Log::debug("Upload: Destroying upload component");
+  unbindFromStore();
   stopTimer();
+}
+
+//==============================================================================
+// Store integration methods
+void Upload::bindToStore(std::shared_ptr<Sidechain::Stores::UploadStore> store) {
+  Log::debug("Upload: Binding to UploadStore");
+
+  uploadStore = store;
+  if (!uploadStore)
+    return;
+
+  // Subscribe to store changes
+  juce::Component::SafePointer<Upload> safeThis(this);
+  storeUnsubscriber = uploadStore->subscribe([safeThis](const Sidechain::Stores::UploadState &state) {
+    if (!safeThis)
+      return;
+
+    auto status = state.status;
+    auto progress = state.progress;
+    auto errorMsg = state.errorMessage;
+
+    juce::MessageManager::callAsync([safeThis, status, progress, errorMsg]() {
+      if (!safeThis)
+        return;
+
+      // Update upload component state based on store status
+      switch (status) {
+      case Sidechain::Stores::UploadState::Status::Idle:
+        safeThis->uploadState = Upload::UploadState::Editing;
+        safeThis->uploadProgress = 0.0f;
+        safeThis->errorMessage = "";
+        break;
+      case Sidechain::Stores::UploadState::Status::Uploading:
+        safeThis->uploadState = Upload::UploadState::Uploading;
+        safeThis->uploadProgress = progress;
+        safeThis->errorMessage = "";
+        break;
+      case Sidechain::Stores::UploadState::Status::Success:
+        safeThis->uploadState = Upload::UploadState::Success;
+        safeThis->uploadProgress = 100.0f;
+        safeThis->errorMessage = "";
+        if (safeThis->onUploadComplete) {
+          safeThis->onUploadComplete();
+        }
+        break;
+      case Sidechain::Stores::UploadState::Status::Error:
+        safeThis->uploadState = Upload::UploadState::Error;
+        safeThis->errorMessage = errorMsg;
+        break;
+      default:
+        safeThis->uploadState = Upload::UploadState::Editing;
+        break;
+      }
+
+      safeThis->repaint();
+    });
+  });
+
+  Log::debug("Upload: Successfully bound to UploadStore");
+}
+
+void Upload::unbindFromStore() {
+  if (storeUnsubscriber) {
+    storeUnsubscriber();
+    storeUnsubscriber = nullptr;
+  }
+  uploadStore = nullptr;
+  Log::debug("Upload: Unbound from UploadStore");
 }
 
 //==============================================================================
