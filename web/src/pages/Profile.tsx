@@ -9,6 +9,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { useFollowMutation } from '@/hooks/mutations/useFollowMutation'
 import { DirectMessageButton } from '@/components/chat/DirectMessageButton'
 import { EditProfileDialog } from '@/components/profile/EditProfileDialog'
+import { PinnedPostsSection } from '@/components/profile/PinnedPostsSection'
 
 interface ProfileUser {
   id: string
@@ -221,8 +222,11 @@ export function Profile() {
         </div>
       </div>
 
-      {/* User Posts Feed */}
+      {/* Pinned Posts Section */}
       <main className="max-w-4xl mx-auto px-4 py-8">
+        <PinnedPostsSection userId={profile.id} displayName={profile.displayName} />
+
+        {/* User Posts Feed */}
         <div>
           <h2 className="text-xl font-bold text-foreground mb-6">
             {profile.isOwnProfile ? 'Your Posts' : `${profile.displayName}'s Posts`}

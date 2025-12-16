@@ -125,4 +125,47 @@ export class FeedClient {
 
     return Outcome.error(result.getError());
   }
+
+  /**
+   * Get user's pinned posts (max 3)
+   */
+  static async getUserPinnedPosts(userId: string): Promise<Outcome<FeedPost[]>> {
+    const result = await apiClient.get<{ posts: any[] }>(`/users/${userId}/posts/pinned`);
+
+    if (result.isOk()) {
+      try {
+        const posts = (result.getValue().posts || []).map(FeedPostModel.fromJson);
+        return Outcome.ok(posts);
+      } catch (error) {
+        return Outcome.error((error as Error).message);
+      }
+    }
+
+    return Outcome.error(result.getError());
+  }
+
+  /**
+   * Get user's posts (all or paginated)
+   */
+  static async getUserPosts(
+    userId: string,
+    limit: number = 20,
+    offset: number = 0
+  ): Promise<Outcome<FeedPost[]>> {
+    const result = await apiClient.get<{ posts: any[] }>(`/users/${userId}/posts`, {
+      limit,
+      offset,
+    });
+
+    if (result.isOk()) {
+      try {
+        const posts = (result.getValue().posts || []).map(FeedPostModel.fromJson);
+        return Outcome.ok(posts);
+      } catch (error) {
+        return Outcome.error((error as Error).message);
+      }
+    }
+
+    return Outcome.error(result.getError());
+  }
 }
