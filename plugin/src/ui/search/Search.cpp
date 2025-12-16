@@ -768,18 +768,39 @@ void Search::drawResults(juce::Graphics &g) {
         };
         card->onFollowToggled = [this](const DiscoveredUser &user, bool willFollow) {
           if (appStore != nullptr) {
-            // Use AppStore to handle follow/unfollow with cache invalidation
-            if (willFollow) {
-              appStore->followUser(user.id);
-            } else {
-              appStore->unfollowUser(user.id);
-            }
             // Update UI optimistically
             for (auto *card : userCards) {
               if (card && card->getUserId() == user.id) {
                 card->setIsFollowing(willFollow);
                 break;
               }
+            }
+            // Use AppStore reactive observables to handle follow/unfollow with cache invalidation
+            juce::Component::SafePointer<Search> safeThis(this);
+            if (willFollow) {
+              appStore->followUserObservable(user.id).subscribe(
+                  [safeThis](int) {
+                    if (safeThis == nullptr)
+                      return;
+                    Log::debug("Search: User followed successfully");
+                  },
+                  [safeThis](std::exception_ptr error) {
+                    if (safeThis == nullptr)
+                      return;
+                    Log::error("Search: Failed to follow user");
+                  });
+            } else {
+              appStore->unfollowUserObservable(user.id).subscribe(
+                  [safeThis](int) {
+                    if (safeThis == nullptr)
+                      return;
+                    Log::debug("Search: User unfollowed successfully");
+                  },
+                  [safeThis](std::exception_ptr error) {
+                    if (safeThis == nullptr)
+                      return;
+                    Log::error("Search: Failed to unfollow user");
+                  });
             }
           }
         };
