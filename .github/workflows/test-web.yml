@@ -137,7 +137,7 @@ jobs:
       - name: Run E2E tests
         run: |
           cd web
-          pnpm run test:e2e
+          npx playwright test
         env:
           BACKEND_URL: http://localhost:8787
           DATABASE_URL: postgres://sidechain:test_password@localhost:5433/sidechain_test
