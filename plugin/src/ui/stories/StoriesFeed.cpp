@@ -25,8 +25,77 @@ StoriesFeed::StoriesFeed() {
 }
 
 StoriesFeed::~StoriesFeed() {
+  unbindFromStore();
   stopTimer();
   Log::info("StoriesFeed destroyed");
+}
+
+//==============================================================================
+// Store integration methods
+void StoriesFeed::bindToStore(std::shared_ptr<Sidechain::Stores::StoriesStore> store) {
+  Log::debug("StoriesFeed: Binding to StoriesStore");
+
+  storiesStore = store;
+  if (!storiesStore)
+    return;
+
+  // Subscribe to store changes
+  juce::Component::SafePointer<StoriesFeed> safeThis(this);
+  storeUnsubscriber = storiesStore->subscribe([safeThis](const Sidechain::Stores::StoriesState &state) {
+    if (!safeThis)
+      return;
+
+    auto groups = state.feedUserStories;
+
+    juce::MessageManager::callAsync([safeThis, groups]() {
+      if (!safeThis)
+        return;
+
+      // Convert store format to UI format
+      std::vector<UserStories> newUserStoriesGroups;
+      for (const auto &group : groups) {
+        UserStories uiGroup;
+        uiGroup.userId = group.userId;
+        uiGroup.username = group.username;
+        uiGroup.avatarUrl = group.avatarUrl;
+        uiGroup.hasUnviewed = group.hasUnviewed;
+
+        for (const auto &story : group.stories) {
+          StoryData uiStory;
+          uiStory.id = story.id;
+          uiStory.userId = story.userId;
+          uiStory.username = story.username;
+          uiStory.userAvatarUrl = story.userAvatarUrl;
+          uiStory.audioUrl = story.audioUrl;
+          uiStory.filename = story.filename;
+          uiStory.midiFilename = story.midiFilename;
+          uiStory.audioDuration = story.audioDuration;
+          uiStory.midiData = story.midiData;
+          uiStory.midiPatternId = story.midiPatternId;
+          uiStory.viewCount = story.viewCount;
+          uiStory.viewed = story.viewed;
+          uiStory.expiresAt = story.expiresAt;
+          uiStory.createdAt = story.createdAt;
+          uiGroup.stories.push_back(uiStory);
+        }
+        newUserStoriesGroups.push_back(uiGroup);
+      }
+
+      safeThis->userStoriesGroups = newUserStoriesGroups;
+      safeThis->repaint();
+    });
+  });
+
+  Log::debug("StoriesFeed: Successfully bound to StoriesStore");
+}
+
+void StoriesFeed::unbindFromStore() {
+  if (storeUnsubscriber) {
+    storeUnsubscriber();
+    storeUnsubscriber = nullptr;
+  }
+  storiesStore = nullptr;
+  Log::debug("StoriesFeed: Unbound from StoriesStore");
 }
 
 //==============================================================================
