@@ -106,6 +106,36 @@ var soundPostsCmd = &cobra.Command{
 	},
 }
 
+var soundFeaturedCmd = &cobra.Command{
+	Use:   "featured",
+	Short: "Browse featured sounds",
+	Long:  "View hand-picked featured sounds from the community",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		soundService := service.NewSoundPagesService()
+		return soundService.BrowseFeaturedSounds(feedPage, feedPageSize)
+	},
+}
+
+var soundRecentCmd = &cobra.Command{
+	Use:   "recent",
+	Short: "Browse recent sounds",
+	Long:  "View recently uploaded sounds",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		soundService := service.NewSoundPagesService()
+		return soundService.BrowseRecentSounds(feedPage, feedPageSize)
+	},
+}
+
+var soundUpdateCmd = &cobra.Command{
+	Use:   "update",
+	Short: "Update sound metadata",
+	Long:  "Edit sound name and description",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		soundService := service.NewSoundPagesService()
+		return soundService.UpdateSoundMetadata()
+	},
+}
+
 var discoverCmd = &cobra.Command{
 	Use:   "discover",
 	Short: "Discover users and content",
@@ -184,6 +214,12 @@ func init() {
 	soundPostsCmd.Flags().IntVar(&feedPage, "page", 1, "Page number")
 	soundPostsCmd.Flags().IntVar(&feedPageSize, "page-size", 10, "Results per page")
 
+	soundFeaturedCmd.Flags().IntVar(&feedPage, "page", 1, "Page number")
+	soundFeaturedCmd.Flags().IntVar(&feedPageSize, "page-size", 20, "Results per page")
+
+	soundRecentCmd.Flags().IntVar(&feedPage, "page", 1, "Page number")
+	soundRecentCmd.Flags().IntVar(&feedPageSize, "page-size", 20, "Results per page")
+
 	discoverTrendingUsersCmd.Flags().IntVar(&feedPage, "page", 1, "Page number")
 	discoverTrendingUsersCmd.Flags().IntVar(&feedPageSize, "page-size", 10, "Results per page")
 
@@ -212,6 +248,9 @@ func init() {
 	soundCmd.AddCommand(soundTrendingCmd)
 	soundCmd.AddCommand(soundInfoCmd)
 	soundCmd.AddCommand(soundPostsCmd)
+	soundCmd.AddCommand(soundFeaturedCmd)
+	soundCmd.AddCommand(soundRecentCmd)
+	soundCmd.AddCommand(soundUpdateCmd)
 
 	discoverCmd.AddCommand(discoverTrendingUsersCmd)
 	discoverCmd.AddCommand(discoverFeaturedCmd)
