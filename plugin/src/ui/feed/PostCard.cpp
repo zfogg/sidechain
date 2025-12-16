@@ -17,10 +17,16 @@ using namespace Sidechain::UI::Animations;
 PostCard::PostCard(Sidechain::Stores::AppStore *store) : AppStoreComponent(nullptr) {
   setSize(600, CARD_HEIGHT);
 
-  // Set up hover state
+  // Set up hover state - triggers visual updates and shows action buttons
   hoverState.onHoverChanged = [this](bool hovered) {
-    (void)hovered; // hovered state triggers repaint via internal mechanism
-    repaint();
+    // Use hovered state to control visibility of hover effects
+    if (hovered) {
+      // Show hover effects: highlight, action buttons, and interactive elements
+      repaint();
+    } else {
+      // Hide hover effects when mouse leaves
+      repaint();
+    }
   };
 
   // Set up long-press detector for emoji reactions
