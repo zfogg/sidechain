@@ -48,6 +48,14 @@ export function Navigation() {
               Feed
             </Button>
             <Button
+              variant={isActive('/discover') ? 'default' : 'ghost'}
+              onClick={() => navigate('/discover')}
+              className="gap-2"
+            >
+              <span>✨</span>
+              Discover
+            </Button>
+            <Button
               variant={isActive('/upload') ? 'default' : 'ghost'}
               onClick={() => navigate('/upload')}
               className="gap-2"
@@ -142,6 +150,15 @@ export function Navigation() {
           >
             <span>📰</span>
             Feed
+          </Button>
+          <Button
+            variant={isActive('/discover') ? 'default' : 'outline'}
+            onClick={() => navigate('/discover')}
+            size="sm"
+            className="gap-1 whitespace-nowrap"
+          >
+            <span>✨</span>
+            Discover
           </Button>
           <Button
             variant={isActive('/upload') ? 'default' : 'outline'}
