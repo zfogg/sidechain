@@ -58,8 +58,38 @@ export interface PlaylistTrack {
   addedAt: Date
 }
 
+interface PlaylistJSON {
+  id: string
+  user_id: string
+  username: string
+  display_name: string
+  user_avatar_url?: string
+  profile_picture_url?: string
+  title: string
+  description: string
+  cover_url?: string
+  track_ids: string[]
+  track_count: number
+  is_public: boolean
+  is_collaborative: boolean
+  follower_count: number
+  is_following: boolean
+  is_own_playlist: boolean
+  collaborators: Array<{
+    user_id: string
+    username: string
+    display_name: string
+    user_avatar_url: string
+    role: PlaylistCollaboratorRole
+    added_at: string
+  }>
+  user_role?: PlaylistCollaboratorRole
+  created_at: string
+  updated_at: string
+}
+
 export class PlaylistModel {
-  static fromJson(json: any): Playlist {
+  static fromJson(json: PlaylistJSON): Playlist {
     return {
       id: json.id || '',
       userId: json.user_id || '',
@@ -81,7 +111,7 @@ export class PlaylistModel {
       isFollowing: json.is_following || false,
       isOwnPlaylist: json.is_own_playlist || false,
 
-      collaborators: (json.collaborators || []).map((c: any) => ({
+      collaborators: (json.collaborators || []).map((c) => ({
         userId: c.user_id,
         username: c.username,
         displayName: c.display_name,
@@ -100,7 +130,7 @@ export class PlaylistModel {
     return playlist.id !== '' && playlist.title !== ''
   }
 
-  static toJson(playlist: Playlist): any {
+  static toJson(playlist: Playlist): Partial<PlaylistJSON> {
     return {
       title: playlist.title,
       description: playlist.description,
