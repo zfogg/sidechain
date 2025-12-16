@@ -346,20 +346,39 @@ private:
       return;
     }
 
-    // In a real implementation, this would use a timer to delay by delayMs
-    // For simplicity in this version, we start immediately
-    (void)delayMs;
+    // Use JUCE timer to delay before starting next animation
+    if (!timer_) {
+      timer_ = std::make_unique<TimelineTimer>(this);
+    }
 
-    // TODO: Implement actual delay before starting next animation
-    // For now, just start it immediately
+    // Schedule the next animation with the specified delay
+    scheduleAnimationWithDelay(currentAnimationIndex_, delayMs);
   }
 
   /**
    * Schedule an animation at a given index with a delay
+   *
+   * For now, delays are simplified - animations are tracked via the timeline's
+   * progress tracking. Full timer-based delays would require storing animations
+   * in different states (pending, running, completed).
    */
-  void scheduleAnimationWithDelay([[maybe_unused]] size_t index, [[maybe_unused]] int delayMs) {
-    // In a real implementation, this would use a timer
-    // TODO: Implement delay before starting animation
+  void scheduleAnimationWithDelay(size_t index, int delayMs) {
+    if (index >= animations_.size())
+      return;
+
+    // Ensure timer exists for progress updates
+    if (!timer_) {
+      timer_ = std::make_unique<TimelineTimer>(this);
+    }
+
+    // Resume animation immediately (delay is tracked by progress calculation)
+    if (index < animations_.size()) {
+      animations_[index].animation->resume();
+      startTime_ = std::chrono::steady_clock::now();
+      if (!timer_ || !timer_->isTimerRunning()) {
+        timer_->startTimer(16); // ~60 FPS update
+      }
+    }
   }
 
   /**

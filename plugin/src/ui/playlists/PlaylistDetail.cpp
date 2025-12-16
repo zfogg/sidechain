@@ -315,20 +315,28 @@ void PlaylistDetail::drawPlaylistInfo(juce::Graphics &g, juce::Rectangle<int> &b
 
 void PlaylistDetail::drawActionButtons(juce::Graphics &g, juce::Rectangle<int> &bounds) {
   auto buttonsBounds = bounds.removeFromTop(BUTTON_HEIGHT + 8).reduced(PADDING, 0);
-  (void)buttonsBounds; // Used implicitly in button bounds calculations below
 
-  // Play button
-  auto playBounds = getPlayButtonBounds();
+  // Layout buttons dynamically within provided bounds
+  // Calculate button sizes proportionally
+  const int buttonGap = 8;
+  const int numButtons = canEdit() ? 3 : 2; // Play, Add Track (if can edit), Share
+  const int totalGapWidth = buttonGap * (numButtons - 1);
+  const int totalButtonWidth = buttonsBounds.getWidth() - totalGapWidth;
+  const int buttonWidth = totalButtonWidth / numButtons;
+
+  // Play button (always first, highlighted primary action)
+  auto playBounds = buttonsBounds.removeFromLeft(buttonWidth);
   bool playHovered = playBounds.contains(getMouseXYRelative());
   g.setColour(playHovered ? SidechainColors::coralPink().brighter(0.2f) : SidechainColors::coralPink());
   g.fillRoundedRectangle(playBounds.toFloat(), 8.0f);
   g.setColour(SidechainColors::textPrimary());
   g.setFont(juce::Font(juce::FontOptions().withHeight(14.0f)).boldened());
   g.drawText("▶ Play All", playBounds, juce::Justification::centred);
+  buttonsBounds.removeFromLeft(buttonGap);
 
   // Add track button (if can edit)
   if (canEdit()) {
-    auto addBounds = getAddTrackButtonBounds();
+    auto addBounds = buttonsBounds.removeFromLeft(buttonWidth);
     bool addHovered = addBounds.contains(getMouseXYRelative());
     g.setColour(addHovered ? SidechainColors::surface().brighter(0.1f) : SidechainColors::surface());
     g.fillRoundedRectangle(addBounds.toFloat(), 8.0f);
@@ -337,10 +345,11 @@ void PlaylistDetail::drawActionButtons(juce::Graphics &g, juce::Rectangle<int> &
     g.setColour(SidechainColors::textPrimary());
     g.setFont(14.0f);
     g.drawText("+ Add Track", addBounds, juce::Justification::centred);
+    buttonsBounds.removeFromLeft(buttonGap);
   }
 
-  // Share button
-  auto shareBounds = getShareButtonBounds();
+  // Share button (takes remaining space)
+  auto shareBounds = buttonsBounds;
   bool shareHovered = shareBounds.contains(getMouseXYRelative());
   g.setColour(shareHovered ? SidechainColors::surface().brighter(0.1f) : SidechainColors::surface());
   g.fillRoundedRectangle(shareBounds.toFloat(), 8.0f);

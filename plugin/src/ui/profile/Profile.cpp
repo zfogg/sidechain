@@ -508,38 +508,53 @@ void Profile::drawStats(juce::Graphics &g, juce::Rectangle<int> bounds) {
 }
 
 void Profile::drawActionButtons(juce::Graphics &g, juce::Rectangle<int> bounds) {
-  (void)bounds; // bounds provides the recommended drawing area for action buttons (though internal helper methods may override)
+  // Use provided bounds for dynamic action button layout
   bool isOwnProfile = profile.isOwnProfile(currentUserId);
 
   if (isOwnProfile) {
     // Horizontal button row: Settings | Saved | Archived | Notifications
+    // Layout buttons within provided bounds with responsive sizing
+    auto buttonRow = bounds.reduced(PADDING / 2);
+    const int buttonCount = 4;
+    const int buttonGap = 6;
+    const int totalGapWidth = buttonGap * (buttonCount - 1);
+    const int totalButtonWidth = buttonRow.getWidth() - totalGapWidth;
+    const int buttonWidth = totalButtonWidth / buttonCount;
+    const int buttonHeight = 32;
 
     // Settings button (opens EditProfile with all settings)
-    auto editBounds = getEditButtonBounds();
+    auto editBounds = buttonRow.removeFromLeft(buttonWidth);
+    editBounds = editBounds.withHeight(buttonHeight).withCentre(editBounds.getCentre());
     g.setColour(Colors::badge);
     g.fillRoundedRectangle(editBounds.toFloat(), 6.0f);
     g.setColour(Colors::textPrimary);
     g.setFont(12.0f);
     g.drawText("Settings", editBounds, juce::Justification::centred);
+    buttonRow.removeFromLeft(buttonGap);
 
     // Saved Posts button
-    auto savedBounds = getSavedPostsButtonBounds();
+    auto savedBounds = buttonRow.removeFromLeft(buttonWidth);
+    savedBounds = savedBounds.withHeight(buttonHeight).withCentre(savedBounds.getCentre());
     g.setColour(Colors::badge);
     g.fillRoundedRectangle(savedBounds.toFloat(), 6.0f);
     g.setColour(Colors::textPrimary);
     g.setFont(12.0f);
     g.drawText("Saved", savedBounds, juce::Justification::centred);
+    buttonRow.removeFromLeft(buttonGap);
 
     // Archived Posts button
-    auto archivedBounds = getArchivedPostsButtonBounds();
+    auto archivedBounds = buttonRow.removeFromLeft(buttonWidth);
+    archivedBounds = archivedBounds.withHeight(buttonHeight).withCentre(archivedBounds.getCentre());
     g.setColour(Colors::badge);
     g.fillRoundedRectangle(archivedBounds.toFloat(), 6.0f);
     g.setColour(Colors::textPrimary);
     g.setFont(12.0f);
     g.drawText("Archived", archivedBounds, juce::Justification::centred);
+    buttonRow.removeFromLeft(buttonGap);
 
-    // Notifications button
-    auto notifBounds = getNotificationSettingsButtonBounds();
+    // Notifications button (takes remaining space)
+    auto notifBounds = buttonRow;
+    notifBounds = notifBounds.withHeight(buttonHeight).withCentre(notifBounds.getCentre());
     g.setColour(Colors::badge);
     g.fillRoundedRectangle(notifBounds.toFloat(), 6.0f);
     g.setColour(Colors::textPrimary);

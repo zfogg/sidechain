@@ -374,11 +374,12 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   playlistDetailComponent->setNetworkClient(networkClient.get());
   playlistDetailComponent->setCurrentUserId(appStore.getState().user.userId);
   playlistDetailComponent->onBackPressed = [this]() { navigateBack(); };
-  playlistDetailComponent->onPostSelected = [](const juce::String &postId) {
-    // Navigate to post (or play post)
-    // For now, just play the post
-    // TODO: Navigate to post detail view when implemented
-    (void)postId; // Suppress unused parameter warning
+  playlistDetailComponent->onPostSelected = [this](const juce::String &postId) {
+    if (!postId.isEmpty()) {
+      // Post selected in playlist - navigate to feed to show the post
+      showView(AppView::PostsFeed);
+      Log::info("PluginEditor: Selected post from playlist: " + postId);
+    }
   };
   playlistDetailComponent->onAddTrack = [this]() {
     // Show add track dialog - navigate to feed or show post picker
