@@ -54,7 +54,7 @@ function MessagesContent() {
 
         {/* Desktop & Mobile: Show selected conversation */}
         {channelId && (
-          <>
+          <div className="flex-1 flex flex-col w-full min-w-0 overflow-hidden">
             {isLoading ? (
               <div className="flex-1 flex items-center justify-center">
                 <Spinner size="lg" />
@@ -72,7 +72,7 @@ function MessagesContent() {
                 </div>
               </div>
             )}
-          </>
+          </div>
         )}
 
         {/* Desktop: Show empty state when no channel selected */}
