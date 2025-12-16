@@ -6,6 +6,7 @@ import { useLikeMutation, useSaveMutation, usePlayTrackMutation } from '@/hooks/
 import { createAudioPlayer, formatTime, formatGenres, type AudioPlayer } from '@/utils/audio'
 import { useUIStore } from '@/stores/useUIStore'
 import { CommentsPanel } from '@/components/comments/CommentsPanel'
+import { ReportButton } from '@/components/report/ReportButton'
 
 interface PostCardProps {
   post: FeedPost
@@ -301,26 +302,14 @@ export function PostCard({ post }: PostCardProps) {
           <span className="hidden sm:inline">Save</span>
         </Button>
 
-        <Button
+        <ReportButton
+          type="post"
+          targetId={post.id}
+          targetName={post.filename}
           variant="ghost"
           size="sm"
-          className="flex-1 gap-2"
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8.684 13.342C9.539 15.229 11.42 16.5 13.5 16.5c1.628 0 3.139-.58 4.294-1.556m0 0h3.61m-9.167 3.909A9.015 9.015 0 0112 21.75m.64-5.555a6 6 0 11-8.933-8.933m0 0l3.159-3.159a2 2 0 012.828 0L21.75 7.757m0 0l-4.244-4.243m4.244 4.243L9.100 3.513"
-            />
-          </svg>
-          <span className="hidden sm:inline">Share</span>
-        </Button>
+          showLabel={true}
+        />
       </div>
       </div>
 
