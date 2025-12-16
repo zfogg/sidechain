@@ -75,6 +75,8 @@ public:
   void toggleLike(const juce::String &postId);
   void toggleSave(const juce::String &postId);
   void toggleRepost(const juce::String &postId);
+  void toggleMute(const juce::String &postId, bool isMuted);
+  void toggleFollow(const juce::String &postId, bool willFollow);
   void addReaction(const juce::String &postId, const juce::String &emoji);
   void loadSavedPosts();
   void loadMoreSavedPosts();
@@ -82,6 +84,13 @@ public:
   void loadArchivedPosts();
   void loadMoreArchivedPosts();
   void restorePost(const juce::String &postId);
+
+  //==============================================================================
+  // Drafts Methods (Draft.cpp)
+
+  void loadDrafts();
+  void deleteDraft(const juce::String &draftId);
+  void clearAutoRecoveryDraft();
 
   //==============================================================================
   // User/Profile Methods (User.cpp)

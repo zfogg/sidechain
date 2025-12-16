@@ -4,18 +4,14 @@
 #==============================================================================
 
 add_library(SidechainStores STATIC
-    # Legacy stores (to be deprecated)
-    ${CMAKE_CURRENT_SOURCE_DIR}/UserDataStore.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/UserDataStore.h
+    # Core Store Framework
+    ${CMAKE_CURRENT_SOURCE_DIR}/Store.h
     ${CMAKE_CURRENT_SOURCE_DIR}/FeedDataManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/FeedDataManager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ImageCache.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ImageCache.h
     ${CMAKE_CURRENT_SOURCE_DIR}/DraftStorage.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/DraftStorage.h
-
-    # Core Store Framework
-    ${CMAKE_CURRENT_SOURCE_DIR}/Store.h
 
     # Unified AppStore (Phase 3 - replaces all individual stores)
     ${CMAKE_CURRENT_SOURCE_DIR}/AppStore.h
