@@ -17,6 +17,7 @@ Playlists::Playlists() {
 
 Playlists::~Playlists() {
   Log::debug("PlaylistsComponent: Destroying");
+  unbindFromStore();
   scrollBar.removeListener(this);
 }
 
@@ -24,6 +25,54 @@ Playlists::~Playlists() {
 void Playlists::setNetworkClient(NetworkClient *client) {
   networkClient = client;
   Log::debug("PlaylistsComponent: NetworkClient set " + juce::String(client != nullptr ? "(valid)" : "(null)"));
+}
+
+//==============================================================================
+// Store integration methods
+void Playlists::bindToStore(std::shared_ptr<Sidechain::Stores::PlaylistStore> store) {
+  Log::debug("Playlists: Binding to PlaylistStore");
+
+  playlistStore = store;
+  if (!playlistStore)
+    return;
+
+  // Subscribe to store changes
+  juce::Component::SafePointer<Playlists> safeThis(this);
+  storeUnsubscriber = playlistStore->subscribe([safeThis](const Sidechain::Stores::PlaylistState &state) {
+    if (!safeThis)
+      return;
+
+    auto playlistsArray = state.filteredPlaylists;
+    auto isLoadingState = state.isLoading;
+    auto errorMsg = state.errorMessage;
+
+    juce::MessageManager::callAsync([safeThis, playlistsArray, isLoadingState, errorMsg]() {
+      if (!safeThis)
+        return;
+
+      safeThis->playlists = playlistsArray;
+      safeThis->isLoading = isLoadingState;
+      safeThis->errorMessage = errorMsg;
+      safeThis->updateScrollBounds();
+      safeThis->repaint();
+    });
+  });
+
+  Log::debug("Playlists: Successfully bound to PlaylistStore");
+}
+
+void Playlists::unbindFromStore() {
+  if (storeUnsubscriber) {
+    storeUnsubscriber();
+    storeUnsubscriber = nullptr;
+  }
+  playlistStore = nullptr;
+  Log::debug("Playlists: Unbound from PlaylistStore");
+}
+
+void Playlists::handleStoreStateChanged(const Sidechain::Stores::PlaylistState &state) {
+  // This callback is handled inline in bindToStore via lambda
+  // Keeping this method for consistency with other components
 }
 
 //==============================================================================
