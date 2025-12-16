@@ -141,11 +141,12 @@ export function NewMessageDialog({ isOpen, onClose }: { isOpen: boolean; onClose
                       ? 'border-l-2 border-coral-pink'
                       : ''
                   }`}
-                  style={
-                    selectedUser?.id === user.id
-                      ? { backgroundColor: 'rgba(253, 119, 146, 0.1)' }
-                      : { backgroundColor: '#2e2e34' }
-                  }
+                  style={{
+                    backgroundColor:
+                      selectedUser?.id === user.id
+                        ? 'rgba(253, 119, 146, 0.1)'
+                        : '#2e2e34',
+                  }}
                 >
                   <div className="flex items-center gap-3">
                     <div className="relative flex-shrink-0">
