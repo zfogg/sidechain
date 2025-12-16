@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 
 interface DirectMessageButtonProps {
   userId: string
+  displayName?: string
 }
 
 /**

@@ -2,10 +2,10 @@ import { useQuery } from '@tanstack/react-query'
 import { FeedClient } from '@/api/FeedClient'
 import { FeedPost } from '@/models/FeedPost'
 import { Spinner } from '@/components/ui/spinner'
-import { formatTime } from '@/utils/audio'
 
 interface PinnedPostsSectionProps {
   userId: string
+  displayName?: string
 }
 
 /**

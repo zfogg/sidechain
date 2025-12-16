@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import type { FeedPost } from '@/models/FeedPost'
+import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import {
   DropdownMenu,

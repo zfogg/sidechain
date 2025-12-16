@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom'
 
 interface RemixChainProps {
   postId: string
+  showSourceLink?: boolean
 }
 
 /**
