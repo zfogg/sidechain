@@ -233,8 +233,10 @@ void AppStore::updateUserState(std::function<void(UserState &)> updater) {
   updateState([updater](AppState &state) { updater(state.user); });
 
   // Notify user subscribers
+  // Copy subscribers map before iterating to avoid iterator corruption if callbacks modify it
   auto currentState = getState();
-  for (const auto &[id, callback] : userSubscribers) {
+  auto subscribersCopy = userSubscribers;
+  for (const auto &[id, callback] : subscribersCopy) {
     try {
       callback(currentState.user);
     } catch (const std::exception &e) {
@@ -247,8 +249,10 @@ void AppStore::updateChatState(std::function<void(ChatState &)> updater) {
   updateState([updater](AppState &state) { updater(state.chat); });
 
   // Notify chat subscribers
+  // Copy subscribers map before iterating to avoid iterator corruption if callbacks modify it
   auto currentState = getState();
-  for (const auto &[id, callback] : chatSubscribers) {
+  auto subscribersCopy = chatSubscribers;
+  for (const auto &[id, callback] : subscribersCopy) {
     try {
       callback(currentState.chat);
     } catch (const std::exception &e) {

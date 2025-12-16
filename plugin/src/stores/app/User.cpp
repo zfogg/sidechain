@@ -330,7 +330,7 @@ void AppStore::handleProfileFetchSuccess(const juce::var &data) {
   // Cache the profile data in memory cache (10-minute TTL)
   setCached<juce::var>("user:profile", data, 600);
 
-  updateUserState([&data](UserState &state) {
+  updateUserState([data](UserState &state) {
     state.isFetchingProfile = false;
     state.userError = "";
 
