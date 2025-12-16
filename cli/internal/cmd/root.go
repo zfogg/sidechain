@@ -82,6 +82,7 @@ func init() {
 	rootCmd.AddCommand(errorCmd)
 	rootCmd.AddCommand(recommendCmd)
 	rootCmd.AddCommand(projectCmd)
+	rootCmd.AddCommand(searchCmd)
 	rootCmd.AddCommand(adminCmd)
 	rootCmd.AddCommand(versionCmd)
 }
