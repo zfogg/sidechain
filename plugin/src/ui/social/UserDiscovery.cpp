@@ -267,34 +267,83 @@ void UserDiscovery::drawSectionHeader(juce::Graphics &g, juce::Rectangle<int> bo
   g.drawText(title, bounds, juce::Justification::centredLeft);
 }
 
-void UserDiscovery::drawTrendingSection([[maybe_unused]] juce::Graphics &g, juce::Rectangle<int> &bounds) {
-  // User cards are drawn by their own components
-  for (int i = 0; i < juce::jmin(5, trendingUsers.size()); ++i) {
+void UserDiscovery::drawTrendingSection(juce::Graphics &g, juce::Rectangle<int> &bounds) {
+  // Draw separators between trending user cards
+  int count = juce::jmin(5, trendingUsers.size());
+
+  for (int i = 0; i < count; ++i) {
     bounds.removeFromTop(USER_CARD_HEIGHT);
+
+    // Draw separator line between cards
+    if (i < count - 1) {
+      g.setColour(Colors::textSecondary.withAlpha(0.2f));
+      g.drawLine(static_cast<float>(bounds.getX() + PADDING), static_cast<float>(bounds.getY()),
+                 static_cast<float>(bounds.getRight() - PADDING), static_cast<float>(bounds.getY()), 0.5f);
+    }
   }
 }
 
-void UserDiscovery::drawFeaturedSection([[maybe_unused]] juce::Graphics &g, juce::Rectangle<int> &bounds) {
-  for (int i = 0; i < juce::jmin(5, featuredProducers.size()); ++i) {
+void UserDiscovery::drawFeaturedSection(juce::Graphics &g, juce::Rectangle<int> &bounds) {
+  // Draw separators between featured producer cards
+  int count = juce::jmin(5, featuredProducers.size());
+
+  for (int i = 0; i < count; ++i) {
     bounds.removeFromTop(USER_CARD_HEIGHT);
+
+    // Draw separator line between cards
+    if (i < count - 1) {
+      g.setColour(Colors::textSecondary.withAlpha(0.2f));
+      g.drawLine(static_cast<float>(bounds.getX() + PADDING), static_cast<float>(bounds.getY()),
+                 static_cast<float>(bounds.getRight() - PADDING), static_cast<float>(bounds.getY()), 0.5f);
+    }
   }
 }
 
-void UserDiscovery::drawSuggestedSection([[maybe_unused]] juce::Graphics &g, juce::Rectangle<int> &bounds) {
-  for (int i = 0; i < juce::jmin(5, suggestedUsers.size()); ++i) {
+void UserDiscovery::drawSuggestedSection(juce::Graphics &g, juce::Rectangle<int> &bounds) {
+  // Draw separators between suggested user cards
+  int count = juce::jmin(5, suggestedUsers.size());
+
+  for (int i = 0; i < count; ++i) {
     bounds.removeFromTop(USER_CARD_HEIGHT);
+
+    // Draw separator line between cards
+    if (i < count - 1) {
+      g.setColour(Colors::textSecondary.withAlpha(0.2f));
+      g.drawLine(static_cast<float>(bounds.getX() + PADDING), static_cast<float>(bounds.getY()),
+                 static_cast<float>(bounds.getRight() - PADDING), static_cast<float>(bounds.getY()), 0.5f);
+    }
   }
 }
 
-void UserDiscovery::drawSimilarSection([[maybe_unused]] juce::Graphics &g, juce::Rectangle<int> &bounds) {
-  for (int i = 0; i < juce::jmin(5, similarProducers.size()); ++i) {
+void UserDiscovery::drawSimilarSection(juce::Graphics &g, juce::Rectangle<int> &bounds) {
+  // Draw separators between similar producer cards
+  int count = juce::jmin(5, similarProducers.size());
+
+  for (int i = 0; i < count; ++i) {
     bounds.removeFromTop(USER_CARD_HEIGHT);
+
+    // Draw separator line between cards
+    if (i < count - 1) {
+      g.setColour(Colors::textSecondary.withAlpha(0.2f));
+      g.drawLine(static_cast<float>(bounds.getX() + PADDING), static_cast<float>(bounds.getY()),
+                 static_cast<float>(bounds.getRight() - PADDING), static_cast<float>(bounds.getY()), 0.5f);
+    }
   }
 }
 
-void UserDiscovery::drawRecommendedSection([[maybe_unused]] juce::Graphics &g, juce::Rectangle<int> &bounds) {
-  for (int i = 0; i < juce::jmin(5, recommendedToFollow.size()); ++i) {
+void UserDiscovery::drawRecommendedSection(juce::Graphics &g, juce::Rectangle<int> &bounds) {
+  // Draw separators between recommended user cards
+  int count = juce::jmin(5, recommendedToFollow.size());
+
+  for (int i = 0; i < count; ++i) {
     bounds.removeFromTop(USER_CARD_HEIGHT);
+
+    // Draw separator line between cards
+    if (i < count - 1) {
+      g.setColour(Colors::textSecondary.withAlpha(0.2f));
+      g.drawLine(static_cast<float>(bounds.getX() + PADDING), static_cast<float>(bounds.getY()),
+                 static_cast<float>(bounds.getRight() - PADDING), static_cast<float>(bounds.getY()), 0.5f);
+    }
   }
 }
 
@@ -473,10 +522,13 @@ void UserDiscovery::textEditorReturnKeyPressed(juce::TextEditor &editor) {
   }
 }
 
-void UserDiscovery::scrollBarMoved([[maybe_unused]] juce::ScrollBar *bar, double newRangeStart) {
-  scrollOffset = static_cast<int>(newRangeStart);
-  updateUserCardPositions();
-  repaint();
+void UserDiscovery::scrollBarMoved(juce::ScrollBar *bar, double newRangeStart) {
+  // Verify scroll bar callback is from our scroll bar instance
+  if (bar == &scrollBar) {
+    scrollOffset = static_cast<int>(newRangeStart);
+    updateUserCardPositions();
+    repaint();
+  }
 }
 
 //==============================================================================
