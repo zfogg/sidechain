@@ -152,11 +152,12 @@ void Playlists::loadPlaylists() {
     return;
   }
 
-  Log::debug("Playlists: Loading playlists from AppStore");
+  Log::debug("Playlists: Loading playlists from AppStore with filter: " +
+             juce::String(static_cast<int>(currentFilter)));
 
-  // TODO: Apply filter to playlists based on currentFilter
-  // For now, just load all playlists
+  // Load all playlists first, then apply the current filter
   appStore->loadPlaylists();
+  fetchPlaylists(currentFilter);
 }
 
 void Playlists::refresh() {

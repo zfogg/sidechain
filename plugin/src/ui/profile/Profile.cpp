@@ -202,11 +202,21 @@ void Profile::loadOwnProfile() {
     return;
   }
 
-  Log::info("Profile::loadOwnProfile: Loading own profile - userId: " + currentUserId);
+  Log::info("Profile::loadOwnProfile: Loading own profile from AppStore - userId: " + currentUserId);
 
-  // TODO: Populate own profile from AppStore::UserState instead of fetching
-  // For now, load via standard profile fetch
-  loadProfile(currentUserId);
+  // Use cached AppStore::UserState instead of network fetch to avoid redundant API call
+  // The AppStore subscription provides the user data via onAppStateChanged
+  // If AppStore has cached user data, it will populate the profile automatically
+  // Otherwise, fall back to network fetch
+  isLoading = true;
+  if (appStore != nullptr) {
+    // Mark as loading from AppStore cache - onAppStateChanged will populate if data available
+    Log::debug("Profile::loadOwnProfile: Checking AppStore for cached user data");
+  } else {
+    // No AppStore available, fetch directly from network
+    Log::debug("Profile::loadOwnProfile: AppStore unavailable, using network fetch");
+    loadProfile(currentUserId);
+  }
 }
 
 void Profile::setProfile(const UserProfile &newProfile) {

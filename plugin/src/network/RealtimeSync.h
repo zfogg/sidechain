@@ -309,9 +309,54 @@ public:
     if (it == syncHandlers.end())
       return;
 
-    // TODO: Parse operation from JSON and handle
-    // auto operation = deserializeOperation(message["operation"]);
-    // it->second->handleRemoteOperation(operation);
+    // Parse operation from JSON and handle
+    auto operation = deserializeOperation(message["operation"]);
+    if (operation != nullptr) {
+      it->second->handleRemoteOperation(operation);
+    }
+  }
+
+  /**
+   * Deserialize an Operation from JSON
+   *
+   * Supports operation types: insert, delete, modify
+   * Format:
+   *   { "type": "insert", "position": 0, "content": "text" }
+   *   { "type": "delete", "position": 0, "length": 5 }
+   *   { "type": "modify", "position": 0, "oldContent": "old", "newContent": "new" }
+   */
+  static std::shared_ptr<Operation> deserializeOperation(const juce::var &json) {
+    if (!json.hasProperty("type"))
+      return nullptr;
+
+    juce::String opType = json["type"];
+
+    if (opType == "insert") {
+      int position = json["position"];
+      juce::String content = json["content"];
+      auto op = std::make_shared<Util::CRDT::OperationalTransform::Insert>();
+      op->position = position;
+      op->content = content.toStdString();
+      return op;
+    } else if (opType == "delete") {
+      int position = json["position"];
+      int length = json["length"];
+      auto op = std::make_shared<Util::CRDT::OperationalTransform::Delete>();
+      op->position = position;
+      op->length = length;
+      return op;
+    } else if (opType == "modify") {
+      int position = json["position"];
+      juce::String oldContent = json["oldContent"];
+      juce::String newContent = json["newContent"];
+      auto op = std::make_shared<Util::CRDT::OperationalTransform::Modify>();
+      op->position = position;
+      op->oldContent = oldContent.toStdString();
+      op->newContent = newContent.toStdString();
+      return op;
+    }
+
+    return nullptr;
   }
 
 private:
