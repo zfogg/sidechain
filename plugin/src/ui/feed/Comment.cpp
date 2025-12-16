@@ -143,35 +143,44 @@ void CommentRow::drawContent(juce::Graphics &g, juce::Rectangle<int> bounds) {
   g.drawFittedText(comment.content, bounds, juce::Justification::topLeft, 3, 1.0f);
 }
 
-void CommentRow::drawActions(juce::Graphics &g, [[maybe_unused]] juce::Rectangle<int> bounds) {
-  // Like button
-  auto likeBounds = getLikeButtonBounds();
+void CommentRow::drawActions(juce::Graphics &g, juce::Rectangle<int> bounds) {
+  // Use provided bounds for responsive layout of action buttons
+  // Distribute available space proportionally
+  auto actionsBounds = bounds;
+  const int buttonGap = 16;
+  const int moreButtonWidth = 32; // Space for "..." button when hovering
+
+  // Like button - with icon and count
+  auto likeBounds = actionsBounds.removeFromLeft(60);
   juce::Colour likeColor = comment.isLiked ? SidechainColors::like() : SidechainColors::textMuted();
   g.setColour(likeColor);
   g.setFont(12.0f);
 
   juce::String heartIcon = comment.isLiked ? juce::String(juce::CharPointer_UTF8("\xE2\x99\xA5")) : // Filled heart
                                juce::String(juce::CharPointer_UTF8("\xE2\x99\xA1"));                // Empty heart
-  g.drawText(heartIcon, likeBounds.withWidth(16), juce::Justification::centredLeft);
+  g.drawText(heartIcon, likeBounds.removeFromLeft(16), juce::Justification::centredLeft);
 
   // Like count
   if (comment.likeCount > 0) {
-    g.drawText(StringFormatter::formatCount(comment.likeCount), likeBounds.withX(likeBounds.getX() + 18).withWidth(25),
+    g.drawText(StringFormatter::formatCount(comment.likeCount), likeBounds.removeFromLeft(25),
                juce::Justification::centredLeft);
   }
 
+  // Add gap
+  actionsBounds.removeFromLeft(buttonGap);
+
   // Reply button
-  auto replyBounds = getReplyButtonBounds();
+  auto replyBounds = actionsBounds.removeFromLeft(50);
   g.setColour(SidechainColors::textMuted());
   g.setFont(11.0f);
   g.drawText("Reply", replyBounds, juce::Justification::centredLeft);
 
-  // More button (for own comments or to report)
+  // More button (for own comments or to report) - takes remaining space when hovering
   if (hoverState.isHovered()) {
-    auto moreBounds = getMoreButtonBounds();
+    auto moreBounds = actionsBounds;
     g.setColour(SidechainColors::textMuted());
     g.setFont(14.0f);
-    g.drawText("...", moreBounds, juce::Justification::centred);
+    g.drawText("...", moreBounds.removeFromRight(moreButtonWidth), juce::Justification::centred);
   }
 }
 
@@ -1148,7 +1157,10 @@ static juce::Image loadImageFromURL(const juce::String &urlStr) {
 
   try {
     juce::URL url(urlStr);
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     auto inputStream = std::unique_ptr<juce::InputStream>(url.createInputStream(false));
+#pragma clang diagnostic pop
 
     if (inputStream == nullptr) {
       Log::error("loadImageFromURL: Failed to create input stream from URL: " + urlStr);
