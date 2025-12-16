@@ -38,6 +38,20 @@ func getConfigDir() (string, error) {
 	return filepath.Join(home, ".config", "sidechain", "cli"), nil
 }
 
+// getSystemConfigPaths returns platform-specific system config paths
+func getSystemConfigPaths() []string {
+	if runtime.GOOS == "windows" {
+		// Windows: %ProgramFiles%\Sidechain\cli\config.toml
+		return []string{filepath.Join(os.Getenv("ProgramFiles"), "Sidechain", "cli", "config.toml")}
+	}
+
+	// Unix-like systems: /etc/sidechain/cli/config.toml and /usr/local/etc/sidechain/cli/config.toml
+	return []string{
+		"/etc/sidechain/cli/config.toml",
+		"/usr/local/etc/sidechain/cli/config.toml",
+	}
+}
+
 // Init initializes the configuration
 func Init(configPath string) error {
 	// Determine config directory
@@ -62,12 +76,21 @@ func Init(configPath string) error {
 
 	// Setup Viper
 	viper.SetConfigType("toml")
-	viper.SetConfigFile(configFilePath)
 
-	// Set development defaults (override with config file values)
+	// Set development defaults
 	setDefaults()
 
-	// Read config file (optional - it might not exist yet)
+	// Load system config first (if exists) - serves as foundation
+	for _, sysConfigPath := range getSystemConfigPaths() {
+		if _, err := os.Stat(sysConfigPath); err == nil {
+			viper.SetConfigFile(sysConfigPath)
+			_ = viper.ReadInConfig()
+			break // Use first system config found
+		}
+	}
+
+	// Load user config second (overrides system config)
+	viper.SetConfigFile(configFilePath)
 	_ = viper.ReadInConfig()
 
 	return nil
