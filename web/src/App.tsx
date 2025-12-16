@@ -11,6 +11,7 @@ import { DeviceClaim } from '@/pages/DeviceClaim'
 import { Feed } from '@/pages/Feed'
 import { Settings } from '@/pages/Settings'
 import { Upload } from '@/pages/Upload'
+import { Profile } from '@/pages/Profile'
 
 /**
  * ProtectedRoute - Route guard that redirects to login if not authenticated
@@ -66,6 +67,16 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Upload />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Profile Routes (Protected) */}
+            <Route
+              path="/profile/:username"
+              element={
+                <ProtectedRoute>
+                  <Profile />
                 </ProtectedRoute>
               }
             />
