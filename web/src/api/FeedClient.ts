@@ -1,9 +1,21 @@
 import { apiClient } from './client'
 import { Outcome } from './types'
 import { FeedPostModel } from '../models/FeedPost'
-import type { FeedPost } from '../models/FeedPost'
+import type { FeedPost, FeedPostJSON } from '../models/FeedPost'
 
 export type FeedType = 'timeline' | 'global' | 'trending' | 'forYou';
+
+// API Response interfaces
+interface FeedActivitiesResponse {
+  activities: FeedPostJSON[]
+}
+
+// Handles both direct post return and wrapped post object
+type FeedPostResponse = FeedPostJSON | { post: FeedPostJSON }
+
+interface FeedPostsResponse {
+  posts: FeedPostJSON[]
+}
 
 /**
  * FeedClient - Modular API client for feed operations
@@ -26,7 +38,7 @@ export class FeedClient {
       forYou: '/feed/unified',
     };
 
-    const result = await apiClient.get<{ activities: any[] }>(endpoints[feedType], {
+    const result = await apiClient.get<FeedActivitiesResponse>(endpoints[feedType], {
       limit,
       offset,
     });
@@ -94,7 +106,7 @@ export class FeedClient {
     daw: string;
     genre: string[];
   }): Promise<Outcome<FeedPost>> {
-    const result = await apiClient.post<any>('/feed/post', data);
+    const result = await apiClient.post<FeedPostResponse>('/feed/post', data);
 
     if (result.isOk()) {
       try {
@@ -112,7 +124,7 @@ export class FeedClient {
    * Get single post by ID
    */
   static async getPost(postId: string): Promise<Outcome<FeedPost>> {
-    const result = await apiClient.get<any>(`/posts/${postId}`);
+    const result = await apiClient.get<FeedPostResponse>(`/posts/${postId}`);
 
     if (result.isOk()) {
       try {
@@ -130,7 +142,7 @@ export class FeedClient {
    * Get user's pinned posts (max 3)
    */
   static async getUserPinnedPosts(userId: string): Promise<Outcome<FeedPost[]>> {
-    const result = await apiClient.get<{ posts: any[] }>(`/users/${userId}/posts/pinned`);
+    const result = await apiClient.get<FeedPostsResponse>(`/users/${userId}/posts/pinned`);
 
     if (result.isOk()) {
       try {
@@ -152,7 +164,7 @@ export class FeedClient {
     limit: number = 20,
     offset: number = 0
   ): Promise<Outcome<FeedPost[]>> {
-    const result = await apiClient.get<{ posts: any[] }>(`/users/${userId}/posts`, {
+    const result = await apiClient.get<FeedPostsResponse>(`/users/${userId}/posts`, {
       limit,
       offset,
     });
