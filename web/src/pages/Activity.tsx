@@ -59,12 +59,12 @@ export function Activity() {
   const allStories: Ephemeral[] = getPagesFromData(data)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-bg-primary via-bg-secondary to-bg-tertiary">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-bg-primary via-bg-secondary to-bg-tertiary">
       {/* Header */}
-      <div className="sticky top-16 z-40 border-b border-border" style={{ backgroundColor: '#26262C' }}>
-        <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="border-b border-border" style={{ backgroundColor: '#26262C' }}>
+        <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold text-foreground">Activity</h1>
+            <h1 className="text-2xl font-bold text-foreground">Activity</h1>
             <div className="text-muted-foreground text-sm">
               {allStories.length} activities
             </div>
@@ -91,7 +91,7 @@ export function Activity() {
       </div>
 
       {/* Content */}
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-8">
         {isLoading && (
           <div className="flex items-center justify-center min-h-96">
             <Spinner size="lg" />
