@@ -466,7 +466,20 @@ void Search::performSearch() {
   // Perform search through AppStore based on current tab
   // State updates will come through onAppStateChanged subscription
   if (currentTab == ResultTab::Users) {
-    appStore->searchUsers(currentQuery);
+    // Use reactive observable for user search (with caching)
+    juce::Component::SafePointer<Search> safeThis(this);
+    appStore->searchUsersObservable(currentQuery)
+        .subscribe(
+            [safeThis](const juce::Array<juce::var> &users) {
+              if (safeThis == nullptr)
+                return;
+              Log::debug("Search: User search completed with " + juce::String(users.size()) + " results");
+            },
+            [safeThis](std::exception_ptr) {
+              if (safeThis == nullptr)
+                return;
+              Log::error("Search: User search failed");
+            });
   } else // Posts tab
   {
     appStore->searchPosts(currentQuery);
@@ -754,11 +767,12 @@ void Search::drawResults(juce::Graphics &g) {
             onUserSelected(user.id);
         };
         card->onFollowToggled = [this](const DiscoveredUser &user, bool willFollow) {
-          if (networkClient != nullptr) {
+          if (appStore != nullptr) {
+            // Use AppStore to handle follow/unfollow with cache invalidation
             if (willFollow) {
-              networkClient->followUser(user.id);
+              appStore->followUser(user.id);
             } else {
-              networkClient->unfollowUser(user.id);
+              appStore->unfollowUser(user.id);
             }
             // Update UI optimistically
             for (auto *card : userCards) {
