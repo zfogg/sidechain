@@ -1,4 +1,5 @@
-import { Suspense, lazy, BrowserRouter, Routes, Route, Navigate, useEffect } from 'react-router-dom'
+import { Suspense, lazy } from 'react'
+import { BrowserRouter, Routes, Route, Navigate, useEffect } from 'react-router-dom'
 import { QueryProvider } from '@/providers/QueryProvider'
 import { AuthProvider } from '@/providers/AuthProvider'
 import { ChatProvider } from '@/providers/ChatProvider'

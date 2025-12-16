@@ -8,6 +8,7 @@ import { useUIStore } from '@/stores/useUIStore'
 import { CommentsPanel } from '@/components/comments/CommentsPanel'
 import { ReportButton } from '@/components/report/ReportButton'
 import { AddToPlaylistDialog } from '@/components/playlists/AddToPlaylistDialog'
+import { WaveformDisplay } from '@/components/audio/WaveformDisplay'
 
 interface PostCardProps {
   post: FeedPost
@@ -192,20 +193,18 @@ export function PostCard({ post }: PostCardProps) {
           </div>
         </div>
 
-        {/* Progress Bar */}
+        {/* Waveform Display */}
         {post.audioUrl && (
           <>
-            <div
+            <WaveformDisplay
+              waveformUrl={post.waveformUrl}
+              progress={progress}
+              duration={duration}
+              isPlaying={isPlaying}
               onClick={handleSeek}
-              className="h-1 bg-muted rounded-full cursor-pointer hover:h-2 transition-all group"
-            >
-              <div
-                className="h-full bg-primary rounded-full transition-all group-hover:bg-primary/90"
-                style={{ width: `${progress * 100}%` }}
-              />
-            </div>
+            />
 
-            <div className="flex justify-between items-center text-xs text-muted-foreground">
+            <div className="flex justify-between items-center text-xs text-muted-foreground mt-2">
               <span>{timeDisplay}</span>
               <span>{post.playCount} plays</span>
             </div>

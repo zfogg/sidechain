@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useParams, Navigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useUserStore } from '@/stores/useUserStore'
@@ -7,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { useFollowMutation } from '@/hooks/mutations/useFollowMutation'
 import { DirectMessageButton } from '@/components/chat/DirectMessageButton'
+import { EditProfileDialog } from '@/components/profile/EditProfileDialog'
 
 interface ProfileUser {
   id: string
@@ -42,6 +44,7 @@ export function Profile() {
   const { username } = useParams<{ username: string }>()
   const { user: currentUser } = useUserStore()
   const { mutate: toggleFollow, isPending: isFollowPending } = useFollowMutation()
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
   if (!username) {
     return <Navigate to="/feed" replace />
@@ -135,7 +138,10 @@ export function Profile() {
 
                 {/* Edit Profile Button */}
                 {profile.isOwnProfile && (
-                  <Button className="h-10 px-6 bg-border/50 hover:bg-border/70 text-foreground font-semibold">
+                  <Button
+                    onClick={() => setIsEditDialogOpen(true)}
+                    className="h-10 px-6 bg-border/50 hover:bg-border/70 text-foreground font-semibold"
+                  >
                     Edit Profile
                   </Button>
                 )}
@@ -228,6 +234,14 @@ export function Profile() {
           </div>
         </div>
       </main>
+
+      {/* Edit Profile Dialog */}
+      {profile.isOwnProfile && currentUser && (
+        <EditProfileDialog
+          isOpen={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+        />
+      )}
     </div>
   )
 }
