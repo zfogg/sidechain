@@ -339,7 +339,13 @@ void AppStore::handleProfileFetchError(const juce::String &error) {
 }
 
 //==============================================================================
-// Image Fetching with Caching
+// Image Fetching with Multi-Level Caching
+//
+// Strategy: Memory -> File Cache -> HTTP Download
+// - Check memory cache first (fastest, in-process)
+// - Check file cache second (persists across app restarts)
+// - Download from HTTP if not found in either
+// - Store in both caches when downloading or loading from file cache
 
 void AppStore::fetchImage(const juce::String &url, std::function<void(const juce::Image &)> callback) {
   if (url.isEmpty() || !callback) {
@@ -349,14 +355,18 @@ void AppStore::fetchImage(const juce::String &url, std::function<void(const juce
     return;
   }
 
-  // Check cache first
+  // Level 1: Check memory cache + file cache (multi-level, returns to memory if needed)
+  // SidechainImageCache::getImage() implements the full multi-level strategy:
+  // 1. Checks memory first
+  // 2. Checks file cache if not in memory
+  // 3. Loads from file to memory if found
   auto cachedImage = imageCache.getImage(url);
   if (cachedImage) {
     juce::MessageManager::callAsync([callback, cachedImage]() { callback(*cachedImage); });
     return;
   }
 
-  // Download from HTTP
+  // Level 2: Download from HTTP (not in memory or file cache)
   Async::run<juce::Image>(
       [this, url]() {
         try {
@@ -382,7 +392,10 @@ void AppStore::fetchImage(const juce::String &url, std::function<void(const juce
             return juce::Image();
           }
 
-          // Cache the loaded image
+          // Cache downloaded image in both memory and file caches
+          // SidechainImageCache::cacheImage() stores in:
+          // 1. File cache (persists to disk)
+          // 2. Memory cache (fast in-process access)
           imageCache.cacheImage(url, image);
           return image;
         } catch (const std::exception &e) {
@@ -398,6 +411,8 @@ juce::Image AppStore::getCachedImage(const juce::String &url) {
     return juce::Image();
   }
 
+  // Uses multi-level cache (memory -> file cache)
+  // Returns immediately if found in either cache, loads to memory if found in file cache
   auto cachedImage = imageCache.getImage(url);
   return cachedImage ? *cachedImage : juce::Image();
 }

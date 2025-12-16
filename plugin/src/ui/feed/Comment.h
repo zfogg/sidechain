@@ -7,6 +7,12 @@
 #include "../../stores/AppStore.h"
 #include <JuceHeader.h>
 
+namespace Sidechain {
+namespace Stores {
+class AppStore;
+}
+} // namespace Sidechain
+
 //==============================================================================
 /**
  * Comment represents a single comment on a post
@@ -98,6 +104,11 @@ public:
   // Update like state
   void updateLikeCount(int count, bool liked);
 
+  // Set the app store for image caching
+  void setAppStore(Sidechain::Stores::AppStore *store) {
+    appStore = store;
+  }
+
   //==============================================================================
   // Callbacks
   std::function<void(const Comment &)> onUserClicked;
@@ -126,9 +137,7 @@ private:
   Comment comment;
   HoverState hoverState;
   bool isReply = false;
-
-  // Cached avatar image
-  juce::Image avatarImage;
+  Sidechain::Stores::AppStore *appStore = nullptr;
 
   //==============================================================================
   // Drawing methods

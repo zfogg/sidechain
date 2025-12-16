@@ -1,4 +1,5 @@
 #include "UserCard.h"
+#include "../../stores/AppStore.h"
 
 #include "../../util/HoverState.h"
 #include "../../util/Log.h"
@@ -18,10 +19,12 @@ UserCard::~UserCard() {}
 //==============================================================================
 void UserCard::setUser(const DiscoveredUser &newUser) {
   user = newUser;
-  avatarImage = juce::Image();
   Log::debug("UserCard: Setting user - ID: " + user.id + ", username: " + user.username);
 
-  // Load avatar via ImageCache
+  // Fetch avatar image via AppStore (with caching)
+  if (user.avatarUrl.isNotEmpty() && appStore) {
+    appStore->fetchImage(user.avatarUrl, [this](const juce::Image &) { repaint(); });
+  }
 
   repaint();
 }

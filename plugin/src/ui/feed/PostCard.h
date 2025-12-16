@@ -319,9 +319,6 @@ private:
   // Long-press detector for emoji reactions panel
   LongPressDetector longPressDetector{400}; // 400ms threshold
 
-  // Cached avatar image (loaded via ImageCache)
-  juce::Image avatarImage;
-
   // Waveform image view (loads PNG from CDN)
   WaveformImageView waveformView;
 
