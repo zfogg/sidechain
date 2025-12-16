@@ -439,5 +439,54 @@ void AppStore::getImage(const juce::String &url, std::function<void(const juce::
       [callback](const juce::Image &image) { callback(image); });
 }
 
+//==============================================================================
+// Reactive User Service Operations (Phase 3 - Memory Cache with 2-min TTL)
+//
+// Search users with automatic memory caching. Returns observable for
+// composable async operations.
+
+rxcpp::observable<juce::Array<juce::var>> AppStore::searchUsersObservable(const juce::String &query) {
+  auto cacheKey = "search:users:" + query;
+
+  return rxcpp::sources::create<juce::Array<juce::var>>([this, query, cacheKey](auto observer) {
+    // Check memory cache first (2 min TTL for search results)
+    if (auto cached = getCached<juce::Array<juce::var>>(cacheKey)) {
+      Util::logDebug("AppStore", "User search cache hit: " + query);
+      observer.on_next(*cached);
+      observer.on_completed();
+      return;
+    }
+
+    // Not in cache or expired - fetch from network via callback
+    Util::logDebug("AppStore", "User search fetching from network: " + query);
+    if (!networkClient) {
+      Util::logError("AppStore", "Network client not configured");
+      observer.on_next(juce::Array<juce::var>());
+      observer.on_completed();
+      return;
+    }
+
+    // Call NetworkClient::searchUsers with callback pattern
+    networkClient->searchUsers(query, 20, 0, [this, query, cacheKey, observer](Outcome<juce::var> result) {
+      if (result.isOk()) {
+        // Convert result to array of users
+        juce::Array<juce::var> users;
+        if (result.getValue().isArray()) {
+          users = juce::Array<juce::var>(result.getValue());
+        }
+
+        // Cache in memory (2 min TTL for search results)
+        setCached<juce::Array<juce::var>>(cacheKey, users, 2 * 60);
+        Util::logInfo("AppStore", "User search completed: " + query + " (" + juce::String(users.size()) + " results)");
+        observer.on_next(users);
+      } else {
+        Util::logError("AppStore", "User search error: " + result.getError());
+        observer.on_next(juce::Array<juce::var>());
+      }
+      observer.on_completed();
+    });
+  });
+}
+
 } // namespace Stores
 } // namespace Sidechain
