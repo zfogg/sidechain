@@ -47,3 +47,5 @@ export {
 } from "./dropdown-menu"
 
 export { Spinner } from "./spinner"
+
+export { Tabs, TabsList, TabsTrigger, TabsContent } from "./tabs"
