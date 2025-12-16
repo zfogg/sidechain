@@ -188,6 +188,42 @@ var discoverRecommendationsCmd = &cobra.Command{
 	},
 }
 
+var (
+	feedGenreFilter string
+	feedMinBPM      int
+	feedMaxBPM      int
+)
+
+var feedEnrichedCmd = &cobra.Command{
+	Use:   "enriched",
+	Short: "View enriched timeline with reaction counts",
+	Long:  "View your timeline with reaction counts and advanced enrichment",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		feedService := service.NewFeedService()
+		return feedService.ViewEnrichedTimeline(feedPage, feedPageSize)
+	},
+}
+
+var feedLatestCmd = &cobra.Command{
+	Use:   "latest",
+	Short: "View recent posts chronologically",
+	Long:  "View recently uploaded posts in chronological order",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		feedService := service.NewFeedService()
+		return feedService.ViewLatestFeed(feedPage, feedPageSize)
+	},
+}
+
+var feedForYouAdvancedCmd = &cobra.Command{
+	Use:   "for-you-advanced",
+	Short: "View personalized feed with filters",
+	Long:  "View personalized recommendations with optional genre and BPM filtering",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		feedService := service.NewFeedService()
+		return feedService.ViewForYouFeedAdvanced(feedPage, feedPageSize, feedGenreFilter, feedMinBPM, feedMaxBPM)
+	},
+}
+
 func init() {
 	// Pagination flags for feed commands
 	feedTimelineCmd.Flags().IntVar(&feedPage, "page", 1, "Page number")
@@ -235,11 +271,27 @@ func init() {
 	discoverRecommendationsCmd.Flags().IntVar(&feedPage, "page", 1, "Page number")
 	discoverRecommendationsCmd.Flags().IntVar(&feedPageSize, "page-size", 10, "Results per page")
 
+	// Enriched feed flags
+	feedEnrichedCmd.Flags().IntVar(&feedPage, "page", 1, "Page number")
+	feedEnrichedCmd.Flags().IntVar(&feedPageSize, "page-size", 10, "Results per page")
+
+	feedLatestCmd.Flags().IntVar(&feedPage, "page", 1, "Page number")
+	feedLatestCmd.Flags().IntVar(&feedPageSize, "page-size", 10, "Results per page")
+
+	feedForYouAdvancedCmd.Flags().IntVar(&feedPage, "page", 1, "Page number")
+	feedForYouAdvancedCmd.Flags().IntVar(&feedPageSize, "page-size", 10, "Results per page")
+	feedForYouAdvancedCmd.Flags().StringVar(&feedGenreFilter, "genre", "", "Filter by genre (e.g., 'electronic', 'hip-hop')")
+	feedForYouAdvancedCmd.Flags().IntVar(&feedMinBPM, "min-bpm", 0, "Minimum BPM filter")
+	feedForYouAdvancedCmd.Flags().IntVar(&feedMaxBPM, "max-bpm", 0, "Maximum BPM filter")
+
 	// Add subcommands
 	feedCmd.AddCommand(feedTimelineCmd)
 	feedCmd.AddCommand(feedGlobalCmd)
 	feedCmd.AddCommand(feedTrendingCmd)
 	feedCmd.AddCommand(feedForYouCmd)
+	feedCmd.AddCommand(feedEnrichedCmd)
+	feedCmd.AddCommand(feedLatestCmd)
+	feedCmd.AddCommand(feedForYouAdvancedCmd)
 	feedCmd.AddCommand(feedSearchCmd)
 	feedCmd.AddCommand(soundCmd)
 	feedCmd.AddCommand(discoverCmd)
