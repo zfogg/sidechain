@@ -29,9 +29,9 @@ void Header::setUserInfo(const juce::String &user, const juce::String &picUrl) {
   Log::info("Header::setUserInfo: Setting user info - username: " + user);
   username = user;
 
-  // Fetch avatar image via AppStore (with caching)
+  // Fetch avatar image via AppStore (handles all three cache levels: memory -> file -> HTTP)
   if (picUrl.isNotEmpty() && appStore) {
-    appStore->fetchImage(picUrl, [this](const juce::Image &) { repaint(); });
+    appStore->getImage(picUrl, [this](const juce::Image &) { repaint(); });
   }
 
   profilePicUrl = picUrl;
@@ -236,28 +236,14 @@ void Header::drawCircularProfilePic(juce::Graphics &g, juce::Rectangle<int> boun
     g.drawEllipse(bounds.toFloat().expanded(2.0f), 2.5f);
   }
 
-  // Try to get image from AppStore cache first
-  auto image = appStore ? appStore->getCachedImage(profilePicUrl) : juce::Image();
-
-  if (image.isValid()) {
-    // Draw cached image clipped to circle
-    juce::Path circlePath;
-    circlePath.addEllipse(bounds.toFloat());
-
-    g.saveState();
-    g.reduceClipRegion(circlePath);
-    g.drawImageAt(image, bounds.getX(), bounds.getY());
-    g.restoreState();
-  } else {
-    // Fallback: colored placeholder
-    g.setColour(SidechainColors::primary());
-    g.fillEllipse(bounds.toFloat());
-
-    // Trigger fetch if we have AppStore but no cached image
-    if (appStore && profilePicUrl.isNotEmpty()) {
-      appStore->fetchImage(profilePicUrl, [this](const juce::Image &) { repaint(); });
-    }
+  // Use unified getImage() - handles all three cache levels automatically (memory -> file -> HTTP)
+  if (appStore && profilePicUrl.isNotEmpty()) {
+    appStore->getImage(profilePicUrl, [this](const juce::Image &) { repaint(); });
   }
+
+  // Draw placeholder circle (will be replaced with actual image when loaded)
+  g.setColour(SidechainColors::primary());
+  g.fillEllipse(bounds.toFloat());
 
   // Border (only if no story highlight)
   if (!hasStories) {

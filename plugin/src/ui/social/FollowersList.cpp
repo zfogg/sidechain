@@ -31,7 +31,7 @@ void FollowUserRow::setUser(const FollowListUser &newUser) {
   user = newUser;
   // Fetch avatar image via AppStore (with caching)
   if (user.avatarUrl.isNotEmpty() && appStore) {
-    appStore->fetchImage(user.avatarUrl, [this](const juce::Image &) { repaint(); });
+    appStore->getImage(user.avatarUrl, [this](const juce::Image &) { repaint(); });
   }
   repaint();
 }
@@ -56,29 +56,20 @@ void FollowUserRow::paint(juce::Graphics &g) {
   // Avatar
   juce::String name = user.displayName.isNotEmpty() ? user.displayName : user.username;
 
-  // Draw circular avatar or placeholder with initials
-  auto image = appStore ? appStore->getCachedImage(user.avatarUrl) : juce::Image();
-  if (image.isValid()) {
-    // Draw image clipped to circle
-    juce::Path circlePath;
-    circlePath.addEllipse(avatarBounds.toFloat());
-
-    g.saveState();
-    g.reduceClipRegion(circlePath);
-    g.drawImageAt(image, avatarBounds.getX(), avatarBounds.getY());
-    g.restoreState();
-  } else {
-    // Fallback: colored circle with user initials
-    juce::String initials = getInitialsFromName(name);
-
-    g.setColour(SidechainColors::surface());
-    g.fillEllipse(avatarBounds.toFloat());
-
-    g.setColour(SidechainColors::textPrimary());
-    g.setFont(
-        juce::Font(juce::FontOptions().withHeight(static_cast<float>(avatarBounds.getHeight()) * 0.4f)).boldened());
-    g.drawText(initials, avatarBounds, juce::Justification::centred);
+  // Use unified getImage() - handles all three cache levels automatically (memory -> file -> HTTP)
+  if (appStore && user.avatarUrl.isNotEmpty()) {
+    appStore->getImage(user.avatarUrl, [this](const juce::Image &) { repaint(); });
   }
+
+  // Fallback: colored circle with user initials (will be replaced with actual image when loaded)
+  juce::String initials = getInitialsFromName(name);
+
+  g.setColour(SidechainColors::surface());
+  g.fillEllipse(avatarBounds.toFloat());
+
+  g.setColour(SidechainColors::textPrimary());
+  g.setFont(juce::Font(juce::FontOptions().withHeight(static_cast<float>(avatarBounds.getHeight()) * 0.4f)).boldened());
+  g.drawText(initials, avatarBounds, juce::Justification::centred);
 
   // Avatar border
   g.setColour(SidechainColors::border());
