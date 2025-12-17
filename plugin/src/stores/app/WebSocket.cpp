@@ -88,5 +88,36 @@ void AppStore::onWebSocketPresenceUpdate(const juce::String &userId, bool isOnli
   });
 }
 
+void AppStore::onWebSocketCommentCountUpdate(const juce::String &postId, int commentCount) {
+  Util::logDebug("AppStore",
+                 "WebSocket: Comment count updated for post " + postId +
+                     " - new count: " + juce::String(commentCount));
+
+  // Invalidate the specific post cache
+  invalidateCache("post:" + postId);
+
+  // Invalidate all feed caches since comment counts are displayed in feeds
+  invalidateCachePattern("feed:*");
+
+  // Invalidate comments cache for this post
+  invalidateCache("comments:" + postId);
+}
+
+void AppStore::onWebSocketNewComment(const juce::String &postId, const juce::String &commentId,
+                                     const juce::String &username) {
+  Util::logDebug("AppStore",
+                 "WebSocket: New comment on post " + postId + " by " + username +
+                     " (commentId: " + commentId + ")");
+
+  // Invalidate the specific post cache
+  invalidateCache("post:" + postId);
+
+  // Invalidate all feed caches
+  invalidateCachePattern("feed:*");
+
+  // Invalidate comments cache for this post so the new comment is fetched
+  invalidateCache("comments:" + postId);
+}
+
 } // namespace Stores
 } // namespace Sidechain
