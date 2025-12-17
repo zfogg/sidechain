@@ -86,6 +86,9 @@ func (h *Handlers) FollowUser(c *gin.Context) {
 			FolloweeName:   followeeName,
 			FollowerCount:  followerCount,
 		})
+
+		// Invalidate the follower's timeline - they can now see followed user's posts (Phase 2.2)
+		h.wsHandler.BroadcastFeedInvalidation("timeline", "follow")
 	}
 
 	c.JSON(http.StatusOK, gin.H{

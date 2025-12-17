@@ -2685,6 +2685,59 @@ void SidechainAudioProcessorEditor::handleWebSocketMessage(const WebSocketClient
     // Heartbeat response - connection is alive
     break;
 
+  case WebSocketClient::MessageType::FeedInvalidate: {
+    // Feed needs refresh - invalidate cache so next fetch gets fresh data (Phase 2.1)
+    auto feedType = message.getProperty("feed_type").toString();
+    auto reason = message.getProperty("reason", juce::var("unknown")).toString();
+
+    Log::debug("Feed invalidation: " + feedType + " - reason: " + reason);
+
+    // Invalidate feed cache in AppStore
+    if (feedType == "timeline") {
+      appStore.invalidateCachePattern("feed:timeline:*");
+    } else if (feedType == "global") {
+      appStore.invalidateCachePattern("feed:global:*");
+    } else if (feedType == "trending") {
+      appStore.invalidateCachePattern("feed:trending:*");
+    } else {
+      appStore.invalidateCachePattern("feed:*");
+    }
+
+    // Signal feed component to refresh
+    if (postsFeedComponent) {
+      postsFeedComponent->handleFeedInvalidation(feedType);
+    }
+    break;
+  }
+
+  case WebSocketClient::MessageType::TimelineUpdate: {
+    // Activity timeline has new content (Phase 2.2)
+    auto userId = message.getProperty("user_id").toString();
+    auto feedType = message.getProperty("feed_type").toString();
+    auto newCount = static_cast<int>(message.getProperty("new_count", juce::var(0)));
+
+    Log::debug("Timeline update: user " + userId + " " + feedType + " has " + juce::String(newCount) +
+              " new activities");
+
+    // Invalidate aggregated feed caches
+    appStore.invalidateCachePattern("feed:aggregated:*");
+    appStore.invalidateCachePattern("user:" + userId);
+    break;
+  }
+
+  case WebSocketClient::MessageType::NotificationCountUpdate: {
+    // Notification counts have changed (Phase 2.3)
+    auto unreadCount = static_cast<int>(message.getProperty("unread_count", juce::var(0)));
+    auto unseenCount = static_cast<int>(message.getProperty("unseen_count", juce::var(0)));
+
+    Log::debug("Notification count update: unread=" + juce::String(unreadCount) +
+              " unseen=" + juce::String(unseenCount));
+
+    // Update notification badge in UI
+    appStore.updateNotificationCounts(unreadCount, unseenCount);
+    break;
+  }
+
   case WebSocketClient::MessageType::Unknown:
   case WebSocketClient::MessageType::Comment:
     Log::warn("Unhandled WebSocket message type: " + message.typeString);

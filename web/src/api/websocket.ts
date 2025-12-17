@@ -24,6 +24,9 @@ export type WebSocketMessageType =
   | 'like_count_update'
   | 'comment_count_update'
   | 'engagement_metrics'
+  | 'feed_invalidate'
+  | 'timeline_update'
+  | 'notification_count_update'
 
 // WebSocket Event Payload Types
 export interface NewPostPayload {
@@ -106,6 +109,25 @@ export interface EngagementMetricsPayload {
   timestamp: number
 }
 
+export interface FeedInvalidatePayload {
+  feed_type: string // 'global', 'trending', 'timeline', 'user_activity'
+  reason?: string // 'new_post', 'follow', 'user_activity'
+  timestamp?: number
+}
+
+export interface TimelineUpdatePayload {
+  user_id: string
+  feed_type: string
+  new_count: number
+  timestamp: number
+}
+
+export interface NotificationCountUpdatePayload {
+  unread_count: number
+  unseen_count: number
+  timestamp: number
+}
+
 export interface NotificationPayload {
   id: string
   type: string
@@ -144,7 +166,8 @@ export type EventPayload = NewPostPayload | PostLikedPayload | PostUnlikedPayloa
                    NewCommentPayload | PostSavedPayload | UserFollowedPayload | CommentLikedPayload |
                    CommentUnlikedPayload | LikeCountUpdatePayload | CommentCountUpdatePayload |
                    EngagementMetricsPayload | NotificationPayload | ErrorPayload |
-                   UserTypingPayload | UserStopTypingPayload
+                   UserTypingPayload | UserStopTypingPayload | FeedInvalidatePayload |
+                   TimelineUpdatePayload | NotificationCountUpdatePayload
 
 export interface WebSocketMessage {
   type: WebSocketMessageType

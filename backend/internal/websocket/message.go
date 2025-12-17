@@ -78,9 +78,12 @@ const (
 	MessageTypePlaybackStopped = "playback_stopped"
 
 	// Real-time updates
-	MessageTypeLikeCountUpdate    = "like_count_update"
-	MessageTypeCommentCountUpdate = "comment_count_update"
+	MessageTypeLikeCountUpdate     = "like_count_update"
+	MessageTypeCommentCountUpdate  = "comment_count_update"
 	MessageTypeFollowerCountUpdate = "follower_count_update"
+	MessageTypeFeedInvalidate      = "feed_invalidate"      // Invalidate feed cache
+	MessageTypeTimelineUpdate      = "timeline_update"      // Activity timeline changed
+	MessageTypeNotificationCountUpdate = "notification_count_update" // Unread notification count
 
 	// Collaborative editing (Task 4.20)
 	MessageTypeOperation    = "operation"
@@ -277,6 +280,27 @@ func (m *Message) ParsePayload(target interface{}) error {
 		return err
 	}
 	return json.Unmarshal(data, target)
+}
+
+// FeedInvalidatePayload signals clients to refresh a specific feed
+type FeedInvalidatePayload struct {
+	FeedType string `json:"feed_type"` // "timeline", "global", "trending", "notification"
+	Reason   string `json:"reason,omitempty"` // "new_post", "follow", "like", etc.
+}
+
+// TimelineUpdatePayload indicates activity timeline has new content
+type TimelineUpdatePayload struct {
+	UserID    string `json:"user_id"`       // User whose timeline changed
+	FeedType  string `json:"feed_type"`     // Which feed was updated
+	NewCount  int    `json:"new_count"`     // Number of new activities
+	Timestamp int64  `json:"timestamp"`
+}
+
+// NotificationCountPayload indicates unread notification count changed
+type NotificationCountPayload struct {
+	UnreadCount int `json:"unread_count"`
+	UnseenCount int `json:"unseen_count"`
+	Timestamp   int64 `json:"timestamp"`
 }
 
 // OperationPayload represents a collaborative edit operation

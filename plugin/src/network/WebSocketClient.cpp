@@ -548,6 +548,12 @@ WebSocketClient::MessageType WebSocketClient::parseMessageType(const juce::Strin
     return MessageType::EngagementMetrics;
   if (typeStr == "follower_count_update")
     return MessageType::FollowerCountUpdate;
+  if (typeStr == "feed_invalidate")
+    return MessageType::FeedInvalidate;
+  if (typeStr == "timeline_update")
+    return MessageType::TimelineUpdate;
+  if (typeStr == "notification_count_update")
+    return MessageType::NotificationCountUpdate;
   if (typeStr == "heartbeat" || typeStr == "pong")
     return MessageType::Heartbeat;
   if (typeStr == "error")
