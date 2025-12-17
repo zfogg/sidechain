@@ -128,13 +128,17 @@ func (h *Handlers) CreateComment(c *gin.Context) {
 			go func() {
 				var commenter models.User
 				if err := database.DB.First(&commenter, "id = ?", userID).Error; err == nil {
+					avatarURL := commenter.ProfilePictureURL
+					if avatarURL == "" {
+						avatarURL = commenter.OAuthProfilePictureURL
+					}
 					payload := &websocket.CommentPayload{
 						CommentID:   comment.ID,
 						PostID:      postID,
 						UserID:      userID,
 						Username:    commenter.Username,
 						DisplayName: commenter.DisplayName,
-						AvatarURL:   commenter.AvatarURL,
+						AvatarURL:   avatarURL,
 						Body:        req.Content,
 						CreatedAt:   comment.CreatedAt.UnixMilli(),
 					}

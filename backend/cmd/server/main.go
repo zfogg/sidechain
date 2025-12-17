@@ -86,12 +86,10 @@ func main() {
 
 	// Initialize Elasticsearch search client
 	baseSearchClient, err := search.NewClient()
-	var searchClient interface{ SearchPosts(context.Context, search.SearchPostsParams) (*search.SearchPostsResult, error); SearchUsers(context.Context, string, int, int) (*search.SearchUsersResult, error); SearchStories(context.Context, string, int, int) (*search.SearchStoriesResult, error) }
 
 	if err != nil {
 		log.Printf("Warning: Failed to initialize Elasticsearch: %v", err)
 		log.Println("Continuing without Elasticsearch - search will use PostgreSQL fallback")
-		searchClient = nil
 	} else {
 		// Create indices on startup
 		if err := baseSearchClient.InitializeIndices(context.Background()); err != nil {
@@ -101,13 +99,11 @@ func main() {
 			log.Println("✅ Elasticsearch indices initialized successfully")
 		}
 
-		// Wrap search client with Redis caching (Phase 6.1)
-		cachedClient, err := search.NewCachedClient(baseSearchClient)
+		// Initialize Redis caching layer for search results (Phase 6.1)
+		// Note: CachedClient is only used in discovery handler for search endpoints
+		_, err = search.NewCachedClient(baseSearchClient)
 		if err == nil {
-			searchClient = cachedClient
 			log.Println("✅ Redis caching layer initialized for search results")
-		} else {
-			searchClient = baseSearchClient
 		}
 	}
 
@@ -350,8 +346,8 @@ func main() {
 	h := handlers.NewHandlers(streamClient, audioProcessor)
 	h.SetWebSocketHandler(wsHandler) // Enable real-time follow notifications
 	h.SetGorseClient(gorseClient)    // Enable user follow recommendations
-	if searchClient != nil {
-		h.SetSearchClient(searchClient) // Enable search functionality
+	if baseSearchClient != nil {
+		h.SetSearchClient(baseSearchClient) // Enable search functionality
 	}
 
 	// Initialize waveform generation tools for audio visualization
@@ -373,8 +369,8 @@ func main() {
 	authHandlers := handlers.NewAuthHandlers(authService, s3Uploader, streamClient)
 	authHandlers.SetJWTSecret(jwtSecret)
 	authHandlers.SetEmailService(emailService) // Enable password reset emails
-	if searchClient != nil {
-		authHandlers.SetSearchClient(searchClient) // Enable search functionality
+	if baseSearchClient != nil {
+		authHandlers.SetSearchClient(baseSearchClient) // Enable search functionality
 	}
 
 	// Setup Gin router - use gin.New() instead of gin.Default() to control middleware
