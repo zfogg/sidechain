@@ -4,16 +4,12 @@
 
     # Proxy to backend
     reverse_proxy backend:8787 {
-        # Caddy v2 health checks use health_uri in the proxy handler
+        # Health checks for load balancing
         health_uri /health
         health_interval 10s
-        health_timeout 5s
-    }
-
-    # Logging
-    log {
-        output stdout
-        format json
+        health_status 200
+        health_passes 1
+        health_fails 3
     }
 
     # Security headers
@@ -34,6 +30,9 @@
         Referrer-Policy "strict-origin-when-cross-origin"
     }
 
-    # Rate limiting (optional - adjust based on needs)
-    # rate_limit * 100r/s
+    # Logging
+    log {
+        output stdout
+        format json
+    }
 }
