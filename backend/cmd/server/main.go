@@ -23,6 +23,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/middleware"
 	"github.com/zfogg/sidechain/backend/internal/models" // Used for NotificationPreferencesChecker
 	"github.com/zfogg/sidechain/backend/internal/recommendations"
+	"github.com/zfogg/sidechain/backend/internal/search"
 	"github.com/zfogg/sidechain/backend/internal/seed"
 	"github.com/zfogg/sidechain/backend/internal/storage"
 	"github.com/zfogg/sidechain/backend/internal/stories"
@@ -80,6 +81,22 @@ func main() {
 			}
 		} else {
 			log.Printf("Database already has %d users, skipping auto-seed", userCount)
+		}
+	}
+
+	// Initialize Elasticsearch search client
+	searchClient, err := search.NewClient()
+	if err != nil {
+		log.Printf("Warning: Failed to initialize Elasticsearch: %v", err)
+		log.Println("Continuing without Elasticsearch - search will use PostgreSQL fallback")
+		searchClient = nil
+	} else {
+		// Create indices on startup
+		if err := searchClient.InitializeIndices(context.Background()); err != nil {
+			log.Printf("Warning: Failed to initialize Elasticsearch indices: %v", err)
+			log.Println("Search functionality may be limited")
+		} else {
+			log.Println("✅ Elasticsearch indices initialized successfully")
 		}
 	}
 
@@ -322,6 +339,9 @@ func main() {
 	h := handlers.NewHandlers(streamClient, audioProcessor)
 	h.SetWebSocketHandler(wsHandler) // Enable real-time follow notifications
 	h.SetGorseClient(gorseClient)    // Enable user follow recommendations
+	if searchClient != nil {
+		h.SetSearchClient(searchClient) // Enable search functionality
+	}
 
 	// Initialize waveform generation tools for audio visualization
 	waveformGenerator := waveform.NewGenerator()
@@ -342,6 +362,9 @@ func main() {
 	authHandlers := handlers.NewAuthHandlers(authService, s3Uploader, streamClient)
 	authHandlers.SetJWTSecret(jwtSecret)
 	authHandlers.SetEmailService(emailService) // Enable password reset emails
+	if searchClient != nil {
+		authHandlers.SetSearchClient(searchClient) // Enable search functionality
+	}
 
 	// Setup Gin router - use gin.New() instead of gin.Default() to control middleware
 	r := gin.New()

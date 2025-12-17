@@ -18,6 +18,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/email"
 	"github.com/zfogg/sidechain/backend/internal/models"
+	"github.com/zfogg/sidechain/backend/internal/search"
 	"github.com/zfogg/sidechain/backend/internal/storage"
 	"github.com/zfogg/sidechain/backend/internal/stream"
 )
@@ -40,6 +41,7 @@ type AuthHandlers struct {
 	uploader     storage.ProfilePictureUploader
 	stream       *stream.Client
 	emailService *email.EmailService
+	search       *search.Client
 	jwtSecret    []byte
 	// OAuth session storage for polling (in-memory, thread-safe)
 	oauthSessions map[string]*OAuthSession
@@ -85,6 +87,11 @@ func (h *AuthHandlers) cleanupExpiredSessions() {
 	}
 }
 
+// SetSearchClient sets the Elasticsearch search client
+func (h *AuthHandlers) SetSearchClient(searchClient *search.Client) {
+	h.search = searchClient
+}
+
 // SetJWTSecret sets the JWT secret for token validation
 func (h *AuthHandlers) SetJWTSecret(secret []byte) {
 	h.jwtSecret = secret
@@ -121,6 +128,17 @@ func (h *AuthHandlers) Register(c *gin.Context) {
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "registration_failed", "message": err.Error()})
 		return
+	}
+
+	// Index new user in Elasticsearch (Phase 0.3)
+	if h.search != nil {
+		go func() {
+			userDoc := search.UserToSearchDoc(authResp.User)
+			if err := h.search.IndexUser(c.Request.Context(), authResp.User.ID, userDoc); err != nil {
+				// Log but don't fail - search is non-critical
+				fmt.Printf("Warning: Failed to index user %s in Elasticsearch: %v\n", authResp.User.ID, err)
+			}
+		}()
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
