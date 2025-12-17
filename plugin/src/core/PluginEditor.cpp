@@ -768,7 +768,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
 
   //==========================================================================
   // Create MessageThread
-  messageThreadComponent = std::make_unique<MessageThread>();
+  messageThreadComponent = std::make_unique<MessageThread>(&appStore);
   messageThreadComponent->setStreamChatClient(streamChatClient.get());
   messageThreadComponent->setNetworkClient(networkClient.get());
   messageThreadComponent->setAudioProcessor(&audioProcessor);
@@ -2389,10 +2389,13 @@ void SidechainAudioProcessorEditor::sendTestMessageOnStartup() {
 
               const auto &sentMsg = msgResult.getValue();
               Log::info("sendTestMessageOnStartup: Message sent successfully - ID: " + sentMsg.id);
+              Log::info("sendTestMessageOnStartup: Callback executed - about to add message to AppStore");
 
               // Add message to AppStore state so MessageThread can display it
+              Log::info("sendTestMessageOnStartup: About to call addMessageToChannel with userId=" + sentMsg.userId);
               appStore.addMessageToChannel(channel.id, sentMsg.id, sentMsg.text, sentMsg.userId, sentMsg.userName,
                                            sentMsg.createdAt);
+              Log::info("sendTestMessageOnStartup: addMessageToChannel returned");
 
               // Open the message thread view to show the sent message
               Log::info("sendTestMessageOnStartup: Opening message thread view");
