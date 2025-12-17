@@ -238,25 +238,25 @@ export function useWebSocket() {
       }
     })
 
+    const unsubscribeUserTyping = ws.on('user_typing', (payload) => {
+      const typingPayload = payload as UserTypingPayload
+      console.log('[RT] User typing:', typingPayload)
+      // Components listening for typing can subscribe directly to this event
+      // CommentsPanel component will handle displaying the typing indicator
+    })
+
+    const unsubscribeUserStopTyping = ws.on('user_stop_typing', (payload) => {
+      const stopPayload = payload as UserStopTypingPayload
+      console.log('[RT] User stopped typing:', stopPayload)
+      // Components listening for typing can subscribe directly to this event
+    })
+
     const unsubscribeNotificationCountUpdate = ws.on('notification_count_update', (payload) => {
       const countPayload = payload as NotificationCountUpdatePayload
       console.log('[RT] Notification count update:', countPayload)
       // Update notification counts in user store
       // This would update unread and unseen notification badges
       // For now, just log - notification store can implement this
-    })
-
-    const unsubscribeUserTyping = ws.on('user_typing', (payload) => {
-      const typingPayload = payload as UserTypingPayload
-      console.log('[RT] User typing:', typingPayload)
-      // Typing indicators are handled at the component level (CommentsPanel)
-      // Components can subscribe to these events directly
-    })
-
-    const unsubscribeUserStopTyping = ws.on('user_stop_typing', (payload) => {
-      const stopPayload = payload as UserStopTypingPayload
-      console.log('[RT] User stop typing:', stopPayload)
-      // Typing indicators are handled at the component level (CommentsPanel)
     })
 
     const unsubscribeError = ws.on('error', (payload) => {

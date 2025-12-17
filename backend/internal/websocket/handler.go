@@ -491,6 +491,39 @@ func (h *Handler) RegisterDefaultHandlers() {
 		return nil
 	})
 
+	// Typing indicator handler - broadcast to all users that someone is typing
+	h.hub.RegisterHandler(MessageTypeUserTyping, func(client *Client, msg *Message) error {
+		var payload TypingPayload
+		if err := msg.ParsePayload(&payload); err != nil {
+			return err
+		}
+
+		// Ensure payload has correct user info
+		payload.UserID = client.UserID
+		payload.Username = client.Username
+		payload.Timestamp = time.Now().UnixMilli()
+
+		// Broadcast to all users
+		h.hub.Broadcast(NewMessage(MessageTypeUserTyping, payload))
+		return nil
+	})
+
+	// Stop typing handler - broadcast to all users that someone stopped typing
+	h.hub.RegisterHandler(MessageTypeUserStopTyping, func(client *Client, msg *Message) error {
+		var payload StopTypingPayload
+		if err := msg.ParsePayload(&payload); err != nil {
+			return err
+		}
+
+		// Ensure payload has correct user info
+		payload.UserID = client.UserID
+		payload.Timestamp = time.Now().UnixMilli()
+
+		// Broadcast to all users
+		h.hub.Broadcast(NewMessage(MessageTypeUserStopTyping, payload))
+		return nil
+	})
+
 	log.Println("📨 Registered default WebSocket message handlers")
 }
 
