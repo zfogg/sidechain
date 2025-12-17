@@ -108,14 +108,6 @@ void EditProfile::setupEditors() {
   changePhotoButton->addListener(this);
   addAndMakeVisible(changePhotoButton.get());
 
-  // Private account toggle
-  privateAccountToggle = std::make_unique<juce::ToggleButton>("Private Account");
-  privateAccountToggle->setColour(juce::ToggleButton::textColourId, Colors::textPrimary);
-  privateAccountToggle->setColour(juce::ToggleButton::tickColourId, Colors::accent);
-  privateAccountToggle->setColour(juce::ToggleButton::tickDisabledColourId, Colors::textSecondary);
-  privateAccountToggle->onClick = [this]() { updateHasChanges(); };
-  addAndMakeVisible(privateAccountToggle.get());
-
   // Settings section buttons
   activityStatusButton = std::make_unique<juce::TextButton>("Activity Status");
   activityStatusButton->setColour(juce::TextButton::buttonColourId, Colors::inputBg);
@@ -177,7 +169,6 @@ void EditProfile::populateFromUserStore() {
   locationEditor->setText(state.location, false);
   genreEditor->setText(state.genre, false);
   dawEditor->setText(state.dawPreference, false);
-  privateAccountToggle->setToggleState(state.isPrivate, juce::dontSendNotification);
 
   // Store original username for change detection
   originalUsername = state.username;
@@ -274,7 +265,6 @@ void EditProfile::updateHasChanges() {
   juce::String currentLocation = locationEditor->getText().trim();
   juce::String currentGenre = genreEditor->getText().trim();
   juce::String currentDaw = dawEditor->getText().trim();
-  bool currentPrivate = privateAccountToggle->getToggleState();
   juce::var currentSocialLinks = getSocialLinksFromEditors();
 
   // Check if username changed
@@ -284,7 +274,7 @@ void EditProfile::updateHasChanges() {
   hasUnsavedChanges =
       (usernameChanged || currentDisplayName != state.displayName || currentBio != state.bio ||
        currentLocation != state.location || currentGenre != state.genre || currentDaw != state.dawPreference ||
-       currentPrivate != state.isPrivate || pendingAvatarPath.isNotEmpty() ||
+       pendingAvatarPath.isNotEmpty() ||
        juce::JSON::toString(currentSocialLinks) != juce::JSON::toString(state.socialLinks));
 
   // Can only save if there are changes AND username is valid (if changed) AND
@@ -467,10 +457,6 @@ void EditProfile::resized() {
   twitterEditor->setBounds(PADDING, y, fieldWidth, FIELD_HEIGHT);
   y += FIELD_HEIGHT + SECTION_SPACING + 25;
 
-  // Privacy section
-  privateAccountToggle->setBounds(PADDING, y, fieldWidth, FIELD_HEIGHT);
-  y += FIELD_HEIGHT + SECTION_SPACING + 25;
-
   // Settings section
   activityStatusButton->setBounds(PADDING, y, fieldWidth, FIELD_HEIGHT);
   y += FIELD_HEIGHT + FIELD_SPACING;
@@ -542,7 +528,6 @@ void EditProfile::handleSave() {
   juce::String newLocation = locationEditor->getText().trim();
   juce::String newGenre = genreEditor->getText().trim();
   juce::String newDaw = dawEditor->getText().trim();
-  bool newPrivate = privateAccountToggle->getToggleState();
   juce::var newSocialLinks = getSocialLinksFromEditors();
 
   bool usernameChanged = newUsername != originalUsername;
@@ -555,10 +540,11 @@ void EditProfile::handleSave() {
   }
 
   // Update profile data (all fields except username)
+  // Note: Private account is now managed in PrivacySettings screen
   juce::String avatarUrl =
       pendingAvatarPath.isNotEmpty() ? pendingAvatarPath : appStore->getState().user.profilePictureUrl;
-  appStore->updateProfileComplete(newDisplayName, newBio, newLocation, newGenre, newDaw, newSocialLinks, newPrivate,
-                                  avatarUrl);
+  appStore->updateProfileComplete(newDisplayName, newBio, newLocation, newGenre, newDaw, newSocialLinks,
+                                  appStore->getState().user.isPrivate, avatarUrl);
 
   // Reset form state
   hasUnsavedChanges = false;

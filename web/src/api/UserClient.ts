@@ -101,6 +101,7 @@ export class UserClient {
     displayName?: string
     bio?: string
     profilePictureUrl?: string
+    isPrivate?: boolean
     socialLinks?: {
       twitter?: string
       instagram?: string
@@ -111,6 +112,7 @@ export class UserClient {
       display_name: data.displayName,
       bio: data.bio,
       profile_picture_url: data.profilePictureUrl,
+      is_private: data.isPrivate,
       social_links: data.socialLinks,
     })
   }

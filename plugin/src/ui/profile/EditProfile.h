@@ -103,9 +103,6 @@ private:
   std::unique_ptr<juce::TextButton> logoutButton;
   std::unique_ptr<juce::TextButton> changePhotoButton;
 
-  // Privacy toggle
-  std::unique_ptr<juce::ToggleButton> privateAccountToggle;
-
   // Settings section buttons
   std::unique_ptr<juce::TextButton> activityStatusButton;
   std::unique_ptr<juce::TextButton> mutedUsersButton;
