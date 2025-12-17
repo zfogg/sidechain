@@ -4,10 +4,9 @@ import { SearchClient, SearchFilters as SearchFiltersType } from '@/api/SearchCl
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
-import { SearchFilters } from '@/components/search/SearchFilters'
-import { SearchUserCard } from '@/components/search/SearchUserCard'
+import { SearchFilters as SearchFiltersComponent } from '@/components/search/SearchFilters'
 import { FeedPost } from '@/models/FeedPost'
-import type { User } from '@/models/User'
+import { useNavigate } from 'react-router-dom'
 
 /**
  * Search - Advanced search and discovery page
@@ -114,7 +113,7 @@ export function Search() {
                 </div>
 
                 {/* Filters */}
-                <FilterComponent
+                <SearchFiltersComponent
                   filters={filters}
                   onFiltersChange={handleFiltersChange}
                   onSearch={handleSearch}
@@ -146,9 +145,9 @@ export function Search() {
                 {userResults && userResults.length > 0 && (
                   <div>
                     <h3 className="text-lg font-semibold text-foreground mb-3">People</h3>
-                    <div className="grid grid-cols-1 gap-3">
-                      {userResults.map((user: User) => (
-                        <SearchUserCard key={user.id} user={user} />
+                    <div className="space-y-3">
+                      {userResults.map((user) => (
+                        <SearchUserResult key={user.id} user={user} />
                       ))}
                     </div>
                   </div>
@@ -253,6 +252,51 @@ function SearchResultCard({ post }: { post: FeedPost }) {
             ▶
           </button>
         )}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * SearchUserResult - User result card in search
+ */
+interface SearchUserResultProps {
+  user: {
+    id: string
+    username: string
+    displayName: string
+    profilePictureUrl?: string
+  }
+}
+
+function SearchUserResult({ user }: SearchUserResultProps) {
+  const navigate = useNavigate()
+
+  return (
+    <div className="bg-card border border-border rounded-lg p-4 hover:border-coral-pink/50 transition-colors">
+      <div className="flex items-start gap-3">
+        <img
+          src={user.profilePictureUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`}
+          alt={user.displayName}
+          className="w-12 h-12 rounded-full cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={() => navigate(`/profile/${user.username}`)}
+        />
+        <div className="flex-1 min-w-0">
+          <h4
+            className="font-semibold text-foreground truncate hover:text-coral-pink cursor-pointer transition-colors"
+            onClick={() => navigate(`/profile/${user.username}`)}
+          >
+            {user.displayName}
+          </h4>
+          <p className="text-sm text-muted-foreground truncate">@{user.username}</p>
+        </div>
+        <Button
+          onClick={() => navigate(`/profile/${user.username}`)}
+          variant="outline"
+          size="sm"
+        >
+          View
+        </Button>
       </div>
     </div>
   )
