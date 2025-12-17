@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/base64"
 	"io"
 	"log"
 	"net/http"
@@ -96,15 +95,9 @@ func main() {
 	log.Println("✅ Notification preferences checker initialized")
 
 	// Initialize auth service
-	jwtSecretStr := os.Getenv("JWT_SECRET")
-	if jwtSecretStr == "" {
+	jwtSecret := []byte(os.Getenv("JWT_SECRET"))
+	if len(jwtSecret) == 0 {
 		log.Fatalf("JWT_SECRET environment variable is required")
-	}
-
-	// Decode JWT_SECRET from base64
-	jwtSecret, err := base64.StdEncoding.DecodeString(jwtSecretStr)
-	if err != nil {
-		log.Fatalf("Failed to decode JWT_SECRET from base64: %v", err)
 	}
 
 	authService := auth.NewService(
