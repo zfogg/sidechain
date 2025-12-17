@@ -115,10 +115,12 @@ func (h *Handlers) SearchUsers(c *gin.Context) {
 	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
 	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
-	// Get current user for follow state enrichment
+	// Get current user for follow state enrichment (optional - doesn't require auth)
 	currentUserID := ""
-	if currentUser, ok := util.GetUserFromContext(c); ok {
-		currentUserID = currentUser.ID
+	if userVal, exists := c.Get("user"); exists {
+		if currentUser, ok := userVal.(*models.User); ok {
+			currentUserID = currentUser.ID
+		}
 	}
 
 	var users []models.User
@@ -1272,3 +1274,33 @@ func (h *Handlers) GetAvailableGenres(c *gin.Context) {
 		},
 	})
 }
+
+// GetAvailableKeys returns unique musical keys from audio posts
+func (h *Handlers) GetAvailableKeys(c *gin.Context) {
+	type KeyCount struct {
+		Key   string `json:"key"`
+		Count int    `json:"count"`
+	}
+
+	var keyCounts []KeyCount
+	result := database.DB.Raw(`
+		SELECT key, COUNT(*) as count
+		FROM audio_posts
+		WHERE key IS NOT NULL AND key != '' AND deleted_at IS NULL AND is_public = true
+		GROUP BY key
+		ORDER BY count DESC
+	`).Scan(&keyCounts)
+
+	if result.Error != nil {
+		util.RespondInternalError(c, "failed_to_get_keys", result.Error.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"keys": keyCounts,
+		"meta": gin.H{
+			"count": len(keyCounts),
+		},
+	})
+}
+

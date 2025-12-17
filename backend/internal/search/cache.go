@@ -138,44 +138,6 @@ func (c *CachedClient) SearchUsers(ctx context.Context, query string, limit, off
 	return result, nil
 }
 
-// SearchStories searches for stories with caching (Phase 6.1)
-func (c *CachedClient) SearchStories(ctx context.Context, query string, limit, offset int) (*SearchStoriesResult, error) {
-	// If Redis is unavailable, fall back to direct search
-	if c.redis == nil {
-		return c.client.SearchStories(ctx, query, limit, offset)
-	}
-
-	// Try to get from cache
-	cacheParams := map[string]interface{}{
-		"query":  query,
-		"limit":  limit,
-		"offset": offset,
-	}
-	cacheKey := c.cacheKey("stories", cacheParams)
-	cached, err := c.redis.Get(ctx, cacheKey).Result()
-	if err == nil {
-		// Cache hit - parse and return
-		var result SearchStoriesResult
-		if err := json.Unmarshal([]byte(cached), &result); err == nil {
-			return &result, nil
-		}
-	}
-
-	// Cache miss - perform search
-	result, err := c.client.SearchStories(ctx, query, limit, offset)
-	if err != nil {
-		return result, err
-	}
-
-	// Store in cache
-	if result != nil {
-		if data, err := json.Marshal(result); err == nil {
-			c.redis.Set(ctx, cacheKey, data, c.ttl)
-		}
-	}
-
-	return result, nil
-}
 
 // InvalidatePostCache invalidates cache for posts (used when posts are updated)
 func (c *CachedClient) InvalidatePostCache(ctx context.Context) error {
@@ -203,15 +165,3 @@ func (c *CachedClient) InvalidateUserCache(ctx context.Context) error {
 	return iter.Err()
 }
 
-// InvalidateStoryCache invalidates cache for stories
-func (c *CachedClient) InvalidateStoryCache(ctx context.Context) error {
-	if c.redis == nil {
-		return nil
-	}
-	// Invalidate all story search cache entries
-	iter := c.redis.Scan(ctx, 0, "search:stories:*", 0).Iterator()
-	for iter.Next(ctx) {
-		c.redis.Del(ctx, iter.Val())
-	}
-	return iter.Err()
-}
