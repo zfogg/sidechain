@@ -54,24 +54,6 @@ func UserToSearchDoc(user models.User) map[string]interface{} {
 	}
 }
 
-// PostToSearchDoc converts a Post model to a search document (Phase 0.4)
-// Overloaded signature: accepts AudioPost model with engagement counts (Phase 0.6)
-func PostToSearchDoc(postID, userID, username string, bpm int, key, daw string, genres []string) map[string]interface{} {
-	return map[string]interface{}{
-		"id":            postID,
-		"user_id":       userID,
-		"username":      username,
-		"genre":         genres,
-		"bpm":           bpm,
-		"key":           key,
-		"daw":           daw,
-		"like_count":    0,
-		"play_count":    0,
-		"comment_count": 0,
-		"created_at":    nil,
-	}
-}
-
 // AudioPostToSearchDoc converts an AudioPost model to a search document (Phase 0.6)
 // Includes current engagement counts from the cached fields
 func AudioPostToSearchDoc(post models.AudioPost, username string) map[string]interface{} {
@@ -89,17 +71,5 @@ func AudioPostToSearchDoc(post models.AudioPost, username string) map[string]int
 		"play_count":         post.PlayCount,
 		"comment_count":      post.CommentCount,
 		"created_at":         post.CreatedAt,
-	}
-}
-
-// StoryToSearchDoc converts a Story model to a search document (Phase 0.5)
-// Note: Implement when Story model is finalized
-func StoryToSearchDoc(storyID, userID, username, createdAt, expiresAt string) map[string]interface{} {
-	return map[string]interface{}{
-		"id":         storyID,
-		"user_id":    userID,
-		"username":   username,
-		"created_at": createdAt,
-		"expires_at": expiresAt,
 	}
 }
