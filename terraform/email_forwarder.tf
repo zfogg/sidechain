@@ -25,6 +25,9 @@ variable "email_bucket_name" {
   default     = "sidechain-email-receipts-345594574298"
 }
 
+# Get current AWS account ID
+data "aws_caller_identity" "current" {}
+
 # S3 bucket for storing received emails
 resource "aws_s3_bucket" "email_receipts" {
   count  = var.email_forwarder_enabled ? 1 : 0
@@ -74,9 +77,6 @@ resource "aws_s3_bucket_policy" "email_receipts" {
   })
 }
 
-# Get current AWS account ID
-data "aws_caller_identity" "current" {}
-
 # IAM role for Lambda function
 resource "aws_iam_role" "email_forwarder" {
   count = var.email_forwarder_enabled ? 1 : 0
@@ -115,6 +115,13 @@ resource "aws_iam_role_policy" "email_forwarder_s3" {
           "s3:GetObject"
         ]
         Resource = "${aws_s3_bucket.email_receipts[0].arn}/*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:ListBucket"
+        ]
+        Resource = aws_s3_bucket.email_receipts[0].arn
       }
     ]
   })
@@ -162,8 +169,6 @@ resource "aws_iam_role_policy" "email_forwarder_logs" {
 }
 
 # Lambda function for email forwarding
-# Note: This requires the Lambda code to be built and packaged first
-# See the deployment instructions in the README
 resource "aws_lambda_function" "email_forwarder" {
   count            = var.email_forwarder_enabled ? 1 : 0
   filename         = "${path.module}/../backend/cmd/email-forwarder/lambda.zip"
@@ -176,8 +181,8 @@ resource "aws_lambda_function" "email_forwarder" {
 
   environment {
     variables = {
-      S3_BUCKET_NAME    = aws_s3_bucket.email_receipts[0].id
-      FORWARD_TO_EMAIL  = var.forward_to_email
+      S3_BUCKET_NAME   = aws_s3_bucket.email_receipts[0].id
+      FORWARD_TO_EMAIL = var.forward_to_email
     }
   }
 

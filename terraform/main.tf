@@ -5,10 +5,19 @@ terraform {
       source  = "hashicorp/null"
       version = "~> 3.2"
     }
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
   }
 }
 
 provider "null" {}
+
+provider "aws" {
+  profile = "zfogg"
+  region  = "us-west-2"
+}
 
 # ============================================================
 # Sidechain Production Deployment - Infrastructure as Code
