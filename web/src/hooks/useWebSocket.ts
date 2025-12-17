@@ -17,6 +17,7 @@ import type {
   EventPayload,
   FeedInvalidatePayload,
   TimelineUpdatePayload,
+  ActivityUpdatePayload,
   NotificationCountUpdatePayload,
   UserTypingPayload,
   UserStopTypingPayload,
@@ -187,6 +188,56 @@ export function useWebSocket() {
       feedStore.loadFeed('timeline', true)
     })
 
+    const unsubscribeActivityUpdate = ws.on('activity_update', (payload) => {
+      const activityPayload = payload as ActivityUpdatePayload
+      console.log('[RT] Activity update:', activityPayload)
+      // Handle activity updates (posts, likes, follows, comments)
+      if (activityPayload.verb === 'posted' && activityPayload.object_type === 'loop_post') {
+        // Create a FeedPost from the activity payload
+        const newPost = FeedPostModel.fromJson({
+          id: activityPayload.object,
+          user_id: activityPayload.actor,
+          username: activityPayload.actor_name || '',
+          display_name: activityPayload.actor_name || '',
+          avatar_url: activityPayload.actor_avatar,
+          audio_url: activityPayload.audio_url || '',
+          waveform_url: activityPayload.waveform_url || '',
+          bpm: activityPayload.bpm || 0,
+          key: activityPayload.key,
+          daw: activityPayload.daw,
+          genre: activityPayload.genre || [],
+          like_count: 0,
+          comment_count: 0,
+          created_at: new Date(activityPayload.timestamp).toISOString(),
+          is_liked_by_me: false,
+          is_following: false,
+        })
+        // Prepend to affected feeds
+        if (activityPayload.feed_types?.includes('global')) {
+          const globalFeed = feedStore.feeds['global']
+          if (globalFeed) {
+            globalFeed.posts.unshift(newPost)
+          }
+        }
+        if (activityPayload.feed_types?.includes('timeline')) {
+          const timelineFeed = feedStore.feeds['timeline']
+          if (timelineFeed) {
+            timelineFeed.posts.unshift(newPost)
+          }
+        }
+      } else if (activityPayload.verb === 'liked') {
+        // Update like count for a post
+        feedStore.updatePost(activityPayload.object, {
+          likeCount: activityPayload.like_count || 0,
+        })
+      } else if (activityPayload.verb === 'commented') {
+        // Update comment count for a post
+        feedStore.updatePost(activityPayload.object, {
+          commentCount: (activityPayload.comment_count || 0) + 1,
+        })
+      }
+    })
+
     const unsubscribeNotificationCountUpdate = ws.on('notification_count_update', (payload) => {
       const countPayload = payload as NotificationCountUpdatePayload
       console.log('[RT] Notification count update:', countPayload)
@@ -229,6 +280,7 @@ export function useWebSocket() {
       unsubscribeEngagementMetrics()
       unsubscribeFeedInvalidate()
       unsubscribeTimelineUpdate()
+      unsubscribeActivityUpdate()
       unsubscribeNotificationCountUpdate()
       unsubscribeUserTyping()
       unsubscribeUserStopTyping()

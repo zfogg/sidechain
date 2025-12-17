@@ -17,6 +17,7 @@ export type WebSocketMessageType =
   | 'comment_unliked'
   | 'user_followed'
   | 'post_saved'
+  | 'activity_update'
   | 'notification'
   | 'error'
   | 'user_typing'
@@ -122,6 +123,27 @@ export interface TimelineUpdatePayload {
   feed_type: string
   new_count: number
   timestamp: number
+}
+
+export interface ActivityUpdatePayload {
+  id?: string
+  actor: string
+  actor_name?: string
+  actor_avatar?: string
+  verb: 'posted' | 'liked' | 'followed' | 'commented'
+  object: string
+  object_type?: string
+  audio_url?: string
+  bpm?: number
+  key?: string
+  daw?: string
+  genre?: string[]
+  waveform_url?: string
+  like_count?: number
+  comment_count?: number
+  comment_text?: string
+  timestamp: number
+  feed_types?: string[]
 }
 
 export interface NotificationCountUpdatePayload {
