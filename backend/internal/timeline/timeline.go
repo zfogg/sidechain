@@ -141,16 +141,22 @@ func (s *Service) GetTimeline(ctx context.Context, userID string, limit, offset 
 		switch result.source {
 		case "following":
 			followingCount = len(result.items)
+			fmt.Printf("📊 Timeline: following posts = %d\n", followingCount)
 		case "gorse":
 			gorseCount = len(result.items)
+			fmt.Printf("📊 Timeline: gorse recommendations = %d\n", gorseCount)
 		case "trending":
 			trendingCount = len(result.items)
+			fmt.Printf("📊 Timeline: trending posts = %d\n", trendingCount)
 		case "recent":
 			recentCount = len(result.items)
+			fmt.Printf("📊 Timeline: recent posts = %d\n", recentCount)
 		}
 
 		allItems = append(allItems, result.items...)
 	}
+
+	fmt.Printf("📊 Timeline: allItems count after collection = %d\n", len(allItems))
 
 	// Deduplicate by post ID
 	seen := make(map[string]bool)
@@ -161,6 +167,7 @@ func (s *Service) GetTimeline(ctx context.Context, userID string, limit, offset 
 			uniqueItems = append(uniqueItems, item)
 		}
 	}
+	fmt.Printf("📊 Timeline: uniqueItems after dedup = %d\n", len(uniqueItems))
 
 	// Filter out posts from muted users
 	filteredItems := make([]TimelineItem, 0, len(uniqueItems))
@@ -174,9 +181,11 @@ func (s *Service) GetTimeline(ctx context.Context, userID string, limit, offset 
 		}
 		filteredItems = append(filteredItems, item)
 	}
+	fmt.Printf("📊 Timeline: filteredItems after mute filtering = %d\n", len(filteredItems))
 
 	// Rank and sort items
 	rankedItems := s.rankItems(filteredItems, userID)
+	fmt.Printf("📊 Timeline: rankedItems after ranking = %d, limit=%d, offset=%d, hasMore=%v\n", len(rankedItems), limit, offset, (offset + limit) < len(rankedItems))
 
 	// Apply pagination
 	start := offset

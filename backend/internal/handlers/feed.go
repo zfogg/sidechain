@@ -660,6 +660,7 @@ func (h *Handlers) GetEnrichedGlobalFeed(c *gin.Context) {
 // GetAggregatedTimeline gets the user's aggregated timeline (grouped by user+day)
 // GET /api/feed/timeline/aggregated
 func (h *Handlers) GetAggregatedTimeline(c *gin.Context) {
+	fmt.Printf("🎯 DEBUG: GetAggregatedTimeline called (NEW CODE)\n")
 	currentUser, ok := util.GetUserFromContext(c)
 	if !ok {
 		return
@@ -668,18 +669,79 @@ func (h *Handlers) GetAggregatedTimeline(c *gin.Context) {
 	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
 	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
-	resp, err := h.stream.GetAggregatedTimeline(currentUser.StreamUserID, limit, offset)
+	// Use database-backed timeline service instead of Stream.io
+	streamClient, ok := h.stream.(*stream.Client)
+	if !ok {
+		util.RespondInternalError(c, "stream_client_error", "Failed to get stream client")
+		return
+	}
+
+	timelineSvc := timeline.NewService(streamClient)
+	timelineResp, err := timelineSvc.GetTimeline(context.Background(), currentUser.ID, limit, offset)
 	if err != nil {
 		util.RespondInternalError(c, "failed_to_get_aggregated_timeline", err.Error())
 		return
 	}
 
+	// Convert timeline items to activity format for plugin compatibility
+	// The plugin's PostsFeed expects flat activities, not aggregated groups
+	activities := make([]map[string]interface{}, 0, len(timelineResp.Items))
+
+	for _, item := range timelineResp.Items {
+		if item.Post == nil {
+			continue
+		}
+
+		activity := map[string]interface{}{
+			"id":           item.Post.ID,
+			"actor":        "user:" + item.Post.UserID,
+			"verb":         "posted",
+			"object":       "loop:" + item.Post.ID,
+			"audio_url":    item.Post.AudioURL,
+			"waveform_url": item.Post.WaveformURL,
+			"bpm":          item.Post.BPM,
+			"key":          item.Post.Key,
+			"daw":          item.Post.DAW,
+			"duration":     item.Post.Duration,
+			"genre":        item.Post.Genre,
+			"time":         item.CreatedAt,
+			"like_count":   item.Post.LikeCount,
+			"play_count":   item.Post.PlayCount,
+			"score":        item.Score,
+			"source":       item.Source,
+		}
+
+		// Add recommendation reason if present
+		if item.Reason != "" {
+			activity["recommendation_reason"] = item.Reason
+		}
+
+		// Mark if this is from recommendations
+		if item.Source == "gorse" || item.Source == "trending" {
+			activity["is_recommended"] = true
+		}
+
+		// Add user info if available
+		if item.User != nil {
+			activity["user"] = map[string]interface{}{
+				"id":           item.User.ID,
+				"username":     item.User.Username,
+				"display_name": item.User.DisplayName,
+				"avatar_url":   item.User.GetAvatarURL(),
+			}
+		}
+
+		activities = append(activities, activity)
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"groups": resp.Groups,
+		"posts": activities,
 		"meta": gin.H{
 			"limit":  limit,
 			"offset": offset,
-			"count":  len(resp.Groups),
+			"total":  len(activities),
+			// Indicate if more posts are available
+			"has_more": timelineResp.Meta.HasMore,
 		},
 	})
 }
