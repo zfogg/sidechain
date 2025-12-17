@@ -55,27 +55,8 @@ void AppStore::loadFeed(FeedType feedType, bool forceRefresh) {
 
   Util::logInfo("AppStore", "Loading feed", "feedType=" + feedTypeToString(feedType));
 
-  // Check memory cache first (if not force refreshing)
-  if (!forceRefresh) {
-    // Try memory cache with 5-minute TTL for feed data
-    auto cacheKey = "feed:" + feedTypeToString(feedType).toLowerCase();
-    auto cachedFeed = getCached<FeedResponse>(cacheKey);
-    if (cachedFeed.has_value()) {
-      Util::logDebug("AppStore", "Using cached feed from memory", "feedType=" + feedTypeToString(feedType));
-      handleFetchSuccess(feedType, juce::var(), 0, 0);
-      return;
-    }
-
-    // Also check state-based cache as fallback
-    if (isCurrentFeedCached()) {
-      auto state = getState();
-      if (state.posts.feeds.count(feedType) > 0 && !state.posts.feeds.at(feedType).posts.isEmpty()) {
-        currentFeedIsFromCache_ = true;
-        Util::logDebug("AppStore", "Using cached feed from state", "feedType=" + feedTypeToString(feedType));
-        return;
-      }
-    }
-  }
+  // Note: We always fetch fresh data on network, don't use stale cache.
+  // Removed cache check - always fetch from network for latest content.
 
   // Update state to loading
   updateFeedState([feedType](PostsState &state) {
@@ -558,20 +539,27 @@ void AppStore::togglePin(const juce::String &postId, bool pinned) {
 // Helper Methods
 
 void AppStore::performFetch(FeedType feedType, int limit, int offset) {
+  Util::logDebug("AppStore", "performFetch called for feedType=" + feedTypeToString(feedType) + ", limit=" + juce::String(limit) + ", offset=" + juce::String(offset));
+
   if (!networkClient) {
+    Util::logError("AppStore", "performFetch: networkClient is null!");
     return;
   }
 
   auto callback = [this, feedType, limit, offset](Outcome<juce::var> result) {
+    Log::debug("AppStore: performFetch callback invoked for feedType=" + feedTypeToString(feedType));
     if (result.isOk()) {
+      Log::debug("AppStore: Feed response received, parsing...");
       handleFetchSuccess(feedType, result.getValue(), limit, offset);
     } else {
+      Log::debug("AppStore: Feed request failed: " + result.getError());
       handleFetchError(feedType, result.getError());
     }
   };
 
   // Call the appropriate feed method based on feed type
   if (feedType == FeedType::Timeline) {
+    Util::logDebug("AppStore", "performFetch: calling getTimelineFeed");
     networkClient->getTimelineFeed(limit, offset, callback);
   } else if (feedType == FeedType::Trending) {
     networkClient->getTrendingFeed(limit, offset, callback);
@@ -599,8 +587,14 @@ void AppStore::performFetch(FeedType feedType, int limit, int offset) {
 
 void AppStore::handleFetchSuccess(FeedType feedType, const juce::var &data, int limit, int offset) {
   // Log pagination info for debugging
-  Log::debug("AppStore::handleFetchSuccess: feedType=" + feedTypeToString(feedType) + ", offset=" + juce::String(offset) +
-            ", limit=" + juce::String(limit));
+  Log::info("========== handleFetchSuccess ENTRY ==========");
+  Log::info("handleFetchSuccess called for feedType=" + feedTypeToString(feedType));
+  Log::debug("handleFetchSuccess parsing response");
+
+  try {
+    // Log pagination info for debugging
+    Log::debug("handleFetchSuccess: feedType=" + feedTypeToString(feedType) + ", offset=" + juce::String(offset) +
+              ", limit=" + juce::String(limit));
 
   // TODO: Implement aggregated feed handling
   // For now, skip aggregated feed types
@@ -632,7 +626,10 @@ void AppStore::handleFetchSuccess(FeedType feedType, const juce::var &data, int 
       feedState.isSynced = true;
     });
   } else {*/
+
+  Log::debug("========== About to call parseJsonResponse ==========");
   auto response = parseJsonResponse(data);
+  Log::debug("========== parseJsonResponse COMPLETE, got " + juce::String(response.posts.size()) + " posts ==========");
 
   // Validate response size against requested limit
   const size_t responseSize = response.posts.size();
@@ -643,9 +640,12 @@ void AppStore::handleFetchSuccess(FeedType feedType, const juce::var &data, int 
   }
 
   // Cache the feed data in memory cache (5-minute TTL)
+  Log::debug("========== About to cache feed data ==========");
   auto cacheKey = "feed:" + feedTypeToString(feedType).toLowerCase();
   setCached<FeedResponse>(cacheKey, response, 300);
+  Log::debug("========== Feed cached successfully ==========");
 
+  Log::debug("========== About to call updateFeedState ==========");
   updateFeedState([feedType, response, offset](PostsState &s) {
     if (s.feeds.count(feedType) == 0) {
       s.feeds[feedType] = FeedState();
@@ -669,9 +669,18 @@ void AppStore::handleFetchSuccess(FeedType feedType, const juce::var &data, int 
     feedState.error = "";
     feedState.isSynced = true;
   });
+  Log::debug("========== updateFeedState COMPLETE ==========");
   //}
 
-  Util::logDebug("AppStore", "Loaded feed", "feedType=" + feedTypeToString(feedType));
+  Log::info("========== handleFetchSuccess COMPLETE ==========");
+  Log::debug("Loaded feed for feedType=" + feedTypeToString(feedType));
+  } catch (const std::exception& e) {
+    Log::error("========== EXCEPTION in handleFetchSuccess: " + juce::String(e.what()) + " ==========");
+    Log::error("Exception in handleFetchSuccess: " + juce::String(e.what()));
+  } catch (...) {
+    Log::error("========== UNKNOWN EXCEPTION in handleFetchSuccess ==========");
+    Log::error("Unknown exception in handleFetchSuccess");
+  }
 }
 
 void AppStore::handleFetchError(FeedType feedType, const juce::String &error) {
@@ -817,8 +826,19 @@ FeedResponse AppStore::parseJsonResponse(const juce::var &json) {
     return response;
   }
 
-  auto postsArray = json.getProperty("posts", juce::var());
-  response.total = static_cast<int>(json.getProperty("total", 0));
+  // Try "activities" first (unified feed format), then "posts" (fallback for other endpoints)
+  auto postsArray = json.getProperty("activities", juce::var());
+  if (!postsArray.isArray()) {
+    postsArray = json.getProperty("posts", juce::var());
+  }
+
+  // Extract total from meta.count or total field
+  auto metaObj = json.getProperty("meta", juce::var());
+  if (metaObj.isObject() && metaObj.hasProperty("count")) {
+    response.total = static_cast<int>(metaObj.getProperty("count", 0));
+  } else {
+    response.total = static_cast<int>(json.getProperty("total", 0));
+  }
 
   if (postsArray.isArray()) {
     for (int i = 0; i < postsArray.size(); ++i) {
@@ -829,6 +849,7 @@ FeedResponse AppStore::parseJsonResponse(const juce::var &json) {
     }
   }
 
+  Util::logDebug("AppStore", "Parsed " + juce::String(response.posts.size()) + " posts from feed response");
   return response;
 }
 
