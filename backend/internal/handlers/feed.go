@@ -329,6 +329,32 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 		return
 	}
 
+	// Phase 0.4: Index post to Elasticsearch
+	if h.search != nil {
+		go func() {
+			// Fetch user for indexing
+			var user models.User
+			if err := database.DB.First(&user, "id = ?", userID).Error; err == nil {
+				postDoc := map[string]interface{}{
+					"id":            postID,
+					"user_id":       userID,
+					"username":      user.Username,
+					"genre":         req.Genre,
+					"bpm":           req.BPM,
+					"key":           req.Key,
+					"daw":           req.DAW,
+					"like_count":    0,
+					"play_count":    0,
+					"comment_count": 0,
+					"created_at":    time.Now().UTC(),
+				}
+				if err := h.search.IndexPost(c.Request.Context(), postID, postDoc); err != nil {
+					fmt.Printf("Warning: Failed to index post %s in Elasticsearch: %v\n", postID, err)
+				}
+			}
+		}()
+	}
+
 	response := gin.H{
 		"post_id":   postID,
 		"activity":  activity,
@@ -916,6 +942,14 @@ func (h *Handlers) DeletePost(c *gin.Context) {
 		if err := h.stream.DeleteLoopActivity(post.UserID, post.StreamActivityID); err != nil {
 			// Log but don't fail - post is already deleted in database
 			fmt.Printf("Failed to delete Stream.io activity: %v\n", err)
+		}
+	}
+
+	// Phase 0.7: Delete post from Elasticsearch index
+	if h.search != nil {
+		if err := h.search.DeletePost(c.Request.Context(), post.ID); err != nil {
+			// Log but don't fail - post is already deleted in database
+			fmt.Printf("Warning: Failed to delete post %s from Elasticsearch: %v\n", post.ID, err)
 		}
 	}
 

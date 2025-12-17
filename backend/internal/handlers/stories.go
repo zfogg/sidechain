@@ -341,6 +341,22 @@ func (h *Handlers) CreateStory(c *gin.Context) {
 		return
 	}
 
+	// Phase 0.5: Index story to Elasticsearch
+	if h.search != nil {
+		go func() {
+			storyDoc := map[string]interface{}{
+				"id":         story.ID,
+				"user_id":    story.UserID,
+				"username":   currentUser.Username,
+				"created_at": story.CreatedAt,
+				"expires_at": story.ExpiresAt,
+			}
+			if err := h.search.IndexStory(c.Request.Context(), story.ID, storyDoc); err != nil {
+				fmt.Printf("Warning: Failed to index story %s in Elasticsearch: %v\n", story.ID, err)
+			}
+		}()
+	}
+
 	response := gin.H{
 		"story_id":   story.ID,
 		"audio_url":  audioURL,
@@ -482,6 +498,14 @@ func (h *Handlers) DeleteStory(c *gin.Context) {
 			"message": "Failed to delete story",
 		})
 		return
+	}
+
+	// Phase 0.7: Delete story from Elasticsearch index
+	if h.search != nil {
+		if err := h.search.DeleteStory(c.Request.Context(), story.ID); err != nil {
+			// Log but don't fail - story is already deleted in database
+			fmt.Printf("Warning: Failed to delete story %s from Elasticsearch: %v\n", story.ID, err)
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
