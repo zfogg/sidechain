@@ -568,6 +568,16 @@ func main() {
 		{
 			search.Use(authHandlers.AuthMiddleware())
 			search.GET("/users", h.SearchUsers)
+			search.GET("/posts", h.SearchPosts)       // Phase 1.2: Search posts with Elasticsearch
+			search.GET("/stories", h.SearchStories)   // Phase 1.3: Search stories by creator username
+			search.GET("/advanced", h.AdvancedSearch) // Phase 1.6: Unified search across all types
+
+			// Autocomplete endpoints (Phase 1.4, 1.5)
+			autocomplete := search.Group("/autocomplete")
+			{
+				autocomplete.GET("/users", h.AutocompleteUsers)   // Phase 1.4: Username suggestions
+				autocomplete.GET("/genres", h.AutocompleteGenres) // Phase 1.5: Genre suggestions
+			}
 		}
 
 		// Activity routes - Timeline from followed users and global activity
