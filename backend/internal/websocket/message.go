@@ -83,6 +83,7 @@ const (
 	MessageTypeFollowerCountUpdate = "follower_count_update"
 	MessageTypeFeedInvalidate      = "feed_invalidate"      // Invalidate feed cache
 	MessageTypeTimelineUpdate      = "timeline_update"      // Activity timeline changed
+	MessageTypeActivityUpdate      = "activity_update"      // New activity (post, like, follow, etc.)
 	MessageTypeNotificationCountUpdate = "notification_count_update" // Unread notification count
 
 	// Typing indicators
@@ -292,6 +293,31 @@ type TimelineUpdatePayload struct {
 	FeedType  string `json:"feed_type"`     // Which feed was updated
 	NewCount  int    `json:"new_count"`     // Number of new activities
 	Timestamp int64  `json:"timestamp"`
+}
+
+// ActivityUpdatePayload represents a new activity (post, like, follow, comment)
+type ActivityUpdatePayload struct {
+	ID          string                 `json:"id,omitempty"`           // Activity ID
+	Actor       string                 `json:"actor"`                  // User ID who performed the action
+	ActorName   string                 `json:"actor_name,omitempty"`   // Actor username
+	ActorAvatar string                 `json:"actor_avatar,omitempty"` // Actor avatar URL
+	Verb        string                 `json:"verb"`                   // "posted", "liked", "followed", "commented"
+	Object      string                 `json:"object"`                 // Post ID or target object
+	ObjectType  string                 `json:"object_type,omitempty"`  // "loop_post", "user", "comment"
+	// Post metadata (when verb="posted")
+	AudioURL    string   `json:"audio_url,omitempty"`
+	BPM         int      `json:"bpm,omitempty"`
+	Key         string   `json:"key,omitempty"`
+	DAW         string   `json:"daw,omitempty"`
+	Genre       []string `json:"genre,omitempty"`
+	WaveformURL string   `json:"waveform_url,omitempty"`
+	// Engagement data (when verb="liked" or "commented")
+	LikeCount    int    `json:"like_count,omitempty"`
+	CommentCount int    `json:"comment_count,omitempty"`
+	CommentText  string `json:"comment_text,omitempty"` // For comments
+	// Metadata
+	Timestamp int64  `json:"timestamp"`
+	FeedTypes []string `json:"feed_types,omitempty"` // Which feeds this affects: "global", "timeline", "user_activity"
 }
 
 // NotificationCountPayload indicates unread notification count changed

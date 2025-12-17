@@ -585,6 +585,28 @@ func (h *Handler) BroadcastTimelineUpdate(userID, feedType string, newCount int)
 	h.hub.Broadcast(NewMessage(MessageTypeTimelineUpdate, payload))
 }
 
+// BroadcastActivity broadcasts a new activity to all connected users
+// This enables real-time updates of posts, likes, follows, comments without polling
+func (h *Handler) BroadcastActivity(activity *ActivityUpdatePayload) {
+	if activity == nil {
+		return
+	}
+	activity.Timestamp = time.Now().UnixMilli()
+	h.hub.Broadcast(NewMessage(MessageTypeActivityUpdate, activity))
+}
+
+// BroadcastActivityToFollowers broadcasts an activity only to followers of the actor
+// This is more targeted than broadcasting to all users
+func (h *Handler) BroadcastActivityToFollowers(actorID string, activity *ActivityUpdatePayload) {
+	if activity == nil {
+		return
+	}
+	activity.Timestamp = time.Now().UnixMilli()
+	// For now, broadcast to all users. In the future, we could query followers from the database
+	// and only send to those users for better performance with many users
+	h.hub.Broadcast(NewMessage(MessageTypeActivityUpdate, activity))
+}
+
 // NotifyNotificationCountUpdate sends updated notification count to a specific user
 func (h *Handler) NotifyNotificationCountUpdate(userID string, unreadCount, unseenCount int) {
 	payload := &NotificationCountPayload{

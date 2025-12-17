@@ -18,6 +18,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/stream"
 	"github.com/zfogg/sidechain/backend/internal/timeline"
 	"github.com/zfogg/sidechain/backend/internal/util"
+	"github.com/zfogg/sidechain/backend/internal/websocket"
 	"gorm.io/gorm"
 )
 
@@ -329,10 +330,33 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 		return
 	}
 
-	// Broadcast feed invalidation for real-time updates (Phase 2.1)
+	// Broadcast feed invalidation for real-time updates (Phase 2.1) + Activity broadcast (Phase 5)
 	if h.wsHandler != nil {
 		go func() {
-			// Invalidate all feeds since new post affects global, trending, user timelines
+			// Fetch user details for activity broadcast
+			var user models.User
+			if err := database.DB.Select("id", "username", "display_name", "profile_picture_url").
+				First(&user, "id = ?", userID).Error; err == nil {
+				// Broadcast the actual activity so clients don't need to refetch
+				activityPayload := &websocket.ActivityUpdatePayload{
+					ID:          activity.ForeignID,
+					Actor:       userID,
+					ActorName:   user.Username,
+					ActorAvatar: user.ProfilePictureURL,
+					Verb:        "posted",
+					Object:      postID,
+					ObjectType:  "loop_post",
+					AudioURL:    req.AudioURL,
+					BPM:         req.BPM,
+					Key:         req.Key,
+					DAW:         req.DAW,
+					Genre:       req.Genre,
+					FeedTypes:   []string{"global", "trending", "timeline"},
+				}
+				h.wsHandler.BroadcastActivity(activityPayload)
+			}
+
+			// Also broadcast feed invalidation for clients that prefer to refetch
 			h.wsHandler.BroadcastFeedInvalidation("global", "new_post")
 			h.wsHandler.BroadcastFeedInvalidation("trending", "new_post")
 			h.wsHandler.BroadcastFeedInvalidation("timeline", "new_post")
