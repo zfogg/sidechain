@@ -1,7 +1,7 @@
 services:
   backend:
-    image: zfogg/sidechain-backend:latest
-    container_name: sidechain-backend
+    image: zfogg/sidechain-backend-dev:latest
+    container_name: sidechain-backend-dev
     build:
       context: .
       dockerfile: Dockerfile.dev
