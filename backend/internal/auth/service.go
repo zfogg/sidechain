@@ -3,6 +3,7 @@ package auth
 import (
 	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -34,20 +35,34 @@ type Service struct {
 
 // NewService creates a new authentication service
 func NewService(jwtSecret []byte, streamClient *stream.Client, googleClientID, googleClientSecret, discordClientID, discordClientSecret string) *Service {
+	// OAuth redirect URLs - should be set to https://api.sidechain.live in production
+	// For development, use localhost. For production, use API_BASE_URL env var or default to api.sidechain.live
+	googleRedirectURL := "http://localhost:8787/api/v1/auth/google/callback"
+	discordRedirectURL := "http://localhost:8787/api/v1/auth/discord/callback"
+
+	if apiBaseURL := os.Getenv("API_BASE_URL"); apiBaseURL != "" {
+		googleRedirectURL = apiBaseURL + "/api/v1/auth/google/callback"
+		discordRedirectURL = apiBaseURL + "/api/v1/auth/discord/callback"
+	} else if os.Getenv("ENVIRONMENT") == "production" {
+		// Default production URLs
+		googleRedirectURL = "https://api.sidechain.live/api/v1/auth/google/callback"
+		discordRedirectURL = "https://api.sidechain.live/api/v1/auth/discord/callback"
+	}
+
 	return &Service{
 		jwtSecret:    jwtSecret,
 		streamClient: streamClient,
 		googleConfig: &oauth2.Config{
 			ClientID:     googleClientID,
 			ClientSecret: googleClientSecret,
-			RedirectURL:  "http://localhost:8787/api/v1/auth/google/callback",
+			RedirectURL:  googleRedirectURL,
 			Scopes:       []string{"openid", "profile", "email"},
 			Endpoint:     google.Endpoint,
 		},
 		discordConfig: &oauth2.Config{
 			ClientID:     discordClientID,
 			ClientSecret: discordClientSecret,
-			RedirectURL:  "http://localhost:8787/api/v1/auth/discord/callback",
+			RedirectURL:  discordRedirectURL,
 			Scopes:       []string{"identify", "email"},
 			Endpoint: oauth2.Endpoint{
 				AuthURL:  "https://discord.com/api/oauth2/authorize",
