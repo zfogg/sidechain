@@ -563,10 +563,10 @@ func main() {
 			followRequests.DELETE("/:id", h.CancelFollowRequest)
 		}
 
-		// Search routes
+		// Search routes (public, optional auth for privacy filtering - Phase 5.1)
 		search := api.Group("/search")
 		{
-			search.Use(authHandlers.AuthMiddleware())
+			search.Use(authHandlers.AuthMiddlewareOptional())
 			search.GET("/users", h.SearchUsers)
 			search.GET("/posts", h.SearchPosts)       // Phase 1.2: Search posts with Elasticsearch
 			search.GET("/stories", h.SearchStories)   // Phase 1.3: Search stories by creator username
