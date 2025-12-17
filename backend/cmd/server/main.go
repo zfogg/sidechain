@@ -583,6 +583,8 @@ func main() {
 			search.GET("/posts", h.SearchPosts)       // Phase 1.2: Search posts with Elasticsearch
 			search.GET("/stories", h.SearchStories)   // Phase 1.3: Search stories by creator username
 			search.GET("/advanced", h.AdvancedSearch) // Phase 1.6: Unified search across all types
+			search.GET("/genres", h.GetAvailableGenres)
+			search.GET("/keys", h.GetAvailableKeys)
 
 			// Autocomplete endpoints (Phase 1.4, 1.5)
 			autocomplete := search.Group("/autocomplete")
