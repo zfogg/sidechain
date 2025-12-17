@@ -108,6 +108,20 @@ func main() {
 		}
 	}
 
+
+	// Initialize alert system (Phase 7.2)
+	alertManager := alerts.NewAlertManager()
+	alertEvaluator := alerts.NewEvaluator(alertManager)
+	alertEvaluator.InitializeDefaultRules()
+	log.Println("✅ Alert system initialized with default rules")
+
+	// Start alert evaluation loop (check every minute)
+	stopEvaluation := alertEvaluator.StartEvaluationLoop(1 * time.Minute)
+	defer close(stopEvaluation)
+
+	// Set global references for handlers
+	handlers.SetAlertManager(alertManager)
+	handlers.SetAlertEvaluator(alertEvaluator)
 	// Initialize Stream.io client
 	streamClient, err := stream.NewClient()
 	if err != nil {
@@ -593,6 +607,24 @@ func main() {
 
 
 	// Metrics routes (Phase 7.1)
+
+	// Alert routes (Phase 7.2)
+	alert := api.Group("/alerts")
+	{
+		alert.GET("", h.GetAlerts)                  // Get all alerts
+		alert.GET("/active", h.GetActiveAlerts)      // Get active alerts
+		alert.GET("/type/:type", h.GetAlertsByType) // Get alerts by type
+		alert.PUT("/:id/resolve", h.ResolveAlert)   // Resolve an alert
+		alert.GET("/stats", h.GetAlertStats)        // Get alert statistics
+
+		// Alert rules management
+		rules := alert.Group("/rules")
+		{
+			rules.GET("", h.GetRules)        // Get all rules
+			rules.POST("", h.CreateRule)     // Create new rule
+			rules.PUT("/:id", h.UpdateRule)  // Update rule
+		}
+	}
 	metrics := api.Group("/metrics")
 	{
 		metrics.GET("", h.GetAllMetrics)            // Get all metrics
