@@ -369,6 +369,10 @@ private:
    */
   void loadLoginState();
 
+  /** Auto-send a test message to a random user on startup (for demo purposes)
+   */
+  void sendTestMessageOnStartup();
+
   //==============================================================================
   // Crash detection
 

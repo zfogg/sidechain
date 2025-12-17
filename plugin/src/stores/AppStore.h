@@ -151,6 +151,30 @@ public:
   void handleNewMessage(const juce::var &messageData);
   void handleTypingStart(const juce::String &userId);
 
+  /**
+   * Add a channel to chat state (for network responses).
+   * Used by PluginEditor when receiving channel data from network.
+   *
+   * @param channelId Channel ID
+   * @param channelName Channel name/display name
+   */
+  void addChannelToState(const juce::String &channelId, const juce::String &channelName = "");
+
+  /**
+   * Add a message to a channel in chat state (for network responses).
+   * Used by PluginEditor when receiving message data from network.
+   *
+   * @param channelId Channel ID to add message to
+   * @param messageId Message ID
+   * @param text Message text
+   * @param userId User ID of sender
+   * @param userName User name of sender
+   * @param createdAt ISO 8601 timestamp
+   */
+  void addMessageToChannel(const juce::String &channelId, const juce::String &messageId, const juce::String &text,
+                           const juce::String &userId, const juce::String &userName,
+                           const juce::String &createdAt);
+
   //==============================================================================
   // Search Methods (Search.cpp)
 

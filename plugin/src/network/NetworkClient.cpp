@@ -26,12 +26,28 @@ static juce::MemoryBlock createJsonPostBody(const juce::var &data) {
 // Helper to convert RequestResult to Outcome<juce::var> for type-safe error
 // handling
 static Outcome<juce::var> requestResultToOutcome(const NetworkClient::RequestResult &result) {
-  if (result.success && result.isSuccess()) {
+  // Check if response JSON contains an error field (even if HTTP status looks successful)
+  // This handles cases where HTTP status parsing fails and defaults to 200, but response is actually an error
+  bool hasErrorInBody = false;
+  if (result.data.isObject()) {
+    auto error = result.data.getProperty("error", juce::var());
+    hasErrorInBody = error.isString() && error.toString().isNotEmpty();
+    if (hasErrorInBody) {
+      Log::debug("requestResultToOutcome: Detected error in response body: " + error.toString());
+    }
+  }
+
+  Log::debug("requestResultToOutcome: success=" + juce::String(result.success ? "true" : "false") +
+             ", isSuccess=" + juce::String(result.isSuccess() ? "true" : "false") +
+             ", hasErrorInBody=" + juce::String(hasErrorInBody ? "true" : "false"));
+
+  if (result.success && result.isSuccess() && !hasErrorInBody) {
     return Outcome<juce::var>::ok(result.data);
   } else {
     juce::String errorMsg = result.getUserFriendlyError();
     if (errorMsg.isEmpty())
       errorMsg = "Request failed (HTTP " + juce::String(result.httpStatus) + ")";
+    Log::debug("requestResultToOutcome: Returning error: " + errorMsg);
     return Outcome<juce::var>::error(errorMsg);
   }
 }
@@ -96,9 +112,18 @@ int NetworkClient::parseStatusCode(const juce::StringPairArray &headers) {
       // Parse "HTTP/1.1 200 OK" format
       auto statusLine = headers[key];
       auto parts = juce::StringArray::fromTokens(statusLine, " ", "");
-      if (parts.size() >= 2)
-        return parts[1].getIntValue();
+      if (parts.size() >= 2) {
+        int statusCode = parts[1].getIntValue();
+        Log::debug("parseStatusCode: Found HTTP status '" + statusLine + "' -> " + juce::String(statusCode));
+        return statusCode;
+      }
     }
+  }
+
+  // If we still can't find it, log all headers for debugging
+  Log::warn("parseStatusCode: Failed to parse status code. Headers present:");
+  for (auto &key : headers.getAllKeys()) {
+    Log::warn("  Header[" + key + "] = " + headers[key]);
   }
   return 0;
 }

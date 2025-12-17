@@ -230,10 +230,35 @@ void Profile::setProfile(const UserProfile &newProfile) {
   if (errorStateComponent != nullptr)
     errorStateComponent->setVisible(false);
 
-  // Avatar image loading simplified - just use placeholder for now
+  // Load avatar image from AppStore's image cache
   if (profile.id.isNotEmpty() && profile.avatarUrl.isNotEmpty()) {
-    Log::debug("Profile::setProfile: Avatar URL available for user: " + profile.id);
-    avatarImage = juce::Image();
+    Log::debug("Profile::setProfile: Avatar URL available for user: " + profile.id + ", URL: " + profile.avatarUrl);
+
+    if (appStore != nullptr) {
+      juce::Component::SafePointer<Profile> safeThis(this);
+      Log::info("Profile::setProfile: Loading avatar image from AppStore - URL: " + profile.avatarUrl);
+      appStore->loadImageObservable(profile.avatarUrl)
+          .subscribe(
+              [safeThis](const juce::Image &image) {
+                if (safeThis == nullptr)
+                  return;
+                if (image.isValid()) {
+                  Log::info("Profile::setProfile: Avatar image loaded successfully - size: " +
+                           juce::String(image.getWidth()) + "x" + juce::String(image.getHeight()));
+                  safeThis->avatarImage = image;
+                  safeThis->repaint();
+                } else {
+                  Log::warn("Profile::setProfile: Avatar image is invalid");
+                }
+              },
+              [safeThis](std::exception_ptr) {
+                if (safeThis == nullptr)
+                  return;
+                Log::warn("Profile::setProfile: Failed to load avatar image");
+              });
+    } else {
+      Log::warn("Profile::setProfile: AppStore is null, cannot load avatar image");
+    }
   }
 
   repaint();
@@ -383,7 +408,9 @@ void Profile::drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds) {
 
     g.saveState();
     g.reduceClipRegion(circlePath);
-    g.drawImageAt(avatarImage, bounds.getX(), bounds.getY());
+    // Scale image to fit the bounds
+    auto scaledImage = avatarImage.rescaled(bounds.getWidth(), bounds.getHeight(), juce::Graphics::highResamplingQuality);
+    g.drawImageAt(scaledImage, bounds.getX(), bounds.getY());
     g.restoreState();
   } else {
     // Fallback: draw colored circle with user initials

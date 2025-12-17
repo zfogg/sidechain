@@ -791,7 +791,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
 
   //==========================================================================
   // Create Profile
-  profileComponent = std::make_unique<Profile>();
+  profileComponent = std::make_unique<Profile>(&appStore);
   profileComponent->setNetworkClient(networkClient.get());
   profileComponent->onBackPressed = [this]() { navigateBack(); };
   profileComponent->onEditProfile = [this]() {
@@ -1485,6 +1485,14 @@ void SidechainAudioProcessorEditor::showProfile(const juce::String &userId) {
 
   Log::info("PluginEditor::showProfile: Showing profile for user: " + profileUserIdToView);
   showView(AppView::Profile);
+
+  // Load profile data
+  if (profileComponent != nullptr) {
+    Log::info("PluginEditor::showProfile: Loading profile data for: " + profileUserIdToView);
+    profileComponent->loadProfile(profileUserIdToView);
+  } else {
+    Log::error("PluginEditor::showProfile: profileComponent is null");
+  }
 }
 
 void SidechainAudioProcessorEditor::showMessageThread(const juce::String &channelType, const juce::String &channelId) {
@@ -2307,6 +2315,12 @@ void SidechainAudioProcessorEditor::loadLoginState() {
             email = userState.email;
             profilePicUrl = userState.profilePictureUrl;
             showView(AppView::PostsFeed);
+
+            // Auto-send test message on startup for demo purposes
+            Log::info("loadLoginState: Scheduling test message send");
+            juce::Timer::callAfterDelay(2000, [this]() {
+              sendTestMessageOnStartup();
+            });
           } else {
             Log::info("loadLoginState: User has no S3 profile picture, showing ProfileSetup");
             showView(AppView::ProfileSetup);
@@ -2326,6 +2340,65 @@ void SidechainAudioProcessorEditor::loadLoginState() {
     Log::debug("loadLoginState: No saved auth token found, showing authentication view");
     showView(AppView::Authentication);
   }
+}
+
+//==============================================================================
+// Auto-send test message on startup
+void SidechainAudioProcessorEditor::sendTestMessageOnStartup() {
+  if (!streamChatClient) {
+    Log::error("sendTestMessageOnStartup: StreamChatClient not available");
+    return;
+  }
+
+  // Test recipient user ID (cheese142 from database)
+  juce::String targetUserId = "4471addb-eb39-48e8-b226-00b37d539bc1";
+  juce::String testMessage = "Test message sent at " + juce::Time::getCurrentTime().toString(true, true);
+
+  Log::info("sendTestMessageOnStartup: Creating direct channel with user: " + targetUserId);
+
+  // Create direct channel
+  streamChatClient->createDirectChannel(
+      targetUserId,
+      [this, testMessage](Outcome<StreamChatClient::Channel> channelResult) {
+        if (!channelResult.isOk()) {
+          Log::error("sendTestMessageOnStartup: Failed to create channel - " + channelResult.getError());
+          return;
+        }
+
+        const auto &channel = channelResult.getValue();
+        Log::info("sendTestMessageOnStartup: Channel created successfully - ID: " + channel.id +
+                  ", Type: " + channel.type);
+
+        // Add channel to AppStore state so messages can be added to it
+        appStore.addChannelToState(channel.id, channel.name);
+
+        // Send test message in the channel
+        if (!streamChatClient) {
+          Log::error("sendTestMessageOnStartup: StreamChatClient became unavailable");
+          return;
+        }
+
+        Log::info("sendTestMessageOnStartup: Sending test message");
+        streamChatClient->sendMessage(
+            channel.type, channel.id, testMessage, juce::var(),
+            [this, channel](Outcome<StreamChatClient::Message> msgResult) {
+              if (!msgResult.isOk()) {
+                Log::error("sendTestMessageOnStartup: Failed to send message - " + msgResult.getError());
+                return;
+              }
+
+              const auto &sentMsg = msgResult.getValue();
+              Log::info("sendTestMessageOnStartup: Message sent successfully - ID: " + sentMsg.id);
+
+              // Add message to AppStore state so MessageThread can display it
+              appStore.addMessageToChannel(channel.id, sentMsg.id, sentMsg.text, sentMsg.userId, sentMsg.userName,
+                                           sentMsg.createdAt);
+
+              // Open the message thread view to show the sent message
+              Log::info("sendTestMessageOnStartup: Opening message thread view");
+              showMessageThread(channel.type, channel.id);
+            });
+      });
 }
 
 //==============================================================================

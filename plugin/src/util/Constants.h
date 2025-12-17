@@ -61,17 +61,17 @@ constexpr const char *USERS_PROFILE_PICTURE = "/api/v1/users/upload-profile-pict
 //==========================================================================
 namespace Errors {
 // Authentication errors
-constexpr const char *NOT_AUTHENTICATED = "🚫 Not authenticated";
-constexpr const char *AUTH_REQUIRED = "🔒 Authentication required";
+constexpr const char *NOT_AUTHENTICATED = "Not authenticated";
+constexpr const char *AUTH_REQUIRED = "Authentication required";
 
 // Network errors
-constexpr const char *NETWORK_ERROR = "🚨 Network error occurred";
-constexpr const char *REQUEST_FAILED = "🔴 Request failed";
-constexpr const char *TIMEOUT = "⌛ Request timed out";
+constexpr const char *NETWORK_ERROR = "Network error occurred";
+constexpr const char *REQUEST_FAILED = "Request failed";
+constexpr const char *TIMEOUT = "Request timed out";
 
 // Validation errors
-constexpr const char *INVALID_INPUT = "❌ Invalid input";
-constexpr const char *MISSING_REQUIRED_FIELD = "⛔ Missing required field";
+constexpr const char *INVALID_INPUT = "\xe2\x9d\x8c Invalid input";
+constexpr const char *MISSING_REQUIRED_FIELD = "\xe2\x9b\x94 Missing required field";
 } // namespace Errors
 //==========================================================================
 // API Configuration

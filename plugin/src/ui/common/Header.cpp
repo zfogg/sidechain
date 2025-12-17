@@ -262,13 +262,16 @@ void Header::drawCircularProfilePic(juce::Graphics &g, juce::Rectangle<int> boun
   // If we have a cached profile image, draw it
   if (cachedProfileImage.isValid()) {
     Log::info("Header: Drawing profile photo from S3 - size: " + juce::String(cachedProfileImage.getWidth()) +
-              "x" + juce::String(cachedProfileImage.getHeight()) + ", URL: " + profilePicUrl);
-    // Create a circular mask and draw the image
+              "x" + juce::String(cachedProfileImage.getHeight()) + " into bounds: " + juce::String(bounds.getWidth()) +
+              "x" + juce::String(bounds.getHeight()) + ", URL: " + profilePicUrl);
+    // Create a circular mask and draw the image scaled to fit
     juce::Path circlePath;
     circlePath.addEllipse(bounds.toFloat());
     g.saveState();
     g.reduceClipRegion(circlePath);
-    g.drawImageAt(cachedProfileImage, bounds.getX(), bounds.getY());
+    // Scale and draw the image to fit the bounds
+    auto scaledImage = cachedProfileImage.rescaled(bounds.getWidth(), bounds.getHeight(), juce::Graphics::highResamplingQuality);
+    g.drawImageAt(scaledImage, bounds.getX(), bounds.getY());
     g.restoreState();
   } else {
     // Use reactive observable to load profile image (with caching)
