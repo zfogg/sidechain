@@ -25,7 +25,7 @@ services:
     image: zfogg/sidechain-backend:latest
     container_name: sidechain-backend
     restart: unless-stopped
-    pull_policy: always
+    pull_policy: never
     volumes:
       - ./.env:/app/.env:ro
     depends_on:
