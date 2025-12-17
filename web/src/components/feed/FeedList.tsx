@@ -83,11 +83,16 @@ export function FeedList({ feedType }: FeedListProps) {
   }
 
   if (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error('[Feed] Error loading feed:', errorMessage)
     return (
       <div className="bg-card border border-border rounded-lg p-6 text-center space-y-4">
         <div className="text-destructive font-medium">Failed to load feed</div>
         <div className="text-sm text-muted-foreground">
-          {error instanceof Error ? error.message : 'An error occurred'}
+          {errorMessage}
+        </div>
+        <div className="text-xs text-muted-foreground bg-muted p-2 rounded font-mono">
+          Check console for details
         </div>
         <Button onClick={() => refetch()}>Retry</Button>
       </div>
