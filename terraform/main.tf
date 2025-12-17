@@ -383,7 +383,7 @@ output "health_check_url" {
 
 output "ci_cd_workflow" {
   description = "Automated CI/CD workflow"
-  value = <<-EOT
+  value       = <<-EOT
     Git Push → GitHub Actions Build → Docker Hub Push → Watchtower Auto-Deploy
 
     Any commit to main branch will automatically:
@@ -397,7 +397,7 @@ output "ci_cd_workflow" {
 
 output "next_steps" {
   description = "Instructions for first-time setup"
-  value = <<-EOT
+  value       = <<-EOT
     ✅ Server provisioning complete!
 
     1. Connect to your server:
