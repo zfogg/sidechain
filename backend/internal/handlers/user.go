@@ -213,8 +213,9 @@ func (h *Handlers) GetUserProfile(c *gin.Context) {
 	currentUserID := c.GetString("user_id") // May be empty if not authenticated
 
 	// Fetch user from database - accept ID, stream_user_id, or username
+	// Cast id to text to avoid UUID type comparison errors with usernames
 	var user models.User
-	if err := database.DB.Where("id = ? OR stream_user_id = ? OR username = ?", targetParam, targetParam, targetParam).First(&user).Error; err != nil {
+	if err := database.DB.Where("CAST(id AS TEXT) = ? OR stream_user_id = ? OR username = ?", targetParam, targetParam, targetParam).First(&user).Error; err != nil {
 		if util.HandleDBError(c, err, "user") {
 			return
 		}
@@ -580,8 +581,9 @@ func (h *Handlers) GetUserFollowers(c *gin.Context) {
 	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
 
 	// Validate user exists - accept ID, stream_user_id, or username
+	// Cast id to text to avoid UUID type comparison errors with usernames
 	var user models.User
-	if err := database.DB.Where("id = ? OR stream_user_id = ? OR username = ?", targetParam, targetParam, targetParam).First(&user).Error; err != nil {
+	if err := database.DB.Where("CAST(id AS TEXT) = ? OR stream_user_id = ? OR username = ?", targetParam, targetParam, targetParam).First(&user).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "user_not_found"})
 		return
 	}
@@ -630,8 +632,9 @@ func (h *Handlers) GetUserFollowing(c *gin.Context) {
 	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
 	// Validate user exists - accept ID, stream_user_id, or username
+	// Cast id to text to avoid UUID type comparison errors with usernames
 	var user models.User
-	if err := database.DB.Where("id = ? OR stream_user_id = ? OR username = ?", targetParam, targetParam, targetParam).First(&user).Error; err != nil {
+	if err := database.DB.Where("CAST(id AS TEXT) = ? OR stream_user_id = ? OR username = ?", targetParam, targetParam, targetParam).First(&user).Error; err != nil {
 		if util.HandleDBError(c, err, "user") {
 			return
 		}
@@ -682,8 +685,9 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
 	// Validate user exists - accept ID, stream_user_id, or username
+	// Cast id to text to avoid UUID type comparison errors with usernames
 	var user models.User
-	if err := database.DB.Where("id = ? OR stream_user_id = ? OR username = ?", targetParam, targetParam, targetParam).First(&user).Error; err != nil {
+	if err := database.DB.Where("CAST(id AS TEXT) = ? OR stream_user_id = ? OR username = ?", targetParam, targetParam, targetParam).First(&user).Error; err != nil {
 		if util.HandleDBError(c, err, "user") {
 			return
 		}
@@ -879,8 +883,9 @@ func (h *Handlers) FollowUserByID(c *gin.Context) {
 	targetParam := c.Param("id")
 
 	// Validate target user exists - accept ID, stream_user_id, or username
+	// Cast id to text to avoid UUID type comparison errors with usernames
 	var targetUser models.User
-	if err := database.DB.Where("id = ? OR stream_user_id = ? OR username = ?", targetParam, targetParam, targetParam).First(&targetUser).Error; err != nil {
+	if err := database.DB.Where("CAST(id AS TEXT) = ? OR stream_user_id = ? OR username = ?", targetParam, targetParam, targetParam).First(&targetUser).Error; err != nil {
 		if util.HandleDBError(c, err, "user") {
 			return
 		}
@@ -980,8 +985,9 @@ func (h *Handlers) UnfollowUserByID(c *gin.Context) {
 	targetParam := c.Param("id")
 
 	// Validate target user exists - accept ID, stream_user_id, or username
+	// Cast id to text to avoid UUID type comparison errors with usernames
 	var targetUser models.User
-	if err := database.DB.Where("id = ? OR stream_user_id = ? OR username = ?", targetParam, targetParam, targetParam).First(&targetUser).Error; err != nil {
+	if err := database.DB.Where("CAST(id AS TEXT) = ? OR stream_user_id = ? OR username = ?", targetParam, targetParam, targetParam).First(&targetUser).Error; err != nil {
 		if util.HandleDBError(c, err, "user") {
 			return
 		}
