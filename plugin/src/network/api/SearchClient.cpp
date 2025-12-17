@@ -47,6 +47,58 @@ void NetworkClient::searchPosts(const juce::String &query, const juce::String &g
   });
 }
 
+void NetworkClient::autocompleteUsers(const juce::String &query, int limit, ResponseCallback callback) {
+  if (callback == nullptr)
+    return;
+
+  juce::String encodedQuery = juce::URL::addEscapeChars(query, true);
+  juce::String endpoint = buildApiPath("/search/autocomplete/users") + "?q=" + encodedQuery + "&limit=" +
+                          juce::String(limit);
+
+  Async::runVoid([this, endpoint, callback]() {
+    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+
+    juce::MessageManager::callAsync([callback, result]() {
+      auto outcome = requestResultToOutcome(result);
+
+      if (outcome.isOk()) {
+        auto data = outcome.getValue();
+        if (data.isObject() && data.hasProperty("suggestions")) {
+          outcome = Outcome<juce::var>::ok(data.getProperty("suggestions", juce::var()));
+        }
+      }
+
+      callback(outcome);
+    });
+  });
+}
+
+void NetworkClient::autocompleteGenres(const juce::String &query, int limit, ResponseCallback callback) {
+  if (callback == nullptr)
+    return;
+
+  juce::String encodedQuery = juce::URL::addEscapeChars(query, true);
+  juce::String endpoint = buildApiPath("/search/autocomplete/genres") + "?q=" + encodedQuery + "&limit=" +
+                          juce::String(limit);
+
+  Async::runVoid([this, endpoint, callback]() {
+    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+
+    juce::MessageManager::callAsync([callback, result]() {
+      auto outcome = requestResultToOutcome(result);
+
+      if (outcome.isOk()) {
+        auto data = outcome.getValue();
+        if (data.isObject() && data.hasProperty("suggestions")) {
+          outcome = Outcome<juce::var>::ok(data.getProperty("suggestions", juce::var()));
+        }
+      }
+
+      callback(outcome);
+    });
+  });
+}
+
 void NetworkClient::getSearchSuggestions(const juce::String &query, int limit, ResponseCallback callback) {
   if (callback == nullptr)
     return;

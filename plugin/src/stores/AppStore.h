@@ -184,6 +184,10 @@ public:
   void clearSearchResults();
   void loadGenres();
   void filterByGenre(const juce::String &genre);
+  void autocompleteUsers(const juce::String &query,
+                         std::function<void(const juce::Array<juce::String> &suggestions)> callback);
+  void autocompleteGenres(const juce::String &query,
+                          std::function<void(const juce::Array<juce::String> &suggestions)> callback);
 
   //==============================================================================
   // Notification Methods (Notifications.cpp)
