@@ -1716,12 +1716,9 @@ void PostsFeed::mouseWheelMove(const juce::MouseEvent & /*event*/, const juce::M
     return;
   }
 
-  double scrollAmount = wheel.deltaY * 250.0;
+  double scrollAmount = wheel.deltaY * 2500.0;
   double maxScrollPos = juce::jmax(0.0, static_cast<double>(totalContentHeight - getFeedContentBounds().getHeight()));
   targetScrollPosition = juce::jlimit(0.0, maxScrollPos, scrollPosition - scrollAmount);
-
-  Log::debug("PostsFeed::mouseWheelMove: Wheel scroll - delta: " + juce::String(wheel.deltaY, 2) +
-             ", position: " + juce::String(scrollPosition, 1) + " -> " + juce::String(targetScrollPosition, 1));
 
   // Create smooth scroll animation (200ms duration)
   scrollAnimation = Sidechain::UI::Animations::TransitionAnimation<double>::create(
@@ -1748,37 +1745,45 @@ void PostsFeed::updateScrollBounds() {
       posts = currentFeed->posts;
     }
   }
-  totalContentHeight = POSTS_TOP_PADDING + static_cast<int>(posts.size()) * (POST_CARD_HEIGHT + POST_CARD_SPACING);
-  Log::debug("PostsFeed::updateScrollBounds: Calculated totalContentHeight=" + juce::String(totalContentHeight) +
-             " from posts.size()=" + juce::String(posts.size()) + ", cardHeight=" + juce::String(POST_CARD_HEIGHT) +
-             ", spacing=" + juce::String(POST_CARD_SPACING));
+  int newTotalHeight = POSTS_TOP_PADDING + static_cast<int>(posts.size()) * (POST_CARD_HEIGHT + POST_CARD_SPACING);
 
   double visibleHeight = contentBounds.getHeight();
-  double maxScrollPosition = juce::jmax(0.0, static_cast<double>(totalContentHeight) - visibleHeight);
+  double oldMaxScrollPosition = juce::jmax(0.0, static_cast<double>(previousContentHeight) - visibleHeight);
+  double maxScrollPosition = juce::jmax(0.0, static_cast<double>(newTotalHeight) - visibleHeight);
+
+  // Detect if content grew and user is near bottom - scroll to middle of new content
+  bool contentGrew = newTotalHeight > previousContentHeight && previousContentHeight > 0;
+  bool userNearBottom = scrollPosition >= (oldMaxScrollPosition * 0.8); // Within 80% of max
+
+  if (contentGrew && userNearBottom) {
+    // Scroll to middle of new content
+    targetScrollPosition = maxScrollPosition / 2.0;
+    scrollAnimation = Sidechain::UI::Animations::TransitionAnimation<double>::create(
+                         scrollPosition, targetScrollPosition, 150)
+                         ->withEasing(Sidechain::UI::Animations::Easing::easeOutQuad)
+                         ->onProgress([this](const double &newValue) {
+                           scrollPosition = newValue;
+                           scrollBar.setCurrentRangeStart(scrollPosition);
+                           repaint();
+                         })
+                         ->start();
+  }
+
+  totalContentHeight = newTotalHeight;
+  previousContentHeight = newTotalHeight;
+
   scrollBar.setRangeLimits(0.0, maxScrollPosition);
   scrollBar.setCurrentRange(scrollPosition, visibleHeight);
-  Log::debug("PostsFeed::updateScrollBounds: Scroll bounds updated - totalHeight: " + juce::String(totalContentHeight) +
-             ", visibleHeight: " + juce::String(visibleHeight, 1) + ", maxScrollPos: " + juce::String(maxScrollPosition, 1));
 }
 
 void PostsFeed::checkLoadMore() {
-  // Task 2.6: Use FeedStore instead of feedDataManager
   if (!appStore) {
-    Log::debug("PostsFeed::checkLoadMore: PostsStore is null, skipping");
     return;
   }
 
   const auto currentFeed = appStore->getState().posts.getCurrentFeed();
   if (!currentFeed || feedDisplayState != PostsFeedDisplayState::Loaded || !currentFeed->hasMore ||
       currentFeed->isLoading) {
-    if (feedDisplayState != PostsFeedDisplayState::Loaded)
-      Log::debug("PostsFeed::checkLoadMore: Feed not loaded, skipping");
-    else if (!currentFeed)
-      Log::debug("PostsFeed::checkLoadMore: Current feed is null, skipping");
-    else if (!currentFeed->hasMore)
-      Log::debug("PostsFeed::checkLoadMore: No more posts available");
-    else if (currentFeed->isLoading)
-      Log::debug("PostsFeed::checkLoadMore: Already fetching, skipping");
     return;
   }
 
@@ -1786,12 +1791,7 @@ void PostsFeed::checkLoadMore() {
   double scrollEnd = scrollPosition + contentBounds.getHeight();
   double threshold = totalContentHeight - 200; // Load more when 200px from bottom
 
-  Log::debug("PostsFeed::checkLoadMore: Checking threshold - scrollEnd: " + juce::String(scrollEnd, 1) +
-             ", threshold: " + juce::String(threshold, 1) + ", totalHeight: " + juce::String(totalContentHeight));
-
   if (scrollEnd >= threshold) {
-    Log::info("PostsFeed::checkLoadMore: Threshold reached, loading more posts");
-    // Task 2.6: Use FeedStore.loadMore() - it will notify via subscription
     appStore->loadMore();
   }
 }
