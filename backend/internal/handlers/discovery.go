@@ -257,7 +257,7 @@ func (h *Handlers) SearchPosts(c *gin.Context) {
 
 		// Text search on various fields
 		db = db.Where(
-			"name ILIKE ? OR description ILIKE ?",
+			"filename ILIKE ? OR original_filename ILIKE ?",
 			query_pattern, query_pattern,
 		)
 
@@ -607,7 +607,7 @@ func (h *Handlers) AdvancedSearch(c *gin.Context) {
 		var posts []models.AudioPost
 		database.DB.
 			Preload("User").
-			Where("name ILIKE ? OR description ILIKE ?", "%"+query+"%", "%"+query+"%").
+			Where("filename ILIKE ? OR original_filename ILIKE ?", "%"+query+"%", "%"+query+"%").
 			Order("like_count DESC, created_at DESC").
 			Limit(limit).
 			Offset(offset).
