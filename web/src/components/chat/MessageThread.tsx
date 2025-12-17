@@ -43,7 +43,7 @@ export function MessageThread({ channelId }: MessageThreadProps) {
       </div>
 
       {/* Messages and Input Container */}
-      <div className="flex-1 min-h-0 overflow-hidden w-full flex flex-col">
+      <div className="flex-1 min-h-0 overflow-x-hidden w-full flex flex-col">
         {/* Messages */}
         <div className="flex-1 overflow-auto w-full">
           <MessageList />

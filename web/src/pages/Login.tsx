@@ -22,6 +22,7 @@ export function Login() {
 
   const errorParam = searchParams.get('error')
   useEffect(() => {
+    // tmp
     if (errorParam && !error) {
       setError('Authentication failed. Please try again.')
     }
