@@ -664,7 +664,7 @@ void AppStore::handleFetchSuccess(FeedType feedType, const juce::var &data, int 
     feedState.isRefreshing = false;
     feedState.offset = offset + response.posts.size();
     feedState.total = response.total;
-    feedState.hasMore = feedState.offset < feedState.total;
+    feedState.hasMore = response.hasMore;  // Use has_more from API response
     feedState.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
     feedState.error = "";
     feedState.isSynced = true;
@@ -838,6 +838,11 @@ FeedResponse AppStore::parseJsonResponse(const juce::var &json) {
     response.total = static_cast<int>(metaObj.getProperty("count", 0));
   } else {
     response.total = static_cast<int>(json.getProperty("total", 0));
+  }
+
+  // Extract has_more flag for pagination
+  if (metaObj.isObject()) {
+    response.hasMore = metaObj.getProperty("has_more", false);
   }
 
   if (postsArray.isArray()) {
