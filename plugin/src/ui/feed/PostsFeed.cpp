@@ -1733,18 +1733,23 @@ void PostsFeed::updateScrollBounds() {
   // Task 2.6: Use FeedStore instead of local posts array
   juce::Array<FeedPost> posts;
   if (appStore) {
-    const auto currentFeed = appStore->getState().posts.getCurrentFeed();
+    const auto &state = appStore->getState();
+    const auto currentFeed = state.posts.getCurrentFeed();
     if (currentFeed) {
       posts = currentFeed->posts;
     }
   }
   totalContentHeight = POSTS_TOP_PADDING + static_cast<int>(posts.size()) * (POST_CARD_HEIGHT + POST_CARD_SPACING);
+  Log::debug("PostsFeed::updateScrollBounds: Calculated totalContentHeight=" + juce::String(totalContentHeight) +
+             " from posts.size()=" + juce::String(posts.size()) + ", cardHeight=" + juce::String(POST_CARD_HEIGHT) +
+             ", spacing=" + juce::String(POST_CARD_SPACING));
 
   double visibleHeight = contentBounds.getHeight();
-  scrollBar.setRangeLimits(0.0, juce::jmax(static_cast<double>(totalContentHeight), visibleHeight));
+  double maxScrollPosition = juce::jmax(0.0, static_cast<double>(totalContentHeight) - visibleHeight);
+  scrollBar.setRangeLimits(0.0, maxScrollPosition);
   scrollBar.setCurrentRange(scrollPosition, visibleHeight);
   Log::debug("PostsFeed::updateScrollBounds: Scroll bounds updated - totalHeight: " + juce::String(totalContentHeight) +
-             ", visibleHeight: " + juce::String(visibleHeight, 1));
+             ", visibleHeight: " + juce::String(visibleHeight, 1) + ", maxScrollPos: " + juce::String(maxScrollPosition, 1));
 }
 
 void PostsFeed::checkLoadMore() {
