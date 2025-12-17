@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/models"
+	"github.com/zfogg/sidechain/backend/internal/search"
 	"github.com/zfogg/sidechain/backend/internal/util"
 	"gorm.io/gorm"
 )
@@ -92,6 +93,23 @@ func (h *Handlers) CreateComment(c *gin.Context) {
 
 	// Increment post comment count
 	database.DB.Model(&post).UpdateColumn("comment_count", gorm.Expr("comment_count + 1"))
+
+	// Phase 0.6: Re-index post in Elasticsearch with updated engagement metrics
+	if h.search != nil {
+		go func() {
+			// Fetch the updated post with new comment count
+			var updatedPost models.AudioPost
+			if err := database.DB.First(&updatedPost, "id = ?", postID).Error; err == nil {
+				var postUser models.User
+				if err := database.DB.First(&postUser, "id = ?", updatedPost.UserID).Error; err == nil {
+					postDoc := search.AudioPostToSearchDoc(updatedPost, postUser.Username)
+					if err := h.search.IndexPost(c.Request.Context(), updatedPost.ID, postDoc); err != nil {
+						fmt.Printf("Warning: Failed to re-index post %s after comment in Elasticsearch: %v\n", postID, err)
+					}
+				}
+			}
+		}()
+	}
 
 	// Load the user for response
 	database.DB.Preload("User").First(&comment, "id = ?", comment.ID)
@@ -322,6 +340,23 @@ func (h *Handlers) DeleteComment(c *gin.Context) {
 
 	// Decrement post comment count
 	database.DB.Model(&models.AudioPost{}).Where("id = ?", comment.PostID).UpdateColumn("comment_count", gorm.Expr("GREATEST(comment_count - 1, 0)"))
+
+	// Phase 0.6: Re-index post in Elasticsearch with updated engagement metrics
+	if h.search != nil {
+		go func() {
+			// Fetch the updated post with new comment count
+			var post models.AudioPost
+			if err := database.DB.First(&post, "id = ?", comment.PostID).Error; err == nil {
+				var postUser models.User
+				if err := database.DB.First(&postUser, "id = ?", post.UserID).Error; err == nil {
+					postDoc := search.AudioPostToSearchDoc(post, postUser.Username)
+					if err := h.search.IndexPost(c.Request.Context(), post.ID, postDoc); err != nil {
+						fmt.Printf("Warning: Failed to re-index post %s after comment deletion in Elasticsearch: %v\n", post.ID, err)
+					}
+				}
+			}
+		}()
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "comment_deleted",

@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/models"
+	"github.com/zfogg/sidechain/backend/internal/search"
 	"github.com/zfogg/sidechain/backend/internal/stream"
 	"github.com/zfogg/sidechain/backend/internal/util"
 	"github.com/zfogg/sidechain/backend/internal/websocket"
@@ -169,6 +170,22 @@ func (h *Handlers) LikePost(c *gin.Context) {
 		}()
 	}
 
+	// Phase 0.6: Re-index post in Elasticsearch with updated engagement metrics
+	if h.search != nil {
+		go func() {
+			var post models.AudioPost
+			if err := database.DB.Where("stream_activity_id = ?", req.ActivityID).First(&post).Error; err == nil {
+				var user models.User
+				if err := database.DB.First(&user, "id = ?", post.UserID).Error; err == nil {
+					postDoc := search.AudioPostToSearchDoc(post, user.Username)
+					if err := h.search.IndexPost(c.Request.Context(), post.ID, postDoc); err != nil {
+						fmt.Printf("Warning: Failed to re-index post %s after like in Elasticsearch: %v\n", post.ID, err)
+					}
+				}
+			}
+		}()
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"status":      "liked",
 		"activity_id": req.ActivityID,
@@ -197,6 +214,22 @@ func (h *Handlers) UnlikePost(c *gin.Context) {
 	if err := h.stream.RemoveReactionByActivityAndUser(req.ActivityID, userID, "like"); err != nil {
 		util.RespondInternalError(c, "unlike_failed", "Failed to unlike post: "+err.Error())
 		return
+	}
+
+	// Phase 0.6: Re-index post in Elasticsearch with updated engagement metrics
+	if h.search != nil {
+		go func() {
+			var post models.AudioPost
+			if err := database.DB.Where("stream_activity_id = ?", req.ActivityID).First(&post).Error; err == nil {
+				var user models.User
+				if err := database.DB.First(&user, "id = ?", post.UserID).Error; err == nil {
+					postDoc := search.AudioPostToSearchDoc(post, user.Username)
+					if err := h.search.IndexPost(c.Request.Context(), post.ID, postDoc); err != nil {
+						fmt.Printf("Warning: Failed to re-index post %s after unlike in Elasticsearch: %v\n", post.ID, err)
+					}
+				}
+			}
+		}()
 	}
 
 	c.JSON(http.StatusOK, gin.H{
