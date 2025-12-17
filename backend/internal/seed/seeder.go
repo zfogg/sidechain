@@ -211,7 +211,7 @@ func (s *Seeder) seedUsers(count int) ([]models.User, error) {
 			Location:       fmt.Sprintf("%s, %s", gofakeit.City(), gofakeit.Country()),
 			PasswordHash:   &hashedPasswordStr,
 			EmailVerified:  true,
-			ProfilePictureURL: fmt.Sprintf("https://api.dicebear.com/7.x/avataaars/svg?seed=%s", gofakeit.Username()),
+			ProfilePictureURL: fmt.Sprintf("https://api.dicebear.com/7.x/avataaars/png?seed=%s", username),
 			DAWPreference:  daws[rand.Intn(len(daws))],
 			Genre:          userGenres,
 			FollowerCount:  rand.Intn(1000),

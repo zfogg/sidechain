@@ -322,6 +322,9 @@ private:
   // Waveform image view (loads PNG from CDN)
   WaveformImageView waveformView;
 
+  // User avatar image (loads from URL)
+  juce::Image avatarImage;
+
   //==============================================================================
   // Drawing methods
   void drawBackground(juce::Graphics &g);

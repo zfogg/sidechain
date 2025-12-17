@@ -80,7 +80,9 @@ void PostCard::setPost(const FeedPost &newPost) {
                         ->start();
 
   // Fetch avatar image via AppStore reactive observable (with caching)
+  avatarImage = juce::Image();  // Clear previous image
   if (post.userAvatarUrl.isNotEmpty() && appStore) {
+    Log::debug("PostCard: Loading avatar from URL: " + post.userAvatarUrl);
     juce::Component::SafePointer<PostCard> safeThis(this);
     appStore->loadImageObservable(post.userAvatarUrl)
         .subscribe(
@@ -88,7 +90,12 @@ void PostCard::setPost(const FeedPost &newPost) {
               if (safeThis == nullptr)
                 return;
               if (image.isValid()) {
+                Log::debug("PostCard: Avatar image loaded successfully - size: " + juce::String(image.getWidth()) +
+                          "x" + juce::String(image.getHeight()));
+                safeThis->avatarImage = image;
                 safeThis->repaint();
+              } else {
+                Log::warn("PostCard: Avatar image is invalid");
               }
             },
             [safeThis](std::exception_ptr) {
@@ -172,8 +179,23 @@ void PostCard::drawBackground(juce::Graphics &g) {
 }
 
 void PostCard::drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds) {
-  g.setColour(SidechainColors::surface());
-  g.fillEllipse(bounds.toFloat());
+  // Draw avatar image or placeholder
+  if (avatarImage.isValid()) {
+    // Draw the image clipped to a circle
+    juce::Path circlePath;
+    circlePath.addEllipse(bounds.toFloat());
+
+    g.saveState();
+    g.reduceClipRegion(circlePath);
+    // Scale and draw the image to fit the bounds
+    auto scaledImage = avatarImage.rescaled(bounds.getWidth(), bounds.getHeight(), juce::Graphics::highResamplingQuality);
+    g.drawImageAt(scaledImage, bounds.getX(), bounds.getY());
+    g.restoreState();
+  } else {
+    // Draw colored circle placeholder
+    g.setColour(SidechainColors::surface());
+    g.fillEllipse(bounds.toFloat());
+  }
 
   // Avatar border
   g.setColour(SidechainColors::border());
