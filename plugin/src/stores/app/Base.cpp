@@ -219,10 +219,15 @@ void AppStore::updateFeedState(std::function<void(PostsState &)> updater) {
   updateState([updater](AppState &state) { updater(state.posts); });
 
   // Notify feed subscribers
+  // Copy subscribers map before iterating to avoid iterator corruption if callbacks modify it
   auto currentState = getState();
-  for (const auto &[id, callback] : feedSubscribers) {
+  auto subscribersCopy = feedSubscribers;
+  Util::logDebug("AppStore", "updateFeedState: " + juce::String(subscribersCopy.size()) + " feed subscribers to notify");
+  for (const auto &[id, callback] : subscribersCopy) {
     try {
+      Util::logDebug("AppStore", "updateFeedState: Calling subscriber " + juce::String((int)id));
       callback(currentState.posts);
+      Util::logDebug("AppStore", "updateFeedState: Subscriber " + juce::String((int)id) + " returned");
     } catch (const std::exception &e) {
       Util::logError("AppStore", "Feed subscriber threw exception", e.what());
     }
