@@ -137,7 +137,9 @@ func (h *Handler) authenticateHTTPRequest(r *http.Request) (*models.User, error)
 	})
 
 	if err != nil {
-		log.Printf("JWT parse error: %v", err)
+		log.Printf("[WS] JWT parse error: %v", err)
+		log.Printf("[WS] Token string (first 50 chars): %.50s", tokenString)
+		log.Printf("[WS] JWT secret length: %d", len(h.jwtSecret))
 		return nil, fmt.Errorf("jwt parse failed: %w", err)
 	}
 
