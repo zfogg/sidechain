@@ -121,8 +121,12 @@ func (h *Handler) authenticateHTTPRequest(r *http.Request) (*models.User, error)
 	}
 
 	if tokenString == "" {
+		log.Printf("[WS] No token provided in request")
 		return nil, errors.New("no token provided")
 	}
+
+	// Log token length for debugging (don't log full token for security)
+	log.Printf("[WS] Authenticating with token (len=%d, prefix=%.10s...)", len(tokenString), tokenString)
 
 	// Parse and validate the token
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -132,8 +136,14 @@ func (h *Handler) authenticateHTTPRequest(r *http.Request) (*models.User, error)
 		return h.jwtSecret, nil
 	})
 
-	if err != nil || !token.Valid {
-		return nil, errors.New("invalid token")
+	if err != nil {
+		log.Printf("JWT parse error: %v", err)
+		return nil, fmt.Errorf("jwt parse failed: %w", err)
+	}
+
+	if !token.Valid {
+		log.Printf("JWT invalid: claims=%v", token.Claims)
+		return nil, errors.New("jwt not valid")
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
@@ -143,13 +153,15 @@ func (h *Handler) authenticateHTTPRequest(r *http.Request) (*models.User, error)
 
 	userID, ok := claims["user_id"].(string)
 	if !ok {
+		log.Printf("user_id not in token claims: %v", claims)
 		return nil, errors.New("user_id not found in token")
 	}
 
 	// Look up user in database
 	var user models.User
 	if err := database.DB.First(&user, "id = ?", userID).Error; err != nil {
-		return nil, errors.New("user not found")
+		log.Printf("user not found in database: id=%s, error=%v", userID, err)
+		return nil, fmt.Errorf("user not found: %w", err)
 	}
 
 	return &user, nil
