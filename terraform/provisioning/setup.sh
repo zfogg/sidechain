@@ -1,32 +1,43 @@
 #!/bin/bash
 # Sidechain Backend Server Provisioning Script
-# Usage: bash ./setup.sh
-# Or remotely: ssh user@host 'bash -s' < setup.sh
+# This script sets up a complete production environment on a new server
+# Usage: ssh root@server 'bash -s' < setup.sh
 
 set -euo pipefail
 
+# Configuration
 DEPLOYMENT_DIR="${DEPLOYMENT_DIR:-/opt/sidechain}"
-DOCKER_COMPOSE_FILE="${DOCKER_COMPOSE_FILE:-docker-compose.dev.yml}"
+DEPLOY_DOMAIN="${DEPLOY_DOMAIN:-example.com}"
+LETSENCRYPT_EMAIL="${LETSENCRYPT_EMAIL:-admin@example.com}"
+GITHUB_DEPLOY_KEY="${GITHUB_DEPLOY_KEY:-}"
+ENV_FILE_CONTENT="${ENV_FILE_CONTENT:-}"
+POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-}"
+JWT_SECRET="${JWT_SECRET:-}"
 
-echo "=== Sidechain Backend Provisioning ==="
+echo "=== Sidechain Backend Production Provisioning ==="
 echo "Deployment directory: $DEPLOYMENT_DIR"
-echo "Docker compose file: $DOCKER_COMPOSE_FILE"
+echo "Domain: $DEPLOY_DOMAIN"
+echo "Email: $LETSENCRYPT_EMAIL"
 
 # Update system packages
 echo "→ Updating system packages..."
 apt-get update
 apt-get upgrade -y
 
+# Install required tools
+echo "→ Installing required tools..."
+apt-get install -y \
+    git \
+    curl \
+    wget \
+    gnupg \
+    ca-certificates \
+    lsb-release \
+    apt-transport-https
+
 # Install Docker
 echo "→ Installing Docker..."
 if ! command -v docker &> /dev/null; then
-    apt-get install -y \
-        apt-transport-https \
-        ca-certificates \
-        curl \
-        gnupg \
-        lsb-release
-
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
     echo \
         "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
@@ -57,70 +68,118 @@ docker-compose --version
 # Create deployment directory
 echo "→ Setting up deployment directory: $DEPLOYMENT_DIR"
 mkdir -p "$DEPLOYMENT_DIR"
+cd "$DEPLOYMENT_DIR"
 
-# Create SSH directory for deploy keys
+# Set up SSH directory and deploy key
 echo "→ Setting up SSH directory..."
 mkdir -p /root/.ssh
 chmod 700 /root/.ssh
 
-# Create .env file (needs to be populated by user)
-if [ ! -f "$DEPLOYMENT_DIR/.env" ]; then
-    echo "→ Creating .env file (you'll need to populate this)"
-    cat > "$DEPLOYMENT_DIR/.env" << 'EOF'
-# Backend Configuration
-BACKEND_PORT=8787
-POSTGRES_USER=sidechain
-POSTGRES_PASSWORD=CHANGE_ME
-POSTGRES_DB=sidechain
+if [ -n "$GITHUB_DEPLOY_KEY" ]; then
+    echo "→ Adding GitHub deploy key..."
+    echo "$GITHUB_DEPLOY_KEY" > /root/.ssh/github_deploy_key
+    chmod 600 /root/.ssh/github_deploy_key
 
-# GetStream Configuration
-GETSTREAM_API_KEY=CHANGE_ME
-GETSTREAM_API_SECRET=CHANGE_ME
-
-# JWT Configuration
-JWT_SECRET=CHANGE_ME
-
-# Audio CDN Configuration
-CDN_BUCKET=CHANGE_ME
-CDN_REGION=CHANGE_ME
-CDN_ACCESS_KEY=CHANGE_ME
-CDN_SECRET_KEY=CHANGE_ME
-EOF
-    chmod 600 "$DEPLOYMENT_DIR/.env"
-    echo "  ⚠️  Edit $DEPLOYMENT_DIR/.env with your credentials"
+    # Configure git to use the deploy key
+    cat > /root/.ssh/config << 'SSHCONFIG'
+Host github.com
+    HostName github.com
+    User git
+    IdentityFile /root/.ssh/github_deploy_key
+    StrictHostKeyChecking=accept-new
+SSHCONFIG
+    chmod 600 /root/.ssh/config
 fi
 
-# Create systemd service for auto-restart (optional)
-echo "→ Setting up systemd service..."
-cat > /etc/systemd/system/sidechain.service << 'EOF'
-[Unit]
-Description=Sidechain Backend Service
-After=docker.service
-Requires=docker.service
+# Clone repository
+echo "→ Cloning repository..."
+if [ ! -d "$DEPLOYMENT_DIR/.git" ]; then
+    git clone git@github.com:zfogg/sidechain.git "$DEPLOYMENT_DIR"
+else
+    echo "  Repository already cloned"
+fi
 
-[Service]
-Type=oneshot
-RemainAfterExit=yes
-WorkingDirectory=/opt/sidechain
-ExecStart=/usr/local/bin/docker-compose -f docker-compose.dev.yml up -d
-ExecStop=/usr/local/bin/docker-compose -f docker-compose.dev.yml down
-Restart=on-failure
-RestartSec=10s
-User=root
+# Create .env file
+echo "→ Creating .env file..."
+if [ -n "$ENV_FILE_CONTENT" ]; then
+    # Decode base64 content passed from Terraform
+    echo "$ENV_FILE_CONTENT" | base64 -d > "$DEPLOYMENT_DIR/backend/.env"
+    chmod 600 "$DEPLOYMENT_DIR/backend/.env"
+    echo "  .env file created from provided content"
+else
+    echo "  ⚠️  No .env content provided - you'll need to create it manually"
+    echo "  Run: ssh root@$DEPLOY_DOMAIN 'cat > /opt/sidechain/backend/.env' < your_env_file"
+fi
 
-[Install]
-WantedBy=multi-user.target
-EOF
+# Create the auto-update script
+echo "→ Creating auto-update script..."
+cat > "$DEPLOYMENT_DIR/update-and-restart.sh" << 'UPDATESCRIPT'
+#!/bin/bash
+set -e
 
-systemctl daemon-reload
-systemctl enable sidechain
+cd /opt/sidechain
+
+# Pull latest code from git
+if git pull origin main > /tmp/git-pull.log 2>&1; then
+    echo "[$(date)] Git pull successful" >> /tmp/sidechain-update.log
+
+    # Check if docker-compose or Caddyfile changed
+    if git diff HEAD~1 HEAD --name-only 2>/dev/null | grep -qE "(docker-compose|Caddyfile)"; then
+        echo "[$(date)] docker-compose or Caddyfile changed, restarting services" >> /tmp/sidechain-update.log
+        cd /opt/sidechain/backend
+        docker-compose -f docker-compose.prod.yml up -d
+        echo "[$(date)] Services updated successfully" >> /tmp/sidechain-update.log
+    fi
+else
+    echo "[$(date)] Git pull failed" >> /tmp/sidechain-update.log
+    cat /tmp/git-pull.log >> /tmp/sidechain-update.log
+    exit 1
+fi
+
+# Periodic restart every 5 minutes to ensure everything is up
+MINUTE=$(date +%M)
+if [ $((MINUTE % 5)) -eq 0 ]; then
+    echo "[$(date)] Running periodic restart with prod compose" >> /tmp/sidechain-update.log
+    cd /opt/sidechain/backend
+    docker-compose -f docker-compose.prod.yml up -d
+    echo "[$(date)] Periodic restart completed" >> /tmp/sidechain-update.log
+fi
+UPDATESCRIPT
+
+chmod +x "$DEPLOYMENT_DIR/update-and-restart.sh"
+echo "  Auto-update script created"
+
+# Set up cron job for auto-deployment
+echo "→ Setting up cron job..."
+CRON_JOB="* * * * * /opt/sidechain/update-and-restart.sh"
+(crontab -l 2>/dev/null | grep -v "update-and-restart" || true; echo "$CRON_JOB") | crontab -
+echo "  Cron job installed"
+
+# Start the backend services
+echo "→ Starting services..."
+cd "$DEPLOYMENT_DIR/backend"
+docker-compose -f docker-compose.prod.yml up -d
+echo "  Services started"
+
+# Wait for services to be healthy
+echo "→ Waiting for services to be healthy..."
+sleep 30
+docker-compose -f docker-compose.prod.yml ps
 
 echo ""
 echo "=== Provisioning Complete ==="
 echo ""
+echo "Deployment Information:"
+echo "  Server:      $DEPLOY_DOMAIN"
+echo "  Directory:   $DEPLOYMENT_DIR"
+echo "  Domain:      $DEPLOY_DOMAIN"
+echo "  Email:       $LETSENCRYPT_EMAIL"
+echo ""
+echo "Services:"
+docker-compose -f docker-compose.prod.yml ps
+echo ""
 echo "Next steps:"
-echo "1. Edit $DEPLOYMENT_DIR/.env with your configuration"
-echo "2. Clone the repository: git clone <repo> $DEPLOYMENT_DIR"
-echo "3. Start the service: systemctl start sidechain"
-echo "4. Check status: docker-compose -f $DEPLOYMENT_DIR/$DOCKER_COMPOSE_FILE ps"
+echo "1. Verify all services are healthy: docker-compose -f $DEPLOYMENT_DIR/backend/docker-compose.prod.yml ps"
+echo "2. Check logs: docker logs sidechain-backend"
+echo "3. Test API: curl http://$DEPLOY_DOMAIN/health"
 echo ""
