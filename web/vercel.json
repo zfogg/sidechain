@@ -1,15 +1,10 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "pnpm build",
   "outputDirectory": "dist",
-  "devCommand": "pnpm dev",
-  "env": {
-    "VITE_API_URL": "@api_url",
-    "VITE_WS_URL": "@ws_url",
-    "VITE_STREAM_API_KEY": "@stream_api_key"
-  },
   "rewrites": [
     {
-      "source": "/:path*",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
