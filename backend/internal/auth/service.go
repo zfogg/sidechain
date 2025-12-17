@@ -220,11 +220,13 @@ func (s *Service) generateAuthResponse(user *models.User) (*AuthResponse, error)
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	fmt.Printf("[AUTH] Signing token for user %s with secret length: %d\n", user.Username, len(s.jwtSecret))
 	tokenString, err := token.SignedString(s.jwtSecret)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sign token: %w", err)
 	}
 
+	fmt.Printf("[AUTH] Token signed successfully: %.50s... (len=%d)\n", tokenString, len(tokenString))
 	return &AuthResponse{
 		Token:     tokenString,
 		User:      *user,
