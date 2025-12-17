@@ -11,6 +11,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/search"
 	"github.com/zfogg/sidechain/backend/internal/util"
+	"github.com/zfogg/sidechain/backend/internal/websocket"
 	"gorm.io/gorm"
 )
 
@@ -121,6 +122,26 @@ func (h *Handlers) CreateComment(c *gin.Context) {
 	// Notify post owner (if not commenting on own post)
 	if post.UserID != userID {
 		go h.notifyCommentOnPost(comment, post)
+
+		// Send WebSocket notification to post owner
+		if h.wsHandler != nil {
+			go func() {
+				var commenter models.User
+				if err := database.DB.First(&commenter, "id = ?", userID).Error; err == nil {
+					payload := &websocket.CommentPayload{
+						CommentID:   comment.ID,
+						PostID:      postID,
+						UserID:      userID,
+						Username:    commenter.Username,
+						DisplayName: commenter.DisplayName,
+						AvatarURL:   commenter.AvatarURL,
+						Body:        req.Content,
+						CreatedAt:   comment.CreatedAt.UnixMilli(),
+					}
+					h.wsHandler.NotifyNewComment(post.UserID, payload)
+				}
+			}()
+		}
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
@@ -395,6 +416,26 @@ func (h *Handlers) LikeComment(c *gin.Context) {
 	// Increment like count
 	database.DB.Model(&comment).UpdateColumn("like_count", gorm.Expr("like_count + 1"))
 
+	// Send WebSocket notification to comment owner
+	if h.wsHandler != nil {
+		go func() {
+			var liker models.User
+			var post models.AudioPost
+			if err := database.DB.First(&liker, "id = ?", userID).Error; err == nil {
+				if err := database.DB.First(&post, "id = ?", comment.PostID).Error; err == nil {
+					payload := &websocket.CommentLikePayload{
+						CommentID: commentID,
+						PostID:    comment.PostID,
+						UserID:    userID,
+						Username:  liker.Username,
+						LikeCount: comment.LikeCount + 1,
+					}
+					h.wsHandler.NotifyCommentLike(comment.UserID, payload)
+				}
+			}
+		}()
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"message":    "comment_liked",
 		"like_count": comment.LikeCount + 1,
@@ -423,6 +464,24 @@ func (h *Handlers) UnlikeComment(c *gin.Context) {
 	newCount := comment.LikeCount - 1
 	if newCount < 0 {
 		newCount = 0
+	}
+
+	// Send WebSocket notification to comment owner
+	userID, ok := util.GetUserIDFromContext(c)
+	if ok && h.wsHandler != nil {
+		go func() {
+			var unliker models.User
+			if err := database.DB.First(&unliker, "id = ?", userID).Error; err == nil {
+				payload := &websocket.CommentLikePayload{
+					CommentID: commentID,
+					PostID:    comment.PostID,
+					UserID:    userID,
+					Username:  unliker.Username,
+					LikeCount: newCount,
+				}
+				h.wsHandler.NotifyCommentUnlike(comment.UserID, payload)
+			}
+		}()
 	}
 
 	c.JSON(http.StatusOK, gin.H{

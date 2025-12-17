@@ -186,6 +186,33 @@ func (h *Handlers) LikePost(c *gin.Context) {
 		}()
 	}
 
+	// Send WebSocket notification to post owner
+	if h.wsHandler != nil {
+		go func() {
+			var post models.AudioPost
+			var user models.User
+			if err := database.DB.Where("stream_activity_id = ?", req.ActivityID).First(&post).Error; err == nil {
+				if err := database.DB.First(&user, "id = ?", userID).Error; err == nil {
+					// Get updated like count from Stream
+					activity, err := h.stream.GetActivity(req.ActivityID)
+					var likeCount int
+					if err == nil && activity != nil {
+						likeCount = activity.ReactionCounts["like"]
+					}
+
+					payload := &websocket.LikePayload{
+						PostID:    post.ID,
+						UserID:    userID,
+						Username:  user.Username,
+						LikeCount: likeCount,
+						Emoji:     req.Emoji,
+					}
+					h.wsHandler.NotifyLike(post.UserID, payload)
+				}
+			}
+		}()
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"status":      "liked",
 		"activity_id": req.ActivityID,

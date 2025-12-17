@@ -522,6 +522,21 @@ func (h *Handler) NotifyFollowRequestAccepted(requesterID, acceptorID, acceptorU
 	h.hub.SendToUser(requesterID, NewMessage(MessageTypeFollowRequestAccepted, payload))
 }
 
+// NotifyNewComment sends a new comment notification to the post owner
+func (h *Handler) NotifyNewComment(ownerID string, payload *CommentPayload) {
+	h.hub.SendToUser(ownerID, NewMessage(MessageTypeNewComment, payload))
+}
+
+// NotifyCommentLike sends a comment like notification to the post owner
+func (h *Handler) NotifyCommentLike(ownerID string, payload *CommentLikePayload) {
+	h.hub.SendToUser(ownerID, NewMessage(MessageTypeCommentLiked, payload))
+}
+
+// NotifyCommentUnlike sends a comment unlike notification to the comment owner
+func (h *Handler) NotifyCommentUnlike(ownerID string, payload *CommentLikePayload) {
+	h.hub.SendToUser(ownerID, NewMessage(MessageTypeCommentUnliked, payload))
+}
+
 // BroadcastLikeCountUpdate broadcasts like count update to all viewers
 func (h *Handler) BroadcastLikeCountUpdate(postID string, likeCount int) {
 	h.hub.Broadcast(NewMessage(MessageTypeLikeCountUpdate, map[string]interface{}{
