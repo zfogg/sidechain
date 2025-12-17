@@ -31,7 +31,7 @@ export function Search() {
     error,
     refetch,
   } = useQuery({
-    queryKey: ['search', { ...filters, offset }],
+    queryKey: ['search', query, { ...filters, offset }],
     queryFn: async () => {
       if (!query && !hasSearched && !Object.keys(filters).some((k) => filters[k as keyof SearchFiltersType])) {
         return null
