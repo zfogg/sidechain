@@ -137,7 +137,7 @@ private:
   const StreamChatClient::Message *findParentMessage(const juce::String &messageId) const;
   void scrollToMessage(const juce::String &messageId);
 
-  // Message sending
+  // Message sending (state managed by AppStore)
   void sendMessage();
   void loadMessages();
 
