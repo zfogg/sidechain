@@ -46,6 +46,9 @@ add_library(SidechainUtil STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/cache/DraftCache.h
     ${CMAKE_CURRENT_SOURCE_DIR}/error/ErrorTracking.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/error/ErrorTracking.h
+    # TODO: PresenceManager needs websocketpp dependency, move to core target
+    # ${CMAKE_CURRENT_SOURCE_DIR}/PresenceManager.cpp
+    # ${CMAKE_CURRENT_SOURCE_DIR}/PresenceManager.h
 )
 
 # Include directories - use source root so includes work as "util/Log.h"

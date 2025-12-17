@@ -3,6 +3,7 @@ import type { User } from '@/models/User'
 import { Button } from '@/components/ui/button'
 import { DirectMessageButton } from '@/components/chat/DirectMessageButton'
 import { ReportButton } from '@/components/report/ReportButton'
+import { PresenceIndicator } from '@/components/presence/PresenceIndicator'
 
 interface SearchUserCardProps {
   user: User
@@ -30,7 +31,10 @@ export function SearchUserCard({ user }: SearchUserCardProps) {
           >
             {user.displayName}
           </h4>
-          <p className="text-sm text-muted-foreground truncate">@{user.username}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-muted-foreground truncate">@{user.username}</p>
+            <PresenceIndicator userId={user.id} size="sm" />
+          </div>
         </div>
       </div>
 

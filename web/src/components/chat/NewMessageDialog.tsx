@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useUserStore } from '@/stores/useUserStore'
 import { SearchClient } from '@/api/SearchClient'
+import { PresenceIndicator } from '@/components/presence/PresenceIndicator'
 
 interface UserSearchResult {
   id: string
@@ -194,11 +195,13 @@ export function NewMessageDialog({ isOpen, onClose }: { isOpen: boolean; onClose
                         alt={user.displayName}
                         className="w-12 h-12 rounded-full object-cover"
                       />
-                      {/* Online indicator could go here */}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="font-medium text-foreground truncate">{user.displayName}</div>
-                      <div className="text-sm text-muted-foreground truncate">@{user.username}</div>
+                      <div className="flex items-center gap-2">
+                        <div className="text-sm text-muted-foreground truncate">@{user.username}</div>
+                        <PresenceIndicator userId={user.id} size="sm" />
+                      </div>
                     </div>
                   </div>
                 </button>
