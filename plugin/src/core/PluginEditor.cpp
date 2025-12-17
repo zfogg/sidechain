@@ -649,7 +649,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
 
   //==========================================================================
   // Create EditProfile dialog (Settings page)
-  editProfileDialog = std::make_unique<EditProfile>();
+  editProfileDialog = std::make_unique<EditProfile>(&appStore);
   editProfileDialog->setNetworkClient(networkClient.get());
   // Task 2.4: Profile save is now handled via UserStore subscription in
   // EditProfile Callbacks removed: onCancel, onSave, onProfilePicSelected
@@ -843,6 +843,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   //==========================================================================
   // Create central header component (shown on all post-login pages)
   headerComponent = std::make_unique<Header>();
+  headerComponent->setAppStore(&appStore);
   headerComponent->setNetworkClient(networkClient.get());
   headerComponent->onLogoClicked = [this]() { showView(AppView::PostsFeed); };
   headerComponent->onSearchClicked = [this]() { showView(AppView::Search); };
@@ -2241,16 +2242,24 @@ void SidechainAudioProcessorEditor::loadLoginState() {
     auto fetchAttempts = std::make_shared<int>(0);
 
     *unsubscriber = appStore.subscribeToUser([this, unsubscriber, fetchAttempts](const Sidechain::Stores::UserState &userState) {
+      Log::debug("loadLoginState subscription: isFetchingProfile=" + juce::String(userState.isFetchingProfile ? "true" : "false") +
+                 ", userError='" + userState.userError + "', userId='" + userState.userId + "'");
+
       // Check if fetch is complete (either success or failure)
       if (!userState.isFetchingProfile) {
         // If we got an auth error, invalidate token and show auth screen
-        // Check for various auth error patterns: expired, invalid, unauthorized, invalid claims
+        // Check for various auth error patterns from backend API responses
         bool isAuthError = !userState.userError.isEmpty() &&
                           (userState.userError.containsIgnoreCase("expired") ||
+                           userState.userError.containsIgnoreCase("invalid_token") ||
                            userState.userError.containsIgnoreCase("invalid token") ||
                            userState.userError.containsIgnoreCase("unauthorized") ||
                            userState.userError.containsIgnoreCase("invalid claims") ||
-                           userState.userError.containsIgnoreCase("401"));
+                           userState.userError.containsIgnoreCase("401") ||
+                           userState.userError.containsIgnoreCase("not authenticated") ||
+                           userState.userError.containsIgnoreCase("forbidden"));
+
+        Log::debug("loadLoginState subscription: isAuthError=" + juce::String(isAuthError ? "true" : "false"));
 
         if (isAuthError) {
           Log::warn("loadLoginState: Auth error detected, invalidating token and showing auth screen: " + userState.userError);
