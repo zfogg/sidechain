@@ -90,8 +90,8 @@ export function DeviceClaim() {
 
     // Redirect to backend OAuth endpoint
     const redirectUrl = `${window.location.origin}/claim/${deviceId}`
-    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:8787'
-    const oauthUrl = `${backendUrl}/api/v1/auth/google?device_id=${encodeURIComponent(deviceId)}&redirect_uri=${encodeURIComponent(redirectUrl)}`
+    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:8787/api/v1'
+    const oauthUrl = `${backendUrl}/auth/google?device_id=${encodeURIComponent(deviceId)}&redirect_uri=${encodeURIComponent(redirectUrl)}`
 
     window.location.href = oauthUrl
   }
@@ -104,8 +104,8 @@ export function DeviceClaim() {
 
     // Redirect to backend OAuth endpoint
     const redirectUrl = `${window.location.origin}/claim/${deviceId}`
-    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:8787'
-    const oauthUrl = `${backendUrl}/api/v1/auth/discord?device_id=${encodeURIComponent(deviceId)}&redirect_uri=${encodeURIComponent(redirectUrl)}`
+    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:8787/api/v1'
+    const oauthUrl = `${backendUrl}/auth/discord?device_id=${encodeURIComponent(deviceId)}&redirect_uri=${encodeURIComponent(redirectUrl)}`
 
     window.location.href = oauthUrl
   }
