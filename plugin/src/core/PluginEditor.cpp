@@ -684,7 +684,8 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   // Create StreamChatClient for getstream.io messaging
   streamChatClient = std::make_unique<StreamChatClient>(networkClient.get(), StreamChatClient::Config::development());
 
-  // Note: StreamChatClient will be wired to AppStore's chat state
+  // Wire StreamChatClient to AppStore for message loading
+  appStore.setStreamChatClient(streamChatClient.get());
 
   // Wire up message notification callback to check OS notification setting
   streamChatClient->setMessageNotificationCallback([this](const juce::String &title, const juce::String &message) {
@@ -2402,9 +2403,9 @@ void SidechainAudioProcessorEditor::sendTestMessageOnStartup() {
                                            sentMsg.createdAt);
               Log::info("sendTestMessageOnStartup: addMessageToChannel returned");
 
-              // Open the conversations/messages list view to show conversations
-              Log::info("sendTestMessageOnStartup: Opening messages list view");
-              showView(AppView::Messages);
+              // Open the message thread directly to show the sent message
+              Log::info("sendTestMessageOnStartup: Opening message thread view with sent message");
+              showMessageThread(channel.type, channel.id);
             });
       });
 }
@@ -2530,6 +2531,103 @@ void SidechainAudioProcessorEditor::handleWebSocketMessage(const WebSocketClient
       // Then update UI
       if (postsFeedComponent) {
         postsFeedComponent->handleLikeCountUpdate(postId, likeCount);
+      }
+    }
+    break;
+  }
+
+  case WebSocketClient::MessageType::Unlike: {
+    // Post was unliked - update like count (5.5.5a)
+    auto payload = message.getProperty("payload");
+    auto postId = payload.getProperty("post_id", juce::var()).toString();
+    auto likeCount = static_cast<int>(payload.getProperty("like_count", juce::var(0)));
+
+    if (!postId.isEmpty() && likeCount >= 0) {
+      // Invalidate caches and update UI
+      appStore.onWebSocketLikeCountUpdate(postId, likeCount);
+
+      if (postsFeedComponent) {
+        postsFeedComponent->handleLikeCountUpdate(postId, likeCount);
+      }
+    }
+    break;
+  }
+
+  case WebSocketClient::MessageType::NewComment: {
+    // New comment on a post - update comment count (5.5.6)
+    auto payload = message.getProperty("payload");
+    auto postId = payload.getProperty("post_id", juce::var()).toString();
+    auto commentId = payload.getProperty("comment_id", juce::var()).toString();
+    auto username = payload.getProperty("username", juce::var()).toString();
+
+    if (!postId.isEmpty() && !commentId.isEmpty()) {
+      // Invalidate comment caches for this post
+      appStore.onWebSocketNewComment(postId, commentId, username);
+
+      // Update UI if feed is visible
+      if (postsFeedComponent) {
+        postsFeedComponent->handleNewComment(postId);
+      }
+    }
+    break;
+  }
+
+  case WebSocketClient::MessageType::CommentLiked: {
+    // Comment was liked - would need comment-level state update (5.5.7)
+    auto payload = message.getProperty("payload");
+    auto commentId = payload.getProperty("comment_id", juce::var()).toString();
+    auto likeCount = static_cast<int>(payload.getProperty("like_count", juce::var(0)));
+
+    if (!commentId.isEmpty() && likeCount >= 0) {
+      Log::debug("Comment liked - commentId: " + commentId + " likeCount: " + juce::String(likeCount));
+      // Components can subscribe to comment state for details
+    }
+    break;
+  }
+
+  case WebSocketClient::MessageType::CommentUnliked: {
+    // Comment was unliked (5.5.8)
+    auto payload = message.getProperty("payload");
+    auto commentId = payload.getProperty("comment_id", juce::var()).toString();
+    auto likeCount = static_cast<int>(payload.getProperty("like_count", juce::var(0)));
+
+    if (!commentId.isEmpty() && likeCount >= 0) {
+      Log::debug("Comment unliked - commentId: " + commentId + " likeCount: " + juce::String(likeCount));
+    }
+    break;
+  }
+
+  case WebSocketClient::MessageType::CommentCountUpdate: {
+    // Comment count on a post was updated (5.5.9)
+    auto payload = message.getProperty("payload");
+    auto postId = payload.getProperty("post_id", juce::var()).toString();
+    auto commentCount = static_cast<int>(payload.getProperty("comment_count", juce::var(0)));
+
+    if (!postId.isEmpty() && commentCount >= 0) {
+      // Invalidate caches and update UI
+      appStore.onWebSocketCommentCountUpdate(postId, commentCount);
+
+      if (postsFeedComponent) {
+        postsFeedComponent->handleCommentCountUpdate(postId, commentCount);
+      }
+    }
+    break;
+  }
+
+  case WebSocketClient::MessageType::EngagementMetrics: {
+    // Combined engagement metrics - like and comment count (5.5.10)
+    auto payload = message.getProperty("payload");
+    auto postId = payload.getProperty("post_id", juce::var()).toString();
+    auto likeCount = static_cast<int>(payload.getProperty("like_count", juce::var(0)));
+    auto commentCount = static_cast<int>(payload.getProperty("comment_count", juce::var(0)));
+
+    if (!postId.isEmpty() && likeCount >= 0 && commentCount >= 0) {
+      // Update both metrics at once
+      appStore.onWebSocketLikeCountUpdate(postId, likeCount);
+      appStore.onWebSocketCommentCountUpdate(postId, commentCount);
+
+      if (postsFeedComponent) {
+        postsFeedComponent->handleEngagementMetricsUpdate(postId, likeCount, commentCount);
       }
     }
     break;

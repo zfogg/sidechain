@@ -46,17 +46,23 @@ public:
   // Message types for routing
   enum class MessageType {
     Unknown,
-    NewPost,             // New post in feed
-    Like,                // Someone liked a post
-    Follow,              // Someone followed a user
-    Comment,             // New comment on a post
-    Notification,        // Generic notification
-    PresenceUpdate,      // User online/offline status
-    PlayCount,           // Play count update
-    LikeCountUpdate,     // Like count updated (5.5.3)
-    FollowerCountUpdate, // Follower count updated (5.5.4)
-    Heartbeat,           // Server heartbeat response
-    Error                // Server error message
+    NewPost,              // New post in feed
+    Like,                 // Someone liked a post
+    Unlike,               // Someone unliked a post
+    Follow,               // Someone followed a user
+    Comment,              // New comment on a post (legacy)
+    NewComment,           // New comment notification (5.5.5)
+    CommentLiked,         // Someone liked a comment (5.5.6)
+    CommentUnliked,       // Someone unliked a comment (5.5.7)
+    Notification,         // Generic notification
+    PresenceUpdate,       // User online/offline status
+    PlayCount,            // Play count update
+    LikeCountUpdate,      // Like count updated (5.5.3)
+    CommentCountUpdate,   // Comment count updated (5.5.8)
+    FollowerCountUpdate,  // Follower count updated (5.5.4)
+    EngagementMetrics,    // Combined engagement metrics (5.5.9)
+    Heartbeat,            // Server heartbeat response
+    Error                 // Server error message
   };
 
   //==========================================================================

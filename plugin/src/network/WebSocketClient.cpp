@@ -520,12 +520,20 @@ void WebSocketClient::dispatchMessage(const Message &message) {
 WebSocketClient::MessageType WebSocketClient::parseMessageType(const juce::String &typeStr) {
   if (typeStr == "new_post" || typeStr == "post")
     return MessageType::NewPost;
-  if (typeStr == "like" || typeStr == "reaction")
+  if (typeStr == "post_liked" || typeStr == "like" || typeStr == "reaction")
     return MessageType::Like;
+  if (typeStr == "post_unliked" || typeStr == "unlike")
+    return MessageType::Unlike;
   if (typeStr == "follow")
     return MessageType::Follow;
+  if (typeStr == "new_comment")
+    return MessageType::NewComment;
   if (typeStr == "comment")
-    return MessageType::Comment;
+    return MessageType::Comment;  // Legacy support
+  if (typeStr == "comment_liked")
+    return MessageType::CommentLiked;
+  if (typeStr == "comment_unliked")
+    return MessageType::CommentUnliked;
   if (typeStr == "notification")
     return MessageType::Notification;
   if (typeStr == "presence" || typeStr == "presence_update")
@@ -534,6 +542,10 @@ WebSocketClient::MessageType WebSocketClient::parseMessageType(const juce::Strin
     return MessageType::PlayCount;
   if (typeStr == "like_count_update")
     return MessageType::LikeCountUpdate;
+  if (typeStr == "comment_count_update")
+    return MessageType::CommentCountUpdate;
+  if (typeStr == "engagement_metrics")
+    return MessageType::EngagementMetrics;
   if (typeStr == "follower_count_update")
     return MessageType::FollowerCountUpdate;
   if (typeStr == "heartbeat" || typeStr == "pong")
