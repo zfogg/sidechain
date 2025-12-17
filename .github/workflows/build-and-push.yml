@@ -14,63 +14,42 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Retry setup (Docker Hub can be flaky)
+      - name: Build and deploy to production
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
         run: |
-          max_attempts=3
-          attempt=1
-          while [ $attempt -le $max_attempts ]; do
-            echo "Attempt $attempt/$max_attempts to pull docker images..."
-            if docker pull moby/buildkit:latest; then
-              echo "✓ Successfully pulled buildkit image"
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H $SSH_HOST >> ~/.ssh/known_hosts 2>/dev/null
+
+          # Deploy: pull latest code and rebuild on server
+          ssh -i ~/.ssh/id_ed25519 $SSH_USER@$SSH_HOST << 'EOF'
+          set -e
+          cd /opt/sidechain/backend
+          echo "📥 Fetching latest code..."
+          git fetch origin main
+          git checkout origin/main
+          echo "🔨 Building Docker image..."
+          docker build -t zfogg/sidechain-backend:latest .
+          echo "✅ Docker image built successfully"
+          echo "🚀 Restarting backend service..."
+          docker-compose -f docker-compose.prod.yml up -d backend
+          echo "⏳ Waiting for container to be healthy..."
+          for i in {1..30}; do
+            if docker exec sidechain-backend wget --no-verbose --tries=1 --spider http://localhost:8787/health 2>/dev/null; then
+              echo "✅ Backend is healthy!"
               break
             fi
-            if [ $attempt -lt $max_attempts ]; then
-              echo "⏳ Waiting 10 seconds before retry..."
-              sleep 10
-            fi
-            attempt=$((attempt + 1))
+            echo "Waiting... ($i/30)"
+            sleep 2
           done
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: zfogg/sidechain-backend
-          tags: |
-            type=sha,prefix={{branch}}-
-            type=ref,event=branch
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest
-
-      - name: Build and push Docker image (with retry)
-        uses: docker/build-push-action@v5
-        with:
-          context: ./backend
-          dockerfile: ./backend/Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          provenance: false
-
-      - name: Trigger deployment workflow
-        run: |
-          echo "✓ Docker image built and pushed: zfogg/sidechain-backend:latest"
-          echo "✓ Watchtower will auto-deploy within 30 seconds"
+          echo "🎉 Deployment complete!"
+          EOF
