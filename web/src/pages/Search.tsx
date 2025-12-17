@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { SearchClient, SearchFilters } from '@/api/SearchClient'
+import { SearchClient, SearchFilters as SearchFiltersType } from '@/api/SearchClient'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
-import { SearchFilters as FilterComponent } from '@/components/search/SearchFilters'
+import { SearchFilters } from '@/components/search/SearchFilters'
+import { SearchUserCard } from '@/components/search/SearchUserCard'
 import { FeedPost } from '@/models/FeedPost'
+import type { User } from '@/models/User'
 
 /**
  * Search - Advanced search and discovery page
@@ -19,10 +21,11 @@ import { FeedPost } from '@/models/FeedPost'
  */
 export function Search() {
   const [query, setQuery] = useState('')
-  const [filters, setFilters] = useState<SearchFilters>({ limit: 20, offset: 0 })
+  const [filters, setFilters] = useState<SearchFiltersType>({ limit: 20, offset: 0 })
   const [hasSearched, setHasSearched] = useState(false)
   const [offset, setOffset] = useState(0)
 
+  // Posts search query
   const {
     data: results,
     isLoading,
@@ -31,7 +34,7 @@ export function Search() {
   } = useQuery({
     queryKey: ['search', { ...filters, offset }],
     queryFn: async () => {
-      if (!query && !hasSearched && !Object.keys(filters).some((k) => filters[k as keyof SearchFilters])) {
+      if (!query && !hasSearched && !Object.keys(filters).some((k) => filters[k as keyof SearchFiltersType])) {
         return null
       }
 
@@ -50,13 +53,31 @@ export function Search() {
     enabled: hasSearched || query.length > 0,
   })
 
+  // Users search query - only search users when there's a text query
+  const {
+    data: userResults,
+    isLoading: usersLoading,
+  } = useQuery({
+    queryKey: ['searchUsers', query],
+    queryFn: async () => {
+      if (!query) return null
+
+      const result = await SearchClient.searchUsers(query, 5)
+      if (result.isError()) {
+        return null
+      }
+      return result.getValue()
+    },
+    enabled: query.length > 0,
+  })
+
   const handleSearch = () => {
     setOffset(0)
     setHasSearched(true)
     refetch()
   }
 
-  const handleFiltersChange = (newFilters: SearchFilters) => {
+  const handleFiltersChange = (newFilters: SearchFiltersType) => {
     setFilters(newFilters)
     setOffset(0)
   }
@@ -72,8 +93,8 @@ export function Search() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-2">Discover Music</h1>
-          <p className="text-muted-foreground">Search loops by BPM, key, genre, and more</p>
+          <h1 className="text-4xl font-bold text-foreground mb-2">Discover Music & People</h1>
+          <p className="text-muted-foreground">Search loops by BPM, key, genre, or find other producers</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -87,7 +108,7 @@ export function Search() {
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder="Search loops..."
+                    placeholder="Search loops or people..."
                     className="h-11"
                   />
                 </div>
@@ -104,7 +125,7 @@ export function Search() {
 
           {/* Results */}
           <div className="lg:col-span-3">
-            {isLoading ? (
+            {(isLoading || usersLoading) ? (
               <div className="flex items-center justify-center py-12">
                 <Spinner size="lg" />
               </div>
@@ -117,38 +138,54 @@ export function Search() {
               <div className="text-center py-12 text-muted-foreground">
                 <p className="text-lg mb-2">🔍</p>
                 <p>Use the filters to discover amazing loops</p>
-                <p className="text-sm mt-2">Or search by keyword, producer name, or loop title</p>
+                <p className="text-sm mt-2">Or search by keyword, producer name, loop title, or find other producers</p>
               </div>
-            ) : results && results.posts.length > 0 ? (
-              <div className="space-y-4">
-                {/* Results info */}
-                <div className="text-sm text-muted-foreground">
-                  Found {results.total} results
-                </div>
+            ) : (userResults && userResults.length > 0) || (results && results.posts.length > 0) ? (
+              <div className="space-y-6">
+                {/* Users Section */}
+                {userResults && userResults.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-foreground mb-3">People</h3>
+                    <div className="grid grid-cols-1 gap-3">
+                      {userResults.map((user: User) => (
+                        <SearchUserCard key={user.id} user={user} />
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-                {/* Search results */}
-                <div className="space-y-4">
-                  {results.posts.map((post: FeedPost) => (
-                    <SearchResultCard key={post.id} post={post} />
-                  ))}
-                </div>
+                {/* Posts Section */}
+                {results && results.posts.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-foreground mb-3">
+                      Loops ({results.total} found)
+                    </h3>
 
-                {/* Pagination */}
-                {results.posts.length >= (filters.limit || 20) && (
-                  <div className="flex gap-2 justify-center pt-6">
-                    <Button
-                      onClick={() => setOffset(Math.max(0, offset - (filters.limit || 20)))}
-                      disabled={offset === 0}
-                      variant="outline"
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      onClick={() => setOffset(offset + (filters.limit || 20))}
-                      variant="outline"
-                    >
-                      Next
-                    </Button>
+                    {/* Search results */}
+                    <div className="space-y-4">
+                      {results.posts.map((post: FeedPost) => (
+                        <SearchResultCard key={post.id} post={post} />
+                      ))}
+                    </div>
+
+                    {/* Pagination */}
+                    {results.posts.length >= (filters.limit || 20) && (
+                      <div className="flex gap-2 justify-center pt-6">
+                        <Button
+                          onClick={() => setOffset(Math.max(0, offset - (filters.limit || 20)))}
+                          disabled={offset === 0}
+                          variant="outline"
+                        >
+                          Previous
+                        </Button>
+                        <Button
+                          onClick={() => setOffset(offset + (filters.limit || 20))}
+                          variant="outline"
+                        >
+                          Next
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
