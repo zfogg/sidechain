@@ -47,6 +47,25 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 /**
+ * RootRoute - Smart root route that shows login if not authenticated, feed if authenticated
+ */
+function RootRoute() {
+  const { isAuthenticated } = useUserStore()
+
+  if (!isAuthenticated) {
+    return <Login />
+  }
+
+  return (
+    <ChatProvider>
+      <Suspense fallback={<RouteLoader />}>
+        <Feed />
+      </Suspense>
+    </ChatProvider>
+  )
+}
+
+/**
  * AppContent - Routes and Navigation
  */
 function AppContent() {
@@ -63,7 +82,7 @@ function AppContent() {
       {isAuthenticated && <nav className="flex-shrink-0"><Navigation /></nav>}
       <PerformanceMonitor />
       <KeyboardShortcutsDialog />
-      <div className="flex-1 min-h-0 overflow-hidden">
+      <div className="flex-1 min-h-0 overflow-x-hidden">
         <Routes>
         {/* Public Routes - No Chat Provider */}
         <Route path="/login" element={<Login />} />
@@ -227,9 +246,9 @@ function AppContent() {
           }
         />
 
-        {/* Placeholder for other routes */}
-        <Route path="/" element={<Navigate to="/feed" replace />} />
-        <Route path="*" element={<Navigate to="/feed" replace />} />
+        {/* Root Route - Smart routing: login if not authenticated, feed if authenticated */}
+        <Route path="/" element={<RootRoute />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       </div>
     </div>
