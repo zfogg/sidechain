@@ -49,11 +49,13 @@ const (
 	MessageTypeAuth   = "auth"
 
 	// Feed/Activity messages
-	MessageTypeNewPost     = "new_post"
-	MessageTypePostLiked   = "post_liked"
-	MessageTypePostUnliked = "post_unliked"
-	MessageTypeNewComment  = "new_comment"
-	MessageTypeNewReaction = "new_reaction"
+	MessageTypeNewPost       = "new_post"
+	MessageTypePostLiked     = "post_liked"
+	MessageTypePostUnliked   = "post_unliked"
+	MessageTypeNewComment    = "new_comment"
+	MessageTypeCommentLiked  = "comment_liked"
+	MessageTypeCommentUnliked = "comment_unliked"
+	MessageTypeNewReaction   = "new_reaction"
 
 	// Social messages
 	MessageTypeNewFollower            = "new_follower"
@@ -197,6 +199,27 @@ type LikePayload struct {
 	Username  string `json:"username"`
 	LikeCount int    `json:"like_count"`
 	Emoji     string `json:"emoji,omitempty"`
+}
+
+// CommentPayload represents a new comment notification
+type CommentPayload struct {
+	CommentID   string `json:"comment_id"`
+	PostID      string `json:"post_id"`
+	UserID      string `json:"user_id"`
+	Username    string `json:"username"`
+	DisplayName string `json:"display_name,omitempty"`
+	AvatarURL   string `json:"avatar_url,omitempty"`
+	Body        string `json:"body"`
+	CreatedAt   int64  `json:"created_at"`
+}
+
+// CommentLikePayload represents a comment like/unlike event
+type CommentLikePayload struct {
+	CommentID string `json:"comment_id"`
+	PostID    string `json:"post_id"`
+	UserID    string `json:"user_id"`
+	Username  string `json:"username"`
+	LikeCount int    `json:"like_count"`
 }
 
 // FollowPayload represents a follow/unfollow event
