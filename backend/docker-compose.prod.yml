@@ -142,6 +142,8 @@ services:
     image: zhenghaoz/gorse-in-one:nightly
     container_name: sidechain-gorse
     restart: unless-stopped
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
       - ./gorse.toml:/etc/gorse/config.toml:ro
     depends_on:

@@ -89,6 +89,10 @@ jobs:
             echo "→ Stopping old containers..."
             docker-compose -f "${{ env.DOCKER_COMPOSE_FILE }}" down || true
 
+            # Update gorse.toml with production credentials
+            echo "→ Updating gorse.toml with production credentials..."
+            sed -i "s/sidechain_dev_password/${POSTGRES_PASSWORD}/g" gorse.toml
+
             # Start new containers with latest image
             echo "→ Starting containers with latest image..."
             docker-compose -f "${{ env.DOCKER_COMPOSE_FILE }}" up -d
