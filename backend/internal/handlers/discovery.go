@@ -161,6 +161,32 @@ func (h *Handlers) SearchUsers(c *gin.Context) {
 		}
 	}
 
+	// Phase 5.2: Filter private users from results
+	filteredUsers := make([]models.User, 0, len(users))
+	for _, user := range users {
+		// Always show the current user if searching for themselves
+		if currentUserID != "" && user.ID == currentUserID {
+			filteredUsers = append(filteredUsers, user)
+			continue
+		}
+
+		// If user is not private, always show
+		if !user.IsPrivate {
+			filteredUsers = append(filteredUsers, user)
+			continue
+		}
+
+		// User is private - only show if current user follows them
+		if currentUserID != "" {
+			isFollowing, _ := h.stream.CheckIsFollowing(currentUserID, user.ID)
+			if isFollowing {
+				filteredUsers = append(filteredUsers, user)
+			}
+		}
+		// Skip private users for unauthenticated users
+	}
+	users = filteredUsers
+
 	// Enrich with is_following state
 	userResults := h.enrichUsersWithFollowState(currentUserID, users)
 
@@ -287,6 +313,44 @@ func (h *Handlers) SearchPosts(c *gin.Context) {
 			return
 		}
 	}
+
+	// Phase 5.2: Filter private content from results
+	currentUserID := c.GetString("user_id")
+	filteredPosts := make([]models.AudioPost, 0, len(posts))
+	for _, post := range posts {
+		// Allow if post is public
+		if !post.IsPublic {
+			// Post is private - only allow if current user is owner
+			if currentUserID != "" && post.UserID == currentUserID {
+				filteredPosts = append(filteredPosts, post)
+			}
+			// Skip private posts for unauthenticated users
+			continue
+		}
+
+		// Post is public - now check if creator is private
+		if post.User.ID != "" && post.User.IsPrivate {
+			// Creator is private - allow if current user is owner or follows them
+			if currentUserID != "" {
+				if post.UserID == currentUserID {
+					// Current user is the creator
+					filteredPosts = append(filteredPosts, post)
+				} else {
+					// Check if current user follows this private user
+					isFollowing, _ := h.stream.CheckIsFollowing(currentUserID, post.UserID)
+					if isFollowing {
+						filteredPosts = append(filteredPosts, post)
+					}
+				}
+			}
+			// Skip private creator posts for unauthenticated users
+			continue
+		}
+
+		// Post is public and creator is not private - include it
+		filteredPosts = append(filteredPosts, post)
+	}
+	posts = filteredPosts
 
 	// Format response
 	type PostResponse struct {
@@ -416,6 +480,39 @@ func (h *Handlers) SearchStories(c *gin.Context) {
 			return
 		}
 	}
+
+	// Phase 5.2: Filter private creator stories from results
+	currentUserID := c.GetString("user_id")
+	filteredStories := make([]models.Story, 0, len(stories))
+	for _, story := range stories {
+		// Always show stories from current user
+		if currentUserID != "" && story.UserID == currentUserID {
+			filteredStories = append(filteredStories, story)
+			continue
+		}
+
+		// If story creator is not private, always show
+		if story.User.ID != "" && !story.User.IsPrivate {
+			filteredStories = append(filteredStories, story)
+			continue
+		}
+
+		// Story creator is private - only show if current user follows them
+		if story.User.ID != "" && story.User.IsPrivate {
+			if currentUserID != "" {
+				isFollowing, _ := h.stream.CheckIsFollowing(currentUserID, story.UserID)
+				if isFollowing {
+					filteredStories = append(filteredStories, story)
+				}
+			}
+			// Skip private creator stories for unauthenticated users
+			continue
+		}
+
+		// Show story by default
+		filteredStories = append(filteredStories, story)
+	}
+	stories = filteredStories
 
 	// Format response
 	type StoryResponse struct {
