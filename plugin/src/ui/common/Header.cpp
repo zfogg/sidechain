@@ -26,18 +26,25 @@ void Header::setNetworkClient(NetworkClient *client) {
 
 //==============================================================================
 void Header::setUserInfo(const juce::String &user, const juce::String &picUrl) {
-  Log::info("Header::setUserInfo: Setting user info - username: " + user);
+  Log::info("Header::setUserInfo: Setting user info - username: " + user + ", picUrl: " + picUrl);
+  Log::debug("Header::setUserInfo: appStore is " + juce::String(appStore != nullptr ? "SET" : "NULL"));
   username = user;
 
   // Fetch avatar image via AppStore reactive observable (with caching)
   if (picUrl.isNotEmpty() && appStore) {
+    Log::info("Header::setUserInfo: Loading profile image from AppStore - URL: " + picUrl);
     juce::Component::SafePointer<Header> safeThis(this);
     appStore->loadImageObservable(picUrl).subscribe(
         [safeThis](const juce::Image &image) {
           if (safeThis == nullptr)
             return;
           if (image.isValid()) {
+            Log::info("Header: Profile image loaded successfully - size: " + juce::String(image.getWidth()) +
+                      "x" + juce::String(image.getHeight()));
+            safeThis->cachedProfileImage = image;
             safeThis->repaint();
+          } else {
+            Log::warn("Header: Profile image is invalid");
           }
         },
         [safeThis](std::exception_ptr) {
@@ -45,6 +52,9 @@ void Header::setUserInfo(const juce::String &user, const juce::String &picUrl) {
             return;
           Log::warn("Header: Failed to load profile image");
         });
+  } else {
+    Log::warn("Header::setUserInfo: Not loading image - picUrl empty: " + juce::String(picUrl.isEmpty() ? "YES" : "NO") +
+              ", appStore null: " + juce::String(appStore == nullptr ? "YES" : "NO"));
   }
 
   profilePicUrl = picUrl;
@@ -249,28 +259,43 @@ void Header::drawCircularProfilePic(juce::Graphics &g, juce::Rectangle<int> boun
     g.drawEllipse(bounds.toFloat().expanded(2.0f), 2.5f);
   }
 
-  // Use reactive observable to load profile image (with caching)
-  if (appStore && profilePicUrl.isNotEmpty()) {
-    juce::Component::SafePointer<Header> safeThis(this);
-    appStore->loadImageObservable(profilePicUrl)
-        .subscribe(
-            [safeThis](const juce::Image &image) {
-              if (safeThis == nullptr)
-                return;
-              if (image.isValid()) {
-                safeThis->repaint();
-              }
-            },
-            [safeThis](std::exception_ptr) {
-              if (safeThis == nullptr)
-                return;
-              Log::warn("Header: Failed to load profile image in paint");
-            });
-  }
+  // If we have a cached profile image, draw it
+  if (cachedProfileImage.isValid()) {
+    Log::info("Header: Drawing profile photo from S3 - size: " + juce::String(cachedProfileImage.getWidth()) +
+              "x" + juce::String(cachedProfileImage.getHeight()) + ", URL: " + profilePicUrl);
+    // Create a circular mask and draw the image
+    juce::Path circlePath;
+    circlePath.addEllipse(bounds.toFloat());
+    g.saveState();
+    g.reduceClipRegion(circlePath);
+    g.drawImageAt(cachedProfileImage, bounds.getX(), bounds.getY());
+    g.restoreState();
+  } else {
+    // Use reactive observable to load profile image (with caching)
+    if (appStore && profilePicUrl.isNotEmpty()) {
+      juce::Component::SafePointer<Header> safeThis(this);
+      appStore->loadImageObservable(profilePicUrl)
+          .subscribe(
+              [safeThis](const juce::Image &image) {
+                if (safeThis == nullptr)
+                  return;
+                if (image.isValid()) {
+                  Log::debug("Header: Image loaded from observable, triggering repaint");
+                  safeThis->cachedProfileImage = image;
+                  safeThis->repaint();
+                }
+              },
+              [safeThis](std::exception_ptr) {
+                if (safeThis == nullptr)
+                  return;
+                Log::warn("Header: Failed to load profile image in paint");
+              });
+    }
 
-  // Draw placeholder circle (will be replaced with actual image when loaded)
-  g.setColour(SidechainColors::primary());
-  g.fillEllipse(bounds.toFloat());
+    // Draw placeholder circle (will be replaced with actual image when loaded)
+    g.setColour(SidechainColors::primary());
+    g.fillEllipse(bounds.toFloat());
+  }
 
   // Border (only if no story highlight)
   if (!hasStories) {
