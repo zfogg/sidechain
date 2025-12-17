@@ -37,6 +37,7 @@ jobs:
           cd /opt/sidechain/backend
           echo "📥 Fetching latest code..."
           git fetch origin main
+          git reset --hard origin/main
           git checkout origin/main
           echo "🔨 Building Docker image..."
           docker build -t zfogg/sidechain-backend:latest .
