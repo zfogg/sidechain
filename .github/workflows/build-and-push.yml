@@ -42,7 +42,11 @@ jobs:
           echo "🔨 Building Docker image..."
           docker build -t zfogg/sidechain-backend:latest .
           echo "✅ Docker image built successfully"
+          echo "📤 Pushing image to Docker Hub..."
+          docker push zfogg/sidechain-backend:latest
+          echo "✅ Image pushed to Docker Hub"
           echo "🚀 Restarting backend service..."
+          docker-compose -f docker-compose.prod.yml pull backend
           docker-compose -f docker-compose.prod.yml up -d backend
           echo "⏳ Waiting for container to be healthy..."
           for i in {1..30}; do
