@@ -24,10 +24,8 @@ services:
   backend:
     image: zfogg/sidechain-backend:latest
     container_name: sidechain-backend
-    build:
-      context: .
-      dockerfile: Dockerfile
     restart: unless-stopped
+    pull_policy: always
     environment:
       # Server (only accessible internally via Caddy)
       PORT: "8787"
