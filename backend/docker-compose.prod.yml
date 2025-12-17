@@ -26,8 +26,8 @@ services:
     container_name: sidechain-backend
     restart: unless-stopped
     pull_policy: always
-    env_file:
-      - .env
+    volumes:
+      - ./.env:/app/.env:ro
     depends_on:
       postgres:
         condition: service_healthy
