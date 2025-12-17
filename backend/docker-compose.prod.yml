@@ -174,6 +174,16 @@ services:
     networks:
       - sidechain
 
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: sidechain-watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 30 --cleanup sidechain-backend sidechain-elasticsearch sidechain-gorse sidechain-postgres sidechain-redis sidechain-caddy
+    networks:
+      - sidechain
+
 volumes:
   postgres_data:
     driver: local
