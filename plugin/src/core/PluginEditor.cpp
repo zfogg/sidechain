@@ -1101,6 +1101,11 @@ void SidechainAudioProcessorEditor::showView(AppView view, NavigationDirection d
     postsFeedComponent->loadFeed();
   }
 
+  if (view == AppView::Messages && messagesListComponent) {
+    Log::debug("showView: Setting up Messages BEFORE animation - calling loadChannels()");
+    messagesListComponent->loadChannels();
+  }
+
   // Determine if we should animate the transition
   // Don't animate: auth transitions, same view, missing components, or
   // explicitly no animation
@@ -2397,9 +2402,9 @@ void SidechainAudioProcessorEditor::sendTestMessageOnStartup() {
                                            sentMsg.createdAt);
               Log::info("sendTestMessageOnStartup: addMessageToChannel returned");
 
-              // Open the message thread view to show the sent message
-              Log::info("sendTestMessageOnStartup: Opening message thread view");
-              showMessageThread(channel.type, channel.id);
+              // Open the conversations/messages list view to show conversations
+              Log::info("sendTestMessageOnStartup: Opening messages list view");
+              showView(AppView::Messages);
             });
       });
 }

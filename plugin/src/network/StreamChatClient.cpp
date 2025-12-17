@@ -278,10 +278,13 @@ void StreamChatClient::queryChannels(ChannelsCallback callback, int limit, int o
         juce::var requestData = juce::var(new juce::DynamicObject());
         auto *obj = requestData.getDynamicObject();
 
-        // Don't use member filter - Stream.io operators don't work with
-        // object-format members Instead, get all channels and filter
-        // client-side to only include those with current user
+        // Filter channels to only those where current user is a member
         juce::var filter = juce::var(new juce::DynamicObject());
+        juce::var membersFilter = juce::var(new juce::DynamicObject());
+        juce::var membersList = juce::var(juce::Array<juce::var>());
+        membersList.getArray()->add(currentUserId);
+        membersFilter.getDynamicObject()->setProperty("$in", membersList);
+        filter.getDynamicObject()->setProperty("members", membersFilter);
         obj->setProperty("filter_conditions", filter);
 
         // Build sort
