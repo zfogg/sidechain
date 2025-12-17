@@ -459,30 +459,73 @@ void AppStore::toggleFollow(const juce::String &postId, bool willFollow) {
     return;
   }
 
-  // Extract user ID from post to follow the author
+  // Extract user ID and current follow state from post
   auto state = getState();
   juce::String userId;
+  bool previousFollowState = false;
 
   for (const auto &[feedType, feedState] : state.posts.feeds) {
     for (const auto &post : feedState.posts) {
       if (post.id == postId) {
         userId = post.userId;
+        previousFollowState = post.isFollowing;
         break;
       }
     }
   }
 
   if (!userId.isEmpty()) {
+    // Apply optimistic update - toggle follow state immediately
+    updateFeedState([postId, willFollow](PostsState &state) {
+      for (auto &[feedType, feedState] : state.feeds) {
+        for (auto &post : feedState.posts) {
+          if (post.id == postId) {
+            post.isFollowing = willFollow;
+          }
+        }
+      }
+    });
+
+    Util::logDebug("AppStore", "Follow post optimistic update: " + postId + " - " + juce::String(willFollow ? "follow" : "unfollow"));
+
     if (willFollow) {
-      networkClient->followUser(userId, [this](Outcome<juce::var> result) {
-        if (!result.isOk()) {
+      networkClient->followUser(userId, [this, postId, previousFollowState](Outcome<juce::var> result) {
+        if (result.isOk()) {
+          Util::logInfo("AppStore", "User followed successfully: " + postId);
+          // Invalidate feed caches on successful follow
+          invalidateCachePattern("feed:*");
+        } else {
           Util::logError("AppStore", "Failed to follow user: " + result.getError());
+          // Rollback optimistic update on error
+          updateFeedState([postId, previousFollowState](PostsState &state) {
+            for (auto &[feedType, feedState] : state.feeds) {
+              for (auto &post : feedState.posts) {
+                if (post.id == postId) {
+                  post.isFollowing = previousFollowState;
+                }
+              }
+            }
+          });
         }
       });
     } else {
-      networkClient->unfollowUser(userId, [this](Outcome<juce::var> result) {
-        if (!result.isOk()) {
+      networkClient->unfollowUser(userId, [this, postId, previousFollowState](Outcome<juce::var> result) {
+        if (result.isOk()) {
+          Util::logInfo("AppStore", "User unfollowed successfully: " + postId);
+          // Invalidate feed caches on successful unfollow
+          invalidateCachePattern("feed:*");
+        } else {
           Util::logError("AppStore", "Failed to unfollow user: " + result.getError());
+          // Rollback optimistic update on error
+          updateFeedState([postId, previousFollowState](PostsState &state) {
+            for (auto &[feedType, feedState] : state.feeds) {
+              for (auto &post : feedState.posts) {
+                if (post.id == postId) {
+                  post.isFollowing = previousFollowState;
+                }
+              }
+            }
+          });
         }
       });
     }
