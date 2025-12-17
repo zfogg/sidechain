@@ -4,14 +4,11 @@
 
     # Proxy to backend
     reverse_proxy backend:8787 {
-        # Health check
-        health /health
-        health_timeout 5s
+        # Caddy v2 health checks use health_uri in the proxy handler
+        health_uri /health
         health_interval 10s
-        health_status 200
+        health_timeout 5s
     }
-
-    # Caddy v2 automatically handles X-Forwarded-* headers for reverse proxying
 
     # Logging
     log {
