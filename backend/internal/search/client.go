@@ -12,8 +12,9 @@ import (
 
 // Index names
 const (
-	IndexUsers = "users"
-	IndexPosts = "posts"
+	IndexUsers   = "users"
+	IndexPosts   = "posts"
+	IndexStories = "stories"
 )
 
 // Client wraps the Elasticsearch client with Sidechain-specific functionality
@@ -59,6 +60,11 @@ func (c *Client) InitializeIndices(ctx context.Context) error {
 	// Create posts index
 	if err := c.createPostsIndex(ctx); err != nil {
 		return fmt.Errorf("failed to create posts index: %w", err)
+	}
+
+	// Create stories index
+	if err := c.createStoriesIndex(ctx); err != nil {
+		return fmt.Errorf("failed to create stories index: %w", err)
 	}
 
 	return nil
@@ -152,6 +158,33 @@ func (c *Client) createPostsIndex(ctx context.Context) error {
 	}
 
 	return c.createIndex(ctx, IndexPosts, mapping)
+}
+
+// createStoriesIndex creates the stories search index with mapping
+func (c *Client) createStoriesIndex(ctx context.Context) error {
+	mapping := map[string]interface{}{
+		"mappings": map[string]interface{}{
+			"properties": map[string]interface{}{
+				"id": map[string]interface{}{
+					"type": "keyword",
+				},
+				"user_id": map[string]interface{}{
+					"type": "keyword",
+				},
+				"username": map[string]interface{}{
+					"type": "keyword",
+				},
+				"created_at": map[string]interface{}{
+					"type": "date",
+				},
+				"expires_at": map[string]interface{}{
+					"type": "date",
+				},
+			},
+		},
+	}
+
+	return c.createIndex(ctx, IndexStories, mapping)
 }
 
 // createIndex creates an Elasticsearch index with the given mapping
@@ -248,6 +281,33 @@ func (c *Client) IndexPost(ctx context.Context, postID string, doc map[string]in
 	return nil
 }
 
+// IndexStory indexes a story document for search
+func (c *Client) IndexStory(ctx context.Context, storyID string, doc map[string]interface{}) error {
+	body, err := json.Marshal(doc)
+	if err != nil {
+		return fmt.Errorf("failed to marshal story document: %w", err)
+	}
+
+	res, err := c.es.Index(IndexStories, bytes.NewReader(body),
+		c.es.Index.WithDocumentID(storyID),
+		c.es.Index.WithContext(ctx),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to index story: %w", err)
+	}
+	defer res.Body.Close()
+
+	if res.IsError() {
+		var errResp map[string]interface{}
+		if err := json.NewDecoder(res.Body).Decode(&errResp); err != nil {
+			return fmt.Errorf("error response [%s]", res.Status())
+		}
+		return fmt.Errorf("error indexing story: [%s] %v", res.Status(), errResp["error"])
+	}
+
+	return nil
+}
+
 // DeleteUser deletes a user document from the search index
 func (c *Client) DeleteUser(ctx context.Context, userID string) error {
 	res, err := c.es.Delete(IndexUsers, userID,
@@ -287,6 +347,28 @@ func (c *Client) DeletePost(ctx context.Context, postID string) error {
 			return fmt.Errorf("error response [%s]", res.Status())
 		}
 		return fmt.Errorf("error deleting post: [%s] %v", res.Status(), errResp["error"])
+	}
+
+	return nil
+}
+
+// DeleteStory deletes a story document from the search index
+func (c *Client) DeleteStory(ctx context.Context, storyID string) error {
+	res, err := c.es.Delete(IndexStories, storyID,
+		c.es.Delete.WithContext(ctx),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to delete story: %w", err)
+	}
+	defer res.Body.Close()
+
+	// 404 is OK - document doesn't exist
+	if res.IsError() && res.StatusCode != 404 {
+		var errResp map[string]interface{}
+		if err := json.NewDecoder(res.Body).Decode(&errResp); err != nil {
+			return fmt.Errorf("error response [%s]", res.Status())
+		}
+		return fmt.Errorf("error deleting story: [%s] %v", res.Status(), errResp["error"])
 	}
 
 	return nil
