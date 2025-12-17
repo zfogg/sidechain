@@ -26,6 +26,7 @@ export function Settings() {
 
   // Privacy state
   const [isPublic, setIsPublic] = useState(user?.isPublic !== false)
+  const [isPrivate, setIsPrivate] = useState(user?.isPrivate || false)
   const [allowComments, setAllowComments] = useState(user?.allowComments !== false)
   const [allowDmsFromFollowersOnly, setAllowDmsFromFollowersOnly] = useState(
     user?.allowDmsFromFollowersOnly || false
@@ -62,7 +63,7 @@ export function Settings() {
     setIsSaving(true)
     try {
       // TODO: Call API to update privacy settings
-      console.log('Saving privacy:', { isPublic, allowComments, allowDmsFromFollowersOnly })
+      console.log('Saving privacy:', { isPublic, isPrivate, allowComments, allowDmsFromFollowersOnly })
     } finally {
       setIsSaving(false)
     }
@@ -267,6 +268,20 @@ export function Settings() {
                     type="checkbox"
                     checked={allowDmsFromFollowersOnly}
                     onChange={(e) => setAllowDmsFromFollowersOnly(e.target.checked)}
+                    className="w-6 h-6 rounded cursor-pointer"
+                  />
+                </div>
+
+                {/* Private Account Toggle */}
+                <div className="flex items-center justify-between p-4 rounded-lg bg-bg-secondary/50 border border-border/30">
+                  <div>
+                    <p className="font-semibold text-foreground">Private Account</p>
+                    <p className="text-sm text-muted-foreground">Require approval for new followers and hide posts from non-followers</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={isPrivate}
+                    onChange={(e) => setIsPrivate(e.target.checked)}
                     className="w-6 h-6 rounded cursor-pointer"
                   />
                 </div>
