@@ -122,6 +122,9 @@ PostsFeed::PostsFeed(Sidechain::Stores::AppStore *store) : AppStoreComponent(sto
   Log::debug("PostsFeedComponent: Feed skeleton created");
 
   Log::info("PostsFeedComponent: Initialization complete");
+
+  // Initialize AppStore subscription
+  initialize();
 }
 
 PostsFeed::~PostsFeed() {
@@ -419,6 +422,11 @@ void PostsFeed::handleFeedStateChanged() {
   const auto &state = appStore->getState();
   const auto &currentFeed = state.posts.getCurrentFeed();
 
+  if (!currentFeed) {
+    Log::error("PostsFeed::handleFeedStateChanged: currentFeed is null!");
+    return;
+  }
+
   Log::debug("PostsFeed::handleFeedStateChanged: State changed - loading: " +
              juce::String(currentFeed->isLoading ? "true" : "false") + ", error: " + currentFeed->error +
              ", posts: " + juce::String(currentFeed->posts.size()));
@@ -496,13 +504,13 @@ void PostsFeed::subscribeToAppStore() {
   if (!appStore)
     return;
 
-  juce::Component::SafePointer<PostsFeed> safeThis(this);
-  storeUnsubscriber = appStore->subscribeToFeed([safeThis](const Sidechain::Stores::PostsState &state) {
-    if (!safeThis)
-      return;
-    juce::MessageManager::callAsync([safeThis, state]() {
-      if (safeThis)
-        safeThis->onAppStateChanged(state);
+  // Use raw this pointer for lambda capture - SafePointer with lambdas can cause issues
+  auto thisPtr = this;
+  storeUnsubscriber = appStore->subscribeToFeed([thisPtr](const Sidechain::Stores::PostsState &state) {
+    if (!thisPtr) return;
+    juce::MessageManager::callAsync([thisPtr]() {
+      if (!thisPtr) return;
+      thisPtr->handleFeedStateChanged();
     });
   });
 }
