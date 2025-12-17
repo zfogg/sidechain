@@ -554,6 +554,10 @@ WebSocketClient::MessageType WebSocketClient::parseMessageType(const juce::Strin
     return MessageType::TimelineUpdate;
   if (typeStr == "notification_count_update")
     return MessageType::NotificationCountUpdate;
+  if (typeStr == "user_typing")
+    return MessageType::UserTyping;
+  if (typeStr == "user_stop_typing")
+    return MessageType::UserStopTyping;
   if (typeStr == "heartbeat" || typeStr == "pong")
     return MessageType::Heartbeat;
   if (typeStr == "error")

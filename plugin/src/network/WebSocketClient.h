@@ -64,6 +64,8 @@ public:
     FeedInvalidate,       // Refresh feed cache (5.5.10 - Phase 2.1)
     TimelineUpdate,       // Activity timeline changed (5.5.11 - Phase 2.2)
     NotificationCountUpdate, // Notification count updated (5.5.12 - Phase 2.3)
+    UserTyping,           // User is typing a comment (5.5.13 - Phase 3)
+    UserStopTyping,       // User stopped typing (5.5.14 - Phase 3)
     Heartbeat,            // Server heartbeat response
     Error                 // Server error message
   };

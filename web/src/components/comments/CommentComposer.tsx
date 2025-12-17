@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { useUserStore } from '@/stores/useUserStore'
 import { useCreateCommentMutation } from '@/hooks/mutations/useCommentMutations'
+import { getWebSocketClient } from '@/api/websocket'
 
 interface CommentComposerProps {
   postId: string
@@ -23,13 +24,86 @@ export function CommentComposer({
   placeholder = 'Add a comment...',
 }: CommentComposerProps) {
   const [content, setContent] = useState('')
+  const [isTyping, setIsTyping] = useState(false)
   const { user } = useUserStore()
   const { mutate: createComment, isPending } = useCreateCommentMutation()
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const hasNotifiedTypingRef = useRef(false)
+
+  // Handle typing indicator - send when user starts typing, stop after 2 seconds of inactivity
+  useEffect(() => {
+    const ws = getWebSocketClient()
+
+    if (content.trim().length > 0 && !isTyping && user) {
+      // User started typing
+      setIsTyping(true)
+      if (!hasNotifiedTypingRef.current && ws.isConnected()) {
+        hasNotifiedTypingRef.current = true
+        ws.send('user_typing', {
+          post_id: postId,
+          user_id: user.id,
+          username: user.username,
+          display_name: user.displayName,
+          avatar_url: user.profilePictureUrl,
+        })
+      }
+    }
+
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current)
+    }
+
+    // Set new timeout to send stop_typing after 2 seconds of inactivity
+    typingTimeoutRef.current = setTimeout(() => {
+      if (isTyping && ws.isConnected()) {
+        setIsTyping(false)
+        hasNotifiedTypingRef.current = false
+        ws.send('user_stop_typing', {
+          post_id: postId,
+          user_id: user?.id,
+        })
+      }
+    }, 2000)
+
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current)
+      }
+    }
+  }, [content, postId, user, isTyping])
+
+  // Clean up typing on unmount
+  useEffect(() => {
+    return () => {
+      const ws = getWebSocketClient()
+      if (isTyping && user && ws.isConnected()) {
+        ws.send('user_stop_typing', {
+          post_id: postId,
+          user_id: user.id,
+        })
+      }
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current)
+      }
+    }
+  }, [postId, user, isTyping])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!content.trim()) return
+
+    // Send stop typing before submitting
+    const ws = getWebSocketClient()
+    if (user && ws.isConnected()) {
+      ws.send('user_stop_typing', {
+        post_id: postId,
+        user_id: user.id,
+      })
+    }
+    setIsTyping(false)
+    hasNotifiedTypingRef.current = false
 
     createComment(
       { postId, content: content.trim(), parentId },
