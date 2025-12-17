@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { SearchClient, SearchFilters } from '@/api/SearchClient'
+import { SearchClient, SearchFilters as SearchFiltersType } from '@/api/SearchClient'
 import { Button } from '@/components/ui/button'
 
 interface SearchFiltersProps {
-  filters: SearchFilters
-  onFiltersChange: (filters: SearchFilters) => void
+  filters: SearchFiltersType
+  onFiltersChange: (filters: SearchFiltersType) => void
   onSearch?: () => void
 }
 
