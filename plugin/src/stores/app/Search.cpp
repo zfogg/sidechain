@@ -221,5 +221,75 @@ void AppStore::filterByGenre(const juce::String &genre) {
   searchPosts(currentState.search.results.searchQuery);
 }
 
+void AppStore::autocompleteUsers(const juce::String &query,
+                                 std::function<void(const juce::Array<juce::String> &suggestions)> callback) {
+  if (!networkClient) {
+    Util::logError("AppStore", "Cannot autocomplete users - network client not set");
+    if (callback)
+      callback(juce::Array<juce::String>());
+    return;
+  }
+
+  if (query.isEmpty()) {
+    if (callback)
+      callback(juce::Array<juce::String>());
+    return;
+  }
+
+  networkClient->autocompleteUsers(query, 10, [callback](Outcome<juce::var> result) {
+    juce::Array<juce::String> suggestions;
+
+    if (result.isOk()) {
+      auto data = result.getValue();
+      if (data.isArray()) {
+        for (int i = 0; i < data.size(); ++i) {
+          suggestions.add(data[i].toString());
+        }
+      }
+      Util::logInfo("AppStore", "Autocomplete users returned " + juce::String(suggestions.size()) + " suggestions");
+    } else {
+      Util::logError("AppStore", "Autocomplete users failed: " + result.getError());
+    }
+
+    if (callback)
+      callback(suggestions);
+  });
+}
+
+void AppStore::autocompleteGenres(const juce::String &query,
+                                  std::function<void(const juce::Array<juce::String> &suggestions)> callback) {
+  if (!networkClient) {
+    Util::logError("AppStore", "Cannot autocomplete genres - network client not set");
+    if (callback)
+      callback(juce::Array<juce::String>());
+    return;
+  }
+
+  if (query.isEmpty()) {
+    if (callback)
+      callback(juce::Array<juce::String>());
+    return;
+  }
+
+  networkClient->autocompleteGenres(query, 10, [callback](Outcome<juce::var> result) {
+    juce::Array<juce::String> suggestions;
+
+    if (result.isOk()) {
+      auto data = result.getValue();
+      if (data.isArray()) {
+        for (int i = 0; i < data.size(); ++i) {
+          suggestions.add(data[i].toString());
+        }
+      }
+      Util::logInfo("AppStore", "Autocomplete genres returned " + juce::String(suggestions.size()) + " suggestions");
+    } else {
+      Util::logError("AppStore", "Autocomplete genres failed: " + result.getError());
+    }
+
+    if (callback)
+      callback(suggestions);
+  });
+}
+
 } // namespace Stores
 } // namespace Sidechain

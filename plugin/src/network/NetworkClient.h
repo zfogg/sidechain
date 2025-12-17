@@ -1085,6 +1085,12 @@ public:
   // Get search suggestions/autocomplete
   void getSearchSuggestions(const juce::String &query, int limit = 5, ResponseCallback callback = nullptr);
 
+  // Autocomplete for usernames
+  void autocompleteUsers(const juce::String &query, int limit = 10, ResponseCallback callback = nullptr);
+
+  // Autocomplete for genres
+  void autocompleteGenres(const juce::String &query, int limit = 10, ResponseCallback callback = nullptr);
+
   //==========================================================================
   // Stories operations
   // Get stories feed (ephemeral music clips from followed users)
