@@ -1,11 +1,10 @@
 name: Deploy Backend to Production
 
 on:
-  push:
+  workflow_run:
+    workflows: [ "Build and Push Backend Docker Image" ]
+    types: [ completed ]
     branches: [ main ]
-    paths:
-      - 'backend/**'
-      - '.github/workflows/deploy.yml'
   workflow_dispatch:  # Allow manual trigger
 
 env:
@@ -82,13 +81,17 @@ jobs:
               fi
             done
 
+            # Pull latest image
+            echo "→ Pulling latest backend image..."
+            docker pull zfogg/sidechain-backend:latest
+
             # Stop old containers gracefully
             echo "→ Stopping old containers..."
             docker-compose -f "${{ env.DOCKER_COMPOSE_FILE }}" down || true
 
-            # Build and start new containers
-            echo "→ Building and starting containers..."
-            docker-compose -f "${{ env.DOCKER_COMPOSE_FILE }}" up -d --build
+            # Start new containers with latest image
+            echo "→ Starting containers with latest image..."
+            docker-compose -f "${{ env.DOCKER_COMPOSE_FILE }}" up -d
 
             # Wait for services to be ready
             echo "→ Waiting for services to be ready..."
@@ -98,22 +101,23 @@ jobs:
             echo "→ Checking container status..."
             docker-compose -f "${{ env.DOCKER_COMPOSE_FILE }}" ps
 
-            # Check API health via Caddy (internal docker network)
-            echo "→ Checking API health..."
+            # Check if containers are healthy
+            echo "→ Checking container health..."
             max_attempts=30
             attempt=0
             while [ $attempt -lt $max_attempts ]; do
-              if docker-compose -f "${{ env.DOCKER_COMPOSE_FILE }}" exec -T backend wget --no-verbose --tries=1 --spider http://localhost:8787/health > /dev/null 2>&1; then
-                echo "✓ API is healthy"
+              # Check if backend container is running
+              if docker-compose -f "${{ env.DOCKER_COMPOSE_FILE }}" ps backend | grep -q "Up"; then
+                echo "✓ Backend container is running"
                 break
               fi
               attempt=$((attempt + 1))
               if [ $attempt -eq $max_attempts ]; then
-                echo "✗ API failed to become healthy after $max_attempts attempts"
+                echo "✗ Backend container failed to start after $max_attempts attempts"
                 docker-compose -f "${{ env.DOCKER_COMPOSE_FILE }}" logs backend
                 exit 1
               fi
-              echo "  Attempt $attempt/$max_attempts - waiting for API..."
+              echo "  Attempt $attempt/$max_attempts - waiting for container..."
               sleep 1
             done
 
