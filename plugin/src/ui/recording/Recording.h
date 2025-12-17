@@ -48,9 +48,24 @@ public:
   // Callback when user wants to view drafts
   std::function<void()> onViewDrafts;
 
+  //==============================================================================
+  // Challenge context (R.2.2.4 - MIDI Challenges)
+  /** Set the challenge ID for recording a challenge submission
+   * @param id The challenge ID, empty string if not recording for a challenge
+   */
+  void setChallengeId(const juce::String &id);
+
+  /** Get the current challenge ID context
+   * @return The challenge ID if recording for a challenge, empty string otherwise
+   */
+  juce::String getChallengeId() const;
+
 private:
   //==============================================================================
   SidechainAudioProcessor &audioProcessor;
+
+  // Challenge context (R.2.2.4 - MIDI Challenges)
+  juce::String activeChallengeId;  // Empty if not recording for a challenge
 
   // Recording state
   enum class State {

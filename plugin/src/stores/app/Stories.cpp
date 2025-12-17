@@ -106,13 +106,52 @@ void AppStore::deleteStory(const juce::String &storyId) {
 }
 
 void AppStore::createHighlight(const juce::String &name, const juce::Array<juce::String> &storyIds) {
-  // TODO: Implement highlight creation when NetworkClient provides createHighlight API
-  // For now, this is a stub that logs the request
+  if (!networkClient) {
+    Util::logError("AppStore", "Cannot create highlight - network client not set");
+    return;
+  }
+
+  if (name.isEmpty()) {
+    Util::logError("AppStore", "Cannot create highlight - name cannot be empty");
+    return;
+  }
+
   Util::logInfo("AppStore", "Creating highlight: " + name + " with " + juce::String(storyIds.size()) + " stories");
 
-  updateState([](AppState &state) { state.stories.storiesError = "Highlight creation not yet supported"; });
+  // Create highlight with name and description
+  networkClient->createHighlight(name, "", [this, name, storyIds](Outcome<juce::var> result) {
+    if (result.isOk()) {
+      const auto data = result.getValue();
+      const auto highlightId = data.getProperty("id", juce::var()).toString();
 
-  notifyObservers();
+      Util::logInfo("AppStore", "Highlight created successfully: " + highlightId);
+
+      // If we have stories to add, add them one by one
+      if (!storyIds.isEmpty()) {
+        Util::logInfo("AppStore", "Adding " + juce::String(storyIds.size()) + " stories to highlight");
+
+        // Add each story to the highlight
+        for (const auto &storyId : storyIds) {
+          networkClient->addStoryToHighlight(highlightId, storyId, [this, storyId, highlightId](Outcome<juce::var> addResult) {
+            if (addResult.isOk()) {
+              Util::logInfo("AppStore", "Added story " + storyId + " to highlight " + highlightId);
+            } else {
+              Util::logError("AppStore", "Failed to add story to highlight: " + addResult.getError());
+            }
+          });
+        }
+      }
+
+      updateState([](AppState &state) { state.stories.storiesError = ""; });
+      notifyObservers();
+    } else {
+      updateState([result](AppState &state) {
+        state.stories.storiesError = result.getError();
+        Util::logError("AppStore", "Failed to create highlight: " + result.getError());
+      });
+      notifyObservers();
+    }
+  });
 }
 
 } // namespace Stores

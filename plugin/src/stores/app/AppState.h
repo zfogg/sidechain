@@ -367,12 +367,6 @@ struct AppState {
 
   // Global error for critical failures
   juce::String globalError;
-
-  bool operator==(const AppState &other) const {
-    // Simplified equality - just check critical auth state
-    // Full equality check would be expensive
-    return auth.isLoggedIn == other.auth.isLoggedIn && auth.userId == other.auth.userId;
-  }
 };
 
 } // namespace Stores

@@ -857,3 +857,20 @@ void Recording::importMidiFile(const juce::File &file) {
 
   repaint();
 }
+
+//==============================================================================
+// Challenge context management (R.2.2.4 - MIDI Challenges)
+
+void Recording::setChallengeId(const juce::String &id) {
+  activeChallengeId = id;
+  if (id.isNotEmpty()) {
+    Log::info("Recording::setChallengeId: Recording for challenge " + id);
+    // Future: Could add constraint validation, challenge-specific UI hints, etc.
+  } else {
+    Log::info("Recording::setChallengeId: Cleared challenge context");
+  }
+}
+
+juce::String Recording::getChallengeId() const {
+  return activeChallengeId;
+}
