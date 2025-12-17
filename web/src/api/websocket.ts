@@ -10,14 +10,20 @@ import type { FeedPostJSON } from '@/models/FeedPost'
 export type WebSocketMessageType =
   | 'new_post'
   | 'post_liked'
+  | 'post_unliked'
   | 'post_commented'
-  | 'user_followed'
+  | 'new_comment'
   | 'comment_liked'
+  | 'comment_unliked'
+  | 'user_followed'
   | 'post_saved'
   | 'notification'
   | 'error'
   | 'user_typing'
   | 'user_stop_typing'
+  | 'like_count_update'
+  | 'comment_count_update'
+  | 'engagement_metrics'
 
 // WebSocket Event Payload Types
 export interface NewPostPayload {
@@ -26,12 +32,33 @@ export interface NewPostPayload {
 
 export interface PostLikedPayload {
   post_id: string
-  new_like_count: number
+  user_id: string
+  username: string
+  like_count: number
+  emoji?: string
+}
+
+export interface PostUnlikedPayload {
+  post_id: string
+  user_id: string
+  username: string
+  like_count: number
 }
 
 export interface PostCommentedPayload {
   post_id: string
   new_comment_count: number
+}
+
+export interface NewCommentPayload {
+  comment_id: string
+  post_id: string
+  user_id: string
+  username: string
+  display_name?: string
+  avatar_url?: string
+  body: string
+  created_at: number
 }
 
 export interface PostSavedPayload {
@@ -46,7 +73,37 @@ export interface UserFollowedPayload {
 
 export interface CommentLikedPayload {
   comment_id: string
-  new_like_count: number
+  post_id: string
+  user_id: string
+  username: string
+  like_count: number
+}
+
+export interface CommentUnlikedPayload {
+  comment_id: string
+  post_id: string
+  user_id: string
+  username: string
+  like_count: number
+}
+
+export interface LikeCountUpdatePayload {
+  post_id: string
+  like_count: number
+  timestamp: number
+}
+
+export interface CommentCountUpdatePayload {
+  post_id: string
+  comment_count: number
+  timestamp: number
+}
+
+export interface EngagementMetricsPayload {
+  post_id: string
+  like_count: number
+  comment_count: number
+  timestamp: number
 }
 
 export interface NotificationPayload {
@@ -83,8 +140,10 @@ export interface UserStopTypingPayload {
   user_id: string
 }
 
-export type EventPayload = NewPostPayload | PostLikedPayload | PostCommentedPayload | PostSavedPayload |
-                   UserFollowedPayload | CommentLikedPayload | NotificationPayload | ErrorPayload |
+export type EventPayload = NewPostPayload | PostLikedPayload | PostUnlikedPayload | PostCommentedPayload |
+                   NewCommentPayload | PostSavedPayload | UserFollowedPayload | CommentLikedPayload |
+                   CommentUnlikedPayload | LikeCountUpdatePayload | CommentCountUpdatePayload |
+                   EngagementMetricsPayload | NotificationPayload | ErrorPayload |
                    UserTypingPayload | UserStopTypingPayload
 
 export interface WebSocketMessage {
