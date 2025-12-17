@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/metrics"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/util"
 )
@@ -94,5 +95,38 @@ func (h *Handlers) GetPostMetrics(c *gin.Context) {
 		"comment_count": post.CommentCount,
 		"click_count":   int(clickCount),
 		"timestamp":     post.UpdatedAt.UnixMilli(),
+	})
+}
+
+// GetSearchMetrics returns search metrics (Phase 7.1)
+// GET /api/v1/metrics/search
+func (h *Handlers) GetSearchMetrics(c *gin.Context) {
+	stats := metrics.GetManager().GetSearchStats()
+
+	c.JSON(http.StatusOK, gin.H{
+		"data":      stats,
+		"timestamp": stats["timestamp"],
+	})
+}
+
+// GetAllMetrics returns all application metrics (Phase 7.1)
+// GET /api/v1/metrics
+func (h *Handlers) GetAllMetrics(c *gin.Context) {
+	allMetrics := metrics.GetManager().GetAllMetrics()
+
+	c.JSON(http.StatusOK, gin.H{
+		"metrics":   allMetrics,
+		"timestamp": allMetrics["search"].(map[string]interface{})["timestamp"],
+	})
+}
+
+// ResetMetrics resets all metrics (admin only)
+// POST /api/v1/metrics/reset
+func (h *Handlers) ResetMetrics(c *gin.Context) {
+	// TODO: Add admin check here
+	metrics.GetManager().ResetAll()
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Metrics reset successfully",
 	})
 }

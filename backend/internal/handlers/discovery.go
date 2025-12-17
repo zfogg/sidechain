@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/metrics"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/search"
 	"github.com/zfogg/sidechain/backend/internal/util"
@@ -106,6 +107,7 @@ func (h *Handlers) enrichUsersWithFollowState(currentUserID string, users []mode
 // SearchUsers searches for users by username or display name
 // GET /api/search/users?q=query&limit=20&offset=0
 func (h *Handlers) SearchUsers(c *gin.Context) {
+	startTime := time.Now()
 	query := c.Query("q")
 	if query == "" {
 		util.RespondBadRequest(c, "search_query_required")
@@ -199,6 +201,17 @@ func (h *Handlers) SearchUsers(c *gin.Context) {
 		"fallback": usingFallback,
 	})
 
+	// Record metrics (Phase 7.1)
+	metrics.GetManager().Search.RecordQuery(metrics.QueryMetric{
+		Type:        "users",
+		Query:       query,
+		ResultCount: len(userResults),
+		Duration:    time.Since(startTime),
+		CacheHit:    false,
+		Error:       false,
+		Timestamp:   time.Now(),
+	})
+
 	c.JSON(http.StatusOK, gin.H{
 		"users": userResults,
 		"meta": gin.H{
@@ -214,6 +227,7 @@ func (h *Handlers) SearchUsers(c *gin.Context) {
 // SearchPosts searches for audio posts with Elasticsearch (Phase 1.2)
 // GET /api/search/posts?q=query&genre=electronic&bpm_min=90&bpm_max=120&key=C&limit=20&offset=0
 func (h *Handlers) SearchPosts(c *gin.Context) {
+	startTime := time.Now()
 	query := c.Query("q")
 	if query == "" {
 		util.RespondBadRequest(c, "missing_query", "Search query is required")
@@ -427,6 +441,17 @@ func (h *Handlers) SearchPosts(c *gin.Context) {
 		filters["key"] = key
 	}
 	h.trackSearchQuery(c, "posts", query, len(postResponses), filters)
+
+	// Record metrics (Phase 7.1)
+	metrics.GetManager().Search.RecordQuery(metrics.QueryMetric{
+		Type:        "posts",
+		Query:       query,
+		ResultCount: len(postResponses),
+		Duration:    time.Since(startTime),
+		CacheHit:    false, // Will be tracked by cache layer
+		Error:       false,
+		Timestamp:   time.Now(),
+	})
 
 	c.JSON(http.StatusOK, gin.H{
 		"posts": postResponses,

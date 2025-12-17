@@ -590,6 +590,14 @@ func main() {
 			}
 		}
 
+
+	// Metrics routes (Phase 7.1)
+	metrics := api.Group("/metrics")
+	{
+		metrics.GET("", h.GetAllMetrics)            // Get all metrics
+		metrics.GET("/search", h.GetSearchMetrics)  // Get search-specific metrics
+		metrics.POST("/reset", h.ResetMetrics)      // Reset metrics (admin only)
+	}
 		// Activity routes - Timeline from followed users and global activity
 		activity := api.Group("/activity")
 		{
