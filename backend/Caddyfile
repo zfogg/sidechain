@@ -1,0 +1,45 @@
+{$DOMAIN:example.com} {
+    # Enable HTTPS with Let's Encrypt
+    tls {$LETSENCRYPT_EMAIL:admin@example.com}
+
+    # Proxy to backend
+    reverse_proxy backend:8787 {
+        # Preserve headers for API
+        header_upstream X-Forwarded-For {http.request.header.CF-Connecting-IP}
+        header_upstream X-Forwarded-Proto {http.request.proto}
+        header_upstream X-Forwarded-Host {http.request.header.Host}
+
+        # Health check
+        health /health
+        health_timeout 5s
+        health_interval 10s
+        health_status 200
+    }
+
+    # Logging
+    log {
+        output stdout
+        format json
+    }
+
+    # Security headers
+    header {
+        # HSTS - force HTTPS for future requests
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
+        # Prevent clickjacking
+        X-Frame-Options "DENY"
+
+        # Prevent MIME type sniffing
+        X-Content-Type-Options "nosniff"
+
+        # Enable XSS protection
+        X-XSS-Protection "1; mode=block"
+
+        # Referrer policy
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+
+    # Rate limiting (optional - adjust based on needs)
+    # rate_limit * 100r/s
+}

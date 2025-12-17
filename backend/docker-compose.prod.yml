@@ -1,0 +1,191 @@
+version: "3.8"
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: sidechain-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      - DOMAIN=${DOMAIN:-example.com}
+      - EMAIL=${LETSENCRYPT_EMAIL:-hi@sidechain.live}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+    networks:
+      - sidechain
+
+  backend:
+    image: zfogg/sidechain-backend:latest
+    container_name: sidechain-backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      # Server (only accessible internally via Caddy)
+      PORT: "8787"
+      HOST: "0.0.0.0"
+      ENVIRONMENT: "production"
+
+      # Database
+      DATABASE_URL: "postgres://sidechain:${POSTGRES_PASSWORD:-sidechain_dev_password}@postgres:5432/sidechain?sslmode=disable"
+
+      # Gorse
+      GORSE_URL: "http://gorse:8088"
+      GORSE_API_KEY: "${GORSE_API_KEY:-sidechain_gorse_api_key}"
+
+      # Stream.io
+      STREAM_API_KEY: "${STREAM_API_KEY}"
+      STREAM_API_SECRET: "${STREAM_API_SECRET}"
+
+      # Security
+      JWT_SECRET: "${JWT_SECRET}"
+      CORS_ORIGINS: "${CORS_ORIGINS:-https://${DOMAIN:-example.com}}"
+
+      # AWS/S3 Storage
+      STORAGE_PROVIDER: "${STORAGE_PROVIDER:-local}"
+      AWS_REGION: "${AWS_REGION:-us-west-2}"
+      AWS_BUCKET: "${AWS_BUCKET:-sidechain-media}"
+      AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID}"
+      AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY}"
+      CDN_BASE_URL: "${CDN_BASE_URL:-https://${DOMAIN:-example.com}}"
+
+      # OAuth
+      GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID}"
+      GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET}"
+      DISCORD_CLIENT_ID: "${DISCORD_CLIENT_ID}"
+      DISCORD_CLIENT_SECRET: "${DISCORD_CLIENT_SECRET}"
+
+      # Email
+      SES_FROM_EMAIL: "${SES_FROM_EMAIL:-hi@sidechain.live}"
+      SES_FROM_NAME: "${SES_FROM_NAME:-Sidechain}"
+      BASE_URL: "https://${DOMAIN:-example.com}"
+
+      # Logging
+      LOG_LEVEL: "${LOG_LEVEL:-info}"
+
+      # PostgreSQL
+      POSTGRES_USER: "${POSTGRES_USER:-sidechain}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-sidechain_dev_password}"
+      POSTGRES_DB: "${POSTGRES_DB:-sidechain}"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      gorse:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8787/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+    networks:
+      - sidechain
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: sidechain-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER:-sidechain}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-sidechain_dev_password}"
+      POSTGRES_DB: "${POSTGRES_DB:-sidechain}"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sidechain"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sidechain
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: sidechain-elasticsearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - bootstrap.memory_lock=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 3s
+    networks:
+      - sidechain
+
+  gorse:
+    image: zhenghaoz/gorse-in-one:nightly
+    container_name: sidechain-gorse
+    restart: unless-stopped
+    volumes:
+      - ./gorse.toml:/etc/gorse/config.toml:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 1 bash -c '</dev/tcp/localhost/8088' 2>/dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 3s
+    networks:
+      - sidechain
+
+  redis:
+    image: redis/redis-stack-server:latest
+    container_name: sidechain-redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sidechain
+
+volumes:
+  postgres_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+  redis_data:
+    driver: local
+  caddy_data:
+    driver: local
+  caddy_config:
+    driver: local
+
+networks:
+  sidechain:
+    driver: bridge
