@@ -78,7 +78,8 @@ const (
 	MessageTypePlaybackStopped = "playback_stopped"
 
 	// Real-time updates
-	MessageTypeLikeCountUpdate     = "like_count_update"
+	MessageTypeLikeCountUpdate    = "like_count_update"
+	MessageTypeCommentCountUpdate = "comment_count_update"
 	MessageTypeFollowerCountUpdate = "follower_count_update"
 
 	// Collaborative editing (Task 4.20)

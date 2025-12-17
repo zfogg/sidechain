@@ -186,7 +186,7 @@ func (h *Handlers) LikePost(c *gin.Context) {
 		}()
 	}
 
-	// Send WebSocket notification to post owner
+	// Send WebSocket notification to post owner and broadcast to all viewers
 	if h.wsHandler != nil {
 		go func() {
 			var post models.AudioPost
@@ -208,6 +208,9 @@ func (h *Handlers) LikePost(c *gin.Context) {
 						Emoji:     req.Emoji,
 					}
 					h.wsHandler.NotifyLike(post.UserID, payload)
+
+					// Broadcast updated like count to all viewers
+					h.wsHandler.BroadcastLikeCountUpdate(post.ID, likeCount)
 				}
 			}
 		}()

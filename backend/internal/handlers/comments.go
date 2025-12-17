@@ -123,7 +123,7 @@ func (h *Handlers) CreateComment(c *gin.Context) {
 	if post.UserID != userID {
 		go h.notifyCommentOnPost(comment, post)
 
-		// Send WebSocket notification to post owner
+		// Send WebSocket notification to post owner and broadcast metrics
 		if h.wsHandler != nil {
 			go func() {
 				var commenter models.User
@@ -139,6 +139,9 @@ func (h *Handlers) CreateComment(c *gin.Context) {
 						CreatedAt:   comment.CreatedAt.UnixMilli(),
 					}
 					h.wsHandler.NotifyNewComment(post.UserID, payload)
+
+					// Broadcast updated comment count to all viewers
+					h.wsHandler.BroadcastCommentCountUpdate(postID, post.CommentCount+1)
 				}
 			}()
 		}

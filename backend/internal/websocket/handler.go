@@ -546,6 +546,25 @@ func (h *Handler) BroadcastLikeCountUpdate(postID string, likeCount int) {
 	}))
 }
 
+// BroadcastCommentCountUpdate broadcasts comment count update to all viewers
+func (h *Handler) BroadcastCommentCountUpdate(postID string, commentCount int) {
+	h.hub.Broadcast(NewMessage(MessageTypeCommentCountUpdate, map[string]interface{}{
+		"post_id":       postID,
+		"comment_count": commentCount,
+		"timestamp":     time.Now().UnixMilli(),
+	}))
+}
+
+// BroadcastEngagementMetrics broadcasts both like and comment counts for a post
+func (h *Handler) BroadcastEngagementMetrics(postID string, likeCount, commentCount int) {
+	h.hub.Broadcast(NewMessage("engagement_metrics", map[string]interface{}{
+		"post_id":       postID,
+		"like_count":    likeCount,
+		"comment_count": commentCount,
+		"timestamp":     time.Now().UnixMilli(),
+	}))
+}
+
 // Shutdown gracefully shuts down the WebSocket handler
 func (h *Handler) Shutdown(ctx context.Context) error {
 	return h.hub.Shutdown(ctx)
