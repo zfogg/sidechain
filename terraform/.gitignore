@@ -1,0 +1,25 @@
+# Terraform state files
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+.terraform/
+
+# Local configuration (DO NOT COMMIT)
+terraform.tfvars
+*.tfvars.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets and sensitive files
+*.key
+*.pem
+*.pub
+.env

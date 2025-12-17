@@ -1,0 +1,117 @@
+# ============================================================
+# Sidechain Terraform Configuration Example
+# ============================================================
+# Copy this file to terraform.tfvars and fill in your values
+# cp terraform.tfvars.example terraform.tfvars
+#
+# Then update the values below with your actual configuration
+
+# ============================================================
+# Server Configuration
+# ============================================================
+
+# IP address or hostname of your new server
+server_host = "192.0.2.1"
+
+# SSH user (usually root for new servers)
+server_user = "root"
+
+# SSH port
+server_port = 22
+
+# Path to your SSH private key for the server
+# Generate: ssh-keygen -t ed25519 -f ~/.ssh/server_key
+ssh_private_key_path = "~/.ssh/server_key"
+
+# ============================================================
+# GitHub Deploy Key
+# ============================================================
+
+# GitHub deploy key (SSH private key for git@github.com)
+# Generate a new deploy key from GitHub:
+# 1. Go to https://github.com/zfogg/sidechain/settings/keys/new
+# 2. Paste your SSH public key
+# 3. Give it read access
+# 4. Copy the private key and paste below
+# Alternatively, use your personal SSH key
+github_deploy_key = <<-EOT
+-----BEGIN OPENSSH PRIVATE KEY-----
+MIIFHDBOBgkqhkiG9w0BBQ0wQTApBgkqhkiG9w0BBQwwHAYIKwYBBQUHAwIwCgYI
+... your SSH private key content here ...
+-----END OPENSSH PRIVATE KEY-----
+EOT
+
+# ============================================================
+# Domain & HTTPS Configuration
+# ============================================================
+
+# Domain name for your Sidechain deployment
+# This must be accessible from the internet and point to your server
+# Caddy will automatically obtain an SSL certificate from Let's Encrypt
+deploy_domain = "sidechain.example.com"
+
+# Email for Let's Encrypt certificate notifications
+letsencrypt_email = "admin@example.com"
+
+# ============================================================
+# Database Configuration
+# ============================================================
+
+# PostgreSQL password (generate a strong one!)
+# Example: openssl rand -base64 32
+postgres_password = "change_me_to_a_strong_password"
+
+# PostgreSQL username (leave as default or change)
+postgres_user = "sidechain"
+
+# PostgreSQL database name
+postgres_db = "sidechain"
+
+# ============================================================
+# Security Configuration
+# ============================================================
+
+# JWT secret for authentication tokens (must be ≥32 characters)
+# Generate: openssl rand -base64 32
+jwt_secret = "change_me_to_a_strong_jwt_secret_with_32_chars_minimum"
+
+# Gorse API key for recommendation engine
+gorse_api_key = "sidechain_gorse_api_key"
+
+# ============================================================
+# Optional: Stream.io Configuration
+# ============================================================
+# Get these from https://getstream.io
+
+stream_api_key = ""
+stream_api_secret = ""
+
+# ============================================================
+# Optional: AWS/S3 Configuration
+# ============================================================
+# For audio storage. Leave as "local" to use local filesystem
+
+storage_provider = "local"  # or "aws"
+aws_region = "us-west-2"
+aws_bucket = "sidechain-media"
+aws_access_key_id = ""
+aws_secret_access_key = ""
+cdn_base_url = ""
+
+# ============================================================
+# Optional: OAuth Configuration
+# ============================================================
+# Get these from Google Cloud Console and Discord Developer Portal
+
+google_client_id = ""
+google_client_secret = ""
+discord_client_id = ""
+discord_client_secret = ""
+
+# ============================================================
+# Optional: Email Configuration
+# ============================================================
+# For password reset emails via AWS SES
+
+ses_from_email = "hi@sidechain.live"
+ses_from_name = "Sidechain"
