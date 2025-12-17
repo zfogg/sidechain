@@ -578,6 +578,7 @@ func main() {
 		search := api.Group("/search")
 		{
 			search.Use(authHandlers.AuthMiddlewareOptional())
+			search.Use(middleware.RateLimitSearch()) // Phase 6.3: Rate limit search requests
 			search.GET("/users", h.SearchUsers)
 			search.GET("/posts", h.SearchPosts)       // Phase 1.2: Search posts with Elasticsearch
 			search.GET("/stories", h.SearchStories)   // Phase 1.3: Search stories by creator username

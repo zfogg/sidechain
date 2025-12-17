@@ -1,11 +1,10 @@
 package middleware
 
 import (
-	"net/http"
-	"strconv"
-	"sync"
 	"time"
 
+	"github.com/didip/tollbooth"
+	"github.com/didip/tollbooth_gin"
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,130 +14,49 @@ type RateLimitConfig struct {
 	Limit int
 	// Window duration
 	Window time.Duration
-	// Key function to identify clients (default: IP address)
-	KeyFunc func(*gin.Context) string
 }
 
 // DefaultRateLimitConfig returns sensible defaults
 func DefaultRateLimitConfig() RateLimitConfig {
 	return RateLimitConfig{
-		Limit:  100,            // 100 requests
-		Window: time.Minute,    // per minute
-		KeyFunc: func(c *gin.Context) string {
-			return c.ClientIP()
-		},
+		Limit:  100,         // 100 requests
+		Window: time.Minute, // per minute
 	}
 }
 
 // AuthRateLimitConfig returns stricter limits for auth endpoints
 func AuthRateLimitConfig() RateLimitConfig {
 	return RateLimitConfig{
-		Limit:  10,             // 10 requests
-		Window: time.Minute,    // per minute
-		KeyFunc: func(c *gin.Context) string {
-			return c.ClientIP()
-		},
+		Limit:  10,          // 10 requests
+		Window: time.Minute, // per minute
 	}
 }
 
 // UploadRateLimitConfig returns limits for upload endpoints
 func UploadRateLimitConfig() RateLimitConfig {
 	return RateLimitConfig{
-		Limit:  20,             // 20 uploads
-		Window: time.Minute,    // per minute
-		KeyFunc: func(c *gin.Context) string {
-			// Use user ID if available, otherwise IP
-			if userID := c.GetString("user_id"); userID != "" {
-				return "user:" + userID
-			}
-			return c.ClientIP()
-		},
+		Limit:  20,          // 20 uploads
+		Window: time.Minute, // per minute
 	}
 }
 
-type rateLimiter struct {
-	config   RateLimitConfig
-	clients  map[string]*clientState
-	mu       sync.RWMutex
-	stopChan chan struct{}
+// SearchRateLimitConfig returns limits for search endpoints (Phase 6.3)
+func SearchRateLimitConfig() RateLimitConfig {
+	return RateLimitConfig{
+		Limit:  100,         // 100 search requests per minute
+		Window: time.Minute, // per minute
+	}
 }
 
-type clientState struct {
-	requests  int
-	windowEnd time.Time
-}
-
-// NewRateLimiter creates a new rate limiting middleware
+// NewRateLimiter creates a new rate limiting middleware using tollbooth
 func NewRateLimiter(config RateLimitConfig) gin.HandlerFunc {
-	rl := &rateLimiter{
-		config:   config,
-		clients:  make(map[string]*clientState),
-		stopChan: make(chan struct{}),
-	}
-
-	// Start cleanup goroutine
-	go rl.cleanup()
-
-	return rl.handle
-}
-
-func (rl *rateLimiter) handle(c *gin.Context) {
-	key := rl.config.KeyFunc(c)
-	now := time.Now()
-
-	rl.mu.Lock()
-	state, exists := rl.clients[key]
-	if !exists || now.After(state.windowEnd) {
-		// New window
-		rl.clients[key] = &clientState{
-			requests:  1,
-			windowEnd: now.Add(rl.config.Window),
-		}
-		rl.mu.Unlock()
-		c.Next()
-		return
-	}
-
-	if state.requests >= rl.config.Limit {
-		rl.mu.Unlock()
-		retryAfter := int(state.windowEnd.Sub(now).Seconds())
-		if retryAfter < 1 {
-			retryAfter = 1
-		}
-		c.Header("Retry-After", strconv.Itoa(retryAfter))
-		c.Header("X-RateLimit-Limit", strconv.Itoa(rl.config.Limit))
-		c.Header("X-RateLimit-Remaining", "0")
-		c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
-			"error":       "rate limit exceeded",
-			"retry_after": retryAfter,
-		})
-		return
-	}
-
-	state.requests++
-	rl.mu.Unlock()
-	c.Next()
-}
-
-func (rl *rateLimiter) cleanup() {
-	ticker := time.NewTicker(time.Minute)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ticker.C:
-			now := time.Now()
-			rl.mu.Lock()
-			for key, state := range rl.clients {
-				if now.After(state.windowEnd) {
-					delete(rl.clients, key)
-				}
-			}
-			rl.mu.Unlock()
-		case <-rl.stopChan:
-			return
-		}
-	}
+	limiter := tollbooth.NewLimiter(
+		float64(config.Limit)/60.0, // Convert to per-second rate (60 seconds in a minute)
+		&tollbooth.LimitCounter{
+			TokenBucket: tollbooth.NewTokenBucket(config.Window),
+		},
+	)
+	return tollbooth_gin.LimitHandler(limiter)
 }
 
 // RateLimit returns a middleware with default configuration
@@ -154,4 +72,9 @@ func RateLimitAuth() gin.HandlerFunc {
 // RateLimitUpload returns a middleware for upload endpoints
 func RateLimitUpload() gin.HandlerFunc {
 	return NewRateLimiter(UploadRateLimitConfig())
+}
+
+// RateLimitSearch returns a middleware for search endpoints (Phase 6.3)
+func RateLimitSearch() gin.HandlerFunc {
+	return NewRateLimiter(SearchRateLimitConfig())
 }
