@@ -5,13 +5,12 @@ on:
     branches: [ main ]
     paths:
       - 'backend/**'
-      - 'docker-compose.dev.yml'
       - '.github/workflows/deploy.yml'
   workflow_dispatch:  # Allow manual trigger
 
 env:
-  DEPLOYMENT_DIR: /opt/sidechain
-  DOCKER_COMPOSE_FILE: docker-compose.dev.yml
+  DEPLOYMENT_DIR: /opt/sidechain/backend
+  DOCKER_COMPOSE_FILE: docker-compose.prod.yml
 
 jobs:
   deploy:
@@ -35,12 +34,15 @@ jobs:
             set -euo pipefail
 
             echo "=== Deploying Sidechain Backend ==="
-            cd ${{ env.DEPLOYMENT_DIR }}
+            cd /opt/sidechain
 
             # Pull latest code
             echo "→ Pulling latest code from main branch..."
             git fetch origin main
             git reset --hard origin/main
+
+            # Move to backend directory
+            cd ${{ env.DEPLOYMENT_DIR }}
 
             # Check if docker-compose file exists
             if [ ! -f "${{ env.DOCKER_COMPOSE_FILE }}" ]; then
@@ -50,7 +52,7 @@ jobs:
 
             # Load environment variables
             if [ ! -f .env ]; then
-              echo "✗ .env file not found. Please configure it first."
+              echo "✗ .env file not found at $(pwd)/.env. Please configure it first."
               exit 1
             fi
 
@@ -58,6 +60,12 @@ jobs:
             set -a
             source .env
             set +a
+
+            # Validate domain is set
+            if [ -z "${DOMAIN:-}" ]; then
+              echo "✗ DOMAIN not set in .env"
+              exit 1
+            fi
 
             # Validate critical environment variables
             required_vars=(
@@ -90,19 +98,19 @@ jobs:
             echo "→ Checking container status..."
             docker-compose -f "${{ env.DOCKER_COMPOSE_FILE }}" ps
 
-            # Check API health
+            # Check API health via Caddy (internal docker network)
             echo "→ Checking API health..."
             max_attempts=30
             attempt=0
             while [ $attempt -lt $max_attempts ]; do
-              if curl -sf http://localhost:${BACKEND_PORT:-8787}/health > /dev/null 2>&1; then
+              if docker-compose -f "${{ env.DOCKER_COMPOSE_FILE }}" exec -T backend wget --no-verbose --tries=1 --spider http://localhost:8787/health > /dev/null 2>&1; then
                 echo "✓ API is healthy"
                 break
               fi
               attempt=$((attempt + 1))
               if [ $attempt -eq $max_attempts ]; then
                 echo "✗ API failed to become healthy after $max_attempts attempts"
-                docker-compose -f "${{ env.DOCKER_COMPOSE_FILE }}" logs
+                docker-compose -f "${{ env.DOCKER_COMPOSE_FILE }}" logs backend
                 exit 1
               fi
               echo "  Attempt $attempt/$max_attempts - waiting for API..."
@@ -113,7 +121,8 @@ jobs:
             echo ""
             echo "=== Deployment Complete ==="
             echo "Server: ${{ secrets.DEPLOY_SERVER_HOST }}"
-            echo "API: http://${{ secrets.DEPLOY_SERVER_HOST }}:${BACKEND_PORT:-8787}"
+            echo "API: https://${DOMAIN}"
+            echo "Caddy Dashboard: https://${DOMAIN}/admin/caddy"
             echo ""
             docker-compose -f "${{ env.DOCKER_COMPOSE_FILE }}" ps
 
