@@ -4,6 +4,7 @@
 #include "network/NetworkClient.h"
 #include "network/StreamChatClient.h"
 #include "network/WebSocketClient.h"
+#include "util/PresenceManager.h"
 #include "stores/AppStore.h"
 #include "ui/animations/ViewTransitionManager.h"
 #include "ui/auth/Auth.h"
@@ -306,6 +307,9 @@ private:
 
   // WebSocket client for real-time updates
   std::unique_ptr<WebSocketClient> webSocketClient;
+
+  // Presence manager for DAW detection and online status
+  std::unique_ptr<PresenceManager> presenceManager;
 
   // Connection status indicator
   std::unique_ptr<ConnectionIndicator> connectionIndicator;

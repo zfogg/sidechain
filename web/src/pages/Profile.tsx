@@ -10,6 +10,7 @@ import { DirectMessageButton } from '@/components/chat/DirectMessageButton'
 import { EditProfileDialog } from '@/components/profile/EditProfileDialog'
 import { PinnedPostsSection } from '@/components/profile/PinnedPostsSection'
 import { DownloadHistory } from '@/components/profile/DownloadHistory'
+import { PresenceIndicator } from '@/components/presence/PresenceIndicator'
 
 interface ProfileUser {
   id: string
@@ -113,7 +114,10 @@ export function Profile() {
               <div className="flex items-start justify-between mb-2">
                 <div>
                   <h1 className="text-3xl font-bold text-foreground">{profile.displayName}</h1>
-                  <p className="text-muted-foreground text-lg">@{profile.username}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-muted-foreground text-lg">@{profile.username}</p>
+                    <PresenceIndicator userId={profile.id} showLabel size="sm" />
+                  </div>
                 </div>
 
                 {/* Follow & Message Buttons */}

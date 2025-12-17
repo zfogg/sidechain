@@ -46,6 +46,9 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   };
   webSocketClient->onError = [](const juce::String &error) { Log::error("WebSocket error: " + error); };
 
+  // TODO: Initialize presence manager (DAW detection + online status)
+  // presenceManager = std::make_unique<PresenceManager>(webSocketClient.get());
+
   // Create connection indicator
   connectionIndicator = std::make_unique<ConnectionIndicator>();
   connectionIndicator->onReconnectClicked = [this]() {
@@ -2494,9 +2497,19 @@ void SidechainAudioProcessorEditor::connectWebSocket() {
   webSocketClient->setAuthToken(token);
   webSocketClient->connect();
   Log::info("WebSocket connection initiated");
+
+  // TODO: Start presence manager (DAW detection + online status)
+  // if (presenceManager) {
+  //   presenceManager->start();
+  // }
 }
 
 void SidechainAudioProcessorEditor::disconnectWebSocket() {
+  // TODO: Stop presence manager
+  // if (presenceManager) {
+  //   presenceManager->stop();
+  // }
+
   if (webSocketClient) {
     webSocketClient->clearAuthToken();
     webSocketClient->disconnect();
