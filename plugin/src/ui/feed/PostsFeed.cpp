@@ -1716,16 +1716,25 @@ void PostsFeed::mouseWheelMove(const juce::MouseEvent & /*event*/, const juce::M
     return;
   }
 
-  double scrollAmount = wheel.deltaY * 50.0;
-  double oldPosition = scrollPosition;
-  scrollPosition =
-      juce::jlimit(0.0, static_cast<double>(juce::jmax(0, totalContentHeight - getFeedContentBounds().getHeight())),
-                   scrollPosition - scrollAmount);
+  double scrollAmount = wheel.deltaY * 250.0;
+  double maxScrollPos = juce::jmax(0.0, static_cast<double>(totalContentHeight - getFeedContentBounds().getHeight()));
+  targetScrollPosition = juce::jlimit(0.0, maxScrollPos, scrollPosition - scrollAmount);
+
   Log::debug("PostsFeed::mouseWheelMove: Wheel scroll - delta: " + juce::String(wheel.deltaY, 2) +
-             ", position: " + juce::String(oldPosition, 1) + " -> " + juce::String(scrollPosition, 1));
-  scrollBar.setCurrentRangeStart(scrollPosition);
-  checkLoadMore();
-  repaint();
+             ", position: " + juce::String(scrollPosition, 1) + " -> " + juce::String(targetScrollPosition, 1));
+
+  // Create smooth scroll animation (200ms duration)
+  scrollAnimation = Sidechain::UI::Animations::TransitionAnimation<double>::create(
+                       scrollPosition, targetScrollPosition, 200)
+                       ->withEasing(Sidechain::UI::Animations::Easing::easeOutQuad)
+                       ->onProgress([this](const double &newValue) {
+                         scrollPosition = newValue;
+                         scrollBar.setCurrentRangeStart(scrollPosition);
+                         checkLoadMore();
+                         repaint();
+                       })
+                       ->start();
+  // Note: Animation manages its own timer internally
 }
 
 void PostsFeed::updateScrollBounds() {
@@ -2158,8 +2167,8 @@ void PostsFeed::showNewPostsToast(int count) {
 }
 
 void PostsFeed::timerCallback() {
-  // Toast fade-out is now handled by AnimationValue callback
-  // This timer is only used for other timing needs if any
+  // Scroll animation is managed internally by TransitionAnimation
+  // This timer callback is available for other timing needs if needed
 }
 
 //==============================================================================
