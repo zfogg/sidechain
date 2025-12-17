@@ -93,6 +93,6 @@ func (h *Handlers) GetPostMetrics(c *gin.Context) {
 		"like_count":    post.LikeCount,
 		"comment_count": post.CommentCount,
 		"click_count":   int(clickCount),
-		"timestamp":     util.TimeToMillis(post.UpdatedAt),
+		"timestamp":     post.UpdatedAt.UnixMilli(),
 	})
 }
