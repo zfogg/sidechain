@@ -558,9 +558,27 @@ func (c *Client) SearchPosts(ctx context.Context, params SearchPostsParams) (*Se
 	mustClauses := []map[string]interface{}{}
 	shouldClauses := []map[string]interface{}{}
 
-	// Text search on username, genre, DAW (7.1.4)
+	// Text search on filename, username, genre, DAW (7.1.4)
 	if params.Query != "" {
 		shouldClauses = append(shouldClauses,
+			map[string]interface{}{
+				"match": map[string]interface{}{
+					"filename": map[string]interface{}{
+						"query":     params.Query,
+						"boost":     3.5,
+						"fuzziness": "AUTO",
+					},
+				},
+			},
+			map[string]interface{}{
+				"match": map[string]interface{}{
+					"original_filename": map[string]interface{}{
+						"query":     params.Query,
+						"boost":     3.0,
+						"fuzziness": "AUTO",
+					},
+				},
+			},
 			map[string]interface{}{
 				"match": map[string]interface{}{
 					"username": map[string]interface{}{

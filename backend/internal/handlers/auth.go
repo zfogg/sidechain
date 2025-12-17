@@ -870,6 +870,49 @@ func (h *AuthHandlers) AuthMiddleware() gin.HandlerFunc {
 	}
 }
 
+// AuthMiddlewareOptional validates token if provided, but allows requests without auth (Phase 5.1)
+func (h *AuthHandlers) AuthMiddlewareOptional() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Extract token from Authorization header (Bearer token)
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			// No auth provided - continue without setting user context
+			c.Next()
+			return
+		}
+
+		// Remove "Bearer " prefix if present
+		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+		tokenString = strings.TrimSpace(tokenString)
+
+		if tokenString == "" {
+			// Invalid format but don't reject - continue without user context
+			c.Next()
+			return
+		}
+
+		// Validate token using auth service
+		if h.authService == nil {
+			// Auth service not configured - continue without validation
+			c.Next()
+			return
+		}
+
+		user, err := h.authService.ValidateToken(tokenString)
+		if err != nil {
+			// Invalid token but don't reject - log and continue
+			// User context won't be set, so handlers can check with c.GetString("user_id")
+			c.Next()
+			return
+		}
+
+		// Token is valid - set user info in context
+		c.Set("user_id", user.ID)
+		c.Set("user", user)
+		c.Next()
+	}
+}
+
 // RequestPasswordReset creates a password reset token
 // POST /api/v1/auth/reset-password
 func (h *AuthHandlers) RequestPasswordReset(c *gin.Context) {

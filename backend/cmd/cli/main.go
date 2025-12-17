@@ -22,7 +22,9 @@ Manage your profile privacy settings, follow requests, and more.`,
 		if authToken == "" {
 			authToken = os.Getenv("SIDECHAIN_TOKEN")
 		}
-		if authToken == "" && cmd.Name() != "help" && cmd.Parent() != nil {
+		// Search commands don't require auth (Phase 5.1)
+		isSearchCmd := cmd.Name() == "search" || (cmd.Parent() != nil && cmd.Parent().Name() == "search")
+		if authToken == "" && !isSearchCmd && cmd.Name() != "help" && cmd.Parent() != nil {
 			fmt.Fprintf(os.Stderr, "Error: SIDECHAIN_TOKEN environment variable not set\n")
 			fmt.Fprintf(os.Stderr, "Please set your auth token: export SIDECHAIN_TOKEN=<your-token>\n")
 			os.Exit(1)
@@ -38,6 +40,7 @@ func init() {
 	// Add command groups
 	rootCmd.AddCommand(profileCmd)
 	rootCmd.AddCommand(followRequestsCmd)
+	rootCmd.AddCommand(searchCmd)
 }
 
 func main() {
