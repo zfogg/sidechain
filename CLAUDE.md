@@ -338,4 +338,5 @@ make package
 ## Git
 Only commit what you're working on. Other Claudes may be working in parallel,
 or the user may be. Be careful with git reset and git checkout and git stash.
-
+- Never use "git add -A", or "git add ." in the root. always "git add " all files or directories individually.
+Always do "git add file1 file2 file3 && commit -m 'my message'" rather than "git add" and "git commit" in two steps.
