@@ -565,6 +565,36 @@ func (h *Handler) BroadcastEngagementMetrics(postID string, likeCount, commentCo
 	}))
 }
 
+// BroadcastFeedInvalidation signals all users that a specific feed needs refresh
+func (h *Handler) BroadcastFeedInvalidation(feedType, reason string) {
+	payload := &FeedInvalidatePayload{
+		FeedType: feedType,
+		Reason:   reason,
+	}
+	h.hub.Broadcast(NewMessage(MessageTypeFeedInvalidate, payload))
+}
+
+// BroadcastTimelineUpdate notifies followers that activity timeline has changed
+func (h *Handler) BroadcastTimelineUpdate(userID, feedType string, newCount int) {
+	payload := &TimelineUpdatePayload{
+		UserID:    userID,
+		FeedType:  feedType,
+		NewCount:  newCount,
+		Timestamp: time.Now().UnixMilli(),
+	}
+	h.hub.Broadcast(NewMessage(MessageTypeTimelineUpdate, payload))
+}
+
+// NotifyNotificationCountUpdate sends updated notification count to a specific user
+func (h *Handler) NotifyNotificationCountUpdate(userID string, unreadCount, unseenCount int) {
+	payload := &NotificationCountPayload{
+		UnreadCount: unreadCount,
+		UnseenCount: unseenCount,
+		Timestamp:   time.Now().UnixMilli(),
+	}
+	h.hub.SendToUser(userID, NewMessage(MessageTypeNotificationCountUpdate, payload))
+}
+
 // Shutdown gracefully shuts down the WebSocket handler
 func (h *Handler) Shutdown(ctx context.Context) error {
 	return h.hub.Shutdown(ctx)

@@ -329,6 +329,19 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 		return
 	}
 
+	// Broadcast feed invalidation for real-time updates (Phase 2.1)
+	if h.wsHandler != nil {
+		go func() {
+			// Invalidate all feeds since new post affects global, trending, user timelines
+			h.wsHandler.BroadcastFeedInvalidation("global", "new_post")
+			h.wsHandler.BroadcastFeedInvalidation("trending", "new_post")
+			h.wsHandler.BroadcastFeedInvalidation("timeline", "new_post")
+
+			// Notify followers that user posted something
+			h.wsHandler.BroadcastTimelineUpdate(userID, "user_activity", 1)
+		}()
+	}
+
 	// Phase 0.4: Index post to Elasticsearch
 	if h.search != nil {
 		go func() {

@@ -15,6 +15,9 @@ import type {
   EngagementMetricsPayload,
   ErrorPayload,
   EventPayload,
+  FeedInvalidatePayload,
+  TimelineUpdatePayload,
+  NotificationCountUpdatePayload,
 } from '@/api/websocket'
 import { FeedPostModel } from '@/models/FeedPost'
 import { useUserStore } from '@/stores/useUserStore'
@@ -164,6 +167,32 @@ export function useWebSocket() {
       })
     })
 
+    const unsubscribeFeedInvalidate = ws.on('feed_invalidate', (payload) => {
+      const invalidatePayload = payload as FeedInvalidatePayload
+      console.log('[RT] Feed invalidate:', invalidatePayload)
+      // Force refresh the specified feed type so next fetch gets fresh data from Stream.io
+      const feedType = invalidatePayload.feed_type as any // Map to FeedType
+      if (['timeline', 'global', 'trending', 'forYou'].includes(feedType)) {
+        feedStore.loadFeed(feedType, true)
+      }
+    })
+
+    const unsubscribeTimelineUpdate = ws.on('timeline_update', (payload) => {
+      const timelinePayload = payload as TimelineUpdatePayload
+      console.log('[RT] Timeline update:', timelinePayload)
+      // Timeline was updated (e.g., followed user posted new activity)
+      // Force refresh timeline feed to show updated activity
+      feedStore.loadFeed('timeline', true)
+    })
+
+    const unsubscribeNotificationCountUpdate = ws.on('notification_count_update', (payload) => {
+      const countPayload = payload as NotificationCountUpdatePayload
+      console.log('[RT] Notification count update:', countPayload)
+      // Update notification counts in user store
+      // This would update unread and unseen notification badges
+      // For now, just log - notification store can implement this
+    })
+
     const unsubscribeError = ws.on('error', (payload) => {
       const errorPayload = payload as ErrorPayload
       console.error('[RT] Error:', errorPayload)
@@ -183,6 +212,9 @@ export function useWebSocket() {
       unsubscribeLikeCountUpdate()
       unsubscribeCommentCountUpdate()
       unsubscribeEngagementMetrics()
+      unsubscribeFeedInvalidate()
+      unsubscribeTimelineUpdate()
+      unsubscribeNotificationCountUpdate()
       unsubscribeError()
       // Don't disconnect on unmount - WebSocket should persist across components
       // ws.disconnect()
