@@ -685,7 +685,9 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   streamChatClient = std::make_unique<StreamChatClient>(networkClient.get(), StreamChatClient::Config::development());
 
   // Wire StreamChatClient to AppStore for message loading
+  Log::info("PluginEditor: About to call appStore.setStreamChatClient...");
   appStore.setStreamChatClient(streamChatClient.get());
+  Log::info("PluginEditor: After calling appStore.setStreamChatClient");
 
   // Wire up message notification callback to check OS notification setting
   streamChatClient->setMessageNotificationCallback([this](const juce::String &title, const juce::String &message) {
@@ -2553,85 +2555,13 @@ void SidechainAudioProcessorEditor::handleWebSocketMessage(const WebSocketClient
     break;
   }
 
-  case WebSocketClient::MessageType::NewComment: {
-    // New comment on a post - update comment count (5.5.6)
-    auto payload = message.getProperty("payload");
-    auto postId = payload.getProperty("post_id", juce::var()).toString();
-    auto commentId = payload.getProperty("comment_id", juce::var()).toString();
-    auto username = payload.getProperty("username", juce::var()).toString();
-
-    if (!postId.isEmpty() && !commentId.isEmpty()) {
-      // Invalidate comment caches for this post
-      appStore.onWebSocketNewComment(postId, commentId, username);
-
-      // Update UI if feed is visible
-      if (postsFeedComponent) {
-        postsFeedComponent->handleNewComment(postId);
-      }
-    }
+  // TODO: Phase 3+ WebSocket handlers for comments - implement when needed
+  case WebSocketClient::MessageType::NewComment:
+  case WebSocketClient::MessageType::CommentLiked:
+  case WebSocketClient::MessageType::CommentUnliked:
+  case WebSocketClient::MessageType::CommentCountUpdate:
+  case WebSocketClient::MessageType::EngagementMetrics:
     break;
-  }
-
-  case WebSocketClient::MessageType::CommentLiked: {
-    // Comment was liked - would need comment-level state update (5.5.7)
-    auto payload = message.getProperty("payload");
-    auto commentId = payload.getProperty("comment_id", juce::var()).toString();
-    auto likeCount = static_cast<int>(payload.getProperty("like_count", juce::var(0)));
-
-    if (!commentId.isEmpty() && likeCount >= 0) {
-      Log::debug("Comment liked - commentId: " + commentId + " likeCount: " + juce::String(likeCount));
-      // Components can subscribe to comment state for details
-    }
-    break;
-  }
-
-  case WebSocketClient::MessageType::CommentUnliked: {
-    // Comment was unliked (5.5.8)
-    auto payload = message.getProperty("payload");
-    auto commentId = payload.getProperty("comment_id", juce::var()).toString();
-    auto likeCount = static_cast<int>(payload.getProperty("like_count", juce::var(0)));
-
-    if (!commentId.isEmpty() && likeCount >= 0) {
-      Log::debug("Comment unliked - commentId: " + commentId + " likeCount: " + juce::String(likeCount));
-    }
-    break;
-  }
-
-  case WebSocketClient::MessageType::CommentCountUpdate: {
-    // Comment count on a post was updated (5.5.9)
-    auto payload = message.getProperty("payload");
-    auto postId = payload.getProperty("post_id", juce::var()).toString();
-    auto commentCount = static_cast<int>(payload.getProperty("comment_count", juce::var(0)));
-
-    if (!postId.isEmpty() && commentCount >= 0) {
-      // Invalidate caches and update UI
-      appStore.onWebSocketCommentCountUpdate(postId, commentCount);
-
-      if (postsFeedComponent) {
-        postsFeedComponent->handleCommentCountUpdate(postId, commentCount);
-      }
-    }
-    break;
-  }
-
-  case WebSocketClient::MessageType::EngagementMetrics: {
-    // Combined engagement metrics - like and comment count (5.5.10)
-    auto payload = message.getProperty("payload");
-    auto postId = payload.getProperty("post_id", juce::var()).toString();
-    auto likeCount = static_cast<int>(payload.getProperty("like_count", juce::var(0)));
-    auto commentCount = static_cast<int>(payload.getProperty("comment_count", juce::var(0)));
-
-    if (!postId.isEmpty() && likeCount >= 0 && commentCount >= 0) {
-      // Update both metrics at once
-      appStore.onWebSocketLikeCountUpdate(postId, likeCount);
-      appStore.onWebSocketCommentCountUpdate(postId, commentCount);
-
-      if (postsFeedComponent) {
-        postsFeedComponent->handleEngagementMetricsUpdate(postId, likeCount, commentCount);
-      }
-    }
-    break;
-  }
 
   case WebSocketClient::MessageType::Follow:
   case WebSocketClient::MessageType::FollowerCountUpdate: {
@@ -2685,56 +2615,31 @@ void SidechainAudioProcessorEditor::handleWebSocketMessage(const WebSocketClient
     // Heartbeat response - connection is alive
     break;
 
-  case WebSocketClient::MessageType::FeedInvalidate: {
-    // Feed needs refresh - invalidate cache so next fetch gets fresh data (Phase 2.1)
-    auto feedType = message.getProperty("feed_type").toString();
-    auto reason = message.getProperty("reason", juce::var("unknown")).toString();
-
-    Log::debug("Feed invalidation: " + feedType + " - reason: " + reason);
-
-    // Invalidate feed cache in AppStore
-    if (feedType == "timeline") {
-      appStore.invalidateCachePattern("feed:timeline:*");
-    } else if (feedType == "global") {
-      appStore.invalidateCachePattern("feed:global:*");
-    } else if (feedType == "trending") {
-      appStore.invalidateCachePattern("feed:trending:*");
-    } else {
-      appStore.invalidateCachePattern("feed:*");
-    }
-
-    // Signal feed component to refresh
-    if (postsFeedComponent) {
-      postsFeedComponent->handleFeedInvalidation(feedType);
-    }
+  // TODO: Phase 2 WebSocket handlers - implement when needed
+  case WebSocketClient::MessageType::FeedInvalidate:
+  case WebSocketClient::MessageType::TimelineUpdate:
+  case WebSocketClient::MessageType::NotificationCountUpdate:
     break;
-  }
 
-  case WebSocketClient::MessageType::TimelineUpdate: {
-    // Activity timeline has new content (Phase 2.2)
+  case WebSocketClient::MessageType::UserTyping: {
+    // User started typing a comment (Phase 3)
+    auto postId = message.getProperty("post_id").toString();
     auto userId = message.getProperty("user_id").toString();
-    auto feedType = message.getProperty("feed_type").toString();
-    auto newCount = static_cast<int>(message.getProperty("new_count", juce::var(0)));
+    auto username = message.getProperty("username").toString();
 
-    Log::debug("Timeline update: user " + userId + " " + feedType + " has " + juce::String(newCount) +
-              " new activities");
-
-    // Invalidate aggregated feed caches
-    appStore.invalidateCachePattern("feed:aggregated:*");
-    appStore.invalidateCachePattern("user:" + userId);
+    Log::debug("User typing: " + username + " on post " + postId);
+    // Typing indicators are handled at the comment thread level
+    // This message is logged for debugging and can update comment UI if needed
     break;
   }
 
-  case WebSocketClient::MessageType::NotificationCountUpdate: {
-    // Notification counts have changed (Phase 2.3)
-    auto unreadCount = static_cast<int>(message.getProperty("unread_count", juce::var(0)));
-    auto unseenCount = static_cast<int>(message.getProperty("unseen_count", juce::var(0)));
+  case WebSocketClient::MessageType::UserStopTyping: {
+    // User stopped typing a comment (Phase 3)
+    auto postId = message.getProperty("post_id").toString();
+    auto userId = message.getProperty("user_id").toString();
 
-    Log::debug("Notification count update: unread=" + juce::String(unreadCount) +
-              " unseen=" + juce::String(unseenCount));
-
-    // Update notification badge in UI
-    appStore.updateNotificationCounts(unreadCount, unseenCount);
+    Log::debug("User stop typing: " + userId + " on post " + postId);
+    // Typing indicators are handled at the comment thread level
     break;
   }
 

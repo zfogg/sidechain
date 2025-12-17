@@ -85,6 +85,10 @@ const (
 	MessageTypeTimelineUpdate      = "timeline_update"      // Activity timeline changed
 	MessageTypeNotificationCountUpdate = "notification_count_update" // Unread notification count
 
+	// Typing indicators
+	MessageTypeUserTyping     = "user_typing"      // User started typing a comment
+	MessageTypeUserStopTyping = "user_stop_typing" // User stopped typing a comment
+
 	// Collaborative editing (Task 4.20)
 	MessageTypeOperation    = "operation"
 	MessageTypeOperationAck = "operation_ack"
@@ -254,12 +258,6 @@ type NotificationPayload struct {
 	CreatedAt int64                  `json:"created_at"`
 }
 
-// NotificationCountPayload represents unread notification count
-type NotificationCountPayload struct {
-	UnreadCount int `json:"unread_count"`
-	UnseenCount int `json:"unseen_count"`
-}
-
 // SystemPayload represents system event payloads
 type SystemPayload struct {
 	Event   string                 `json:"event"`
@@ -301,6 +299,23 @@ type NotificationCountPayload struct {
 	UnreadCount int `json:"unread_count"`
 	UnseenCount int `json:"unseen_count"`
 	Timestamp   int64 `json:"timestamp"`
+}
+
+// TypingPayload indicates a user is typing a comment
+type TypingPayload struct {
+	PostID      string `json:"post_id"`       // Post being commented on
+	UserID      string `json:"user_id"`       // User typing
+	Username    string `json:"username"`      // Display name for UI
+	DisplayName string `json:"display_name,omitempty"`
+	AvatarURL   string `json:"avatar_url,omitempty"`
+	Timestamp   int64  `json:"timestamp"`
+}
+
+// StopTypingPayload indicates a user stopped typing
+type StopTypingPayload struct {
+	PostID    string `json:"post_id"` // Post being commented on
+	UserID    string `json:"user_id"` // User who stopped typing
+	Timestamp int64  `json:"timestamp"`
 }
 
 // OperationPayload represents a collaborative edit operation
