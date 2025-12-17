@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Spinner } from '@/components/ui/spinner'
 import { useLoginMutation, useRegisterMutation } from '@/hooks/mutations/useAuthMutations'
 
+// Vercel SPA routing enabled - /login route now works
 export function Login() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
