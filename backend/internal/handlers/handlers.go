@@ -3,6 +3,7 @@ package handlers
 import (
 	"github.com/zfogg/sidechain/backend/internal/audio"
 	"github.com/zfogg/sidechain/backend/internal/recommendations"
+	"github.com/zfogg/sidechain/backend/internal/search"
 	"github.com/zfogg/sidechain/backend/internal/stream"
 	"github.com/zfogg/sidechain/backend/internal/waveform"
 	"github.com/zfogg/sidechain/backend/internal/websocket"
@@ -22,6 +23,7 @@ type Handlers struct {
 	audioProcessor    *audio.Processor
 	wsHandler         *websocket.Handler
 	gorse             *recommendations.GorseRESTClient
+	search            *search.Client
 	waveformGenerator *waveform.Generator
 	waveformStorage   *waveform.Storage
 }
@@ -47,6 +49,11 @@ func (h *Handlers) SetWebSocketHandler(ws *websocket.Handler) {
 // SetGorseClient sets the Gorse recommendation client
 func (h *Handlers) SetGorseClient(gorse *recommendations.GorseRESTClient) {
 	h.gorse = gorse
+}
+
+// SetSearchClient sets the Elasticsearch search client
+func (h *Handlers) SetSearchClient(searchClient *search.Client) {
+	h.search = searchClient
 }
 
 // SetWaveformTools sets the waveform generator and storage
