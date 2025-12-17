@@ -50,7 +50,7 @@ export class SearchClient {
     if (filters.limit) params.limit = filters.limit
     if (filters.offset) params.offset = filters.offset
 
-    const result = await apiClient.get<SearchResponse>('/posts/search', params)
+    const result = await apiClient.get<SearchResponse>('/search/posts', params)
 
     if (result.isOk()) {
       try {
@@ -154,6 +154,36 @@ export class SearchClient {
 
     if (result.isOk()) {
       return Outcome.ok(result.getValue().trending || [])
+    }
+
+    return Outcome.error(result.getError())
+  }
+
+  /**
+   * Autocomplete usernames
+   */
+  static async autocompleteUsers(query: string, limit: number = 10): Promise<Outcome<string[]>> {
+    const result = await apiClient.get<{
+      suggestions: string[]
+    }>('/search/autocomplete/users', { q: query, limit })
+
+    if (result.isOk()) {
+      return Outcome.ok(result.getValue().suggestions || [])
+    }
+
+    return Outcome.error(result.getError())
+  }
+
+  /**
+   * Autocomplete genres
+   */
+  static async autocompleteGenres(query: string, limit: number = 10): Promise<Outcome<string[]>> {
+    const result = await apiClient.get<{
+      suggestions: string[]
+    }>('/search/autocomplete/genres', { q: query, limit })
+
+    if (result.isOk()) {
+      return Outcome.ok(result.getValue().suggestions || [])
     }
 
     return Outcome.error(result.getError())
