@@ -1,13 +1,18 @@
 #include "../AppStore.h"
-#include "../../util/logging/Logger.h"
+#include "../../util/Log.h"
 
 namespace Sidechain {
 namespace Stores {
 
+void AppStore::setStreamChatClient(StreamChatClient *client) {
+  streamChatClient = client;
+  Log::info("AppStore::setStreamChatClient: StreamChatClient set: " + juce::String(client != nullptr ? "valid" : "null"));
+}
+
 void AppStore::loadChannels() {
   // Chat functionality is not yet implemented in AppStore
   // The ChatStore handles this separately
-  Util::logWarning("AppStore", "loadChannels not implemented - use ChatStore");
+  Log::warn("AppStore::loadChannels: not implemented - use ChatStore");
 }
 
 void AppStore::selectChannel(const juce::String &channelId) {
@@ -15,18 +20,40 @@ void AppStore::selectChannel(const juce::String &channelId) {
 }
 
 void AppStore::loadMessages(const juce::String &channelId, int limit) {
-  // Chat functionality is not yet implemented in AppStore
-  // The ChatStore handles this separately
-  Util::logWarning("AppStore", "loadMessages not implemented - use ChatStore");
+  if (!streamChatClient) {
+    Log::warn("AppStore::loadMessages: StreamChatClient not available");
+    return;
+  }
+
+  Log::info("AppStore::loadMessages: Loading " + juce::String(limit) + " messages for channel " + channelId);
+
+  // Query messages from getstream.io
+  streamChatClient->queryMessages("messaging", channelId, limit, 0,
+                                  [this, channelId](Outcome<std::vector<StreamChatClient::Message>> messagesResult) {
+                                    if (!messagesResult.isOk()) {
+                                      Log::error("AppStore::loadMessages: Failed to load messages - " +
+                                                 messagesResult.getError());
+                                      return;
+                                    }
+
+                                    const auto &messages = messagesResult.getValue();
+                                    Log::info("AppStore::loadMessages: Loaded " + juce::String(messages.size()) +
+                                              " messages for " + channelId);
+
+                                    // Add all messages to AppStore state
+                                    for (const auto &msg : messages) {
+                                      addMessageToChannel(channelId, msg.id, msg.text, msg.userId, msg.userName, msg.createdAt);
+                                    }
+                                  });
 }
 
 void AppStore::sendMessage(const juce::String &channelId, const juce::String &text) {
   if (!networkClient) {
-    Util::logError("AppStore", "sendMessage: NetworkClient not available");
+    Log::error("AppStore::sendMessage: NetworkClient not available");
     return;
   }
 
-  Util::logInfo("AppStore", "sendMessage: Sending message to channel " + channelId);
+  Log::info("AppStore::sendMessage: Sending message to channel " + channelId);
 
   // Make REST call to backend messaging API
   // This will eventually call streamChatClient->sendMessage internally
@@ -46,7 +73,7 @@ void AppStore::sendMessage(const juce::String &channelId, const juce::String &te
     auto channelIt = state.channels.find(channelId);
     if (channelIt != state.channels.end()) {
       channelIt->second.messages.push_back(msgObj);
-      Util::logInfo("AppStore", "sendMessage: Added message to channel state");
+      Log::info("AppStore::sendMessage: Added message to channel state");
     }
   });
 }
@@ -54,29 +81,29 @@ void AppStore::sendMessage(const juce::String &channelId, const juce::String &te
 void AppStore::startTyping(const juce::String &channelId) {
   // Chat functionality is not yet implemented in AppStore
   // The ChatStore handles this separately
-  Util::logDebug("AppStore", "startTyping not implemented - use ChatStore");
+  Log::debug("AppStore::startTyping: not implemented - use ChatStore");
 }
 
 void AppStore::stopTyping(const juce::String &channelId) {
   // Chat functionality is not yet implemented in AppStore
   // The ChatStore handles this separately
-  Util::logDebug("AppStore", "stopTyping not implemented - use ChatStore");
+  Log::debug("AppStore::stopTyping: not implemented - use ChatStore");
 }
 
 void AppStore::handleNewMessage(const juce::var &messageData) {
   // Chat functionality is not yet implemented in AppStore
   // The ChatStore handles this separately
-  Util::logDebug("AppStore", "handleNewMessage not implemented - use ChatStore");
+  Log::debug("AppStore::handleNewMessage: not implemented - use ChatStore");
 }
 
 void AppStore::handleTypingStart(const juce::String &userId) {
   // Chat functionality is not yet implemented in AppStore
   // The ChatStore handles this separately
-  Util::logDebug("AppStore", "handleTypingStart not implemented - use ChatStore");
+  Log::debug("AppStore::handleTypingStart: not implemented - use ChatStore");
 }
 
 void AppStore::addChannelToState(const juce::String &channelId, const juce::String &channelName) {
-  Util::logInfo("AppStore", "addChannelToState: Adding channel " + channelId);
+  Log::info("AppStore::addChannelToState: Adding channel " + channelId);
 
   updateChatState([channelId, channelName](ChatState &state) {
     ChannelState channelState;
@@ -89,7 +116,7 @@ void AppStore::addChannelToState(const juce::String &channelId, const juce::Stri
 void AppStore::addMessageToChannel(const juce::String &channelId, const juce::String &messageId,
                                    const juce::String &text, const juce::String &userId,
                                    const juce::String &userName, const juce::String &createdAt) {
-  Util::logInfo("AppStore", "addMessageToChannel: Adding message " + messageId + " to channel " + channelId);
+  Log::info("AppStore::addMessageToChannel: Adding message " + messageId + " to channel " + channelId);
 
   updateChatState([channelId, messageId, text, userId, userName, createdAt](ChatState &state) {
     auto channelIt = state.channels.find(channelId);
@@ -104,9 +131,9 @@ void AppStore::addMessageToChannel(const juce::String &channelId, const juce::St
       obj->setProperty("created_at", createdAt);
 
       channelIt->second.messages.push_back(msgObj);
-      Util::logInfo("AppStore", "addMessageToChannel: Added message to channel state");
+      Log::info("AppStore::addMessageToChannel: Added message to channel state");
     } else {
-      Util::logWarning("AppStore", "addMessageToChannel: Channel not found in state - " + channelId);
+      Log::warn("AppStore::addMessageToChannel: Channel not found in state - " + channelId);
     }
   });
 }
