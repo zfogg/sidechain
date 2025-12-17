@@ -27,6 +27,8 @@ export type WebSocketMessageType =
   | 'feed_invalidate'
   | 'timeline_update'
   | 'notification_count_update'
+  | 'ping'
+  | 'pong'
 
 // WebSocket Event Payload Types
 export interface NewPostPayload {
@@ -128,6 +130,21 @@ export interface NotificationCountUpdatePayload {
   timestamp: number
 }
 
+export interface UserTypingPayload {
+  post_id: string
+  user_id: string
+  username: string
+  display_name?: string
+  avatar_url?: string
+  timestamp: number
+}
+
+export interface UserStopTypingPayload {
+  post_id: string
+  user_id: string
+  timestamp: number
+}
+
 export interface NotificationPayload {
   id: string
   type: string
@@ -166,8 +183,8 @@ export type EventPayload = NewPostPayload | PostLikedPayload | PostUnlikedPayloa
                    NewCommentPayload | PostSavedPayload | UserFollowedPayload | CommentLikedPayload |
                    CommentUnlikedPayload | LikeCountUpdatePayload | CommentCountUpdatePayload |
                    EngagementMetricsPayload | NotificationPayload | ErrorPayload |
-                   UserTypingPayload | UserStopTypingPayload | FeedInvalidatePayload |
-                   TimelineUpdatePayload | NotificationCountUpdatePayload
+                   FeedInvalidatePayload | TimelineUpdatePayload | NotificationCountUpdatePayload |
+                   UserTypingPayload | UserStopTypingPayload
 
 export interface WebSocketMessage {
   type: WebSocketMessageType

@@ -595,6 +595,29 @@ func (h *Handler) NotifyNotificationCountUpdate(userID string, unreadCount, unse
 	h.hub.SendToUser(userID, NewMessage(MessageTypeNotificationCountUpdate, payload))
 }
 
+// BroadcastUserTyping notifies all users that someone is typing a comment on a post
+func (h *Handler) BroadcastUserTyping(postID, userID, username, displayName, avatarURL string) {
+	payload := &TypingPayload{
+		PostID:      postID,
+		UserID:      userID,
+		Username:    username,
+		DisplayName: displayName,
+		AvatarURL:   avatarURL,
+		Timestamp:   time.Now().UnixMilli(),
+	}
+	h.hub.Broadcast(NewMessage(MessageTypeUserTyping, payload))
+}
+
+// BroadcastUserStopTyping notifies all users that someone stopped typing
+func (h *Handler) BroadcastUserStopTyping(postID, userID string) {
+	payload := &StopTypingPayload{
+		PostID:    postID,
+		UserID:    userID,
+		Timestamp: time.Now().UnixMilli(),
+	}
+	h.hub.Broadcast(NewMessage(MessageTypeUserStopTyping, payload))
+}
+
 // Shutdown gracefully shuts down the WebSocket handler
 func (h *Handler) Shutdown(ctx context.Context) error {
 	return h.hub.Shutdown(ctx)

@@ -18,6 +18,8 @@ import type {
   FeedInvalidatePayload,
   TimelineUpdatePayload,
   NotificationCountUpdatePayload,
+  UserTypingPayload,
+  UserStopTypingPayload,
 } from '@/api/websocket'
 import { FeedPostModel } from '@/models/FeedPost'
 import { useUserStore } from '@/stores/useUserStore'
@@ -193,6 +195,19 @@ export function useWebSocket() {
       // For now, just log - notification store can implement this
     })
 
+    const unsubscribeUserTyping = ws.on('user_typing', (payload) => {
+      const typingPayload = payload as UserTypingPayload
+      console.log('[RT] User typing:', typingPayload)
+      // Typing indicators are handled at the component level (CommentsPanel)
+      // Components can subscribe to these events directly
+    })
+
+    const unsubscribeUserStopTyping = ws.on('user_stop_typing', (payload) => {
+      const stopPayload = payload as UserStopTypingPayload
+      console.log('[RT] User stop typing:', stopPayload)
+      // Typing indicators are handled at the component level (CommentsPanel)
+    })
+
     const unsubscribeError = ws.on('error', (payload) => {
       const errorPayload = payload as ErrorPayload
       console.error('[RT] Error:', errorPayload)
@@ -215,6 +230,8 @@ export function useWebSocket() {
       unsubscribeFeedInvalidate()
       unsubscribeTimelineUpdate()
       unsubscribeNotificationCountUpdate()
+      unsubscribeUserTyping()
+      unsubscribeUserStopTyping()
       unsubscribeError()
       // Don't disconnect on unmount - WebSocket should persist across components
       // ws.disconnect()
