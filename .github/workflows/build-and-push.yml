@@ -21,17 +21,18 @@ jobs:
 
       - name: Build and deploy to production
         env:
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_USER: ${{ secrets.SSH_USER }}
-          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_HOST: ${{ secrets.DEPLOY_SERVER_HOST }}
+          SSH_USER: ${{ secrets.DEPLOY_SERVER_USER }}
+          SSH_PORT: ${{ secrets.DEPLOY_SERVER_PORT }}
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
         run: |
           mkdir -p ~/.ssh
           printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H $SSH_HOST >> ~/.ssh/known_hosts 2>/dev/null
+          ssh-keyscan -p $SSH_PORT -H $SSH_HOST >> ~/.ssh/known_hosts 2>/dev/null
 
           # Deploy: pull latest code and rebuild on server
-          ssh -i ~/.ssh/id_ed25519 $SSH_USER@$SSH_HOST << 'EOF'
+          ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
           set -e
           cd /opt/sidechain/backend
           echo "📥 Fetching latest code..."
