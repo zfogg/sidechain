@@ -126,11 +126,42 @@ void MessageThread::paint(juce::Graphics &g) {
   reactionPills.clear();
   drawHeader(g);
 
-  // Migration in progress: Messages functionality being moved to AppStore
-  g.setColour(juce::Colours::white);
-  g.setFont(14.0f);
-  g.drawText("Messages (AppStore migration in progress)", getLocalBounds().withTrimmedTop(HEADER_HEIGHT),
-             juce::Justification::centred);
+  // Get messages from AppStore chat state
+  std::vector<StreamChatClient::Message> messages;
+  if (appStore) {
+    const auto &chatState = appStore->getState().chat;
+    auto channelIt = chatState.channels.find(channelId);
+    if (channelIt != chatState.channels.end()) {
+      const auto &channel = channelIt->second;
+      // Convert juce::var messages to StreamChatClient::Message objects
+      for (const auto &msgVar : channel.messages) {
+        if (msgVar.isObject()) {
+          auto *obj = msgVar.getDynamicObject();
+          StreamChatClient::Message msg;
+          msg.id = obj->getProperty("id").toString();
+          msg.text = obj->getProperty("text").toString();
+          msg.userId = obj->getProperty("user_id").toString();
+          msg.userName = obj->getProperty("user_name").toString();
+          msg.createdAt = obj->getProperty("created_at").toString();
+          messages.push_back(msg);
+        }
+      }
+    }
+  }
+
+  // Draw messages from AppStore
+  drawMessages(g, messages);
+
+  // Draw input area (must be after messages for proper layering)
+  drawInputArea(g);
+
+  // If no messages, show placeholder
+  if (messages.empty()) {
+    g.setColour(juce::Colour(0xff666666));
+    g.setFont(12.0f);
+    auto messageArea = getLocalBounds().withTrimmedTop(HEADER_HEIGHT).withTrimmedBottom(INPUT_HEIGHT);
+    g.drawText("Ready to send messages", messageArea, juce::Justification::centred);
+  }
 }
 
 void MessageThread::resized() {
@@ -286,13 +317,35 @@ void MessageThread::loadChannel(const juce::String &type, const juce::String &id
   channelType = type;
   channelId = id;
   Log::info("MessageThread: Loading channel " + type + "/" + id);
+
+  // Load messages from AppStore (messages already loaded or will be loaded by AppStore)
+  if (appStore) {
+    appStore->selectChannel(id);
+    appStore->loadMessages(id);
+    Log::debug("MessageThread: Requested AppStore to load messages for channel " + id);
+  } else {
+    Log::warn("MessageThread: AppStore not available");
+  }
+
+  repaint();
 }
 
 void MessageThread::loadMessages() {
   if (channelId.isEmpty()) {
+    Log::warn("MessageThread: loadMessages called but no channel selected");
     return;
   }
+
   Log::debug("MessageThread: loadMessages for channel " + channelId);
+
+  if (!appStore) {
+    Log::error("MessageThread: AppStore not available");
+    return;
+  }
+
+  // Request AppStore to load messages (AppStore manages state and persistence)
+  Log::info("MessageThread: Requesting AppStore to load messages from " + channelId);
+  appStore->loadMessages(channelId, 100);
 }
 
 void MessageThread::sendMessage() {
@@ -301,19 +354,31 @@ void MessageThread::sendMessage() {
     return;
 
   if (channelId.isEmpty()) {
+    Log::error("MessageThread: Cannot send message - no channel selected");
     return;
   }
 
+  if (!appStore) {
+    Log::error("MessageThread: Cannot send message - AppStore not available");
+    return;
+  }
+
+  // Clear reply/edit state
   replyingToMessageId = "";
   replyingToMessage = StreamChatClient::Message();
   editingMessageId = "";
   editingMessageText = "";
 
+  // Clear input field immediately
   messageInput.setText("");
   messageInput.setTextToShowWhenEmpty("Type a message...", juce::Colour(0xff888888));
   resized();
 
-  Log::debug("MessageThread: Message sent - " + text.substring(0, 50));
+  Log::debug("MessageThread: Sending message - " + text.substring(0, 50));
+
+  // Send via AppStore (AppStore handles state management and persistence)
+  appStore->sendMessage(channelId, text);
+  Log::info("MessageThread: Message sent via AppStore for channel " + channelId);
 }
 
 void MessageThread::timerCallback() {}
@@ -349,6 +414,34 @@ void MessageThread::drawHeader(juce::Graphics &g) {
   // Bottom border
   g.setColour(juce::Colour(0xff3a3a3a));
   g.drawHorizontalLine(HEADER_HEIGHT - 1, 0.0f, static_cast<float>(getWidth()));
+}
+
+void MessageThread::drawInputArea(juce::Graphics &g) {
+  auto bounds = getLocalBounds();
+  auto inputBounds = bounds.removeFromBottom(INPUT_HEIGHT);
+  int padding = 10;
+  int sendButtonWidth = 80;
+  int audioButtonWidth = 40;
+
+  // Background
+  g.setColour(juce::Colour(0xff252525));
+  g.fillRect(inputBounds);
+
+  // Top border
+  g.setColour(juce::Colour(0xff3a3a3a));
+  g.drawHorizontalLine(inputBounds.getY(), 0.0f, static_cast<float>(getWidth()));
+
+  // Send button bounds
+  auto sendButtonBounds = getSendButtonBounds();
+  g.setColour(SidechainColors::primary());
+  g.fillRect(sendButtonBounds);
+  g.setColour(juce::Colours::white);
+  g.setFont(14.0f);
+  g.drawText("Send", sendButtonBounds, juce::Justification::centred);
+
+  Log::debug("MessageThread::drawInputArea - Send button bounds: " + juce::String(sendButtonBounds.getX()) + "," +
+             juce::String(sendButtonBounds.getY()) + "," + juce::String(sendButtonBounds.getWidth()) + "," +
+             juce::String(sendButtonBounds.getHeight()));
 }
 
 void MessageThread::drawMessages(juce::Graphics &g, const std::vector<StreamChatClient::Message> &messages) {
@@ -1419,3 +1512,8 @@ void MessageThread::showQuickReactionPicker(const StreamChatClient::Message &mes
         }
       });
 }
+
+//==============================================================================
+// Message persistence (save/load from disk)
+
+// Message persistence is now managed by AppStore - no local storage needed
