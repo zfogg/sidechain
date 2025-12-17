@@ -85,18 +85,29 @@ func main() {
 	}
 
 	// Initialize Elasticsearch search client
-	searchClient, err := search.NewClient()
+	baseSearchClient, err := search.NewClient()
+	var searchClient interface{ SearchPosts(context.Context, search.SearchPostsParams) (*search.SearchPostsResult, error); SearchUsers(context.Context, string, int, int) (*search.SearchUsersResult, error); SearchStories(context.Context, string, int, int) (*search.SearchStoriesResult, error) }
+
 	if err != nil {
 		log.Printf("Warning: Failed to initialize Elasticsearch: %v", err)
 		log.Println("Continuing without Elasticsearch - search will use PostgreSQL fallback")
 		searchClient = nil
 	} else {
 		// Create indices on startup
-		if err := searchClient.InitializeIndices(context.Background()); err != nil {
+		if err := baseSearchClient.InitializeIndices(context.Background()); err != nil {
 			log.Printf("Warning: Failed to initialize Elasticsearch indices: %v", err)
 			log.Println("Search functionality may be limited")
 		} else {
 			log.Println("✅ Elasticsearch indices initialized successfully")
+		}
+
+		// Wrap search client with Redis caching (Phase 6.1)
+		cachedClient, err := search.NewCachedClient(baseSearchClient)
+		if err == nil {
+			searchClient = cachedClient
+			log.Println("✅ Redis caching layer initialized for search results")
+		} else {
+			searchClient = baseSearchClient
 		}
 	}
 
