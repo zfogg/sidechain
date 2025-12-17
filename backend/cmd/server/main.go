@@ -100,12 +100,6 @@ func main() {
 			log.Println("✅ Elasticsearch indices initialized successfully")
 		}
 
-		// Initialize Redis caching layer for search results (Phase 6.1)
-		// Note: CachedClient is only used in discovery handler for search endpoints
-		_, err = search.NewCachedClient(baseSearchClient)
-		if err == nil {
-			log.Println("✅ Redis caching layer initialized for search results")
-		}
 	}
 
 
