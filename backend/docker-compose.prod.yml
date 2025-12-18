@@ -91,13 +91,15 @@ services:
       - sidechain
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    image: opensearchproject/opensearch:3.4.0
     container_name: sidechain-elasticsearch
     restart: unless-stopped
     environment:
+      - cluster.name=opensearch-cluster
+      - node.name=opensearch-node1
       - discovery.type=single-node
-      - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms64m -Xmx64m"
+      - OPENSEARCH_SECURITY_SSL_HTTP_ENABLED=false
+      - OPENSEARCH_JAVA_OPTS=-Xms128m -Xmx128m
       - bootstrap.memory_lock=false
     ulimits:
       memlock:
@@ -111,13 +113,13 @@ services:
     deploy:
       resources:
         limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
           cpus: '0.25'
           memory: 128M
-        reservations:
-          cpus: '0.1'
-          memory: 64M
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      test: ["CMD-SHELL", "curl -s -o /dev/null -w '%{http_code}' http://localhost:9200/ | grep -q 200"]
       interval: 10s
       timeout: 5s
       retries: 5
