@@ -29,21 +29,6 @@ jobs:
     runs-on: ubuntu-latest
     name: Build and Test Backend
 
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: sidechain_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -56,6 +41,25 @@ jobs:
           go-version: '1.22'
           cache-dependency-path: backend/go.mod
 
+      - name: Start Docker Compose Services
+        run: |
+          cd backend
+          docker-compose up -d
+
+          # Wait for all services to be healthy
+          echo "Waiting for services to be healthy..."
+          for i in {1..30}; do
+            if docker-compose ps | grep -q "healthy"; then
+              echo "Services are healthy"
+              break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 2
+          done
+
+          # List running services
+          docker-compose ps
+
       - name: Build Backend
         run: |
           cd backend
@@ -66,13 +70,23 @@ jobs:
         env:
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: sidechain_test
+          POSTGRES_USER: sidechain
+          POSTGRES_PASSWORD: sidechain_dev_password
+          POSTGRES_DB: sidechain
+          JWT_SECRET: test_jwt_secret_for_ci
+          GORSE_URL: http://localhost:8088
+          GORSE_API_KEY: sidechain_gorse_api_key
+          OAUTH_REDIRECT_URL: http://localhost:8787
         run: |
           cd backend
           go install github.com/jstemmer/go-junit-report/v2@latest
           go test ./... -v -race -coverprofile=coverage.out -covermode=atomic 2>&1 | go-junit-report -set-exit-code > test-results.xml
+
+      - name: Stop Docker Compose Services
+        if: always()
+        run: |
+          cd backend
+          docker-compose down -v
 
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v5
