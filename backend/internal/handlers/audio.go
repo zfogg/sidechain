@@ -62,12 +62,15 @@ func (h *Handlers) UploadAudio(c *gin.Context) {
 
 	// Parse and validate MIDI filename (used if MIDI data is provided)
 	midiFilename := c.PostForm("midi_filename")
-	if err := util.ValidateFilename(midiFilename); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "invalid_midi_filename",
-			"message": err.Error(),
-		})
-		return
+	// Only validate midi_filename if it's provided and non-empty
+	if midiFilename != "" {
+		if err := util.ValidateFilename(midiFilename); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error":   "invalid_midi_filename",
+				"message": err.Error(),
+			})
+			return
+		}
 	}
 
 	// Parse metadata from form
