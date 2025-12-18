@@ -969,3 +969,36 @@ func (su *SoundUsage) BeforeCreate(tx *gorm.DB) error {
 	}
 	return nil
 }
+
+// OAuthProvider links OAuth accounts to Sidechain users
+// Enables email-based account unification across OAuth providers
+type OAuthProvider struct {
+	ID               string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	Provider         string `gorm:"index;not null" json:"provider"` // "google", "discord", etc
+	ProviderUserID   string `gorm:"index;not null" json:"provider_user_id"` // OAuth provider's unique user ID
+	UserID           string `gorm:"index;not null" json:"user_id"`
+	User             User   `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"-"`
+
+	// OAuth tokens for API calls
+	AccessToken      string     `gorm:"type:text" json:"-"`
+	RefreshToken     string     `gorm:"type:text" json:"-"`
+	TokenExpiry      *time.Time `json:"-"`
+
+	// Provider's profile picture URL (may differ from User.ProfilePictureURL)
+	ProfilePictureURL string `json:"profile_picture_url,omitempty"`
+
+	// GORM fields
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+func (OAuthProvider) TableName() string {
+	return "oauth_providers"
+}
+
+func (op *OAuthProvider) BeforeCreate(tx *gorm.DB) error {
+	if op.ID == "" {
+		op.ID = generateUUID()
+	}
+	return nil
+}

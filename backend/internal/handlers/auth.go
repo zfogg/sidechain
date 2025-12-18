@@ -241,9 +241,8 @@ func (h *AuthHandlers) GoogleCallback(c *gin.Context) {
 		return
 	}
 
-	// OAuth functionality disabled - oauth.go is incomplete and needs OAuthProvider model
-	var authResp *auth.AuthResponse
-	err := fmt.Errorf("Google OAuth callback not implemented - oauth.go disabled")
+	// Handle Google OAuth callback
+	authResp, err := h.authService.HandleGoogleCallback(code)
 	if err != nil {
 		// Extract redirect_uri if present
 		stateParam := c.Query("state")
@@ -396,9 +395,8 @@ func (h *AuthHandlers) DiscordCallback(c *gin.Context) {
 		return
 	}
 
-	// OAuth functionality disabled - oauth.go is incomplete and needs OAuthProvider model
-	var authResp *auth.AuthResponse
-	err := fmt.Errorf("Discord OAuth callback not implemented - oauth.go disabled")
+	// Handle Discord OAuth callback
+	authResp, err := h.authService.HandleDiscordCallback(code)
 	if err != nil {
 		// Extract redirect_uri if present
 		stateParam := c.Query("state")

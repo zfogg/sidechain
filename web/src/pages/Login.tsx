@@ -75,14 +75,16 @@ export function Login() {
 
   const handleGoogleAuth = () => {
     const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:8787/api/v1'
+    const redirectUrl = `${window.location.origin}/auth/callback`
     // Backend handles OAuth flow and redirects back to /auth/callback on frontend
-    window.location.href = `${backendUrl}/auth/google`
+    window.location.href = `${backendUrl}/auth/google?redirect_uri=${encodeURIComponent(redirectUrl)}`
   }
 
   const handleDiscordAuth = () => {
     const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:8787/api/v1'
+    const redirectUrl = `${window.location.origin}/auth/callback`
     // Backend handles OAuth flow and redirects back to /auth/callback on frontend
-    window.location.href = `${backendUrl}/auth/discord`
+    window.location.href = `${backendUrl}/auth/discord?redirect_uri=${encodeURIComponent(redirectUrl)}`
   }
 
   return (

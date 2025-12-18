@@ -83,6 +83,7 @@ func Migrate() error {
 	// Note: MIDIPattern must come before AudioPost and Story due to foreign key references
 	err = DB.AutoMigrate(
 		&models.User{},
+		&models.OAuthProvider{}, // OAuth account linking for email-based unification
 		&models.MIDIPattern{}, // Must come before AudioPost and Story (foreign key dependency)
 		&models.AudioPost{},
 		&models.ProjectFile{}, // R.3.4 Project File Exchange
@@ -138,6 +139,9 @@ func createIndexes() error {
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_users_email_lower ON users (LOWER(email))")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_users_username_lower ON users (LOWER(username))")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_users_stream_user_id ON users (stream_user_id)")
+
+	// OAuth provider indexes
+	DB.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_oauth_providers_unique ON oauth_providers (provider, provider_user_id)")
 
 	// AudioPost indexes for feed queries
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_audio_posts_user_created ON audio_posts (user_id, created_at DESC)")
