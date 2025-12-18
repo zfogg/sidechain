@@ -119,17 +119,18 @@ void MessagesList::paint(juce::Graphics &g) {
   case ListState::Loaded: {
     Log::debug("MessagesList::paint - Drawing " + juce::String(channels.size()) + " conversations");
     int y = HEADER_HEIGHT;
+    double scrollPos = getScrollPosition();
     for (size_t i = 0; i < channels.size(); i++) {
-      if (y - scrollPosition + ITEM_HEIGHT < 0) {
+      if (y - scrollPos + ITEM_HEIGHT < 0) {
         y += ITEM_HEIGHT;
         continue; // Item is above visible area
       }
 
-      if (y - scrollPosition > getHeight())
+      if (y - scrollPos > getHeight())
         break; // Past visible area
 
-      Log::debug("MessagesList::paint - Drawing conversation at index " + juce::String(i) + " at y=" + juce::String(y - scrollPosition));
-      drawChannelItem(g, channels[i], static_cast<int>(y - scrollPosition), getWidth() - scrollBar.getWidth());
+      Log::debug("MessagesList::paint - Drawing conversation at index " + juce::String(i) + " at y=" + juce::String(y - scrollPos));
+      drawChannelItem(g, channels[i], static_cast<int>(y - scrollPos), getWidth() - scrollBar.getWidth());
       y += ITEM_HEIGHT;
     }
     break;
@@ -138,12 +139,15 @@ void MessagesList::paint(juce::Graphics &g) {
 }
 
 void MessagesList::resized() {
+  // Register scrollbar with SmoothScrollable
+  setScrollBar(&scrollBar);
+
   scrollBar.setBounds(getWidth() - 12, 0, 12, getHeight());
 
   // Update scrollbar range
   int totalHeight = HEADER_HEIGHT + static_cast<int>(channels.size() * ITEM_HEIGHT);
   scrollBar.setRangeLimits(0.0, static_cast<double>(juce::jmax(0, totalHeight - getHeight())));
-  scrollBar.setCurrentRangeStart(scrollPosition, juce::dontSendNotification);
+  scrollBar.setCurrentRangeStart(getScrollPosition(), juce::dontSendNotification);
 
   // Position error state component in content area below header
   if (errorStateComponent != nullptr) {
@@ -175,9 +179,10 @@ void MessagesList::mouseUp(const juce::MouseEvent &event) {
     return;
   }
 
-  int index = getChannelIndexAtY(static_cast<int>(event.getPosition().y + scrollPosition));
+  double scrollPos = getScrollPosition();
+  int index = getChannelIndexAtY(static_cast<int>(event.getPosition().y + scrollPos));
   Log::debug("MessagesList::mouseUp - Click at y=" + juce::String(static_cast<int>(event.getPosition().y)) +
-             ", scrollPosition=" + juce::String(scrollPosition) + ", index=" + juce::String(index) +
+             ", scrollPosition=" + juce::String(scrollPos) + ", index=" + juce::String(index) +
              ", total channels=" + juce::String(channels.size()));
 
   if (index >= 0 && index < static_cast<int>(channels.size())) {
@@ -196,30 +201,7 @@ void MessagesList::mouseUp(const juce::MouseEvent &event) {
 void MessagesList::mouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel) {
   // Only scroll if wheel is within message list area (not over scroll bar)
   if (event.x < getWidth() - scrollBar.getWidth()) {
-    double scrollAmount = wheel.deltaY * 50.0;
-    double maxScrollPos = scrollBar.getMaximumRangeLimit();
-    targetScrollPosition = juce::jlimit(0.0, maxScrollPos, scrollPosition - scrollAmount);
-
-    Log::debug("MessagesList::mouseWheelMove - Scroll requested: current=" + juce::String(scrollPosition) +
-               ", target=" + juce::String(targetScrollPosition) + ", max=" + juce::String(maxScrollPos));
-
-    // Cancel any existing animation
-    if (scrollAnimationHandle) {
-      scrollAnimationHandle->cancel();
-    }
-
-    // Create smooth scroll animation (200ms duration) like PostsFeed and MessageThread
-    auto scrollAnim = Sidechain::UI::Animations::TransitionAnimation<double>::create(
-        scrollPosition, targetScrollPosition, 200);
-
-    scrollAnimationHandle = Sidechain::UI::Animations::AnimationController::getInstance().add(
-        scrollAnim, [this](double value) {
-          scrollPosition = value;
-          scrollBar.setCurrentRangeStart(scrollPosition, juce::dontSendNotification);
-          repaint();
-        });
-
-    Log::debug("MessagesList::mouseWheelMove - Animation started");
+    handleMouseWheelMove(event, wheel, getHeight() - HEADER_HEIGHT, scrollBar.getWidth());
   }
 }
 
@@ -760,18 +742,6 @@ juce::Rectangle<int> MessagesList::getChannelItemBounds(int index) const {
   return juce::Rectangle<int>(0, HEADER_HEIGHT + index * ITEM_HEIGHT, getWidth() - scrollBar.getWidth(), ITEM_HEIGHT);
 }
 
-void MessagesList::scrollBarMoved(juce::ScrollBar *scrollBarPtr, double newRangeStart) {
-  // Verify the scroll bar callback is from our scroll bar
-  if (scrollBarPtr == &scrollBar) {
-    // Cancel any active animation since user is directly manipulating scrollbar
-    if (scrollAnimationHandle) {
-      scrollAnimationHandle->cancel();
-    }
-    scrollPosition = newRangeStart;
-    targetScrollPosition = newRangeStart;
-    repaint();
-  }
-}
 
 bool MessagesList::isGroupChannel(const StreamChatClient::Channel &channel) const {
   return channel.type == "team" || (!channel.name.isEmpty() && channel.members.isArray());

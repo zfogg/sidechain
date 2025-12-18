@@ -160,7 +160,7 @@ void EditProfile::populateFromUserStore() {
     return;
   }
 
-  const auto &state = appStore->getState().user;
+  const auto &state = appStore->getUserState();
 
   // Populate basic fields from UserStore
   usernameEditor->setText(state.username, false);
@@ -256,7 +256,7 @@ void EditProfile::updateHasChanges() {
     return;
   }
 
-  const auto &state = appStore->getState().user;
+  const auto &state = appStore->getUserState();
 
   // Get current editor values
   juce::String currentUsername = usernameEditor->getText().trim().toLowerCase();
@@ -389,7 +389,7 @@ void EditProfile::drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds) {
     g.setFont(juce::FontOptions(32.0f).withStyle("Bold"));
     juce::String initial = "?";
     if (appStore) {
-      const auto &state = appStore->getState().user;
+      const auto &state = appStore->getUserState();
       initial = state.displayName.isEmpty()
                     ? (state.username.isEmpty() ? "?" : state.username.substring(0, 1).toUpperCase())
                     : state.displayName.substring(0, 1).toUpperCase();
@@ -542,9 +542,9 @@ void EditProfile::handleSave() {
   // Update profile data (all fields except username)
   // Note: Private account is now managed in PrivacySettings screen
   juce::String avatarUrl =
-      pendingAvatarPath.isNotEmpty() ? pendingAvatarPath : appStore->getState().user.profilePictureUrl;
+      pendingAvatarPath.isNotEmpty() ? pendingAvatarPath : appStore->getUserState().profilePictureUrl;
   appStore->updateProfileComplete(newDisplayName, newBio, newLocation, newGenre, newDaw, newSocialLinks,
-                                  appStore->getState().user.isPrivate, avatarUrl);
+                                  appStore->getUserState().isPrivate, avatarUrl);
 
   // Reset form state
   hasUnsavedChanges = false;

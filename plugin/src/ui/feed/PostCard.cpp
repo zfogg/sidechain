@@ -1411,11 +1411,6 @@ void PostCard::startLikeAnimation() {
   likeAnimationHandle = Sidechain::UI::Animations::AnimationController::getInstance().schedule(likeAnim, this);
 }
 
-void PostCard::timerCallback() {
-  // Long-press detection is handled by LongPressDetector
-  // Animations are now managed by AnimationController (centralized timer)
-  // No animation update needed here
-}
 
 void PostCard::drawLikeAnimation(juce::Graphics &g) {
   // Only draw if animation is active (valid handle and progress > 0)

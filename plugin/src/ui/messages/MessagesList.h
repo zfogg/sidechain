@@ -2,8 +2,8 @@
 
 #include "../../network/StreamChatClient.h"
 #include "../../stores/AppStore.h"
-#include "../../ui/animations/AnimationController.h"
 #include "../../ui/common/AppStoreComponent.h"
+#include "../../ui/common/SmoothScrollable.h"
 #include "../../util/reactive/ReactiveBoundComponent.h"
 #include "../common/ErrorState.h"
 #include <JuceHeader.h>
@@ -22,10 +22,11 @@ class NetworkClient;
  * - "New Message" button to start new conversation
  * - Auto-refreshes channel list
  * - Reactive updates from AppStore ChatState
+ * - Smooth scroll animations
  */
 class MessagesList : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::ChatState>,
-                     public juce::Timer,
-                     public juce::ScrollBar::Listener {
+                     public Sidechain::UI::SmoothScrollable,
+                     public juce::Timer {
 public:
   MessagesList(Sidechain::Stores::AppStore *store = nullptr);
   ~MessagesList() override;
@@ -78,9 +79,6 @@ private:
 
   // UI elements
   juce::ScrollBar scrollBar;
-  double scrollPosition = 0.0;
-  double targetScrollPosition = 0.0;
-  Sidechain::UI::Animations::AnimationHandle scrollAnimationHandle;
   static constexpr int ITEM_HEIGHT = 80;
   static constexpr int HEADER_HEIGHT = 60;
   static constexpr int BUTTON_HEIGHT = 40;
@@ -94,8 +92,13 @@ private:
   void drawEmptyState(juce::Graphics &g);
   void drawErrorState(juce::Graphics &g);
 
-  // ScrollBar::Listener
-  void scrollBarMoved(juce::ScrollBar *scrollBarPtr, double newRangeStart) override;
+protected:
+  // SmoothScrollable implementation
+  void onScrollUpdate(double newScrollPosition) override {
+    repaint();
+  }
+
+  juce::String getComponentName() const override { return "MessagesList"; }
 
   // Helper methods
   juce::String formatTimestamp(const juce::String &timestamp);

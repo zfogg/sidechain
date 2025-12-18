@@ -13,10 +13,5 @@ void AppStore::setNetworkClient(NetworkClient *client) {
   Util::logInfo("AppStore", "Network client configured");
 }
 
-void AppStore::setStreamChatClient(StreamChatClient *client) {
-  streamChatClient = client;
-  Util::logInfo("AppStore", "Stream chat client configured");
-}
-
 } // namespace Stores
 } // namespace Sidechain

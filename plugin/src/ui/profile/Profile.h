@@ -2,9 +2,9 @@
 
 #include "../../models/FeedPost.h"
 #include "../../stores/AppStore.h"
-#include "../../ui/animations/AnimationController.h"
 #include "../common/AppStoreComponent.h"
 #include "../common/ErrorState.h"
+#include "../common/SmoothScrollable.h"
 #include "../social/FollowersList.h"
 #include "../stories/StoryHighlights.h"
 #include <JuceHeader.h>
@@ -66,7 +66,7 @@ struct UserProfile {
  * - Profile sharing
  */
 class Profile : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::UserState>,
-                public juce::ScrollBar::Listener,
+                public Sidechain::UI::SmoothScrollable,
                 public juce::TooltipClient {
 public:
   Profile(Sidechain::Stores::AppStore *store = nullptr);
@@ -117,7 +117,6 @@ public:
   void resized() override;
   void mouseUp(const juce::MouseEvent &event) override;
   void mouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel) override;
-  void scrollBarMoved(juce::ScrollBar *scrollBarThatHasMoved, double newRangeStart) override;
   juce::String getTooltip() override;
 
   //==============================================================================
@@ -148,10 +147,7 @@ private:
   bool hasError = false;
   juce::String errorMessage;
 
-  // Scroll state
-  double scrollOffset = 0.0;
-  double targetScrollOffset = 0.0;
-  Sidechain::UI::Animations::AnimationHandle scrollAnimationHandle;
+  // Scroll bar (managed by SmoothScrollable)
   std::unique_ptr<juce::ScrollBar> scrollBar;
 
   // Cached avatar image
@@ -224,6 +220,19 @@ private:
 protected:
   void onAppStateChanged(const Sidechain::Stores::UserState &state) override;
   void subscribeToAppStore() override;
+
+  //==============================================================================
+  // SmoothScrollable overrides
+  void onScrollUpdate(double newScrollPosition) override {
+    updatePostCards();
+    repaint();
+  }
+
+  juce::String getComponentName() const override { return "Profile"; }
+
+  int getScrollableWidth(int scrollBarWidth) const override {
+    return getWidth() - scrollBarWidth;
+  }
 
 private:
   //==============================================================================
