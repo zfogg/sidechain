@@ -838,14 +838,22 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 				"verb":             "post",
 				"object":           "audio:" + post.ID,
 				"time":             post.CreatedAt.Format(time.RFC3339),
+				// User info (required by frontend)
+				"user_id":          post.UserID,
+				"username":         user.Username,
+				"display_name":     user.DisplayName,
+				"profile_picture_url": userAvatarURL,
+				// Audio metadata
 				"audio_url":        post.AudioURL,
 				"waveform_url":     post.WaveformURL,
+				"filename":         post.Filename,
 				"duration_seconds": post.Duration,
 				"duration_bars":    post.DurationBars,
 				"bpm":              post.BPM,
 				"key":              post.Key,
 				"daw":              post.DAW,
 				"genre":            post.Genre,
+				// Engagement metrics
 				"like_count":       post.LikeCount,
 				"play_count":       post.PlayCount,
 				"comment_count":    post.CommentCount,
@@ -860,7 +868,7 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 				"status":           post.ProcessingStatus,
 				"is_pinned":        post.IsPinned,
 				"pin_order":        post.PinOrder,
-				"is_following":     isFollowingUser, // Add follow state
+				"is_following":     isFollowingUser,
 				"is_own_post":      currentUserID == post.UserID,
 				"actor_data": gin.H{
 					"id":         user.ID,
