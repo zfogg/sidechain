@@ -10,6 +10,7 @@
 #include "../common/AppStoreComponent.h"
 #include "../common/ErrorState.h"
 #include "../common/SkeletonLoader.h"
+#include "../common/SmoothScrollable.h"
 #include "AggregatedFeedCard.h"
 #include "Comment.h"
 #include "PostCard.h"
@@ -37,7 +38,7 @@ class StreamChatClient;
  * - Network callbacks are automatically marshalled to message thread
  */
 class PostsFeed : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::PostsState>,
-                  public juce::ScrollBar::Listener,
+                  public Sidechain::UI::SmoothScrollable,
                   public juce::KeyListener {
 public:
   explicit PostsFeed(Sidechain::Stores::AppStore *appStore);
@@ -111,8 +112,11 @@ public:
   // Presence updates (6.5.2.7)
   void updateUserPresence(const juce::String &userId, bool isOnline, const juce::String &status);
 
-  // ScrollBar::Listener
-  void scrollBarMoved(juce::ScrollBar *scrollBar, double newRangeStart) override;
+protected:
+  // SmoothScrollable implementation
+  virtual void onScrollUpdate(double newScrollPosition) override;
+  virtual int getScrollableWidth(int scrollBarWidth) const override;
+  virtual juce::String getComponentName() const override;
 
 private:
   //==============================================================================

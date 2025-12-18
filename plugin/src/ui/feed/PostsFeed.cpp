@@ -75,7 +75,6 @@ PostsFeed::PostsFeed(Sidechain::Stores::AppStore *store) : AppStoreComponent(sto
 
   // Add scroll bar
   addAndMakeVisible(scrollBar);
-  scrollBar.addListener(this);
   scrollBar.setColour(juce::ScrollBar::thumbColourId, SidechainColors::surface());
   scrollBar.setColour(juce::ScrollBar::trackColourId, SidechainColors::backgroundLight());
   Log::debug("PostsFeedComponent: Scroll bar created and configured");
@@ -137,7 +136,6 @@ PostsFeed::PostsFeed(Sidechain::Stores::AppStore *store) : AppStoreComponent(sto
 PostsFeed::~PostsFeed() {
   Log::debug("PostsFeed: Destroying feed component");
   removeKeyListener(this);
-  scrollBar.removeListener(this);
 }
 
 //==============================================================================
@@ -1678,6 +1676,7 @@ void PostsFeed::resized() {
 
   // Position scroll bar on right
   scrollBar.setBounds(bounds.getRight() - 12, contentBounds.getY(), 12, contentBounds.getHeight());
+  setScrollBar(&scrollBar);
   updateScrollBounds();
   updatePostCardPositions();
 
@@ -1703,35 +1702,29 @@ void PostsFeed::resized() {
   }
 }
 
-void PostsFeed::scrollBarMoved(juce::ScrollBar *bar, double newRangeStart) {
-  if (bar == &scrollBar) {
-    scrollPosition = newRangeStart;
-    checkLoadMore();
-    repaint();
-  }
-}
 
-void PostsFeed::mouseWheelMove(const juce::MouseEvent & /*event*/, const juce::MouseWheelDetails &wheel) {
+void PostsFeed::mouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel) {
   if (feedDisplayState != PostsFeedDisplayState::Loaded) {
     Log::debug("PostsFeed::mouseWheelMove: Ignoring wheel - feed not loaded");
     return;
   }
 
-  double scrollAmount = wheel.deltaY * 2500.0;
-  double maxScrollPos = juce::jmax(0.0, static_cast<double>(totalContentHeight - getFeedContentBounds().getHeight()));
-  targetScrollPosition = juce::jlimit(0.0, maxScrollPos, scrollPosition - scrollAmount);
+  auto contentBounds = getFeedContentBounds();
+  handleMouseWheelMove(event, wheel, contentBounds.getHeight(), 12);
+}
 
-  // Create smooth scroll animation (200ms duration)
-  auto scrollAnim = Sidechain::UI::Animations::TransitionAnimation<double>::create(
-                        scrollPosition, targetScrollPosition, 200)
-                        ->withEasing(Sidechain::UI::Animations::Easing::easeOutQuad)
-                        ->onProgress([this](const double &newValue) {
-                          scrollPosition = newValue;
-                          scrollBar.setCurrentRangeStart(scrollPosition);
-                          checkLoadMore();
-                          repaint();
-                        });
-  scrollAnimationHandle = Sidechain::UI::Animations::AnimationController::getInstance().schedule(scrollAnim, this);
+void PostsFeed::onScrollUpdate(double newScrollPosition) {
+  scrollPosition = newScrollPosition;
+  checkLoadMore();
+  repaint();
+}
+
+int PostsFeed::getScrollableWidth(int scrollBarWidth) const {
+  return getWidth() - scrollBarWidth;
+}
+
+juce::String PostsFeed::getComponentName() const {
+  return "PostsFeed";
 }
 
 void PostsFeed::updateScrollBounds() {
