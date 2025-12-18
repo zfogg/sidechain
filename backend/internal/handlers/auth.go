@@ -17,6 +17,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/auth"
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/email"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/search"
 	"github.com/zfogg/sidechain/backend/internal/storage"
@@ -707,6 +708,27 @@ func (h *AuthHandlers) UploadProfilePicture(c *gin.Context) {
 
 	// Update user's profile picture URL in database (user-uploaded picture)
 	database.DB.Model(&models.User{}).Where("id = ?", userID).Update("profile_picture_url", result.URL)
+
+	// Sync profile picture to Stream.io
+	go func() {
+		var user models.User
+		if err := database.DB.Where("id = ?", userID.(string)).First(&user).Error; err != nil {
+			logger.WarnWithFields("Failed to fetch user for Stream.io sync after profile picture upload", err)
+			return
+		}
+
+		customData := make(map[string]interface{})
+		customData["display_name"] = user.DisplayName
+		customData["bio"] = user.Bio
+		customData["profile_picture_url"] = result.URL
+		customData["genre"] = user.Genre
+		customData["daw_preference"] = user.DAWPreference
+		customData["is_private"] = user.IsPrivate
+
+		if err := h.stream.UpdateUserProfile(user.StreamUserID, user.Username, customData); err != nil {
+			logger.WarnWithFields("Failed to sync profile picture to Stream.io", err)
+		}
+	}()
 
 	c.JSON(http.StatusOK, gin.H{
 		"url": result.URL,
