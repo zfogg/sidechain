@@ -530,15 +530,15 @@ func main() {
 		feed := api.Group("/feed")
 		{
 			feed.Use(authHandlers.AuthMiddleware())
-			feed.GET("/timeline", h.GetTimeline)
-			feed.GET("/timeline/enriched", h.GetEnrichedTimeline)
-			feed.GET("/timeline/aggregated", h.GetAggregatedTimeline)
-			feed.GET("/unified", h.GetUnifiedTimeline) // Main feed with Gorse recommendations
-			feed.GET("/global", h.GetGlobalFeed)
-			feed.GET("/global/enriched", h.GetEnrichedGlobalFeed)
-			feed.GET("/trending", h.GetTrendingFeed)
-			feed.GET("/trending/grouped", h.GetTrendingFeedGrouped)
-			feed.POST("/post", h.CreatePost)
+			feed.GET("/timeline", middleware.ResponseCacheMiddleware(30*time.Second), h.GetTimeline)
+			feed.GET("/timeline/enriched", middleware.ResponseCacheMiddleware(30*time.Second), h.GetEnrichedTimeline)
+			feed.GET("/timeline/aggregated", middleware.ResponseCacheMiddleware(30*time.Second), h.GetAggregatedTimeline)
+			feed.GET("/unified", middleware.ResponseCacheMiddleware(30*time.Second), h.GetUnifiedTimeline) // Main feed with Gorse recommendations
+			feed.GET("/global", middleware.ResponseCacheMiddleware(60*time.Second), h.GetGlobalFeed)
+			feed.GET("/global/enriched", middleware.ResponseCacheMiddleware(60*time.Second), h.GetEnrichedGlobalFeed)
+			feed.GET("/trending", middleware.ResponseCacheMiddleware(5*time.Minute), h.GetTrendingFeed)
+			feed.GET("/trending/grouped", middleware.ResponseCacheMiddleware(5*time.Minute), h.GetTrendingFeedGrouped)
+			feed.POST("/post", middleware.CacheInvalidationMiddleware("response:/api/v1/feed/*"), h.CreatePost)
 		}
 
 		// Notification routes
