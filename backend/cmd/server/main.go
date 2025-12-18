@@ -17,6 +17,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/alerts"
 	"github.com/zfogg/sidechain/backend/internal/audio"
 	"github.com/zfogg/sidechain/backend/internal/auth"
+	"github.com/zfogg/sidechain/backend/internal/cache"
 	"github.com/zfogg/sidechain/backend/internal/challenges"
 	"github.com/zfogg/sidechain/backend/internal/config"
 	"github.com/zfogg/sidechain/backend/internal/database"
@@ -56,6 +57,38 @@ func main() {
 	// Load environment variables
 	if err := godotenv.Load(); err != nil {
 		logger.Log.Warn("Warning: .env file not found, using system environment variables")
+	}
+
+	// Initialize Redis cache (optional but recommended)
+	redisHost := os.Getenv("REDIS_HOST")
+	redisPort := os.Getenv("REDIS_PORT")
+	redisPassword := os.Getenv("REDIS_PASSWORD")
+
+	var redisClient *cache.RedisClient
+	var err error
+	if redisHost != "" || redisPort != "" {
+		// User explicitly configured Redis
+		if redisHost == "" {
+			redisHost = "localhost"
+		}
+		if redisPort == "" {
+			redisPort = "6379"
+		}
+
+		redisClient, err = cache.NewRedisClient(redisHost, redisPort, redisPassword)
+		if err != nil {
+			logger.Log.Warn("Failed to connect to Redis, distributed caching will be disabled",
+				zap.Error(err),
+			)
+			redisClient = nil
+		}
+		defer func() {
+			if redisClient != nil {
+				_ = redisClient.Close()
+			}
+		}()
+	} else {
+		logger.Log.Info("Redis not configured (REDIS_HOST not set), distributed caching disabled")
 	}
 
 	// Initialize database
