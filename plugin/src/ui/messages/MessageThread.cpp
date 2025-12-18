@@ -129,7 +129,7 @@ void MessageThread::paint(juce::Graphics &g) {
   // Get messages from AppStore chat state
   std::vector<StreamChatClient::Message> messages;
   if (appStore) {
-    const auto &chatState = appStore->getState().chat;
+    const auto &chatState = appStore->getChatState();
     auto channelIt = chatState.channels.find(channelId);
     if (channelIt != chatState.channels.end()) {
       const auto &channel = channelIt->second;
@@ -1542,6 +1542,14 @@ void MessageThread::showQuickReactionPicker(const StreamChatClient::Message &mes
           toggleReaction(message.id, reactionType);
         }
       });
+}
+
+//==============================================================================
+// Scroll Bar Listener
+
+void MessageThread::scrollBarMoved(juce::ScrollBar *scrollBarPtr, double newScrollPosition) {
+  SmoothScrollable::scrollBarMoved(scrollBarPtr, newScrollPosition);
+  onScrollUpdate(newScrollPosition);
 }
 
 //==============================================================================

@@ -62,22 +62,22 @@ public:
                ", target=" + juce::String(targetScrollPosition) + ", max=" + juce::String(maxScrollPos));
 
     // Cancel any existing animation
-    if (scrollAnimationHandle) {
-      scrollAnimationHandle->cancel();
+    if (scrollAnimationHandle.isValid()) {
+      Sidechain::UI::Animations::AnimationController::getInstance().cancel(scrollAnimationHandle);
     }
 
-    // Create smooth scroll animation (200ms duration)
+    // Create smooth scroll animation (200ms duration) with progress callback
     auto scrollAnim = Sidechain::UI::Animations::TransitionAnimation<double>::create(
-        scrollPosition, targetScrollPosition, 200);
-
-    scrollAnimationHandle = Sidechain::UI::Animations::AnimationController::getInstance().add(
-        scrollAnim, [this](double value) {
+        scrollPosition, targetScrollPosition, 200)
+        ->onProgress([this](const double &value) {
           scrollPosition = value;
           if (scrollBar) {
             scrollBar->setCurrentRangeStart(scrollPosition, juce::dontSendNotification);
           }
           onScrollUpdate(scrollPosition);
         });
+
+    scrollAnimationHandle = Sidechain::UI::Animations::AnimationController::getInstance().schedule(scrollAnim, nullptr);
 
     Log::debug(getComponentName() + "::mouseWheelMove - Animation started");
   }
@@ -89,8 +89,8 @@ public:
       return;
 
     // Cancel any active animation since user is directly manipulating scrollbar
-    if (scrollAnimationHandle) {
-      scrollAnimationHandle->cancel();
+    if (scrollAnimationHandle.isValid()) {
+      Sidechain::UI::Animations::AnimationController::getInstance().cancel(scrollAnimationHandle);
     }
     scrollPosition = newRangeStart;
     targetScrollPosition = newRangeStart;

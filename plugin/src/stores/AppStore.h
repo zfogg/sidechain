@@ -453,13 +453,64 @@ public:
     return []() {};
   }
 
+  std::function<void()> subscribeToPlaylists(std::function<void(const PlaylistState &)> callback) {
+    sliceManager.getPlaylistSlice()->subscribe(callback);
+    return []() {};
+  }
+
+  std::function<void()> subscribeToDrafts(std::function<void(const DraftState &)> callback) {
+    sliceManager.getDraftSlice()->subscribe(callback);
+    return []() {};
+  }
+
+  std::function<void()> subscribeToUploads(std::function<void(const UploadState &)> callback) {
+    sliceManager.getUploadSlice()->subscribe(callback);
+    return []() {};
+  }
+
+  std::function<void()> subscribeSounds(std::function<void(const SoundState &)> callback) {
+    sliceManager.getSoundSlice()->subscribe(callback);
+    return []() {};
+  }
+
+  std::function<void()> subscribeToSearch(std::function<void(const SearchState &)> callback) {
+    sliceManager.getSearchSlice()->subscribe(callback);
+    return []() {};
+  }
+
+  std::function<void()> subscribeToSounds(std::function<void(const SoundState &)> callback) {
+    sliceManager.getSoundSlice()->subscribe(callback);
+    return []() {};
+  }
+
+  std::function<void()> subscribeToStories(std::function<void(const StoriesState &)> callback) {
+    sliceManager.getStoriesSlice()->subscribe(callback);
+    return []() {};
+  }
+
   // Temporary accessor for UI components - to be removed in Phase 5
+  const Stores::AuthState &getAuthState() const {
+    return sliceManager.getAuthSlice()->getState();
+  }
+
   const Stores::PostsState &getPostsState() const {
     return sliceManager.getPostsSlice()->getState();
   }
 
   const Stores::UserState &getUserState() const {
     return sliceManager.getUserSlice()->getState();
+  }
+
+  const Stores::ChatState &getChatState() const {
+    return sliceManager.getChatSlice()->getState();
+  }
+
+  const Stores::SearchState &getSearchState() const {
+    return sliceManager.getSearchSlice()->getState();
+  }
+
+  const Stores::NotificationState &getNotificationState() const {
+    return sliceManager.getNotificationSlice()->getState();
   }
 
   //==============================================================================

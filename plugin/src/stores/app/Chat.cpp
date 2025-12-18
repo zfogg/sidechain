@@ -63,7 +63,7 @@ void AppStore::sendMessage(const juce::String &channelId, const juce::String &te
   Log::info("AppStore::sendMessage - ✓ channelId and text are valid");
 
   // Verify channel exists in state
-  const auto &chatState = getState().chat;
+  const auto &chatState = sliceManager.getChatSlice()->getState();
   auto channelIt = chatState.channels.find(channelId);
   if (channelIt == chatState.channels.end()) {
     Log::error("AppStore::sendMessage - ERROR: Channel not found in state: " + channelId);
@@ -84,8 +84,8 @@ void AppStore::sendMessage(const juce::String &channelId, const juce::String &te
     return;
   }
 
-  juce::String userId = getState().user.userId;
-  juce::String username = getState().user.username;
+  juce::String userId = sliceManager.getUserSlice()->getState().userId;
+  juce::String username = sliceManager.getUserSlice()->getState().username;
 
   Log::info("AppStore::sendMessage - ✓ Setting properties - userId: " + userId + ", username: " + username);
 

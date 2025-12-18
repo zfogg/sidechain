@@ -93,7 +93,6 @@ Profile::Profile(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) 
   Log::info("Profile: Initializing profile component");
 
   scrollBar = std::make_unique<juce::ScrollBar>(true);
-  scrollBar->addListener(this);
   scrollBar->setAutoHide(true);
   addAndMakeVisible(scrollBar.get());
   Log::debug("Profile: Scroll bar created and added");
@@ -827,11 +826,14 @@ void Profile::resized() {
   // Position scroll bar (starts after header and highlights)
   scrollBar->setBounds(bounds.getRight() - 10, contentTopOffset, 10, bounds.getHeight() - contentTopOffset);
 
+  // Register scrollbar with SmoothScrollable for smooth animation handling
+  setScrollBar(scrollBar.get());
+
   // Update scroll bar range
   int contentHeight = calculateContentHeight();
   int visibleHeight = bounds.getHeight() - contentTopOffset;
   scrollBar->setRangeLimits(0.0, static_cast<double>(contentHeight));
-  scrollBar->setCurrentRange(static_cast<double>(scrollOffset), static_cast<double>(visibleHeight));
+  scrollBar->setCurrentRange(static_cast<double>(getScrollPosition()), static_cast<double>(visibleHeight));
   Log::debug("Profile::resized: Scroll range updated - contentHeight: " + juce::String(contentHeight) +
              ", visibleHeight: " + juce::String(visibleHeight));
 
@@ -990,46 +992,15 @@ void Profile::mouseWheelMove(const juce::MouseEvent &event, const juce::MouseWhe
   if (!scrollBar || scrollBar->getMaximumRangeLimit() <= 0.0)
     return;
 
-  double scrollAmount = wheel.deltaY * 50.0;
-  double maxScrollPos = scrollBar->getMaximumRangeLimit();
-  targetScrollOffset = juce::jlimit(0.0, maxScrollPos, scrollOffset - scrollAmount);
-
-  Log::debug("Profile::mouseWheelMove - Scroll requested: current=" + juce::String(scrollOffset) +
-             ", target=" + juce::String(targetScrollOffset) + ", max=" + juce::String(maxScrollPos));
-
-  // Cancel any existing animation
-  if (scrollAnimationHandle) {
-    scrollAnimationHandle->cancel();
+  int contentTopOffset = HEADER_HEIGHT;
+  if (storyHighlights && storyHighlights->isVisible()) {
+    contentTopOffset += HIGHLIGHTS_HEIGHT;
   }
+  int viewportHeight = getHeight() - contentTopOffset;
 
-  // Create smooth scroll animation (200ms duration) like PostsFeed and MessageThread
-  auto scrollAnim = Sidechain::UI::Animations::TransitionAnimation<double>::create(
-      scrollOffset, targetScrollOffset, 200);
-
-  scrollAnimationHandle = Sidechain::UI::Animations::AnimationController::getInstance().add(
-      scrollAnim, [this](double value) {
-        scrollOffset = value;
-        scrollBar->setCurrentRangeStart(scrollOffset, juce::dontSendNotification);
-        updatePostCards();
-        repaint();
-      });
-
-  Log::debug("Profile::mouseWheelMove - Animation started");
+  handleMouseWheelMove(event, wheel, viewportHeight, scrollBar->getWidth());
 }
 
-void Profile::scrollBarMoved(juce::ScrollBar * /*scrollBarThatHasMoved*/, double newRangeStart) {
-  // Cancel any active animation since user is directly manipulating scrollbar
-  if (scrollAnimationHandle) {
-    scrollAnimationHandle->cancel();
-  }
-  double oldOffset = scrollOffset;
-  scrollOffset = newRangeStart;
-  targetScrollOffset = newRangeStart;
-  Log::debug("Profile::scrollBarMoved: Scroll offset changed from " + juce::String(oldOffset) + " to " +
-             juce::String(scrollOffset));
-  updatePostCards();
-  repaint();
-}
 
 //==============================================================================
 juce::Rectangle<int> Profile::getBackButtonBounds() const {
@@ -1393,7 +1364,7 @@ void Profile::updatePostCards() {
   // Update card data and positions
   auto postsArea = getPostsAreaBounds();
   int contentTopOffset = HEADER_HEIGHT + HIGHLIGHTS_HEIGHT;
-  int y = contentTopOffset - scrollOffset;
+  int y = contentTopOffset - static_cast<int>(getScrollPosition());
   int visibleCount = 0;
 
   for (int i = 0; i < userPosts.size(); ++i) {

@@ -114,5 +114,113 @@ rxcpp::observable<juce::File> AppStore::loadAudioObservable(const juce::String &
   });
 }
 
+//==============================================================================
+// Image Loading (Callback-based, called by loadImageObservable and other methods)
+
+void AppStore::getImage(const juce::String &url, std::function<void(const juce::Image &)> callback) {
+  if (url.isEmpty()) {
+    callback(juce::Image());
+    return;
+  }
+
+  // Try memory cache first
+  if (auto cached = imageCache.getImage(url)) {
+    Util::logDebug("AppStore", "Image cache hit: " + url);
+    callback(*cached);
+    return;
+  }
+
+  // Download image on background thread
+  Async::run<juce::Image>(
+      [this, url]() {
+        try {
+          Util::logDebug("AppStore", "Image downloading: " + url);
+          juce::URL imageUrl(url);
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+          auto inputStream = imageUrl.createInputStream(false, nullptr, nullptr, "User-Agent: Sidechain/1.0", 5000, nullptr);
+#pragma clang diagnostic pop
+
+          if (inputStream == nullptr) {
+            Util::logWarning("AppStore", "Failed to open image stream for " + url);
+            return juce::Image();
+          }
+
+          auto image = juce::ImageFileFormat::loadFrom(*inputStream);
+          if (image.isValid()) {
+            Util::logInfo("AppStore", "Image downloaded: " + url);
+            imageCache.cacheImage(url, image);
+          } else {
+            Util::logWarning("AppStore", "Failed to decode image from " + url);
+          }
+
+          return image;
+        } catch (const std::exception &e) {
+          Util::logError("AppStore", "Image fetch error: " + juce::String(e.what()));
+          return juce::Image();
+        }
+      },
+      [callback](const juce::Image &image) { callback(image); });
+}
+
+//==============================================================================
+// Search Operations
+
+rxcpp::observable<juce::Array<juce::var>> AppStore::searchUsersObservable(const juce::String &query) {
+  return rxcpp::sources::create<juce::Array<juce::var>>([this, query](auto observer) {
+    if (!networkClient || query.isEmpty()) {
+      observer.on_next(juce::Array<juce::var>());
+      observer.on_completed();
+      return;
+    }
+
+    networkClient->searchUsers(query, 20, 0, [observer](Outcome<juce::var> result) {
+      juce::Array<juce::var> users;
+      if (result.isOk() && result.getValue().isArray()) {
+        auto resultsArray = result.getValue();
+        for (int i = 0; i < resultsArray.size(); ++i) {
+          users.add(resultsArray[i]);
+        }
+      }
+      observer.on_next(users);
+      observer.on_completed();
+    });
+  });
+}
+
+//==============================================================================
+// Follow Operations
+
+rxcpp::observable<int> AppStore::followUserObservable(const juce::String &userId) {
+  return rxcpp::sources::create<int>([this, userId](auto observer) {
+    if (!networkClient || userId.isEmpty()) {
+      observer.on_next(0);
+      observer.on_completed();
+      return;
+    }
+
+    networkClient->followUser(userId, [observer](Outcome<juce::var> result) {
+      observer.on_next(result.isOk() ? 1 : 0);
+      observer.on_completed();
+    });
+  });
+}
+
+rxcpp::observable<int> AppStore::unfollowUserObservable(const juce::String &userId) {
+  return rxcpp::sources::create<int>([this, userId](auto observer) {
+    if (!networkClient || userId.isEmpty()) {
+      observer.on_next(0);
+      observer.on_completed();
+      return;
+    }
+
+    networkClient->unfollowUser(userId, [observer](Outcome<juce::var> result) {
+      observer.on_next(result.isOk() ? 1 : 0);
+      observer.on_completed();
+    });
+  });
+}
+
 } // namespace Stores
 } // namespace Sidechain

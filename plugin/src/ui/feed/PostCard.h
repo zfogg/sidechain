@@ -34,7 +34,6 @@ class NetworkClient;
  * from network/audio code.
  */
 class PostCard : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::PostsState>,
-                 public juce::Timer,
                  public juce::TooltipClient {
 public:
   PostCard(Sidechain::Stores::AppStore *store = nullptr);
@@ -274,11 +273,7 @@ public:
   void mouseExit(const juce::MouseEvent &event) override;
 
   //==============================================================================
-  // Timer override for animations and long-press detection
-
-  /** Timer callback for animations and long-press detection
-   */
-  void timerCallback() override;
+  // Tooltip support
 
   /** Get tooltip text based on current mouse position
    * @return Tooltip text for the element under the mouse, or empty string
