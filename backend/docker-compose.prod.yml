@@ -91,6 +91,7 @@ services:
       - node.name=opensearch-node1
       - discovery.type=single-node
       - OPENSEARCH_SECURITY_SSL_HTTP_ENABLED=false
+      - OPENSEARCH_DISABLE_SECURITY_PLUGIN=true
       - OPENSEARCH_JAVA_OPTS=-Xms128m -Xmx128m
       - bootstrap.memory_lock=false
     ulimits:
