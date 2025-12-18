@@ -48,38 +48,71 @@ void AppStore::loadMessages(const juce::String &channelId, int limit) {
 }
 
 void AppStore::sendMessage(const juce::String &channelId, const juce::String &text) {
+  Log::info("AppStore::sendMessage - 📨 CALLED with channelId: " + channelId);
+
+  if (channelId.isEmpty()) {
+    Log::error("AppStore::sendMessage - ERROR: channelId is empty!");
+    return;
+  }
+
+  if (text.isEmpty()) {
+    Log::error("AppStore::sendMessage - ERROR: text is empty!");
+    return;
+  }
+
+  Log::info("AppStore::sendMessage - ✓ channelId and text are valid");
+
+  // Verify channel exists in state
+  const auto &chatState = getState().chat;
+  auto channelIt = chatState.channels.find(channelId);
+  if (channelIt == chatState.channels.end()) {
+    Log::error("AppStore::sendMessage - ERROR: Channel not found in state: " + channelId);
+    return;
+  }
+  Log::info("AppStore::sendMessage - ✓ Channel found in state");
+
   if (!networkClient) {
-    Log::error("AppStore::sendMessage: NetworkClient not available");
-    return;
+    Log::warn("AppStore::sendMessage - WARNING: NetworkClient not available, creating local message only");
   }
 
-  Log::info("AppStore::sendMessage: Sending message to channel " + channelId);
+  Log::info("AppStore::sendMessage - Creating message object");
 
-  // Make REST call to backend messaging API
-  // This will eventually call streamChatClient->sendMessage internally
-  // For now, we'll implement basic message storage
-
-  // Create a new message object using direct construction
-  auto obj = std::make_unique<juce::DynamicObject>();
+  // Create message using new with proper lifecycle management
+  auto obj = new juce::DynamicObject();
   if (!obj) {
-    Log::error("AppStore::sendMessage: Failed to create message object");
+    Log::error("AppStore::sendMessage - SEGFAULT RISK: Failed to allocate DynamicObject!");
     return;
   }
-  juce::var msgObj(obj.get());
+
+  juce::String userId = getState().user.userId;
+  juce::String username = getState().user.username;
+
+  Log::info("AppStore::sendMessage - ✓ Setting properties - userId: " + userId + ", username: " + username);
+
+  juce::var msgObj(obj);
   obj->setProperty("id", juce::Uuid().toString());
   obj->setProperty("text", text);
-  obj->setProperty("user_id", getState().user.userId);
-  obj->setProperty("user_name", getState().user.username);
+  obj->setProperty("user_id", userId);
+  obj->setProperty("user_name", username);
   obj->setProperty("created_at", juce::Time::getCurrentTime().toISO8601(true));
 
+  Log::info("AppStore::sendMessage - ✓ Message object created successfully");
+
   // Add message to chat state
+  Log::info("AppStore::sendMessage - Calling updateChatState to add message");
   updateChatState([channelId, msgObj](ChatState &state) {
+    Log::debug("AppStore::sendMessage lambda - Inside updateChatState lambda");
     auto channelIt = state.channels.find(channelId);
     if (channelIt != state.channels.end()) {
+      Log::debug("AppStore::sendMessage lambda - Channel found, adding message");
       channelIt->second.messages.push_back(msgObj);
-      Log::info("AppStore::sendMessage: Added message to channel state");
+      Log::info("AppStore::sendMessage - ✓ Added message to channel state");
+    } else {
+      Log::error("AppStore::sendMessage lambda - ERROR: Channel disappeared from state!");
     }
   });
+
+  Log::info("AppStore::sendMessage - ✓ Message send complete");
 }
 
 void AppStore::startTyping(const juce::String &channelId) {

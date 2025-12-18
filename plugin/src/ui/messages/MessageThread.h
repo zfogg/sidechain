@@ -61,6 +61,12 @@ public:
     currentUserId = userId;
   }
 
+  // Public method to send a message (for testing)
+  void sendTestMessage(const juce::String &text) {
+    messageInput.setText(text);
+    sendMessage();
+  }
+
   // Timer for auto-refresh
   void timerCallback() override;
 

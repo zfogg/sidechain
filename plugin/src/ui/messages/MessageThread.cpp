@@ -366,10 +366,10 @@ void MessageThread::loadMessages() {
 }
 
 void MessageThread::sendMessage() {
-  Log::info("MessageThread::sendMessage - CALLED!");
+  Log::info("MessageThread::sendMessage - 🚀 CALLED!");
 
   juce::String text = messageInput.getText().trim();
-  Log::info("MessageThread::sendMessage - Message text: '" + text + "'");
+  Log::info("MessageThread::sendMessage - Message text length: " + juce::String(text.length()));
 
   if (text.isEmpty()) {
     Log::debug("MessageThread::sendMessage - Message text is empty, returning");
@@ -377,16 +377,18 @@ void MessageThread::sendMessage() {
   }
 
   if (channelId.isEmpty()) {
-    Log::error("MessageThread: Cannot send message - no channel selected");
+    Log::error("MessageThread::sendMessage - SEGFAULT RISK: no channel selected!");
     return;
   }
 
   if (!appStore) {
-    Log::error("MessageThread: Cannot send message - AppStore not available");
+    Log::error("MessageThread::sendMessage - SEGFAULT RISK: AppStore not available!");
     return;
   }
 
-  Log::info("MessageThread::sendMessage - All checks passed, sending message");
+  Log::info("MessageThread::sendMessage - ✓ AppStore is valid");
+  Log::info("MessageThread::sendMessage - ✓ ChannelId is valid: " + channelId);
+  Log::info("MessageThread::sendMessage - ✓ All checks passed, sending message");
 
   // Clear reply/edit state
   replyingToMessageId = "";
@@ -399,11 +401,18 @@ void MessageThread::sendMessage() {
   messageInput.setTextToShowWhenEmpty("Type a message...", juce::Colour(0xff888888));
   resized();
 
-  Log::debug("MessageThread: Sending message - " + text.substring(0, 50));
+  Log::debug("MessageThread::sendMessage - Text to send: " + text.substring(0, 50));
 
-  // Send via AppStore (AppStore handles state management and persistence)
-  appStore->sendMessage(channelId, text);
-  Log::info("MessageThread: Message sent via AppStore for channel " + channelId);
+  try {
+    // Send via AppStore (AppStore handles state management and persistence)
+    Log::info("MessageThread::sendMessage - About to call appStore->sendMessage()");
+    appStore->sendMessage(channelId, text);
+    Log::info("MessageThread::sendMessage - ✓ Message sent successfully via AppStore for channel " + channelId);
+  } catch (const std::exception &e) {
+    Log::error("MessageThread::sendMessage - EXCEPTION: " + juce::String(e.what()));
+  } catch (...) {
+    Log::error("MessageThread::sendMessage - UNKNOWN EXCEPTION!");
+  }
 }
 
 void MessageThread::timerCallback() {}
