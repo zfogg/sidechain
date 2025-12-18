@@ -10,7 +10,7 @@ on:
 
 jobs:
   build-and-push:
-    name: Build and Push Docker Image
+    name: Build Docker Image on GitHub Runner
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -19,7 +19,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build and deploy to production
+      - name: Deploy to production
         env:
           SSH_HOST: ${{ secrets.DEPLOY_SERVER_HOST }}
           SSH_USER: ${{ secrets.DEPLOY_SERVER_USER }}
@@ -31,7 +31,7 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -p $SSH_PORT -H $SSH_HOST >> ~/.ssh/known_hosts 2>/dev/null
 
-          # Deploy: pull latest code and rebuild on server
+          # Deploy: pull latest code and rebuild with resource limits
           ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
           set -e
           cd /opt/sidechain/backend
@@ -39,8 +39,8 @@ jobs:
           git fetch origin main
           git reset --hard origin/main
           git checkout origin/main
-          echo "🔨 Building Docker image..."
-          docker build -t zfogg/sidechain-backend:latest .
+          echo "🔨 Building Docker image with resource limits..."
+          docker build --memory=1g --memory-swap=1g --cpus="1" -t zfogg/sidechain-backend:latest .
           echo "✅ Docker image built successfully"
           echo "🚀 Restarting all services..."
           docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
