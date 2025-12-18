@@ -16,9 +16,9 @@ interface CreatePostData {
 /**
  * UploadClient - Handles file uploads and post creation
  *
- * API Endpoints:
- * POST /api/v1/audio/upload - Upload audio file
- * POST /api/v1/posts - Create post with metadata
+ * API Endpoints (relative to baseURL http://localhost:8787/api/v1):
+ * POST /audio/upload - Upload audio file
+ * POST /posts - Create post with metadata
  */
 export class UploadClient {
   /**
@@ -33,25 +33,22 @@ export class UploadClient {
       const formData = new FormData()
       formData.append('audio', file)
 
-      // Use native fetch for better progress tracking (could be enhanced with XMLHttpRequest)
-      const response = await fetch('/api/v1/audio/upload', {
-        method: 'POST',
-        body: formData,
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('auth_token') || ''}`,
-        },
-      })
+      // Use apiClient which has correct baseURL (http://localhost:8787/api/v1)
+      // Axios auto-detects FormData and sets Content-Type: multipart/form-data
+      const result = await apiClient.post<{ audio_url: string; waveform_url: string }>(
+        '/audio/upload',
+        formData
+      )
 
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({ error: 'Upload failed' }))
-        return Outcome.error(error.error || 'Upload failed')
+      if (result.isOk()) {
+        const data = result.getValue()
+        return Outcome.ok({
+          audioUrl: data.audio_url,
+          waveformUrl: data.waveform_url,
+        })
       }
 
-      const data = await response.json()
-      return Outcome.ok({
-        audioUrl: data.audio_url,
-        waveformUrl: data.waveform_url,
-      })
+      return Outcome.error(result.getError())
     } catch (error: any) {
       return Outcome.error(error.message || 'Upload failed')
     }
