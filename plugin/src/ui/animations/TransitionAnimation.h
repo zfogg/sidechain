@@ -28,6 +28,8 @@ public:
   virtual void pause() = 0;
   virtual void resume() = 0;
   virtual void cancel() = 0;
+
+  virtual float getProgress() const = 0;
 };
 
 /**
@@ -222,7 +224,7 @@ public:
   /**
    * Get current progress [0, 1]
    */
-  float getProgress() const {
+  float getProgress() const override {
     auto elapsed = getElapsedTime();
     if (elapsed >= duration_)
       return 1.0f;
