@@ -1,8 +1,11 @@
 #!/bin/bash
 set -e
 
-# Substitute environment variables in gorse.toml template
-envsubst < /tmp/gorse.toml.template > /etc/gorse/config.toml
+# Create config directory if it doesn't exist
+mkdir -p /tmp/gorse
 
-# Start Gorse with the substituted config
-exec /usr/bin/gorse-in-one
+# Substitute environment variables in gorse.toml template
+envsubst < /tmp/gorse.toml.template > /tmp/gorse/config.toml
+
+# Start Gorse with the substituted config using -c flag
+exec /usr/bin/gorse-in-one -c /tmp/gorse/config.toml
