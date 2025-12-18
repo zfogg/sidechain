@@ -1,5 +1,6 @@
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import Select from 'react-select'
 
 interface MetadataFormProps {
   formData: {
@@ -96,10 +97,98 @@ const DAWS = [
   'Other',
 ]
 
+// Custom styles for react-select to match dark theme
+const selectStyles = {
+  control: (base: any, state: any) => ({
+    ...base,
+    backgroundColor: '#26262C',
+    borderColor: '#2E2E34',
+    borderRadius: '0.5rem',
+    minHeight: '44px',
+    fontSize: '14px',
+    cursor: 'pointer',
+    boxShadow: state.isFocused ? '0 0 0 1px #FD7792' : 'none',
+    border: state.isFocused ? '1px solid #FD7792' : '1px solid #2E2E34',
+    '&:hover': {
+      borderColor: '#363640',
+    },
+  }),
+  input: (base: any) => ({
+    ...base,
+    color: '#FFFFFF',
+  }),
+  placeholder: (base: any) => ({
+    ...base,
+    color: '#a0a0a8',
+  }),
+  singleValue: (base: any) => ({
+    ...base,
+    color: '#FFFFFF',
+  }),
+  menu: (base: any) => ({
+    ...base,
+    backgroundColor: '#1C1C20',
+    borderRadius: '0.5rem',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
+  }),
+  menuList: (base: any) => ({
+    ...base,
+    backgroundColor: '#1C1C20',
+    scrollBehavior: 'smooth',
+    '::-webkit-scrollbar': {
+      width: '8px',
+    },
+    '::-webkit-scrollbar-track': {
+      background: 'transparent',
+    },
+    '::-webkit-scrollbar-thumb': {
+      background: '#363640',
+      borderRadius: '4px',
+    },
+  }),
+  option: (base: any, state: any) => ({
+    ...base,
+    backgroundColor: state.isSelected
+      ? '#FD7792'
+      : state.isFocused
+        ? '#363640'
+        : '#1C1C20',
+    color: state.isSelected ? '#FFFFFF' : '#FFFFFF',
+    cursor: 'pointer',
+    padding: '10px 12px',
+    fontSize: '14px',
+    '&:active': {
+      backgroundColor: '#FD7792',
+    },
+  }),
+  multiValue: (base: any) => ({
+    ...base,
+    backgroundColor: '#FD7792',
+    borderRadius: '0.375rem',
+  }),
+  multiValueLabel: (base: any) => ({
+    ...base,
+    color: '#FFFFFF',
+    fontWeight: '500',
+  }),
+  multiValueRemove: (base: any) => ({
+    ...base,
+    color: '#FFFFFF',
+    cursor: 'pointer',
+    '&:hover': {
+      backgroundColor: '#E95A7D',
+      color: '#FFFFFF',
+    },
+  }),
+}
+
 /**
  * MetadataForm - Form for loop metadata (title, BPM, key, DAW, genre)
  */
 export function MetadataForm({ formData, onChange, errors }: MetadataFormProps) {
+  // Convert genre strings to react-select options
+  const genreOptions = GENRES.map((g) => ({ value: g, label: g }))
+  const selectedGenres = formData.genre.map((g) => ({ value: g, label: g }))
   return (
     <div className="bg-card border border-border/50 rounded-2xl p-8 space-y-6">
       {/* Title */}
@@ -134,42 +223,41 @@ export function MetadataForm({ formData, onChange, errors }: MetadataFormProps) 
         />
       </div>
 
-      {/* BPM and Key */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-3">
-          <Label htmlFor="bpm" className="text-sm font-semibold text-foreground">
-            BPM
-          </Label>
-          <Input
-            id="bpm"
-            type="number"
-            min="20"
-            max="300"
-            value={formData.bpm || ''}
-            onChange={(e) => onChange('bpm', e.target.value ? parseInt(e.target.value) : null)}
-            placeholder="e.g., 140"
-            className="h-11 px-4 bg-bg-secondary/80 border-border/50 text-foreground text-sm focus:border-coral-pink"
-          />
-        </div>
+      {/* BPM */}
+      <div className="space-y-3">
+        <Label htmlFor="bpm" className="text-sm font-semibold text-foreground">
+          BPM
+        </Label>
+        <Input
+          id="bpm"
+          type="number"
+          min="20"
+          max="300"
+          value={formData.bpm || ''}
+          onChange={(e) => onChange('bpm', e.target.value ? parseInt(e.target.value) : null)}
+          placeholder="e.g., 140"
+          className="h-11 px-4 bg-bg-secondary/80 border-border/50 text-foreground text-sm focus:border-coral-pink"
+        />
+      </div>
 
-        <div className="space-y-3">
-          <Label htmlFor="key" className="text-sm font-semibold text-foreground">
-            Key
-          </Label>
-          <select
-            id="key"
-            value={formData.key}
-            onChange={(e) => onChange('key', e.target.value)}
-            className="h-11 px-4 rounded-lg bg-bg-secondary/80 border border-border/50 text-foreground text-sm focus:border-coral-pink focus:ring-1 focus:ring-coral-pink/50"
-          >
-            <option value="">Select key</option>
-            {KEYS.map((k) => (
-              <option key={k} value={k}>
-                {k}
-              </option>
-            ))}
-          </select>
-        </div>
+      {/* Key */}
+      <div className="space-y-3">
+        <Label htmlFor="key" className="text-sm font-semibold text-foreground">
+          Key
+        </Label>
+        <select
+          id="key"
+          value={formData.key}
+          onChange={(e) => onChange('key', e.target.value)}
+          className="w-full h-11 px-4 rounded-lg bg-bg-secondary/80 border border-border/50 text-foreground text-sm focus:border-coral-pink focus:ring-1 focus:ring-coral-pink/50"
+        >
+          <option value="">Select key</option>
+          {KEYS.map((k) => (
+            <option key={k} value={k}>
+              {k}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* DAW */}
@@ -192,36 +280,26 @@ export function MetadataForm({ formData, onChange, errors }: MetadataFormProps) 
         </select>
       </div>
 
-      {/* Genres */}
+      {/* Genres - Searchable Autocomplete */}
       <div className="space-y-3">
         <Label className="text-sm font-semibold text-foreground">
           Genres * ({formData.genre.length} selected)
         </Label>
-        <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-3 rounded-lg bg-bg-secondary/50 border border-border/30">
-          {GENRES.map((g) => (
-            <label
-              key={g}
-              className="flex items-center gap-2 cursor-pointer hover:bg-bg-secondary/70 p-2 rounded transition-colors"
-            >
-              <input
-                type="checkbox"
-                checked={formData.genre.includes(g)}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    onChange('genre', [...formData.genre, g])
-                  } else {
-                    onChange(
-                      'genre',
-                      formData.genre.filter((genre) => genre !== g)
-                    )
-                  }
-                }}
-                className="w-4 h-4 rounded cursor-pointer"
-              />
-              <span className="text-sm text-foreground">{g}</span>
-            </label>
-          ))}
-        </div>
+        <Select
+          isMulti
+          options={genreOptions}
+          value={selectedGenres}
+          onChange={(selected) => {
+            onChange('genre', selected ? selected.map((s) => s.value) : [])
+          }}
+          placeholder="Search and select genres..."
+          styles={selectStyles}
+          className="text-sm"
+          classNamePrefix="react-select"
+          isSearchable
+          isClearable={false}
+          formatOptionLabel={(option: any) => <div className="text-sm">{option.label}</div>}
+        />
         {errors.genre && <p className="text-red-400 text-xs">{errors.genre}</p>}
       </div>
 

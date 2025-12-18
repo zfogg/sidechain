@@ -318,3 +318,27 @@
 .str-chat__empty-state-text {
   color: #a0a0a8 !important;
 }
+
+/* Native select styling for dark theme */
+select {
+  background-color: #26262c;
+  color: #ffffff;
+  border-color: #2e2e34;
+}
+
+select option {
+  background-color: #1c1c20;
+  color: #ffffff;
+  padding: 10px 12px;
+}
+
+select option:checked {
+  background: linear-gradient(#fd7792, #fd7792);
+  background-color: #fd7792 !important;
+  color: #ffffff;
+}
+
+select option:hover {
+  background: linear-gradient(#363640, #363640);
+  background-color: #363640 !important;
+}
