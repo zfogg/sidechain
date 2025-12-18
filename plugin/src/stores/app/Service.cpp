@@ -9,66 +9,6 @@ namespace Sidechain {
 namespace Stores {
 
 //==============================================================================
-// Memory Cache Implementation - Type-Safe Ephemeral Data Caching
-//
-// Caches non-persistent data (users, posts, messages) with TTL-based expiration.
-// Binary assets (images, audio) use file caching instead (see Phase 2).
-
-void AppStore::invalidateCache(const juce::String &key) {
-  std::lock_guard<std::mutex> lock(memoryCacheLock);
-  size_t erased = memoryCache.erase(key);
-  if (erased > 0) {
-    Util::logDebug("AppStore", "Cache invalidated: " + key);
-  }
-}
-
-void AppStore::invalidateCachePattern(const juce::String &pattern) {
-  std::lock_guard<std::mutex> lock(memoryCacheLock);
-
-  // Simple wildcard pattern matching: "feed:*" matches "feed:home", "feed:following", etc.
-  if (pattern.endsWith("*")) {
-    auto prefix = pattern.dropLastCharacters(1);
-    int count = 0;
-
-    auto it = memoryCache.begin();
-    while (it != memoryCache.end()) {
-      if (it->first.startsWith(prefix)) {
-        it = memoryCache.erase(it);
-        ++count;
-      } else {
-        ++it;
-      }
-    }
-
-    if (count > 0) {
-      Util::logDebug("AppStore", "Cache pattern invalidated: " + pattern + " (" + juce::String(count) + " entries)");
-    }
-  } else {
-    memoryCache.erase(pattern);
-    Util::logDebug("AppStore", "Cache invalidated: " + pattern);
-  }
-}
-
-void AppStore::clearMemoryCaches() {
-  std::lock_guard<std::mutex> lock(memoryCacheLock);
-  int count = static_cast<int>(memoryCache.size());
-  memoryCache.clear();
-  Util::logInfo("AppStore", "All memory caches cleared (" + juce::String(count) + " entries removed)");
-}
-
-size_t AppStore::getMemoryCacheSize() const {
-  std::lock_guard<std::mutex> lock(memoryCacheLock);
-  size_t totalSize = 0;
-
-  for (const auto &[key, entry] : memoryCache) {
-    // Approximate size: key length + 64 bytes overhead per entry
-    totalSize += static_cast<size_t>(key.length()) + 64;
-  }
-
-  return totalSize;
-}
-
-//==============================================================================
 // Cache Getter Methods (sync access to existing file caches)
 
 juce::Image AppStore::getCachedImage(const juce::String &url) {

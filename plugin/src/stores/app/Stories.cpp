@@ -10,7 +10,7 @@ void AppStore::loadStoriesFeed() {
     return;
   }
 
-  updateState([](AppState &state) { state.stories.isFeedLoading = true; });
+  sliceManager.getStoriesSlice()->dispatch([](StoriesState &state) { state.isFeedLoading = true; });
 
   networkClient->getStoriesFeed([this](Outcome<juce::var> result) {
     if (result.isOk()) {
@@ -23,21 +23,20 @@ void AppStore::loadStoriesFeed() {
         }
       }
 
-      updateState([storiesList](AppState &state) {
-        state.stories.feedUserStories = storiesList;
-        state.stories.isFeedLoading = false;
-        state.stories.storiesError = "";
+      sliceManager.getStoriesSlice()->dispatch([storiesList](StoriesState &state) {
+        state.feedUserStories = storiesList;
+        state.isFeedLoading = false;
+        state.storiesError = "";
         Util::logInfo("AppStore", "Loaded " + juce::String(storiesList.size()) + " stories from feed");
       });
     } else {
-      updateState([result](AppState &state) {
-        state.stories.isFeedLoading = false;
-        state.stories.storiesError = result.getError();
+      sliceManager.getStoriesSlice()->dispatch([result](StoriesState &state) {
+        state.isFeedLoading = false;
+        state.storiesError = result.getError();
         Util::logError("AppStore", "Failed to load stories feed: " + result.getError());
       });
     }
 
-    notifyObservers();
   });
 }
 
@@ -47,16 +46,15 @@ void AppStore::loadMyStories() {
     return;
   }
 
-  updateState([](AppState &state) { state.stories.isMyStoriesLoading = true; });
+  sliceManager.getStoriesSlice()->dispatch([](StoriesState &state) { state.isMyStoriesLoading = true; });
 
   // TODO: Implement loading user's own stories when NetworkClient provides an API
   // For now, just mark as not loading
-  updateState([](AppState &state) {
-    state.stories.isMyStoriesLoading = false;
+  sliceManager.getStoriesSlice()->dispatch([](StoriesState &state) {
+    state.isMyStoriesLoading = false;
     Util::logInfo("AppStore", "My stories endpoint not yet available");
   });
 
-  notifyObservers();
 }
 
 void AppStore::markStoryAsViewed(const juce::String &storyId) {
@@ -83,24 +81,22 @@ void AppStore::deleteStory(const juce::String &storyId) {
 
   networkClient->deleteStory(storyId, [this, storyId](Outcome<juce::var> result) {
     if (result.isOk()) {
-      updateState([storyId](AppState &state) {
+      sliceManager.getStoriesSlice()->dispatch([storyId](StoriesState &state) {
         // Remove from my stories
-        for (int i = state.stories.myStories.size() - 1; i >= 0; --i) {
-          auto story = state.stories.myStories[i];
+        for (int i = state.myStories.size() - 1; i >= 0; --i) {
+          auto story = state.myStories[i];
           if (story.hasProperty("id") && story.getProperty("id", juce::var()).toString() == storyId) {
-            state.stories.myStories.remove(i);
+            state.myStories.remove(i);
             Util::logInfo("AppStore", "Story deleted: " + storyId);
             break;
           }
         }
       });
-      notifyObservers();
     } else {
-      updateState([result](AppState &state) {
-        state.stories.storiesError = result.getError();
+      sliceManager.getStoriesSlice()->dispatch([result](StoriesState &state) {
+        state.storiesError = result.getError();
         Util::logError("AppStore", "Failed to delete story: " + result.getError());
       });
-      notifyObservers();
     }
   });
 }
@@ -142,14 +138,12 @@ void AppStore::createHighlight(const juce::String &name, const juce::Array<juce:
         }
       }
 
-      updateState([](AppState &state) { state.stories.storiesError = ""; });
-      notifyObservers();
+      sliceManager.getStoriesSlice()->dispatch([](StoriesState &state) { state.storiesError = ""; });
     } else {
-      updateState([result](AppState &state) {
-        state.stories.storiesError = result.getError();
+      sliceManager.getStoriesSlice()->dispatch([result](StoriesState &state) {
+        state.storiesError = result.getError();
         Util::logError("AppStore", "Failed to create highlight: " + result.getError());
       });
-      notifyObservers();
     }
   });
 }

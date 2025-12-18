@@ -278,11 +278,23 @@ void StreamChatClient::queryChannels(ChannelsCallback callback, int limit, int o
         juce::var requestData = juce::var(new juce::DynamicObject());
         auto *obj = requestData.getDynamicObject();
 
-        // Filter channels - getstream.io requires explicit filter conditions
-        // Using empty filter for now to debug channel retrieval
-        // TODO: Investigate why members filter returns 0 channels when queryChannels error said 6 channels exist
+        // Filter channels - query for channels where current user is a member
+        // Format per getstream.io docs: {members: {$in: [userID]}}
         juce::var filter = juce::var(new juce::DynamicObject());
+        auto *filterObj = filter.getDynamicObject();
+
+        // Create the members.$in array
+        juce::var membersFilter = juce::var(new juce::DynamicObject());
+        juce::var userIds = juce::var(juce::Array<juce::var>());
+        userIds.getArray()->add(currentUserId);
+        membersFilter.getDynamicObject()->setProperty("$in", userIds);
+
+        // Set members filter
+        filterObj->setProperty("members", membersFilter);
         obj->setProperty("filter_conditions", filter);
+
+        // Set state to true to get full channel data (required for queryChannels to work)
+        obj->setProperty("state", true);
 
         // Build sort
         juce::var sort = juce::var(juce::Array<juce::var>());

@@ -16,7 +16,7 @@ void AppStore::loadChannels() {
 }
 
 void AppStore::selectChannel(const juce::String &channelId) {
-  updateChatState([channelId](ChatState &state) { state.currentChannelId = channelId; });
+  sliceManager.getChatSlice()->dispatch([channelId](ChatState &state) { state.currentChannelId = channelId; });
 }
 
 void AppStore::loadMessages(const juce::String &channelId, int limit) {
@@ -100,7 +100,7 @@ void AppStore::sendMessage(const juce::String &channelId, const juce::String &te
 
   // Add message to chat state
   Log::info("AppStore::sendMessage - Calling updateChatState to add message");
-  updateChatState([channelId, msgObj](ChatState &state) {
+  sliceManager.getChatSlice()->dispatch([channelId, msgObj](ChatState &state) {
     Log::debug("AppStore::sendMessage lambda - Inside updateChatState lambda");
     auto channelIt = state.channels.find(channelId);
     if (channelIt != state.channels.end()) {
@@ -142,7 +142,7 @@ void AppStore::handleTypingStart(const juce::String &userId) {
 void AppStore::addChannelToState(const juce::String &channelId, const juce::String &channelName) {
   Log::info("AppStore::addChannelToState: Adding channel " + channelId);
 
-  updateChatState([channelId, channelName](ChatState &state) {
+  sliceManager.getChatSlice()->dispatch([channelId, channelName](ChatState &state) {
     ChannelState channelState;
     channelState.id = channelId;
     channelState.name = channelName;
@@ -155,7 +155,7 @@ void AppStore::addMessageToChannel(const juce::String &channelId, const juce::St
                                    const juce::String &userName, const juce::String &createdAt) {
   Log::info("AppStore::addMessageToChannel: Adding message " + messageId + " to channel " + channelId);
 
-  updateChatState([channelId, messageId, text, userId, userName, createdAt](ChatState &state) {
+  sliceManager.getChatSlice()->dispatch([channelId, messageId, text, userId, userName, createdAt](ChatState &state) {
     auto channelIt = state.channels.find(channelId);
     if (channelIt != state.channels.end()) {
       // Create message object

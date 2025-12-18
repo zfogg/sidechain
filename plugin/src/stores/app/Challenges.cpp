@@ -10,9 +10,12 @@ void AppStore::loadChallenges() {
     return;
   }
 
-  updateState([](AppState &state) { state.challenges.isLoading = true; });
+  auto challengeSlice = sliceManager.getChallengeSlice();
+  challengeSlice->dispatch([](ChallengeState &state) {
+    state.isLoading = true;
+  });
 
-  networkClient->getMIDIChallenges("", [this](Outcome<juce::var> result) {
+  networkClient->getMIDIChallenges("", [this, challengeSlice](Outcome<juce::var> result) {
     if (result.isOk()) {
       const auto data = result.getValue();
       juce::Array<juce::var> challengesList;
@@ -23,21 +26,19 @@ void AppStore::loadChallenges() {
         }
       }
 
-      updateState([challengesList](AppState &state) {
-        state.challenges.challenges = challengesList;
-        state.challenges.isLoading = false;
-        state.challenges.challengeError = "";
+      challengeSlice->dispatch([challengesList](ChallengeState &state) {
+        state.challenges = challengesList;
+        state.isLoading = false;
+        state.challengeError = "";
         Util::logInfo("AppStore", "Loaded " + juce::String(challengesList.size()) + " challenges");
       });
     } else {
-      updateState([result](AppState &state) {
-        state.challenges.isLoading = false;
-        state.challenges.challengeError = result.getError();
+      challengeSlice->dispatch([result](ChallengeState &state) {
+        state.isLoading = false;
+        state.challengeError = result.getError();
         Util::logError("AppStore", "Failed to load challenges: " + result.getError());
       });
     }
-
-    notifyObservers();
   });
 }
 
@@ -87,7 +88,6 @@ void AppStore::submitChallenge(const juce::String &challengeId, const juce::File
                                              Util::logInfo("AppStore",
                                                           "Successfully submitted challenge " + challengeId);
                                              // Update state if needed
-                                             notifyObservers();
                                            } else {
                                              Util::logError("AppStore",
                                                           "Failed to submit challenge: " + result.getError());

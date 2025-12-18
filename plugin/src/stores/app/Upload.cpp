@@ -7,7 +7,7 @@ namespace Stores {
 void AppStore::uploadPost(const juce::var &postData, const juce::File &audioFile) {
   if (!networkClient) {
     Util::logError("AppStore", "Network client not available");
-    updateUploadState([](UploadState &state) {
+    sliceManager.getUploadSlice()->dispatch([](UploadState &state) {
       state.isUploading = false;
       state.uploadError = "Network client not initialized";
       state.progress = 0;
@@ -18,7 +18,7 @@ void AppStore::uploadPost(const juce::var &postData, const juce::File &audioFile
   Util::logInfo("AppStore", "Starting upload - " + audioFile.getFileName());
 
   // Update state to uploading
-  updateUploadState([](UploadState &state) {
+  sliceManager.getUploadSlice()->dispatch([](UploadState &state) {
     state.isUploading = true;
     state.progress = 10;
     state.uploadError = "";
@@ -33,7 +33,7 @@ void AppStore::uploadPost(const juce::var &postData, const juce::File &audioFile
 void AppStore::cancelUpload() {
   Util::logInfo("AppStore", "Upload cancelled");
 
-  updateUploadState([](UploadState &state) {
+  sliceManager.getUploadSlice()->dispatch([](UploadState &state) {
     state.isUploading = false;
     state.progress = 0;
     state.uploadError = "";

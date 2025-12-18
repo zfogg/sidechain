@@ -11,7 +11,7 @@ add_library(SidechainStores STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/StateSlice.h
     ${CMAKE_CURRENT_SOURCE_DIR}/slices/AppSlices.h
 
-    # Unified AppStore (Phase 3 - replaces all individual stores)
+    # Unified AppStore (Phase 3 - pure orchestration layer dispatching to slices)
     ${CMAKE_CURRENT_SOURCE_DIR}/AppStore.h
     ${CMAKE_CURRENT_SOURCE_DIR}/app/AppState.h
     ${CMAKE_CURRENT_SOURCE_DIR}/app/Base.cpp
