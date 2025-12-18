@@ -1,9 +1,8 @@
 # Gorse configuration for Sidechain
 
 [database]
-# Use environment variables for credentials (populated by Docker)
-# Set via: POSTGRES_PASSWORD, POSTGRES_USER, etc.
-data_store = "${DATABASE_URL:-postgres://sidechain:sidechain_dev_password@postgres:5432/gorse?sslmode=disable}"
+# Database credentials - will be substituted at runtime by entrypoint script
+data_store = "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/gorse?sslmode=disable"
 cache_store = "redis://redis:6379"
 
 [master]
