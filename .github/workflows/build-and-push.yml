@@ -31,17 +31,17 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -p $SSH_PORT -H $SSH_HOST >> ~/.ssh/known_hosts 2>/dev/null
 
-          # Deploy: pull latest code and rebuild with resource limits
-          ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
+          # Deploy: pull latest code and rebuild
+          # Using SSH keepalive to prevent timeout during long Docker builds
+          ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=5 -i ~/.ssh/id_ed25519 -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
           set -e
           cd /opt/sidechain/backend
           echo "📥 Fetching latest code..."
           git fetch origin main
           git reset --hard origin/main
           git checkout origin/main
-          echo "🔨 Building Docker image..."
-          docker build -t zfogg/sidechain-backend:latest .
-          echo "✅ Docker image built successfully"
+          echo "🐳 Pulling latest Docker images..."
+          docker-compose -f docker-compose.yml -f docker-compose.prod.yml pull
           echo "🚀 Restarting all services..."
           docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
           echo "⏳ Waiting for services to be healthy..."
