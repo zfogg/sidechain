@@ -1,0 +1,69 @@
+# Gorse configuration for Sidechain
+# NOTE: This is a template - environment variables will be substituted at runtime
+
+[database]
+# Database credentials - substituted from environment variables
+data_store = "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_GORSE_DB}?sslmode=disable"
+cache_store = "${REDIS_URL}"
+
+[master]
+port = 8086
+host = "0.0.0.0"
+n_jobs = 2
+meta_timeout = "10s"
+
+[server]
+port = 8087
+host = "0.0.0.0"
+api_key = "${GORSE_API_KEY}"
+default_n = 10
+
+[recommend]
+cache_size = 100
+# Refresh recommendations periodically
+refresh_recommend_period = "1h"
+
+[recommend.data_source]
+positive_feedback_types = ["like", "follow", "download"]
+read_feedback_types = ["view", "play"]
+negative_feedback_types = ["dislike", "skip", "hide"]  # Task 5.1
+positive_feedback_ttl = 365  # Decay likes after 1 year (Task 5.1)
+read_feedback_ttl = 90  # Decay views after 90 days (Task 5.1)
+item_ttl = 0
+
+# Offline recommendation settings (Task 9.1)
+[recommend.offline]
+# Enable multiple recommendation algorithms
+enable_popular_recommendation = true
+enable_latest_recommendation = true
+enable_collaborative_recommendation = true
+enable_click_through_prediction = true
+
+# Exploration/exploitation mix (Task 9.1)
+# Mix in popular and latest content to prevent filter bubbles
+explore_recommend = { popular = 0.1, latest = 0.2 }
+
+# Model training settings
+model_fit_period = "60m"        # Retrain collaborative filtering every 60 minutes
+model_search_period = "720m"     # Search for best model every 12 hours
+model_search_epoch = 100
+model_search_trials = 10
+
+# Indexing for fast similar item retrieval
+enable_index = true
+index_recall = 0.9
+index_fit_epoch = 20
+
+# Diversity settings (Task 9.2)
+[recommend.online]
+# Number of fallback recommendations if not enough personalized
+fallback_recommend = ["popular", "latest"]
+
+# Collaborative filtering settings
+[recommend.collaborative]
+# Enable user-based and item-based collaborative filtering
+model_fit_period = "60m"
+enable_index = true
+
+# User/item neighbor settings for similarity
+neighbor_type = "similar"  # Can be "similar", "related", or "auto"
