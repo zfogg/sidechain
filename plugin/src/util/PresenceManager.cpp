@@ -1,9 +1,9 @@
 #include "PresenceManager.h"
 #include "DAWProjectFolder.h"
 #include "Log.h"
-#include "../network/WebSocketClient.h"
+#include "../network/StreamChatClient.h"
 
-PresenceManager::PresenceManager(WebSocketClient *webSocket) : juce::Thread("PresenceManager"), webSocket(webSocket) {
+PresenceManager::PresenceManager(StreamChatClient *chat) : juce::Thread("PresenceManager"), streamChat(chat) {
   detectDAW();
 }
 
@@ -23,12 +23,22 @@ void PresenceManager::stop() {
     signalThreadShouldExit();
     waitForThreadToExit(5000);
 
-    // Mark user as offline
-    if (webSocket && webSocket->isConnected()) {
-      juce::var payload(new juce::DynamicObject());
-      payload.getDynamicObject()->setProperty("status", "offline");
-      payload.getDynamicObject()->setProperty("timestamp", juce::Time::currentTimeMillis());
-      webSocket->send("presence", payload);
+    // Mark user as offline on getstream.io
+    if (streamChat && streamChat->isAuthenticated()) {
+      isOnline.store(false);
+
+      juce::var extraData(new juce::DynamicObject());
+      extraData.getDynamicObject()->setProperty("in_studio", false);
+      extraData.getDynamicObject()->setProperty("daw_type", "");
+      extraData.getDynamicObject()->setProperty("last_active", juce::Time::currentTimeMillis());
+
+      streamChat->updateStatus("offline", extraData, [](Outcome<void> result) {
+        if (result.isError()) {
+          Log::error("PresenceManager: Failed to update offline status - " + result.getError());
+        } else {
+          Log::debug("PresenceManager: Marked user as offline");
+        }
+      });
     }
 
     Log::debug("PresenceManager: Stopped");
@@ -40,12 +50,14 @@ juce::String PresenceManager::getDetectedDAW() const {
 }
 
 juce::String PresenceManager::getCurrentStatus() const {
-  return currentStatus.load();
+  return isInStudio.load() ? "in_studio" : "online";
 }
 
 void PresenceManager::setStatus(const juce::String &status) {
   if (status == "online" || status == "in_studio") {
-    currentStatus.store(status);
+    bool shouldBeInStudio = (status == "in_studio");
+    isInStudio.store(shouldBeInStudio);
+    isOnline.store(true);
     // Send update immediately when status changes
     sendPresenceUpdate();
   }
@@ -70,18 +82,27 @@ void PresenceManager::run() {
 }
 
 void PresenceManager::sendPresenceUpdate() {
-  if (!webSocket || !webSocket->isConnected()) {
+  if (!streamChat || !streamChat->isAuthenticated()) {
     return;
   }
 
-  juce::var payload(new juce::DynamicObject());
-  payload.getDynamicObject()->setProperty("status", currentStatus.load());
-  payload.getDynamicObject()->setProperty("daw", detectedDAW);
-  payload.getDynamicObject()->setProperty("timestamp", juce::Time::currentTimeMillis());
+  // Build extra data with presence info
+  juce::var extraData(new juce::DynamicObject());
+  extraData.getDynamicObject()->setProperty("in_studio", isInStudio.load());
+  extraData.getDynamicObject()->setProperty("daw_type", detectedDAW);
+  extraData.getDynamicObject()->setProperty("last_active", juce::Time::currentTimeMillis());
 
-  webSocket->send("presence", payload);
+  // Determine status string
+  juce::String statusStr = isOnline.load() ? "online" : "offline";
 
-  Log::debug("PresenceManager: Sent update (" + currentStatus.load() + ", DAW: " + detectedDAW + ")");
+  // Update status on getstream.io with DAW metadata
+  streamChat->updateStatus(statusStr, extraData, [this](Outcome<void> result) {
+    if (result.isError()) {
+      Log::error("PresenceManager: Failed to send presence update - " + result.getError());
+    } else {
+      Log::debug("PresenceManager: Sent update (" + getCurrentStatus() + ", DAW: " + detectedDAW + ")");
+    }
+  });
 }
 
 void PresenceManager::detectDAW() {

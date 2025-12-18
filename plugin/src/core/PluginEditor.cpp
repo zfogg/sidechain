@@ -46,9 +46,6 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   };
   webSocketClient->onError = [](const juce::String &error) { Log::error("WebSocket error: " + error); };
 
-  // TODO: Initialize presence manager (DAW detection + online status)
-  // presenceManager = std::make_unique<PresenceManager>(webSocketClient.get());
-
   // Create connection indicator
   connectionIndicator = std::make_unique<ConnectionIndicator>();
   connectionIndicator->onReconnectClicked = [this]() {
@@ -687,6 +684,9 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   // Create StreamChatClient for getstream.io messaging
   streamChatClient = std::make_unique<StreamChatClient>(networkClient.get(), StreamChatClient::Config::development());
 
+  // Create PresenceManager for DAW detection and presence updates to getstream.io
+  presenceManager = std::make_unique<PresenceManager>(streamChatClient.get());
+
   // Wire StreamChatClient to AppStore for message loading
   Log::info("PluginEditor: About to call appStore.setStreamChatClient...");
   appStore.setStreamChatClient(streamChatClient.get());
@@ -915,6 +915,10 @@ SidechainAudioProcessorEditor::~SidechainAudioProcessorEditor() {
 
   // Remove as listener from UserDataStore
   // removed - no longer using change listeners
+
+  // Stop presence manager before destruction
+  if (presenceManager)
+    presenceManager->stop();
 
   // Disconnect WebSocket before destruction
   if (webSocketClient)
@@ -2020,10 +2024,16 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String &user, con
 
   // Fetch getstream.io chat token for messaging
   if (streamChatClient && !token.isEmpty()) {
-    streamChatClient->fetchToken(token, [](::Outcome<StreamChatClient::TokenResult> result) {
+    streamChatClient->fetchToken(token, [this](::Outcome<StreamChatClient::TokenResult> result) {
       if (result.isOk()) {
         auto tokenResult = result.getValue();
         Log::info("Stream chat token fetched successfully for user: " + tokenResult.userId);
+
+        // Start presence manager to report online status and DAW type to getstream.io
+        if (presenceManager) {
+          presenceManager->start();
+          Log::info("Presence manager started - will report DAW and online status to getstream.io");
+        }
       } else {
         Log::warn("Failed to fetch stream chat token: " + result.getError());
       }
@@ -2227,10 +2237,16 @@ void SidechainAudioProcessorEditor::loadLoginState() {
 
     // Fetch getstream.io chat token for messaging
     if (streamChatClient) {
-      streamChatClient->fetchToken(loadedToken, [](Outcome<StreamChatClient::TokenResult> result) {
+      streamChatClient->fetchToken(loadedToken, [this](Outcome<StreamChatClient::TokenResult> result) {
         if (result.isOk()) {
           auto tokenResult = result.getValue();
           Log::info("Stream chat token fetched successfully for user: " + tokenResult.userId);
+
+          // Start presence manager to report online status and DAW type to getstream.io
+          if (presenceManager) {
+            presenceManager->start();
+            Log::info("Presence manager started - will report DAW and online status to getstream.io");
+          }
         } else {
           Log::warn("Failed to fetch stream chat token: " + result.getError());
         }
@@ -2497,18 +2513,13 @@ void SidechainAudioProcessorEditor::connectWebSocket() {
   webSocketClient->setAuthToken(token);
   webSocketClient->connect();
   Log::info("WebSocket connection initiated");
-
-  // TODO: Start presence manager (DAW detection + online status)
-  // if (presenceManager) {
-  //   presenceManager->start();
-  // }
 }
 
 void SidechainAudioProcessorEditor::disconnectWebSocket() {
-  // TODO: Stop presence manager
-  // if (presenceManager) {
-  //   presenceManager->stop();
-  // }
+  // Stop presence manager when disconnecting
+  if (presenceManager) {
+    presenceManager->stop();
+  }
 
   if (webSocketClient) {
     webSocketClient->clearAuthToken();
