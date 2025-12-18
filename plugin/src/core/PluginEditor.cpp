@@ -2332,23 +2332,12 @@ void SidechainAudioProcessorEditor::loadLoginState() {
             }
           }
 
-          // Show messages if user has a profile picture, otherwise show setup
-          if (!userState.profilePictureUrl.isEmpty()) {
-            Log::info("loadLoginState: User has S3 profile picture, showing Messages");
-            username = userState.username;
-            email = userState.email;
-            profilePicUrl = userState.profilePictureUrl;
-            showView(AppView::Messages);
-
-            // Auto-send test message on startup for demo purposes
-            Log::info("loadLoginState: Scheduling test message send");
-            juce::Timer::callAfterDelay(2000, [this]() {
-              sendTestMessageOnStartup();
-            });
-          } else {
-            Log::info("loadLoginState: User has no S3 profile picture, showing ProfileSetup");
-            showView(AppView::ProfileSetup);
-          }
+          // For logged-in users, show the PostsFeed as default entry point
+          Log::info("loadLoginState: Showing PostsFeed for logged-in user");
+          username = userState.username;
+          email = userState.email;
+          profilePicUrl = userState.profilePictureUrl;
+          showView(AppView::PostsFeed);
 
           // Subscription will continue but callback only executes for subsequent state changes
         }
