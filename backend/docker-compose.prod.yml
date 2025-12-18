@@ -11,7 +11,8 @@ services:
       - "443:443/udp"
     environment:
       - DOMAIN=${DOMAIN:-example.com}
-      - EMAIL=${LETSENCRYPT_EMAIL:-hi@sidechain.live}
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL:-hi@sidechain.live}
+      - PROMETHEUS_PASSWORD_HASH=${PROMETHEUS_PASSWORD_HASH}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
