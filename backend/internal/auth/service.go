@@ -3,7 +3,6 @@ package auth
 import (
 	"errors"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -13,7 +12,6 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/stream"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
 	"gorm.io/gorm"
 )
 
@@ -33,43 +31,21 @@ type Service struct {
 	discordConfig *oauth2.Config
 }
 
-// NewService creates a new authentication service
-func NewService(jwtSecret []byte, streamClient *stream.Client, googleClientID, googleClientSecret, discordClientID, discordClientSecret string) *Service {
-	// OAuth redirect URLs - should be set to https://api.sidechain.live in production
-	// For development, use localhost. For production, use API_BASE_URL env var or default to api.sidechain.live
-	googleRedirectURL := "http://localhost:8787/api/v1/auth/google/callback"
-	discordRedirectURL := "http://localhost:8787/api/v1/auth/discord/callback"
-
-	if apiBaseURL := os.Getenv("API_BASE_URL"); apiBaseURL != "" {
-		googleRedirectURL = apiBaseURL + "/api/v1/auth/google/callback"
-		discordRedirectURL = apiBaseURL + "/api/v1/auth/discord/callback"
-	} else if os.Getenv("ENVIRONMENT") == "production" {
-		// Default production URLs
-		googleRedirectURL = "https://api.sidechain.live/api/v1/auth/google/callback"
-		discordRedirectURL = "https://api.sidechain.live/api/v1/auth/discord/callback"
-	}
-
+// NewService creates a new authentication service with OAuth configuration
+// OAuth configuration is loaded from environment variables - see config/oauth.go for required vars
+func NewService(jwtSecret []byte, streamClient *stream.Client, oauthConfig *OAuthConfigData) *Service {
 	return &Service{
-		jwtSecret:    jwtSecret,
-		streamClient: streamClient,
-		googleConfig: &oauth2.Config{
-			ClientID:     googleClientID,
-			ClientSecret: googleClientSecret,
-			RedirectURL:  googleRedirectURL,
-			Scopes:       []string{"openid", "profile", "email"},
-			Endpoint:     google.Endpoint,
-		},
-		discordConfig: &oauth2.Config{
-			ClientID:     discordClientID,
-			ClientSecret: discordClientSecret,
-			RedirectURL:  discordRedirectURL,
-			Scopes:       []string{"identify", "email"},
-			Endpoint: oauth2.Endpoint{
-				AuthURL:  "https://discord.com/api/oauth2/authorize",
-				TokenURL: "https://discord.com/api/oauth2/token",
-			},
-		},
+		jwtSecret:     jwtSecret,
+		streamClient:  streamClient,
+		googleConfig:  oauthConfig.GoogleConfig,
+		discordConfig: oauthConfig.DiscordConfig,
 	}
+}
+
+// OAuthConfigData holds OAuth configuration (typically loaded via config.LoadOAuthConfig)
+type OAuthConfigData struct {
+	GoogleConfig  *oauth2.Config
+	DiscordConfig *oauth2.Config
 }
 
 // AuthResponse represents authentication response

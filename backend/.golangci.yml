@@ -1,0 +1,73 @@
+run:
+  timeout: 5m
+  skip-dirs:
+    - vendor
+    - node_modules
+  skip-files:
+    - ".*_test.go"
+
+linters:
+  enable:
+    - bodyclose
+    - dogsled
+    - durationcheck
+    - errcheck
+    - errorlint
+    - exhaustive
+    - gofmt
+    - goimports
+    - govet
+    - ineffassign
+    - misspell
+    - nilnil
+    - nolintlint
+    - revive
+    - staticcheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - whitespace
+
+  # Disable slow/problematic linters for CI
+  disable:
+    - gosimple  # Often conflicts with code style preferences
+    - copyloopvar
+
+linters-settings:
+  errcheck:
+    check-type-assertions: false
+    check-blank: false
+
+  govet:
+    check-shadowing: true
+
+  revive:
+    severity: warning
+    rules:
+      - name: blank-imports
+        severity: warning
+      - name: context-as-argument
+        severity: warning
+      - name: context-keys-type
+        severity: warning
+      - name: early-return
+        severity: warning
+
+issues:
+  exclude-rules:
+    # Ignore errors in vendor directory
+    - path: vendor/
+      linters: ["all"]
+
+    # Allow long lines in test files
+    - path: _test\.go$
+      linters: ["all"]
+
+    # Ignore errors for specific patterns
+    - text: "exported .* should have comment"
+      linters: ["revive"]
+
+  exclude-dirs-use-default: true
+  max-per-linter: 0
+  max-same-issues: 0
