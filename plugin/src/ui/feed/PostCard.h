@@ -2,6 +2,7 @@
 
 #include "../../models/FeedPost.h"
 #include "../../stores/AppStore.h"
+#include "../../ui/animations/AnimationController.h"
 #include "../../ui/animations/Easing.h"
 #include "../../ui/animations/TransitionAnimation.h"
 #include "../../ui/common/AppStoreComponent.h"
@@ -308,12 +309,12 @@ private:
   bool isDownloading = false;
   float downloadProgress = 0.0f;
 
-  // Like animation - hearts bursting outward
-  std::shared_ptr<Sidechain::UI::Animations::TransitionAnimation<float>> likeAnimation;
+  // Like animation - hearts bursting outward (managed by AnimationController)
+  Sidechain::UI::Animations::AnimationHandle likeAnimationHandle;
   float likeAnimationProgress = 0.0f;
 
-  // Fade-in animation for new posts
-  std::shared_ptr<Sidechain::UI::Animations::TransitionAnimation<float>> fadeInAnimation;
+  // Fade-in animation for new posts (managed by AnimationController)
+  Sidechain::UI::Animations::AnimationHandle fadeInAnimationHandle;
   float currentOpacity = 0.0f;
 
   // Long-press detector for emoji reactions panel

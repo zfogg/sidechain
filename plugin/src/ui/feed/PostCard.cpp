@@ -65,19 +65,19 @@ void PostCard::setPost(const FeedPost &newPost) {
   // Immediately repaint to reflect updated post data (especially follow state)
   repaint();
 
-  // Create and start fade-in animation
+  // Create and start fade-in animation via AnimationController
   currentOpacity = 0.0f;
   // Use SafePointer for animation callback in case PostCard is destroyed
   juce::Component::SafePointer<PostCard> safeThis(this);
-  fadeInAnimation = TransitionAnimation<float>::create(0.0f, 1.0f, 300)
-                        ->withEasing(Easing::easeOutCubic)
-                        ->onProgress([safeThis](float opacity) {
-                          if (safeThis == nullptr)
-                            return;
-                          safeThis->currentOpacity = opacity;
-                          safeThis->repaint();
-                        })
-                        ->start();
+  auto fadeAnim = TransitionAnimation<float>::create(0.0f, 1.0f, 300)
+                      ->withEasing(Easing::easeOutCubic)
+                      ->onProgress([safeThis](float opacity) {
+                        if (safeThis == nullptr)
+                          return;
+                        safeThis->currentOpacity = opacity;
+                        safeThis->repaint();
+                      });
+  fadeInAnimationHandle = Sidechain::UI::Animations::AnimationController::getInstance().schedule(fadeAnim, this);
 
   // Fetch avatar image via AppStore reactive observable (with caching)
   avatarImage = juce::Image();  // Clear previous image
@@ -1400,26 +1400,26 @@ juce::Rectangle<int> PostCard::getSoundBadgeBounds() const {
 // Like Animation
 
 void PostCard::startLikeAnimation() {
-  // Create and start the like animation
+  // Create and start the like animation via AnimationController
   likeAnimationProgress = 0.0f;
-  likeAnimation = TransitionAnimation<float>::create(0.0f, 1.0f, 400)
+  auto likeAnim = TransitionAnimation<float>::create(0.0f, 1.0f, 400)
                       ->withEasing(Easing::easeOutCubic)
                       ->onProgress([this](float progress) {
                         likeAnimationProgress = progress;
                         repaint();
-                      })
-                      ->start();
+                      });
+  likeAnimationHandle = Sidechain::UI::Animations::AnimationController::getInstance().schedule(likeAnim, this);
 }
 
 void PostCard::timerCallback() {
   // Long-press detection is handled by LongPressDetector
-  // TransitionAnimation handles its own timer, so we don't need to do anything
-  // here
+  // Animations are now managed by AnimationController (centralized timer)
+  // No animation update needed here
 }
 
 void PostCard::drawLikeAnimation(juce::Graphics &g) {
-  // Only draw if animation is active (not null and progress > 0)
-  if (!likeAnimation || likeAnimationProgress <= 0.0f)
+  // Only draw if animation is active (valid handle and progress > 0)
+  if (!likeAnimationHandle.isValid() || likeAnimationProgress <= 0.0f)
     return;
 
   // Only draw while animation is running (progress < 1.0)
