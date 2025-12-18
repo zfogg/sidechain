@@ -954,8 +954,13 @@ void MessageThread::deleteMessage(const StreamChatClient::Message &message) {
     return;
   }
 
-  // TODO: appStore->deleteMessage(channelId, message.id);
-  Log::debug("MessageThread: Delete requested for message " + message.id);
+  if (!appStore) {
+    Log::error("MessageThread::deleteMessage - AppStore not available");
+    return;
+  }
+
+  Log::info("MessageThread::deleteMessage - Deleting message " + message.id);
+  appStore->deleteMessage(channelId, message.id);
 }
 
 void MessageThread::replyToMessage(const StreamChatClient::Message &message) {
