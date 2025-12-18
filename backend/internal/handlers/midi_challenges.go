@@ -383,18 +383,18 @@ func (h *Handlers) VoteMIDIChallengeEntry(c *gin.Context) {
 // CreateMIDIChallenge creates a new MIDI challenge (admin only) (R.2.2.2.6)
 // POST /api/v1/midi-challenges
 func (h *Handlers) CreateMIDIChallenge(c *gin.Context) {
-	_, exists := c.Get("user")
+	userInterface, exists := c.Get("user")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not authenticated"})
 		return
 	}
-	// TODO: Check if user is admin (add admin check when admin system is implemented)
-	// For now, allow any authenticated user to create challenges
-	// currentUser := user.(*models.User)
-	// if !currentUser.IsAdmin {
-	// 	c.JSON(http.StatusForbidden, gin.H{"error": "admin_required"})
-	// 	return
-	// }
+
+	// Verify user is admin - only admins can create challenges
+	currentUser, ok := userInterface.(*models.User)
+	if !ok || !currentUser.IsAdmin {
+		c.JSON(http.StatusForbidden, gin.H{"error": "admin_only", "message": "only administrators can create MIDI challenges"})
+		return
+	}
 
 	var req struct {
 		Title         string                          `json:"title" binding:"required,min=1,max=200"`

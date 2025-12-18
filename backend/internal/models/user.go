@@ -217,56 +217,6 @@ func (p *AudioPost) GetRemixSourceType() string {
 	return ""
 }
 
-// Device represents a VST instance that can be authenticated
-type Device struct {
-	ID     string  `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
-	UserID *string `gorm:"index" json:"user_id"` // Nullable until claimed
-	User   *User   `gorm:"foreignKey:UserID" json:"user,omitempty"`
-
-	// Device info
-	DeviceFingerprint string `gorm:"uniqueIndex" json:"device_fingerprint"`
-	Platform          string `json:"platform"` // "macOS", "Windows", "Linux"
-	DAW               string `json:"daw"`      // "Ableton Live", "FL Studio", etc.
-	DAWVersion        string `json:"daw_version"`
-
-	// Status
-	LastUsedAt *time.Time `json:"last_used_at"`
-	IsActive   bool       `gorm:"default:false" json:"is_active"`
-
-	// GORM fields
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-}
-
-// OAuthProvider represents linked OAuth accounts
-type OAuthProvider struct {
-	ID     string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
-	UserID string `gorm:"not null;index" json:"user_id"`
-	User   User   `gorm:"foreignKey:UserID" json:"user,omitempty"`
-
-	Provider       string `gorm:"not null" json:"provider"` // "google", "discord"
-	ProviderUserID string `gorm:"not null" json:"provider_user_id"`
-	Email          string `gorm:"not null" json:"email"`
-	Name           string `json:"name"`
-	OAuthProfilePictureURL string `json:"oauth_profile_picture_url"`
-
-	// OAuth tokens (for API access if needed)
-	AccessToken  *string    `gorm:"type:text" json:"-"`
-	RefreshToken *string    `gorm:"type:text" json:"-"`
-	TokenExpiry  *time.Time `json:"-"`
-
-	// GORM fields
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-}
-
-// Ensure unique constraint: one provider per user
-func (OAuthProvider) TableName() string {
-	return "oauth_providers"
-}
-
 // Comment represents a comment on an AudioPost
 type Comment struct {
 	ID     string    `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
@@ -538,13 +488,8 @@ type Story struct {
 	MIDIPatternID *string      `gorm:"index" json:"midi_pattern_id,omitempty"`
 	MIDIPattern   *MIDIPattern `gorm:"foreignKey:MIDIPatternID" json:"midi_pattern,omitempty"`
 
-	// Legacy: Embedded MIDI data for backwards compatibility
-	// TODO: Migrate existing data to midi_patterns table and remove this field
-	MIDIData *MIDIData `gorm:"type:jsonb;serializer:json" json:"midi_data,omitempty"`
-
 	// Visual data
-	WaveformData string `gorm:"type:text" json:"waveform_data"` // Legacy SVG (deprecated)
-	WaveformURL  string `json:"waveform_url"`                   // CDN URL to waveform PNG
+	WaveformURL string `json:"waveform_url"` // CDN URL to waveform PNG
 
 	// Audio metadata (optional for quick sharing)
 	BPM   *int        `json:"bpm,omitempty"`
@@ -563,17 +508,17 @@ type Story struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
-// GetMIDIData returns the MIDI data, preferring the referenced MIDIPattern over legacy embedded data
+// GetMIDIData returns the MIDI data from the referenced MIDIPattern
 func (s *Story) GetMIDIData() *MIDIData {
 	if s.MIDIPattern != nil {
 		return s.MIDIPattern.ToMIDIData()
 	}
-	return s.MIDIData
+	return nil
 }
 
-// HasMIDI returns true if the story has MIDI data (either referenced or embedded)
+// HasMIDI returns true if the story has a referenced MIDI pattern
 func (s *Story) HasMIDI() bool {
-	return s.MIDIPatternID != nil || s.MIDIData != nil
+	return s.MIDIPatternID != nil
 }
 
 // StoryView tracks who viewed a story (7.5.1.1.2)
@@ -721,12 +666,13 @@ func (p *AudioPost) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
-func (d *Device) BeforeCreate(tx *gorm.DB) error {
-	if d.ID == "" {
-		d.ID = generateUUID()
-	}
-	return nil
-}
+// TODO: Device type is not defined - remove this hook or define Device struct
+// func (d *Device) BeforeCreate(tx *gorm.DB) error {
+// 	if d.ID == "" {
+// 		d.ID = generateUUID()
+// 	}
+// 	return nil
+// }
 
 func (c *Comment) BeforeCreate(tx *gorm.DB) error {
 	if c.ID == "" {

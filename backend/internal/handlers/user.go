@@ -1074,13 +1074,3 @@ func (h *Handlers) UnfollowUserByID(c *gin.Context) {
 	})
 }
 
-// Legacy placeholder handlers for backwards compatibility
-// GetProfile gets user profile information (deprecated - use GetMyProfile)
-func (h *Handlers) GetProfile(c *gin.Context) {
-	h.GetMyProfile(c)
-}
-
-// UpdateProfile updates user profile information (deprecated - use UpdateMyProfile)
-func (h *Handlers) UpdateProfile(c *gin.Context) {
-	h.UpdateMyProfile(c)
-}
