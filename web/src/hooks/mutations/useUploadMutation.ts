@@ -50,36 +50,19 @@ export function useUploadMutation() {
       })
 
       clearInterval(uploadProgress)
-      setProgress(75)
+      setProgress(100)
 
       if (uploadResult.isError()) {
         throw new Error(uploadResult.getError())
       }
 
-      const { audioUrl, waveformUrl } = uploadResult.getValue()
-
-      // Step 2: Create post with metadata
-      setProgress(85)
-
-      const createResult = await UploadClient.createPost({
-        audioUrl,
-        waveformUrl,
-        filename: data.title,
-        description: data.description,
-        bpm: data.bpm || undefined,
-        key: data.key || undefined,
-        daw: data.daw || undefined,
-        genre: data.genre,
-        isPublic: data.isPublic,
-      })
-
-      if (createResult.isError()) {
-        throw new Error(createResult.getError())
+      // Backend creates the post during audio upload with the metadata
+      // Return the upload result which includes postId, jobId, and pollUrl
+      const uploadData = uploadResult.getValue()
+      return {
+        id: uploadData.postId,
+        success: true,
       }
-
-      setProgress(100)
-
-      return createResult.getValue()
     },
     onSuccess: () => {
       setProgress(0)

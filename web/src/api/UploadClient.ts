@@ -42,7 +42,7 @@ export class UploadClient {
    * - audioUrl: URL to the uploaded audio file
    * - waveformUrl: URL to the generated waveform image
    */
-  static async uploadFile(file: File, metadata: UploadMetadata): Promise<Outcome<{ audioUrl: string; waveformUrl: string }>> {
+  static async uploadFile(file: File, metadata: UploadMetadata): Promise<Outcome<{ audioUrl: string; waveformUrl: string; postId: string; jobId: string; pollUrl: string }>> {
     try {
       const formData = new FormData()
       formData.append('audio', file)
@@ -68,24 +68,30 @@ export class UploadClient {
         formData.append('sample_rate', String(metadata.sample_rate))
       }
 
-      // Debug: log what we're sending
-      console.log('[UploadClient] FormData contents:', {
-        filename: metadata.filename,
-        fileSize: file.size,
-        fileName: file.name,
-      })
-
       // Use apiClient.upload() which properly handles FormData without JSON header
-      const result = await apiClient.upload<{ audio_url: string; waveform_url: string }>(
+      // Backend returns: { post_id, job_id, status, message, poll_url, eta_seconds }
+      const result = await apiClient.upload<{
+        post_id: string
+        job_id: string
+        status: string
+        message: string
+        poll_url: string
+        eta_seconds: number
+      }>(
         '/audio/upload',
         formData
       )
 
       if (result.isOk()) {
         const data = result.getValue()
+        // Return the post_id from the upload response
+        // Audio/waveform URLs will be available after processing completes
         return Outcome.ok({
-          audioUrl: data.audio_url,
-          waveformUrl: data.waveform_url,
+          audioUrl: '', // Will be populated after processing
+          waveformUrl: '', // Will be populated after processing
+          postId: data.post_id,
+          jobId: data.job_id,
+          pollUrl: data.poll_url,
         })
       }
 
