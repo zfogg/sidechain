@@ -390,6 +390,10 @@ void MessageThread::sendMessage() {
   Log::info("MessageThread::sendMessage - ✓ ChannelId is valid: " + channelId);
   Log::info("MessageThread::sendMessage - ✓ All checks passed, sending message");
 
+  // Check if we're editing or sending new message
+  bool isEditing = !editingMessageId.isEmpty();
+  juce::String messageIdToEdit = editingMessageId;
+
   // Clear reply/edit state
   replyingToMessageId = "";
   replyingToMessage = StreamChatClient::Message();
@@ -404,10 +408,15 @@ void MessageThread::sendMessage() {
   Log::debug("MessageThread::sendMessage - Text to send: " + text.substring(0, 50));
 
   try {
-    // Send via AppStore (AppStore handles state management and persistence)
-    Log::info("MessageThread::sendMessage - About to call appStore->sendMessage()");
-    appStore->sendMessage(channelId, text);
-    Log::info("MessageThread::sendMessage - ✓ Message sent successfully via AppStore for channel " + channelId);
+    if (isEditing) {
+      Log::info("MessageThread::sendMessage - Editing message " + messageIdToEdit);
+      appStore->editMessage(channelId, messageIdToEdit, text);
+      Log::info("MessageThread::sendMessage - ✓ Message edited successfully via AppStore for channel " + channelId);
+    } else {
+      Log::info("MessageThread::sendMessage - About to call appStore->sendMessage()");
+      appStore->sendMessage(channelId, text);
+      Log::info("MessageThread::sendMessage - ✓ Message sent successfully via AppStore for channel " + channelId);
+    }
   } catch (const std::exception &e) {
     Log::error("MessageThread::sendMessage - EXCEPTION: " + juce::String(e.what()));
   } catch (...) {
