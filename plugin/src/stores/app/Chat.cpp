@@ -174,6 +174,42 @@ void AppStore::editMessage(const juce::String &channelId, const juce::String &me
                                   });
 }
 
+void AppStore::deleteMessage(const juce::String &channelId, const juce::String &messageId) {
+  if (!streamChatClient) {
+    Log::error("AppStore::deleteMessage - CRITICAL: StreamChatClient not available");
+    return;
+  }
+
+  Log::info("AppStore::deleteMessage - Deleting message " + messageId + " from channel " + channelId);
+
+  streamChatClient->deleteMessage("messaging", channelId, messageId, [this, channelId, messageId](const Outcome<void> &result) {
+    if (!result.isOk()) {
+      Log::error("AppStore::deleteMessage - Failed to delete message: " + result.getError());
+      return;
+    }
+
+    Log::info("AppStore::deleteMessage - Message deleted successfully");
+
+    sliceManager.getChatSlice()->dispatch([channelId, messageId](ChatState &state) {
+      auto channelIt = state.channels.find(channelId);
+      if (channelIt != state.channels.end()) {
+        auto &messages = channelIt->second.messages;
+        for (auto it = messages.begin(); it != messages.end(); ++it) {
+          if (it->isObject()) {
+            auto *obj = it->getDynamicObject();
+            if (obj && obj->getProperty("id").toString() == messageId) {
+              messages.erase(it);
+              Log::info("AppStore::deleteMessage - Removed message from state");
+              return;
+            }
+          }
+        }
+      }
+      Log::warn("AppStore::deleteMessage - Message not found in state");
+    });
+  });
+}
+
 void AppStore::startTyping(const juce::String &channelId) {
   // Chat functionality is not yet implemented in AppStore
   // The ChatStore handles this separately
