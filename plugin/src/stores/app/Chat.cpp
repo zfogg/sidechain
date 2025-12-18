@@ -137,6 +137,43 @@ void AppStore::sendMessage(const juce::String &channelId, const juce::String &te
   });
 }
 
+void AppStore::editMessage(const juce::String &channelId, const juce::String &messageId, const juce::String &newText) {
+  if (!streamChatClient) {
+    Log::error("AppStore::editMessage - CRITICAL: StreamChatClient not available");
+    return;
+  }
+
+  Log::info("AppStore::editMessage - Editing message " + messageId + " in channel " + channelId);
+
+  streamChatClient->updateMessage("messaging", channelId, messageId, newText,
+                                  [this, channelId, messageId, newText](const Outcome<StreamChatClient::Message> &result) {
+                                    if (!result.isOk()) {
+                                      Log::error("AppStore::editMessage - Failed to update message: " + result.getError());
+                                      return;
+                                    }
+
+                                    Log::info("AppStore::editMessage - Message updated successfully");
+
+                                    sliceManager.getChatSlice()->dispatch(
+                                        [channelId, messageId, newText](ChatState &state) {
+                                          auto channelIt = state.channels.find(channelId);
+                                          if (channelIt != state.channels.end()) {
+                                            for (auto &msg : channelIt->second.messages) {
+                                              if (msg.isObject()) {
+                                                auto *obj = msg.getDynamicObject();
+                                                if (obj && obj->getProperty("id").toString() == messageId) {
+                                                  obj->setProperty("text", newText);
+                                                  Log::info("AppStore::editMessage - Updated message in state");
+                                                  return;
+                                                }
+                                              }
+                                            }
+                                          }
+                                          Log::warn("AppStore::editMessage - Message not found in state");
+                                        });
+                                  });
+}
+
 void AppStore::startTyping(const juce::String &channelId) {
   // Chat functionality is not yet implemented in AppStore
   // The ChatStore handles this separately

@@ -154,6 +154,7 @@ public:
   void selectChannel(const juce::String &channelId);
   void loadMessages(const juce::String &channelId, int limit = 50);
   void sendMessage(const juce::String &channelId, const juce::String &text);
+  void editMessage(const juce::String &channelId, const juce::String &messageId, const juce::String &newText);
   void startTyping(const juce::String &channelId);
   void stopTyping(const juce::String &channelId);
   void handleNewMessage(const juce::var &messageData);
