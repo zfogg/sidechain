@@ -340,6 +340,16 @@ public:
     return audioCache;
   }
 
+  /**
+   * Flush all caches to persistent storage.
+   * Called during shutdown to ensure cache state is preserved.
+   */
+  void flushCaches() {
+    imageCache.flush();
+    audioCache.flush();
+    draftCache.flush();
+  }
+
   //==============================================================================
   // Image fetching with multi-level caching
   //
