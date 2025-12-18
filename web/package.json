@@ -42,6 +42,7 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.10.1",
+    "react-select": "^5.10.2",
     "stream-chat": "^9.27.1",
     "stream-chat-react": "^13.13.0",
     "tailwind-merge": "^3.4.0",
