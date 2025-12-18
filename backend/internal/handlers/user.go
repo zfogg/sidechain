@@ -547,7 +547,7 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 			customData["daw_preference"] = currentUser.DAWPreference
 			customData["is_private"] = currentUser.IsPrivate
 
-			if err := h.stream.UpdateUserProfile(currentUser.ID, currentUser.Username, customData); err != nil {
+			if err := h.stream.UpdateUserProfile(currentUser.StreamUserID, currentUser.Username, customData); err != nil {
 				logger.WarnWithFields("Failed to sync user profile to Stream.io", err)
 			}
 		}()
@@ -643,7 +643,7 @@ func (h *Handlers) ChangeUsername(c *gin.Context) {
 			customData["display_name"] = currentUser.DisplayName
 			customData["bio"] = currentUser.Bio
 			customData["profile_picture_url"] = currentUser.ProfilePictureURL
-			if err := h.stream.UpdateUserProfile(currentUser.ID, newUsername, customData); err != nil {
+			if err := h.stream.UpdateUserProfile(currentUser.StreamUserID, newUsername, customData); err != nil {
 				logger.WarnWithFields("Failed to sync username change to Stream.io", err)
 			}
 		}()
