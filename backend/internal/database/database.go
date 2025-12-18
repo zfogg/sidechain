@@ -476,47 +476,4 @@ func runManualMigrations() {
 
 		log.Printf("✅ Replaced %d broken URLs with working audio", brokenCount)
 	}
-
-	// TODO: Migration incomplete - Story model doesn't have MIDIData field
-	// This migration was started but never completed. Commenting out for now.
-	// If needed, implement proper migration from embedded to referenced MIDI patterns
-	/*
-	// Migration: Migrate Story MIDIData (embedded) to MIDIPatterns (referenced)
-	// Find stories with embedded MIDIData that don't have a MIDIPatternID yet
-	var storiesWithEmbeddedMIDI []models.Story
-	DB.Where("midi_data IS NOT NULL AND midi_pattern_id IS NULL").Find(&storiesWithEmbeddedMIDI)
-
-	if len(storiesWithEmbeddedMIDI) > 0 {
-		log.Printf("📦 Running migration: Migrating %d stories' embedded MIDI data to midi_patterns table", len(storiesWithEmbeddedMIDI))
-
-		for _, story := range storiesWithEmbeddedMIDI {
-			if story.MIDIData == nil {
-				continue
-			}
-
-			// Create a new MIDIPattern from the embedded MIDIData
-			pattern := models.FromMIDIData(story.MIDIData, story.UserID)
-			pattern.Filename = "migrated_story_midi.mid"
-			pattern.Name = "Story MIDI Pattern"
-			pattern.Description = "Migrated from embedded story data"
-			pattern.IsPublic = false // Keep migrated patterns private by default
-
-			// Save the pattern
-			if err := DB.Create(pattern).Error; err != nil {
-				log.Printf("Warning: Failed to migrate MIDI data for story %s: %v", story.ID, err)
-				continue
-			}
-
-			// Update the story to reference the new pattern and clear the embedded data
-			if err := DB.Model(&story).Updates(map[string]interface{}{
-				"midi_pattern_id": pattern.ID,
-				"midi_data":       nil, // Clear embedded data after migration
-			}).Error; err != nil {
-				log.Printf("Warning: Failed to update story %s to reference new MIDI pattern: %v", story.ID, err)
-			}
-		}
-
-		log.Printf("✅ Migrated %d stories' MIDI data to midi_patterns table", len(storiesWithEmbeddedMIDI))
-	}
-	*/
 }

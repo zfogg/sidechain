@@ -294,12 +294,10 @@ func (h *Handlers) CreateStory(c *gin.Context) {
 	}
 
 	// Parse MIDI data if provided
-	var midiData *models.MIDIData
 	var midiPatternID *string
 	if midiDataStr := c.PostForm("midi_data"); midiDataStr != "" {
 		var md models.MIDIData
 		if err := json.Unmarshal([]byte(midiDataStr), &md); err == nil && len(md.Events) > 0 {
-			midiData = &md
 			// Create standalone MIDI pattern with filename (R.3.3)
 			pattern := &models.MIDIPattern{
 				UserID:        currentUser.ID,
@@ -323,7 +321,6 @@ func (h *Handlers) CreateStory(c *gin.Context) {
 		AudioDuration: audioDuration,
 		Filename:      filename,     // User-provided display filename
 		MIDIFilename:  midiFilename, // User-provided MIDI filename
-		MIDIData:      midiData,
 		MIDIPatternID: midiPatternID,
 		WaveformURL:   waveformURL, // CDN URL to waveform PNG
 		BPM:           bpm,
@@ -950,7 +947,7 @@ func (h *Handlers) GetHighlight(c *gin.Context) {
 			"id":             hs.Story.ID,
 			"audio_url":      hs.Story.AudioURL,
 			"audio_duration": hs.Story.AudioDuration,
-			"midi_data":      hs.Story.MIDIData,
+			"midi_pattern":   hs.Story.MIDIPattern,
 			"bpm":            hs.Story.BPM,
 			"key":            hs.Story.Key,
 			"genre":          hs.Story.Genre,
