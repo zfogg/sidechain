@@ -33,6 +33,40 @@
      - Takes userID, username, and customData map for flexible profile field updates
      - Wrapped by Gorse calls so both recommendation and chat systems stay in sync
 
+  ✅ **MSG-3** (CRITICAL) - Fixed in `plugin/src/ui/messages/MessageThread.cpp:455-478`
+     - Replaced fragile JSON string parsing with proper JUCE JSON object access
+     - Uses `response["messages"]` instead of indexOf/substring bracket counting
+     - Added proper error handling for missing or malformed arrays
+
+  ✅ **MSG-5** (HIGH) - Fixed in `plugin/src/ui/messages/MessageThread.cpp:759`
+     - Replaced hard-coded scrollbar width (24) with `scrollBar.getWidth()`
+     - Fixes text wrapping and layout calculations on window resize
+
+  ✅ **PROF-3** (CRITICAL) - Fixed in `backend/internal/auth/service.go:127-139`
+     - Added profile data sync to Stream.io during new user registration
+     - Calls UpdateUserProfile() after successful user creation
+     - Uses background goroutine to avoid blocking registration response
+
+  ✅ **PROF-4** (HIGH) - Fixed in `backend/internal/handlers/auth.go:712-731`
+     - Added Stream.io sync after successful profile picture upload
+     - Fetches updated user and syncs full profile with new picture URL
+     - Uses background goroutine with proper error logging
+
+  ✅ **PROF-5** (HIGH) - Fixed in `backend/internal/handlers/user.go:550, 646`
+     - Corrected Stream.io user ID usage in UpdateMyProfile and ChangeUsername
+     - Changed from `currentUser.ID` to `currentUser.StreamUserID`
+     - Ensures Stream.io Chat receives correct user identification
+
+  ✅ **CHAT-1** (HIGH) - Fixed in `plugin/src/stores/app/Chat.cpp:140-175` and `MessageThread.cpp:411-419`
+     - Implemented AppStore::editMessage() method to call streamChatClient->updateMessage()
+     - Modified MessageThread::sendMessage() to detect edit mode and call appropriate method
+     - Edited messages now sync to Stream.io and update local state
+
+  ✅ **CHAT-2** (HIGH) - Fixed in `plugin/src/stores/app/Chat.cpp:177-211` and `MessageThread.cpp:951-963`
+     - Implemented AppStore::deleteMessage() method to call streamChatClient->deleteMessage()
+     - Implemented MessageThread::deleteMessage() to call appStore->deleteMessage()
+     - Deleted messages are removed from Stream.io and local state
+
   ✅ **ENG-1** (HIGH) - Fixed across 5 files - UpdateColumn() error handling
      - Fixed in `backend/internal/handlers/comments.go:96-98` (comment_count)
      - Fixed in `backend/internal/handlers/comments.go:427-430` (comment like_count increment)
@@ -49,9 +83,12 @@
 
   ## FIX SUMMARY
 
-  **Total Bugs Fixed: 9 (4 CRITICAL, 5 HIGH)**
-  - Messages now send to Stream.io and scroll works in conversations
-  - Profile updates sync properly to chat and recommendations
+  **Total Bugs Fixed: 16 (7 CRITICAL, 9 HIGH)**
+  - Messages now send, edit, and delete properly with Stream.io sync
+  - Profile updates and pictures sync to chat and recommendations
+  - New users get profile synced on registration
+  - JSON parsing is robust and handles edge cases
+  - Scrollbar width dynamically calculated on resize
   - Engagement metrics properly logged with error handling via logger.WarnWithFields()
 
   **Logger Migration**
@@ -68,18 +105,19 @@
   |-------|----------------------------------------------------------|------------------------------|--------------------------------------------------------------|--------|
   | MSG-1 | Message sending never actually transmits to Stream.io    | MessageThread.cpp:407-410    | Messages appear to send but don't reach other users          | ✅ FIXED |
   | MSG-2 | calculateTotalMessagesHeight() always returns 0          | MessageThread.cpp:739-745    | Scrollbar completely broken - can't scroll through messages  | ✅ FIXED |
-  | MSG-3 | JSON parsing for message responses is fragile workaround | StreamChatClient.cpp:456-503 | Message loading fails if JSON structure differs slightly     |
-  | MSG-4 | Scroll range always locked to (0,0)                      | MessageThread.cpp:207-209    | No scrolling possible regardless of content height           |
-  | MSG-5 | Hard-coded scrollable width breaks on resize             | SmoothScrollable.h:122       | Scroll detection fails on windows wider/narrower than 1388px |
+  | MSG-3 | JSON parsing for message responses is fragile workaround | StreamChatClient.cpp:456-503 | Message loading fails if JSON structure differs slightly     | ✅ FIXED |
+  | MSG-4 | Scroll range always locked to (0,0)                      | MessageThread.cpp:207-209    | No scrolling possible regardless of content height           | ✅ FIXED |
+  | MSG-5 | Hard-coded scrollable width breaks on resize             | SmoothScrollable.h:122       | Scroll detection fails on windows wider/narrower than 1388px | ✅ FIXED |
 
   Profile & Authentication
 
-  | ID     | Issue                                                   | File:Line               | Impact                                                           |
-  |--------|---------------------------------------------------------|-------------------------|------------------------------------------------------------------|
-  | PROF-1 | Username change not synced to Stream.io                 | user.go:556-629         | Followers see inconsistent usernames across app                  |
-  | PROF-2 | Profile updates don't sync to Stream.io                 | user.go:458-554         | Chat system and notifications show stale profile data            |
-  | PROF-3 | New user registration doesn't sync profile to Stream.io | auth.go:72-129          | Newly registered users appear with incomplete profiles to others |
-  | PROF-4 | No Stream.io sync when profile picture uploaded         | EditProfile.cpp:544-547 | Avatar shows in plugin but not in web/chat                       |
+  | ID     | Issue                                                   | File:Line               | Impact                                                           | Status |
+  |--------|---------------------------------------------------------|-------------------------|------------------------------------------------------------------|----- --|
+  | PROF-1 | Username change not synced to Stream.io                 | user.go:556-629         | Followers see inconsistent usernames across app                  | ✅ FIXED |
+  | PROF-2 | Profile updates don't sync to Stream.io                 | user.go:458-554         | Chat system and notifications show stale profile data            | ✅ FIXED |
+  | PROF-3 | New user registration doesn't sync profile to Stream.io | auth.go:72-129          | Newly registered users appear with incomplete profiles to others | ✅ FIXED |
+  | PROF-4 | No Stream.io sync when profile picture uploaded         | EditProfile.cpp:544-547 | Avatar shows in plugin but not in web/chat                       | ✅ FIXED |
+  | PROF-5 | Profile updates use wrong ID for Stream.io sync         | user.go:550, 646        | Stream.io user not updated (database ID vs Stream ID)            | ✅ FIXED |
 
   Data Persistence
 
@@ -123,12 +161,12 @@
 
   Conversation Loading
 
-  | ID     | Issue                                 | File:Line                    | Impact                                         |
-  |--------|---------------------------------------|------------------------------|------------------------------------------------|
-  | CHAT-1 | Message editing never sent to backend | MessageThread.cpp:894-905    | Edited messages don't update for others        |
-  | CHAT-2 | Message deletion not implemented      | MessageThread.cpp:907-915    | Can't delete messages                          |
-  | CHAT-3 | Reply threading broken                | MessageThread.cpp:960-969    | Reply parent messages never found              |
-  | CHAT-4 | WebSocket connection race condition   | StreamChatClient.cpp:609-680 | Connection may not be ready when marked active |
+  | ID     | Issue                                 | File:Line                    | Impact                                         | Status |
+  |--------|---------------------------------------|------------------------------|------------------------------------------------|--------|
+  | CHAT-1 | Message editing never sent to backend | MessageThread.cpp:894-905    | Edited messages don't update for others        | ✅ FIXED |
+  | CHAT-2 | Message deletion not implemented      | MessageThread.cpp:907-915    | Can't delete messages                          | ✅ FIXED |
+  | CHAT-3 | Reply threading broken                | MessageThread.cpp:960-969    | Reply parent messages never found              |        |
+  | CHAT-4 | WebSocket connection race condition   | StreamChatClient.cpp:609-680 | Connection may not be ready when marked active |        |
 
   ---
   🟡 MEDIUM PRIORITY BUGS (Feature Incomplete or Data Correctness Issues)
