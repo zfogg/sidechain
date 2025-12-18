@@ -25,7 +25,6 @@ interface PresenceIndicatorProps {
 export function PresenceIndicator({
   userId,
   showLabel = false,
-  showDaw = true,
   size = 'md',
 }: PresenceIndicatorProps) {
   const { data: presence, isLoading } = usePresence(userId)

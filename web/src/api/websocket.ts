@@ -189,17 +189,6 @@ export interface ErrorPayload {
   details?: string
 }
 
-export interface UserTypingPayload {
-  post_id: string
-  user_id: string
-  username: string
-  display_name: string
-}
-
-export interface UserStopTypingPayload {
-  post_id: string
-  user_id: string
-}
 
 export type EventPayload = NewPostPayload | PostLikedPayload | PostUnlikedPayload | PostCommentedPayload |
                    NewCommentPayload | PostSavedPayload | UserFollowedPayload | CommentLikedPayload |

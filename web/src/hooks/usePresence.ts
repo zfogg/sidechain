@@ -38,11 +38,14 @@ export function usePresence(userIds: string | string[] | null | undefined) {
         return {}
       }
 
-      const response = await apiClient.post('/users/presence', {
+      const response = await apiClient.post<{ presence: PresenceResponse }>('/users/presence', {
         user_ids: ids,
       })
 
-      return response.data?.presence || {}
+      if (response.isOk()) {
+        return response.getValue().presence || {}
+      }
+      return {}
     },
     enabled: ids.length > 0,
     staleTime: 30 * 1000, // 30 seconds

@@ -194,13 +194,16 @@ export function useWebSocket() {
       // Handle activity updates (posts, likes, follows, comments)
       if (activityPayload.verb === 'posted' && activityPayload.object_type === 'loop_post') {
         // Create a FeedPost from the activity payload
+        const audioUrl = activityPayload.audio_url || ''
+        const filename = audioUrl.split('/').pop() || 'loop.mp3'
         const newPost = FeedPostModel.fromJson({
           id: activityPayload.object,
           user_id: activityPayload.actor,
           username: activityPayload.actor_name || '',
           display_name: activityPayload.actor_name || '',
-          avatar_url: activityPayload.actor_avatar,
-          audio_url: activityPayload.audio_url || '',
+          user_avatar_url: activityPayload.actor_avatar,
+          audio_url: audioUrl,
+          filename: filename,
           waveform_url: activityPayload.waveform_url || '',
           bpm: activityPayload.bpm || 0,
           key: activityPayload.key,
@@ -209,7 +212,7 @@ export function useWebSocket() {
           like_count: 0,
           comment_count: 0,
           created_at: new Date(activityPayload.timestamp).toISOString(),
-          is_liked_by_me: false,
+          is_liked: false,
           is_following: false,
         })
         // Prepend to affected feeds
