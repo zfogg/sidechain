@@ -498,6 +498,7 @@ func main() {
 	r.Use(gzip.Gzip(gzip.DefaultCompression, gzip.WithExcludedPaths([]string{
 		"/api/v1/ws",         // Don't compress WebSocket connections
 		"/api/v1/ws/connect", // Don't compress WebSocket connections
+		"/metrics",           // Don't compress Prometheus metrics (binary format issue)
 	})))
 
 	// Health check endpoint
