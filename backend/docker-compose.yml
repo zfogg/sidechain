@@ -29,6 +29,13 @@ services:
       JWT_SECRET: "${JWT_SECRET:-dev_jwt_secret_change_in_production}"
       CORS_ORIGINS: "${CORS_ORIGINS:-*}"
 
+      # OAuth
+      OAUTH_REDIRECT_URL: "${OAUTH_REDIRECT_URL:-http://localhost:8787}"
+      GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID}"
+      GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET}"
+      DISCORD_CLIENT_ID: "${DISCORD_CLIENT_ID}"
+      DISCORD_CLIENT_SECRET: "${DISCORD_CLIENT_SECRET}"
+
       # AWS/S3 Storage
       STORAGE_PROVIDER: "${STORAGE_PROVIDER:-local}"
       AWS_REGION: "${AWS_REGION:-us-west-2}"
@@ -36,12 +43,6 @@ services:
       AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID}"
       AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY}"
       CDN_BASE_URL: "${CDN_BASE_URL:-http://localhost:8787}"
-
-      # OAuth
-      GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID}"
-      GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET}"
-      DISCORD_CLIENT_ID: "${DISCORD_CLIENT_ID}"
-      DISCORD_CLIENT_SECRET: "${DISCORD_CLIENT_SECRET}"
 
       # Email (AWS SES)
       SES_FROM_EMAIL: "${SES_FROM_EMAIL:-hi@sidechain.live}"
