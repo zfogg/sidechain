@@ -124,7 +124,6 @@ MessageThread::~MessageThread() {
 void MessageThread::paint(juce::Graphics &g) {
   g.fillAll(juce::Colour(0xff1a1a1a));
   reactionPills.clear();
-  drawHeader(g);
 
   // Get messages from AppStore chat state
   std::vector<StreamChatClient::Message> messages;
@@ -155,11 +154,26 @@ void MessageThread::paint(juce::Graphics &g) {
     }
   }
 
-  // Draw messages from AppStore
+  // Draw messages with clipping to prevent overlap with header/scrollbar
+  int bottomAreaHeight = INPUT_HEIGHT;
+  if (!replyingToMessageId.isEmpty())
+    bottomAreaHeight += REPLY_PREVIEW_HEIGHT;
+  juce::Rectangle<int> clipArea = getLocalBounds()
+                                      .withTrimmedTop(HEADER_HEIGHT)
+                                      .withTrimmedBottom(bottomAreaHeight)
+                                      .withTrimmedRight(scrollBar.getWidth());
+  g.setOrigin(0, 0); // Reset origin for proper clipping
+  g.fillRect(clipArea);
+  g.saveState();
+  g.reduceClipRegion(clipArea);
   drawMessages(g, messages);
+  g.restoreState();
 
   // Draw input area (must be after messages for proper layering)
   drawInputArea(g);
+
+  // Draw header last so it appears on top
+  drawHeader(g);
 
   // If no messages, show placeholder
   if (messages.empty()) {
