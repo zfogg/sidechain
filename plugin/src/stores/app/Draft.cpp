@@ -82,5 +82,48 @@ void AppStore::clearAutoRecoveryDraft() {
   sliceManager.getDraftSlice()->dispatch([](DraftState &state) { state.draftError = ""; });
 }
 
+void AppStore::saveDrafts() {
+  try {
+    auto draftSlice = sliceManager.getDraftSlice();
+    const auto &draftState = draftSlice->getState();
+
+    for (const auto &draft : draftState.drafts) {
+      if (!draft.isObject() || !draft.hasProperty("id")) {
+        continue;
+      }
+
+      try {
+        juce::String draftId = draft.getProperty("id", "").toString();
+        if (draftId.isEmpty()) {
+          continue;
+        }
+
+        // Convert draft to JSON and write to temporary file
+        juce::String draftJson = juce::JSON::toString(draft);
+        juce::File tempFile = juce::File::getSpecialLocation(juce::File::tempDirectory)
+                                  .getChildFile("draft_" + draftId + ".tmp");
+
+        if (!tempFile.replaceWithText(draftJson)) {
+          Util::logWarning("AppStore", "Failed to write draft to temp file: " + draftId);
+          continue;
+        }
+
+        // Cache the draft file
+        DraftKey key(draftId);
+        draftCache.cacheDraftFile(key, tempFile);
+        tempFile.deleteFile();
+
+        Util::logInfo("AppStore", "Saved draft to cache: " + draftId);
+      } catch (const std::exception &e) {
+        Util::logWarning("AppStore", "Failed to save individual draft: " + juce::String(e.what()));
+      }
+    }
+
+    Util::logInfo("AppStore", "Saved " + juce::String(draftState.drafts.size()) + " drafts to cache");
+  } catch (const std::exception &e) {
+    Util::logError("AppStore", "Failed to save drafts: " + juce::String(e.what()));
+  }
+}
+
 } // namespace Stores
 } // namespace Sidechain
