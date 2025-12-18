@@ -18,6 +18,8 @@ add_library(SidechainUtil STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Validate.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Async.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Async.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/TaskScheduler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/TaskScheduler.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Result.h
     ${CMAKE_CURRENT_SOURCE_DIR}/UIHelpers.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/UIHelpers.h
