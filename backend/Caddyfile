@@ -30,8 +30,8 @@
     }
 
     # CORS headers - Caddy pass-through layer
-    # These ensure CORS headers are present even if backend doesn't send them
-    # The backend CORS middleware is the primary handler
+    # These ensure CORS headers are present on all responses including OPTIONS preflight
+    # The backend CORS middleware is the primary handler - Caddy provides fallback headers
     header {
         # Allow requests from the web frontend
         Access-Control-Allow-Origin "https://www.sidechain.live"
