@@ -33,12 +33,12 @@ jobs:
       - name: Start Docker Compose Stack
         run: |
           cd backend
-          docker-compose up -d
+          docker compose up -d
 
           # Wait for all services to be healthy (60 second timeout)
           echo "Waiting for services to be healthy..."
           for i in {1..60}; do
-            HEALTHY=$(docker-compose ps | grep -c "healthy" || true)
+            HEALTHY=$(docker compose ps | grep -c "healthy" || true)
             if [ "$HEALTHY" -ge 4 ]; then
               echo "✅ All services are healthy"
               break
@@ -50,7 +50,7 @@ jobs:
           # List running services
           echo ""
           echo "Running services:"
-          docker-compose ps
+          docker compose ps
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
@@ -85,7 +85,7 @@ jobs:
         if: always()
         run: |
           cd backend
-          docker-compose down -v
+          docker compose down -v
 
       - name: Parse test results
         if: always()
