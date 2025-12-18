@@ -1,7 +1,7 @@
 # Sidechain Backend Makefile
 # Production-ready Go backend with database migrations, testing, and deployment
 
-.PHONY: help install deps build run dev test test-unit test-integration clean docker docker-run docker-dev migrate migrate-up migrate-down lint format
+.PHONY: help install deps build run dev test test-unit test-integration clean docker docker-run docker-dev migrate migrate-up migrate-down lint format build-email-forwarder package-email-forwarder deploy-email-forwarder clean-email-forwarder
 
 # Default target
 help:
@@ -43,6 +43,12 @@ help:
 	@echo "  lint        - Run Go linter (golangci-lint)"
 	@echo "  format      - Format Go code (gofmt + goimports)"
 	@echo "  vet         - Run Go vet"
+	@echo ""
+	@echo "Email Forwarder Lambda:"
+	@echo "  build-email-forwarder    - Build email-forwarder Lambda binary"
+	@echo "  package-email-forwarder  - Package Lambda function (.zip)"
+	@echo "  deploy-email-forwarder   - Deploy Lambda to AWS"
+	@echo "  clean-email-forwarder    - Clean Lambda build artifacts"
 	@echo ""
 	@echo "Cleanup:"
 	@echo "  clean       - Clean build artifacts"
@@ -213,6 +219,30 @@ vet:
 	@echo "🔍 Running go vet..."
 	@go vet ./...
 	@echo "✅ Vet passed"
+
+# Email Forwarder Lambda
+build-email-forwarder:
+	@echo "🔨 Building email-forwarder Lambda..."
+	@cd cmd/email-forwarder && GOOS=linux GOARCH=arm64 go build -o bootstrap main.go
+	@echo "✅ Email-forwarder binary built"
+
+package-email-forwarder: build-email-forwarder
+	@echo "📦 Packaging email-forwarder Lambda..."
+	@cd cmd/email-forwarder && zip lambda.zip bootstrap
+	@echo "✅ Lambda package created: cmd/email-forwarder/lambda.zip"
+
+deploy-email-forwarder: package-email-forwarder
+	@echo "🚀 Deploying email-forwarder Lambda..."
+	@aws lambda update-function-code \
+		--function-name sidechain-email-forwarder \
+		--zip-file fileb://cmd/email-forwarder/lambda.zip \
+		--region us-west-2
+	@echo "✅ Lambda function updated"
+
+clean-email-forwarder:
+	@echo "🧹 Cleaning email-forwarder artifacts..."
+	@rm -f cmd/email-forwarder/bootstrap cmd/email-forwarder/lambda.zip
+	@echo "✅ Email-forwarder cleaned"
 
 # Cleanup
 clean:

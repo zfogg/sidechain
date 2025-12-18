@@ -69,10 +69,11 @@ func (s *Seeder) SeedDev() error {
 		return fmt.Errorf("failed to seed user preferences: %w", err)
 	}
 
-	log("Creating devices...")
-	if err := s.seedDevices(users, 150); err != nil { // 10x: 15 → 150 devices
-		return fmt.Errorf("failed to seed devices: %w", err)
-	}
+	// Device seeding disabled - Device model not defined
+	// log("Creating devices...")
+	// if err := s.seedDevices(users, 150); err != nil { // 10x: 15 → 150 devices
+	// 	return fmt.Errorf("failed to seed devices: %w", err)
+	// }
 
 	// Sync to Gorse if client is available
 	if s.gorse != nil {
@@ -765,6 +766,9 @@ func (s *Seeder) seedUserPreferences(users []models.User) error {
 }
 
 // seedDevices creates device records
+// seedDevices is disabled - Device model not defined
+// TODO: Either define Device model in models package or remove this seeding function
+/*
 func (s *Seeder) seedDevices(users []models.User, count int) error {
 	if len(users) == 0 {
 		return nil
@@ -797,6 +801,7 @@ func (s *Seeder) seedDevices(users []models.User, count int) error {
 	fmt.Printf("    Created %d devices\n", count)
 	return nil
 }
+*/
 
 // generateWaveformPlaceholderURL generates a placeholder waveform URL for seed data
 func generateWaveformPlaceholderURL() string {
