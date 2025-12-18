@@ -1698,7 +1698,7 @@ void PostsFeed::resized() {
   if (commentsPanel != nullptr && commentsPanelVisible) {
     // Animation callback will update position, but ensure initial position is
     // set
-    if (!commentsPanelAnimation || currentCommentsPanelSlide >= 1.0f) {
+    if (!commentsPanelAnimationHandle.isValid() || currentCommentsPanelSlide >= 1.0f) {
       int panelWidth = juce::jmin(400, static_cast<int>(getWidth() * 0.4));
       commentsPanel->setBounds(getWidth() - panelWidth, 0, panelWidth, getHeight());
     }
@@ -1725,17 +1725,16 @@ void PostsFeed::mouseWheelMove(const juce::MouseEvent & /*event*/, const juce::M
   targetScrollPosition = juce::jlimit(0.0, maxScrollPos, scrollPosition - scrollAmount);
 
   // Create smooth scroll animation (200ms duration)
-  scrollAnimation = Sidechain::UI::Animations::TransitionAnimation<double>::create(
-                       scrollPosition, targetScrollPosition, 200)
-                       ->withEasing(Sidechain::UI::Animations::Easing::easeOutQuad)
-                       ->onProgress([this](const double &newValue) {
-                         scrollPosition = newValue;
-                         scrollBar.setCurrentRangeStart(scrollPosition);
-                         checkLoadMore();
-                         repaint();
-                       })
-                       ->start();
-  // Note: Animation manages its own timer internally
+  auto scrollAnim = Sidechain::UI::Animations::TransitionAnimation<double>::create(
+                        scrollPosition, targetScrollPosition, 200)
+                        ->withEasing(Sidechain::UI::Animations::Easing::easeOutQuad)
+                        ->onProgress([this](const double &newValue) {
+                          scrollPosition = newValue;
+                          scrollBar.setCurrentRangeStart(scrollPosition);
+                          checkLoadMore();
+                          repaint();
+                        });
+  scrollAnimationHandle = Sidechain::UI::Animations::AnimationController::getInstance().schedule(scrollAnim, this);
 }
 
 void PostsFeed::updateScrollBounds() {
@@ -1762,15 +1761,15 @@ void PostsFeed::updateScrollBounds() {
   if (contentGrew && userNearBottom) {
     // Scroll to middle of new content
     targetScrollPosition = maxScrollPosition / 2.0;
-    scrollAnimation = Sidechain::UI::Animations::TransitionAnimation<double>::create(
-                         scrollPosition, targetScrollPosition, 150)
-                         ->withEasing(Sidechain::UI::Animations::Easing::easeOutQuad)
-                         ->onProgress([this](const double &newValue) {
-                           scrollPosition = newValue;
-                           scrollBar.setCurrentRangeStart(scrollPosition);
-                           repaint();
-                         })
-                         ->start();
+    auto scrollAnim2 = Sidechain::UI::Animations::TransitionAnimation<double>::create(
+                           scrollPosition, targetScrollPosition, 150)
+                           ->withEasing(Sidechain::UI::Animations::Easing::easeOutQuad)
+                           ->onProgress([this](const double &newValue) {
+                             scrollPosition = newValue;
+                             scrollBar.setCurrentRangeStart(scrollPosition);
+                             repaint();
+                           });
+    scrollAnimationHandle = Sidechain::UI::Animations::AnimationController::getInstance().schedule(scrollAnim2, this);
   }
 
   totalContentHeight = newTotalHeight;
@@ -1814,7 +1813,6 @@ void PostsFeed::mouseUp(const juce::MouseEvent &event) {
       refreshFeed();
       pendingNewPostsCount = 0;
       showingNewPostsToast = false;
-      stopTimer();
       repaint();
       return;
     }
@@ -2021,9 +2019,9 @@ void PostsFeed::showCommentsForPost(const FeedPost &post) {
   commentsPanel->setVisible(true);
   commentsPanelVisible = true;
 
-  // Create and start slide-in animation
+  // Create and start slide-in animation via AnimationController
   currentCommentsPanelSlide = 0.0f;
-  commentsPanelAnimation = TransitionAnimation<float>::create(0.0f, 1.0f, 250)
+  auto commentsPanelAnim = TransitionAnimation<float>::create(0.0f, 1.0f, 250)
                                ->withEasing(Easing::easeOutCubic)
                                ->onProgress([this](float slideProgress) {
                                  if (commentsPanel != nullptr) {
@@ -2034,8 +2032,8 @@ void PostsFeed::showCommentsForPost(const FeedPost &post) {
                                    commentsPanel->setBounds(targetX, 0, slidePanelWidth, getHeight());
                                  }
                                  repaint();
-                               })
-                               ->start();
+                               });
+  commentsPanelAnimationHandle = Sidechain::UI::Animations::AnimationController::getInstance().schedule(commentsPanelAnim, this);
 
   // Bring to front
   commentsPanel->toFront(true);
@@ -2141,38 +2139,34 @@ void PostsFeed::showNewPostsToast(int count) {
 
   showingNewPostsToast = true;
 
-  // Fade in toast (0.0 to 1.0 opacity over 200ms)
-  toastAnimation = TransitionAnimation<float>::create(0.0f, 1.0f, 200)
-                       ->withEasing(Easing::easeOutCubic)
-                       ->onProgress([this](float opacity) {
-                         currentToastOpacity = opacity;
-                         repaint();
-                       })
-                       ->start();
+  // Fade in toast (0.0 to 1.0 opacity over 200ms) via AnimationController
+  auto toastFadeIn = TransitionAnimation<float>::create(0.0f, 1.0f, 200)
+                         ->withEasing(Easing::easeOutCubic)
+                         ->onProgress([this](float opacity) {
+                           currentToastOpacity = opacity;
+                           repaint();
+                         });
+  toastAnimationHandle = Sidechain::UI::Animations::AnimationController::getInstance().schedule(toastFadeIn, this);
 
   // Schedule fade-out after 3 seconds
   juce::Timer::callAfterDelay(3000, [this]() {
     if (!showingNewPostsToast)
       return; // Toast was manually hidden
 
-    // Fade out toast (1.0 to 0.0 opacity over 200ms)
-    toastAnimation = TransitionAnimation<float>::create(1.0f, 0.0f, 200)
-                         ->withEasing(Easing::easeOutCubic)
-                         ->onProgress([this](float opacity) {
-                           currentToastOpacity = opacity;
-                           repaint();
-                         })
-                         ->onComplete([this]() {
-                           showingNewPostsToast = false;
-                           repaint();
-                         })
-                         ->start();
+    // Fade out toast (1.0 to 0.0 opacity over 200ms) via AnimationController
+    auto toastFadeOut = TransitionAnimation<float>::create(1.0f, 0.0f, 200)
+                            ->withEasing(Easing::easeOutCubic)
+                            ->onProgress([this](float opacity) {
+                              currentToastOpacity = opacity;
+                              repaint();
+                            });
+    toastAnimationHandle = Sidechain::UI::Animations::AnimationController::getInstance().schedule(toastFadeOut, this);
+    Sidechain::UI::Animations::AnimationController::getInstance().onCompletion(
+        toastAnimationHandle, [this]() {
+          showingNewPostsToast = false;
+          repaint();
+        });
   });
-}
-
-void PostsFeed::timerCallback() {
-  // Scroll animation is managed internally by TransitionAnimation
-  // This timer callback is available for other timing needs if needed
 }
 
 //==============================================================================
