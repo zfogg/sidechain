@@ -70,7 +70,7 @@ public:
   // State Queries
 
   bool isPlaying() const {
-    return playing;
+    return playing.load(std::memory_order_acquire);
   }
   bool hasBuffer() const;
 

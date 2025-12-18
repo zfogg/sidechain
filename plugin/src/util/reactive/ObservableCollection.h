@@ -172,7 +172,8 @@ public:
     if (!observer)
       return []() {};
 
-    auto id = reinterpret_cast<uintptr_t>(&observer);
+    static std::atomic<uint64_t> nextId{0};
+    auto id = nextId.fetch_add(1, std::memory_order_relaxed);
     {
       std::lock_guard<std::mutex> lock(mutex);
       itemAddedObservers.push_back({id, observer});
@@ -194,7 +195,8 @@ public:
     if (!observer)
       return []() {};
 
-    auto id = reinterpret_cast<uintptr_t>(&observer);
+    static std::atomic<uint64_t> nextId{0};
+    auto id = nextId.fetch_add(1, std::memory_order_relaxed);
     {
       std::lock_guard<std::mutex> lock(mutex);
       itemRemovedObservers.push_back({id, observer});
@@ -216,7 +218,8 @@ public:
     if (!observer)
       return []() {};
 
-    auto id = reinterpret_cast<uintptr_t>(&observer);
+    static std::atomic<uint64_t> nextId{0};
+    auto id = nextId.fetch_add(1, std::memory_order_relaxed);
     {
       std::lock_guard<std::mutex> lock(mutex);
       itemChangedObservers.push_back({id, observer});
@@ -238,7 +241,8 @@ public:
     if (!observer)
       return []() {};
 
-    auto id = reinterpret_cast<uintptr_t>(&observer);
+    static std::atomic<uint64_t> nextId{0};
+    auto id = nextId.fetch_add(1, std::memory_order_relaxed);
     {
       std::lock_guard<std::mutex> lock(mutex);
       collectionChangedObservers.push_back({id, observer});
@@ -329,9 +333,10 @@ public:
         filtered->removeItem(oldItem);
       else if (!oldMatches && newMatches)
         filtered->add(newItem);
-      else if (oldMatches && newMatches && oldItem != newItem)
+      else if (oldMatches && newMatches && oldItem != newItem) {
         filtered->removeItem(oldItem);
-      filtered->add(newItem);
+        filtered->add(newItem);
+      }
     });
 
     return filtered;
@@ -352,10 +357,10 @@ private:
   mutable std::mutex mutex;
   bool batchMode = false;
 
-  std::vector<std::pair<uintptr_t, ItemAddedObserver>> itemAddedObservers;
-  std::vector<std::pair<uintptr_t, ItemRemovedObserver>> itemRemovedObservers;
-  std::vector<std::pair<uintptr_t, ItemChangedObserver>> itemChangedObservers;
-  std::vector<std::pair<uintptr_t, CollectionChangedObserver>> collectionChangedObservers;
+  std::vector<std::pair<uint64_t, ItemAddedObserver>> itemAddedObservers;
+  std::vector<std::pair<uint64_t, ItemRemovedObserver>> itemRemovedObservers;
+  std::vector<std::pair<uint64_t, ItemChangedObserver>> itemChangedObservers;
+  std::vector<std::pair<uint64_t, CollectionChangedObserver>> collectionChangedObservers;
 
   void notifyItemAdded(int index, const T &item) {
     if (batchMode)
@@ -547,7 +552,8 @@ public:
     if (!observer)
       return []() {};
 
-    auto id = reinterpret_cast<uintptr_t>(&observer);
+    static std::atomic<uint64_t> nextId{0};
+    auto id = nextId.fetch_add(1, std::memory_order_relaxed);
     {
       std::lock_guard<std::mutex> lock(mutex);
       itemAddedObservers.push_back({id, observer});
@@ -569,7 +575,8 @@ public:
     if (!observer)
       return []() {};
 
-    auto id = reinterpret_cast<uintptr_t>(&observer);
+    static std::atomic<uint64_t> nextId{0};
+    auto id = nextId.fetch_add(1, std::memory_order_relaxed);
     {
       std::lock_guard<std::mutex> lock(mutex);
       itemRemovedObservers.push_back({id, observer});
@@ -591,7 +598,8 @@ public:
     if (!observer)
       return []() {};
 
-    auto id = reinterpret_cast<uintptr_t>(&observer);
+    static std::atomic<uint64_t> nextId{0};
+    auto id = nextId.fetch_add(1, std::memory_order_relaxed);
     {
       std::lock_guard<std::mutex> lock(mutex);
       itemChangedObservers.push_back({id, observer});
@@ -612,9 +620,9 @@ private:
   std::map<K, V> items;
   mutable std::mutex mutex;
 
-  std::vector<std::pair<uintptr_t, ItemAddedObserver>> itemAddedObservers;
-  std::vector<std::pair<uintptr_t, ItemRemovedObserver>> itemRemovedObservers;
-  std::vector<std::pair<uintptr_t, ItemChangedObserver>> itemChangedObservers;
+  std::vector<std::pair<uint64_t, ItemAddedObserver>> itemAddedObservers;
+  std::vector<std::pair<uint64_t, ItemRemovedObserver>> itemRemovedObservers;
+  std::vector<std::pair<uint64_t, ItemChangedObserver>> itemChangedObservers;
 
   void notifyItemAdded(const K &key, const V &value) {
     std::vector<ItemAddedObserver> observers;

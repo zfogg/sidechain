@@ -176,7 +176,10 @@ void WebSocketClient::cleanupClient() {
       // Give it a moment to finish
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
       if (asioThread->joinable()) {
-        asioThread->detach(); // Detach if still running after timeout
+        // Thread is still running - attempt to join with a timeout
+        // Note: std::thread doesn't support timed join, so we accept some resource usage
+        // The thread will eventually finish when the client is destroyed
+        Log::warn("WebSocket: ASIO thread still running during cleanup");
       }
       asioThread.reset();
     }

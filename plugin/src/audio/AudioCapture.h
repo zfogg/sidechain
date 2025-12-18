@@ -306,7 +306,7 @@ private:
 
   // RMS calculation state (audio thread only)
   float rmsSums[MaxChannels] = {0.0f, 0.0f};
-  int rmsSampleCount = 0;
+  int rmsSampleCounts[MaxChannels] = {0, 0};
   static constexpr int RMSWindowSamples = 2048; // ~46ms @ 44.1kHz
 
   //==============================================================================

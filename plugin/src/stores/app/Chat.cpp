@@ -59,9 +59,13 @@ void AppStore::sendMessage(const juce::String &channelId, const juce::String &te
   // This will eventually call streamChatClient->sendMessage internally
   // For now, we'll implement basic message storage
 
-  // Create a new message object
-  juce::var msgObj(new juce::DynamicObject());
-  auto *obj = msgObj.getDynamicObject();
+  // Create a new message object using direct construction
+  auto obj = std::make_unique<juce::DynamicObject>();
+  if (!obj) {
+    Log::error("AppStore::sendMessage: Failed to create message object");
+    return;
+  }
+  juce::var msgObj(obj.get());
   obj->setProperty("id", juce::Uuid().toString());
   obj->setProperty("text", text);
   obj->setProperty("user_id", getState().user.userId);

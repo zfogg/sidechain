@@ -49,7 +49,8 @@ void AudioCapture::startRecording(const juce::String &recordingId) {
   resetLevels();
   rmsSums[0] = 0.0f;
   rmsSums[1] = 0.0f;
-  rmsSampleCount = 0;
+  rmsSampleCounts[0] = 0;
+  rmsSampleCounts[1] = 0;
 
   // Reset position and start recording (order matters for thread safety)
   recordingPosition.store(0);
@@ -95,11 +96,11 @@ juce::AudioBuffer<float> AudioCapture::stopRecording() {
 
 //==============================================================================
 void AudioCapture::captureAudio(const juce::AudioBuffer<float> &buffer) {
-  // Fast exit if not recording (atomic read)
-  if (!recording.load(std::memory_order_relaxed))
+  // Fast exit if not recording (atomic read with acquire for synchronization)
+  if (!recording.load(std::memory_order_acquire))
     return;
 
-  int currentPos = recordingPosition.load(std::memory_order_relaxed);
+  int currentPos = recordingPosition.load(std::memory_order_acquire);
 
   // Check if we've reached the max
   if (currentPos >= maxRecordingSamples)
@@ -117,8 +118,8 @@ void AudioCapture::captureAudio(const juce::AudioBuffer<float> &buffer) {
       recordingBuffer.copyFrom(channel, currentPos, buffer, channel, 0, samplesToWrite);
     }
 
-    // Update position atomically
-    recordingPosition.store(currentPos + samplesToWrite, std::memory_order_relaxed);
+    // Update position atomically (release semantics for audio thread -> UI thread visibility)
+    recordingPosition.store(currentPos + samplesToWrite, std::memory_order_release);
   }
 
   // Update level meters (always, even when buffer is full)
@@ -152,20 +153,18 @@ void AudioCapture::updateLevels(const juce::AudioBuffer<float> &buffer, int numS
       peakLevels[channel].store(currentPeak * decay, std::memory_order_relaxed);
     }
 
-    // Accumulate RMS
+    // Accumulate RMS (per-channel)
     rmsSums[channel] += sumSquares;
-    rmsSampleCount += numSamples;
+    rmsSampleCounts[channel] += numSamples;
 
-    // Update RMS when we have enough samples
-    if (rmsSampleCount >= RMSWindowSamples) {
-      float rms = std::sqrt(rmsSums[channel] / static_cast<float>(rmsSampleCount));
+    // Update RMS when we have enough samples for this channel
+    if (rmsSampleCounts[channel] >= RMSWindowSamples) {
+      float rms = std::sqrt(rmsSums[channel] / static_cast<float>(rmsSampleCounts[channel]));
       rmsLevels[channel].store(rms, std::memory_order_relaxed);
 
-      // Reset accumulators
+      // Reset accumulators for this channel
       rmsSums[channel] = 0.0f;
-      if (channel == numChannels - 1) {
-        rmsSampleCount = 0;
-      }
+      rmsSampleCounts[channel] = 0;
     }
   }
 }
