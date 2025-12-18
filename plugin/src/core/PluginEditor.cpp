@@ -2429,6 +2429,16 @@ void SidechainAudioProcessorEditor::sendTestMessageOnStartup() {
         juce::Timer::callAfterDelay(500, [this, channelType, channelId]() {
           Log::info("sendTestMessageOnStartup: 🎯 Opening message thread to display conversation");
           showMessageThread(channelType, channelId);
+
+          // After opening, simulate a send button click to test the full flow
+          juce::Timer::callAfterDelay(1000, [this]() {
+            Log::info("sendTestMessageOnStartup: Simulating send button click - calling sendTestMessage()");
+            if (messageThreadComponent) {
+              messageThreadComponent->sendTestMessage("[TEST] Send button clicked - message from UI");
+            } else {
+              Log::error("sendTestMessageOnStartup: messageThreadComponent is null!");
+            }
+          });
         });
       });
 }
