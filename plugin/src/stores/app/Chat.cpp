@@ -101,7 +101,8 @@ void AppStore::sendMessage(const juce::String &channelId, const juce::String &te
   Log::info("AppStore::sendMessage - ✓ Message object created successfully");
 
   Log::info("AppStore::sendMessage - Sending message to Stream.io via StreamChatClient");
-  streamChatClient->sendMessage("messaging", channelId, text, [this, channelId, msgObj, messageId](const Outcome<void> &result) {
+  juce::var extraData;
+  streamChatClient->sendMessage("messaging", channelId, text, extraData, [this, channelId, msgObj, messageId](const Outcome<StreamChatClient::Message> &result) {
     if (!result.isOk()) {
       Log::error("AppStore::sendMessage - ERROR: Failed to send message to Stream.io: " + result.getError());
       // Still add to local state for optimistic UI, but flag as failed
