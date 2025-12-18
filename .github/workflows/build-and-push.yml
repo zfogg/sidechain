@@ -39,8 +39,8 @@ jobs:
           git fetch origin main
           git reset --hard origin/main
           git checkout origin/main
-          echo "🔨 Building Docker image with resource limits..."
-          docker build --memory=1g --memory-swap=1g --cpus="1" -t zfogg/sidechain-backend:latest .
+          echo "🔨 Building Docker image..."
+          docker build -t zfogg/sidechain-backend:latest .
           echo "✅ Docker image built successfully"
           echo "🚀 Restarting all services..."
           docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
