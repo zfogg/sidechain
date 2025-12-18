@@ -24,34 +24,33 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: sidechain
-          POSTGRES_PASSWORD: test_password
-          POSTGRES_DB: sidechain_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5433:5432
-
-      redis:
-        image: redis/redis-stack-server:latest
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 6380:6379
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Start Docker Compose Stack
+        run: |
+          cd backend
+          docker-compose up -d
+
+          # Wait for all services to be healthy (60 second timeout)
+          echo "Waiting for services to be healthy..."
+          for i in {1..60}; do
+            HEALTHY=$(docker-compose ps | grep -c "healthy" || true)
+            if [ "$HEALTHY" -ge 4 ]; then
+              echo "✅ All services are healthy"
+              break
+            fi
+            echo "Waiting... ($i/60)"
+            sleep 1
+          done
+
+          # List running services
+          echo ""
+          echo "Running services:"
+          docker-compose ps
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
@@ -64,65 +63,6 @@ jobs:
           node-version: '20'
           cache: 'pnpm'
           cache-dependency-path: web/pnpm-lock.yaml
-
-      - name: Setup Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: '1.21'
-          cache: true
-          cache-dependency-path: backend/go.sum
-
-      - name: Build backend
-        run: |
-          cd backend
-          go build -o /tmp/sidechain-backend cmd/server/main.go
-        env:
-          CGO_ENABLED: 0
-          GOOS: linux
-
-      - name: Start backend server
-        run: |
-          export DATABASE_URL="postgres://sidechain:test_password@localhost:5433/sidechain_test"
-          export PORT=8787
-          export ENVIRONMENT=test
-          export JWT_SECRET=test_jwt_secret
-          export REDIS_URL=redis://localhost:6380
-          export STREAM_API_KEY=test_key
-          export STREAM_API_SECRET=test_secret
-          /tmp/sidechain-backend &
-          sleep 5
-
-          # Verify backend is running
-          for i in {1..30}; do
-            if curl -f http://localhost:8787/health > /dev/null 2>&1; then
-              echo "✅ Backend is healthy"
-              exit 0
-            fi
-            echo "Waiting for backend... ($i/30)"
-            sleep 1
-          done
-          echo "❌ Backend failed to start"
-          exit 1
-        env:
-          DATABASE_URL: postgres://sidechain:test_password@localhost:5433/sidechain_test
-          PORT: 8787
-          ENVIRONMENT: test
-          JWT_SECRET: test_jwt_secret
-          REDIS_URL: redis://localhost:6380
-
-      - name: Run database migrations
-        run: |
-          cd backend
-          go run -mod=mod cmd/migrate/main.go up
-        env:
-          DATABASE_URL: postgres://sidechain:test_password@localhost:5433/sidechain_test
-
-      - name: Seed test database
-        run: |
-          cd backend
-          go run -mod=mod cmd/seed/main.go test
-        env:
-          DATABASE_URL: postgres://sidechain:test_password@localhost:5433/sidechain_test
 
       - name: Install web dependencies
         run: |
@@ -140,7 +80,12 @@ jobs:
           npx playwright test
         env:
           BACKEND_URL: http://localhost:8787
-          DATABASE_URL: postgres://sidechain:test_password@localhost:5433/sidechain_test
+
+      - name: Stop Docker Compose Stack
+        if: always()
+        run: |
+          cd backend
+          docker-compose down -v
 
       - name: Parse test results
         if: always()
