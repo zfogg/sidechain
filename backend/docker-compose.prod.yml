@@ -131,6 +131,7 @@ services:
     restart: unless-stopped
     environment:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - DATABASE_URL=postgres://${POSTGRES_USER:-sidechain}:${POSTGRES_PASSWORD}@postgres:5432/gorse?sslmode=disable
     volumes:
       - ./gorse.toml:/etc/gorse/config.toml:ro
     depends_on:
