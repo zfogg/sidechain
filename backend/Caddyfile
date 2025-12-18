@@ -50,12 +50,29 @@ grafana.sidechain.live {
     # Enable HTTPS with Let's Encrypt
     tls {$LETSENCRYPT_EMAIL:admin@example.com}
 
-    # Proxy to Grafana
+    # Proxy to Grafana with health checks and retry
     reverse_proxy grafana:3000 {
+        # Health check configuration
+        health_uri /api/health
+        health_interval 10s
+        health_status 200
+        health_passes 1
+        health_fails 3
+
+        # Connection timeout and keepalive
+        transport http {
+            dial_timeout 5s
+            response_header_timeout 10s
+            expect_continue_timeout 2s
+        }
+
         # Preserve original request info
         header_up X-Forwarded-For {http.request.header.X-Forwarded-For}
         header_up X-Forwarded-Proto {http.request.proto}
         header_up X-Forwarded-Host {http.request.host}
+
+        # Grafana expects this header for HTTPS requests
+        header_up X-Forwarded-Port "443"
     }
 
     # Security headers
@@ -78,12 +95,27 @@ prometheus.sidechain.live {
     # Enable HTTPS with Let's Encrypt
     tls {$LETSENCRYPT_EMAIL:admin@example.com}
 
-    # Proxy to Prometheus
+    # Proxy to Prometheus with health checks and retry
     reverse_proxy prometheus:9090 {
+        # Health check configuration
+        health_uri /-/healthy
+        health_interval 10s
+        health_status 200
+        health_passes 1
+        health_fails 3
+
+        # Connection timeout and keepalive
+        transport http {
+            dial_timeout 5s
+            response_header_timeout 10s
+            expect_continue_timeout 2s
+        }
+
         # Preserve original request info
         header_up X-Forwarded-For {http.request.header.X-Forwarded-For}
         header_up X-Forwarded-Proto {http.request.proto}
         header_up X-Forwarded-Host {http.request.host}
+        header_up X-Forwarded-Port "443"
     }
 
     # Security headers
