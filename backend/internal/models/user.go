@@ -663,6 +663,10 @@ func (p *AudioPost) BeforeCreate(tx *gorm.DB) error {
 	if p.ID == "" {
 		p.ID = generateUUID()
 	}
+	// StreamActivityID has a unique index - generate if not provided
+	if p.StreamActivityID == "" {
+		p.StreamActivityID = generateUUID()
+	}
 	return nil
 }
 
