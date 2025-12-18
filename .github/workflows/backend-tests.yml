@@ -35,52 +35,38 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.22'
-          cache-dependency-path: backend/go.mod
-
       - name: Start Docker Compose Services
         run: |
           cd backend
           docker-compose up -d
 
-          # Wait for all services to be healthy
+          # Wait for all services to be healthy (30 second timeout)
           echo "Waiting for services to be healthy..."
           for i in {1..30}; do
-            if docker-compose ps | grep -q "healthy"; then
-              echo "Services are healthy"
+            HEALTHY=$(docker-compose ps | grep -c "healthy" || true)
+            if [ "$HEALTHY" -ge 4 ]; then
+              echo "✅ Services are healthy"
               break
             fi
             echo "Waiting... ($i/30)"
-            sleep 2
+            sleep 1
           done
 
           # List running services
+          echo ""
+          echo "Running services:"
           docker-compose ps
 
-      - name: Build Backend
+      - name: Run Backend Tests in Docker
         run: |
           cd backend
-          go mod tidy
-          go build -o bin/sidechain-server cmd/server/main.go
+          docker-compose exec -T backend sh -c 'go test ./... -v -race -coverprofile=coverage.out -covermode=atomic' > test-results.txt 2>&1 || true
 
-      - name: Run Tests with Coverage and JUnit
-        env:
-          POSTGRES_HOST: localhost
-          POSTGRES_PORT: 5432
-          POSTGRES_USER: sidechain
-          POSTGRES_PASSWORD: sidechain_dev_password
-          POSTGRES_DB: sidechain
-          JWT_SECRET: test_jwt_secret_for_ci
-          GORSE_URL: http://localhost:8088
-          GORSE_API_KEY: sidechain_gorse_api_key
-          OAUTH_REDIRECT_URL: http://localhost:8787
+      - name: Convert to JUnit Format
         run: |
           cd backend
           go install github.com/jstemmer/go-junit-report/v2@latest
-          go test ./... -v -race -coverprofile=coverage.out -covermode=atomic 2>&1 | go-junit-report -set-exit-code > test-results.xml
+          cat test-results.txt | go-junit-report -set-exit-code > test-results.xml
 
       - name: Stop Docker Compose Services
         if: always()
