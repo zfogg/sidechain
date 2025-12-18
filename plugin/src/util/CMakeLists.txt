@@ -46,9 +46,8 @@ add_library(SidechainUtil STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/cache/DraftCache.h
     ${CMAKE_CURRENT_SOURCE_DIR}/error/ErrorTracking.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/error/ErrorTracking.h
-    # TODO: PresenceManager needs websocketpp dependency, move to core target
-    # ${CMAKE_CURRENT_SOURCE_DIR}/PresenceManager.cpp
-    # ${CMAKE_CURRENT_SOURCE_DIR}/PresenceManager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/PresenceManager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/PresenceManager.h
 )
 
 # Include directories - use source root so includes work as "util/Log.h"
@@ -59,6 +58,9 @@ target_include_directories(SidechainUtil PUBLIC
 # Link JuceHeader target to get generated header (generated during CMake config)
 target_link_libraries(SidechainUtil PUBLIC SidechainJuceHeader)
 # Header generation happens during CMake configuration, not build
+
+# Link to SidechainNetwork for PresenceManager (which uses StreamChatClient)
+target_link_libraries(SidechainUtil PUBLIC SidechainNetwork)
 
 # Link JUCE core modules (minimal dependencies)
 target_link_libraries(SidechainUtil PUBLIC
