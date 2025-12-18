@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <memory>
+#include <shared_mutex>
 #include <string>
 
 namespace Sidechain {
@@ -124,18 +125,18 @@ public:
 
   void dispatch(const typename StateSlice<StateType>::Action &action) override {
     std::unique_lock<std::shared_mutex> lock(stateMutex_);
-    StateType newState = state_;
-    action(newState);
+    action(state_);
+    lock.unlock();
 
-    // Only notify subscribers if state actually changed
-    // (Requires StateType to support operator==)
-    if (!(state_ == newState)) {
-      state_ = newState;
-      lock.unlock();
+    // Always notify subscribers on dispatch (Redux pattern)
+    // Action handlers are responsible for only modifying state when needed
+    {
+      std::shared_lock<std::shared_mutex> readLock(stateMutex_);
+      StateType currentState = state_;
+      readLock.unlock();
 
-      // Notify subscribers outside of lock
       for (const auto &callback : subscribers_) {
-        callback(state_);
+        callback(currentState);
       }
     }
   }
