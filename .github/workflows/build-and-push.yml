@@ -9,8 +9,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-push:
-    name: Build Docker Image on GitHub Runner
+  deploy-backend:
+    name: Deploy Backend to production via SSH
     runs-on: ubuntu-latest
     permissions:
       contents: read
