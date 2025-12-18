@@ -12,6 +12,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"
 	"github.com/zfogg/sidechain/backend/internal/alerts"
@@ -24,6 +25,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/email"
 	"github.com/zfogg/sidechain/backend/internal/handlers"
 	"github.com/zfogg/sidechain/backend/internal/logger"
+	"github.com/zfogg/sidechain/backend/internal/metrics"
 	"github.com/zfogg/sidechain/backend/internal/middleware"
 	"github.com/zfogg/sidechain/backend/internal/models" // Used for NotificationPreferencesChecker
 	"github.com/zfogg/sidechain/backend/internal/recommendations"
@@ -432,6 +434,10 @@ func main() {
 		authHandlers.SetSearchClient(baseSearchClient) // Enable search functionality
 	}
 
+	// Initialize Prometheus metrics
+	metrics.Initialize()
+	logger.Log.Info("Prometheus metrics initialized")
+
 	// Setup Gin router - use gin.New() instead of gin.Default() to control middleware
 	r := gin.New()
 
@@ -441,8 +447,9 @@ func main() {
 	// connection hijacking. See the http.Server Handler setup below.
 
 	// Standard Gin middleware
-	r.Use(middleware.RequestIDMiddleware())  // Add request ID tracking
-	r.Use(middleware.GinLoggerMiddleware())  // Structured logging
+	r.Use(middleware.RequestIDMiddleware())   // Add request ID tracking
+	r.Use(middleware.MetricsMiddleware())     // Prometheus metrics collection
+	r.Use(middleware.GinLoggerMiddleware())   // Structured logging
 	r.Use(gin.Recovery())
 
 	// Gzip compression middleware (compress responses > 1KB)
@@ -466,6 +473,9 @@ func main() {
 			"service":   "sidechain-backend",
 		})
 	})
+
+	// Prometheus metrics endpoint
+	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	// API routes
 	api := r.Group("/api/v1")

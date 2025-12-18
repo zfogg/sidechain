@@ -1,0 +1,39 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'sidechain'
+    environment: 'development'
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+rule_files: []
+
+scrape_configs:
+  - job_name: 'sidechain-backend'
+    static_configs:
+      - targets: ['localhost:8787']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['localhost:6379']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['localhost:5432']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
