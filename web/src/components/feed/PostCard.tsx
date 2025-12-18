@@ -105,8 +105,8 @@ export function PostCard({ post }: PostCardProps) {
     } else {
       playerRef.current.play()
       setIsPlaying(true)
-      // Track play event
-      trackPlay(post.id)
+      // Track play event with duration
+      trackPlay(post.id, duration)
     }
   }
 

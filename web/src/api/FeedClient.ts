@@ -91,8 +91,11 @@ export class FeedClient {
   /**
    * Track play event
    */
-  static async trackPlay(postId: string): Promise<Outcome<void>> {
-    return apiClient.post(`/posts/${postId}/play`, {});
+  static async trackPlay(postId: string, duration: number = 0, completed: boolean = false): Promise<Outcome<void>> {
+    return apiClient.post(`/posts/${postId}/play`, {
+      duration, // Seconds listened
+      completed, // Whether user listened to the full track
+    });
   }
 
   /**
