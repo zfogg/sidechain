@@ -452,54 +452,29 @@ void StreamChatClient::queryMessages(const juce::String &channelType, const juce
 
         std::vector<Message> messages;
 
-        // Get the raw response JSON string to work around JUCE JSON parsing issues with large objects
-        juce::String rawResponseStr = juce::JSON::toString(response);
-        if (rawResponseStr.contains("\"messages\"")) {
-          Log::debug("Raw response contains 'messages' field");
-        } else {
-          Log::debug("WARNING: Raw response does NOT contain 'messages' field");
-        }
+        // Parse response using proper JSON object access instead of string manipulation
+        if (response.isObject()) {
+          auto messagesVar = response["messages"];
 
-        // Extract messages from raw JSON response (work around JUCE JSON parsing limitation)
-        int messagesStart = rawResponseStr.indexOf(0, "\"messages\":");
-        if (messagesStart >= 0) {
-          // Find the opening bracket after "messages":
-          int arrayStart = rawResponseStr.indexOf(messagesStart, "[");
-          if (arrayStart >= 0) {
-            // Find the closing bracket with simple bracket counting
-            int bracketCount = 1;
-            int arrayEnd = arrayStart + 1;
-            while (arrayEnd < rawResponseStr.length() && bracketCount > 0) {
-              char ch = rawResponseStr[arrayEnd];
-              if (ch == '[') bracketCount++;
-              else if (ch == ']') bracketCount--;
-              if (bracketCount > 0) arrayEnd++;
-            }
+          if (!messagesVar.isVoid() && messagesVar.isArray()) {
+            auto messagesArray = messagesVar.getArray();
+            Log::debug("StreamChatClient::queryMessages - found " + juce::String(messagesArray->size()) + " messages");
 
-            if (bracketCount == 0) {
-              // Extract the messages array JSON
-              juce::String messagesJsonStr = rawResponseStr.substring(arrayStart, arrayEnd + 1);
-              Log::debug("StreamChatClient::queryMessages - extracted messages JSON (length: " + juce::String(messagesJsonStr.length()) + ")");
-
-              // Parse the messages array
-              auto messagesArray = juce::JSON::parse(messagesJsonStr);
-              if (messagesArray.isArray()) {
-                Log::debug("StreamChatClient::queryMessages - found " + juce::String(messagesArray.getArray()->size()) + " messages");
-                for (int i = 0; i < messagesArray.getArray()->size(); i++) {
-                  auto messageData = messagesArray.getArray()->getReference(i);
-                  messages.push_back(parseMessage(messageData));
-                }
+            for (int i = 0; i < messagesArray->size(); i++) {
+              auto messageData = messagesArray->getReference(i);
+              if (messageData.isObject()) {
+                messages.push_back(parseMessage(messageData));
               } else {
-                Log::debug("WARNING: Extracted JSON is not an array");
+                Log::warn("StreamChatClient::queryMessages - message at index " + juce::String(i) + " is not an object");
               }
-            } else {
-              Log::debug("WARNING: Could not find matching ] bracket for messages array");
             }
+          } else if (messagesVar.isVoid()) {
+            Log::debug("StreamChatClient::queryMessages - 'messages' field not found in response");
           } else {
-            Log::debug("WARNING: Could not find [ bracket for messages array");
+            Log::warn("StreamChatClient::queryMessages - 'messages' field exists but is not an array");
           }
         } else {
-          Log::debug("WARNING: Could not find 'messages' field in response");
+          Log::error("StreamChatClient::queryMessages - response is not a JSON object");
         }
 
         return messages;
@@ -612,8 +587,12 @@ void StreamChatClient::connectWebSocket() {
     return;
   }
 
-  if (wsConnected.load() || wsConnectionActive.load()) {
+  // Atomically set connection active to prevent race condition where multiple threads
+  // could pass the check below and both attempt to connect
+  bool alreadyConnecting = wsConnectionActive.exchange(true);
+  if (wsConnected.load() || alreadyConnecting) {
     Log::debug("StreamChatClient: WebSocket already connected or connecting");
+    wsConnectionActive.store(false);  // Reset if we're not actually connecting
     return;
   }
 
@@ -670,11 +649,11 @@ void StreamChatClient::connectWebSocket() {
       }
     });
 
-    wsConnectionActive.store(true);
     Log::info("StreamChatClient: WebSocket connection initiated");
   } catch (const std::exception &e) {
     Log::error("StreamChatClient: Exception connecting WebSocket - " + juce::String(e.what()));
     updateConnectionStatus(ConnectionStatus::Disconnected);
+    wsConnectionActive.store(false);  // Reset flag since connection failed
     cleanupWebSocket();
   }
 }
