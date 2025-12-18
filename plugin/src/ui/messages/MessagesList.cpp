@@ -60,9 +60,11 @@ void MessagesList::onAppStateChanged(const Sidechain::Stores::ChatState &state) 
         StreamChatClient::Channel channel;
         channel.id = channelState.id;
         channel.name = channelState.name;
+        channel.type = "messaging";  // Always messaging type for now (from AppStore)
         channel.unreadCount = channelState.unreadCount;
         // TODO: Map more fields from ChannelState to StreamChatClient::Channel as needed
         channels.push_back(channel);
+        Log::debug("MessagesList: Added channel to list - id: " + channel.id + ", name: " + channel.name);
       }
     }
 
@@ -115,6 +117,7 @@ void MessagesList::paint(juce::Graphics &g) {
     break;
 
   case ListState::Loaded: {
+    Log::debug("MessagesList::paint - Drawing " + juce::String(channels.size()) + " conversations");
     int y = HEADER_HEIGHT;
     for (size_t i = 0; i < channels.size(); i++) {
       if (y - scrollPosition + ITEM_HEIGHT < 0) {
@@ -125,6 +128,7 @@ void MessagesList::paint(juce::Graphics &g) {
       if (y - scrollPosition > getHeight())
         break; // Past visible area
 
+      Log::debug("MessagesList::paint - Drawing conversation at index " + juce::String(i) + " at y=" + juce::String(y - scrollPosition));
       drawChannelItem(g, channels[i], static_cast<int>(y - scrollPosition), getWidth() - scrollBar.getWidth());
       y += ITEM_HEIGHT;
     }
@@ -172,20 +176,50 @@ void MessagesList::mouseUp(const juce::MouseEvent &event) {
   }
 
   int index = getChannelIndexAtY(static_cast<int>(event.getPosition().y + scrollPosition));
+  Log::debug("MessagesList::mouseUp - Click at y=" + juce::String(static_cast<int>(event.getPosition().y)) +
+             ", scrollPosition=" + juce::String(scrollPosition) + ", index=" + juce::String(index) +
+             ", total channels=" + juce::String(channels.size()));
+
   if (index >= 0 && index < static_cast<int>(channels.size())) {
     const auto &channel = channels[static_cast<size_t>(index)];
-    if (onChannelSelected)
+    Log::info("MessagesList::mouseUp - Channel clicked: type=" + channel.type + ", id=" + channel.id +
+              ", name=" + channel.name);
+    if (onChannelSelected) {
+      Log::info("MessagesList::mouseUp - Calling onChannelSelected callback");
       onChannelSelected(channel.type, channel.id);
+    } else {
+      Log::error("MessagesList::mouseUp - ERROR: onChannelSelected callback is null!");
+    }
   }
 }
 
 void MessagesList::mouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel) {
   // Only scroll if wheel is within message list area (not over scroll bar)
   if (event.x < getWidth() - scrollBar.getWidth()) {
-    scrollPosition -= wheel.deltaY * 30.0;
-    scrollPosition = juce::jlimit(0.0, scrollBar.getMaximumRangeLimit(), scrollPosition);
-    scrollBar.setCurrentRangeStart(scrollPosition, juce::dontSendNotification);
-    repaint();
+    double scrollAmount = wheel.deltaY * 50.0;
+    double maxScrollPos = scrollBar.getMaximumRangeLimit();
+    targetScrollPosition = juce::jlimit(0.0, maxScrollPos, scrollPosition - scrollAmount);
+
+    Log::debug("MessagesList::mouseWheelMove - Scroll requested: current=" + juce::String(scrollPosition) +
+               ", target=" + juce::String(targetScrollPosition) + ", max=" + juce::String(maxScrollPos));
+
+    // Cancel any existing animation
+    if (scrollAnimationHandle) {
+      scrollAnimationHandle->cancel();
+    }
+
+    // Create smooth scroll animation (200ms duration) like PostsFeed and MessageThread
+    auto scrollAnim = Sidechain::UI::Animations::TransitionAnimation<double>::create(
+        scrollPosition, targetScrollPosition, 200);
+
+    scrollAnimationHandle = Sidechain::UI::Animations::AnimationController::getInstance().add(
+        scrollAnim, [this](double value) {
+          scrollPosition = value;
+          scrollBar.setCurrentRangeStart(scrollPosition, juce::dontSendNotification);
+          repaint();
+        });
+
+    Log::debug("MessagesList::mouseWheelMove - Animation started");
   }
 }
 
@@ -729,7 +763,12 @@ juce::Rectangle<int> MessagesList::getChannelItemBounds(int index) const {
 void MessagesList::scrollBarMoved(juce::ScrollBar *scrollBarPtr, double newRangeStart) {
   // Verify the scroll bar callback is from our scroll bar
   if (scrollBarPtr == &scrollBar) {
+    // Cancel any active animation since user is directly manipulating scrollbar
+    if (scrollAnimationHandle) {
+      scrollAnimationHandle->cancel();
+    }
     scrollPosition = newRangeStart;
+    targetScrollPosition = newRangeStart;
     repaint();
   }
 }

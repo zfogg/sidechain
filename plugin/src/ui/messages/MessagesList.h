@@ -2,6 +2,7 @@
 
 #include "../../network/StreamChatClient.h"
 #include "../../stores/AppStore.h"
+#include "../../ui/animations/AnimationController.h"
 #include "../../ui/common/AppStoreComponent.h"
 #include "../../util/reactive/ReactiveBoundComponent.h"
 #include "../common/ErrorState.h"
@@ -78,6 +79,8 @@ private:
   // UI elements
   juce::ScrollBar scrollBar;
   double scrollPosition = 0.0;
+  double targetScrollPosition = 0.0;
+  Sidechain::UI::Animations::AnimationHandle scrollAnimationHandle;
   static constexpr int ITEM_HEIGHT = 80;
   static constexpr int HEADER_HEIGHT = 60;
   static constexpr int BUTTON_HEIGHT = 40;
