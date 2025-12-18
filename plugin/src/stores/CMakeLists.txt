@@ -7,6 +7,10 @@ add_library(SidechainStores STATIC
     # Core Store Framework
     ${CMAKE_CURRENT_SOURCE_DIR}/Store.h
 
+    # Redux-like Slice Architecture (Phase 2 - foundation for state refactoring)
+    ${CMAKE_CURRENT_SOURCE_DIR}/StateSlice.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/slices/AppSlices.h
+
     # Unified AppStore (Phase 3 - replaces all individual stores)
     ${CMAKE_CURRENT_SOURCE_DIR}/AppStore.h
     ${CMAKE_CURRENT_SOURCE_DIR}/app/AppState.h
