@@ -18,6 +18,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/audio"
 	"github.com/zfogg/sidechain/backend/internal/auth"
 	"github.com/zfogg/sidechain/backend/internal/challenges"
+	"github.com/zfogg/sidechain/backend/internal/config"
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/email"
 	"github.com/zfogg/sidechain/backend/internal/handlers"
@@ -127,19 +128,26 @@ func main() {
 	streamClient.SetNotificationPreferencesChecker(notifPrefsChecker)
 	log.Println("✅ Notification preferences checker initialized")
 
-	// Initialize auth service
+	// Initialize auth service with OAuth configuration
 	jwtSecret := []byte(os.Getenv("JWT_SECRET"))
 	if len(jwtSecret) == 0 {
 		log.Fatalf("JWT_SECRET environment variable is required")
 	}
 
+	// Load OAuth configuration from environment variables
+	// REQUIRED: OAUTH_REDIRECT_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET
+	oauthConfig, err := config.LoadOAuthConfig()
+	if err != nil {
+		log.Fatalf("Failed to load OAuth configuration: %v", err)
+	}
+
 	authService := auth.NewService(
 		jwtSecret,
 		streamClient,
-		os.Getenv("GOOGLE_CLIENT_ID"),
-		os.Getenv("GOOGLE_CLIENT_SECRET"),
-		os.Getenv("DISCORD_CLIENT_ID"),
-		os.Getenv("DISCORD_CLIENT_SECRET"),
+		&auth.OAuthConfigData{
+			GoogleConfig:  oauthConfig.GoogleConfig,
+			DiscordConfig: oauthConfig.DiscordConfig,
+		},
 	)
 
 	// Initialize S3 uploader
