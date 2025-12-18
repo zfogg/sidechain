@@ -90,6 +90,11 @@ prometheus.sidechain.live {
     # Enable HTTPS with Let's Encrypt
     tls {$LETSENCRYPT_EMAIL:admin@example.com}
 
+    # Basic authentication for Prometheus
+    basicauth /* {
+        prometheus $2a$14$mBC6urJMgbEzSAs0TmWwceavZnQzGMwQVM6uEkLTnEiWXiolaNfq.
+    }
+
     # Proxy to Prometheus with health checks and retry
     reverse_proxy prometheus:9090 {
         # Health check configuration
