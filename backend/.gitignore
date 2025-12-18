@@ -1,2 +1,19 @@
 /seed
 /server
+
+# Environment files - NEVER commit these
+.env
+.env.prod
+.env.local
+.env.*.local
+
+# Build artifacts
+/build
+/dist
+/tmp
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
