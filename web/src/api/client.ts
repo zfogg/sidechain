@@ -30,10 +30,13 @@ export class ApiClient {
 
     // Request interceptor - handle FormData uploads
     this.client.interceptors.request.use((config) => {
-      // For FormData, don't set Content-Type header
-      // Let axios auto-detect and set multipart/form-data with boundary
+      // For FormData, axios must auto-detect and set multipart/form-data
+      // Remove any Content-Type override so axios can detect FormData
       if (config.data instanceof FormData) {
+        // Delete from headers to prevent the default 'application/json' from interfering
         delete config.headers['Content-Type'];
+        // Also ensure transformRequest is not overriding
+        config.transformRequest = [(data) => data];
       }
       return config;
     });
@@ -162,7 +165,7 @@ export class ApiClient {
     try {
       const response = await this.client.post<T>(url, formData);
       return Outcome.ok(response.data);
-    } catch (error) {
+    } catch (error: any) {
       return this.handleError<T>(error as Error | AxiosError);
     }
   }
