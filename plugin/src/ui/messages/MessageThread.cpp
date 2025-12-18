@@ -146,6 +146,12 @@ void MessageThread::paint(juce::Graphics &g) {
           messages.push_back(msg);
         }
       }
+
+      // Log when messages are loaded from AppStore
+      if (!messages.empty()) {
+        Log::info("MessageThread::paint: Loaded " + juce::String(messages.size()) +
+                  " messages from AppStore for channel: " + channelId);
+      }
     }
   }
 
@@ -456,6 +462,11 @@ void MessageThread::drawMessages(juce::Graphics &g, const std::vector<StreamChat
   int bottomAreaHeight = INPUT_HEIGHT;
   if (!replyingToMessageId.isEmpty())
     bottomAreaHeight += REPLY_PREVIEW_HEIGHT;
+
+  // Log at INFO level so it's always visible
+  if (!messages.empty()) {
+    Log::info("MessageThread: Drawing " + juce::String(messages.size()) + " messages to UI for channel: " + channelId);
+  }
 
   Log::debug("MessageThread::drawMessages - height: " + juce::String(getHeight()) +
              ", bottomArea: " + juce::String(bottomAreaHeight) + ", scrollPosition: " + juce::String(scrollPosition) +
