@@ -199,3 +199,27 @@ func RateLimitUpload() gin.HandlerFunc {
 func RateLimitSearch() gin.HandlerFunc {
 	return NewRateLimiter(SearchRateLimitConfig())
 }
+
+// Smart rate limit wrappers that use Redis if available, else fallback to in-memory
+// Note: Redis middleware automatically checks availability and falls back gracefully
+
+// RateLimitSmartDefault returns a middleware with default config that tries Redis first
+func RateLimitSmartDefault() gin.HandlerFunc {
+	// Try Redis-backed rate limiting first (falls back to in-memory if Redis unavailable)
+	return RedisRateLimitMiddleware(DefaultRateLimitConfig().Limit, DefaultRateLimitConfig().Window)
+}
+
+// RateLimitSmartAuth returns a middleware for auth with Redis support
+func RateLimitSmartAuth() gin.HandlerFunc {
+	return RedisRateLimitMiddleware(AuthRateLimitConfig().Limit, AuthRateLimitConfig().Window)
+}
+
+// RateLimitSmartUpload returns a middleware for upload with Redis support
+func RateLimitSmartUpload() gin.HandlerFunc {
+	return RedisRateLimitMiddleware(UploadRateLimitConfig().Limit, UploadRateLimitConfig().Window)
+}
+
+// RateLimitSmartSearch returns a middleware for search with Redis support
+func RateLimitSmartSearch() gin.HandlerFunc {
+	return RedisRateLimitMiddleware(SearchRateLimitConfig().Limit, SearchRateLimitConfig().Window)
+}
