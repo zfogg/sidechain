@@ -28,6 +28,16 @@ export class ApiClient {
       this.updateAuthHeader();
     }
 
+    // Request interceptor - handle FormData uploads
+    this.client.interceptors.request.use((config) => {
+      // For FormData, don't set Content-Type header
+      // Let axios auto-detect and set multipart/form-data with boundary
+      if (config.data instanceof FormData) {
+        delete config.headers['Content-Type'];
+      }
+      return config;
+    });
+
     // Response interceptor - handle auth errors
     this.client.interceptors.response.use(
       (response) => response,
@@ -137,6 +147,20 @@ export class ApiClient {
   async delete<T>(url: string): Promise<Outcome<T>> {
     try {
       const response = await this.client.delete<T>(url);
+      return Outcome.ok(response.data);
+    } catch (error) {
+      return this.handleError<T>(error as Error | AxiosError);
+    }
+  }
+
+  /**
+   * File upload with FormData
+   * Request interceptor automatically removes JSON Content-Type header for FormData
+   * Axios then auto-detects FormData and sets multipart/form-data with boundary
+   */
+  async upload<T>(url: string, formData: FormData): Promise<Outcome<T>> {
+    try {
+      const response = await this.client.post<T>(url, formData);
       return Outcome.ok(response.data);
     } catch (error) {
       return this.handleError<T>(error as Error | AxiosError);

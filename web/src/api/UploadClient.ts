@@ -13,29 +13,70 @@ interface CreatePostData {
   isPublic: boolean
 }
 
+interface UploadMetadata {
+  filename: string
+  bpm?: number
+  key?: string
+  daw?: string
+  duration_bars?: number
+  genre?: string
+  sample_rate?: number
+}
+
 /**
  * UploadClient - Handles file uploads and post creation
  *
  * API Endpoints (relative to baseURL http://localhost:8787/api/v1):
- * POST /audio/upload - Upload audio file
+ * POST /audio/upload - Upload audio file with metadata
  * POST /posts - Create post with metadata
  */
 export class UploadClient {
   /**
    * Upload audio file to CDN
    *
+   * Parameters:
+   * - file: Audio file to upload
+   * - metadata: Upload metadata (filename required, others optional)
+   *
    * Returns:
    * - audioUrl: URL to the uploaded audio file
    * - waveformUrl: URL to the generated waveform image
    */
-  static async uploadFile(file: File): Promise<Outcome<{ audioUrl: string; waveformUrl: string }>> {
+  static async uploadFile(file: File, metadata: UploadMetadata): Promise<Outcome<{ audioUrl: string; waveformUrl: string }>> {
     try {
       const formData = new FormData()
       formData.append('audio', file)
+      formData.append('filename', metadata.filename)
 
-      // Use apiClient which has correct baseURL (http://localhost:8787/api/v1)
-      // Axios auto-detects FormData and sets Content-Type: multipart/form-data
-      const result = await apiClient.post<{ audio_url: string; waveform_url: string }>(
+      // Add optional metadata fields
+      if (metadata.bpm !== undefined) {
+        formData.append('bpm', String(metadata.bpm))
+      }
+      if (metadata.key) {
+        formData.append('key', metadata.key)
+      }
+      if (metadata.daw) {
+        formData.append('daw', metadata.daw)
+      }
+      if (metadata.duration_bars !== undefined) {
+        formData.append('duration_bars', String(metadata.duration_bars))
+      }
+      if (metadata.genre) {
+        formData.append('genre', metadata.genre)
+      }
+      if (metadata.sample_rate !== undefined) {
+        formData.append('sample_rate', String(metadata.sample_rate))
+      }
+
+      // Debug: log what we're sending
+      console.log('[UploadClient] FormData contents:', {
+        filename: metadata.filename,
+        fileSize: file.size,
+        fileName: file.name,
+      })
+
+      // Use apiClient.upload() which properly handles FormData without JSON header
+      const result = await apiClient.upload<{ audio_url: string; waveform_url: string }>(
         '/audio/upload',
         formData
       )
