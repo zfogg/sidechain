@@ -81,6 +81,10 @@ protected:
 
   juce::String getComponentName() const override { return "MessageThread"; }
 
+  int getScrollableWidth(int scrollBarWidth) const override {
+    return getWidth() - scrollBarWidth;
+  }
+
   //==============================================================================
   // AppStoreComponent overrides
   void onAppStateChanged(const Sidechain::Stores::ChatState &state) override;
