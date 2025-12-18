@@ -1,6 +1,28 @@
 import { apiClient } from './client'
 import { Outcome } from './types'
 
+// Backend response uses snake_case
+interface UserProfileResponse {
+  id: string
+  username: string
+  display_name: string
+  bio?: string
+  profile_picture_url?: string
+  avatar_url?: string
+  follower_count: number
+  following_count: number
+  post_count: number
+  is_following: boolean
+  is_own_profile?: boolean
+  created_at: string
+  social_links?: {
+    twitter?: string
+    instagram?: string
+    website?: string
+  }
+}
+
+// Frontend uses camelCase
 interface UserProfile {
   id: string
   username: string
@@ -49,7 +71,30 @@ export class UserClient {
    * Get user profile by username
    */
   static async getProfile(username: string): Promise<Outcome<UserProfile>> {
-    return apiClient.get<UserProfile>(`/users/${username}/profile`)
+    const result = await apiClient.get<UserProfileResponse>(`/users/${username}/profile`)
+
+    if (result.isError()) {
+      return Outcome.error(result.getError())
+    }
+
+    const response = result.getValue()
+    // Map snake_case to camelCase
+    const profile: UserProfile = {
+      id: response.id,
+      username: response.username,
+      displayName: response.display_name,
+      bio: response.bio,
+      profilePictureUrl: response.profile_picture_url,
+      followerCount: response.follower_count,
+      followingCount: response.following_count,
+      postCount: response.post_count,
+      isFollowing: response.is_following,
+      isOwnProfile: response.is_own_profile ?? false,
+      createdAt: response.created_at,
+      socialLinks: response.social_links,
+    }
+
+    return Outcome.ok(profile)
   }
 
   /**
