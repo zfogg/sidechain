@@ -110,6 +110,7 @@ public:
   void loadDrafts();
   void deleteDraft(const juce::String &draftId);
   void clearAutoRecoveryDraft();
+  void saveDrafts();
 
   //==============================================================================
   // User/Profile Methods (User.cpp)

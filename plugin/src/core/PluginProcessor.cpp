@@ -44,7 +44,8 @@ SidechainAudioProcessor::SidechainAudioProcessor()
 SidechainAudioProcessor::~SidechainAudioProcessor() {
   Log::debug("SidechainAudioProcessor: Destroying");
 
-  // Flush all caches to persistent storage before shutdown
+  // Save drafts and flush all caches to persistent storage before shutdown
+  Sidechain::Stores::AppStore::getInstance().saveDrafts();
   Sidechain::Stores::AppStore::getInstance().flushCaches();
 
   // Shutdown logging last to ensure all log messages are written
