@@ -11,7 +11,7 @@ RUN go mod download
 COPY . .
 
 # Build the binary with optimizations
-RUN CGO_ENABLED=0 GOOS=linux go build -mod=mod -ldflags="-s -w" -o server ./cmd/server/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -mod=mod -ldflags="-s -w" -o server ./cmd/server
 
 # Runtime stage
 FROM alpine:3.19
