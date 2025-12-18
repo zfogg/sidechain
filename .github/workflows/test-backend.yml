@@ -1,4 +1,4 @@
-name: Build and Test Backend
+name: Test Backend
 
 on:
   push:
@@ -27,7 +27,7 @@ permissions:
 jobs:
   build-and-test-backend:
     runs-on: ubuntu-latest
-    name: Build and Test Backend
+    name: Test Backend
 
     steps:
       - name: Checkout

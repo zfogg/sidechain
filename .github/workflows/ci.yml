@@ -7,63 +7,6 @@ on:
     branches: [ main, develop ]
 
 jobs:
-  test-backend:
-    name: Test Backend (Go)
-    runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_USER: sidechain
-          POSTGRES_PASSWORD: sidechain_dev_password
-          POSTGRES_DB: sidechain_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: '1.23'
-
-      - name: Cache Go modules
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/go-build
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-
-      - name: Run tests with coverage
-        working-directory: ./backend
-        env:
-          POSTGRES_HOST: localhost
-          POSTGRES_PORT: 5432
-          POSTGRES_USER: sidechain
-          POSTGRES_PASSWORD: sidechain_dev_password
-          POSTGRES_DB: sidechain_test
-          ENVIRONMENT: test
-          JWT_SECRET: test_secret_key_for_testing_only
-        run: |
-          go test -v -coverprofile=coverage.out -covermode=atomic ./...
-          go tool cover -func=coverage.out
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./backend/coverage.out
-          flags: unittests
-          name: codecov-backend
-          fail_ci_if_error: false
-
   lint-backend:
     name: Lint Backend (Go)
     runs-on: ubuntu-latest
@@ -106,35 +49,6 @@ jobs:
           path: backend/sidechain-backend
           retention-days: 5
 
-  build-plugin-debug:
-    name: Build Plugin (Debug)
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake ninja-build g++ pkg-config
-
-      - name: Configure plugin (Debug)
-        working-directory: ./plugin
-        run: |
-          mkdir -p build
-          cmake -DCMAKE_BUILD_TYPE=Debug -G Ninja -B build
-
-      - name: Build plugin (Debug)
-        working-directory: ./plugin
-        run: cmake --build build --parallel
-
-      - name: Upload plugin artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: sidechain-plugin-debug
-          path: plugin/build/
-          retention-days: 5
-
   static-analysis-cpp:
     name: Static Analysis (C++)
     runs-on: ubuntu-latest
@@ -152,8 +66,7 @@ jobs:
             --enable=all \
             --suppress=missingIncludeSystem \
             --suppress=unusedFunction \
-            --error-exitcode=1 \
-            -i plugin/src/network/asio
+            --error-exitcode=1
         continue-on-error: true
 
   code-quality:
@@ -178,10 +91,10 @@ jobs:
         continue-on-error: true
 
       - name: Check for TODO comments
-        working-directory: ./backend
+        working-directory: ./
         run: |
-          echo "=== TODO comments in backend code ==="
-          grep -r "TODO\|FIXME\|HACK" internal/ cmd/ || echo "None found"
+          echo "=== TODO comments in code ==="
+          grep -r "TODO\|FIXME\|HACK" plugin/src/ backend/internal backend/cmd web/src cli/internal cli/pkg || echo "None found"
         continue-on-error: true
 
       - name: Check for hardcoded secrets
