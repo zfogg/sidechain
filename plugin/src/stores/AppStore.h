@@ -59,6 +59,10 @@ public:
     return instance;
   }
 
+  // Deleted copy constructor and assignment
+  AppStore(const AppStore &) = delete;
+  AppStore &operator=(const AppStore &) = delete;
+
   /**
    * Set the network client for API calls
    */
@@ -318,101 +322,6 @@ public:
   void reportComment(const juce::String &commentId, const juce::String &reason, const juce::String &description);
 
   //==============================================================================
-  // Backward-Compatible Subscription Helpers
-  // These delegate to slices for gradual component migration
-
-  /**
-   * Subscribe to auth state (backward-compatible wrapper)
-   */
-  void subscribeToAuth(std::function<void(const AuthState &)> callback) {
-    sliceManager.getAuthSlice()->subscribe(callback);
-  }
-
-  /**
-   * Subscribe to feed state (backward-compatible wrapper)
-   */
-  void subscribeToFeed(std::function<void(const PostsState &)> callback) {
-    sliceManager.getPostsSlice()->subscribe(callback);
-  }
-
-  /**
-   * Subscribe to user state (backward-compatible wrapper)
-   */
-  void subscribeToUser(std::function<void(const UserState &)> callback) {
-    sliceManager.getUserSlice()->subscribe(callback);
-  }
-
-  /**
-   * Subscribe to chat state (backward-compatible wrapper)
-   */
-  void subscribeToChat(std::function<void(const ChatState &)> callback) {
-    sliceManager.getChatSlice()->subscribe(callback);
-  }
-
-  /**
-   * Subscribe to search state (backward-compatible wrapper)
-   */
-  void subscribeToSearch(std::function<void(const SearchState &)> callback) {
-    sliceManager.getSearchSlice()->subscribe(callback);
-  }
-
-  /**
-   * Subscribe to drafts state (backward-compatible wrapper)
-   */
-  void subscribeToDrafts(std::function<void(const DraftState &)> callback) {
-    sliceManager.getDraftSlice()->subscribe(callback);
-  }
-
-  /**
-   * Subscribe to challenges state (backward-compatible wrapper)
-   */
-  void subscribeToChallenges(std::function<void(const ChallengeState &)> callback) {
-    sliceManager.getChallengeSlice()->subscribe(callback);
-  }
-
-  /**
-   * Subscribe to stories state (backward-compatible wrapper)
-   */
-  void subscribeToStories(std::function<void(const StoriesState &)> callback) {
-    sliceManager.getStoriesSlice()->subscribe(callback);
-  }
-
-  /**
-   * Subscribe to uploads state (backward-compatible wrapper)
-   */
-  void subscribeToUploads(std::function<void(const UploadState &)> callback) {
-    sliceManager.getUploadSlice()->subscribe(callback);
-  }
-
-  /**
-   * Subscribe to notifications state (backward-compatible wrapper)
-   */
-  void subscribeToNotifications(std::function<void(const NotificationState &)> callback) {
-    sliceManager.getNotificationSlice()->subscribe(callback);
-  }
-
-  /**
-   * Subscribe to followers state (backward-compatible wrapper)
-   */
-  void subscribeToFollowers(std::function<void(const FollowersState &)> callback) {
-    sliceManager.getFollowersSlice()->subscribe(callback);
-  }
-
-  /**
-   * Subscribe to playlists state (backward-compatible wrapper)
-   */
-  void subscribeToPlaylists(std::function<void(const PlaylistState &)> callback) {
-    sliceManager.getPlaylistSlice()->subscribe(callback);
-  }
-
-  /**
-   * Subscribe to sounds state (backward-compatible wrapper)
-   */
-  void subscribeToSounds(std::function<void(const SoundState &)> callback) {
-    sliceManager.getSoundSlice()->subscribe(callback);
-  }
-
-  //==============================================================================
   // Cache accessors
 
   /**
@@ -504,6 +413,54 @@ public:
    * Uses existing SidechainAudioCache (file cache only).
    */
   juce::File getCachedAudio(const juce::String &url);
+
+  //==============================================================================
+  // UI Component Subscription Helpers (Thin delegates to slices)
+  // TODO: Phase 5 - Remove these and update UI components to subscribe directly to slices
+
+  std::function<void()> subscribeToAuth(std::function<void(const AuthState &)> callback) {
+    sliceManager.getAuthSlice()->subscribe(callback);
+    return []() {};
+  }
+
+  std::function<void()> subscribeToChat(std::function<void(const ChatState &)> callback) {
+    sliceManager.getChatSlice()->subscribe(callback);
+    return []() {};
+  }
+
+  std::function<void()> subscribeToChallenges(std::function<void(const ChallengeState &)> callback) {
+    sliceManager.getChallengeSlice()->subscribe(callback);
+    return []() {};
+  }
+
+  std::function<void()> subscribeToNotifications(std::function<void(const NotificationState &)> callback) {
+    sliceManager.getNotificationSlice()->subscribe(callback);
+    return []() {};
+  }
+
+  std::function<void()> subscribeToFollowers(std::function<void(const FollowersState &)> callback) {
+    sliceManager.getFollowersSlice()->subscribe(callback);
+    return []() {};
+  }
+
+  std::function<void()> subscribeToUser(std::function<void(const UserState &)> callback) {
+    sliceManager.getUserSlice()->subscribe(callback);
+    return []() {};
+  }
+
+  std::function<void()> subscribeToFeed(std::function<void(const PostsState &)> callback) {
+    sliceManager.getPostsSlice()->subscribe(callback);
+    return []() {};
+  }
+
+  // Temporary accessor for UI components - to be removed in Phase 5
+  const Stores::PostsState &getPostsState() const {
+    return sliceManager.getPostsSlice()->getState();
+  }
+
+  const Stores::UserState &getUserState() const {
+    return sliceManager.getUserSlice()->getState();
+  }
 
   //==============================================================================
   // User Service Operations (File Cache: memory only with 5-min TTL)
@@ -707,6 +664,9 @@ private:
   void downloadProfileImage(const juce::String &userId, const juce::String &url);
   void handleProfileFetchSuccess(const juce::var &data);
   void handleProfileFetchError(const juce::String &error);
+
+  // Private constructor for singleton pattern
+  AppStore();
 };
 
 } // namespace Stores

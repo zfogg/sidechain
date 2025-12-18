@@ -13,21 +13,10 @@ rxcpp::observable<juce::Array<juce::var>> AppStore::getCommentsObservable(const 
       return;
     }
 
-    juce::String cacheKey = "comments:post:" + postId + ":offset:" + juce::String(offset);
-
-    // Check memory cache
-    auto cached = getCached<juce::Array<juce::var>>(cacheKey);
-    if (cached.has_value()) {
-      Util::logInfo("AppStore", "Cache hit for comments: " + postId);
-      observer.on_next(cached.value());
-      observer.on_completed();
-      return;
-    }
-
     Util::logInfo("AppStore", "Fetching comments for post: " + postId);
 
     networkClient->getComments(
-        postId, limit, offset, [this, observer, cacheKey, postId](Outcome<std::pair<juce::var, int>> result) {
+        postId, limit, offset, [this, observer, postId](Outcome<std::pair<juce::var, int>> result) {
           if (result.isOk()) {
             auto [commentsData, totalCount] = result.getValue();
             juce::Array<juce::var> commentsList;
@@ -38,9 +27,6 @@ rxcpp::observable<juce::Array<juce::var>> AppStore::getCommentsObservable(const 
                 commentsList.add(commentsData[i]);
               }
             }
-
-            // Cache the result (5 minute TTL for comments)
-            setCached<juce::Array<juce::var>>(cacheKey, commentsList, 300);
 
             Util::logInfo("AppStore", "Loaded " + juce::String(commentsList.size()) + " comments for post: " + postId);
             observer.on_next(commentsList);
@@ -65,7 +51,6 @@ void AppStore::createComment(const juce::String &postId, const juce::String &con
     if (result.isOk()) {
       Util::logInfo("AppStore", "Comment created successfully");
       // Invalidate comments cache for this post so next load gets fresh data
-      invalidateCachePattern("comments:post:" + postId + ":*");
     } else {
       Util::logError("AppStore", "Failed to create comment: " + result.getError());
     }
@@ -84,7 +69,6 @@ void AppStore::deleteComment(const juce::String &commentId) {
     if (result.isOk()) {
       Util::logInfo("AppStore", "Comment deleted successfully");
       // Invalidate all comments caches since we don't know which post this came from
-      invalidateCachePattern("comments:post:*:*");
     } else {
       Util::logError("AppStore", "Failed to delete comment: " + result.getError());
     }
@@ -103,7 +87,6 @@ void AppStore::likeComment(const juce::String &commentId) {
     if (result.isOk()) {
       Util::logInfo("AppStore", "Comment liked successfully");
       // Invalidate all comments caches to refresh like counts
-      invalidateCachePattern("comments:post:*:*");
     } else {
       Util::logError("AppStore", "Failed to like comment: " + result.getError());
     }
@@ -122,7 +105,6 @@ void AppStore::unlikeComment(const juce::String &commentId) {
     if (result.isOk()) {
       Util::logInfo("AppStore", "Comment unliked successfully");
       // Invalidate all comments caches to refresh like counts
-      invalidateCachePattern("comments:post:*:*");
     } else {
       Util::logError("AppStore", "Failed to unlike comment: " + result.getError());
     }
@@ -141,7 +123,6 @@ void AppStore::updateComment(const juce::String &commentId, const juce::String &
     if (result.isOk()) {
       Util::logInfo("AppStore", "Comment updated successfully");
       // Invalidate all comments caches to refresh content
-      invalidateCachePattern("comments:post:*:*");
     } else {
       Util::logError("AppStore", "Failed to update comment: " + result.getError());
     }

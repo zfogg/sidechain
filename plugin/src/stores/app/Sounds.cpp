@@ -10,7 +10,7 @@ void AppStore::loadFeaturedSounds() {
     return;
   }
 
-  updateState([](AppState &state) { state.sounds.isFeaturedLoading = true; });
+  sliceManager.getSoundSlice()->dispatch([](SoundState &state) { state.isFeaturedLoading = true; });
 
   networkClient->getTrendingSounds(20, [this](Outcome<juce::var> result) {
     if (result.isOk()) {
@@ -23,21 +23,20 @@ void AppStore::loadFeaturedSounds() {
         }
       }
 
-      updateState([soundsList](AppState &state) {
-        state.sounds.featuredSounds = soundsList;
-        state.sounds.isFeaturedLoading = false;
-        state.sounds.soundError = "";
+      sliceManager.getSoundSlice()->dispatch([soundsList](SoundState &state) {
+        state.featuredSounds = soundsList;
+        state.isFeaturedLoading = false;
+        state.soundError = "";
         Util::logInfo("AppStore", "Loaded " + juce::String(soundsList.size()) + " featured sounds");
       });
     } else {
-      updateState([result](AppState &state) {
-        state.sounds.isFeaturedLoading = false;
-        state.sounds.soundError = result.getError();
+      sliceManager.getSoundSlice()->dispatch([result](SoundState &state) {
+        state.isFeaturedLoading = false;
+        state.soundError = result.getError();
         Util::logError("AppStore", "Failed to load featured sounds: " + result.getError());
       });
     }
 
-    notifyObservers();
   });
 }
 
@@ -47,7 +46,7 @@ void AppStore::loadRecentSounds() {
     return;
   }
 
-  updateState([](AppState &state) { state.sounds.isLoading = true; });
+  sliceManager.getSoundSlice()->dispatch([](SoundState &state) { state.isLoading = true; });
 
   // Use searchSounds with empty query to get recent sounds
   networkClient->searchSounds("", 20, [this](Outcome<juce::var> result) {
@@ -61,21 +60,20 @@ void AppStore::loadRecentSounds() {
         }
       }
 
-      updateState([soundsList](AppState &state) {
-        state.sounds.recentSounds = soundsList;
-        state.sounds.isLoading = false;
-        state.sounds.soundError = "";
-        state.sounds.recentOffset = soundsList.size();
+      sliceManager.getSoundSlice()->dispatch([soundsList](SoundState &state) {
+        state.recentSounds = soundsList;
+        state.isLoading = false;
+        state.soundError = "";
+        state.recentOffset = soundsList.size();
         Util::logInfo("AppStore", "Loaded " + juce::String(soundsList.size()) + " recent sounds");
       });
     } else {
-      updateState([result](AppState &state) {
-        state.sounds.isLoading = false;
-        state.sounds.soundError = result.getError();
+      sliceManager.getSoundSlice()->dispatch([result](SoundState &state) {
+        state.isLoading = false;
+        state.soundError = result.getError();
       });
     }
 
-    notifyObservers();
   });
 }
 
@@ -84,8 +82,9 @@ void AppStore::loadMoreSounds() {
     return;
   }
 
-  const auto &currentState = getState();
-  if (currentState.sounds.recentSounds.isEmpty()) {
+  auto soundSlice = sliceManager.getSoundSlice();
+  const auto &currentState = soundSlice->getState();
+  if (currentState.recentSounds.isEmpty()) {
     return;
   }
 
@@ -100,24 +99,23 @@ void AppStore::loadMoreSounds() {
         }
       }
 
-      updateState([newSounds](AppState &state) {
+      sliceManager.getSoundSlice()->dispatch([newSounds](SoundState &state) {
         for (const auto &sound : newSounds) {
-          state.sounds.recentSounds.add(sound);
+          state.recentSounds.add(sound);
         }
-        state.sounds.recentOffset += newSounds.size();
+        state.recentOffset += newSounds.size();
       });
     }
 
-    notifyObservers();
   });
 }
 
 void AppStore::refreshSounds() {
   Util::logInfo("AppStore", "Refreshing sounds");
 
-  updateState([](AppState &state) {
-    state.sounds.isRefreshing = true;
-    state.sounds.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
+  sliceManager.getSoundSlice()->dispatch([](SoundState &state) {
+    state.isRefreshing = true;
+    state.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
   });
 
   // Load both featured and recent sounds

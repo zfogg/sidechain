@@ -5,13 +5,11 @@ namespace Sidechain {
 namespace Stores {
 
 void AppStore::setPresenceStatus(PresenceStatus status) {
-  updateState([status](AppState &state) {
-    state.presence.currentUserStatus = status;
-    state.presence.currentUserLastActivity = juce::Time::getCurrentTime().toMilliseconds();
+  sliceManager.getPresenceSlice()->dispatch([status](PresenceState &state) {
+    state.currentUserStatus = status;
+    state.currentUserLastActivity = juce::Time::getCurrentTime().toMilliseconds();
     Util::logInfo("AppStore", "Presence status set to: " + juce::String((int)status));
   });
-
-  notifyObservers();
 }
 
 void AppStore::setPresenceStatusMessage(const juce::String &message) {
@@ -20,15 +18,13 @@ void AppStore::setPresenceStatusMessage(const juce::String &message) {
 }
 
 void AppStore::recordUserActivity() {
-  updateState([](AppState &state) {
-    state.presence.currentUserLastActivity = juce::Time::getCurrentTime().toMilliseconds();
+  sliceManager.getPresenceSlice()->dispatch([](PresenceState &state) {
+    state.currentUserLastActivity = juce::Time::getCurrentTime().toMilliseconds();
     // Set to Online if was Away/Offline
-    if (state.presence.currentUserStatus != PresenceStatus::Online) {
-      state.presence.currentUserStatus = PresenceStatus::Online;
+    if (state.currentUserStatus != PresenceStatus::Online) {
+      state.currentUserStatus = PresenceStatus::Online;
     }
   });
-
-  notifyObservers();
 }
 
 void AppStore::connectPresence() {
@@ -37,32 +33,28 @@ void AppStore::connectPresence() {
     return;
   }
 
-  updateState([](AppState &state) { state.presence.isUpdatingPresence = true; });
+  sliceManager.getPresenceSlice()->dispatch([](PresenceState &state) { state.isUpdatingPresence = true; });
 
   Util::logInfo("AppStore", "Connecting to presence service");
 
   // TODO: Establish WebSocket connection to presence service
   // For now, just mark as connected
-  updateState([](AppState &state) {
-    state.presence.isUpdatingPresence = false;
-    state.presence.isConnected = true;
-    state.presence.currentUserStatus = PresenceStatus::Online;
-    state.presence.currentUserLastActivity = juce::Time::getCurrentTime().toMilliseconds();
+  sliceManager.getPresenceSlice()->dispatch([](PresenceState &state) {
+    state.isUpdatingPresence = false;
+    state.isConnected = true;
+    state.currentUserStatus = PresenceStatus::Online;
+    state.currentUserLastActivity = juce::Time::getCurrentTime().toMilliseconds();
   });
-
-  notifyObservers();
 }
 
 void AppStore::disconnectPresence() {
-  updateState([](AppState &state) {
-    state.presence.isUpdatingPresence = false;
-    state.presence.isConnected = false;
-    state.presence.isReconnecting = false;
-    state.presence.currentUserStatus = PresenceStatus::Offline;
+  sliceManager.getPresenceSlice()->dispatch([](PresenceState &state) {
+    state.isUpdatingPresence = false;
+    state.isConnected = false;
+    state.isReconnecting = false;
+    state.currentUserStatus = PresenceStatus::Offline;
     Util::logInfo("AppStore", "Disconnected from presence service");
   });
-
-  notifyObservers();
 }
 
 void AppStore::handlePresenceUpdate(const juce::String &userId, const juce::var &presenceData) {
@@ -70,7 +62,7 @@ void AppStore::handlePresenceUpdate(const juce::String &userId, const juce::var 
     return;
   }
 
-  updateState([userId, presenceData](AppState &state) {
+  sliceManager.getPresenceSlice()->dispatch([userId, presenceData](PresenceState &state) {
     PresenceInfo info;
     info.userId = userId;
 
@@ -91,10 +83,8 @@ void AppStore::handlePresenceUpdate(const juce::String &userId, const juce::var 
     info.lastSeen = static_cast<int64_t>(static_cast<double>(presenceData.getProperty("last_seen", 0)));
     info.statusMessage = presenceData.getProperty("status_message", "").toString();
 
-    state.presence.userPresence[userId] = info;
+    state.userPresence[userId] = info;
   });
-
-  notifyObservers();
 }
 
 } // namespace Stores

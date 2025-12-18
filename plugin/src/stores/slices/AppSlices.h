@@ -128,6 +128,12 @@ using PlaylistSlice = InMemorySlice<PlaylistState>;
 
 using SoundSlice = InMemorySlice<SoundState>;
 
+//==============================================================================
+// Presence Slice
+//==============================================================================
+
+using PresenceSlice = InMemorySlice<PresenceState>;
+
 /**
  * AppSliceManager - Facade for managing all application slices
  *
@@ -250,6 +256,13 @@ public:
     return soundSlice_;
   }
 
+  std::shared_ptr<PresenceSlice> getPresenceSlice() {
+    if (!presenceSlice_) {
+      presenceSlice_ = std::make_shared<PresenceSlice>(PresenceState());
+    }
+    return presenceSlice_;
+  }
+
   /**
    * Reset all slices to initial state
    * Useful for logout or app reset
@@ -269,6 +282,7 @@ public:
     if (followersSlice_) followersSlice_->dispatch([](FollowersState &state) { state = FollowersState(); });
     if (playlistSlice_) playlistSlice_->dispatch([](PlaylistState &state) { state = PlaylistState(); });
     if (soundSlice_) soundSlice_->dispatch([](SoundState &state) { state = SoundState(); });
+    if (presenceSlice_) presenceSlice_->dispatch([](PresenceState &state) { state = PresenceState(); });
   }
 
   /**
@@ -288,6 +302,7 @@ public:
     followersSlice_ = nullptr;
     playlistSlice_ = nullptr;
     soundSlice_ = nullptr;
+    presenceSlice_ = nullptr;
   }
 
 private:
@@ -307,6 +322,7 @@ private:
   std::shared_ptr<FollowersSlice> followersSlice_;
   std::shared_ptr<PlaylistSlice> playlistSlice_;
   std::shared_ptr<SoundSlice> soundSlice_;
+  std::shared_ptr<PresenceSlice> presenceSlice_;
 
   // Prevent copying
   AppSliceManager(const AppSliceManager &) = delete;

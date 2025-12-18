@@ -15,14 +15,15 @@ void AppStore::searchPosts(const juce::String &query) {
     return;
   }
 
-  updateState([query](AppState &state) {
-    state.search.results.isSearching = true;
-    state.search.results.searchQuery = query;
-    state.search.results.offset = 0;
+  sliceManager.getSearchSlice()->dispatch([query](SearchState &state) {
+    state.results.isSearching = true;
+    state.results.searchQuery = query;
+    state.results.offset = 0;
   });
 
   // Get current genre filter from state
-  auto currentGenre = getState().search.results.currentGenre;
+  auto searchSlice = sliceManager.getSearchSlice();
+  auto currentGenre = searchSlice->getState().results.currentGenre;
 
   // searchPosts signature: query, genre="", bpmMin=0, bpmMax=200, key="", limit=20, offset=0, callback
   networkClient->searchPosts(query, currentGenre, 0, 200, "", 20, 0, [this, query](Outcome<juce::var> result) {
@@ -37,25 +38,24 @@ void AppStore::searchPosts(const juce::String &query) {
         }
       }
 
-      updateState([postsList, data](AppState &state) {
-        state.search.results.posts = postsList;
-        state.search.results.isSearching = false;
-        state.search.results.totalResults = data.getProperty("total_count", postsList.size());
-        state.search.results.hasMoreResults = postsList.size() < state.search.results.totalResults;
-        state.search.results.offset = postsList.size();
-        state.search.results.searchError = "";
+      sliceManager.getSearchSlice()->dispatch([postsList, data](SearchState &state) {
+        state.results.posts = postsList;
+        state.results.isSearching = false;
+        state.results.totalResults = data.getProperty("total_count", postsList.size());
+        state.results.hasMoreResults = postsList.size() < state.results.totalResults;
+        state.results.offset = postsList.size();
+        state.results.searchError = "";
         Util::logInfo("AppStore", "Search found " + juce::String(postsList.size()) +
-                                      " posts for: " + state.search.results.searchQuery);
+                                      " posts for: " + state.results.searchQuery);
       });
     } else {
-      updateState([result](AppState &state) {
-        state.search.results.isSearching = false;
-        state.search.results.searchError = result.getError();
+      sliceManager.getSearchSlice()->dispatch([result](SearchState &state) {
+        state.results.isSearching = false;
+        state.results.searchError = result.getError();
         Util::logError("AppStore", "Search failed: " + result.getError());
       });
     }
 
-    notifyObservers();
   });
 }
 
@@ -70,9 +70,9 @@ void AppStore::searchUsers(const juce::String &query) {
     return;
   }
 
-  updateState([query](AppState &state) {
-    state.search.results.isSearching = true;
-    state.search.results.searchQuery = query;
+  sliceManager.getSearchSlice()->dispatch([query](SearchState &state) {
+    state.results.isSearching = true;
+    state.results.searchQuery = query;
   });
 
   // searchUsers signature: query, limit=20, offset=0, callback
@@ -88,27 +88,27 @@ void AppStore::searchUsers(const juce::String &query) {
         }
       }
 
-      updateState([usersList, data](AppState &state) {
-        state.search.results.users = usersList;
-        state.search.results.isSearching = false;
-        state.search.results.totalResults = data.getProperty("total_count", usersList.size());
-        state.search.results.searchError = "";
+      sliceManager.getSearchSlice()->dispatch([usersList, data](SearchState &state) {
+        state.results.users = usersList;
+        state.results.isSearching = false;
+        state.results.totalResults = data.getProperty("total_count", usersList.size());
+        state.results.searchError = "";
         Util::logInfo("AppStore", "User search found " + juce::String(usersList.size()) + " users");
       });
     } else {
-      updateState([result](AppState &state) {
-        state.search.results.isSearching = false;
-        state.search.results.searchError = result.getError();
+      sliceManager.getSearchSlice()->dispatch([result](SearchState &state) {
+        state.results.isSearching = false;
+        state.results.searchError = result.getError();
       });
     }
 
-    notifyObservers();
   });
 }
 
 void AppStore::loadMoreSearchResults() {
-  const auto &currentState = getState();
-  if (currentState.search.results.searchQuery.isEmpty() || !currentState.search.results.hasMoreResults) {
+  auto searchSlice = sliceManager.getSearchSlice();
+  const auto &currentState = searchSlice->getState();
+  if (currentState.results.searchQuery.isEmpty() || !currentState.results.hasMoreResults) {
     return;
   }
 
@@ -117,9 +117,9 @@ void AppStore::loadMoreSearchResults() {
   }
 
   // Search for posts if there were posts in the last search
-  if (!currentState.search.results.posts.isEmpty()) {
-    networkClient->searchPosts(currentState.search.results.searchQuery, currentState.search.results.currentGenre, 0, 200, "", 20,
-                               currentState.search.results.offset, [this](Outcome<juce::var> result) {
+  if (!currentState.results.posts.isEmpty()) {
+    networkClient->searchPosts(currentState.results.searchQuery, currentState.results.currentGenre, 0, 200, "", 20,
+                               currentState.results.offset, [this](Outcome<juce::var> result) {
                                  if (result.isOk()) {
                                    const auto data = result.getValue();
                                    juce::Array<FeedPost> newPosts;
@@ -131,33 +131,31 @@ void AppStore::loadMoreSearchResults() {
                                      }
                                    }
 
-                                   updateState([newPosts](AppState &state) {
+                                   sliceManager.getSearchSlice()->dispatch([newPosts](SearchState &state) {
                                      for (const auto &post : newPosts) {
-                                       state.search.results.posts.add(post);
+                                       state.results.posts.add(post);
                                      }
-                                     state.search.results.offset += newPosts.size();
+                                     state.results.offset += newPosts.size();
                                    });
                                  }
 
-                                 notifyObservers();
                                });
   }
 }
 
 void AppStore::clearSearchResults() {
-  updateState([](AppState &state) {
-    state.search.results.posts.clear();
-    state.search.results.users.clear();
-    state.search.results.searchQuery = "";
-    state.search.results.currentGenre = "";
-    state.search.results.isSearching = false;
-    state.search.results.totalResults = 0;
-    state.search.results.offset = 0;
-    state.search.results.searchError = "";
+  sliceManager.getSearchSlice()->dispatch([](SearchState &state) {
+    state.results.posts.clear();
+    state.results.users.clear();
+    state.results.searchQuery = "";
+    state.results.currentGenre = "";
+    state.results.isSearching = false;
+    state.results.totalResults = 0;
+    state.results.offset = 0;
+    state.results.searchError = "";
     Util::logInfo("AppStore", "Search results cleared");
   });
 
-  notifyObservers();
 }
 
 void AppStore::loadGenres() {
@@ -166,7 +164,7 @@ void AppStore::loadGenres() {
     return;
   }
 
-  updateState([](AppState &state) { state.search.genres.isLoading = true; });
+  sliceManager.getSearchSlice()->dispatch([](SearchState &state) { state.genres.isLoading = true; });
 
   networkClient->getAvailableGenres([this](Outcome<juce::var> result) {
     if (result.isOk()) {
@@ -179,46 +177,46 @@ void AppStore::loadGenres() {
         }
       }
 
-      updateState([genresList](AppState &state) {
-        state.search.genres.genres = genresList;
-        state.search.genres.isLoading = false;
-        state.search.genres.genresError = "";
+      sliceManager.getSearchSlice()->dispatch([genresList](SearchState &state) {
+        state.genres.genres = genresList;
+        state.genres.isLoading = false;
+        state.genres.genresError = "";
         Util::logInfo("AppStore", "Loaded " + juce::String(genresList.size()) + " genres");
       });
     } else {
-      updateState([result](AppState &state) {
-        state.search.genres.isLoading = false;
-        state.search.genres.genresError = result.getError();
+      sliceManager.getSearchSlice()->dispatch([result](SearchState &state) {
+        state.genres.isLoading = false;
+        state.genres.genresError = result.getError();
       });
     }
 
-    notifyObservers();
   });
 }
 
 void AppStore::filterByGenre(const juce::String &genre) {
   Util::logInfo("AppStore", "Filtering by genre: " + genre);
 
-  const auto &currentState = getState();
+  auto searchSlice = sliceManager.getSearchSlice();
+  const auto &currentState = searchSlice->getState();
 
   // If no active search query, nothing to filter
-  if (currentState.search.results.searchQuery.isEmpty()) {
+  if (currentState.results.searchQuery.isEmpty()) {
     Util::logWarning("AppStore", "No active search to filter by genre");
     return;
   }
 
   // Store the selected genre in state and reset pagination
-  updateState([genre](AppState &state) {
-    state.search.results.currentGenre = genre;
-    state.search.results.offset = 0;
-    state.search.results.posts.clear();
-    state.search.results.totalResults = 0;
-    state.search.results.hasMoreResults = false;
+  sliceManager.getSearchSlice()->dispatch([genre](SearchState &state) {
+    state.results.currentGenre = genre;
+    state.results.offset = 0;
+    state.results.posts.clear();
+    state.results.totalResults = 0;
+    state.results.hasMoreResults = false;
     Util::logInfo("AppStore", "Applied genre filter: " + genre);
   });
 
   // Re-run the search with the new genre filter
-  searchPosts(currentState.search.results.searchQuery);
+  searchPosts(currentState.results.searchQuery);
 }
 
 void AppStore::autocompleteUsers(const juce::String &query,
