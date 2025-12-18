@@ -42,6 +42,7 @@ export function useCommentTyping(postId: string) {
         user_id: user.id,
         username: user.username,
         display_name: user.displayName,
+        timestamp: Date.now(),
       }
       emit('user_typing', payload)
     }
@@ -52,6 +53,7 @@ export function useCommentTyping(postId: string) {
       const payload: UserStopTypingPayload = {
         post_id: postId,
         user_id: user.id,
+        timestamp: Date.now(),
       }
       emit('user_stop_typing', payload)
     }, 3000)
@@ -89,6 +91,7 @@ export function useCommentTyping(postId: string) {
         emit('user_stop_typing', {
           post_id: postId,
           user_id: user.id,
+          timestamp: Date.now(),
         })
       }
     }
