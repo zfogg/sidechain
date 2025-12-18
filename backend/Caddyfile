@@ -92,7 +92,7 @@ prometheus.sidechain.live {
 
     # Basic authentication for Prometheus
     basicauth /* {
-        prometheus $2a$14$mBC6urJMgbEzSAs0TmWwceavZnQzGMwQVM6uEkLTnEiWXiolaNfq.
+        prometheus {$PROMETHEUS_PASSWORD_HASH}
     }
 
     # Proxy to Prometheus with health checks and retry
