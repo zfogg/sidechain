@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include <optional>
 #include <map>
+#include "../logging/Logger.h"
 
 //==============================================================================
 /**
@@ -326,14 +327,21 @@ void FileCache<T>::loadManifest() {
   juce::var parsedJson = juce::JSON::parse(manifestContent);
 
   if (!parsedJson.isArray()) {
+    // DATA-2: Log warning instead of silently clearing (potential corruption)
+    Sidechain::Util::logWarning("FileCache", "Cache manifest corrupted or invalid format - cache will be rebuilt");
     manifest.clear();
     return;
   }
 
   manifest.clear();
   for (int i = 0; i < parsedJson.size(); ++i) {
-    CacheEntry entry = CacheEntry::fromJSON(parsedJson[i]);
-    manifest[entry.key] = entry;
+    try {
+      CacheEntry entry = CacheEntry::fromJSON(parsedJson[i]);
+      manifest[entry.key] = entry;
+    } catch (const std::exception &e) {
+      Sidechain::Util::logWarning("FileCache", "Failed to parse cache entry - skipping");
+      continue;
+    }
   }
 }
 
@@ -347,7 +355,12 @@ void FileCache<T>::saveManifest() {
 
   juce::String manifestJson = juce::JSON::toString(manifestArray);
   juce::File manifestFile = getManifestFile();
-  manifestFile.replaceWithText(manifestJson);
+
+  // DATA-1: Check if manifest write succeeds instead of silently failing
+  if (!manifestFile.replaceWithText(manifestJson)) {
+    Sidechain::Util::logError("FileCache", "Failed to save cache manifest - disk full or permission denied");
+    return;
+  }
 }
 
 template<typename T>
@@ -366,10 +379,15 @@ void FileCache<T>::evictLRU(int64_t targetSizeBytes) {
     }
 
     juce::File fileToDelete = cacheDir.getChildFile(pair.second.filename);
-    fileToDelete.deleteFile();
-    manifest.erase(pair.first);
+    // DATA-3: Only update manifest AFTER successful file deletion
+    if (fileToDelete.deleteFile()) {
+      manifest.erase(pair.first);
+    } else {
+      Sidechain::Util::logWarning("FileCache", "Failed to delete cache file - manifest may be inconsistent");
+    }
   }
 
+  // Save manifest after all deletions complete
   saveManifest();
 }
 
