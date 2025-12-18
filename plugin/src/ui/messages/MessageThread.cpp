@@ -661,7 +661,11 @@ void MessageThread::drawMessageBubble(juce::Graphics &g, const StreamChatClient:
     auto textBounds = bubbleBounds.reduced(bubblePadding)
                           .withTrimmedTop(parentPreviewHeight)
                           .withTrimmedBottom(16 + sharedContentHeight);
+    // Clip text to bubble bounds to prevent overflow
+    g.saveState();
+    g.reduceClipRegion(textBounds);
     layout.draw(g, textBounds.toFloat());
+    g.restoreState();
   }
 
   // Draw shared content preview (post or story)
