@@ -133,7 +133,7 @@ services:
       - POSTGRES_USER=${POSTGRES_USER:-sidechain}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
-      - ./gorse.toml:/etc/gorse/config.toml.template:ro
+      - ./gorse.toml:/tmp/gorse.toml.template:ro
       - ./gorse-entrypoint.sh:/usr/local/bin/gorse-entrypoint.sh:ro
     entrypoint: /usr/local/bin/gorse-entrypoint.sh
     depends_on:
