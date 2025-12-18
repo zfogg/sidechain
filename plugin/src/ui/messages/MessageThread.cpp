@@ -739,8 +739,12 @@ int MessageThread::calculateMessageHeight(const StreamChatClient::Message &messa
 int MessageThread::calculateTotalMessagesHeight() {
   int totalHeight = MESSAGE_TOP_PADDING;
 
+  if (!appStore) {
+    return totalHeight;
+  }
+
   // Get messages from AppStore ChatState
-  const auto &chatState = appStore->getState<Sidechain::Stores::ChatState>();
+  const auto &chatState = appStore->getChatState();
   if (chatState.channels.empty()) {
     return totalHeight;
   }
