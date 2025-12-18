@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/stream"
 	"github.com/zfogg/sidechain/backend/internal/util"
@@ -82,8 +83,9 @@ func (h *Handlers) CreateRepost(c *gin.Context) {
 		return
 	}
 
-	// Increment repost count on the original post
-	database.DB.Model(&post).UpdateColumn("repost_count", gorm.Expr("repost_count + 1"))
+	if err := database.DB.Model(&post).UpdateColumn("repost_count", gorm.Expr("repost_count + 1")).Error; err != nil {
+		logger.WarnWithFields("Failed to increment repost count for post "+postID, err)
+	}
 
 	// Create Stream.io activity for the repost
 	activity := &stream.Activity{

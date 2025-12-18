@@ -13,6 +13,7 @@ import "time"
 type StreamClientInterface interface {
 	// User operations
 	CreateUser(userID, username string) error
+	UpdateUserProfile(userID, username string, customData map[string]interface{}) error
 	CreateToken(userID string, expiration time.Time) (string, error)
 
 	// Feed operations - create, read, delete

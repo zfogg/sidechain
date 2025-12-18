@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/recommendations"
 	"github.com/zfogg/sidechain/backend/internal/stream"
@@ -1080,8 +1081,9 @@ func (h *Handlers) DownloadPost(c *gin.Context) {
 		return
 	}
 
-	// Increment download count atomically
-	database.DB.Model(&post).UpdateColumn("download_count", gorm.Expr("download_count + 1"))
+	if err := database.DB.Model(&post).UpdateColumn("download_count", gorm.Expr("download_count + 1")).Error; err != nil {
+		logger.WarnWithFields("Failed to increment download count for post "+postID, err)
+	}
 
 	// Reload post to get updated download count
 	database.DB.First(&post, "id = ?", postID)

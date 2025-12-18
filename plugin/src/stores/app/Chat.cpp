@@ -71,8 +71,9 @@ void AppStore::sendMessage(const juce::String &channelId, const juce::String &te
   }
   Log::info("AppStore::sendMessage - ✓ Channel found in state");
 
-  if (!networkClient) {
-    Log::warn("AppStore::sendMessage - WARNING: NetworkClient not available, creating local message only");
+  if (!streamChatClient) {
+    Log::error("AppStore::sendMessage - CRITICAL: StreamChatClient not available - cannot send message!");
+    return;
   }
 
   Log::info("AppStore::sendMessage - Creating message object");
@@ -90,7 +91,8 @@ void AppStore::sendMessage(const juce::String &channelId, const juce::String &te
   Log::info("AppStore::sendMessage - ✓ Setting properties - userId: " + userId + ", username: " + username);
 
   juce::var msgObj(obj);
-  obj->setProperty("id", juce::Uuid().toString());
+  juce::String messageId = juce::Uuid().toString();
+  obj->setProperty("id", messageId);
   obj->setProperty("text", text);
   obj->setProperty("user_id", userId);
   obj->setProperty("user_name", username);
@@ -98,21 +100,40 @@ void AppStore::sendMessage(const juce::String &channelId, const juce::String &te
 
   Log::info("AppStore::sendMessage - ✓ Message object created successfully");
 
-  // Add message to chat state
-  Log::info("AppStore::sendMessage - Calling updateChatState to add message");
-  sliceManager.getChatSlice()->dispatch([channelId, msgObj](ChatState &state) {
-    Log::debug("AppStore::sendMessage lambda - Inside updateChatState lambda");
-    auto channelIt = state.channels.find(channelId);
-    if (channelIt != state.channels.end()) {
-      Log::debug("AppStore::sendMessage lambda - Channel found, adding message");
-      channelIt->second.messages.push_back(msgObj);
-      Log::info("AppStore::sendMessage - ✓ Added message to channel state");
-    } else {
-      Log::error("AppStore::sendMessage lambda - ERROR: Channel disappeared from state!");
+  Log::info("AppStore::sendMessage - Sending message to Stream.io via StreamChatClient");
+  streamChatClient->sendMessage("messaging", channelId, text, [this, channelId, msgObj, messageId](const Outcome<void> &result) {
+    if (!result.isOk()) {
+      Log::error("AppStore::sendMessage - ERROR: Failed to send message to Stream.io: " + result.getError());
+      // Still add to local state for optimistic UI, but flag as failed
+      sliceManager.getChatSlice()->dispatch([channelId, msgObj](ChatState &state) {
+        auto channelIt = state.channels.find(channelId);
+        if (channelIt != state.channels.end()) {
+          auto *msgObj_dyn = msgObj.getDynamicObject();
+          if (msgObj_dyn) {
+            msgObj_dyn->setProperty("sendStatus", "failed");
+          }
+          channelIt->second.messages.push_back(msgObj);
+        }
+      });
+      return;
     }
-  });
 
-  Log::info("AppStore::sendMessage - ✓ Message send complete");
+    Log::info("AppStore::sendMessage - ✓ Message successfully sent to Stream.io");
+    // Message was sent successfully, add optimistic local copy with success status
+    sliceManager.getChatSlice()->dispatch([channelId, msgObj](ChatState &state) {
+      auto channelIt = state.channels.find(channelId);
+      if (channelIt != state.channels.end()) {
+        auto *msgObj_dyn = msgObj.getDynamicObject();
+        if (msgObj_dyn) {
+          msgObj_dyn->setProperty("sendStatus", "sent");
+        }
+        channelIt->second.messages.push_back(msgObj);
+        Log::info("AppStore::sendMessage - ✓ Added message to channel state with success status");
+      } else {
+        Log::error("AppStore::sendMessage callback - ERROR: Channel disappeared from state!");
+      }
+    });
+  });
 }
 
 void AppStore::startTyping(const juce::String &channelId) {

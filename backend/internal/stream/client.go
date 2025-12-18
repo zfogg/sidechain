@@ -139,6 +139,29 @@ func (c *Client) CreateUser(userID, username string) error {
 	return nil
 }
 
+// UpdateUserProfile updates a user's profile information in Stream.io Chat
+func (c *Client) UpdateUserProfile(userID, username string, customData map[string]interface{}) error {
+	ctx := context.Background()
+
+	// Update user in Chat system with profile data
+	user := &chat.User{
+		ID:   userID,
+		Name: username,
+	}
+
+	// Add custom data fields (displayName, bio, profilePictureUrl, genre, daw, etc.)
+	if customData != nil {
+		user.ExtraData = customData
+	}
+
+	_, err := c.ChatClient.UpsertUser(ctx, user)
+	if err != nil {
+		return fmt.Errorf("failed to update user profile in Stream.io: %w", err)
+	}
+
+	return nil
+}
+
 // CreateLoopActivity creates an activity for a new loop post
 func (c *Client) CreateLoopActivity(userID string, activity *Activity) error {
 	ctx := context.Background()
