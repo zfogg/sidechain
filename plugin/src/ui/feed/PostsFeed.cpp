@@ -143,11 +143,15 @@ void PostsFeed::setUserInfo(const juce::String &user, const juce::String &userEm
 }
 
 void PostsFeed::setNetworkClient(NetworkClient *client) {
+  if (!client) {
+    Log::warn("PostsFeed::setNetworkClient: Null client parameter");
+    return;
+  }
   networkClient = client;
   // Set NetworkClient on PostsStore (Task 2.6)
   if (appStore)
     appStore->setNetworkClient(client);
-  Log::info("PostsFeed::setNetworkClient: NetworkClient set " + juce::String(client != nullptr ? "(valid)" : "(null)"));
+  Log::info("PostsFeed::setNetworkClient: NetworkClient set successfully");
 }
 
 void PostsFeed::setStreamChatClient(StreamChatClient *client) {

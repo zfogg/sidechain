@@ -1,13 +1,12 @@
 #pragma once
 
 #include "audio/AudioCapture.h"
+#include "audio/BufferAudioPlayer.h"
 #include "audio/ChordSequenceDetector.h"
 #include "audio/HttpAudioPlayer.h"
 #include "audio/MIDICapture.h"
 #include "audio/SynthEngine.h"
 #include <JuceHeader.h>
-
-class BufferAudioPlayer;
 
 //==============================================================================
 /**
@@ -282,7 +281,8 @@ public:
 
   /** Set the buffer audio player for story preview
    * Called by StoryRecordingComponent to enable story audio preview
-   * @param player Pointer to the buffer audio player
+   * The caller retains ownership of the player
+   * @param player Pointer to the buffer audio player (can be null)
    */
   void setBufferAudioPlayer(BufferAudioPlayer *player) {
     bufferAudioPlayer = player;
@@ -348,7 +348,7 @@ private:
   // Audio playback for feed
   HttpAudioPlayer audioPlayer;
 
-  // Buffer audio player for story preview (set by StoryRecordingComponent)
+  // Buffer audio player for story preview (set by StoryRecordingComponent, owned by caller)
   BufferAudioPlayer *bufferAudioPlayer = nullptr;
 
   // Audio settings (cached from prepareToPlay)

@@ -73,36 +73,51 @@ void BufferAudioPlayer::play() {
     return;
   }
 
-  playing = true;
+  playing.store(true, std::memory_order_release);
   Log::info("BufferAudioPlayer: Playback started");
 
   // Start progress timer
   progressTimer->startTimer(50); // Update every 50ms
 
-  if (onPlaybackStarted)
-    onPlaybackStarted();
+  if (onPlaybackStarted) {
+    try {
+      onPlaybackStarted();
+    } catch (const std::exception &e) {
+      Log::error("BufferAudioPlayer: Exception in onPlaybackStarted callback - " + juce::String(e.what()));
+    }
+  }
 }
 
 void BufferAudioPlayer::pause() {
-  playing = false;
+  playing.store(false, std::memory_order_release);
   progressTimer->stopTimer();
   Log::debug("BufferAudioPlayer: Playback paused");
 
-  if (onPlaybackPaused)
-    onPlaybackPaused();
+  if (onPlaybackPaused) {
+    try {
+      onPlaybackPaused();
+    } catch (const std::exception &e) {
+      Log::error("BufferAudioPlayer: Exception in onPlaybackPaused callback - " + juce::String(e.what()));
+    }
+  }
 }
 
 void BufferAudioPlayer::stop() {
-  if (playing) {
+  if (playing.load(std::memory_order_acquire)) {
     Log::info("BufferAudioPlayer: Playback stopped");
   }
 
-  playing = false;
+  playing.store(false, std::memory_order_release);
   progressTimer->stopTimer();
   currentSamplePosition = 0;
 
-  if (onPlaybackStopped)
-    onPlaybackStopped();
+  if (onPlaybackStopped) {
+    try {
+      onPlaybackStopped();
+    } catch (const std::exception &e) {
+      Log::error("BufferAudioPlayer: Exception in onPlaybackStopped callback - " + juce::String(e.what()));
+    }
+  }
 }
 
 void BufferAudioPlayer::togglePlayPause() {
