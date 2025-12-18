@@ -1,4 +1,4 @@
-name: Build and Push Backend Docker Image
+name: Deploy Backend
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
 
 jobs:
   deploy-backend:
-    name: Deploy Backend to production via SSH
+    name: Deploy backend to production via SSH
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -44,23 +44,5 @@ jobs:
           docker-compose -f docker-compose.yml -f docker-compose.prod.yml pull
           echo "🚀 Restarting all services..."
           docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-          echo "⏳ Waiting for services to be healthy..."
-          for i in {1..30}; do
-            if docker exec sidechain-backend wget --no-verbose --tries=1 --spider http://localhost:8787/health 2>/dev/null; then
-              echo "✅ Backend is healthy!"
-              break
-            fi
-            echo "Waiting... ($i/30)"
-            sleep 2
-          done
-          echo "✅ Checking Caddy is ready..."
-          for i in {1..10}; do
-            if docker exec sidechain-caddy curl -s http://localhost:80 >/dev/null 2>&1 || docker exec sidechain-caddy curl -s https://localhost:443 >/dev/null 2>&1; then
-              echo "✅ Caddy is ready!"
-              break
-            fi
-            echo "Waiting for Caddy... ($i/10)"
-            sleep 2
-          done
           echo "🎉 Deployment complete!"
           EOF
