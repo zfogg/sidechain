@@ -530,9 +530,9 @@ func (h *Handlers) GetRemixSource(c *gin.Context) {
 				"tempo":          story.MIDIPattern.Tempo,
 				"time_signature": story.MIDIPattern.TimeSignature,
 			}
-		} else if story.MIDIData != nil {
-			// Legacy: Use embedded MIDI data
-			response["midi_data"] = story.MIDIData
+// // 		} else if story.MIDIData != nil {
+// // 			// Legacy: Use embedded MIDI data
+// // 			response["midi_data"] = story.MIDIData
 		}
 	}
 

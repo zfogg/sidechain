@@ -46,6 +46,7 @@ services:
       GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET}"
       DISCORD_CLIENT_ID: "${DISCORD_CLIENT_ID}"
       DISCORD_CLIENT_SECRET: "${DISCORD_CLIENT_SECRET}"
+      OAUTH_REDIRECT_URL: "${OAUTH_REDIRECT_URL:-http://localhost:3000/auth/callback}"
 
       # Email (AWS SES)
       SES_FROM_EMAIL: "${SES_FROM_EMAIL:-hi@sidechain.live}"
