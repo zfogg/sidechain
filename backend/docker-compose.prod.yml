@@ -12,6 +12,7 @@ services:
     environment:
       - DOMAIN=${DOMAIN:-example.com}
       - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL:-hi@sidechain.live}
+      - PROMETHEUS_PASSWORD=${PROMETHEUS_PASSWORD:-password}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
