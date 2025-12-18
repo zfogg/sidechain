@@ -9,6 +9,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/recommendations"
 	"github.com/zfogg/sidechain/backend/internal/seed"
+	"github.com/zfogg/sidechain/backend/internal/stream"
 )
 
 func main() {
@@ -66,6 +67,17 @@ func seedDev() {
 		log.Println("   Set these environment variables to enable recommendation seeding")
 	}
 
+	// Initialize Stream.io client for conversation seeding
+	log.Println("💬 Initializing Stream.io client for conversation seeding...")
+	streamClient, err := stream.NewClient()
+	if err != nil {
+		log.Printf("⚠️  Failed to initialize Stream.io client: %v\n", err)
+		log.Println("   Set STREAM_API_KEY and STREAM_API_SECRET to enable conversation seeding")
+	} else {
+		seeder.SetStreamClient(streamClient)
+		log.Println("✅ Stream.io client configured")
+	}
+
 	// Run seed functions
 	if err := seeder.SeedDev(); err != nil {
 		log.Fatalf("❌ Seeding failed: %v", err)
@@ -85,8 +97,21 @@ func seedTest() {
 
 	log.Println("✅ Database connected")
 
+	// Initialize Stream.io client for conversation seeding
+	log.Println("💬 Initializing Stream.io client for conversation seeding...")
+	streamClient, err := stream.NewClient()
+	if err != nil {
+		log.Printf("⚠️  Failed to initialize Stream.io client: %v\n", err)
+		log.Println("   Set STREAM_API_KEY and STREAM_API_SECRET to enable conversation seeding")
+	}
+
 	// Run seed functions
 	seeder := seed.NewSeeder(database.DB)
+	if streamClient != nil {
+		seeder.SetStreamClient(streamClient)
+		log.Println("✅ Stream.io client configured")
+	}
+
 	if err := seeder.SeedTest(); err != nil {
 		log.Fatalf("❌ Seeding failed: %v", err)
 	}
