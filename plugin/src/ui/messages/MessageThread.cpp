@@ -297,10 +297,30 @@ void MessageThread::mouseUp(const juce::MouseEvent &event) {
 void MessageThread::mouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel) {
   // Only scroll if wheel is within message area (not input box)
   if (event.y < getHeight() - MESSAGE_INPUT_HEIGHT - 10) {
-    scrollPosition -= wheel.deltaY * 30.0;
-    scrollPosition = juce::jlimit(0.0, scrollBar.getMaximumRangeLimit(), scrollPosition);
-    scrollBar.setCurrentRangeStart(scrollPosition, juce::dontSendNotification);
-    repaint();
+    double scrollAmount = wheel.deltaY * 50.0;
+    double maxScrollPos = scrollBar.getMaximumRangeLimit();
+    targetScrollPosition = juce::jlimit(0.0, maxScrollPos, scrollPosition - scrollAmount);
+
+    Log::debug("MessageThread::mouseWheelMove - Scroll requested: current=" + juce::String(scrollPosition) +
+               ", target=" + juce::String(targetScrollPosition) + ", max=" + juce::String(maxScrollPos));
+
+    // Cancel any existing animation
+    if (scrollAnimationHandle) {
+      scrollAnimationHandle->cancel();
+    }
+
+    // Create smooth scroll animation (200ms duration) like PostsFeed
+    auto scrollAnim = Sidechain::UI::Animations::TransitionAnimation<double>::create(
+        scrollPosition, targetScrollPosition, 200);
+
+    scrollAnimationHandle = Sidechain::UI::Animations::AnimationController::getInstance().add(
+        scrollAnim, [this](double value) {
+          scrollPosition = value;
+          scrollBar.setCurrentRangeStart(scrollPosition, juce::dontSendNotification);
+          repaint();
+        });
+
+    Log::debug("MessageThread::mouseWheelMove - Animation started");
   }
 }
 
@@ -703,7 +723,12 @@ void MessageThread::drawErrorState(juce::Graphics &g) {
 void MessageThread::scrollBarMoved(juce::ScrollBar *bar, double newRangeStart) {
   // Verify scroll bar callback is from our scroll bar instance
   if (bar == &scrollBar) {
+    // Cancel any active animation since user is directly manipulating scrollbar
+    if (scrollAnimationHandle) {
+      scrollAnimationHandle->cancel();
+    }
     scrollPosition = newRangeStart;
+    targetScrollPosition = newRangeStart;
     repaint();
   }
 }

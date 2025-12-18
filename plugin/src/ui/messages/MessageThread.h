@@ -3,6 +3,7 @@
 #include "../../network/StreamChatClient.h"
 #include "../../stores/AppStore.h"
 #include "../../ui/common/AppStoreComponent.h"
+#include "../../ui/animations/AnimationController.h"
 #include "../../util/reactive/ReactiveBoundComponent.h"
 #include "../common/ErrorState.h"
 #include <JuceHeader.h>
@@ -102,6 +103,8 @@ private:
   juce::ScrollBar scrollBar;
   juce::TextEditor messageInput;
   double scrollPosition = 0.0;
+  double targetScrollPosition = 0.0;
+  Sidechain::UI::Animations::AnimationHandle scrollAnimationHandle;
   static constexpr int HEADER_HEIGHT = 60;
   static constexpr int INPUT_HEIGHT = 60;
   static constexpr int MESSAGE_INPUT_HEIGHT = 60; // Alias for INPUT_HEIGHT
