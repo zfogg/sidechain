@@ -317,4 +317,4 @@ jobs:
       - name: 'notify vercel'
         uses: 'vercel/repository-dispatch/actions/status@v1'
         with:
-          name: Vercel - sidechain: tests-web
+          name: Vercel - sidechain - tests-web
