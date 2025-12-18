@@ -92,9 +92,10 @@ prometheus.sidechain.live {
 
     # Basic authentication for Prometheus
     # Username: prometheus
-    # Password: from PROMETHEUS_PASSWORD env var (plaintext)
-    basicauth /* {
-        prometheus {$PROMETHEUS_PASSWORD}
+    # Password hash: bcrypt($2a$14$mBC6urJMgbEzSAs0TmWwceavZnQzGMwQVM6uEkLTnEiWXiolaNfq.)
+    # Plaintext: PrometheusSecure2025!
+    basic_auth /* {
+        prometheus $2a$14$mBC6urJMgbEzSAs0TmWwceavZnQzGMwQVM6uEkLTnEiWXiolaNfq.
     }
 
     # Proxy to Prometheus with health checks and retry
