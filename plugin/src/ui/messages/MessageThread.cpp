@@ -216,10 +216,13 @@ void MessageThread::resized() {
 void MessageThread::mouseUp(const juce::MouseEvent &event) {
   auto pos = event.getPosition();
 
+  Log::debug("MessageThread::mouseUp - Click at (" + juce::String(pos.x) + ", " + juce::String(pos.y) + ")");
+
   // TODO: Re-implement hit testing once messages are drawn via paint()
   // Currently migration in progress - paint() shows placeholder text
 
   if (getBackButtonBounds().contains(pos)) {
+    Log::debug("MessageThread::mouseUp - Back button clicked");
     if (onBackPressed)
       onBackPressed();
     return;
@@ -227,6 +230,7 @@ void MessageThread::mouseUp(const juce::MouseEvent &event) {
 
   // Audio button (toggle audio recorder)
   if (getAudioButtonBounds().contains(pos)) {
+    Log::debug("MessageThread::mouseUp - Audio button clicked");
     showAudioRecorder = !showAudioRecorder;
     resized();
     repaint();
@@ -235,6 +239,7 @@ void MessageThread::mouseUp(const juce::MouseEvent &event) {
 
   // Header menu button (for group channels)
   if (isGroupChannel() && getHeaderMenuButtonBounds().contains(pos)) {
+    Log::debug("MessageThread::mouseUp - Menu button clicked");
     juce::PopupMenu menu;
     menu.addItem(1, "Add Members");
     menu.addItem(2, "Remove Members");
@@ -257,7 +262,13 @@ void MessageThread::mouseUp(const juce::MouseEvent &event) {
     return;
   }
 
-  if (getSendButtonBounds().contains(pos)) {
+  auto sendBounds = getSendButtonBounds();
+  Log::debug("MessageThread::mouseUp - Send button bounds: " + juce::String(sendBounds.getX()) + "," +
+             juce::String(sendBounds.getY()) + "," + juce::String(sendBounds.getWidth()) + "," +
+             juce::String(sendBounds.getHeight()) + ", contains click: " + juce::String(sendBounds.contains(pos) ? "YES" : "NO"));
+
+  if (sendBounds.contains(pos)) {
+    Log::info("MessageThread::mouseUp - Send button clicked! Calling sendMessage()");
     sendMessage();
     return;
   }
@@ -355,9 +366,15 @@ void MessageThread::loadMessages() {
 }
 
 void MessageThread::sendMessage() {
+  Log::info("MessageThread::sendMessage - CALLED!");
+
   juce::String text = messageInput.getText().trim();
-  if (text.isEmpty())
+  Log::info("MessageThread::sendMessage - Message text: '" + text + "'");
+
+  if (text.isEmpty()) {
+    Log::debug("MessageThread::sendMessage - Message text is empty, returning");
     return;
+  }
 
   if (channelId.isEmpty()) {
     Log::error("MessageThread: Cannot send message - no channel selected");
@@ -368,6 +385,8 @@ void MessageThread::sendMessage() {
     Log::error("MessageThread: Cannot send message - AppStore not available");
     return;
   }
+
+  Log::info("MessageThread::sendMessage - All checks passed, sending message");
 
   // Clear reply/edit state
   replyingToMessageId = "";
