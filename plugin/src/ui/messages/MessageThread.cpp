@@ -756,7 +756,7 @@ int MessageThread::calculateTotalMessagesHeight() {
   }
 
   const auto &messages = channelIt->second.messages;
-  int messageAreaWidth = getWidth() - 24; // Account for padding/scrollbar
+  int messageAreaWidth = getWidth() - scrollBar.getWidth();
 
   for (const auto &message : messages) {
     if (message.isObject()) {
