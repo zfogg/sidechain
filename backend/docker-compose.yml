@@ -170,11 +170,6 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9121/metrics"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   postgres-exporter:
     image: prometheuscommunity/postgres-exporter:latest
@@ -187,11 +182,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9187/metrics"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   prometheus:
     image: prom/prometheus:latest
@@ -208,9 +198,9 @@ services:
       - '--storage.tsdb.retention.time=30d'
     depends_on:
       redis-exporter:
-        condition: service_healthy
+        condition: service_started
       postgres-exporter:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
       interval: 10s
