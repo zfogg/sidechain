@@ -17,8 +17,8 @@ interface CreatePostData {
  * UploadClient - Handles file uploads and post creation
  *
  * API Endpoints:
- * POST /upload - Upload audio file
- * POST /posts - Create post with metadata
+ * POST /api/v1/audio/upload - Upload audio file
+ * POST /api/v1/posts - Create post with metadata
  */
 export class UploadClient {
   /**
@@ -31,10 +31,10 @@ export class UploadClient {
   static async uploadFile(file: File): Promise<Outcome<{ audioUrl: string; waveformUrl: string }>> {
     try {
       const formData = new FormData()
-      formData.append('file', file)
+      formData.append('audio', file)
 
       // Use native fetch for better progress tracking (could be enhanced with XMLHttpRequest)
-      const response = await fetch('/api/v1/upload', {
+      const response = await fetch('/api/v1/audio/upload', {
         method: 'POST',
         body: formData,
         headers: {
