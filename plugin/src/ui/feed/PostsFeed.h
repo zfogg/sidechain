@@ -3,6 +3,7 @@
 #include "../../audio/HttpAudioPlayer.h"
 #include "../../models/FeedResponse.h"
 #include "../../models/Playlist.h"
+#include "../../ui/animations/AnimationController.h"
 #include "../../ui/animations/Easing.h"
 #include "../../ui/animations/TransitionAnimation.h"
 #include "../common/AppStoreComponent.h"
@@ -36,8 +37,7 @@ class StreamChatClient;
  */
 class PostsFeed : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::PostsState>,
                   public juce::ScrollBar::Listener,
-                  public juce::KeyListener,
-                  public juce::Timer {
+                  public juce::KeyListener {
 public:
   explicit PostsFeed(Sidechain::Stores::AppStore *appStore);
   ~PostsFeed() override;
@@ -113,22 +113,19 @@ public:
   // ScrollBar::Listener
   void scrollBarMoved(juce::ScrollBar *scrollBar, double newRangeStart) override;
 
-  // Timer override
-  void timerCallback() override;
-
 private:
   //==============================================================================
   // Real-time update state (5.5)
   int pendingNewPostsCount = 0; // Count of new posts received while user is viewing feed
   juce::Time lastNewPostTime;   // Track when last new post notification arrived
   bool showingNewPostsToast = false;
-  std::shared_ptr<Sidechain::UI::Animations::TransitionAnimation<float>> toastAnimation;
+  Sidechain::UI::Animations::AnimationHandle toastAnimationHandle;
   float currentToastOpacity = 0.0f;
 
   // Scroll state
   double scrollPosition = 0.0;
   double targetScrollPosition = 0.0;
-  std::shared_ptr<Sidechain::UI::Animations::TransitionAnimation<double>> scrollAnimation;
+  Sidechain::UI::Animations::AnimationHandle scrollAnimationHandle;
   int totalContentHeight = 0;
   int previousContentHeight = 0;
   static constexpr int POST_CARD_HEIGHT = PostCard::CARD_HEIGHT; // Use PostCard's height constant
@@ -165,7 +162,7 @@ private:
   // Comments panel (slide-in overlay)
   std::unique_ptr<CommentsPanel> commentsPanel;
   bool commentsPanelVisible = false;
-  std::shared_ptr<Sidechain::UI::Animations::TransitionAnimation<float>> commentsPanelAnimation;
+  Sidechain::UI::Animations::AnimationHandle commentsPanelAnimationHandle;
   float currentCommentsPanelSlide = 0.0f;
   juce::String currentUserId;
 
