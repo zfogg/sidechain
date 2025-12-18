@@ -40,7 +40,9 @@ jobs:
           git fetch origin main
           git reset --hard origin/main
           git checkout origin/main
-          echo "🐳 Pulling latest Docker images..."
+          echo "🐳 Building backend Docker image..."
+          docker-compose -f docker-compose.yml -f docker-compose.prod.yml build backend
+          echo "🐳 Pulling other Docker images..."
           docker-compose -f docker-compose.yml -f docker-compose.prod.yml pull
           echo "🚀 Restarting all services..."
           docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
