@@ -213,6 +213,9 @@ void AppStore::updateAuthState(std::function<void(AuthState &)> updater) {
       Util::logError("AppStore", "Auth subscriber threw exception", e.what());
     }
   }
+
+  // Sync to auth slice (Phase 2 refactoring)
+  syncAuthSlice(currentState.auth);
 }
 
 void AppStore::updateFeedState(std::function<void(PostsState &)> updater) {
@@ -232,6 +235,9 @@ void AppStore::updateFeedState(std::function<void(PostsState &)> updater) {
       Util::logError("AppStore", "Feed subscriber threw exception", e.what());
     }
   }
+
+  // Sync to posts slice (Phase 2 refactoring)
+  syncPostsSlice(currentState.posts);
 }
 
 void AppStore::updateUserState(std::function<void(UserState &)> updater) {
@@ -248,6 +254,9 @@ void AppStore::updateUserState(std::function<void(UserState &)> updater) {
       Util::logError("AppStore", "User subscriber threw exception", e.what());
     }
   }
+
+  // Sync to user slice (Phase 2 refactoring)
+  syncUserSlice(currentState.user);
 }
 
 void AppStore::updateChatState(std::function<void(ChatState &)> updater) {
@@ -264,6 +273,9 @@ void AppStore::updateChatState(std::function<void(ChatState &)> updater) {
       Util::logError("AppStore", "Chat subscriber threw exception", e.what());
     }
   }
+
+  // Sync to chat slice (Phase 2 refactoring)
+  syncChatSlice(currentState.chat);
 }
 
 void AppStore::updateUploadState(std::function<void(UploadState &)> updater) {
@@ -271,6 +283,10 @@ void AppStore::updateUploadState(std::function<void(UploadState &)> updater) {
 
   // Notify all observers of state change
   notifyObservers();
+
+  // Sync to upload slice (Phase 2 refactoring)
+  auto currentState = getState();
+  syncUploadSlice(currentState.uploads);
 }
 
 } // namespace Stores
