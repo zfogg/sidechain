@@ -180,6 +180,9 @@ void MessageThread::resized() {
   if (showAudioRecorder && audioSnippetRecorder)
     bottomAreaHeight += AUDIO_RECORDER_HEIGHT;
 
+  // Register scrollbar with SmoothScrollable
+  setScrollBar(&scrollBar);
+
   // Scrollbar on right side of message area
   auto messageArea = bounds.withTrimmedTop(HEADER_HEIGHT).withTrimmedBottom(bottomAreaHeight);
   scrollBar.setBounds(messageArea.removeFromRight(12));
@@ -204,7 +207,7 @@ void MessageThread::resized() {
   int totalHeight = calculateTotalMessagesHeight();
   int visibleHeight = getHeight() - HEADER_HEIGHT - bottomAreaHeight;
   scrollBar.setRangeLimits(0.0, static_cast<double>(juce::jmax(0, totalHeight - visibleHeight)));
-  scrollBar.setCurrentRangeStart(scrollPosition, juce::dontSendNotification);
+  scrollBar.setCurrentRangeStart(getScrollPosition(), juce::dontSendNotification);
 
   // Position error state component in message area
   if (errorStateComponent != nullptr) {
@@ -297,30 +300,7 @@ void MessageThread::mouseUp(const juce::MouseEvent &event) {
 void MessageThread::mouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel) {
   // Only scroll if wheel is within message area (not input box)
   if (event.y < getHeight() - MESSAGE_INPUT_HEIGHT - 10) {
-    double scrollAmount = wheel.deltaY * 50.0;
-    double maxScrollPos = scrollBar.getMaximumRangeLimit();
-    targetScrollPosition = juce::jlimit(0.0, maxScrollPos, scrollPosition - scrollAmount);
-
-    Log::debug("MessageThread::mouseWheelMove - Scroll requested: current=" + juce::String(scrollPosition) +
-               ", target=" + juce::String(targetScrollPosition) + ", max=" + juce::String(maxScrollPos));
-
-    // Cancel any existing animation
-    if (scrollAnimationHandle) {
-      scrollAnimationHandle->cancel();
-    }
-
-    // Create smooth scroll animation (200ms duration) like PostsFeed
-    auto scrollAnim = Sidechain::UI::Animations::TransitionAnimation<double>::create(
-        scrollPosition, targetScrollPosition, 200);
-
-    scrollAnimationHandle = Sidechain::UI::Animations::AnimationController::getInstance().add(
-        scrollAnim, [this](double value) {
-          scrollPosition = value;
-          scrollBar.setCurrentRangeStart(scrollPosition, juce::dontSendNotification);
-          repaint();
-        });
-
-    Log::debug("MessageThread::mouseWheelMove - Animation started");
+    handleMouseWheelMove(event, wheel, getHeight() - MESSAGE_INPUT_HEIGHT, scrollBar.getWidth());
   }
 }
 
@@ -503,7 +483,7 @@ void MessageThread::drawMessages(juce::Graphics &g, const std::vector<StreamChat
   // paint() and drawMessages() This ensures we're always working with the same
   // snapshot of the message list
 
-  int y = HEADER_HEIGHT + MESSAGE_TOP_PADDING - static_cast<int>(scrollPosition);
+  int y = HEADER_HEIGHT + MESSAGE_TOP_PADDING - static_cast<int>(getScrollPosition());
   int width = getWidth() - scrollBar.getWidth();
 
   // Calculate bottom area height (reply preview + input)
@@ -517,7 +497,7 @@ void MessageThread::drawMessages(juce::Graphics &g, const std::vector<StreamChat
   }
 
   Log::debug("MessageThread::drawMessages - height: " + juce::String(getHeight()) +
-             ", bottomArea: " + juce::String(bottomAreaHeight) + ", scrollPosition: " + juce::String(scrollPosition) +
+             ", bottomArea: " + juce::String(bottomAreaHeight) + ", scrollPosition: " + juce::String(getScrollPosition()) +
              ", y start: " + juce::String(y) + ", messages.size(): " + juce::String(messages.size()));
 
   for (size_t i = 0; i < messages.size(); ++i) {
@@ -720,19 +700,6 @@ void MessageThread::drawErrorState(juce::Graphics &g) {
 }
 
 //==============================================================================
-void MessageThread::scrollBarMoved(juce::ScrollBar *bar, double newRangeStart) {
-  // Verify scroll bar callback is from our scroll bar instance
-  if (bar == &scrollBar) {
-    // Cancel any active animation since user is directly manipulating scrollbar
-    if (scrollAnimationHandle) {
-      scrollAnimationHandle->cancel();
-    }
-    scrollPosition = newRangeStart;
-    targetScrollPosition = newRangeStart;
-    repaint();
-  }
-}
-
 juce::String MessageThread::formatTimestamp(const juce::String &timestamp) {
   if (timestamp.isEmpty())
     return "";
@@ -814,7 +781,7 @@ juce::Rectangle<int> MessageThread::getMessageBounds(const StreamChatClient::Mes
   int estimatedY = HEADER_HEIGHT + static_cast<int>((hashValue % 500) * 0.1f);
 
   // Account for current scroll position
-  int y = estimatedY - static_cast<int>(scrollPosition);
+  int y = estimatedY - static_cast<int>(getScrollPosition());
 
   // Estimate message height from text length and bubble properties
   int messageHeight = 60; // Minimum height
