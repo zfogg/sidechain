@@ -10,8 +10,6 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-
-	"github.com/zfogg/sidechain/backend/internal/crdt"
 )
 
 // Hub maintains the set of active clients and broadcasts messages to clients.
@@ -47,9 +45,6 @@ type Hub struct {
 
 	// Message handlers
 	handlers map[string]MessageHandler
-
-	// Operational Transform for collaborative editing (Task 4.20)
-	ot *crdt.OperationalTransform
 
 	// Rate limiter config
 	rateLimitConfig RateLimitConfig
@@ -107,7 +102,6 @@ func NewHub() *Hub {
 		ctx:             ctx,
 		cancel:          cancel,
 		handlers:        make(map[string]MessageHandler),
-		ot:              crdt.NewOperationalTransform(),
 		rateLimitConfig: DefaultRateLimitConfig(),
 	}
 }

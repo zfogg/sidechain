@@ -36,11 +36,6 @@ func NewHandlers(streamClient stream.StreamClientInterface, audioProcessor *audi
 	}
 }
 
-// NewHandlersWithClient creates a new handlers instance (alias for NewHandlers for compatibility)
-func NewHandlersWithClient(streamClient stream.StreamClientInterface, audioProcessor *audio.Processor) *Handlers {
-	return NewHandlers(streamClient, audioProcessor)
-}
-
 // SetWebSocketHandler sets the WebSocket handler for real-time notifications
 func (h *Handlers) SetWebSocketHandler(ws *websocket.Handler) {
 	h.wsHandler = ws

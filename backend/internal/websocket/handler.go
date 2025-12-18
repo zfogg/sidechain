@@ -12,7 +12,6 @@ import (
 	"github.com/coder/websocket"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/zfogg/sidechain/backend/internal/crdt"
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/models"
 )
@@ -409,85 +408,6 @@ func (h *Handler) RegisterDefaultHandlers() {
 			"user_id":   client.UserID,
 			"timestamp": time.Now().UnixMilli(),
 		}))
-		return nil
-	})
-
-	// Operational Transform handler for collaborative editing (Task 4.20)
-	h.hub.RegisterHandler(MessageTypeOperation, func(client *Client, msg *Message) error {
-		var payload OperationPayload
-		if err := msg.ParsePayload(&payload); err != nil {
-			log.Printf("Failed to parse operation payload: %v", err)
-			client.Send(NewErrorMessage("invalid_operation", "Failed to parse operation: "+err.Error()))
-			return err
-		}
-
-		// Validate operation
-		if payload.DocumentID == "" {
-			client.Send(NewErrorMessage("invalid_operation", "Document ID is required"))
-			return fmt.Errorf("missing document_id")
-		}
-
-		if payload.Operation.Type != "Insert" && payload.Operation.Type != "Delete" {
-			client.Send(NewErrorMessage("invalid_operation", "Operation type must be Insert or Delete"))
-			return fmt.Errorf("invalid operation type: %s", payload.Operation.Type)
-		}
-
-		// Convert to CRDT operation
-		op := &crdt.Operation{
-			Type:            payload.Operation.Type,
-			ClientID:        payload.Operation.ClientID,
-			ClientTimestamp: payload.Operation.Timestamp,
-			Position:        payload.Operation.Position,
-			Content:         payload.Operation.Content,
-		}
-
-		// For Delete, content contains the deleted text, calculate length
-		if op.Type == "Delete" {
-			op.Length = len(op.Content)
-		}
-
-		// Apply operation through OT (handles transformation)
-		transformedOp, err := h.hub.ot.ApplyOperation(payload.DocumentID, op)
-		if err != nil {
-			log.Printf("Failed to apply operation: %v", err)
-			client.Send(NewErrorMessage("operation_failed", "Failed to apply operation: "+err.Error()))
-			return err
-		}
-
-		// Get updated document content
-		currentContent := h.hub.ot.GetDocumentContent(payload.DocumentID)
-
-		// Send acknowledgment to sender
-		ackPayload := OperationAckPayload{
-			DocumentID:      payload.DocumentID,
-			ClientID:        payload.Operation.ClientID,
-			ServerTimestamp: transformedOp.ServerTimestamp,
-			NewPosition:     transformedOp.Position,
-			CurrentContent:  currentContent,
-			TransformedOp:   &payload,
-			Success:         true,
-		}
-
-		// Convert TransformedOp back to payload format for client
-		transformedPayload := &OperationPayload{
-			DocumentID: payload.DocumentID,
-		}
-		transformedPayload.Operation.Type = transformedOp.Type
-		transformedPayload.Operation.ClientID = transformedOp.ClientID
-		transformedPayload.Operation.Timestamp = transformedOp.ServerTimestamp
-		transformedPayload.Operation.Position = transformedOp.Position
-		transformedPayload.Operation.Content = transformedOp.Content
-		ackPayload.TransformedOp = transformedPayload
-
-		client.Send(NewMessage(MessageTypeOperationAck, ackPayload))
-
-		// Broadcast operation to all other clients for this document
-		// This allows other clients to apply the same transformation
-		h.hub.Broadcast(NewMessage(MessageTypeOperation, payload))
-
-		log.Printf("Applied operation on document %s from client %d (type=%s, position=%d, timestamp=%d)",
-			payload.DocumentID, payload.Operation.ClientID, payload.Operation.Type, payload.Operation.Position, transformedOp.ServerTimestamp)
-
 		return nil
 	})
 
