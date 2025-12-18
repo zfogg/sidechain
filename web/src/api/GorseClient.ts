@@ -39,7 +39,8 @@ export class GorseClient {
     limit: number = 20,
     offset: number = 0
   ): Promise<Outcome<RecommendedPost[]>> {
-    const result = await apiClient.get<any>('/recommendations', {
+    // Use the backend's /recommendations/for-you endpoint which provides personalized recommendations
+    const result = await apiClient.get<any>('/recommendations/for-you', {
       limit,
       offset,
     })
@@ -49,11 +50,13 @@ export class GorseClient {
     }
 
     const data = result.getValue()
+    // Handle both direct posts array and wrapped response
+    const posts = Array.isArray(data) ? data : (data.posts || data.activities || [])
     return Outcome.ok(
-      (data.recommendations || []).map((rec: any) => ({
-        post: FeedPostModel.fromJson(rec.post),
-        score: rec.score || 0,
-        reason: rec.reason,
+      posts.map((item: any) => ({
+        post: FeedPostModel.fromJson(item.post || item),
+        score: item.score || 0,
+        reason: item.reason,
       }))
     )
   }
@@ -87,8 +90,10 @@ export class GorseClient {
     limit: number = 20,
     offset: number = 0
   ): Promise<Outcome<TrendingProducer[]>> {
-    const result = await apiClient.get<any>('/recommendations/producers', {
-      limit,
+    // Get trending posts to show trending producers
+    // Extract unique users from trending posts
+    const result = await apiClient.get<any>('/recommendations/popular', {
+      limit: limit * 3, // Get more posts to extract unique producers
       offset,
     })
 
@@ -97,19 +102,29 @@ export class GorseClient {
     }
 
     const data = result.getValue()
-    return Outcome.ok(
-      (data.producers || []).map((producer: any) => ({
-        id: producer.id,
-        username: producer.username,
-        displayName: producer.display_name,
-        profilePictureUrl: producer.profile_picture_url,
-        bio: producer.bio,
-        followerCount: producer.follower_count || 0,
-        postCount: producer.post_count || 0,
-        isFollowing: producer.is_following || false,
-        trendingScore: producer.trending_score || 0,
-      }))
-    )
+    const posts = Array.isArray(data) ? data : (data.posts || data.activities || [])
+
+    // Extract trending producers by aggregating posts by user
+    const producerMap = new Map<string, { user_id: string; play_count: number; post_count: number }>()
+    posts.forEach((item: any) => {
+      const post = item.post || item
+      if (post.actor) {
+        const userId = post.actor.id || post.user_id
+        if (!producerMap.has(userId)) {
+          producerMap.set(userId, { user_id: userId, play_count: 0, post_count: 0 })
+        }
+        const producer = producerMap.get(userId)!
+        producer.post_count += 1
+        producer.play_count += post.play_count || 0
+      }
+    })
+
+    // Convert to array and sort by play count
+    const trendingProducers = Array.from(producerMap.values())
+      .sort((a, b) => b.play_count - a.play_count)
+      .slice(0, limit)
+
+    return Outcome.ok(trendingProducers as TrendingProducer[])
   }
 
   /**
