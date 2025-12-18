@@ -484,7 +484,7 @@ func main() {
 	corsConfig.MaxAge = 86400 // 24 hours
 	r.Use(cors.New(corsConfig))
 
-	logger.Log.Info("CORS configured for origins",
+	logger.Log.Info("✅ CORS configured for origins",
 		zap.Strings("allowed_origins", corsConfig.AllowOrigins),
 	)
 
