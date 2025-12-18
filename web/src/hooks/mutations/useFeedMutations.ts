@@ -161,13 +161,13 @@ export function usePlayTrackMutation() {
   const feedStore = useFeedStore()
 
   return useMutation({
-    mutationFn: async (postId: string) => {
-      const result = await FeedClient.trackPlay(postId)
+    mutationFn: async ({ postId, duration = 0 }: { postId: string; duration?: number }) => {
+      const result = await FeedClient.trackPlay(postId, duration)
       if (result.isError()) {
         throw new Error(result.getError())
       }
     },
-    onMutate: (postId) => {
+    onMutate: ({ postId }) => {
       // Optimistic update: increment play count immediately
       feedStore.incrementPlayCount(postId)
     },

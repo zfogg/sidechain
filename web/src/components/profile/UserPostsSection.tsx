@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
 import { FeedClient } from '@/api/FeedClient'
-import { FeedPost } from '@/models/FeedPost'
 import { Spinner } from '@/components/ui/spinner'
 import { PostCard } from '@/components/feed/PostCard'
 

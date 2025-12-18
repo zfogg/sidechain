@@ -123,8 +123,17 @@ export class GorseClient {
     const trendingProducers = Array.from(producerMap.values())
       .sort((a, b) => b.play_count - a.play_count)
       .slice(0, limit)
+      .map(p => ({
+        id: p.user_id,
+        username: '',
+        displayName: '',
+        followerCount: 0,
+        postCount: p.post_count,
+        isFollowing: false,
+        trendingScore: p.play_count
+      } as TrendingProducer))
 
-    return Outcome.ok(trendingProducers as TrendingProducer[])
+    return Outcome.ok(trendingProducers)
   }
 
   /**
