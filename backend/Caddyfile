@@ -66,11 +66,6 @@ grafana.sidechain.live {
             expect_continue_timeout 2s
         }
 
-        # Preserve original request info
-        header_up X-Forwarded-For {http.request.header.X-Forwarded-For}
-        header_up X-Forwarded-Proto {http.request.proto}
-        header_up X-Forwarded-Host {http.request.host}
-
         # Grafana expects this header for HTTPS requests
         header_up X-Forwarded-Port "443"
     }
@@ -111,10 +106,7 @@ prometheus.sidechain.live {
             expect_continue_timeout 2s
         }
 
-        # Preserve original request info
-        header_up X-Forwarded-For {http.request.header.X-Forwarded-For}
-        header_up X-Forwarded-Proto {http.request.proto}
-        header_up X-Forwarded-Host {http.request.host}
+        # Prometheus expects these headers for HTTPS requests
         header_up X-Forwarded-Port "443"
     }
 
