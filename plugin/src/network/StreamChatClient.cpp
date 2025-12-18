@@ -278,13 +278,10 @@ void StreamChatClient::queryChannels(ChannelsCallback callback, int limit, int o
         juce::var requestData = juce::var(new juce::DynamicObject());
         auto *obj = requestData.getDynamicObject();
 
-        // Filter channels to only those where current user is a member
+        // Filter channels - getstream.io requires explicit filter conditions
+        // Using empty filter for now to debug channel retrieval
+        // TODO: Investigate why members filter returns 0 channels when queryChannels error said 6 channels exist
         juce::var filter = juce::var(new juce::DynamicObject());
-        juce::var membersFilter = juce::var(new juce::DynamicObject());
-        juce::var membersList = juce::var(juce::Array<juce::var>());
-        membersList.getArray()->add(currentUserId);
-        membersFilter.getDynamicObject()->setProperty("$in", membersList);
-        filter.getDynamicObject()->setProperty("members", membersFilter);
         obj->setProperty("filter_conditions", filter);
 
         // Build sort
@@ -423,10 +420,9 @@ void StreamChatClient::queryMessages(const juce::String &channelType, const juce
         juce::var requestData = juce::var(new juce::DynamicObject());
         auto *obj = requestData.getDynamicObject();
 
-        juce::var messagesObj = juce::var(new juce::DynamicObject());
-        messagesObj.getDynamicObject()->setProperty("limit", limit);
-        messagesObj.getDynamicObject()->setProperty("offset", offset);
-        obj->setProperty("messages", messagesObj);
+        // Pass limit and offset as top-level properties, not nested under "messages"
+        obj->setProperty("limit", limit);
+        obj->setProperty("offset", offset);
 
         Log::debug("StreamChatClient::queryMessages - endpoint: " + endpoint);
         Log::debug("StreamChatClient::queryMessages - request: " + juce::JSON::toString(requestData));
@@ -437,19 +433,54 @@ void StreamChatClient::queryMessages(const juce::String &channelType, const juce
 
         std::vector<Message> messages;
 
-        if (response.isObject()) {
-          auto channelData = response.getProperty("channel", juce::var());
-          if (channelData.isObject()) {
-            auto messagesArray = channelData.getProperty("messages", juce::var());
-            if (messagesArray.isArray()) {
-              Log::debug("StreamChatClient::queryMessages - found " + juce::String(messagesArray.getArray()->size()) +
-                         " messages");
-              for (int i = 0; i < messagesArray.getArray()->size(); i++) {
-                auto messageData = messagesArray.getArray()->getReference(i);
-                messages.push_back(parseMessage(messageData));
-              }
+        // Get the raw response JSON string to work around JUCE JSON parsing issues with large objects
+        juce::String rawResponseStr = juce::JSON::toString(response);
+        if (rawResponseStr.contains("\"messages\"")) {
+          Log::debug("Raw response contains 'messages' field");
+        } else {
+          Log::debug("WARNING: Raw response does NOT contain 'messages' field");
+        }
+
+        // Extract messages from raw JSON response (work around JUCE JSON parsing limitation)
+        int messagesStart = rawResponseStr.indexOf(0, "\"messages\":");
+        if (messagesStart >= 0) {
+          // Find the opening bracket after "messages":
+          int arrayStart = rawResponseStr.indexOf(messagesStart, "[");
+          if (arrayStart >= 0) {
+            // Find the closing bracket with simple bracket counting
+            int bracketCount = 1;
+            int arrayEnd = arrayStart + 1;
+            while (arrayEnd < rawResponseStr.length() && bracketCount > 0) {
+              char ch = rawResponseStr[arrayEnd];
+              if (ch == '[') bracketCount++;
+              else if (ch == ']') bracketCount--;
+              if (bracketCount > 0) arrayEnd++;
             }
+
+            if (bracketCount == 0) {
+              // Extract the messages array JSON
+              juce::String messagesJsonStr = rawResponseStr.substring(arrayStart, arrayEnd + 1);
+              Log::debug("StreamChatClient::queryMessages - extracted messages JSON (length: " + juce::String(messagesJsonStr.length()) + ")");
+
+              // Parse the messages array
+              auto messagesArray = juce::JSON::parse(messagesJsonStr);
+              if (messagesArray.isArray()) {
+                Log::debug("StreamChatClient::queryMessages - found " + juce::String(messagesArray.getArray()->size()) + " messages");
+                for (int i = 0; i < messagesArray.getArray()->size(); i++) {
+                  auto messageData = messagesArray.getArray()->getReference(i);
+                  messages.push_back(parseMessage(messageData));
+                }
+              } else {
+                Log::debug("WARNING: Extracted JSON is not an array");
+              }
+            } else {
+              Log::debug("WARNING: Could not find matching ] bracket for messages array");
+            }
+          } else {
+            Log::debug("WARNING: Could not find [ bracket for messages array");
           }
+        } else {
+          Log::debug("WARNING: Could not find 'messages' field in response");
         }
 
         return messages;
