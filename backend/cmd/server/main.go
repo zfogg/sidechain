@@ -539,8 +539,8 @@ func main() {
 		users := api.Group("/users")
 		{
 			users.Use(authHandlers.AuthMiddleware())
-			users.GET("/me", h.GetProfile)
-			users.PUT("/me", h.UpdateProfile)
+			users.GET("/me", h.GetMyProfile)
+			users.PUT("/me", h.UpdateMyProfile)
 			users.PUT("/username", h.ChangeUsername)
 			users.POST("/upload-profile-picture", middleware.RateLimitUpload(), authHandlers.UploadProfilePicture)
 
