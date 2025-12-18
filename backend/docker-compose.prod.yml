@@ -79,38 +79,41 @@ services:
     networks:
       - sidechain
 
-  elasticsearch:
-    image: opensearchproject/opensearch:3.4.0
-    container_name: sidechain-elasticsearch
-    restart: unless-stopped
-    cpus: 0.5
-    mem_limit: 256m
-    memswap_limit: 256m
-    environment:
-      - cluster.name=opensearch-cluster
-      - node.name=opensearch-node1
-      - discovery.type=single-node
-      - OPENSEARCH_SECURITY_SSL_HTTP_ENABLED=false
-      - OPENSEARCH_DISABLE_SECURITY_PLUGIN=true
-      - OPENSEARCH_JAVA_OPTS=-Xms128m -Xmx128m
-      - bootstrap.memory_lock=false
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 65536
-        hard: 65536
-    volumes:
-      - elasticsearch_data:/usr/share/elasticsearch/data
-    healthcheck:
-      test: ["CMD-SHELL", "curl -s -o /dev/null -w '%{http_code}' http://localhost:9200/ | grep -q 200"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 3s
-    networks:
-      - sidechain
+  # elasticsearch:
+  #   # DISABLED: OpenSearch has persistent security plugin init loop consuming 50% CPU
+  #   # Backend has PostgreSQL fallback for search functionality
+  #   # Re-enable with OPENSEARCH_INITIAL_ADMIN_PASSWORD set when search optimization needed
+  #   image: opensearchproject/opensearch:3.4.0
+  #   container_name: sidechain-elasticsearch
+  #   restart: unless-stopped
+  #   cpus: 0.5
+  #   mem_limit: 256m
+  #   memswap_limit: 256m
+  #   environment:
+  #     - cluster.name=opensearch-cluster
+  #     - node.name=opensearch-node1
+  #     - discovery.type=single-node
+  #     - OPENSEARCH_SECURITY_SSL_HTTP_ENABLED=false
+  #     - OPENSEARCH_DISABLE_SECURITY_PLUGIN=true
+  #     - OPENSEARCH_JAVA_OPTS=-Xms128m -Xmx128m
+  #     - bootstrap.memory_lock=false
+  #   ulimits:
+  #     memlock:
+  #       soft: -1
+  #       hard: -1
+  #     nofile:
+  #       soft: 65536
+  #       hard: 65536
+  #   volumes:
+  #     - elasticsearch_data:/usr/share/elasticsearch/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "curl -s -o /dev/null -w '%{http_code}' http://localhost:9200/ | grep -q 200"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #     start_period: 3s
+  #   networks:
+  #     - sidechain
 
   gorse:
     image: zhenghaoz/gorse-in-one:nightly
@@ -228,14 +231,12 @@ services:
     memswap_limit: 128m
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    command: --interval 30 --cleanup sidechain-backend sidechain-elasticsearch sidechain-gorse sidechain-postgres sidechain-redis sidechain-caddy sidechain-prometheus sidechain-grafana
+    command: --interval 30 --cleanup sidechain-backend sidechain-gorse sidechain-postgres sidechain-redis sidechain-caddy sidechain-prometheus sidechain-grafana
     networks:
       - sidechain
 
 volumes:
   postgres_data:
-    driver: local
-  elasticsearch_data:
     driver: local
   redis_data:
     driver: local
