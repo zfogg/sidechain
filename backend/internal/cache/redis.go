@@ -7,6 +7,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 	"github.com/zfogg/sidechain/backend/internal/logger"
+	"github.com/zfogg/sidechain/backend/internal/metrics"
 	"go.uber.org/zap"
 )
 
@@ -77,22 +78,78 @@ func (rc *RedisClient) Close() error {
 
 // Get retrieves a value from Redis
 func (rc *RedisClient) Get(ctx context.Context, key string) (string, error) {
-	return rc.client.Get(ctx, key).Result()
+	start := time.Now()
+	result, err := rc.client.Get(ctx, key).Result()
+
+	// METRICS-2: Record Redis operation timing
+	duration := time.Since(start).Seconds()
+	metrics.Get().RedisOperationDuration.WithLabelValues("get", extractKeyPattern(key)).Observe(duration)
+
+	status := "success"
+	if err != nil {
+		status = "error"
+	}
+	metrics.Get().RedisOperationsTotal.WithLabelValues("get", status).Inc()
+
+	return result, err
 }
 
 // Set stores a value in Redis
 func (rc *RedisClient) Set(ctx context.Context, key string, value interface{}) error {
-	return rc.client.Set(ctx, key, value, 0).Err()
+	start := time.Now()
+	err := rc.client.Set(ctx, key, value, 0).Err()
+
+	// METRICS-2: Record Redis operation timing
+	duration := time.Since(start).Seconds()
+	metrics.Get().RedisOperationDuration.WithLabelValues("set", extractKeyPattern(key)).Observe(duration)
+
+	status := "success"
+	if err != nil {
+		status = "error"
+	}
+	metrics.Get().RedisOperationsTotal.WithLabelValues("set", status).Inc()
+
+	return err
 }
 
 // SetEx stores a value in Redis with expiration
 func (rc *RedisClient) SetEx(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
-	return rc.client.Set(ctx, key, value, ttl).Err()
+	start := time.Now()
+	err := rc.client.Set(ctx, key, value, ttl).Err()
+
+	// METRICS-2: Record Redis operation timing
+	duration := time.Since(start).Seconds()
+	metrics.Get().RedisOperationDuration.WithLabelValues("setex", extractKeyPattern(key)).Observe(duration)
+
+	status := "success"
+	if err != nil {
+		status = "error"
+	}
+	metrics.Get().RedisOperationsTotal.WithLabelValues("setex", status).Inc()
+
+	return err
 }
 
 // Del deletes one or more keys from Redis
 func (rc *RedisClient) Del(ctx context.Context, keys ...string) error {
-	return rc.client.Del(ctx, keys...).Err()
+	start := time.Now()
+	err := rc.client.Del(ctx, keys...).Err()
+
+	// METRICS-2: Record Redis operation timing
+	duration := time.Since(start).Seconds()
+	keyPattern := "del"
+	if len(keys) > 0 {
+		keyPattern = extractKeyPattern(keys[0])
+	}
+	metrics.Get().RedisOperationDuration.WithLabelValues("del", keyPattern).Observe(duration)
+
+	status := "success"
+	if err != nil {
+		status = "error"
+	}
+	metrics.Get().RedisOperationsTotal.WithLabelValues("del", status).Inc()
+
+	return err
 }
 
 // Exists checks if one or more keys exist in Redis
@@ -178,4 +235,33 @@ func (rc *RedisClient) HGet(ctx context.Context, key string, field string) (stri
 // HGetAll gets all fields from a hash
 func (rc *RedisClient) HGetAll(ctx context.Context, key string) (map[string]string, error) {
 	return rc.client.HGetAll(ctx, key).Result()
+}
+
+// extractKeyPattern extracts the pattern from a Redis key for metrics labeling
+// Removes UUIDs and specific IDs to group similar keys together
+// e.g., "user:6215c2dc-306d-437c-a9a0-7659a2809f88" → "user:*"
+func extractKeyPattern(key string) string {
+	// Simple pattern extraction - group by common key prefixes
+	if len(key) == 0 {
+		return "other"
+	}
+
+	// Common Redis key patterns
+	patterns := map[string]string{
+		"user:":        "user:*",
+		"post:":        "post:*",
+		"story:":       "story:*",
+		"feed:":        "feed:*",
+		"cache:":       "cache:*",
+		"session:":     "session:*",
+		"notification": "notification:*",
+	}
+
+	for prefix, pattern := range patterns {
+		if len(key) > len(prefix) && key[:len(prefix)] == prefix {
+			return pattern
+		}
+	}
+
+	return "other"
 }
