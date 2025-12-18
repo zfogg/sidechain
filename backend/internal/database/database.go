@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/zfogg/sidechain/backend/internal/metrics"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -59,6 +60,10 @@ func Initialize() error {
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
 	DB = db
+
+	// METRICS-1: Register GORM hooks for database query metrics
+	registerMetricsHooks(db)
+
 	log.Println("✅ Database connected successfully")
 
 	return nil
@@ -480,4 +485,72 @@ func runManualMigrations() {
 
 		log.Printf("✅ Replaced %d broken URLs with working audio", brokenCount)
 	}
+}
+
+// registerMetricsHooks registers GORM callbacks to record database metrics
+func registerMetricsHooks(db *gorm.DB) {
+	// METRICS-1: Record database query timing using GORM Before/After callbacks
+	db.Callback().Create().Before("gorm:before_create").Register("metrics:before_create", func(db *gorm.DB) {
+		db.InstanceSet("metrics:start_time", time.Now())
+	})
+
+	db.Callback().Create().After("gorm:after_create").Register("metrics:after_create", func(db *gorm.DB) {
+		if start, ok := db.InstanceGet("metrics:start_time"); ok {
+			duration := time.Since(start.(time.Time)).Seconds()
+			metrics.Get().DatabaseQueryDuration.WithLabelValues("create", "insert").Observe(duration)
+			status := "success"
+			if db.Error != nil {
+				status = "error"
+			}
+			metrics.Get().DatabaseQueriesTotal.WithLabelValues("create", "insert", status).Inc()
+		}
+	})
+
+	db.Callback().Query().Before("gorm:before_query").Register("metrics:before_query", func(db *gorm.DB) {
+		db.InstanceSet("metrics:start_time", time.Now())
+	})
+
+	db.Callback().Query().After("gorm:after_query").Register("metrics:after_query", func(db *gorm.DB) {
+		if start, ok := db.InstanceGet("metrics:start_time"); ok {
+			duration := time.Since(start.(time.Time)).Seconds()
+			metrics.Get().DatabaseQueryDuration.WithLabelValues("query", "select").Observe(duration)
+			status := "success"
+			if db.Error != nil && db.Error != gorm.ErrRecordNotFound {
+				status = "error"
+			}
+			metrics.Get().DatabaseQueriesTotal.WithLabelValues("query", "select", status).Inc()
+		}
+	})
+
+	db.Callback().Update().Before("gorm:before_update").Register("metrics:before_update", func(db *gorm.DB) {
+		db.InstanceSet("metrics:start_time", time.Now())
+	})
+
+	db.Callback().Update().After("gorm:after_update").Register("metrics:after_update", func(db *gorm.DB) {
+		if start, ok := db.InstanceGet("metrics:start_time"); ok {
+			duration := time.Since(start.(time.Time)).Seconds()
+			metrics.Get().DatabaseQueryDuration.WithLabelValues("update", "update").Observe(duration)
+			status := "success"
+			if db.Error != nil {
+				status = "error"
+			}
+			metrics.Get().DatabaseQueriesTotal.WithLabelValues("update", "update", status).Inc()
+		}
+	})
+
+	db.Callback().Delete().Before("gorm:before_delete").Register("metrics:before_delete", func(db *gorm.DB) {
+		db.InstanceSet("metrics:start_time", time.Now())
+	})
+
+	db.Callback().Delete().After("gorm:after_delete").Register("metrics:after_delete", func(db *gorm.DB) {
+		if start, ok := db.InstanceGet("metrics:start_time"); ok {
+			duration := time.Since(start.(time.Time)).Seconds()
+			metrics.Get().DatabaseQueryDuration.WithLabelValues("delete", "delete").Observe(duration)
+			status := "success"
+			if db.Error != nil {
+				status = "error"
+			}
+			metrics.Get().DatabaseQueriesTotal.WithLabelValues("delete", "delete", status).Inc()
+		}
+	})
 }
