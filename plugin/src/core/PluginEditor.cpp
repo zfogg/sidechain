@@ -2052,8 +2052,7 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String &user, con
 
   // Subscribe to user state changes to wait for profile fetch to complete
   // This allows us to show the correct view (Feed or ProfileSetup) once we know if user has a profile picture
-  auto unsubscriber = std::make_shared<std::function<void()>>();
-  *unsubscriber = appStore.subscribeToUser([this, unsubscriber](const Sidechain::Stores::UserState &userState) {
+  Slices::AppSliceManager::getInstance().getUserSlice()->subscribe([this](const Sidechain::Stores::UserState &userState) {
     // Only proceed once we've fetched the profile (userId should be populated)
     if (!userState.userId.isEmpty() && !userState.isFetchingProfile) {
       Log::info("onLoginSuccess: Profile fetch complete - userId: " + userState.userId +
@@ -2083,10 +2082,8 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String &user, con
         showView(AppView::ProfileSetup);
       }
 
-      // Unsubscribe after profile setup is complete
-      if (*unsubscriber) {
-        (*unsubscriber)();
-      }
+      // Subscription will continue but callback only fires on state changes
+      // (and only executes code if isFetchingProfile is false)
     }
   });
 
@@ -2279,10 +2276,9 @@ void SidechainAudioProcessorEditor::loadLoginState() {
 
     // Fetch user profile from backend to get latest data and S3 profile picture
     Log::debug("loadLoginState: Fetching user profile from backend");
-    auto unsubscriber = std::make_shared<std::function<void()>>();
     auto fetchAttempts = std::make_shared<int>(0);
 
-    *unsubscriber = appStore.subscribeToUser([this, unsubscriber, fetchAttempts](const Sidechain::Stores::UserState &userState) {
+    Slices::AppSliceManager::getInstance().getUserSlice()->subscribe([this, fetchAttempts](const Sidechain::Stores::UserState &userState) {
       Log::debug("loadLoginState subscription: isFetchingProfile=" + juce::String(userState.isFetchingProfile ? "true" : "false") +
                  ", userError='" + userState.userError + "', userId='" + userState.userId + "'");
 
@@ -2359,10 +2355,7 @@ void SidechainAudioProcessorEditor::loadLoginState() {
             showView(AppView::ProfileSetup);
           }
 
-          // Unsubscribe
-          if (*unsubscriber) {
-            (*unsubscriber)();
-          }
+          // Subscription will continue but callback only executes for subsequent state changes
         }
       }
     });

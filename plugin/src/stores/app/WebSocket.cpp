@@ -43,7 +43,7 @@ void AppStore::onWebSocketFollowerCountUpdate(const juce::String &userId, int fo
 
   // Update the current user's follower count in state if this is about us
   if (userId == getState().user.userId) {
-    updateUserState([followerCount](UserState &state) { state.followerCount = followerCount; });
+    sliceManager.getUserSlice()->dispatch([followerCount](UserState &state) { state.followerCount = followerCount; });
   }
 }
 
@@ -80,7 +80,7 @@ void AppStore::onWebSocketPresenceUpdate(const juce::String &userId, bool isOnli
 
   // Update presence state directly without invalidating other caches
   // (presence changes don't affect feed/user data validity, just UI display)
-  updateUserState([userId, isOnline](UserState &state) {
+  sliceManager.getUserSlice()->dispatch([userId, isOnline](UserState &state) {
     // Store online status per user - could use a map if many users tracked
     // For now, we just log the update. Real implementation might maintain
     // a presence map or push to a dedicated presence state slice.

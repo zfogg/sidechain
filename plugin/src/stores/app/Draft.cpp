@@ -7,7 +7,8 @@ namespace Sidechain {
 namespace Stores {
 
 void AppStore::loadDrafts() {
-  updateState([](AppState &state) { state.drafts.isLoading = true; });
+  auto draftSlice = sliceManager.getDraftSlice();
+  draftSlice->dispatch([](DraftState &state) { state.isLoading = true; });
 
   // Load drafts from cache directory
   juce::Array<juce::var> draftsList;
@@ -35,22 +36,21 @@ void AppStore::loadDrafts() {
     Util::logError("AppStore", "Failed to load drafts: " + juce::String(e.what()));
   }
 
-  updateState([draftsList](AppState &state) {
-    state.drafts.drafts = draftsList;
-    state.drafts.isLoading = false;
-    state.drafts.draftError = "";
+  draftSlice->dispatch([draftsList](DraftState &state) {
+    state.drafts = draftsList;
+    state.isLoading = false;
+    state.draftError = "";
   });
-
-  notifyObservers();
 }
 
 void AppStore::deleteDraft(const juce::String &draftId) {
-  updateState([draftId](AppState &state) {
+  auto draftSlice = sliceManager.getDraftSlice();
+  draftSlice->dispatch([draftId](DraftState &state) {
     // Remove draft from list
-    for (int i = state.drafts.drafts.size() - 1; i >= 0; --i) {
-      auto draft = state.drafts.drafts[i];
+    for (int i = state.drafts.size() - 1; i >= 0; --i) {
+      auto draft = state.drafts[i];
       if (draft.hasProperty("id") && draft.getProperty("id", juce::var()).toString() == draftId) {
-        state.drafts.drafts.remove(i);
+        state.drafts.remove(i);
         Util::logInfo("AppStore", "Deleted draft: " + draftId);
         break;
       }
@@ -65,8 +65,6 @@ void AppStore::deleteDraft(const juce::String &draftId) {
   } catch (const std::exception &e) {
     Util::logError("AppStore", "Failed to remove draft from cache: " + juce::String(e.what()));
   }
-
-  notifyObservers();
 }
 
 void AppStore::clearAutoRecoveryDraft() {
@@ -81,9 +79,7 @@ void AppStore::clearAutoRecoveryDraft() {
     Util::logError("AppStore", "Failed to clear auto-recovery draft: " + juce::String(e.what()));
   }
 
-  updateState([](AppState &state) { state.drafts.draftError = ""; });
-
-  notifyObservers();
+  sliceManager.getDraftSlice()->dispatch([](DraftState &state) { state.draftError = ""; });
 }
 
 } // namespace Stores

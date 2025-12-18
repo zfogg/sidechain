@@ -10,9 +10,10 @@ void AppStore::loadNotifications() {
     return;
   }
 
-  updateState([](AppState &state) { state.notifications.isLoading = true; });
+  auto notificationSlice = sliceManager.getNotificationSlice();
+  notificationSlice->dispatch([](NotificationState &state) { state.isLoading = true; });
 
-  networkClient->getNotifications(20, 0, [this](Outcome<NetworkClient::NotificationResult> result) {
+  networkClient->getNotifications(20, 0, [this, notificationSlice](Outcome<NetworkClient::NotificationResult> result) {
     if (result.isOk()) {
       const auto notifResult = result.getValue();
       juce::Array<juce::var> notificationsList;
@@ -23,44 +24,22 @@ void AppStore::loadNotifications() {
         }
       }
 
-      updateState([notificationsList, notifResult](AppState &state) {
-        state.notifications.notifications = notificationsList;
-        state.notifications.isLoading = false;
-        state.notifications.unreadCount = notifResult.unread;
-        state.notifications.unseenCount = notifResult.unseen;
-        state.notifications.notificationError = "";
+      notificationSlice->dispatch([notificationsList, notifResult](NotificationState &state) {
+        state.notifications = notificationsList;
+        state.isLoading = false;
+        state.unreadCount = notifResult.unread;
+        state.unseenCount = notifResult.unseen;
+        state.notificationError = "";
         Util::logInfo("AppStore", "Loaded " + juce::String(notificationsList.size()) +
                                       " notifications (unread: " + juce::String(notifResult.unread) + ")");
       });
-
-      // Notify notification subscribers
-      auto currentState = getState();
-      for (const auto &[id, callback] : notificationSubscribers) {
-        try {
-          callback(currentState.notifications);
-        } catch (const std::exception &e) {
-          Util::logError("AppStore", "Notification subscriber threw exception", e.what());
-        }
-      }
     } else {
-      updateState([result](AppState &state) {
-        state.notifications.isLoading = false;
-        state.notifications.notificationError = result.getError();
+      notificationSlice->dispatch([result](NotificationState &state) {
+        state.isLoading = false;
+        state.notificationError = result.getError();
         Util::logError("AppStore", "Failed to load notifications: " + result.getError());
       });
-
-      // Notify notification subscribers
-      auto currentState = getState();
-      for (const auto &[id, callback] : notificationSubscribers) {
-        try {
-          callback(currentState.notifications);
-        } catch (const std::exception &e) {
-          Util::logError("AppStore", "Notification subscriber threw exception", e.what());
-        }
-      }
     }
-
-    notifyObservers();
   });
 }
 
@@ -69,13 +48,14 @@ void AppStore::loadMoreNotifications() {
     return;
   }
 
-  const auto &currentState = getState();
-  if (currentState.notifications.notifications.isEmpty()) {
+  auto notificationSlice = sliceManager.getNotificationSlice();
+  const auto &currentState = notificationSlice->getState();
+  if (currentState.notifications.isEmpty()) {
     return;
   }
 
   networkClient->getNotifications(
-      20, currentState.notifications.notifications.size(), [this](Outcome<NetworkClient::NotificationResult> result) {
+      20, currentState.notifications.size(), [this, notificationSlice](Outcome<NetworkClient::NotificationResult> result) {
         if (result.isOk()) {
           const auto notifResult = result.getValue();
           juce::Array<juce::var> newNotifications;
@@ -86,26 +66,14 @@ void AppStore::loadMoreNotifications() {
             }
           }
 
-          updateState([newNotifications, notifResult](AppState &state) {
+          notificationSlice->dispatch([newNotifications, notifResult](NotificationState &state) {
             for (const auto &notification : newNotifications) {
-              state.notifications.notifications.add(notification);
+              state.notifications.add(notification);
             }
-            state.notifications.unreadCount = notifResult.unread;
-            state.notifications.unseenCount = notifResult.unseen;
+            state.unreadCount = notifResult.unread;
+            state.unseenCount = notifResult.unseen;
           });
-
-          // Notify notification subscribers
-          auto currentState = getState();
-          for (const auto &[id, callback] : notificationSubscribers) {
-            try {
-              callback(currentState.notifications);
-            } catch (const std::exception &e) {
-              Util::logError("AppStore", "Notification subscriber threw exception", e.what());
-            }
-          }
         }
-
-        notifyObservers();
       });
 }
 
@@ -115,45 +83,23 @@ void AppStore::markNotificationsAsRead() {
     return;
   }
 
-  networkClient->markNotificationsRead([this](Outcome<juce::var> result) {
+  auto notificationSlice = sliceManager.getNotificationSlice();
+
+  networkClient->markNotificationsRead([this, notificationSlice](Outcome<juce::var> result) {
     if (result.isOk()) {
-      updateState([](AppState &state) {
+      notificationSlice->dispatch([](NotificationState &state) {
         // Mark all notifications as read
-        for (auto &notification : state.notifications.notifications) {
+        for (auto &notification : state.notifications) {
           notification.getDynamicObject()->setProperty("is_read", true);
         }
-        state.notifications.unreadCount = 0;
+        state.unreadCount = 0;
         Util::logInfo("AppStore", "All notifications marked as read");
       });
-
-      // Notify notification subscribers
-      auto currentState = getState();
-      for (const auto &[id, callback] : notificationSubscribers) {
-        try {
-          callback(currentState.notifications);
-        } catch (const std::exception &e) {
-          Util::logError("AppStore", "Notification subscriber threw exception", e.what());
-        }
-      }
-
-      notifyObservers();
     } else {
-      updateState([result](AppState &state) {
-        state.notifications.notificationError = result.getError();
+      notificationSlice->dispatch([result](NotificationState &state) {
+        state.notificationError = result.getError();
         Util::logError("AppStore", "Failed to mark notifications as read: " + result.getError());
       });
-
-      // Notify notification subscribers
-      auto currentState = getState();
-      for (const auto &[id, callback] : notificationSubscribers) {
-        try {
-          callback(currentState.notifications);
-        } catch (const std::exception &e) {
-          Util::logError("AppStore", "Notification subscriber threw exception", e.what());
-        }
-      }
-
-      notifyObservers();
     }
   });
 }
@@ -164,41 +110,19 @@ void AppStore::markNotificationsAsSeen() {
     return;
   }
 
-  networkClient->markNotificationsSeen([this](Outcome<juce::var> result) {
+  auto notificationSlice = sliceManager.getNotificationSlice();
+
+  networkClient->markNotificationsSeen([this, notificationSlice](Outcome<juce::var> result) {
     if (result.isOk()) {
-      updateState([](AppState &state) {
-        state.notifications.unseenCount = 0;
+      notificationSlice->dispatch([](NotificationState &state) {
+        state.unseenCount = 0;
         Util::logInfo("AppStore", "All notifications marked as seen");
       });
-
-      // Notify notification subscribers
-      auto currentState = getState();
-      for (const auto &[id, callback] : notificationSubscribers) {
-        try {
-          callback(currentState.notifications);
-        } catch (const std::exception &e) {
-          Util::logError("AppStore", "Notification subscriber threw exception", e.what());
-        }
-      }
-
-      notifyObservers();
     } else {
-      updateState([result](AppState &state) {
-        state.notifications.notificationError = result.getError();
+      notificationSlice->dispatch([result](NotificationState &state) {
+        state.notificationError = result.getError();
         Util::logError("AppStore", "Failed to mark notifications as seen: " + result.getError());
       });
-
-      // Notify notification subscribers
-      auto currentState = getState();
-      for (const auto &[id, callback] : notificationSubscribers) {
-        try {
-          callback(currentState.notifications);
-        } catch (const std::exception &e) {
-          Util::logError("AppStore", "Notification subscriber threw exception", e.what());
-        }
-      }
-
-      notifyObservers();
     }
   });
 }

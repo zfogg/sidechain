@@ -1,28 +1,31 @@
 #pragma once
 
-#include "Store.h"
-#include "app/AppState.h"
+#include "slices/AppSlices.h"
 #include "../models/FeedResponse.h"
 #include "../models/AggregatedFeedResponse.h"
 #include "../network/NetworkClient.h"
+#include "../network/StreamChatClient.h"
 #include "../util/cache/FileCache.h"
 #include "../util/cache/ImageCache.h"
 #include "../util/cache/AudioCache.h"
 #include "../util/cache/DraftCache.h"
 #include <JuceHeader.h>
 #include <chrono>
-#include <any>
 #include <functional>
+#include <optional>
+#include <mutex>
 #include <rxcpp/rx.hpp>
 
 namespace Sidechain {
 namespace Stores {
 
 /**
- * AppStore - Unified reactive store for entire application
+ * AppStore - Pure orchestration and business logic layer
  *
- * Single Store<AppState> that manages all application state.
- * Methods organized in separate .cpp files like NetworkClient:
+ * Manages all application business logic by dispatching actions to independent slices.
+ * Uses AppSliceManager to coordinate state across domains.
+ *
+ * Methods organized in separate .cpp files:
  *   - Auth.cpp - login, logout, 2FA, password reset
  *   - Feed.cpp - load feeds, like, save, repost, etc.
  *   - User.cpp - profile, settings, preferences
@@ -36,17 +39,17 @@ namespace Stores {
  *   - Challenges.cpp - MIDI challenges
  *   - Sounds.cpp - sound pages
  *
- * Components inject single AppStore and subscribe to full state:
- *   auto& appStore = AppStore::getInstance();
- *   appStore.subscribe([this](const AppState& state) {
- *       // React to ANY state change
- *       updateUI(state);
+ * Components subscribe directly to slices:
+ *   auto& manager = AppSliceManager::getInstance();
+ *   manager.getAuthSlice()->subscribe([this](const AuthState& auth) {
+ *       if (auth.isLoggedIn) updateUI();
  *   });
  *
- * Or subscribe to specific state slices:
- *   appStore.subscribeToAuth([this](const AuthState& auth) { ... });
+ * Components dispatch actions via AppStore methods:
+ *   AppStore::getInstance().login(email, password);
+ *   AppStore::getInstance().loadFeed(FeedType::Timeline);
  */
-class AppStore : public Store<AppState> {
+class AppStore {
 public:
   /**
    * Get singleton instance
@@ -60,6 +63,7 @@ public:
    * Set the network client for API calls
    */
   void setNetworkClient(NetworkClient *client);
+  void setStreamChatClient(StreamChatClient *client);
 
   //==============================================================================
   // Auth Methods (AppStore_Auth.cpp)
@@ -314,70 +318,99 @@ public:
   void reportComment(const juce::String &commentId, const juce::String &reason, const juce::String &description);
 
   //==============================================================================
-  // Subscription helpers for state slices
+  // Backward-Compatible Subscription Helpers
+  // These delegate to slices for gradual component migration
 
   /**
-   * Subscribe only to auth state changes
+   * Subscribe to auth state (backward-compatible wrapper)
    */
-  std::function<void()> subscribeToAuth(std::function<void(const AuthState &)> callback);
+  void subscribeToAuth(std::function<void(const AuthState &)> callback) {
+    sliceManager.getAuthSlice()->subscribe(callback);
+  }
 
   /**
-   * Subscribe only to feed state changes
+   * Subscribe to feed state (backward-compatible wrapper)
    */
-  std::function<void()> subscribeToFeed(std::function<void(const PostsState &)> callback);
+  void subscribeToFeed(std::function<void(const PostsState &)> callback) {
+    sliceManager.getPostsSlice()->subscribe(callback);
+  }
 
   /**
-   * Subscribe only to user state changes
+   * Subscribe to user state (backward-compatible wrapper)
    */
-  std::function<void()> subscribeToUser(std::function<void(const UserState &)> callback);
+  void subscribeToUser(std::function<void(const UserState &)> callback) {
+    sliceManager.getUserSlice()->subscribe(callback);
+  }
 
   /**
-   * Subscribe only to chat state changes
+   * Subscribe to chat state (backward-compatible wrapper)
    */
-  std::function<void()> subscribeToChat(std::function<void(const ChatState &)> callback);
+  void subscribeToChat(std::function<void(const ChatState &)> callback) {
+    sliceManager.getChatSlice()->subscribe(callback);
+  }
 
   /**
-   * Subscribe only to drafts state changes
+   * Subscribe to search state (backward-compatible wrapper)
    */
-  std::function<void()> subscribeToDrafts(std::function<void(const DraftState &)> callback);
-
-  /** Subscribe to challenges state slice (for MidiChallenges component) */
-  std::function<void()> subscribeToChallenges(std::function<void(const ChallengeState &)> callback);
-
-  /**
-   * Subscribe only to stories state changes
-   */
-  std::function<void()> subscribeToStories(std::function<void(const StoriesState &)> callback);
+  void subscribeToSearch(std::function<void(const SearchState &)> callback) {
+    sliceManager.getSearchSlice()->subscribe(callback);
+  }
 
   /**
-   * Subscribe only to upload state changes
+   * Subscribe to drafts state (backward-compatible wrapper)
    */
-  std::function<void()> subscribeToUploads(std::function<void(const UploadState &)> callback);
+  void subscribeToDrafts(std::function<void(const DraftState &)> callback) {
+    sliceManager.getDraftSlice()->subscribe(callback);
+  }
 
   /**
-   * Subscribe only to notification state changes
+   * Subscribe to challenges state (backward-compatible wrapper)
    */
-  std::function<void()> subscribeToNotifications(std::function<void(const NotificationState &)> callback);
+  void subscribeToChallenges(std::function<void(const ChallengeState &)> callback) {
+    sliceManager.getChallengeSlice()->subscribe(callback);
+  }
 
   /**
-   * Subscribe only to search state changes
+   * Subscribe to stories state (backward-compatible wrapper)
    */
-  std::function<void()> subscribeToSearch(std::function<void(const SearchState &)> callback);
+  void subscribeToStories(std::function<void(const StoriesState &)> callback) {
+    sliceManager.getStoriesSlice()->subscribe(callback);
+  }
 
   /**
-   * Subscribe only to followers state changes
+   * Subscribe to uploads state (backward-compatible wrapper)
    */
-  std::function<void()> subscribeToFollowers(std::function<void(const FollowersState &)> callback);
+  void subscribeToUploads(std::function<void(const UploadState &)> callback) {
+    sliceManager.getUploadSlice()->subscribe(callback);
+  }
 
   /**
-   * Subscribe only to playlist state changes
+   * Subscribe to notifications state (backward-compatible wrapper)
    */
-  std::function<void()> subscribeToPlaylists(std::function<void(const PlaylistState &)> callback);
+  void subscribeToNotifications(std::function<void(const NotificationState &)> callback) {
+    sliceManager.getNotificationSlice()->subscribe(callback);
+  }
 
   /**
-   * Subscribe only to sounds state changes
+   * Subscribe to followers state (backward-compatible wrapper)
    */
-  std::function<void()> subscribeToSounds(std::function<void(const SoundState &)> callback);
+  void subscribeToFollowers(std::function<void(const FollowersState &)> callback) {
+    sliceManager.getFollowersSlice()->subscribe(callback);
+  }
+
+  /**
+   * Subscribe to playlists state (backward-compatible wrapper)
+   */
+  void subscribeToPlaylists(std::function<void(const PlaylistState &)> callback) {
+    sliceManager.getPlaylistSlice()->subscribe(callback);
+  }
+
+  /**
+   * Subscribe to sounds state (backward-compatible wrapper)
+   */
+  void subscribeToSounds(std::function<void(const SoundState &)> callback) {
+    sliceManager.getSoundSlice()->subscribe(callback);
+  }
 
   //==============================================================================
   // Cache accessors
@@ -437,88 +470,6 @@ public:
    */
   void getImage(const juce::String &url, std::function<void(const juce::Image &)> callback);
 
-  //==============================================================================
-  // Memory Cache for Ephemeral Data
-  //
-  // Time-to-live (TTL) based expiration for non-persistent data.
-  // Used for: users, posts, messages, search results, comments
-  // NOT used for: binary assets (images, audio use file cache instead)
-  //
-  // Cache is session-only and cleared when app closes.
-  // Real-time invalidation via WebSocket events.
-
-  /**
-   * Get cached value by key with type safety.
-   * Returns std::optional - empty if not found or expired.
-   * Automatically removes expired entries.
-   *
-   * @param key Cache key (e.g., "user:123", "feed:home")
-   * @return std::optional<T> - cached value or std::nullopt if not cached
-   */
-  template <typename T> std::optional<T> getCached(const juce::String &key) {
-    std::lock_guard<std::mutex> lock(memoryCacheLock);
-
-    auto it = memoryCache.find(key);
-    if (it == memoryCache.end()) {
-      Util::logDebug("AppStore", "Cache miss: " + key);
-      return std::nullopt;
-    }
-
-    // Check if expired
-    if (isCacheExpired(it->second)) {
-      Util::logDebug("AppStore", "Cache expired: " + key);
-      memoryCache.erase(it);
-      return std::nullopt;
-    }
-
-    // Try to cast to requested type
-    try {
-      auto result = std::any_cast<T>(it->second.value);
-      Util::logDebug("AppStore", "Cache hit: " + key);
-      return result;
-    } catch (const std::bad_any_cast &) {
-      Util::logWarning("AppStore", "Cache type mismatch for key: " + key);
-      return std::nullopt;
-    }
-  }
-
-  /**
-   * Store value in memory cache with TTL.
-   *
-   * @param key Cache key (e.g., "user:123", "feed:home")
-   * @param value Value to cache
-   * @param ttlSeconds Time-to-live in seconds (default 300 = 5 min)
-   */
-  template <typename T> void setCached(const juce::String &key, const T &value, int ttlSeconds = 300) {
-    std::lock_guard<std::mutex> lock(memoryCacheLock);
-    memoryCache[key] = CacheEntry{std::any(value), std::chrono::steady_clock::now(), ttlSeconds};
-    Util::logDebug("AppStore", "Cache set: " + key + " (TTL: " + juce::String(ttlSeconds) + "s)");
-  }
-
-  /**
-   * Remove specific cache entry immediately.
-   *
-   * @param key Cache key to invalidate
-   */
-  void invalidateCache(const juce::String &key);
-
-  /**
-   * Remove all cache entries matching wildcard pattern.
-   * Pattern examples: "feed:*", "user:*", "search:*"
-   *
-   * @param pattern Pattern with trailing * to match prefix
-   */
-  void invalidateCachePattern(const juce::String &pattern);
-
-  /**
-   * Clear all memory caches (for logout or app reset).
-   */
-  void clearMemoryCaches();
-
-  /**
-   * Get current memory cache size in bytes (for monitoring).
-   */
-  size_t getMemoryCacheSize() const;
 
   //==============================================================================
   // Image Service Operations (File Cache: memory → file → network)
@@ -725,60 +676,20 @@ public:
    */
   void onWebSocketPresenceUpdate(const juce::String &userId, bool isOnline);
 
-protected:
-  /**
-   * Constructor
-   */
-  AppStore();
-
-  /**
-   * Helper to update auth state
-   */
-  void updateAuthState(std::function<void(AuthState &)> updater);
-
-  /**
-   * Helper to update feed state
-   */
-  void updateFeedState(std::function<void(PostsState &)> updater);
-
-  /**
-   * Helper to update user state
-   */
-  void updateUserState(std::function<void(UserState &)> updater);
-
-  /**
-   * Helper to update chat state
-   */
-  void updateChatState(std::function<void(ChatState &)> updater);
-
-  /**
-   * Helper to update upload state
-   */
-  void updateUploadState(std::function<void(UploadState &)> updater);
-
 private:
   NetworkClient *networkClient = nullptr;
+  StreamChatClient *streamChatClient = nullptr;
+
+  //==============================================================================
+  // Slice Architecture (Phase 3 refactoring)
+  // AppStore is now a pure orchestration/service layer
+  // All state is managed by independent slices via AppSliceManager
+  Slices::AppSliceManager &sliceManager = Slices::AppSliceManager::getInstance();
 
   // File caching (for binary assets: images, audio, MIDI, drafts)
   SidechainImageCache imageCache{500 * 1024 * 1024};        // 500MB
   SidechainAudioCache audioCache{5LL * 1024 * 1024 * 1024}; // 5GB
   SidechainDraftCache draftCache{100 * 1024 * 1024};        // 100MB
-
-  // Memory cache (for ephemeral data: users, posts, messages, search results)
-  struct CacheEntry {
-    std::any value;
-    std::chrono::steady_clock::time_point timestamp;
-    int ttlSeconds;
-  };
-
-  std::map<juce::String, CacheEntry> memoryCache;
-  mutable std::mutex memoryCacheLock;
-
-  // Helper to check if cache entry has expired
-  bool isCacheExpired(const CacheEntry &entry) const {
-    auto elapsed = std::chrono::steady_clock::now() - entry.timestamp;
-    return std::chrono::duration_cast<std::chrono::seconds>(elapsed).count() >= entry.ttlSeconds;
-  }
 
   // Feed helpers
   void performFetch(FeedType feedType, int limit, int offset);
@@ -796,22 +707,6 @@ private:
   void downloadProfileImage(const juce::String &userId, const juce::String &url);
   void handleProfileFetchSuccess(const juce::var &data);
   void handleProfileFetchError(const juce::String &error);
-
-  // Subscription storage for state slice subscriptions
-  std::map<uint64_t, std::function<void(const AuthState &)>> authSubscribers;
-  std::map<uint64_t, std::function<void(const PostsState &)>> feedSubscribers;
-  std::map<uint64_t, std::function<void(const UserState &)>> userSubscribers;
-  std::map<uint64_t, std::function<void(const ChatState &)>> chatSubscribers;
-  std::map<uint64_t, std::function<void(const DraftState &)>> draftSubscribers;
-  std::map<uint64_t, std::function<void(const ChallengeState &)>> challengeSubscribers;
-  std::map<uint64_t, std::function<void(const StoriesState &)>> storiesSubscribers;
-  std::map<uint64_t, std::function<void(const UploadState &)>> uploadSubscribers;
-  std::map<uint64_t, std::function<void(const NotificationState &)>> notificationSubscribers;
-  std::map<uint64_t, std::function<void(const SearchState &)>> searchSubscribers;
-  std::map<uint64_t, std::function<void(const FollowersState &)>> followersSubscribers;
-  std::map<uint64_t, std::function<void(const PlaylistState &)>> playlistSubscribers;
-  std::map<uint64_t, std::function<void(const SoundState &)>> soundSubscribers;
-  std::atomic<uint64_t> nextSliceSubscriberId{1};
 };
 
 } // namespace Stores

@@ -6,18 +6,23 @@ namespace Stores {
 
 void AppStore::login(const juce::String &email, const juce::String &password) {
   if (!networkClient) {
-    updateAuthState([](AuthState &state) { state.authError = "Network client not initialized"; });
+    sliceManager.getAuthSlice()->dispatch([](AuthState &state) {
+      state.authError = "Network client not initialized";
+    });
     return;
   }
 
-  updateAuthState([](AuthState &state) {
+  // Optimistic update: show loading
+  sliceManager.getAuthSlice()->dispatch([](AuthState &state) {
     state.isAuthenticating = true;
     state.authError = "";
   });
 
   networkClient->loginWithTwoFactor(email, password, [this, email](NetworkClient::LoginResult result) {
+    auto authSlice = sliceManager.getAuthSlice();
+
     if (!result.success) {
-      updateAuthState([result](AuthState &state) {
+      authSlice->dispatch([result](AuthState &state) {
         state.isAuthenticating = false;
         state.authError = result.errorMessage;
       });
@@ -26,7 +31,7 @@ void AppStore::login(const juce::String &email, const juce::String &password) {
 
     // Check if 2FA is required
     if (result.requires2FA) {
-      updateAuthState([result](AuthState &state) {
+      authSlice->dispatch([result](AuthState &state) {
         state.isAuthenticating = false;
         state.is2FARequired = true;
         state.twoFactorUserId = result.userId;
@@ -37,7 +42,7 @@ void AppStore::login(const juce::String &email, const juce::String &password) {
     // 2FA not required, proceed with login
     juce::String username = result.username.isEmpty() ? "user" : result.username;
 
-    updateAuthState([result, email, username](AuthState &state) {
+    authSlice->dispatch([result, email, username](AuthState &state) {
       state.isAuthenticating = false;
       state.is2FARequired = false;
       state.isLoggedIn = true;
@@ -57,11 +62,13 @@ void AppStore::login(const juce::String &email, const juce::String &password) {
 void AppStore::registerAccount(const juce::String &email, const juce::String &username, const juce::String &password,
                                const juce::String &displayName) {
   if (!networkClient) {
-    updateAuthState([](AuthState &state) { state.authError = "Network client not initialized"; });
+    sliceManager.getAuthSlice()->dispatch([](AuthState &state) {
+      state.authError = "Network client not initialized";
+    });
     return;
   }
 
-  updateAuthState([](AuthState &state) {
+  sliceManager.getAuthSlice()->dispatch([](AuthState &state) {
     state.isAuthenticating = true;
     state.authError = "";
   });
@@ -69,8 +76,10 @@ void AppStore::registerAccount(const juce::String &email, const juce::String &us
   networkClient->registerAccount(
       email, username, password, displayName,
       [this, email, username, displayName](Outcome<std::pair<juce::String, juce::String>> result) {
+        auto authSlice = sliceManager.getAuthSlice();
+
         if (!result.isOk()) {
-          updateAuthState([error = result.getError()](AuthState &state) {
+          authSlice->dispatch([error = result.getError()](AuthState &state) {
             state.isAuthenticating = false;
             state.authError = error;
           });
@@ -81,7 +90,7 @@ void AppStore::registerAccount(const juce::String &email, const juce::String &us
         auto [token, userId] = result.getValue();
 
         // Update auth state with user info
-        updateAuthState([token, userId, email, username, displayName](AuthState &state) {
+        authSlice->dispatch([token, userId, email, username, displayName](AuthState &state) {
           state.isAuthenticating = false;
           state.isLoggedIn = true;
           state.userId = userId;
@@ -95,23 +104,33 @@ void AppStore::registerAccount(const juce::String &email, const juce::String &us
 }
 
 void AppStore::verify2FA(const juce::String &code) {
+  auto authSlice = sliceManager.getAuthSlice();
+  auto currentAuth = authSlice->getState();
+
   if (!networkClient) {
-    updateAuthState([](AuthState &state) { state.authError = "Network client not initialized"; });
+    authSlice->dispatch([](AuthState &state) {
+      state.authError = "Network client not initialized";
+    });
     return;
   }
 
-  auto currentState = getState();
-  if (currentState.auth.twoFactorUserId.isEmpty()) {
-    updateAuthState([](AuthState &state) { state.authError = "2FA not initiated"; });
+  if (currentAuth.twoFactorUserId.isEmpty()) {
+    authSlice->dispatch([](AuthState &state) {
+      state.authError = "2FA not initiated";
+    });
     return;
   }
 
-  updateAuthState([](AuthState &state) { state.isVerifying2FA = true; });
+  authSlice->dispatch([](AuthState &state) {
+    state.isVerifying2FA = true;
+  });
 
-  networkClient->verify2FALogin(currentState.auth.twoFactorUserId, code,
-                                [this, currentState](Outcome<std::pair<juce::String, juce::String>> result) {
+  networkClient->verify2FALogin(currentAuth.twoFactorUserId, code,
+                                [this](Outcome<std::pair<juce::String, juce::String>> result) {
+                                  auto authSlice = sliceManager.getAuthSlice();
+
                                   if (!result.isOk()) {
-                                    updateAuthState([error = result.getError()](AuthState &state) {
+                                    authSlice->dispatch([error = result.getError()](AuthState &state) {
                                       state.isVerifying2FA = false;
                                       state.authError = error;
                                     });
@@ -121,7 +140,7 @@ void AppStore::verify2FA(const juce::String &code) {
                                   // Extract token and userId from result pair
                                   auto [token, userId] = result.getValue();
 
-                                  updateAuthState([token, userId, currentState](AuthState &state) {
+                                  authSlice->dispatch([token, userId](AuthState &state) {
                                     state.isVerifying2FA = false;
                                     state.is2FARequired = false;
                                     state.isLoggedIn = true;
@@ -136,23 +155,31 @@ void AppStore::verify2FA(const juce::String &code) {
 }
 
 void AppStore::requestPasswordReset(const juce::String &email) {
+  auto authSlice = sliceManager.getAuthSlice();
+
   if (!networkClient) {
-    updateAuthState([](AuthState &state) { state.authError = "Network client not initialized"; });
+    authSlice->dispatch([](AuthState &state) {
+      state.authError = "Network client not initialized";
+    });
     return;
   }
 
-  updateAuthState([](AuthState &state) { state.isResettingPassword = true; });
+  authSlice->dispatch([](AuthState &state) {
+    state.isResettingPassword = true;
+  });
 
   networkClient->requestPasswordReset(email, [this](Outcome<juce::var> result) {
+    auto authSlice = sliceManager.getAuthSlice();
+
     if (!result.isOk()) {
-      updateAuthState([error = result.getError()](AuthState &state) {
+      authSlice->dispatch([error = result.getError()](AuthState &state) {
         state.isResettingPassword = false;
         state.authError = error;
       });
       return;
     }
 
-    updateAuthState([](AuthState &state) {
+    authSlice->dispatch([](AuthState &state) {
       state.isResettingPassword = false;
       state.authError = "";
     });
@@ -162,23 +189,31 @@ void AppStore::requestPasswordReset(const juce::String &email) {
 }
 
 void AppStore::resetPassword(const juce::String &token, const juce::String &newPassword) {
+  auto authSlice = sliceManager.getAuthSlice();
+
   if (!networkClient) {
-    updateAuthState([](AuthState &state) { state.authError = "Network client not initialized"; });
+    authSlice->dispatch([](AuthState &state) {
+      state.authError = "Network client not initialized";
+    });
     return;
   }
 
-  updateAuthState([](AuthState &state) { state.isResettingPassword = true; });
+  authSlice->dispatch([](AuthState &state) {
+    state.isResettingPassword = true;
+  });
 
   networkClient->resetPassword(token, newPassword, [this](Outcome<juce::var> result) {
+    auto authSlice = sliceManager.getAuthSlice();
+
     if (!result.isOk()) {
-      updateAuthState([error = result.getError()](AuthState &state) {
+      authSlice->dispatch([error = result.getError()](AuthState &state) {
         state.isResettingPassword = false;
         state.authError = error;
       });
       return;
     }
 
-    updateAuthState([](AuthState &state) {
+    authSlice->dispatch([](AuthState &state) {
       state.isResettingPassword = false;
       state.authError = "";
     });
@@ -188,7 +223,10 @@ void AppStore::resetPassword(const juce::String &token, const juce::String &newP
 }
 
 void AppStore::logout() {
-  updateAuthState([](AuthState &state) {
+  auto authSlice = sliceManager.getAuthSlice();
+  auto userSlice = sliceManager.getUserSlice();
+
+  authSlice->dispatch([](AuthState &state) {
     state.isLoggedIn = false;
     state.userId = "";
     state.username = "";
@@ -201,18 +239,20 @@ void AppStore::logout() {
   });
 
   // Clear user state
-  updateUserState([](UserState &state) {
+  userSlice->dispatch([](UserState &state) {
     state = UserState{}; // Reset to default state
   });
 }
 
 void AppStore::oauthCallback(const juce::String &provider, const juce::String &code) {
   // TODO: Implement OAuth flow
-  updateAuthState([](AuthState &state) { state.authError = "OAuth not yet implemented"; });
+  sliceManager.getAuthSlice()->dispatch([](AuthState &state) {
+    state.authError = "OAuth not yet implemented";
+  });
 }
 
 void AppStore::setAuthToken(const juce::String &token) {
-  updateAuthState([token](AuthState &state) {
+  sliceManager.getAuthSlice()->dispatch([token](AuthState &state) {
     state.authToken = token;
     if (!token.isEmpty()) {
       state.isLoggedIn = true;
@@ -222,7 +262,9 @@ void AppStore::setAuthToken(const juce::String &token) {
 
 void AppStore::refreshAuthToken() {
   // TODO: Implement token refresh
-  updateAuthState([](AuthState &state) { state.authError = "Token refresh not yet implemented"; });
+  sliceManager.getAuthSlice()->dispatch([](AuthState &state) {
+    state.authError = "Token refresh not yet implemented";
+  });
 }
 
 } // namespace Stores

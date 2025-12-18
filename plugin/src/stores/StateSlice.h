@@ -4,6 +4,9 @@
 #include <memory>
 #include <shared_mutex>
 #include <string>
+#include <optional>
+#include <mutex>
+#include <vector>
 
 namespace Sidechain {
 namespace Stores {
