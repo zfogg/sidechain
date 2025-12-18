@@ -55,10 +55,10 @@ services:
       resources:
         limits:
           cpus: '1.5'
-          memory: 1G
+          memory: 512M
         reservations:
           cpus: '1.0'
-          memory: 512M
+          memory: 256M
 
     networks:
       - sidechain
@@ -83,10 +83,10 @@ services:
       resources:
         limits:
           cpus: '0.75'
-          memory: 1G
+          memory: 512M
         reservations:
           cpus: '0.5'
-          memory: 512M
+          memory: 256M
     networks:
       - sidechain
 
@@ -97,7 +97,7 @@ services:
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms384m -Xmx384m"
+      - "ES_JAVA_OPTS=-Xms64m -Xmx64m"
       - bootstrap.memory_lock=false
     ulimits:
       memlock:
@@ -111,11 +111,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 512M
-        reservations:
           cpus: '0.25'
-          memory: 256M
+          memory: 128M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
       interval: 10s
@@ -151,10 +151,10 @@ services:
       resources:
         limits:
           cpus: '0.5'
-          memory: 512M
+          memory: 256M
         reservations:
           cpus: '0.25'
-          memory: 256M
+          memory: 128M
     networks:
       - sidechain
 
@@ -173,10 +173,10 @@ services:
       resources:
         limits:
           cpus: '0.25'
-          memory: 512M
+          memory: 256M
         reservations:
           cpus: '0.1'
-          memory: 256M
+          memory: 128M
     networks:
       - sidechain
 
@@ -192,15 +192,15 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention.time=14d'
+      - '--storage.tsdb.retention.time=7d'
     deploy:
       resources:
         limits:
           cpus: '0.25'
-          memory: 256M
+          memory: 128M
         reservations:
           cpus: '0.1'
-          memory: 128M
+          memory: 64M
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
       interval: 10s
@@ -240,10 +240,10 @@ services:
       resources:
         limits:
           cpus: '0.25'
-          memory: 256M
+          memory: 128M
         reservations:
           cpus: '0.1'
-          memory: 128M
+          memory: 64M
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
       interval: 10s
