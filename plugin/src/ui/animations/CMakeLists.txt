@@ -6,6 +6,8 @@ add_library(SidechainUIAnimations STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/AnimationController.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/AnimationController.h
     ${CMAKE_CURRENT_SOURCE_DIR}/AnimationTimeline.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/NavigationStack.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/NavigationStack.h
     ${CMAKE_CURRENT_SOURCE_DIR}/TransitionAnimation.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ViewTransitionManager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Easing.h
