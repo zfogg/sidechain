@@ -2242,6 +2242,12 @@ void SidechainAudioProcessorEditor::loadLoginState() {
           auto tokenResult = result.getValue();
           Log::info("Stream chat token fetched successfully for user: " + tokenResult.userId);
 
+          // Now that we have the stream token, load messages if we're on the Messages view
+          if (currentView == AppView::Messages && messagesListComponent) {
+            Log::info("StreamChatClient authenticated - loading conversations for Messages view");
+            messagesListComponent->loadChannels();
+          }
+
           // Start presence manager to report online status and DAW type to getstream.io
           if (presenceManager) {
             presenceManager->start();
@@ -2335,13 +2341,13 @@ void SidechainAudioProcessorEditor::loadLoginState() {
             }
           }
 
-          // Show feed if user has a profile picture, otherwise show setup
+          // Show messages if user has a profile picture, otherwise show setup
           if (!userState.profilePictureUrl.isEmpty()) {
-            Log::info("loadLoginState: User has S3 profile picture, showing PostsFeed");
+            Log::info("loadLoginState: User has S3 profile picture, showing Messages");
             username = userState.username;
             email = userState.email;
             profilePicUrl = userState.profilePictureUrl;
-            showView(AppView::PostsFeed);
+            showView(AppView::Messages);
 
             // Auto-send test message on startup for demo purposes
             Log::info("loadLoginState: Scheduling test message send");
@@ -2370,64 +2376,60 @@ void SidechainAudioProcessorEditor::loadLoginState() {
 }
 
 //==============================================================================
-// Auto-send test message on startup
+// Auto-open conversation with test message on startup
 void SidechainAudioProcessorEditor::sendTestMessageOnStartup() {
   if (!streamChatClient) {
     Log::error("sendTestMessageOnStartup: StreamChatClient not available");
     return;
   }
 
-  // Test recipient user ID (cheese142 from database)
-  juce::String targetUserId = "4471addb-eb39-48e8-b226-00b37d539bc1";
-  juce::String testMessage = "Test message sent at " + juce::Time::getCurrentTime().toString(true, true);
+  Log::info("sendTestMessageOnStartup: ✨ AUTO-OPENING EXISTING CONVERSATION");
 
-  Log::info("sendTestMessageOnStartup: Creating direct channel with user: " + targetUserId);
+  // Use existing DM channel from getstream.io
+  juce::String channelType = "messaging";
+  juce::String channelId = "dm-0722b272-d569b939";
+  juce::String channelName = "Direct Message";
+  juce::String testMessage = "✅ Plugin loaded at " + juce::Time::getCurrentTime().toString(true, true) + " - Message test!";
 
-  // Create direct channel
-  streamChatClient->createDirectChannel(
-      targetUserId,
-      [this, testMessage](Outcome<StreamChatClient::Channel> channelResult) {
-        if (!channelResult.isOk()) {
-          Log::error("sendTestMessageOnStartup: Failed to create channel - " + channelResult.getError());
+  Log::info("sendTestMessageOnStartup: Opening existing conversation - Type: " + channelType + ", ID: " + channelId);
+
+  // First, add channel to AppStore state so messages can be added to it
+  appStore.addChannelToState(channelId, channelName);
+  Log::info("sendTestMessageOnStartup: Channel added to AppStore state");
+
+  // Load messages from the existing channel
+  appStore.loadMessages(channelId, 50);
+
+  // Send a test message to the channel
+  if (!streamChatClient) {
+    Log::error("sendTestMessageOnStartup: StreamChatClient became unavailable");
+    return;
+  }
+
+  Log::info("sendTestMessageOnStartup: 📨 Sending test message to conversation");
+  streamChatClient->sendMessage(
+      channelType, channelId, testMessage, juce::var(),
+      [this, channelType, channelId](Outcome<StreamChatClient::Message> msgResult) {
+        if (!msgResult.isOk()) {
+          Log::error("sendTestMessageOnStartup: Failed to send message - " + msgResult.getError());
           return;
         }
 
-        const auto &channel = channelResult.getValue();
-        Log::info("sendTestMessageOnStartup: Channel created successfully - ID: " + channel.id +
-                  ", Type: " + channel.type);
+        const auto &sentMsg = msgResult.getValue();
+        Log::info("sendTestMessageOnStartup: ✅ Message sent successfully");
+        Log::info("sendTestMessageOnStartup: Message ID: " + sentMsg.id);
+        Log::info("sendTestMessageOnStartup: Message text: " + sentMsg.text);
+        Log::info("sendTestMessageOnStartup: Sender user ID: " + sentMsg.userId);
 
-        // Add channel to AppStore state so messages can be added to it
-        appStore.addChannelToState(channel.id, channel.name);
+        // Add message to AppStore state so MessageThread can display it
+        appStore.addMessageToChannel(channelId, sentMsg.id, sentMsg.text, sentMsg.userId, sentMsg.userName,
+                                     sentMsg.createdAt);
 
-        // Send test message in the channel
-        if (!streamChatClient) {
-          Log::error("sendTestMessageOnStartup: StreamChatClient became unavailable");
-          return;
-        }
-
-        Log::info("sendTestMessageOnStartup: Sending test message");
-        streamChatClient->sendMessage(
-            channel.type, channel.id, testMessage, juce::var(),
-            [this, channel](Outcome<StreamChatClient::Message> msgResult) {
-              if (!msgResult.isOk()) {
-                Log::error("sendTestMessageOnStartup: Failed to send message - " + msgResult.getError());
-                return;
-              }
-
-              const auto &sentMsg = msgResult.getValue();
-              Log::info("sendTestMessageOnStartup: Message sent successfully - ID: " + sentMsg.id);
-              Log::info("sendTestMessageOnStartup: Callback executed - about to add message to AppStore");
-
-              // Add message to AppStore state so MessageThread can display it
-              Log::info("sendTestMessageOnStartup: About to call addMessageToChannel with userId=" + sentMsg.userId);
-              appStore.addMessageToChannel(channel.id, sentMsg.id, sentMsg.text, sentMsg.userId, sentMsg.userName,
-                                           sentMsg.createdAt);
-              Log::info("sendTestMessageOnStartup: addMessageToChannel returned");
-
-              // Open the message thread directly to show the sent message
-              Log::info("sendTestMessageOnStartup: Opening message thread view with sent message");
-              showMessageThread(channel.type, channel.id);
-            });
+        // Delay slightly to ensure state updates, then open the message thread
+        juce::Timer::callAfterDelay(500, [this, channelType, channelId]() {
+          Log::info("sendTestMessageOnStartup: 🎯 Opening message thread to display conversation");
+          showMessageThread(channelType, channelId);
+        });
       });
 }
 
