@@ -986,9 +986,45 @@ void Profile::mouseUp(const juce::MouseEvent &event) {
   }
 }
 
+void Profile::mouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel) {
+  if (!scrollBar || scrollBar->getMaximumRangeLimit() <= 0.0)
+    return;
+
+  double scrollAmount = wheel.deltaY * 50.0;
+  double maxScrollPos = scrollBar->getMaximumRangeLimit();
+  targetScrollOffset = juce::jlimit(0.0, maxScrollPos, scrollOffset - scrollAmount);
+
+  Log::debug("Profile::mouseWheelMove - Scroll requested: current=" + juce::String(scrollOffset) +
+             ", target=" + juce::String(targetScrollOffset) + ", max=" + juce::String(maxScrollPos));
+
+  // Cancel any existing animation
+  if (scrollAnimationHandle) {
+    scrollAnimationHandle->cancel();
+  }
+
+  // Create smooth scroll animation (200ms duration) like PostsFeed and MessageThread
+  auto scrollAnim = Sidechain::UI::Animations::TransitionAnimation<double>::create(
+      scrollOffset, targetScrollOffset, 200);
+
+  scrollAnimationHandle = Sidechain::UI::Animations::AnimationController::getInstance().add(
+      scrollAnim, [this](double value) {
+        scrollOffset = value;
+        scrollBar->setCurrentRangeStart(scrollOffset, juce::dontSendNotification);
+        updatePostCards();
+        repaint();
+      });
+
+  Log::debug("Profile::mouseWheelMove - Animation started");
+}
+
 void Profile::scrollBarMoved(juce::ScrollBar * /*scrollBarThatHasMoved*/, double newRangeStart) {
-  int oldOffset = scrollOffset;
-  scrollOffset = static_cast<int>(newRangeStart);
+  // Cancel any active animation since user is directly manipulating scrollbar
+  if (scrollAnimationHandle) {
+    scrollAnimationHandle->cancel();
+  }
+  double oldOffset = scrollOffset;
+  scrollOffset = newRangeStart;
+  targetScrollOffset = newRangeStart;
   Log::debug("Profile::scrollBarMoved: Scroll offset changed from " + juce::String(oldOffset) + " to " +
              juce::String(scrollOffset));
   updatePostCards();

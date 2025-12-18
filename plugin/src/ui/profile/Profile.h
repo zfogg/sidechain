@@ -2,6 +2,7 @@
 
 #include "../../models/FeedPost.h"
 #include "../../stores/AppStore.h"
+#include "../../ui/animations/AnimationController.h"
 #include "../common/AppStoreComponent.h"
 #include "../common/ErrorState.h"
 #include "../social/FollowersList.h"
@@ -115,6 +116,7 @@ public:
   void paint(juce::Graphics &g) override;
   void resized() override;
   void mouseUp(const juce::MouseEvent &event) override;
+  void mouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel) override;
   void scrollBarMoved(juce::ScrollBar *scrollBarThatHasMoved, double newRangeStart) override;
   juce::String getTooltip() override;
 
@@ -147,7 +149,9 @@ private:
   juce::String errorMessage;
 
   // Scroll state
-  int scrollOffset = 0;
+  double scrollOffset = 0.0;
+  double targetScrollOffset = 0.0;
+  Sidechain::UI::Animations::AnimationHandle scrollAnimationHandle;
   std::unique_ptr<juce::ScrollBar> scrollBar;
 
   // Cached avatar image
