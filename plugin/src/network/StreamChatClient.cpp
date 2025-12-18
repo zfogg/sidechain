@@ -420,9 +420,16 @@ void StreamChatClient::queryMessages(const juce::String &channelType, const juce
         juce::var requestData = juce::var(new juce::DynamicObject());
         auto *obj = requestData.getDynamicObject();
 
-        // Pass limit and offset as top-level properties, not nested under "messages"
-        obj->setProperty("limit", limit);
-        obj->setProperty("offset", offset);
+        // Build the messages pagination parameters
+        // According to getstream.io API, messages should be a nested object with limit and offset
+        juce::var messagesObj = juce::var(new juce::DynamicObject());
+        messagesObj.getDynamicObject()->setProperty("limit", limit);
+        messagesObj.getDynamicObject()->setProperty("offset", offset);
+        obj->setProperty("messages", messagesObj);
+
+        // Set state to true to get full response with messages
+        // Note: watch requires active WebSocket connection, so we don't set it here
+        obj->setProperty("state", true);
 
         Log::debug("StreamChatClient::queryMessages - endpoint: " + endpoint);
         Log::debug("StreamChatClient::queryMessages - request: " + juce::JSON::toString(requestData));
