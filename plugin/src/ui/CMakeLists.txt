@@ -4,6 +4,7 @@
 #==============================================================================
 
 # Add subdirectories for each UI module
+add_subdirectory(animations)
 add_subdirectory(auth)
 add_subdirectory(challenges)
 add_subdirectory(common)
@@ -29,6 +30,7 @@ target_include_directories(SidechainUI PUBLIC
 
 # Link all UI submodules
 target_link_libraries(SidechainUI PUBLIC
+    SidechainUIAnimations
     SidechainUIAuth
     SidechainUIChallenges
     SidechainUICommon
@@ -75,6 +77,7 @@ if(UNIX AND NOT APPLE)
     target_link_libraries(SidechainUI PRIVATE ${GTK3_LIBRARIES} ${WEBKIT_LIBRARIES})
     # Also apply to all submodules
     foreach(UI_MODULE IN ITEMS
+        SidechainUIAnimations
         SidechainUIAuth
         SidechainUIChallenges
         SidechainUICommon

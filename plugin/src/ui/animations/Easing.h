@@ -1,7 +1,9 @@
 #pragma once
 
+#include <cctype>
 #include <cmath>
 #include <functional>
+#include <string>
 
 namespace Sidechain {
 namespace UI {
