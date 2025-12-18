@@ -1007,13 +1007,37 @@ juce::String MessageThread::getReplyToMessageId(const StreamChatClient::Message 
 }
 
 const StreamChatClient::Message *MessageThread::findParentMessage(const juce::String &messageId) const {
-  if (messageId.isEmpty())
+  if (messageId.isEmpty() || !appStore)
     return nullptr;
 
-  // Task 2.3: Get messages from ChatStore instead of local array
-  if (false) // TODO: refactor to use AppStore
+  const auto &chatState = appStore->getChatState();
+  auto channelIt = chatState.channels.find(channelId);
+  if (channelIt == chatState.channels.end()) {
     return nullptr;
+  }
 
+  const auto &messages = channelIt->second.messages;
+  for (const auto &msg : messages) {
+    if (msg.isObject()) {
+      auto *obj = msg.getDynamicObject();
+      if (obj && obj->getProperty("id").toString() == messageId) {
+        // Found the parent message - create a temporary Message object
+        // Note: We can't return a pointer to the juce::var directly,
+        // so we need to cache the parent message or return nullptr on not found
+        Log::debug("MessageThread::findParentMessage - Found parent message " + messageId);
+        // Create a static variable to hold the last found parent for the lifetime of the call
+        static StreamChatClient::Message lastFoundParent;
+        lastFoundParent.id = obj->getProperty("id").toString();
+        lastFoundParent.text = obj->getProperty("text").toString();
+        lastFoundParent.userId = obj->getProperty("user_id").toString();
+        lastFoundParent.userName = obj->getProperty("user_name").toString();
+        lastFoundParent.createdAt = obj->getProperty("created_at").toString();
+        return &lastFoundParent;
+      }
+    }
+  }
+
+  Log::debug("MessageThread::findParentMessage - Parent message not found: " + messageId);
   return nullptr;
 }
 
