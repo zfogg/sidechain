@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -14,6 +13,7 @@ import (
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"go.uber.org/zap"
 	"github.com/zfogg/sidechain/backend/internal/alerts"
 	"github.com/zfogg/sidechain/backend/internal/audio"
 	"github.com/zfogg/sidechain/backend/internal/auth"
@@ -22,6 +22,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/email"
 	"github.com/zfogg/sidechain/backend/internal/handlers"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/middleware"
 	"github.com/zfogg/sidechain/backend/internal/models" // Used for NotificationPreferencesChecker
 	"github.com/zfogg/sidechain/backend/internal/recommendations"
@@ -35,37 +36,36 @@ import (
 )
 
 func main() {
-	// Setup file logging
-	logFile, err := os.OpenFile("server.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-	if err != nil {
-		log.Fatalf("Failed to open log file: %v", err)
+	// Initialize structured logging (before everything else)
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "info"
 	}
-	defer logFile.Close()
+	logFile := os.Getenv("LOG_FILE")
+	if logFile == "" {
+		logFile = "server.log"
+	}
 
-	// Write to both stdout and log file
-	multiWriter := io.MultiWriter(os.Stdout, logFile)
-	log.SetOutput(multiWriter)
-	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile)
+	if err := logger.Initialize(logLevel, logFile); err != nil {
+		log.Fatalf("Failed to initialize logger: %v", err)
+	}
+	defer logger.Close()
 
-	// Also configure Gin to log to the file
-	gin.DefaultWriter = multiWriter
-	gin.DefaultErrorWriter = multiWriter
-
-	log.Println("=== Sidechain server starting ===")
+	logger.Log.Info("=== Sidechain server starting ===")
 
 	// Load environment variables
 	if err := godotenv.Load(); err != nil {
-		log.Println("Warning: .env file not found, using system environment variables")
+		logger.Log.Warn("Warning: .env file not found, using system environment variables")
 	}
 
 	// Initialize database
 	if err := database.Initialize(); err != nil {
-		log.Fatalf("Failed to initialize database: %v", err)
+		logger.FatalWithFields("Failed to initialize database", err)
 	}
 
 	// Run migrations
 	if err := database.Migrate(); err != nil {
-		log.Fatalf("Failed to run migrations: %v", err)
+		logger.FatalWithFields("Failed to run migrations", err)
 	}
 
 	// Auto-seed development data if in development mode and database is empty
@@ -73,16 +73,17 @@ func main() {
 		var userCount int64
 		database.DB.Model(&models.User{}).Count(&userCount)
 		if userCount == 0 {
-			log.Println("🌱 Development mode: Database is empty, auto-seeding development data...")
+			logger.Log.Info("🌱 Development mode: Database is empty, auto-seeding development data...")
 			seeder := seed.NewSeeder(database.DB)
 			if err := seeder.SeedDev(); err != nil {
-				log.Printf("Warning: Auto-seed failed (non-fatal): %v", err)
-				log.Println("You can manually seed with: go run cmd/seed/main.go dev")
+				logger.WarnWithFields("Auto-seed failed (non-fatal), use: go run cmd/seed/main.go dev", err)
 			} else {
-				log.Println("✅ Development data seeded successfully!")
+				logger.Log.Info("✅ Development data seeded successfully!")
 			}
 		} else {
-			log.Printf("Database already has %d users, skipping auto-seed", userCount)
+			logger.Log.Info("Database already populated, skipping auto-seed",
+				zap.Int64("user_count", userCount),
+			)
 		}
 	}
 
@@ -90,17 +91,14 @@ func main() {
 	baseSearchClient, err := search.NewClient()
 
 	if err != nil {
-		log.Printf("Warning: Failed to initialize Elasticsearch: %v", err)
-		log.Println("Continuing without Elasticsearch - search will use PostgreSQL fallback")
+		logger.WarnWithFields("Failed to initialize Elasticsearch, using PostgreSQL fallback", err)
 	} else {
 		// Create indices on startup
 		if err := baseSearchClient.InitializeIndices(context.Background()); err != nil {
-			log.Printf("Warning: Failed to initialize Elasticsearch indices: %v", err)
-			log.Println("Search functionality may be limited")
+			logger.WarnWithFields("Failed to initialize Elasticsearch indices, search may be limited", err)
 		} else {
-			log.Println("✅ Elasticsearch indices initialized successfully")
+			logger.Log.Info("✅ Elasticsearch indices initialized successfully")
 		}
-
 	}
 
 
@@ -108,7 +106,7 @@ func main() {
 	alertManager := alerts.NewAlertManager()
 	alertEvaluator := alerts.NewEvaluator(alertManager)
 	alertEvaluator.InitializeDefaultRules()
-	log.Println("✅ Alert system initialized with default rules")
+	logger.Log.Info("✅ Alert system initialized with default rules")
 
 	// Start alert evaluation loop (check every minute)
 	stopEvaluation := alertEvaluator.StartEvaluationLoop(1 * time.Minute)
@@ -117,28 +115,29 @@ func main() {
 	// Set global references for handlers
 	handlers.SetAlertManager(alertManager)
 	handlers.SetAlertEvaluator(alertEvaluator)
+
 	// Initialize Stream.io client
 	streamClient, err := stream.NewClient()
 	if err != nil {
-		log.Fatalf("Failed to initialize Stream.io client: %v", err)
+		logger.FatalWithFields("Failed to initialize Stream.io client", err)
 	}
 
 	// Initialize notification preferences checker and set on stream client
 	notifPrefsChecker := models.NewNotificationPreferencesChecker(database.DB)
 	streamClient.SetNotificationPreferencesChecker(notifPrefsChecker)
-	log.Println("✅ Notification preferences checker initialized")
+	logger.Log.Info("✅ Notification preferences checker initialized")
 
 	// Initialize auth service with OAuth configuration
 	jwtSecret := []byte(os.Getenv("JWT_SECRET"))
 	if len(jwtSecret) == 0 {
-		log.Fatalf("JWT_SECRET environment variable is required")
+		logger.FatalWithFields("JWT_SECRET environment variable is required", nil)
 	}
 
 	// Load OAuth configuration from environment variables
 	// REQUIRED: OAUTH_REDIRECT_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET
 	oauthConfig, err := config.LoadOAuthConfig()
 	if err != nil {
-		log.Fatalf("Failed to load OAuth configuration: %v", err)
+		logger.FatalWithFields("Failed to load OAuth configuration", err)
 	}
 
 	authService := auth.NewService(
@@ -157,8 +156,7 @@ func main() {
 		os.Getenv("CDN_BASE_URL"),
 	)
 	if err != nil {
-		log.Printf("Warning: Failed to initialize S3 uploader: %v", err)
-		log.Println("Continuing without S3 - audio uploads will fail")
+		logger.WarnWithFields("Failed to initialize S3 uploader, audio uploads will fail", err)
 		s3Uploader = nil
 	}
 
@@ -176,29 +174,27 @@ func main() {
 			baseURL,
 		)
 		if err != nil {
-			log.Printf("Warning: Failed to initialize email service: %v", err)
-			log.Println("Password reset emails will not be sent - check AWS SES configuration")
+			logger.WarnWithFields("Failed to initialize email service, password reset emails will not be sent", err)
 			emailService = nil
 		} else {
-			log.Printf("✅ Email service (AWS SES) initialized successfully - from: %s", sesFromEmail)
+			logger.Log.Info("✅ Email service (AWS SES) initialized successfully",
+				zap.String("from_email", sesFromEmail),
+			)
 		}
 	} else {
-		log.Println("Warning: SES_FROM_EMAIL or BASE_URL not set - password reset emails will not be sent")
-		log.Println("Set SES_FROM_EMAIL, SES_FROM_NAME, and BASE_URL in .env to enable email sending")
+		logger.Log.Warn("Email service not configured: set SES_FROM_EMAIL, SES_FROM_NAME, and BASE_URL in .env")
 	}
 
 	// Check S3 access (skip for development)
 	if s3Uploader != nil {
 		if err := s3Uploader.CheckBucketAccess(context.Background()); err != nil {
-			log.Printf("Warning: S3 bucket access failed: %v", err)
-			log.Println("Continuing without S3 - audio uploads will fail")
+			logger.WarnWithFields("S3 bucket access failed, audio uploads will fail", err)
 		}
 	}
 
 	// Check FFmpeg availability
 	if err := audio.CheckFFmpegAvailable(); err != nil {
-		log.Printf("Warning: FFmpeg not available: %v", err)
-		log.Println("Audio processing will be limited without FFmpeg")
+		logger.WarnWithFields("FFmpeg not available, audio processing will be limited", err)
 	}
 
 	// Initialize audio processor and start the background queue
@@ -240,15 +236,24 @@ func main() {
 		gorseAPIKey = "sidechain_gorse_api_key"
 	}
 	gorseClient := recommendations.NewGorseRESTClient(gorseURL, gorseAPIKey, database.DB)
-	log.Printf("Gorse recommendation client initialized (URL: %s)", gorseURL)
+	logger.Log.Info("Gorse recommendation client initialized",
+		zap.String("url", gorseURL),
+	)
 
 	// Set up post completion callback to sync to Gorse (Task 2.1)
 	audioProcessor.SetPostCompleteCallback(func(postID string) {
-		log.Printf("Post %s completed processing, syncing to Gorse...", postID)
+		logger.Log.Debug("Post completed processing, syncing to Gorse",
+			logger.WithPostID(postID),
+		)
 		if err := gorseClient.SyncItem(postID); err != nil {
-			log.Printf("Warning: Failed to sync post %s to Gorse: %v", postID, err)
+			logger.Log.Warn("Failed to sync post to Gorse",
+				zap.Error(err),
+				logger.WithPostID(postID),
+			)
 		} else {
-			log.Printf("Successfully synced post %s to Gorse", postID)
+			logger.Log.Debug("Successfully synced post to Gorse",
+				logger.WithPostID(postID),
+			)
 		}
 	})
 
@@ -259,7 +264,10 @@ func main() {
 		if parsed, err := time.ParseDuration(syncIntervalStr); err == nil {
 			syncInterval = parsed
 		} else {
-			log.Printf("Warning: Invalid GORSE_SYNC_INTERVAL '%s', using default 1h", syncIntervalStr)
+			logger.Log.Warn("Invalid GORSE_SYNC_INTERVAL, using default",
+				zap.String("value", syncIntervalStr),
+				zap.Duration("default", syncInterval),
+			)
 		}
 	}
 
@@ -269,32 +277,32 @@ func main() {
 
 	// Initial sync on startup (Task 3.3)
 	go func() {
-		log.Println("🔄 Starting initial Gorse batch sync...")
+		logger.Log.Info("🔄 Starting initial Gorse batch sync...")
 		if err := gorseClient.BatchSyncUsers(); err != nil {
-			log.Printf("Initial user sync failed: %v", err)
+			logger.WarnWithFields("Initial user sync failed", err)
 		} else {
-			log.Println("✅ Initial user sync completed")
+			logger.Log.Info("✅ Initial user sync completed")
 		}
 
 		if err := gorseClient.BatchSyncItems(); err != nil {
-			log.Printf("Initial item sync failed: %v", err)
+			logger.WarnWithFields("Initial item sync failed", err)
 		} else {
-			log.Println("✅ Initial item sync completed")
+			logger.Log.Info("✅ Initial item sync completed")
 		}
 
 		if err := gorseClient.BatchSyncUserItems(); err != nil {
-			log.Printf("Initial user-items sync failed: %v", err)
+			logger.WarnWithFields("Initial user-items sync failed", err)
 		} else {
-			log.Println("✅ Initial user-items sync completed")
+			logger.Log.Info("✅ Initial user-items sync completed")
 		}
 
 		if err := gorseClient.BatchSyncFeedback(); err != nil {
-			log.Printf("Initial feedback sync failed: %v", err)
+			logger.WarnWithFields("Initial feedback sync failed", err)
 		} else {
-			log.Println("✅ Initial feedback sync completed")
+			logger.Log.Info("✅ Initial feedback sync completed")
 		}
 
-		log.Println("✅ Initial Gorse batch sync completed")
+		logger.Log.Info("✅ Initial Gorse batch sync completed")
 	}()
 
 	// Periodic batch sync (Task 3.1)
@@ -302,33 +310,35 @@ func main() {
 		ticker := time.NewTicker(syncInterval)
 		defer ticker.Stop()
 
-		log.Printf("🔄 Gorse batch sync scheduled every %v", syncInterval)
+		logger.Log.Info("🔄 Gorse batch sync scheduled",
+			zap.Duration("interval", syncInterval),
+		)
 
 		for {
 			select {
 			case <-ticker.C:
-				log.Println("🔄 Starting scheduled Gorse batch sync...")
+				logger.Log.Debug("🔄 Starting scheduled Gorse batch sync...")
 
 				if err := gorseClient.BatchSyncUsers(); err != nil {
-					log.Printf("Batch user sync failed: %v", err)
+					logger.WarnWithFields("Batch user sync failed", err)
 				}
 
 				if err := gorseClient.BatchSyncItems(); err != nil {
-					log.Printf("Batch item sync failed: %v", err)
+					logger.WarnWithFields("Batch item sync failed", err)
 				}
 
 				if err := gorseClient.BatchSyncUserItems(); err != nil {
-					log.Printf("Batch user-items sync failed: %v", err)
+					logger.WarnWithFields("Batch user-items sync failed", err)
 				}
 
 				if err := gorseClient.BatchSyncFeedback(); err != nil {
-					log.Printf("Batch feedback sync failed: %v", err)
+					logger.WarnWithFields("Batch feedback sync failed", err)
 				}
 
-				log.Println("✅ Scheduled Gorse batch sync completed")
+				logger.Log.Debug("✅ Scheduled Gorse batch sync completed")
 
 			case <-syncCtx.Done():
-				log.Println("🛑 Gorse batch sync stopped")
+				logger.Log.Info("🛑 Gorse batch sync stopped")
 				return
 			}
 		}
@@ -340,20 +350,20 @@ func main() {
 		defer ticker.Stop()
 
 		// Log CTR metrics immediately on startup
-		log.Println("📊 Logging initial CTR metrics...")
+		logger.Log.Debug("📊 Logging initial CTR metrics...")
 		if err := recommendations.LogCTRMetrics(database.DB); err != nil {
-			log.Printf("Warning: Failed to log CTR metrics: %v", err)
+			logger.WarnWithFields("Failed to log initial CTR metrics", err)
 		}
 
 		for {
 			select {
 			case <-ticker.C:
-				log.Println("📊 Logging daily CTR metrics...")
+				logger.Log.Debug("📊 Logging daily CTR metrics...")
 				if err := recommendations.LogCTRMetrics(database.DB); err != nil {
-					log.Printf("Warning: Failed to log CTR metrics: %v", err)
+					logger.WarnWithFields("Failed to log daily CTR metrics", err)
 				}
 			case <-syncCtx.Done():
-				log.Println("🛑 CTR metrics logging stopped")
+				logger.Log.Info("🛑 CTR metrics logging stopped")
 				return
 			}
 		}
@@ -375,12 +385,11 @@ func main() {
 		os.Getenv("CDN_BASE_URL"),
 	)
 	if err != nil {
-		log.Printf("Warning: Failed to initialize waveform storage: %v", err)
-		log.Println("Waveforms will not be generated for audio posts - check AWS configuration")
+		logger.WarnWithFields("Failed to initialize waveform storage, waveforms will not be generated", err)
 		waveformStorage = nil
 	} else {
 		h.SetWaveformTools(waveformGenerator, waveformStorage)
-		log.Println("✅ Waveform tools initialized successfully")
+		logger.Log.Info("✅ Waveform tools initialized successfully")
 	}
 
 	authHandlers := handlers.NewAuthHandlers(authService, s3Uploader, streamClient)
@@ -399,7 +408,8 @@ func main() {
 	// connection hijacking. See the http.Server Handler setup below.
 
 	// Standard Gin middleware
-	r.Use(gin.Logger())
+	r.Use(middleware.RequestIDMiddleware())  // Add request ID tracking
+	r.Use(middleware.GinLoggerMiddleware())  // Structured logging
 	r.Use(gin.Recovery())
 
 	// Gzip compression middleware (compress responses > 1KB)
@@ -884,9 +894,11 @@ func main() {
 
 	// Start server in a goroutine
 	go func() {
-		log.Printf("🚀 Sidechain backend starting on port %s (hot reload enabled)", port)
+		logger.Log.Info("🚀 Sidechain backend starting",
+			zap.String("port", port),
+		)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Failed to start server: %v", err)
+			logger.FatalWithFields("Failed to start server", err)
 		}
 	}()
 
@@ -894,7 +906,7 @@ func main() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	log.Println("Shutting down server...")
+	logger.Log.Info("Shutting down server...")
 
 	// Give outstanding requests 30 seconds to complete
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -902,12 +914,12 @@ func main() {
 
 	// Shutdown WebSocket connections gracefully
 	if err := wsHandler.Shutdown(ctx); err != nil {
-		log.Printf("WebSocket shutdown warning: %v", err)
+		logger.WarnWithFields("WebSocket shutdown warning", err)
 	}
 
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatal("Server forced to shutdown:", err)
+		logger.ErrorWithFields("Server forced to shutdown", err)
 	}
 
-	log.Println("Server exited")
+	logger.Log.Info("Server exited")
 }
