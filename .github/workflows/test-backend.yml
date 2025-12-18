@@ -57,17 +57,17 @@ jobs:
           echo "Running services:"
           docker compose ps
 
-      - name: Run Backend Tests in Docker
-        run: |
-          cd backend
-          docker compose exec -T backend sh -c 'go test ./... -v -race -coverprofile=coverage.out -covermode=atomic > /tmp/test-results.txt 2>&1; echo "Tests completed with exit code: $?"'
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
 
-      - name: Convert to JUnit Format
+      - name: Run Backend Tests
         run: |
           cd backend
-          docker compose exec -T backend sh -c 'go install github.com/jstemmer/go-junit-report/v2@latest && cat /tmp/test-results.txt | go-junit-report -set-exit-code > /tmp/test-results.xml'
-          docker compose cp backend:/tmp/test-results.xml test-results.xml
-          docker compose cp backend:/app/coverage.out coverage.out
+          go install github.com/jstemmer/go-junit-report/v2@latest
+          go test ./... -v -race -coverprofile=coverage.out -covermode=atomic 2>&1 | tee test-results.txt
+          cat test-results.txt | go-junit-report -set-exit-code > test-results.xml
 
       - name: Stop Docker Compose Services
         if: always()
