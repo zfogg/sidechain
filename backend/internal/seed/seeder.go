@@ -1,21 +1,25 @@
 package seed
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
+	chat "github.com/GetStream/stream-chat-go/v5"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/recommendations"
+	"github.com/zfogg/sidechain/backend/internal/stream"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 // Seeder handles database seeding operations
 type Seeder struct {
-	db    *gorm.DB
-	gorse *recommendations.GorseRESTClient
+	db           *gorm.DB
+	gorse        *recommendations.GorseRESTClient
+	streamClient *stream.Client
 }
 
 // NewSeeder creates a new seeder instance
@@ -28,6 +32,11 @@ func NewSeeder(db *gorm.DB) *Seeder {
 // SetGorseClient sets the Gorse client for syncing recommendations
 func (s *Seeder) SetGorseClient(gorse *recommendations.GorseRESTClient) {
 	s.gorse = gorse
+}
+
+// SetStreamClient sets the Stream.io client for creating conversations
+func (s *Seeder) SetStreamClient(sc *stream.Client) {
+	s.streamClient = sc
 }
 
 // SeedDev seeds the development database with realistic data
@@ -75,6 +84,16 @@ func (s *Seeder) SeedDev() error {
 	// 	return fmt.Errorf("failed to seed devices: %w", err)
 	// }
 
+	// Create conversations between users in getstream.io
+	if s.streamClient != nil {
+		log("Creating conversations in getstream.io...")
+		if err := s.seedConversations(users); err != nil {
+			return fmt.Errorf("failed to seed conversations: %w", err)
+		}
+	} else {
+		log("⚠️  Stream.io client not configured - skipping conversation seeding")
+	}
+
 	// Sync to Gorse if client is available
 	if s.gorse != nil {
 		log("Syncing data to Gorse...")
@@ -109,6 +128,15 @@ func (s *Seeder) SeedTest() error {
 	log("Creating test comments...")
 	if err := s.seedComments(users, posts, 10); err != nil {
 		return fmt.Errorf("failed to seed comments: %w", err)
+	}
+
+	// Create test conversations in getstream.io
+	if s.streamClient != nil {
+		log("Creating test conversations in getstream.io...")
+		if err := s.seedConversations(users); err != nil {
+			log(fmt.Sprintf("⚠️  Failed to seed test conversations: %v", err))
+			// Don't fail the entire seed process if conversations fail
+		}
 	}
 
 	return nil
@@ -802,6 +830,151 @@ func (s *Seeder) seedDevices(users []models.User, count int) error {
 	return nil
 }
 */
+
+// seedConversations creates direct message and group conversations in getstream.io
+func (s *Seeder) seedConversations(users []models.User) error {
+	if s.streamClient == nil || s.streamClient.ChatClient == nil {
+		return fmt.Errorf("stream chat client not configured")
+	}
+
+	if len(users) < 2 {
+		return fmt.Errorf("need at least 2 users to create conversations")
+	}
+
+	ctx := context.Background()
+	dmCreated := 0
+	groupCreated := 0
+	failed := 0
+
+	// Shuffle users for random pairing
+	shuffledUsers := make([]models.User, len(users))
+	copy(shuffledUsers, users)
+	rand.Shuffle(len(shuffledUsers), func(i, j int) {
+		shuffledUsers[i], shuffledUsers[j] = shuffledUsers[j], shuffledUsers[i]
+	})
+
+	// Create direct message conversations between random pairs
+	dmToCreate := 2 * len(users)
+	if dmToCreate > len(users)*(len(users)-1)/2 {
+		dmToCreate = len(users) * (len(users) - 1) / 2
+	}
+
+	for i := 0; i < len(shuffledUsers)-1 && dmCreated < dmToCreate; i++ {
+		user1 := shuffledUsers[i]
+		user2 := shuffledUsers[i+1]
+
+		// Generate a direct message channel ID
+		var channelID string
+		if user1.ID < user2.ID {
+			channelID = "dm-" + user1.ID[:8] + "-" + user2.ID[:8]
+		} else {
+			channelID = "dm-" + user2.ID[:8] + "-" + user1.ID[:8]
+		}
+
+		// Create the channel using GetStream SDK
+		channelReq := &chat.ChannelRequest{
+			Members: []string{user1.ID, user2.ID},
+		}
+
+		response, err := s.streamClient.ChatClient.CreateChannel(ctx, "messaging", channelID, user1.ID, channelReq)
+		if err != nil {
+			failed++
+			continue
+		}
+
+		if response == nil || response.Channel == nil {
+			failed++
+			continue
+		}
+
+		// Send an initial welcome message
+		msg := &chat.Message{
+			Text: fmt.Sprintf("👋 DM started between %s and %s", user1.Username, user2.Username),
+		}
+
+		_, err = response.Channel.SendMessage(ctx, msg, user1.ID)
+		if err != nil {
+			failed++
+			continue
+		}
+
+		dmCreated++
+	}
+
+	// Create group conversations with 3-5 random members
+	groupsToCreate := int(float64(len(users)) * 0.5) // Create roughly 50% as many groups as users
+	if groupsToCreate < 1 {
+		groupsToCreate = 1
+	}
+
+	for i := 0; i < groupsToCreate; i++ {
+		// Pick 3-5 random members for the group
+		memberCount := 3 + rand.Intn(3) // 3-5 members
+		if memberCount > len(shuffledUsers) {
+			memberCount = len(shuffledUsers)
+		}
+
+		// Randomly select members
+		memberIndices := rand.Perm(len(shuffledUsers))[:memberCount]
+		var groupMembers []string
+		var groupMemberNames []string
+
+		for _, idx := range memberIndices {
+			groupMembers = append(groupMembers, shuffledUsers[idx].ID)
+			groupMemberNames = append(groupMemberNames, shuffledUsers[idx].Username)
+		}
+
+		// Generate group channel ID
+		groupChannelID := fmt.Sprintf("group-%d", i)
+
+		// Create the group channel
+		channelReq := &chat.ChannelRequest{
+			Members: groupMembers,
+			ExtraData: map[string]interface{}{
+				"name": fmt.Sprintf("🎵 %s's Music Collab", shuffledUsers[memberIndices[0]].Username),
+			},
+		}
+
+		response, err := s.streamClient.ChatClient.CreateChannel(ctx, "messaging", groupChannelID, shuffledUsers[memberIndices[0]].ID, channelReq)
+		if err != nil {
+			failed++
+			continue
+		}
+
+		if response == nil || response.Channel == nil {
+			failed++
+			continue
+		}
+
+		// Send a group welcome message
+		groupMsg := &chat.Message{
+			Text: fmt.Sprintf("👋 Group conversation started with: %s", joinStrings(groupMemberNames, ", ")),
+		}
+
+		_, err = response.Channel.SendMessage(ctx, groupMsg, shuffledUsers[memberIndices[0]].ID)
+		if err != nil {
+			failed++
+			continue
+		}
+
+		groupCreated++
+	}
+
+	fmt.Printf("    Created %d direct conversations and %d group conversations (failed: %d)\n", dmCreated, groupCreated, failed)
+	return nil
+}
+
+// joinStrings joins a slice of strings with a separator
+func joinStrings(strs []string, sep string) string {
+	result := ""
+	for i, s := range strs {
+		if i > 0 {
+			result += sep
+		}
+		result += s
+	}
+	return result
+}
 
 // generateWaveformPlaceholderURL generates a placeholder waveform URL for seed data
 func generateWaveformPlaceholderURL() string {
