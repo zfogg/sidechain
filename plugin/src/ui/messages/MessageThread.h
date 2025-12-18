@@ -3,7 +3,7 @@
 #include "../../network/StreamChatClient.h"
 #include "../../stores/AppStore.h"
 #include "../../ui/common/AppStoreComponent.h"
-#include "../../ui/animations/AnimationController.h"
+#include "../../ui/common/SmoothScrollable.h"
 #include "../../util/reactive/ReactiveBoundComponent.h"
 #include "../common/ErrorState.h"
 #include <JuceHeader.h>
@@ -29,8 +29,8 @@ class SidechainAudioProcessor;
  * - ChatState subscription automatically triggers repaint()
  */
 class MessageThread : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::ChatState>,
+                      public Sidechain::UI::SmoothScrollable,
                       public juce::Timer,
-                      public juce::ScrollBar::Listener,
                       public juce::TextEditor::Listener {
 public:
   MessageThread(Sidechain::Stores::AppStore *store = nullptr);
@@ -73,6 +73,15 @@ public:
 
 protected:
   //==============================================================================
+  // SmoothScrollable implementation
+  void onScrollUpdate(double newScrollPosition) override {
+    scrollBar.setCurrentRangeStart(newScrollPosition, juce::dontSendNotification);
+    repaint();
+  }
+
+  juce::String getComponentName() const override { return "MessageThread"; }
+
+  //==============================================================================
   // AppStoreComponent overrides
   void onAppStateChanged(const Sidechain::Stores::ChatState &state) override;
   void subscribeToAppStore() override;
@@ -102,9 +111,6 @@ private:
   // UI elements
   juce::ScrollBar scrollBar;
   juce::TextEditor messageInput;
-  double scrollPosition = 0.0;
-  double targetScrollPosition = 0.0;
-  Sidechain::UI::Animations::AnimationHandle scrollAnimationHandle;
   static constexpr int HEADER_HEIGHT = 60;
   static constexpr int INPUT_HEIGHT = 60;
   static constexpr int MESSAGE_INPUT_HEIGHT = 60; // Alias for INPUT_HEIGHT
