@@ -46,7 +46,7 @@
     }
 }
 
-grafana.{$DOMAIN:example.com} {
+grafana.sidechain.live {
     # Enable HTTPS with Let's Encrypt
     tls {$LETSENCRYPT_EMAIL:admin@example.com}
 
@@ -74,7 +74,7 @@ grafana.{$DOMAIN:example.com} {
     }
 }
 
-prometheus.{$DOMAIN:example.com} {
+prometheus.sidechain.live {
     # Enable HTTPS with Let's Encrypt
     tls {$LETSENCRYPT_EMAIL:admin@example.com}
 
