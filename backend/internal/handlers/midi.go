@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/util"
 	"gorm.io/gorm"
@@ -141,8 +142,9 @@ func (h *Handlers) GetMIDIPatternFile(c *gin.Context) {
 		return
 	}
 
-	// Increment download count
-	database.DB.Model(&pattern).UpdateColumn("download_count", gorm.Expr("download_count + 1"))
+	if err := database.DB.Model(&pattern).UpdateColumn("download_count", gorm.Expr("download_count + 1")).Error; err != nil {
+		logger.WarnWithFields("Failed to increment MIDI download count for pattern "+patternID, err)
+	}
 
 	// Generate MIDI file
 	midiData := pattern.ToMIDIData()

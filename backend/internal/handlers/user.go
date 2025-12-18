@@ -12,6 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/search"
 	"github.com/zfogg/sidechain/backend/internal/stream"
@@ -536,6 +537,22 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 		}()
 	}
 
+	if h.stream != nil {
+		go func() {
+			customData := make(map[string]interface{})
+			customData["display_name"] = currentUser.DisplayName
+			customData["bio"] = currentUser.Bio
+			customData["profile_picture_url"] = currentUser.ProfilePictureURL
+			customData["genre"] = currentUser.Genre
+			customData["daw_preference"] = currentUser.DAWPreference
+			customData["is_private"] = currentUser.IsPrivate
+
+			if err := h.stream.UpdateUserProfile(currentUser.ID, currentUser.Username, customData); err != nil {
+				logger.WarnWithFields("Failed to sync user profile to Stream.io", err)
+			}
+		}()
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": "profile_updated",
 		"user": gin.H{
@@ -618,6 +635,26 @@ func (h *Handlers) ChangeUsername(c *gin.Context) {
 	if err := database.DB.Model(currentUser).Update("username", newUsername).Error; err != nil {
 		util.RespondInternalError(c, "update_failed", err.Error())
 		return
+	}
+
+	if h.stream != nil {
+		go func() {
+			customData := make(map[string]interface{})
+			customData["display_name"] = currentUser.DisplayName
+			customData["bio"] = currentUser.Bio
+			customData["profile_picture_url"] = currentUser.ProfilePictureURL
+			if err := h.stream.UpdateUserProfile(currentUser.ID, newUsername, customData); err != nil {
+				logger.WarnWithFields("Failed to sync username change to Stream.io", err)
+			}
+		}()
+	}
+
+	if h.gorse != nil {
+		go func() {
+			if err := h.gorse.SyncUser(currentUser.ID); err != nil {
+				logger.WarnWithFields("Failed to sync username change to Gorse", err)
+			}
+		}()
 	}
 
 	c.JSON(http.StatusOK, gin.H{

@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/util"
 	"gorm.io/gorm"
@@ -714,8 +715,9 @@ func (h *Handlers) DownloadStory(c *gin.Context) {
 		return
 	}
 
-	// Increment download count atomically
-	database.DB.Model(&story).UpdateColumn("download_count", gorm.Expr("COALESCE(download_count, 0) + 1"))
+	if err := database.DB.Model(&story).UpdateColumn("download_count", gorm.Expr("COALESCE(download_count, 0) + 1")).Error; err != nil {
+		logger.WarnWithFields("Failed to increment story download count for story "+storyID, err)
+	}
 
 	// Generate filename: {username}_story_{id}.mp3
 	username := story.User.Username

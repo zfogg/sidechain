@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/util"
 	"gorm.io/gorm"
@@ -58,8 +59,9 @@ func (h *Handlers) SavePost(c *gin.Context) {
 		return
 	}
 
-	// Increment save count on the post
-	database.DB.Model(&post).UpdateColumn("save_count", gorm.Expr("save_count + 1"))
+	if err := database.DB.Model(&post).UpdateColumn("save_count", gorm.Expr("save_count + 1")).Error; err != nil {
+		logger.WarnWithFields("Failed to increment save count for post "+postID, err)
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message":  "Post saved successfully",

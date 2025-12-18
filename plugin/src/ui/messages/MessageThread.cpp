@@ -737,11 +737,42 @@ int MessageThread::calculateMessageHeight(const StreamChatClient::Message &messa
 }
 
 int MessageThread::calculateTotalMessagesHeight() {
-  // Task 2.3: Get messages from ChatStore instead of local array
-  if (false) // TODO: refactor to use AppStore
-    return 0;
+  int totalHeight = MESSAGE_TOP_PADDING;
 
-  return 0;
+  // Get messages from AppStore ChatState
+  const auto &chatState = appStore->getState<Sidechain::Stores::ChatState>();
+  if (chatState.channels.empty()) {
+    return totalHeight;
+  }
+
+  // Find current channel
+  auto channelIt = chatState.channels.find(channelId);
+  if (channelIt == chatState.channels.end()) {
+    return totalHeight;
+  }
+
+  const auto &messages = channelIt->second.messages;
+  int messageAreaWidth = getWidth() - 24; // Account for padding/scrollbar
+
+  for (const auto &message : messages) {
+    if (message.isObject()) {
+      // Create StreamChatClient::Message from juce::var
+      StreamChatClient::Message msg;
+      auto *obj = message.getDynamicObject();
+      if (obj) {
+        msg.id = obj->getProperty("id").toString();
+        msg.text = obj->getProperty("text").toString();
+        msg.userId = obj->getProperty("user_id").toString();
+        msg.userName = obj->getProperty("user_name").toString();
+        msg.createdAt = obj->getProperty("created_at").toString();
+
+        int messageHeight = calculateMessageHeight(msg, messageAreaWidth);
+        totalHeight += messageHeight + MESSAGE_BUBBLE_PADDING;
+      }
+    }
+  }
+
+  return totalHeight;
 }
 
 bool MessageThread::isOwnMessage(const StreamChatClient::Message &message) const {

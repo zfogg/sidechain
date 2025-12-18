@@ -140,6 +140,11 @@ func (m *MockStreamClient) CreateUser(userID, username string) error {
 	return m.DefaultError
 }
 
+func (m *MockStreamClient) UpdateUserProfile(userID, username string, customData map[string]interface{}) error {
+	m.recordCall("UpdateUserProfile", userID, username, customData)
+	return m.DefaultError
+}
+
 func (m *MockStreamClient) CreateToken(userID string, expiration time.Time) (string, error) {
 	m.recordCall("CreateToken", userID, expiration)
 	if m.CreateTokenFunc != nil {

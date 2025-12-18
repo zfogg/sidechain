@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/search"
 	"github.com/zfogg/sidechain/backend/internal/util"
@@ -92,8 +93,9 @@ func (h *Handlers) CreateComment(c *gin.Context) {
 		return
 	}
 
-	// Increment post comment count
-	database.DB.Model(&post).UpdateColumn("comment_count", gorm.Expr("comment_count + 1"))
+	if err := database.DB.Model(&post).UpdateColumn("comment_count", gorm.Expr("comment_count + 1")).Error; err != nil {
+		logger.WarnWithFields("Failed to increment comment count for post "+postID, err)
+	}
 
 	// Phase 0.6: Re-index post in Elasticsearch with updated engagement metrics
 	if h.search != nil {
@@ -420,8 +422,9 @@ func (h *Handlers) LikeComment(c *gin.Context) {
 		}
 	}
 
-	// Increment like count
-	database.DB.Model(&comment).UpdateColumn("like_count", gorm.Expr("like_count + 1"))
+	if err := database.DB.Model(&comment).UpdateColumn("like_count", gorm.Expr("like_count + 1")).Error; err != nil {
+		logger.WarnWithFields("Failed to increment comment like count for comment "+commentID, err)
+	}
 
 	// Send WebSocket notification to comment owner
 	if h.wsHandler != nil {
@@ -465,8 +468,9 @@ func (h *Handlers) UnlikeComment(c *gin.Context) {
 		return
 	}
 
-	// Decrement like count (don't go below 0)
-	database.DB.Model(&comment).UpdateColumn("like_count", gorm.Expr("GREATEST(like_count - 1, 0)"))
+	if err := database.DB.Model(&comment).UpdateColumn("like_count", gorm.Expr("GREATEST(like_count - 1, 0)")).Error; err != nil {
+		logger.WarnWithFields("Failed to decrement comment like count for comment "+commentID, err)
+	}
 
 	newCount := comment.LikeCount - 1
 	if newCount < 0 {
