@@ -41,7 +41,13 @@ export function useUploadMutation() {
         })
       }, 200)
 
-      const uploadResult = await UploadClient.uploadFile(data.file)
+      const uploadResult = await UploadClient.uploadFile(data.file, {
+        filename: data.title,
+        bpm: data.bpm || undefined,
+        key: data.key || undefined,
+        daw: data.daw || undefined,
+        genre: data.genre?.[0] || undefined,
+      })
 
       clearInterval(uploadProgress)
       setProgress(75)
