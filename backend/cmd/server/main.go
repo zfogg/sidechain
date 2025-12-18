@@ -447,7 +447,48 @@ func main() {
 	// This is necessary because Gin's ResponseWriter wrapper interferes with WebSocket
 	// connection hijacking. See the http.Server Handler setup below.
 
-	// Standard Gin middleware
+	// Configure CORS middleware FIRST (before all other middleware)
+	// This ensures OPTIONS preflight requests are handled correctly
+	corsConfig := cors.DefaultConfig()
+
+	// Get allowed origins from environment or use sensible defaults
+	allowedOrigins := os.Getenv("ALLOWED_ORIGINS")
+	if allowedOrigins != "" {
+		// Parse comma-separated origins
+		corsConfig.AllowOrigins = strings.FieldsFunc(allowedOrigins, func(r rune) bool { return r == ',' })
+		// Trim whitespace from each origin
+		for i, origin := range corsConfig.AllowOrigins {
+			corsConfig.AllowOrigins[i] = strings.TrimSpace(origin)
+		}
+	} else {
+		// Default: allow frontend and localhost for development
+		if os.Getenv("ENVIRONMENT") == "development" || os.Getenv("ENVIRONMENT") == "" {
+			corsConfig.AllowOrigins = []string{
+				"http://localhost:3000",
+				"http://localhost:5173", // Vite dev server
+				"https://www.sidechain.live",
+				"https://sidechain.live",
+			}
+		} else {
+			// Production: only allow the frontend
+			corsConfig.AllowOrigins = []string{
+				"https://www.sidechain.live",
+				"https://sidechain.live",
+			}
+		}
+	}
+
+	corsConfig.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"}
+	corsConfig.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization", "X-Requested-With", "Accept"}
+	corsConfig.AllowCredentials = true
+	corsConfig.MaxAge = 86400 // 24 hours
+	r.Use(cors.New(corsConfig))
+
+	logger.Log.Info("CORS configured for origins",
+		zap.Strings("allowed_origins", corsConfig.AllowOrigins),
+	)
+
+	// Standard Gin middleware (after CORS)
 	r.Use(middleware.RequestIDMiddleware())   // Add request ID tracking
 	r.Use(middleware.MetricsMiddleware())     // Prometheus metrics collection
 	r.Use(middleware.GinLoggerMiddleware())   // Structured logging
@@ -458,46 +499,6 @@ func main() {
 		"/api/v1/ws",         // Don't compress WebSocket connections
 		"/api/v1/ws/connect", // Don't compress WebSocket connections
 	})))
-
-	// CORS middleware
-	config := cors.DefaultConfig()
-
-	// Get allowed origins from environment or use sensible defaults
-	allowedOrigins := os.Getenv("ALLOWED_ORIGINS")
-	if allowedOrigins != "" {
-		// Parse comma-separated origins
-		config.AllowOrigins = strings.FieldsFunc(allowedOrigins, func(r rune) bool { return r == ',' })
-		// Trim whitespace from each origin
-		for i, origin := range config.AllowOrigins {
-			config.AllowOrigins[i] = strings.TrimSpace(origin)
-		}
-	} else {
-		// Default: allow frontend and localhost for development
-		if os.Getenv("ENVIRONMENT") == "development" || os.Getenv("ENVIRONMENT") == "" {
-			config.AllowOrigins = []string{
-				"http://localhost:3000",
-				"http://localhost:5173", // Vite dev server
-				"https://www.sidechain.live",
-				"https://sidechain.live",
-			}
-		} else {
-			// Production: only allow the frontend
-			config.AllowOrigins = []string{
-				"https://www.sidechain.live",
-				"https://sidechain.live",
-			}
-		}
-	}
-
-	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"}
-	config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization", "X-Requested-With"}
-	config.AllowCredentials = true
-	config.MaxAge = 86400 // 24 hours
-	r.Use(cors.New(config))
-
-	logger.Log.Info("CORS configured for origins",
-		zap.Strings("allowed_origins", config.AllowOrigins),
-	)
 
 	// Health check endpoint
 	r.GET("/health", func(c *gin.Context) {

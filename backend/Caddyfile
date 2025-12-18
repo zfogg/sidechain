@@ -2,17 +2,7 @@
     # Enable HTTPS with Let's Encrypt
     tls {$LETSENCRYPT_EMAIL:admin@example.com}
 
-    # Handle preflight requests (OPTIONS) - required for CORS
-    @preflightRequest {
-        method OPTIONS
-        header Origin *
-    }
-
-    respond @preflightRequest 200 {
-        close
-    }
-
-    # Proxy to backend
+    # Proxy to backend (ALL requests including OPTIONS)
     reverse_proxy backend:8787 {
         # Health checks for load balancing - less aggressive
         health_uri /health
@@ -39,7 +29,9 @@
         header_up X-Real-IP {http.request.header.X-Real-IP}
     }
 
-    # CORS headers - apply to all responses
+    # CORS headers - Caddy pass-through layer
+    # These ensure CORS headers are present even if backend doesn't send them
+    # The backend CORS middleware is the primary handler
     header {
         # Allow requests from the web frontend
         Access-Control-Allow-Origin "https://www.sidechain.live"
