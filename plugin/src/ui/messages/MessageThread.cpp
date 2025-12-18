@@ -826,7 +826,13 @@ juce::Rectangle<int> MessageThread::getAudioButtonBounds() const {
     bottomAreaHeight += REPLY_PREVIEW_HEIGHT;
   if (showAudioRecorder && audioSnippetRecorder)
     bottomAreaHeight += AUDIO_RECORDER_HEIGHT;
-  return juce::Rectangle<int>(getWidth() - 140, getHeight() - bottomAreaHeight + 10, 40, INPUT_HEIGHT - 20);
+
+  int padding = 10;
+  int audioButtonWidth = 40;
+  int sendButtonWidth = 80;
+  int audioButtonX = getWidth() - padding - audioButtonWidth;
+
+  return juce::Rectangle<int>(audioButtonX, getHeight() - bottomAreaHeight + padding, audioButtonWidth, INPUT_HEIGHT - 2 * padding);
 }
 
 juce::Rectangle<int> MessageThread::getSendButtonBounds() const {
@@ -835,7 +841,13 @@ juce::Rectangle<int> MessageThread::getSendButtonBounds() const {
     bottomAreaHeight += REPLY_PREVIEW_HEIGHT;
   if (showAudioRecorder && audioSnippetRecorder)
     bottomAreaHeight += AUDIO_RECORDER_HEIGHT;
-  return juce::Rectangle<int>(getWidth() - 90, getHeight() - bottomAreaHeight + 10, 80, INPUT_HEIGHT - 20);
+
+  int padding = 10;
+  int audioButtonWidth = 40;
+  int sendButtonWidth = 80;
+  int sendButtonX = getWidth() - padding - audioButtonWidth - padding - sendButtonWidth;
+
+  return juce::Rectangle<int>(sendButtonX, getHeight() - bottomAreaHeight + padding, sendButtonWidth, INPUT_HEIGHT - 2 * padding);
 }
 
 juce::Rectangle<int> MessageThread::getMessageBounds(const StreamChatClient::Message &message) const {
