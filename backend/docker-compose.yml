@@ -15,11 +15,11 @@ services:
       ENVIRONMENT: "${ENVIRONMENT:-development}"
 
       # Database (connects to postgres container)
-      DATABASE_URL: "postgres://sidechain:sidechain_dev_password@postgres:5432/sidechain?sslmode=disable"
+      DATABASE_URL: "postgres://${POSTGRES_USER:-sidechain}:${POSTGRES_PASSWORD:-sidechain_dev_password}@postgres:5432/${POSTGRES_DB:-sidechain}?sslmode=disable"
 
       # Gorse recommendations (API is on dashboard port 8088)
       GORSE_URL: "http://gorse:8088"
-      GORSE_API_KEY: "sidechain_gorse_api_key"
+      GORSE_API_KEY: "${GORSE_API_KEY:-sidechain_gorse_api_key}"
 
       # Stream.io (from .env or host environment)
       STREAM_API_KEY: "${STREAM_API_KEY}"
