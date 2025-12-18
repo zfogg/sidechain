@@ -197,9 +197,11 @@ void MessageThread::resized() {
   // Register scrollbar with SmoothScrollable
   setScrollBar(&scrollBar);
 
-  // Scrollbar on right side of message area
-  auto messageArea = bounds.withTrimmedTop(HEADER_HEIGHT).withTrimmedBottom(bottomAreaHeight);
-  scrollBar.setBounds(messageArea.removeFromRight(12));
+  // Scrollbar on right side of message area (exclude header from top, bottom area from bottom)
+  int scrollbarY = HEADER_HEIGHT;
+  int scrollbarHeight = getHeight() - HEADER_HEIGHT - bottomAreaHeight;
+  int scrollbarX = getWidth() - 12;
+  scrollBar.setBounds(scrollbarX, scrollbarY, 12, juce::jmax(0, scrollbarHeight));
 
   // Audio recorder (if visible)
   if (showAudioRecorder && audioSnippetRecorder) {
