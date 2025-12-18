@@ -6,6 +6,7 @@
 .env.prod
 .env.local
 .env.*.local
+gorse.toml
 
 # Build artifacts
 /build
