@@ -9,6 +9,7 @@ import { useFollowMutation } from '@/hooks/mutations/useFollowMutation'
 import { DirectMessageButton } from '@/components/chat/DirectMessageButton'
 import { EditProfileDialog } from '@/components/profile/EditProfileDialog'
 import { PinnedPostsSection } from '@/components/profile/PinnedPostsSection'
+import { UserPostsSection } from '@/components/profile/UserPostsSection'
 import { DownloadHistory } from '@/components/profile/DownloadHistory'
 import { PresenceIndicator } from '@/components/presence/PresenceIndicator'
 
@@ -42,6 +43,18 @@ interface ProfileUser {
  * - User metadata (join date, bio, links)
  * - Edit profile button for own profile
  */
+
+function formatJoinDate(dateString?: string): string {
+  if (!dateString) return 'Unknown'
+  try {
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) return 'Unknown'
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' })
+  } catch {
+    return 'Unknown'
+  }
+}
+
 export function Profile() {
   const { username } = useParams<{ username: string }>()
   const { user: currentUser } = useUserStore()
@@ -217,7 +230,7 @@ export function Profile() {
                 </div>
                 <div>
                   <span className="text-muted-foreground">
-                    Joined {new Date(profile.createdAt).toLocaleDateString()}
+                    Joined {formatJoinDate(profile.createdAt)}
                   </span>
                 </div>
               </div>
@@ -238,16 +251,11 @@ export function Profile() {
         )}
 
         {/* User Posts Feed */}
-        <div>
-          <h2 className="text-xl font-bold text-foreground mb-6">
-            {profile.isOwnProfile ? 'Your Posts' : `${profile.displayName}'s Posts`}
-          </h2>
-
-          {/* Custom feed for user's posts - would use userProfileFeed type */}
-          <div className="bg-card border border-border rounded-lg p-8 text-center text-muted-foreground">
-            User's posts would display here (connected to feed backend)
-          </div>
-        </div>
+        <UserPostsSection
+          userId={profile.id}
+          displayName={profile.displayName}
+          isOwnProfile={profile.isOwnProfile}
+        />
       </main>
 
       {/* Edit Profile Dialog */}
