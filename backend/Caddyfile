@@ -2,14 +2,31 @@
     # Enable HTTPS with Let's Encrypt
     tls {$LETSENCRYPT_EMAIL:admin@example.com}
 
+    # Handle preflight requests (OPTIONS) - required for CORS
+    @preflightRequest {
+        method OPTIONS
+        header Origin *
+    }
+
+    respond @preflightRequest 200 {
+        close
+    }
+
     # Proxy to backend
     reverse_proxy backend:8787 {
-        # Health checks for load balancing
+        # Health checks for load balancing - less aggressive
         health_uri /health
         health_interval 10s
         health_status 200
         health_passes 1
-        health_fails 3
+        health_fails 5
+
+        # Connection timeout
+        transport http {
+            dial_timeout 10s
+            response_header_timeout 15s
+            keepalive 30s
+        }
 
         # WebSocket support - preserve upgrade headers
         header_up Connection "upgrade"
@@ -19,6 +36,20 @@
         header_up X-Forwarded-For {http.request.header.X-Forwarded-For}
         header_up X-Forwarded-Proto {http.request.proto}
         header_up X-Forwarded-Host {http.request.host}
+        header_up X-Real-IP {http.request.header.X-Real-IP}
+    }
+
+    # CORS headers - apply to all responses
+    header {
+        # Allow requests from the web frontend
+        Access-Control-Allow-Origin "https://www.sidechain.live"
+        Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+        Access-Control-Allow-Headers "Content-Type, Authorization, Origin, X-Requested-With, Accept"
+        Access-Control-Allow-Credentials "true"
+        Access-Control-Max-Age "86400"
+
+        # Vary header to ensure caching respects CORS
+        Vary "Origin"
     }
 
     # Security headers
@@ -52,17 +83,17 @@ grafana.sidechain.live {
 
     # Proxy to Grafana with health checks and retry
     reverse_proxy grafana:3000 {
-        # Health check configuration
+        # Health check configuration - less aggressive
         health_uri /api/health
         health_interval 10s
         health_status 200
         health_passes 1
-        health_fails 3
+        health_fails 5
 
         # Connection timeout and keepalive
         transport http {
-            dial_timeout 5s
-            response_header_timeout 10s
+            dial_timeout 10s
+            response_header_timeout 15s
             expect_continue_timeout 2s
         }
 
@@ -92,25 +123,24 @@ prometheus.sidechain.live {
 
     # Basic authentication for Prometheus
     # Username: prometheus
-    # Password hash: bcrypt($2a$14$mBC6urJMgbEzSAs0TmWwceavZnQzGMwQVM6uEkLTnEiWXiolaNfq.)
-    # Plaintext: PrometheusSecure2025!
-    basic_auth /* {
-        prometheus $2a$14$mBC6urJMgbEzSAs0TmWwceavZnQzGMwQVM6uEkLTnEiWXiolaNfq.
+    # Password: PrometheusSecure2025
+    basicauth /* {
+        prometheus $2a$14$8acSdF6QjVz2wcN5Q2BI7.VJwfFXrzbb22HPdoHKQzcOyyLRzs7Li
     }
 
     # Proxy to Prometheus with health checks and retry
     reverse_proxy prometheus:9090 {
-        # Health check configuration
+        # Health check configuration - less aggressive
         health_uri /-/healthy
         health_interval 10s
         health_status 200
         health_passes 1
-        health_fails 3
+        health_fails 5
 
         # Connection timeout and keepalive
         transport http {
-            dial_timeout 5s
-            response_header_timeout 10s
+            dial_timeout 10s
+            response_header_timeout 15s
             expect_continue_timeout 2s
         }
 
