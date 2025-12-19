@@ -4,6 +4,7 @@
 # - Formats C/C++ code with clang-format
 # - Builds TypeScript/web code if changed
 # - Builds Go backend if changed
+# - Builds Go CLI if changed
 # - Builds C++ plugin if changed
 
 set -e  # Exit on error
@@ -17,7 +18,8 @@ fi
 
 # Check what types of files changed
 has_typescript=false
-has_go=false
+has_backend=false
+has_cli=false
 has_cpp=false
 
 # Check for TypeScript/web changes
@@ -27,7 +29,12 @@ fi
 
 # Check for Go backend changes
 if echo "$staged_files" | grep -qE '^backend/.*\.go$'; then
-    has_go=true
+    has_backend=true
+fi
+
+# Check for Go CLI changes
+if echo "$staged_files" | grep -qE '^cli/.*\.go$'; then
+    has_cli=true
 fi
 
 # Check for C++ plugin changes (source files or CMake files)
@@ -75,13 +82,23 @@ if [[ "$has_typescript" == true ]]; then
 fi
 
 # Build Go backend if changed
-if [[ "$has_go" == true ]]; then
+if [[ "$has_backend" == true ]]; then
     echo "🔨 Building Go backend..."
     if ! (cd backend && go build ./cmd/server/main.go); then
-        echo "❌ Go build failed. Please fix errors before committing."
+        echo "❌ Backend build failed. Please fix errors before committing."
         exit 1
     fi
-    echo "✅ Go build succeeded"
+    echo "✅ Backend build succeeded"
+fi
+
+# Build Go CLI if changed
+if [[ "$has_cli" == true ]]; then
+    echo "🔨 Building Go CLI..."
+    if ! (cd cli && go build -o bin/sidechain ./cmd/main.go); then
+        echo "❌ CLI build failed. Please fix errors before committing."
+        exit 1
+    fi
+    echo "✅ CLI build succeeded"
 fi
 
 # Build C++ plugin if changed
