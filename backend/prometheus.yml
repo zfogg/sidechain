@@ -16,7 +16,7 @@ scrape_configs:
   - job_name: 'sidechain-backend'
     static_configs:
       - targets: ['backend:8787']
-    metrics_path: '/metrics'
+    metrics_path: '/internal/metrics'
     scrape_interval: 10s
     scrape_timeout: 5s
 

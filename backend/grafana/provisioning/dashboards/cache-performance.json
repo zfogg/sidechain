@@ -93,7 +93,7 @@
       },
       "targets": [
         {
-          "expr": "rate(cache_hits_total[5m]) / (rate(cache_hits_total[5m]) + rate(cache_misses_total[5m]))",
+          "expr": "sum(rate(cache_hits_total[5m])) / (sum(rate(cache_hits_total[5m])) + sum(rate(cache_misses_total[5m])))",
           "legendFormat": "Hit Rate",
           "refId": "A"
         }
@@ -126,7 +126,7 @@
       },
       "targets": [
         {
-          "expr": "rate(cache_operations_total[5m])",
+          "expr": "sum(rate(cache_operations_total[5m])) by (operation)",
           "legendFormat": "{{ operation }}",
           "refId": "A"
         }

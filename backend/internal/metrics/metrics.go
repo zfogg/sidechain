@@ -10,21 +10,22 @@ import (
 // Metrics holds all Prometheus metrics for the application
 type Metrics struct {
 	// HTTP metrics
-	HTTPRequestsTotal       prometheus.CounterVec
-	HTTPRequestDuration     prometheus.HistogramVec
-	HTTPRequestSize         prometheus.HistogramVec
-	HTTPResponseSize        prometheus.HistogramVec
-	HTTPActiveConnections   prometheus.GaugeVec
+	HTTPRequestsTotal     prometheus.CounterVec
+	HTTPRequestDuration   prometheus.HistogramVec
+	HTTPRequestSize       prometheus.HistogramVec
+	HTTPResponseSize      prometheus.HistogramVec
+	HTTPActiveConnections prometheus.GaugeVec
 
 	// Cache metrics
-	CacheHitsTotal          prometheus.CounterVec
-	CacheMissesTotal        prometheus.CounterVec
-	CacheOperationDuration  prometheus.HistogramVec
-	CacheEvictionsTotal     prometheus.CounterVec
+	CacheHitsTotal         prometheus.CounterVec
+	CacheMissesTotal       prometheus.CounterVec
+	CacheOperationsTotal   prometheus.CounterVec
+	CacheOperationDuration prometheus.HistogramVec
+	CacheEvictionsTotal    prometheus.CounterVec
 
 	// Rate limiting metrics
-	RateLimitExceededTotal  prometheus.CounterVec
-	RateLimitBucketUsage    prometheus.GaugeVec
+	RateLimitExceededTotal prometheus.CounterVec
+	RateLimitBucketUsage   prometheus.GaugeVec
 
 	// Database metrics
 	DatabaseQueryDuration   prometheus.HistogramVec
@@ -32,17 +33,17 @@ type Metrics struct {
 	DatabaseConnectionsOpen prometheus.GaugeVec
 
 	// Redis metrics
-	RedisOperationDuration  prometheus.HistogramVec
-	RedisOperationsTotal    prometheus.CounterVec
-	RedisConnectionsOpen    prometheus.GaugeVec
+	RedisOperationDuration prometheus.HistogramVec
+	RedisOperationsTotal   prometheus.CounterVec
+	RedisConnectionsOpen   prometheus.GaugeVec
 
 	// Feed/recommendation metrics
-	FeedGenerationTime      prometheus.HistogramVec
-	GorseRecommendations    prometheus.CounterVec
-	GorseErrors             prometheus.CounterVec
+	FeedGenerationTime   prometheus.HistogramVec
+	GorseRecommendations prometheus.CounterVec
+	GorseErrors          prometheus.CounterVec
 
 	// Error metrics
-	ErrorsTotal             prometheus.CounterVec
+	ErrorsTotal prometheus.CounterVec
 }
 
 var (
@@ -108,6 +109,13 @@ func Initialize() *Metrics {
 					Help: "Total number of cache misses",
 				},
 				[]string{"cache_name"},
+			),
+			CacheOperationsTotal: *promauto.NewCounterVec(
+				prometheus.CounterOpts{
+					Name: "cache_operations_total",
+					Help: "Total number of cache operations",
+				},
+				[]string{"operation", "cache_name"},
 			),
 			CacheOperationDuration: *promauto.NewHistogramVec(
 				prometheus.HistogramOpts{

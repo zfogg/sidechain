@@ -44,17 +44,27 @@ func ResponseCacheMiddleware(ttl time.Duration) gin.HandlerFunc {
 		ctx := c.Request.Context()
 
 		// Try to get from cache
+		startTime := time.Now()
 		cachedData, err := redisClient.Get(ctx, cacheKey)
+		getDuration := time.Since(startTime)
+
 		if err == nil {
 			logger.Log.Debug("Cache hit",
 				zap.String("key", cacheKey),
 				zap.Duration("ttl", ttl),
 			)
+			// Record cache metrics
+			RecordCacheHit("response_cache")
+			RecordCacheOperation("GET", "response_cache", getDuration)
 			c.Data(http.StatusOK, "application/json", []byte(cachedData))
 			c.Header("X-Cache", "HIT")
 			c.Header("Cache-Control", fmt.Sprintf("public, max-age=%d", int(ttl.Seconds())))
 			return
 		}
+
+		// Record cache miss
+		RecordCacheMiss("response_cache")
+		RecordCacheOperation("GET", "response_cache", getDuration)
 
 		// Cache miss - capture response and cache it
 		writer := &cachedResponseWriter{
@@ -72,12 +82,15 @@ func ResponseCacheMiddleware(ttl time.Duration) gin.HandlerFunc {
 
 			// Only cache if response has content
 			if bodyStr != "" {
+				setStartTime := time.Now()
 				if err := redisClient.SetEx(ctx, cacheKey, bodyStr, ttl); err != nil {
 					logger.Log.Debug("Failed to write response to cache",
 						zap.String("key", cacheKey),
 						zap.Error(err),
 					)
 				} else {
+					setDuration := time.Since(setStartTime)
+					RecordCacheOperation("SET", "response_cache", setDuration)
 					logger.Log.Debug("Response cached",
 						zap.String("key", cacheKey),
 						zap.Duration("ttl", ttl),

@@ -534,25 +534,15 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 
 	if req.DisplayName != nil {
 		displayName := strings.TrimSpace(*req.DisplayName)
-		// Normalize empty strings for comparison
-		currentDisplayName := currentUser.DisplayName
-		if currentDisplayName == "" {
-			currentDisplayName = ""
-		}
 		// Only update if display name has actually changed
-		if displayName != currentDisplayName {
+		if displayName != currentUser.DisplayName {
 			updates["display_name"] = displayName
 		}
 	}
 	if req.Bio != nil {
 		bio := strings.TrimSpace(*req.Bio)
-		// Normalize empty strings for comparison
-		currentBio := currentUser.Bio
-		if currentBio == "" {
-			currentBio = ""
-		}
 		// Only update if bio has actually changed
-		if bio != currentBio {
+		if bio != currentUser.Bio {
 			updates["bio"] = bio
 		}
 	}

@@ -80,6 +80,7 @@ func RecordCacheMiss(cacheName string) {
 
 func RecordCacheOperation(operation, cacheName string, duration time.Duration) {
 	m := metrics.Get()
+	m.CacheOperationsTotal.WithLabelValues(operation, cacheName).Inc()
 	m.CacheOperationDuration.WithLabelValues(operation, cacheName).Observe(duration.Seconds())
 }
 
