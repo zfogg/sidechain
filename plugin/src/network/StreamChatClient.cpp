@@ -465,7 +465,8 @@ void StreamChatClient::queryMessages(const juce::String &channelType, const juce
               if (messageData.isObject()) {
                 messages.push_back(parseMessage(messageData));
               } else {
-                Log::warn("StreamChatClient::queryMessages - message at index " + juce::String(i) + " is not an object");
+                Log::warn("StreamChatClient::queryMessages - message at index " + juce::String(i) +
+                          " is not an object");
               }
             }
           } else if (messagesVar.isVoid()) {
@@ -652,7 +653,7 @@ void StreamChatClient::connectWebSocket() {
   } catch (const std::exception &e) {
     Log::error("StreamChatClient: Exception connecting WebSocket - " + juce::String(e.what()));
     updateConnectionStatus(ConnectionStatus::Disconnected);
-    wsConnectionActive.store(false);  // Reset flag since connection failed
+    wsConnectionActive.store(false); // Reset flag since connection failed
     cleanupWebSocket();
   }
 }
@@ -713,7 +714,7 @@ void StreamChatClient::cleanupWebSocket() {
 // WebSocket event handlers
 void StreamChatClient::onWsOpen(connection_hdl /* hdl */) {
   wsConnected.store(true);
-  wsConnectionActive.store(false);  // Connection attempt complete
+  wsConnectionActive.store(false); // Connection attempt complete
   updateConnectionStatus(ConnectionStatus::Connected);
   Log::info("StreamChatClient: WebSocket connected to getstream.io");
 }
@@ -1494,10 +1495,9 @@ void StreamChatClient::uploadAudioSnippet(const juce::AudioBuffer<float> &audioB
     std::unique_ptr<juce::OutputStream> outputStream =
         std::make_unique<juce::MemoryOutputStream>(audioDataBlock, false);
     juce::WavAudioFormat wavFormat;
-    std::unique_ptr<juce::AudioFormatWriter> writer(
-        wavFormat.createWriterFor(outputStream.get(), sampleRate,
-                                  static_cast<unsigned int>(audioBuffer.getNumChannels()), 16,
-                                  juce::StringPairArray(), 0));
+    std::unique_ptr<juce::AudioFormatWriter> writer(wavFormat.createWriterFor(
+        outputStream.get(), sampleRate, static_cast<unsigned int>(audioBuffer.getNumChannels()), 16,
+        juce::StringPairArray(), 0));
 
     if (writer == nullptr) {
       Log::error("Failed to create WAV writer");

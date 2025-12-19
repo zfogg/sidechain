@@ -243,7 +243,7 @@ void Profile::setProfile(const UserProfile &newProfile) {
                   return;
                 if (image.isValid()) {
                   Log::info("Profile::setProfile: Avatar image loaded successfully - size: " +
-                           juce::String(image.getWidth()) + "x" + juce::String(image.getHeight()));
+                            juce::String(image.getWidth()) + "x" + juce::String(image.getHeight()));
                   safeThis->avatarImage = image;
                   safeThis->repaint();
                 } else {
@@ -408,7 +408,8 @@ void Profile::drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds) {
     g.saveState();
     g.reduceClipRegion(circlePath);
     // Scale image to fit the bounds
-    auto scaledImage = avatarImage.rescaled(bounds.getWidth(), bounds.getHeight(), juce::Graphics::highResamplingQuality);
+    auto scaledImage =
+        avatarImage.rescaled(bounds.getWidth(), bounds.getHeight(), juce::Graphics::highResamplingQuality);
     g.drawImageAt(scaledImage, bounds.getX(), bounds.getY());
     g.restoreState();
   } else {
@@ -1000,7 +1001,6 @@ void Profile::mouseWheelMove(const juce::MouseEvent &event, const juce::MouseWhe
 
   handleMouseWheelMove(event, wheel, viewportHeight, scrollBar->getWidth());
 }
-
 
 //==============================================================================
 juce::Rectangle<int> Profile::getBackButtonBounds() const {

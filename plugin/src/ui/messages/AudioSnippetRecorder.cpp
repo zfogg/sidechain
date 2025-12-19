@@ -109,7 +109,7 @@ void AudioSnippetRecorder::mouseUp(const juce::MouseEvent &event) {
     // Log event coordinates and current recording duration
     double duration = getRecordingDuration();
     Log::debug("AudioSnippetRecorder: Mouse released at (" + juce::String(event.x) + ", " + juce::String(event.y) +
-              ") - recording duration: " + juce::String(duration, 2) + "s");
+               ") - recording duration: " + juce::String(duration, 2) + "s");
 
     // Check if mouse was released over the record button area
     if (event.x >= recordButtonArea.getX() && event.x < recordButtonArea.getRight() &&

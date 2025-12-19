@@ -1,7 +1,6 @@
 #include "DraftCache.h"
 
-SidechainDraftCache::SidechainDraftCache(int64_t maxSizeBytes) : fileCache("drafts", maxSizeBytes) {
-}
+SidechainDraftCache::SidechainDraftCache(int64_t maxSizeBytes) : fileCache("drafts", maxSizeBytes) {}
 
 std::optional<juce::File> SidechainDraftCache::getDraftFile(const DraftKey &key) {
   return fileCache.getFile(key);

@@ -54,27 +54,28 @@ void AppStore::loadMoreNotifications() {
     return;
   }
 
-  networkClient->getNotifications(
-      20, currentState.notifications.size(), [this, notificationSlice](Outcome<NetworkClient::NotificationResult> result) {
-        if (result.isOk()) {
-          const auto notifResult = result.getValue();
-          juce::Array<juce::var> newNotifications;
+  networkClient->getNotifications(20, currentState.notifications.size(),
+                                  [this, notificationSlice](Outcome<NetworkClient::NotificationResult> result) {
+                                    if (result.isOk()) {
+                                      const auto notifResult = result.getValue();
+                                      juce::Array<juce::var> newNotifications;
 
-          if (notifResult.notifications.isArray()) {
-            for (int i = 0; i < notifResult.notifications.size(); ++i) {
-              newNotifications.add(notifResult.notifications[i]);
-            }
-          }
+                                      if (notifResult.notifications.isArray()) {
+                                        for (int i = 0; i < notifResult.notifications.size(); ++i) {
+                                          newNotifications.add(notifResult.notifications[i]);
+                                        }
+                                      }
 
-          notificationSlice->dispatch([newNotifications, notifResult](NotificationState &state) {
-            for (const auto &notification : newNotifications) {
-              state.notifications.add(notification);
-            }
-            state.unreadCount = notifResult.unread;
-            state.unseenCount = notifResult.unseen;
-          });
-        }
-      });
+                                      notificationSlice->dispatch(
+                                          [newNotifications, notifResult](NotificationState &state) {
+                                            for (const auto &notification : newNotifications) {
+                                              state.notifications.add(notification);
+                                            }
+                                            state.unreadCount = notifResult.unread;
+                                            state.unseenCount = notifResult.unseen;
+                                          });
+                                    }
+                                  });
 }
 
 void AppStore::markNotificationsAsRead() {

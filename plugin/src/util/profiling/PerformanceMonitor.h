@@ -398,7 +398,8 @@ inline void PerformanceMonitor::dumpMetrics() const {
     log += "samples=" + juce::String(metrics.sampleCount);
 
     if (metrics.slowCount > 0)
-      log += " " + juce::String(juce::CharPointer_UTF8("\xE2\x9A\xA0\xEF\xB8\x8F")) + " SLOW: " + juce::String(metrics.slowCount) + "x"; // ⚠️
+      log += " " + juce::String(juce::CharPointer_UTF8("\xE2\x9A\xA0\xEF\xB8\x8F")) +
+             " SLOW: " + juce::String(metrics.slowCount) + "x"; // ⚠️
 
     juce::Logger::getCurrentLogger()->writeToLog(log);
   }

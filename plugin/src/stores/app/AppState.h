@@ -193,7 +193,7 @@ struct SearchResultsState {
   juce::Array<FeedPost> posts;
   juce::Array<juce::var> users;
   juce::String searchQuery;
-  juce::String currentGenre;  // Currently selected genre filter
+  juce::String currentGenre; // Currently selected genre filter
   bool isSearching = false;
   bool hasMoreResults = false;
   int totalResults = 0;

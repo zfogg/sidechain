@@ -18,16 +18,14 @@
  *     static juce::String getKey(const Draft& draft) { return draft.id; }
  *   };
  */
-template<typename T>
-struct CacheKeyTraits {
+template <typename T> struct CacheKeyTraits {
   // Callers must specialize this for their type
-  static juce::String getKey(const T& value);
+  static juce::String getKey(const T &value);
 };
 
 // Built-in specialization for juce::String (URL-based caching)
-template<>
-struct CacheKeyTraits<juce::String> {
-  static juce::String getKey(const juce::String& url) {
+template <> struct CacheKeyTraits<juce::String> {
+  static juce::String getKey(const juce::String &url) {
     return url;
   }
 };
@@ -57,8 +55,7 @@ struct CacheKeyTraits<juce::String> {
  *   FileCache<ImageKey> cache("images", 500 * 1024 * 1024);
  *   auto file = cache.getFile(imageKey);
  */
-template<typename T>
-class FileCache {
+template <typename T> class FileCache {
 public:
   /**
    * Initialize cache for a specific subdirectory.
@@ -162,7 +159,7 @@ private:
 // Template implementations (inline in header for all translation units)
 //==============================================================================
 
-template<typename T>
+template <typename T>
 FileCache<T>::FileCache(const juce::String &subdirectory, int64_t maxSizeBytes) : maxSize(maxSizeBytes) {
   // Construct cache directory path
   auto appDataDir = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory);
@@ -175,8 +172,7 @@ FileCache<T>::FileCache(const juce::String &subdirectory, int64_t maxSizeBytes) 
   loadManifest();
 }
 
-template<typename T>
-std::optional<juce::File> FileCache<T>::getFile(const T &value) {
+template <typename T> std::optional<juce::File> FileCache<T>::getFile(const T &value) {
   juce::String key = CacheKeyTraits<T>::getKey(value);
 
   juce::File cachedFile;
@@ -208,8 +204,7 @@ std::optional<juce::File> FileCache<T>::getFile(const T &value) {
   return cachedFile;
 }
 
-template<typename T>
-juce::File FileCache<T>::cacheFile(const T &value, const juce::File &sourceFile) {
+template <typename T> juce::File FileCache<T>::cacheFile(const T &value, const juce::File &sourceFile) {
   juce::String key = CacheKeyTraits<T>::getKey(value);
 
   if (!sourceFile.exists()) {
@@ -257,8 +252,7 @@ juce::File FileCache<T>::cacheFile(const T &value, const juce::File &sourceFile)
   }
 }
 
-template<typename T>
-void FileCache<T>::removeFile(const T &value) {
+template <typename T> void FileCache<T>::removeFile(const T &value) {
   juce::String key = CacheKeyTraits<T>::getKey(value);
 
   {
@@ -276,8 +270,7 @@ void FileCache<T>::removeFile(const T &value) {
   }
 }
 
-template<typename T>
-void FileCache<T>::clear() {
+template <typename T> void FileCache<T>::clear() {
   {
     juce::ScopedWriteLock locker(manifestLock);
     manifest.clear();
@@ -291,8 +284,7 @@ void FileCache<T>::clear() {
   saveManifest();
 }
 
-template<typename T>
-int64_t FileCache<T>::getCacheSizeBytes() const {
+template <typename T> int64_t FileCache<T>::getCacheSizeBytes() const {
   juce::ScopedReadLock locker(manifestLock);
   int64_t totalSize = 0;
 
@@ -303,18 +295,15 @@ int64_t FileCache<T>::getCacheSizeBytes() const {
   return totalSize;
 }
 
-template<typename T>
-void FileCache<T>::flush() {
+template <typename T> void FileCache<T>::flush() {
   saveManifest();
 }
 
-template<typename T>
-juce::File FileCache<T>::getManifestFile() const {
+template <typename T> juce::File FileCache<T>::getManifestFile() const {
   return cacheDir.getChildFile("manifest.json");
 }
 
-template<typename T>
-void FileCache<T>::loadManifest() {
+template <typename T> void FileCache<T>::loadManifest() {
   juce::ScopedWriteLock locker(manifestLock);
 
   juce::File manifestFile = getManifestFile();
@@ -345,8 +334,7 @@ void FileCache<T>::loadManifest() {
   }
 }
 
-template<typename T>
-void FileCache<T>::saveManifest() {
+template <typename T> void FileCache<T>::saveManifest() {
   juce::var manifestArray;
 
   for (const auto &pair : manifest) {
@@ -363,8 +351,7 @@ void FileCache<T>::saveManifest() {
   }
 }
 
-template<typename T>
-void FileCache<T>::evictLRU(int64_t targetSizeBytes) {
+template <typename T> void FileCache<T>::evictLRU(int64_t targetSizeBytes) {
   if (getCacheSizeBytes() <= targetSizeBytes) {
     return;
   }
@@ -391,18 +378,15 @@ void FileCache<T>::evictLRU(int64_t targetSizeBytes) {
   saveManifest();
 }
 
-template<typename T>
-juce::String FileCache<T>::generateCacheFilename(const juce::String &key) {
+template <typename T> juce::String FileCache<T>::generateCacheFilename(const juce::String &key) {
   return hashString(key) + ".cache";
 }
 
-template<typename T>
-juce::String FileCache<T>::hashString(const juce::String &str) {
+template <typename T> juce::String FileCache<T>::hashString(const juce::String &str) {
   return juce::SHA256(str.toUTF8()).toHexString().substring(0, 16);
 }
 
-template<typename T>
-juce::var FileCache<T>::CacheEntry::toJSON() const {
+template <typename T> juce::var FileCache<T>::CacheEntry::toJSON() const {
   juce::DynamicObject::Ptr dynObj = new juce::DynamicObject();
   dynObj->setProperty("key", key);
   dynObj->setProperty("filename", filename);
@@ -411,8 +395,7 @@ juce::var FileCache<T>::CacheEntry::toJSON() const {
   return juce::var(dynObj);
 }
 
-template<typename T>
-typename FileCache<T>::CacheEntry FileCache<T>::CacheEntry::fromJSON(const juce::var &json) {
+template <typename T> typename FileCache<T>::CacheEntry FileCache<T>::CacheEntry::fromJSON(const juce::var &json) {
   CacheEntry entry;
   entry.key = json.getProperty("key", "").toString();
   entry.filename = json.getProperty("filename", "").toString();

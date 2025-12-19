@@ -36,7 +36,6 @@ void AppStore::loadFeaturedSounds() {
         Util::logError("AppStore", "Failed to load featured sounds: " + result.getError());
       });
     }
-
   });
 }
 
@@ -73,7 +72,6 @@ void AppStore::loadRecentSounds() {
         state.soundError = result.getError();
       });
     }
-
   });
 }
 
@@ -106,7 +104,6 @@ void AppStore::loadMoreSounds() {
         state.recentOffset += newSounds.size();
       });
     }
-
   });
 }
 

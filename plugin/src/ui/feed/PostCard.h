@@ -33,8 +33,7 @@ class NetworkClient;
  * The component uses a callback-based API for actions to keep it decoupled
  * from network/audio code.
  */
-class PostCard : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::PostsState>,
-                 public juce::TooltipClient {
+class PostCard : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::PostsState>, public juce::TooltipClient {
 public:
   PostCard(Sidechain::Stores::AppStore *store = nullptr);
   ~PostCard() override;

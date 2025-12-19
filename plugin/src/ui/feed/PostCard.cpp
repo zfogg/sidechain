@@ -80,7 +80,7 @@ void PostCard::setPost(const FeedPost &newPost) {
   fadeInAnimationHandle = Sidechain::UI::Animations::AnimationController::getInstance().schedule(fadeAnim, this);
 
   // Fetch avatar image via AppStore reactive observable (with caching)
-  avatarImage = juce::Image();  // Clear previous image
+  avatarImage = juce::Image(); // Clear previous image
   if (post.userAvatarUrl.isNotEmpty() && appStore) {
     Log::debug("PostCard: Loading avatar from URL: " + post.userAvatarUrl);
     juce::Component::SafePointer<PostCard> safeThis(this);
@@ -91,7 +91,7 @@ void PostCard::setPost(const FeedPost &newPost) {
                 return;
               if (image.isValid()) {
                 Log::debug("PostCard: Avatar image loaded successfully - size: " + juce::String(image.getWidth()) +
-                          "x" + juce::String(image.getHeight()));
+                           "x" + juce::String(image.getHeight()));
                 safeThis->avatarImage = image;
                 safeThis->repaint();
               } else {
@@ -188,7 +188,8 @@ void PostCard::drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds) {
     g.saveState();
     g.reduceClipRegion(circlePath);
     // Scale and draw the image to fit the bounds
-    auto scaledImage = avatarImage.rescaled(bounds.getWidth(), bounds.getHeight(), juce::Graphics::highResamplingQuality);
+    auto scaledImage =
+        avatarImage.rescaled(bounds.getWidth(), bounds.getHeight(), juce::Graphics::highResamplingQuality);
     g.drawImageAt(scaledImage, bounds.getX(), bounds.getY());
     g.restoreState();
   } else {
@@ -1410,7 +1411,6 @@ void PostCard::startLikeAnimation() {
                       });
   likeAnimationHandle = Sidechain::UI::Animations::AnimationController::getInstance().schedule(likeAnim, this);
 }
-
 
 void PostCard::drawLikeAnimation(juce::Graphics &g) {
   // Only draw if animation is active (valid handle and progress > 0)

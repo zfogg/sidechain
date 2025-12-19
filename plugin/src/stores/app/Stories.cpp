@@ -36,7 +36,6 @@ void AppStore::loadStoriesFeed() {
         Util::logError("AppStore", "Failed to load stories feed: " + result.getError());
       });
     }
-
   });
 }
 
@@ -54,7 +53,6 @@ void AppStore::loadMyStories() {
     state.isMyStoriesLoading = false;
     Util::logInfo("AppStore", "My stories endpoint not yet available");
   });
-
 }
 
 void AppStore::markStoryAsViewed(const juce::String &storyId) {
@@ -128,13 +126,14 @@ void AppStore::createHighlight(const juce::String &name, const juce::Array<juce:
 
         // Add each story to the highlight
         for (const auto &storyId : storyIds) {
-          networkClient->addStoryToHighlight(highlightId, storyId, [this, storyId, highlightId](Outcome<juce::var> addResult) {
-            if (addResult.isOk()) {
-              Util::logInfo("AppStore", "Added story " + storyId + " to highlight " + highlightId);
-            } else {
-              Util::logError("AppStore", "Failed to add story to highlight: " + addResult.getError());
-            }
-          });
+          networkClient->addStoryToHighlight(
+              highlightId, storyId, [this, storyId, highlightId](Outcome<juce::var> addResult) {
+                if (addResult.isOk()) {
+                  Util::logInfo("AppStore", "Added story " + storyId + " to highlight " + highlightId);
+                } else {
+                  Util::logError("AppStore", "Failed to add story to highlight: " + addResult.getError());
+                }
+              });
         }
       }
 

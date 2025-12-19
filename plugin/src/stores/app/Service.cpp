@@ -139,7 +139,8 @@ void AppStore::getImage(const juce::String &url, std::function<void(const juce::
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-          auto inputStream = imageUrl.createInputStream(false, nullptr, nullptr, "User-Agent: Sidechain/1.0", 5000, nullptr);
+          auto inputStream =
+              imageUrl.createInputStream(false, nullptr, nullptr, "User-Agent: Sidechain/1.0", 5000, nullptr);
 #pragma clang diagnostic pop
 
           if (inputStream == nullptr) {

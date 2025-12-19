@@ -45,8 +45,8 @@ void AppStore::searchPosts(const juce::String &query) {
         state.results.hasMoreResults = postsList.size() < state.results.totalResults;
         state.results.offset = postsList.size();
         state.results.searchError = "";
-        Util::logInfo("AppStore", "Search found " + juce::String(postsList.size()) +
-                                      " posts for: " + state.results.searchQuery);
+        Util::logInfo("AppStore",
+                      "Search found " + juce::String(postsList.size()) + " posts for: " + state.results.searchQuery);
       });
     } else {
       sliceManager.getSearchSlice()->dispatch([result](SearchState &state) {
@@ -55,7 +55,6 @@ void AppStore::searchPosts(const juce::String &query) {
         Util::logError("AppStore", "Search failed: " + result.getError());
       });
     }
-
   });
 }
 
@@ -101,7 +100,6 @@ void AppStore::searchUsers(const juce::String &query) {
         state.results.searchError = result.getError();
       });
     }
-
   });
 }
 
@@ -138,7 +136,6 @@ void AppStore::loadMoreSearchResults() {
                                      state.results.offset += newPosts.size();
                                    });
                                  }
-
                                });
   }
 }
@@ -155,7 +152,6 @@ void AppStore::clearSearchResults() {
     state.results.searchError = "";
     Util::logInfo("AppStore", "Search results cleared");
   });
-
 }
 
 void AppStore::loadGenres() {
@@ -189,7 +185,6 @@ void AppStore::loadGenres() {
         state.genres.genresError = result.getError();
       });
     }
-
   });
 }
 

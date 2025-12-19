@@ -52,15 +52,13 @@ namespace Stores {
  *     [this](const AuthSlice& auth) { updateUI(auth); }
  *   );
  */
-template <typename StateType>
-class StateSlice {
+template <typename StateType> class StateSlice {
 public:
   // Action type: function that modifies state
   using Action = std::function<void(StateType &)>;
 
   // Selector type: function that extracts derived state
-  template <typename Derived>
-  using Selector = std::function<Derived(const StateType &)>;
+  template <typename Derived> using Selector = std::function<Derived(const StateType &)>;
 
   // Subscription callback
   using SubscriptionCallback = std::function<void(const StateType &)>;
@@ -92,8 +90,7 @@ public:
    * @param callback Invoked when selected state differs from previous
    */
   template <typename Derived>
-  void subscribeToSelection(const Selector<Derived> &selector,
-                            std::function<void(const Derived &)> callback) {
+  void subscribeToSelection(const Selector<Derived> &selector, std::function<void(const Derived &)> callback) {
     // Store previous value for comparison
     auto prevValue = std::make_shared<std::optional<Derived>>();
 
@@ -115,11 +112,9 @@ public:
  * Holds state in memory with simple action dispatch and subscriptions.
  * Thread-safe with mutex protection.
  */
-template <typename StateType>
-class InMemorySlice : public StateSlice<StateType> {
+template <typename StateType> class InMemorySlice : public StateSlice<StateType> {
 public:
-  explicit InMemorySlice(const StateType &initialState = StateType())
-      : state_(initialState) {}
+  explicit InMemorySlice(const StateType &initialState = StateType()) : state_(initialState) {}
 
   const StateType &getState() const override {
     std::shared_lock<std::shared_mutex> lock(stateMutex_);

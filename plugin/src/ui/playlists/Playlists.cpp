@@ -318,18 +318,18 @@ void Playlists::fetchPlaylists(FilterType filter) {
     bool isPublic = playlist.isPublic;
 
     switch (filter) {
-      case FilterType::All:
-        includePlaylist = true;
-        break;
-      case FilterType::Owned:
-        includePlaylist = isOwned;
-        break;
-      case FilterType::Collaborated:
-        includePlaylist = isCollaborated;
-        break;
-      case FilterType::Public:
-        includePlaylist = isPublic;
-        break;
+    case FilterType::All:
+      includePlaylist = true;
+      break;
+    case FilterType::Owned:
+      includePlaylist = isOwned;
+      break;
+    case FilterType::Collaborated:
+      includePlaylist = isCollaborated;
+      break;
+    case FilterType::Public:
+      includePlaylist = isPublic;
+      break;
     }
 
     if (includePlaylist) {

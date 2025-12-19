@@ -59,7 +59,7 @@ void AppStore::deleteDraft(const juce::String &draftId) {
 
   // Remove from cache
   try {
-    DraftKey key(static_cast<const juce::String&>(draftId));
+    DraftKey key(static_cast<const juce::String &>(draftId));
     draftCache.removeDraftFile(key);
     Util::logInfo("AppStore", "Removed draft from cache: " + draftId);
   } catch (const std::exception &e) {
@@ -100,8 +100,8 @@ void AppStore::saveDrafts() {
 
         // Convert draft to JSON and write to temporary file
         juce::String draftJson = juce::JSON::toString(draft);
-        juce::File tempFile = juce::File::getSpecialLocation(juce::File::tempDirectory)
-                                  .getChildFile("draft_" + draftId + ".tmp");
+        juce::File tempFile =
+            juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile("draft_" + draftId + ".tmp");
 
         if (!tempFile.replaceWithText(draftJson)) {
           Util::logWarning("AppStore", "Failed to write draft to temp file: " + draftId);

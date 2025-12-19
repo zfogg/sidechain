@@ -40,13 +40,17 @@ public:
 
   //==============================================================================
   // Scroll state access
-  double getScrollPosition() const { return scrollPosition; }
-  double getTargetScrollPosition() const { return targetScrollPosition; }
+  double getScrollPosition() const {
+    return scrollPosition;
+  }
+  double getTargetScrollPosition() const {
+    return targetScrollPosition;
+  }
 
   //==============================================================================
   // Called by component's mouseWheelMove()
-  void handleMouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel,
-                            int viewportHeight, int scrollBarWidth) {
+  void handleMouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel, int viewportHeight,
+                            int scrollBarWidth) {
     if (!scrollBar)
       return;
 
@@ -67,15 +71,15 @@ public:
     }
 
     // Create smooth scroll animation (200ms duration) with progress callback
-    auto scrollAnim = Sidechain::UI::Animations::TransitionAnimation<double>::create(
-        scrollPosition, targetScrollPosition, 200)
-        ->onProgress([this](const double &value) {
-          scrollPosition = value;
-          if (scrollBar) {
-            scrollBar->setCurrentRangeStart(scrollPosition, juce::dontSendNotification);
-          }
-          onScrollUpdate(scrollPosition);
-        });
+    auto scrollAnim =
+        Sidechain::UI::Animations::TransitionAnimation<double>::create(scrollPosition, targetScrollPosition, 200)
+            ->onProgress([this](const double &value) {
+              scrollPosition = value;
+              if (scrollBar) {
+                scrollBar->setCurrentRangeStart(scrollPosition, juce::dontSendNotification);
+              }
+              onScrollUpdate(scrollPosition);
+            });
 
     scrollAnimationHandle = Sidechain::UI::Animations::AnimationController::getInstance().schedule(scrollAnim, nullptr);
 
@@ -114,7 +118,9 @@ protected:
 
   //==============================================================================
   // Helper to get component name for logging
-  virtual juce::String getComponentName() const { return "SmoothScrollable"; }
+  virtual juce::String getComponentName() const {
+    return "SmoothScrollable";
+  }
 
   //==============================================================================
   // Helper to get scrollable area width (total width - scrollbar width)
@@ -130,7 +136,7 @@ private:
   double scrollPosition = 0.0;
   double targetScrollPosition = 0.0;
   Sidechain::UI::Animations::AnimationHandle scrollAnimationHandle;
-  juce::ScrollBar *scrollBar = nullptr;  // Non-owning pointer
+  juce::ScrollBar *scrollBar = nullptr; // Non-owning pointer
 };
 
 } // namespace Sidechain::UI

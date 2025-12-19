@@ -268,21 +268,34 @@ public:
    * Useful for logout or app reset
    */
   void resetAllSlices() {
-    if (authSlice_) authSlice_->dispatch([](AuthState &state) { state = AuthState(); });
-    if (postsSlice_) postsSlice_->dispatch([](PostsState &state) { state = PostsState(); });
-    if (userSlice_) userSlice_->dispatch([](UserState &state) { state = UserState(); });
-    if (chatSlice_) chatSlice_->dispatch([](ChatState &state) { state = ChatState(); });
-    if (draftSlice_) draftSlice_->dispatch([](DraftState &state) { state = DraftState(); });
-    if (challengeSlice_) challengeSlice_->dispatch([](ChallengeState &state) { state = ChallengeState(); });
-    if (storiesSlice_) storiesSlice_->dispatch([](StoriesState &state) { state = StoriesState(); });
-    if (uploadSlice_) uploadSlice_->dispatch([](UploadState &state) { state = UploadState(); });
+    if (authSlice_)
+      authSlice_->dispatch([](AuthState &state) { state = AuthState(); });
+    if (postsSlice_)
+      postsSlice_->dispatch([](PostsState &state) { state = PostsState(); });
+    if (userSlice_)
+      userSlice_->dispatch([](UserState &state) { state = UserState(); });
+    if (chatSlice_)
+      chatSlice_->dispatch([](ChatState &state) { state = ChatState(); });
+    if (draftSlice_)
+      draftSlice_->dispatch([](DraftState &state) { state = DraftState(); });
+    if (challengeSlice_)
+      challengeSlice_->dispatch([](ChallengeState &state) { state = ChallengeState(); });
+    if (storiesSlice_)
+      storiesSlice_->dispatch([](StoriesState &state) { state = StoriesState(); });
+    if (uploadSlice_)
+      uploadSlice_->dispatch([](UploadState &state) { state = UploadState(); });
     if (notificationSlice_)
       notificationSlice_->dispatch([](NotificationState &state) { state = NotificationState(); });
-    if (searchSlice_) searchSlice_->dispatch([](SearchState &state) { state = SearchState(); });
-    if (followersSlice_) followersSlice_->dispatch([](FollowersState &state) { state = FollowersState(); });
-    if (playlistSlice_) playlistSlice_->dispatch([](PlaylistState &state) { state = PlaylistState(); });
-    if (soundSlice_) soundSlice_->dispatch([](SoundState &state) { state = SoundState(); });
-    if (presenceSlice_) presenceSlice_->dispatch([](PresenceState &state) { state = PresenceState(); });
+    if (searchSlice_)
+      searchSlice_->dispatch([](SearchState &state) { state = SearchState(); });
+    if (followersSlice_)
+      followersSlice_->dispatch([](FollowersState &state) { state = FollowersState(); });
+    if (playlistSlice_)
+      playlistSlice_->dispatch([](PlaylistState &state) { state = PlaylistState(); });
+    if (soundSlice_)
+      soundSlice_->dispatch([](SoundState &state) { state = SoundState(); });
+    if (presenceSlice_)
+      presenceSlice_->dispatch([](PresenceState &state) { state = PresenceState(); });
   }
 
   /**

@@ -12,7 +12,7 @@ TaskScheduler::TaskScheduler() {
   // Use hardware concurrency if available, cap at reasonable maximum
   size_t numCores = std::thread::hardware_concurrency();
   if (numCores == 0) {
-    numCores = 4;  // Fallback default
+    numCores = 4; // Fallback default
   }
 
   // For balanced workloads, use a conservative pool size
@@ -83,8 +83,7 @@ bool TaskScheduler::waitForAll(int timeoutMs) {
 
     // Check timeout
     if (timeoutMs > 0) {
-      auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
-          std::chrono::steady_clock::now() - start);
+      auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
       if (elapsed.count() >= timeoutMs) {
         return false;
       }
@@ -97,7 +96,7 @@ bool TaskScheduler::waitForAll(int timeoutMs) {
 
 void TaskScheduler::shutdown() {
   if (shutdown_.exchange(true)) {
-    return;  // Already shut down
+    return; // Already shut down
   }
 
   // Wake up all worker threads

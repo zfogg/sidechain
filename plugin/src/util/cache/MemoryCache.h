@@ -54,8 +54,7 @@ namespace Util {
  * - Writer lock for puts/deletes (exclusive)
  * - Cleanup runs in-place during operations (lock-held)
  */
-template <typename Key, typename Value>
-class MemoryCache {
+template <typename Key, typename Value> class MemoryCache {
 public:
   // Cleanup callback signature: called when entry is evicted or expires
   using CleanupCallback = std::function<void(const Key &, const Value &)>;
@@ -227,7 +226,9 @@ public:
     return cache_.size();
   }
 
-  size_t capacity() const { return maxCapacity_; }
+  size_t capacity() const {
+    return maxCapacity_;
+  }
 
   /**
    * Set cleanup callback invoked when entries are evicted
@@ -239,12 +240,11 @@ public:
 private:
   struct CacheEntry {
     Value value;
-    long long expiresAtMs;  // -1 = never expires, >0 = expiration time
+    long long expiresAtMs; // -1 = never expires, >0 = expiration time
     long long lastAccessMs = 0;
 
     CacheEntry() : expiresAtMs(-1), lastAccessMs(0) {}
-    CacheEntry(const Value &v, long long exp)
-        : value(v), expiresAtMs(exp), lastAccessMs(now()) {}
+    CacheEntry(const Value &v, long long exp) : value(v), expiresAtMs(exp), lastAccessMs(now()) {}
   };
 
   /**
@@ -261,7 +261,7 @@ private:
    */
   bool isExpired_(const CacheEntry &entry) const {
     if (entry.expiresAtMs < 0) {
-      return false;  // Never expires
+      return false; // Never expires
     }
     return now() >= entry.expiresAtMs;
   }

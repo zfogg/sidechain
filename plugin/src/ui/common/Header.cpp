@@ -39,8 +39,8 @@ void Header::setUserInfo(const juce::String &user, const juce::String &picUrl) {
           if (safeThis == nullptr)
             return;
           if (image.isValid()) {
-            Log::info("Header: Profile image loaded successfully - size: " + juce::String(image.getWidth()) +
-                      "x" + juce::String(image.getHeight()));
+            Log::info("Header: Profile image loaded successfully - size: " + juce::String(image.getWidth()) + "x" +
+                      juce::String(image.getHeight()));
             safeThis->cachedProfileImage = image;
             safeThis->repaint();
           } else {
@@ -53,8 +53,9 @@ void Header::setUserInfo(const juce::String &user, const juce::String &picUrl) {
           Log::warn("Header: Failed to load profile image");
         });
   } else {
-    Log::warn("Header::setUserInfo: Not loading image - picUrl empty: " + juce::String(picUrl.isEmpty() ? "YES" : "NO") +
-              ", appStore null: " + juce::String(appStore == nullptr ? "YES" : "NO"));
+    Log::warn(
+        "Header::setUserInfo: Not loading image - picUrl empty: " + juce::String(picUrl.isEmpty() ? "YES" : "NO") +
+        ", appStore null: " + juce::String(appStore == nullptr ? "YES" : "NO"));
   }
 
   profilePicUrl = picUrl;
@@ -261,16 +262,17 @@ void Header::drawCircularProfilePic(juce::Graphics &g, juce::Rectangle<int> boun
 
   // If we have a cached profile image, draw it
   if (cachedProfileImage.isValid()) {
-    Log::info("Header: Drawing profile photo from S3 - size: " + juce::String(cachedProfileImage.getWidth()) +
-              "x" + juce::String(cachedProfileImage.getHeight()) + " into bounds: " + juce::String(bounds.getWidth()) +
-              "x" + juce::String(bounds.getHeight()) + ", URL: " + profilePicUrl);
+    Log::info("Header: Drawing profile photo from S3 - size: " + juce::String(cachedProfileImage.getWidth()) + "x" +
+              juce::String(cachedProfileImage.getHeight()) + " into bounds: " + juce::String(bounds.getWidth()) + "x" +
+              juce::String(bounds.getHeight()) + ", URL: " + profilePicUrl);
     // Create a circular mask and draw the image scaled to fit
     juce::Path circlePath;
     circlePath.addEllipse(bounds.toFloat());
     g.saveState();
     g.reduceClipRegion(circlePath);
     // Scale and draw the image to fit the bounds
-    auto scaledImage = cachedProfileImage.rescaled(bounds.getWidth(), bounds.getHeight(), juce::Graphics::highResamplingQuality);
+    auto scaledImage =
+        cachedProfileImage.rescaled(bounds.getWidth(), bounds.getHeight(), juce::Graphics::highResamplingQuality);
     g.drawImageAt(scaledImage, bounds.getX(), bounds.getY());
     g.restoreState();
   } else {

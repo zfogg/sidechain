@@ -74,8 +74,7 @@ public:
   };
 
   // Callback signature for navigation events
-  using NavigationCallback = std::function<void(juce::Component *newView,
-                                                juce::Component *previousView)>;
+  using NavigationCallback = std::function<void(juce::Component *newView, juce::Component *previousView)>;
 
   /**
    * Create a navigation stack within a parent component
@@ -111,7 +110,7 @@ public:
    * @return The popped view component (or nullptr if stack empty)
    */
   std::unique_ptr<juce::Component> pop(TransitionType transition = TransitionType::SlideOutToRight,
-                                        int durationMs = 300, NavigationCallback onComplete = nullptr);
+                                       int durationMs = 300, NavigationCallback onComplete = nullptr);
 
   /**
    * Replace the current view with a new view
@@ -123,9 +122,8 @@ public:
    * @param durationMs Animation duration in milliseconds
    * @param onComplete Callback when transition completes
    */
-  void replace(std::unique_ptr<juce::Component> view,
-               TransitionType transition = TransitionType::CrossFade, int durationMs = 300,
-               NavigationCallback onComplete = nullptr);
+  void replace(std::unique_ptr<juce::Component> view, TransitionType transition = TransitionType::CrossFade,
+               int durationMs = 300, NavigationCallback onComplete = nullptr);
 
   /**
    * Pop all views except the root
@@ -213,14 +211,12 @@ private:
   /**
    * Apply entry transition for pushing a new view
    */
-  void applyEntryTransition(juce::Component *view, TransitionType type, int durationMs,
-                            NavigationCallback onComplete);
+  void applyEntryTransition(juce::Component *view, TransitionType type, int durationMs, NavigationCallback onComplete);
 
   /**
    * Apply exit transition for popping a view
    */
-  void applyExitTransition(juce::Component *view, TransitionType type, int durationMs,
-                           NavigationCallback onComplete);
+  void applyExitTransition(juce::Component *view, TransitionType type, int durationMs, NavigationCallback onComplete);
 
   /**
    * Show view and bring to front

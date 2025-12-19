@@ -75,7 +75,6 @@ void AppStore::loadPlaylists() {
         Util::logError("AppStore", "Failed to load playlists: " + result.getError());
       });
     }
-
   });
 }
 

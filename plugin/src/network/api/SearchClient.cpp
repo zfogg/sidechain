@@ -52,8 +52,8 @@ void NetworkClient::autocompleteUsers(const juce::String &query, int limit, Resp
     return;
 
   juce::String encodedQuery = juce::URL::addEscapeChars(query, true);
-  juce::String endpoint = buildApiPath("/search/autocomplete/users") + "?q=" + encodedQuery + "&limit=" +
-                          juce::String(limit);
+  juce::String endpoint =
+      buildApiPath("/search/autocomplete/users") + "?q=" + encodedQuery + "&limit=" + juce::String(limit);
 
   Async::runVoid([this, endpoint, callback]() {
     auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
@@ -78,8 +78,8 @@ void NetworkClient::autocompleteGenres(const juce::String &query, int limit, Res
     return;
 
   juce::String encodedQuery = juce::URL::addEscapeChars(query, true);
-  juce::String endpoint = buildApiPath("/search/autocomplete/genres") + "?q=" + encodedQuery + "&limit=" +
-                          juce::String(limit);
+  juce::String endpoint =
+      buildApiPath("/search/autocomplete/genres") + "?q=" + encodedQuery + "&limit=" + juce::String(limit);
 
   Async::runVoid([this, endpoint, callback]() {
     auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);

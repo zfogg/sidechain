@@ -284,7 +284,8 @@ void MessageThread::mouseUp(const juce::MouseEvent &event) {
   auto sendBounds = getSendButtonBounds();
   Log::debug("MessageThread::mouseUp - Send button bounds: " + juce::String(sendBounds.getX()) + "," +
              juce::String(sendBounds.getY()) + "," + juce::String(sendBounds.getWidth()) + "," +
-             juce::String(sendBounds.getHeight()) + ", contains click: " + juce::String(sendBounds.contains(pos) ? "YES" : "NO"));
+             juce::String(sendBounds.getHeight()) +
+             ", contains click: " + juce::String(sendBounds.contains(pos) ? "YES" : "NO"));
 
   if (sendBounds.contains(pos)) {
     Log::info("MessageThread::mouseUp - Send button clicked! Calling sendMessage()");
@@ -521,8 +522,8 @@ void MessageThread::drawMessages(juce::Graphics &g, const std::vector<StreamChat
     Log::info("MessageThread: Drawing " + juce::String(messages.size()) + " messages to UI for channel: " + channelId);
   }
 
-  Log::debug("MessageThread::drawMessages - height: " + juce::String(getHeight()) +
-             ", bottomArea: " + juce::String(bottomAreaHeight) + ", scrollPosition: " + juce::String(getScrollPosition()) +
+  Log::debug("MessageThread::drawMessages - height: " + juce::String(getHeight()) + ", bottomArea: " +
+             juce::String(bottomAreaHeight) + ", scrollPosition: " + juce::String(getScrollPosition()) +
              ", y start: " + juce::String(y) + ", messages.size(): " + juce::String(messages.size()));
 
   for (size_t i = 0; i < messages.size(); ++i) {
@@ -833,7 +834,8 @@ juce::Rectangle<int> MessageThread::getAudioButtonBounds() const {
   int sendButtonWidth = 80;
   int audioButtonX = getWidth() - padding - audioButtonWidth;
 
-  return juce::Rectangle<int>(audioButtonX, getHeight() - bottomAreaHeight + padding, audioButtonWidth, INPUT_HEIGHT - 2 * padding);
+  return juce::Rectangle<int>(audioButtonX, getHeight() - bottomAreaHeight + padding, audioButtonWidth,
+                              INPUT_HEIGHT - 2 * padding);
 }
 
 juce::Rectangle<int> MessageThread::getSendButtonBounds() const {
@@ -848,7 +850,8 @@ juce::Rectangle<int> MessageThread::getSendButtonBounds() const {
   int sendButtonWidth = 80;
   int sendButtonX = getWidth() - padding - audioButtonWidth - padding - sendButtonWidth;
 
-  return juce::Rectangle<int>(sendButtonX, getHeight() - bottomAreaHeight + padding, sendButtonWidth, INPUT_HEIGHT - 2 * padding);
+  return juce::Rectangle<int>(sendButtonX, getHeight() - bottomAreaHeight + padding, sendButtonWidth,
+                              INPUT_HEIGHT - 2 * padding);
 }
 
 juce::Rectangle<int> MessageThread::getMessageBounds(const StreamChatClient::Message &message) const {
@@ -870,8 +873,7 @@ juce::Rectangle<int> MessageThread::getMessageBounds(const StreamChatClient::Mes
 
   // Return bounds for this message
   int msgPadding = 12;
-  auto messageBounds =
-      juce::Rectangle<int>(msgPadding, y, getWidth() - 2 * msgPadding - 12, messageHeight);
+  auto messageBounds = juce::Rectangle<int>(msgPadding, y, getWidth() - 2 * msgPadding - 12, messageHeight);
   return messageBounds;
 }
 
@@ -1097,27 +1099,24 @@ void MessageThread::reportMessage(const StreamChatClient::Message &message) {
   menu.addItem(5, "Misinformation");
   menu.addItem(6, "Other");
 
-  menu.showMenuAsync(juce::PopupMenu::Options(),
-                     [message](int result) {
-                       if (result == 0)
-                         return; // Cancelled
+  menu.showMenuAsync(juce::PopupMenu::Options(), [message](int result) {
+    if (result == 0)
+      return; // Cancelled
 
-                       static const std::array<juce::String, 6> reasons = {
-                           "Inappropriate Content", "Harassment", "Spam", "Offensive Language",
-                           "Misinformation", "Other"};
+    static const std::array<juce::String, 6> reasons = {"Inappropriate Content", "Harassment",     "Spam",
+                                                        "Offensive Language",    "Misinformation", "Other"};
 
-                       juce::String reason = reasons[static_cast<size_t>(result - 1)];
+    juce::String reason = reasons[static_cast<size_t>(result - 1)];
 
-                       Log::info("MessageThread: Reporting message " + message.id + " for: " + reason);
+    Log::info("MessageThread: Reporting message " + message.id + " for: " + reason);
 
-                       // Show confirmation
-                       juce::AlertWindow::showMessageBoxAsync(
-                           juce::MessageBoxIconType::InfoIcon, "Report Submitted",
-                           "Thank you for your report. Our moderation team will review this content.");
+    // Show confirmation
+    juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon, "Report Submitted",
+                                           "Thank you for your report. Our moderation team will review this content.");
 
-                       // TODO: Send report to backend when report API endpoint is available
-                       // networkClient->reportMessage(message.id, reason, [this](bool success) { ... });
-                     });
+    // TODO: Send report to backend when report API endpoint is available
+    // networkClient->reportMessage(message.id, reason, [this](bool success) { ... });
+  });
 }
 
 void MessageThread::blockUser(const StreamChatClient::Message &message) {
@@ -1133,24 +1132,20 @@ void MessageThread::blockUser(const StreamChatClient::Message &message) {
 
   // Show confirmation dialog
   juce::NativeMessageBox::showOkCancelBox(
-      juce::MessageBoxIconType::QuestionIcon,
-      "Block User",
-      "Are you sure you want to block this user? You won't see their messages or content anymore.",
-      nullptr,
+      juce::MessageBoxIconType::QuestionIcon, "Block User",
+      "Are you sure you want to block this user? You won't see their messages or content anymore.", nullptr,
       juce::ModalCallbackFunction::create([this, userId = message.userId](int result) {
         if (result == 1) { // "Block" button clicked
           Log::info("MessageThread: Blocking user " + userId);
           networkClient->blockUser(userId, [userId](const Outcome<juce::var> &outcome) {
             if (outcome.isOk()) {
               Log::info("MessageThread: Successfully blocked user " + userId);
-              juce::AlertWindow::showMessageBoxAsync(
-                  juce::MessageBoxIconType::InfoIcon, "User Blocked",
-                  "This user has been blocked.");
+              juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon, "User Blocked",
+                                                     "This user has been blocked.");
             } else {
               Log::warn("MessageThread: Failed to block user " + userId);
-              juce::AlertWindow::showMessageBoxAsync(
-                  juce::MessageBoxIconType::WarningIcon, "Error",
-                  "Failed to block user. Please try again.");
+              juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Error",
+                                                     "Failed to block user. Please try again.");
             }
           });
         }
@@ -1197,9 +1192,8 @@ void MessageThread::showRemoveMembersDialog() {
 void MessageThread::sendAudioSnippet(const juce::AudioBuffer<float> &audioBuffer, double sampleRate) {
   if (audioBuffer.getNumSamples() == 0) {
     Log::warn("MessageThread: Cannot send audio snippet - empty audio buffer");
-    juce::AlertWindow::showMessageBoxAsync(
-        juce::MessageBoxIconType::WarningIcon, "Empty Audio",
-        "Please record some audio before sending.");
+    juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Empty Audio",
+                                           "Please record some audio before sending.");
     return;
   }
 
@@ -1218,8 +1212,7 @@ void MessageThread::sendAudioSnippet(const juce::AudioBuffer<float> &audioBuffer
   // Upload audio snippet and send as message
   streamChatClient->sendMessageWithAudio(
       channelType, channelId, "", // Empty text, audio is the main content
-      audioBuffer, sampleRate,
-      [this](Outcome<StreamChatClient::Message> result) {
+      audioBuffer, sampleRate, [this](Outcome<StreamChatClient::Message> result) {
         if (result.isOk()) {
           Log::info("MessageThread: Audio snippet sent successfully");
           messageInput.clear(); // Clear text input if there was any
@@ -1227,9 +1220,8 @@ void MessageThread::sendAudioSnippet(const juce::AudioBuffer<float> &audioBuffer
           repaint();
         } else {
           Log::warn("MessageThread: Failed to send audio snippet: " + result.getError());
-          juce::AlertWindow::showMessageBoxAsync(
-              juce::AlertWindow::WarningIcon, "Error Sending Audio",
-              "Failed to send audio snippet. Please try again.");
+          juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon, "Error Sending Audio",
+                                                 "Failed to send audio snippet. Please try again.");
         }
       });
 }
@@ -1483,8 +1475,7 @@ void MessageThread::removeReaction(const juce::String &messageId, const juce::St
   Log::debug("MessageThread: Reaction '" + reactionType + "' removed from message " + messageId);
 }
 
-void MessageThread::toggleReaction(const juce::String &messageId,
-                                   const juce::String &reactionType) {
+void MessageThread::toggleReaction(const juce::String &messageId, const juce::String &reactionType) {
   if (messageId.isEmpty() || reactionType.isEmpty()) {
     Log::warn("MessageThread: Cannot toggle reaction - empty messageId or reactionType");
     return;
@@ -1510,22 +1501,22 @@ void MessageThread::toggleReaction(const juce::String &messageId,
   // For now, we'll attempt to add the reaction - if it fails, we can try removing
 
   // Try adding the reaction
-  streamChatClient->addReaction(channelType, channelId, messageId, reactionType,
-                                [this, messageId, reactionType](Outcome<void> result) {
-    if (!result.isOk()) {
-      // If adding failed, try removing (user might have already reacted)
-      if (streamChatClient) {
-        streamChatClient->removeReaction(channelType, channelId, messageId, reactionType,
-                                         [](Outcome<void> removeResult) {
-          if (!removeResult.isOk()) {
-            Log::warn("MessageThread: Failed to remove reaction: " + removeResult.getError());
+  streamChatClient->addReaction(
+      channelType, channelId, messageId, reactionType, [this, messageId, reactionType](Outcome<void> result) {
+        if (!result.isOk()) {
+          // If adding failed, try removing (user might have already reacted)
+          if (streamChatClient) {
+            streamChatClient->removeReaction(
+                channelType, channelId, messageId, reactionType, [](Outcome<void> removeResult) {
+                  if (!removeResult.isOk()) {
+                    Log::warn("MessageThread: Failed to remove reaction: " + removeResult.getError());
+                  }
+                });
           }
-        });
-      }
-    } else {
-      Log::info("MessageThread: Successfully added reaction " + reactionType);
-    }
-  });
+        } else {
+          Log::info("MessageThread: Successfully added reaction " + reactionType);
+        }
+      });
 }
 
 void MessageThread::drawMessageReactions(juce::Graphics &g, const StreamChatClient::Message &message, int &y, int x,

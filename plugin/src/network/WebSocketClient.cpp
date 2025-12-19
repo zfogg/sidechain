@@ -532,7 +532,7 @@ WebSocketClient::MessageType WebSocketClient::parseMessageType(const juce::Strin
   if (typeStr == "new_comment")
     return MessageType::NewComment;
   if (typeStr == "comment")
-    return MessageType::Comment;  // Legacy support
+    return MessageType::Comment; // Legacy support
   if (typeStr == "comment_liked")
     return MessageType::CommentLiked;
   if (typeStr == "comment_unliked")

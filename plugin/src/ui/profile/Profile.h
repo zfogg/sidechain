@@ -228,7 +228,9 @@ protected:
     repaint();
   }
 
-  juce::String getComponentName() const override { return "Profile"; }
+  juce::String getComponentName() const override {
+    return "Profile";
+  }
 
   int getScrollableWidth(int scrollBarWidth) const override {
     return getWidth() - scrollBarWidth;

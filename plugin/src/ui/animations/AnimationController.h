@@ -29,8 +29,12 @@ class AnimationHandle {
 
 public:
   AnimationHandle() : id_(0) {}
-  bool isValid() const { return id_ != 0; }
-  uint64_t getId() const { return id_; }
+  bool isValid() const {
+    return id_ != 0;
+  }
+  uint64_t getId() const {
+    return id_;
+  }
 
 private:
   explicit AnimationHandle(uint64_t id) : id_(id) {}
@@ -78,8 +82,12 @@ public:
    * Enable/disable all animations globally
    * Useful for testing or accessibility options
    */
-  void setEnabled(bool enabled) { enabled_ = enabled; }
-  bool isEnabled() const { return enabled_; }
+  void setEnabled(bool enabled) {
+    enabled_ = enabled;
+  }
+  bool isEnabled() const {
+    return enabled_;
+  }
 
   // ========== Generic Animation Scheduling ==========
 
@@ -91,8 +99,7 @@ public:
    * @return Handle for cancellation and callbacks
    */
   template <typename T>
-  AnimationHandle schedule(std::shared_ptr<TransitionAnimation<T>> animation,
-                           juce::Component *component = nullptr) {
+  AnimationHandle schedule(std::shared_ptr<TransitionAnimation<T>> animation, juce::Component *component = nullptr) {
     if (!enabled_ || !animation) {
       return AnimationHandle();
     }
@@ -121,8 +128,7 @@ public:
    * @param component Optional: component to track for cleanup
    * @return Handle for cancellation and callbacks
    */
-  AnimationHandle schedule(std::shared_ptr<AnimationTimeline> timeline,
-                           juce::Component *component = nullptr);
+  AnimationHandle schedule(std::shared_ptr<AnimationTimeline> timeline, juce::Component *component = nullptr);
 
   // ========== Convenient Preset Animations ==========
 
@@ -223,21 +229,18 @@ public:
   /**
    * Set callback when animation completes
    */
-  void onCompletion(AnimationHandle handle,
-                    std::function<void()> callback);
+  void onCompletion(AnimationHandle handle, std::function<void()> callback);
 
   /**
    * Set callback when animation is cancelled
    */
-  void onCancellation(AnimationHandle handle,
-                      std::function<void()> callback);
+  void onCancellation(AnimationHandle handle, std::function<void()> callback);
 
   /**
    * Set callback for progress updates
    * Progress value in range [0, 1]
    */
-  void onProgress(AnimationHandle handle,
-                  std::function<void(float)> callback);
+  void onProgress(AnimationHandle handle, std::function<void(float)> callback);
 
   // ========== State Queries ==========
 
@@ -271,13 +274,12 @@ public:
   AnimationController();
 
 private:
-
   // Animation entry wrapper
   struct AnimationEntry {
     uint64_t id;
-    std::shared_ptr<IAnimation> animation;           // Polymorphic animation interface
-    std::shared_ptr<AnimationTimeline> timeline;     // Optional timeline wrapper
-    juce::Component *component;                       // Component to track for cleanup
+    std::shared_ptr<IAnimation> animation;       // Polymorphic animation interface
+    std::shared_ptr<AnimationTimeline> timeline; // Optional timeline wrapper
+    juce::Component *component;                  // Component to track for cleanup
     std::function<void()> completionCallback;
     std::function<void()> cancellationCallback;
     std::function<void(float)> progressCallback;
@@ -299,17 +301,16 @@ private:
   uint64_t generateHandle();
 
   // Create preset fade animation
-  std::shared_ptr<TransitionAnimation<float>> createFadeAnimation(
-      juce::Component *component, float startAlpha, float endAlpha, int durationMs);
+  std::shared_ptr<TransitionAnimation<float>> createFadeAnimation(juce::Component *component, float startAlpha,
+                                                                  float endAlpha, int durationMs);
 
   // Create preset slide animation
-  std::shared_ptr<AnimationTimeline> createSlideAnimation(
-      juce::Component *component, int startX, int startY, int endX, int endY,
-      int durationMs);
+  std::shared_ptr<AnimationTimeline> createSlideAnimation(juce::Component *component, int startX, int startY, int endX,
+                                                          int endY, int durationMs);
 
   // Create preset scale animation
-  std::shared_ptr<TransitionAnimation<float>> createScaleAnimation(
-      juce::Component *component, float startScale, float endScale, int durationMs);
+  std::shared_ptr<TransitionAnimation<float>> createScaleAnimation(juce::Component *component, float startScale,
+                                                                   float endScale, int durationMs);
 
   // Singleton instance
   static std::unique_ptr<AnimationController> instance_;

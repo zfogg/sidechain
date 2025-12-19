@@ -28,8 +28,7 @@ AnimationController &AnimationController::getInstance() {
 
 // ========== Animation Scheduling ==========
 
-AnimationHandle AnimationController::schedule(std::shared_ptr<AnimationTimeline> timeline,
-                                              juce::Component *component) {
+AnimationHandle AnimationController::schedule(std::shared_ptr<AnimationTimeline> timeline, juce::Component *component) {
   if (!enabled_ || !timeline) {
     return AnimationHandle();
   }
@@ -61,8 +60,7 @@ AnimationHandle AnimationController::fadeOut(juce::Component *component, int dur
   return fadeTo(component, 0.0f, durationMs);
 }
 
-AnimationHandle AnimationController::fadeTo(juce::Component *component, float alpha,
-                                             int durationMs) {
+AnimationHandle AnimationController::fadeTo(juce::Component *component, float alpha, int durationMs) {
   if (!component) {
     return AnimationHandle();
   }
@@ -74,8 +72,7 @@ AnimationHandle AnimationController::fadeTo(juce::Component *component, float al
 
 // ========== Slide Animations ==========
 
-AnimationHandle AnimationController::slideInFromLeft(juce::Component *component,
-                                                      int durationMs) {
+AnimationHandle AnimationController::slideInFromLeft(juce::Component *component, int durationMs) {
   if (!component) {
     return AnimationHandle();
   }
@@ -89,8 +86,7 @@ AnimationHandle AnimationController::slideInFromLeft(juce::Component *component,
   return schedule(timeline, component);
 }
 
-AnimationHandle AnimationController::slideInFromRight(juce::Component *component,
-                                                       int durationMs) {
+AnimationHandle AnimationController::slideInFromRight(juce::Component *component, int durationMs) {
   if (!component) {
     return AnimationHandle();
   }
@@ -104,8 +100,7 @@ AnimationHandle AnimationController::slideInFromRight(juce::Component *component
   return schedule(timeline, component);
 }
 
-AnimationHandle AnimationController::slideInFromTop(juce::Component *component,
-                                                     int durationMs) {
+AnimationHandle AnimationController::slideInFromTop(juce::Component *component, int durationMs) {
   if (!component) {
     return AnimationHandle();
   }
@@ -119,8 +114,7 @@ AnimationHandle AnimationController::slideInFromTop(juce::Component *component,
   return schedule(timeline, component);
 }
 
-AnimationHandle AnimationController::slideInFromBottom(juce::Component *component,
-                                                        int durationMs) {
+AnimationHandle AnimationController::slideInFromBottom(juce::Component *component, int durationMs) {
   if (!component) {
     return AnimationHandle();
   }
@@ -144,8 +138,7 @@ AnimationHandle AnimationController::scaleOut(juce::Component *component, int du
   return scaleTo(component, 0.0f, durationMs);
 }
 
-AnimationHandle AnimationController::scaleTo(juce::Component *component, float scale,
-                                              int durationMs) {
+AnimationHandle AnimationController::scaleTo(juce::Component *component, float scale, int durationMs) {
   if (!component) {
     return AnimationHandle();
   }
@@ -276,24 +269,21 @@ void AnimationController::cancelAll() {
 
 // ========== Callbacks ==========
 
-void AnimationController::onCompletion(AnimationHandle handle,
-                                        std::function<void()> callback) {
+void AnimationController::onCompletion(AnimationHandle handle, std::function<void()> callback) {
   auto it = animations_.find(handle.getId());
   if (it != animations_.end()) {
     it->second->completionCallback = callback;
   }
 }
 
-void AnimationController::onCancellation(AnimationHandle handle,
-                                          std::function<void()> callback) {
+void AnimationController::onCancellation(AnimationHandle handle, std::function<void()> callback) {
   auto it = animations_.find(handle.getId());
   if (it != animations_.end()) {
     it->second->cancellationCallback = callback;
   }
 }
 
-void AnimationController::onProgress(AnimationHandle handle,
-                                      std::function<void(float)> callback) {
+void AnimationController::onProgress(AnimationHandle handle, std::function<void(float)> callback) {
   auto it = animations_.find(handle.getId());
   if (it != animations_.end()) {
     it->second->progressCallback = callback;
@@ -424,8 +414,8 @@ uint64_t AnimationController::generateHandle() {
   return nextHandleId_.fetch_add(1, std::memory_order_relaxed);
 }
 
-std::shared_ptr<TransitionAnimation<float>> AnimationController::createFadeAnimation(
-    juce::Component *component, float startAlpha, float endAlpha, int durationMs) {
+std::shared_ptr<TransitionAnimation<float>>
+AnimationController::createFadeAnimation(juce::Component *component, float startAlpha, float endAlpha, int durationMs) {
   auto animation = TransitionAnimation<float>::create(startAlpha, endAlpha, durationMs);
 
   animation->onProgress([component](float alpha) { component->setAlpha(alpha); });
@@ -433,9 +423,9 @@ std::shared_ptr<TransitionAnimation<float>> AnimationController::createFadeAnima
   return animation;
 }
 
-std::shared_ptr<AnimationTimeline> AnimationController::createSlideAnimation(
-    juce::Component *component, int startX, int startY, int endX, int endY,
-    int durationMs) {
+std::shared_ptr<AnimationTimeline> AnimationController::createSlideAnimation(juce::Component *component, int startX,
+                                                                             int startY, int endX, int endY,
+                                                                             int durationMs) {
   auto timeline = AnimationTimeline::parallel();
 
   auto xAnim = TransitionAnimation<int>::create(startX, endX, durationMs);
@@ -455,16 +445,16 @@ std::shared_ptr<AnimationTimeline> AnimationController::createSlideAnimation(
   return timeline;
 }
 
-std::shared_ptr<TransitionAnimation<float>> AnimationController::createScaleAnimation(
-    juce::Component *component, float startScale, float endScale, int durationMs) {
+std::shared_ptr<TransitionAnimation<float>> AnimationController::createScaleAnimation(juce::Component *component,
+                                                                                      float startScale, float endScale,
+                                                                                      int durationMs) {
   auto animation = TransitionAnimation<float>::create(startScale, endScale, durationMs);
 
   int originalWidth = component->getWidth();
   int originalHeight = component->getHeight();
   auto originalBounds = component->getBounds();
 
-  animation->onProgress([component, originalBounds, originalWidth, originalHeight](
-                            float scale) {
+  animation->onProgress([component, originalBounds, originalWidth, originalHeight](float scale) {
     int newWidth = static_cast<int>(originalWidth * scale);
     int newHeight = static_cast<int>(originalHeight * scale);
     int newX = originalBounds.getX() + (originalWidth - newWidth) / 2;

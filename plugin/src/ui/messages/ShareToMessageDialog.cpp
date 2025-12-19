@@ -256,7 +256,8 @@ void ShareToMessageDialog::loadRecentConversations() {
           recentConversations.push_back(conversation);
         }
 
-        Log::debug("ShareToMessageDialog: Loaded " + juce::String(recentConversations.size()) + " recent conversations");
+        Log::debug("ShareToMessageDialog: Loaded " + juce::String(recentConversations.size()) +
+                   " recent conversations");
         repaint();
       },
       20, // limit

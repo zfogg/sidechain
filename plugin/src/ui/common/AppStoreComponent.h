@@ -55,8 +55,7 @@ public:
    * Constructor with optional AppStore binding
    * Does NOT subscribe automatically - call initialize() after construction
    */
-  explicit AppStoreComponent(Stores::AppStore *store = nullptr) : appStore(store), isInitialized(false) {
-  }
+  explicit AppStoreComponent(Stores::AppStore *store = nullptr) : appStore(store), isInitialized(false) {}
 
   /**
    * Initialize store subscription after construction

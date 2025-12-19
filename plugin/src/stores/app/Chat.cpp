@@ -6,7 +6,8 @@ namespace Stores {
 
 void AppStore::setStreamChatClient(StreamChatClient *client) {
   streamChatClient = client;
-  Log::info("AppStore::setStreamChatClient: StreamChatClient set: " + juce::String(client != nullptr ? "valid" : "null"));
+  Log::info("AppStore::setStreamChatClient: StreamChatClient set: " +
+            juce::String(client != nullptr ? "valid" : "null"));
 }
 
 void AppStore::loadChannels() {
@@ -28,23 +29,22 @@ void AppStore::loadMessages(const juce::String &channelId, int limit) {
   Log::info("AppStore::loadMessages: Loading " + juce::String(limit) + " messages for channel " + channelId);
 
   // Query messages from getstream.io
-  streamChatClient->queryMessages("messaging", channelId, limit, 0,
-                                  [this, channelId](Outcome<std::vector<StreamChatClient::Message>> messagesResult) {
-                                    if (!messagesResult.isOk()) {
-                                      Log::error("AppStore::loadMessages: Failed to load messages - " +
-                                                 messagesResult.getError());
-                                      return;
-                                    }
+  streamChatClient->queryMessages(
+      "messaging", channelId, limit, 0,
+      [this, channelId](Outcome<std::vector<StreamChatClient::Message>> messagesResult) {
+        if (!messagesResult.isOk()) {
+          Log::error("AppStore::loadMessages: Failed to load messages - " + messagesResult.getError());
+          return;
+        }
 
-                                    const auto &messages = messagesResult.getValue();
-                                    Log::info("AppStore::loadMessages: Loaded " + juce::String(messages.size()) +
-                                              " messages for " + channelId);
+        const auto &messages = messagesResult.getValue();
+        Log::info("AppStore::loadMessages: Loaded " + juce::String(messages.size()) + " messages for " + channelId);
 
-                                    // Add all messages to AppStore state
-                                    for (const auto &msg : messages) {
-                                      addMessageToChannel(channelId, msg.id, msg.text, msg.userId, msg.userName, msg.createdAt);
-                                    }
-                                  });
+        // Add all messages to AppStore state
+        for (const auto &msg : messages) {
+          addMessageToChannel(channelId, msg.id, msg.text, msg.userId, msg.userName, msg.createdAt);
+        }
+      });
 }
 
 void AppStore::sendMessage(const juce::String &channelId, const juce::String &text) {
@@ -102,39 +102,41 @@ void AppStore::sendMessage(const juce::String &channelId, const juce::String &te
 
   Log::info("AppStore::sendMessage - Sending message to Stream.io via StreamChatClient");
   juce::var extraData;
-  streamChatClient->sendMessage("messaging", channelId, text, extraData, [this, channelId, msgObj, messageId](const Outcome<StreamChatClient::Message> &result) {
-    if (!result.isOk()) {
-      Log::error("AppStore::sendMessage - ERROR: Failed to send message to Stream.io: " + result.getError());
-      // Still add to local state for optimistic UI, but flag as failed
-      sliceManager.getChatSlice()->dispatch([channelId, msgObj](ChatState &state) {
-        auto channelIt = state.channels.find(channelId);
-        if (channelIt != state.channels.end()) {
-          auto *msgObj_dyn = msgObj.getDynamicObject();
-          if (msgObj_dyn) {
-            msgObj_dyn->setProperty("sendStatus", "failed");
-          }
-          channelIt->second.messages.push_back(msgObj);
+  streamChatClient->sendMessage(
+      "messaging", channelId, text, extraData,
+      [this, channelId, msgObj, messageId](const Outcome<StreamChatClient::Message> &result) {
+        if (!result.isOk()) {
+          Log::error("AppStore::sendMessage - ERROR: Failed to send message to Stream.io: " + result.getError());
+          // Still add to local state for optimistic UI, but flag as failed
+          sliceManager.getChatSlice()->dispatch([channelId, msgObj](ChatState &state) {
+            auto channelIt = state.channels.find(channelId);
+            if (channelIt != state.channels.end()) {
+              auto *msgObj_dyn = msgObj.getDynamicObject();
+              if (msgObj_dyn) {
+                msgObj_dyn->setProperty("sendStatus", "failed");
+              }
+              channelIt->second.messages.push_back(msgObj);
+            }
+          });
+          return;
         }
-      });
-      return;
-    }
 
-    Log::info("AppStore::sendMessage - ✓ Message successfully sent to Stream.io");
-    // Message was sent successfully, add optimistic local copy with success status
-    sliceManager.getChatSlice()->dispatch([channelId, msgObj](ChatState &state) {
-      auto channelIt = state.channels.find(channelId);
-      if (channelIt != state.channels.end()) {
-        auto *msgObj_dyn = msgObj.getDynamicObject();
-        if (msgObj_dyn) {
-          msgObj_dyn->setProperty("sendStatus", "sent");
-        }
-        channelIt->second.messages.push_back(msgObj);
-        Log::info("AppStore::sendMessage - ✓ Added message to channel state with success status");
-      } else {
-        Log::error("AppStore::sendMessage callback - ERROR: Channel disappeared from state!");
-      }
-    });
-  });
+        Log::info("AppStore::sendMessage - ✓ Message successfully sent to Stream.io");
+        // Message was sent successfully, add optimistic local copy with success status
+        sliceManager.getChatSlice()->dispatch([channelId, msgObj](ChatState &state) {
+          auto channelIt = state.channels.find(channelId);
+          if (channelIt != state.channels.end()) {
+            auto *msgObj_dyn = msgObj.getDynamicObject();
+            if (msgObj_dyn) {
+              msgObj_dyn->setProperty("sendStatus", "sent");
+            }
+            channelIt->second.messages.push_back(msgObj);
+            Log::info("AppStore::sendMessage - ✓ Added message to channel state with success status");
+          } else {
+            Log::error("AppStore::sendMessage callback - ERROR: Channel disappeared from state!");
+          }
+        });
+      });
 }
 
 void AppStore::editMessage(const juce::String &channelId, const juce::String &messageId, const juce::String &newText) {
@@ -145,33 +147,33 @@ void AppStore::editMessage(const juce::String &channelId, const juce::String &me
 
   Log::info("AppStore::editMessage - Editing message " + messageId + " in channel " + channelId);
 
-  streamChatClient->updateMessage("messaging", channelId, messageId, newText,
-                                  [this, channelId, messageId, newText](const Outcome<StreamChatClient::Message> &result) {
-                                    if (!result.isOk()) {
-                                      Log::error("AppStore::editMessage - Failed to update message: " + result.getError());
-                                      return;
-                                    }
+  streamChatClient->updateMessage(
+      "messaging", channelId, messageId, newText,
+      [this, channelId, messageId, newText](const Outcome<StreamChatClient::Message> &result) {
+        if (!result.isOk()) {
+          Log::error("AppStore::editMessage - Failed to update message: " + result.getError());
+          return;
+        }
 
-                                    Log::info("AppStore::editMessage - Message updated successfully");
+        Log::info("AppStore::editMessage - Message updated successfully");
 
-                                    sliceManager.getChatSlice()->dispatch(
-                                        [channelId, messageId, newText](ChatState &state) {
-                                          auto channelIt = state.channels.find(channelId);
-                                          if (channelIt != state.channels.end()) {
-                                            for (auto &msg : channelIt->second.messages) {
-                                              if (msg.isObject()) {
-                                                auto *obj = msg.getDynamicObject();
-                                                if (obj && obj->getProperty("id").toString() == messageId) {
-                                                  obj->setProperty("text", newText);
-                                                  Log::info("AppStore::editMessage - Updated message in state");
-                                                  return;
-                                                }
-                                              }
-                                            }
-                                          }
-                                          Log::warn("AppStore::editMessage - Message not found in state");
-                                        });
-                                  });
+        sliceManager.getChatSlice()->dispatch([channelId, messageId, newText](ChatState &state) {
+          auto channelIt = state.channels.find(channelId);
+          if (channelIt != state.channels.end()) {
+            for (auto &msg : channelIt->second.messages) {
+              if (msg.isObject()) {
+                auto *obj = msg.getDynamicObject();
+                if (obj && obj->getProperty("id").toString() == messageId) {
+                  obj->setProperty("text", newText);
+                  Log::info("AppStore::editMessage - Updated message in state");
+                  return;
+                }
+              }
+            }
+          }
+          Log::warn("AppStore::editMessage - Message not found in state");
+        });
+      });
 }
 
 void AppStore::deleteMessage(const juce::String &channelId, const juce::String &messageId) {
@@ -182,32 +184,33 @@ void AppStore::deleteMessage(const juce::String &channelId, const juce::String &
 
   Log::info("AppStore::deleteMessage - Deleting message " + messageId + " from channel " + channelId);
 
-  streamChatClient->deleteMessage("messaging", channelId, messageId, [this, channelId, messageId](const Outcome<void> &result) {
-    if (!result.isOk()) {
-      Log::error("AppStore::deleteMessage - Failed to delete message: " + result.getError());
-      return;
-    }
+  streamChatClient->deleteMessage(
+      "messaging", channelId, messageId, [this, channelId, messageId](const Outcome<void> &result) {
+        if (!result.isOk()) {
+          Log::error("AppStore::deleteMessage - Failed to delete message: " + result.getError());
+          return;
+        }
 
-    Log::info("AppStore::deleteMessage - Message deleted successfully");
+        Log::info("AppStore::deleteMessage - Message deleted successfully");
 
-    sliceManager.getChatSlice()->dispatch([channelId, messageId](ChatState &state) {
-      auto channelIt = state.channels.find(channelId);
-      if (channelIt != state.channels.end()) {
-        auto &messages = channelIt->second.messages;
-        for (auto it = messages.begin(); it != messages.end(); ++it) {
-          if (it->isObject()) {
-            auto *obj = it->getDynamicObject();
-            if (obj && obj->getProperty("id").toString() == messageId) {
-              messages.erase(it);
-              Log::info("AppStore::deleteMessage - Removed message from state");
-              return;
+        sliceManager.getChatSlice()->dispatch([channelId, messageId](ChatState &state) {
+          auto channelIt = state.channels.find(channelId);
+          if (channelIt != state.channels.end()) {
+            auto &messages = channelIt->second.messages;
+            for (auto it = messages.begin(); it != messages.end(); ++it) {
+              if (it->isObject()) {
+                auto *obj = it->getDynamicObject();
+                if (obj && obj->getProperty("id").toString() == messageId) {
+                  messages.erase(it);
+                  Log::info("AppStore::deleteMessage - Removed message from state");
+                  return;
+                }
+              }
             }
           }
-        }
-      }
-      Log::warn("AppStore::deleteMessage - Message not found in state");
-    });
-  });
+          Log::warn("AppStore::deleteMessage - Message not found in state");
+        });
+      });
 }
 
 void AppStore::startTyping(const juce::String &channelId) {
@@ -246,8 +249,8 @@ void AppStore::addChannelToState(const juce::String &channelId, const juce::Stri
 }
 
 void AppStore::addMessageToChannel(const juce::String &channelId, const juce::String &messageId,
-                                   const juce::String &text, const juce::String &userId,
-                                   const juce::String &userName, const juce::String &createdAt) {
+                                   const juce::String &text, const juce::String &userId, const juce::String &userName,
+                                   const juce::String &createdAt) {
   Log::info("AppStore::addMessageToChannel: Adding message " + messageId + " to channel " + channelId);
 
   sliceManager.getChatSlice()->dispatch([channelId, messageId, text, userId, userName, createdAt](ChatState &state) {

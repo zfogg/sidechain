@@ -23,8 +23,7 @@ struct DraftKey {
  *
  * Extracts the cache key from a DraftKey object
  */
-template<>
-struct CacheKeyTraits<DraftKey> {
+template <> struct CacheKeyTraits<DraftKey> {
   static juce::String getKey(const DraftKey &draft) {
     return draft.id;
   }

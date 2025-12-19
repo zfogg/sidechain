@@ -721,8 +721,7 @@ juce::MemoryBlock NetworkClient::encodeAudioToWAV(const juce::AudioBuffer<float>
 
   // Create writer using the JUCE AudioFormatWriter API
   std::unique_ptr<juce::AudioFormatWriter> writer(
-      wavFormat.createWriterFor(outputStream.get(), sampleRate,
-                                static_cast<unsigned int>(buffer.getNumChannels()), 16,
+      wavFormat.createWriterFor(outputStream.get(), sampleRate, static_cast<unsigned int>(buffer.getNumChannels()), 16,
                                 juce::StringPairArray(), 0));
 
   if (writer == nullptr) {

@@ -145,8 +145,8 @@ const juce::String SidechainAudioProcessor::getProgramName(int index) {
 void SidechainAudioProcessor::changeProgramName(int index, const juce::String &newName) {
   // Single-program plugin: program names are fixed
   // Log attempt for debugging purposes
-  Log::debug("SidechainAudioProcessor: Attempted to rename program " + juce::String(index) +
-             " to '" + newName + "' (not supported)");
+  Log::debug("SidechainAudioProcessor: Attempted to rename program " + juce::String(index) + " to '" + newName +
+             "' (not supported)");
 }
 
 //==============================================================================

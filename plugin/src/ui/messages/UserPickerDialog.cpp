@@ -482,8 +482,8 @@ void UserPickerDialog::drawGroupNameInput(juce::Graphics &g) {
     return;
 
   // Draw group name input background and styling
-  auto bounds = juce::Rectangle<int>(15, HEADER_HEIGHT + SEARCH_INPUT_HEIGHT + 10, getWidth() - 30,
-                                     GROUP_NAME_INPUT_HEIGHT - 20);
+  auto bounds =
+      juce::Rectangle<int>(15, HEADER_HEIGHT + SEARCH_INPUT_HEIGHT + 10, getWidth() - 30, GROUP_NAME_INPUT_HEIGHT - 20);
 
   // Set up TextEditor bounds
   groupNameInput.setBounds(bounds);
@@ -671,7 +671,7 @@ void UserPickerDialog::drawEmptyState(juce::Graphics &g) {
   g.setColour(SidechainColors::textMuted());
   g.setFont(juce::FontOptions(13.0f));
   g.drawText("Try searching for a friend to start a conversation", 20, centerY + 60, getWidth() - 40, 40,
-            juce::Justification::centred, true);
+             juce::Justification::centred, true);
 }
 
 //==============================================================================

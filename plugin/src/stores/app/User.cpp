@@ -76,15 +76,16 @@ void AppStore::updateProfile(const juce::String &username, const juce::String &d
       state.bio = bio;
   });
 
-  networkClient->updateUserProfile(username, displayName, bio, [this, userSlice, previousState](Outcome<juce::var> result) {
-    juce::MessageManager::callAsync([this, userSlice, previousState, result]() {
-      if (!result.isOk()) {
-        Util::logError("AppStore", "Failed to update profile: " + result.getError());
-        // Revert on error
-        userSlice->dispatch([previousState](UserState &state) { state = previousState; });
-      }
-    });
-  });
+  networkClient->updateUserProfile(
+      username, displayName, bio, [this, userSlice, previousState](Outcome<juce::var> result) {
+        juce::MessageManager::callAsync([this, userSlice, previousState, result]() {
+          if (!result.isOk()) {
+            Util::logError("AppStore", "Failed to update profile: " + result.getError());
+            // Revert on error
+            userSlice->dispatch([previousState](UserState &state) { state = previousState; });
+          }
+        });
+      });
 }
 
 void AppStore::setProfilePictureUrl(const juce::String &url) {
@@ -225,7 +226,8 @@ void AppStore::downloadProfileImage(const juce::String &url) {
           juce::URL imageUrl(url);
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-          auto inputStream = imageUrl.createInputStream(false, nullptr, nullptr, "User-Agent: Sidechain/1.0", 5000, nullptr);
+          auto inputStream =
+              imageUrl.createInputStream(false, nullptr, nullptr, "User-Agent: Sidechain/1.0", 5000, nullptr);
 #pragma clang diagnostic pop
           if (!inputStream)
             return juce::Image();
@@ -294,9 +296,7 @@ void AppStore::followUser(const juce::String &userId) {
     juce::MessageManager::callAsync([userSlice, result]() {
       if (result.isOk()) {
         // Update following count
-        userSlice->dispatch([](UserState &state) {
-          state.followingCount++;
-        });
+        userSlice->dispatch([](UserState &state) { state.followingCount++; });
       }
     });
   });
@@ -322,21 +322,21 @@ void AppStore::unfollowUser(const juce::String &userId) {
 }
 
 void AppStore::updateProfileComplete(const juce::String &username, const juce::String &displayName,
-                                     const juce::String &bio, const juce::String &location,
-                                     const juce::String &genre, const juce::var &socialLinks,
-                                     bool isPrivate, const juce::String &dawPreference) {
+                                     const juce::String &bio, const juce::String &location, const juce::String &genre,
+                                     const juce::var &socialLinks, bool isPrivate, const juce::String &dawPreference) {
   auto userSlice = sliceManager.getUserSlice();
 
-  userSlice->dispatch([username, displayName, bio, location, genre, socialLinks, isPrivate, dawPreference](UserState &state) {
-    state.username = username;
-    state.displayName = displayName;
-    state.bio = bio;
-    state.location = location;
-    state.genre = genre;
-    state.socialLinks = socialLinks;
-    state.isPrivate = isPrivate;
-    state.dawPreference = dawPreference;
-  });
+  userSlice->dispatch(
+      [username, displayName, bio, location, genre, socialLinks, isPrivate, dawPreference](UserState &state) {
+        state.username = username;
+        state.displayName = displayName;
+        state.bio = bio;
+        state.location = location;
+        state.genre = genre;
+        state.socialLinks = socialLinks;
+        state.isPrivate = isPrivate;
+        state.dawPreference = dawPreference;
+      });
 }
 
 void AppStore::uploadProfilePicture(const juce::File &file) {

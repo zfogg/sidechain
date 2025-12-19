@@ -65,7 +65,7 @@ private:
   SidechainAudioProcessor &audioProcessor;
 
   // Challenge context (R.2.2.4 - MIDI Challenges)
-  juce::String activeChallengeId;  // Empty if not recording for a challenge
+  juce::String activeChallengeId; // Empty if not recording for a challenge
 
   // Recording state
   enum class State {

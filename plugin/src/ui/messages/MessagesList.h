@@ -98,7 +98,9 @@ protected:
     repaint();
   }
 
-  juce::String getComponentName() const override { return "MessagesList"; }
+  juce::String getComponentName() const override {
+    return "MessagesList";
+  }
 
   // Helper methods
   juce::String formatTimestamp(const juce::String &timestamp);

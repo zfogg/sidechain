@@ -64,8 +64,7 @@ public:
    * @param task Function to execute
    * @return std::future for retrieving result
    */
-  template <typename Result>
-  std::future<Result> schedule(std::function<Result()> task) {
+  template <typename Result> std::future<Result> schedule(std::function<Result()> task) {
     auto promise = std::make_shared<std::promise<Result>>();
     auto future = promise->get_future();
 
@@ -145,7 +144,6 @@ public:
   TaskScheduler();
 
 private:
-
   /**
    * Worker thread main loop
    */

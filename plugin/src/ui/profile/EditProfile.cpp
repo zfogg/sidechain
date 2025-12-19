@@ -271,11 +271,10 @@ void EditProfile::updateHasChanges() {
   bool usernameChanged = currentUsername != originalUsername;
 
   // Compare all fields to UserStore state
-  hasUnsavedChanges =
-      (usernameChanged || currentDisplayName != state.displayName || currentBio != state.bio ||
-       currentLocation != state.location || currentGenre != state.genre || currentDaw != state.dawPreference ||
-       pendingAvatarPath.isNotEmpty() ||
-       juce::JSON::toString(currentSocialLinks) != juce::JSON::toString(state.socialLinks));
+  hasUnsavedChanges = (usernameChanged || currentDisplayName != state.displayName || currentBio != state.bio ||
+                       currentLocation != state.location || currentGenre != state.genre ||
+                       currentDaw != state.dawPreference || pendingAvatarPath.isNotEmpty() ||
+                       juce::JSON::toString(currentSocialLinks) != juce::JSON::toString(state.socialLinks));
 
   // Can only save if there are changes AND username is valid (if changed) AND
   // not currently saving

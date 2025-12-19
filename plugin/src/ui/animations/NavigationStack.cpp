@@ -7,8 +7,8 @@ namespace Animations {
 
 NavigationStack::NavigationStack(juce::Component *parent, size_t initialCapacity)
     : parent_(parent), defaultPushTransition_(TransitionType::SlideInFromRight),
-      defaultPopTransition_(TransitionType::SlideOutToRight), defaultPushDurationMs_(300),
-      defaultPopDurationMs_(300), transitionsEnabled_(true), activeTransitionCount_(0) {
+      defaultPopTransition_(TransitionType::SlideOutToRight), defaultPushDurationMs_(300), defaultPopDurationMs_(300),
+      transitionsEnabled_(true), activeTransitionCount_(0) {
   // Note: std::deque doesn't support reserve(), allocation is dynamic
 
   // Add this component to parent
@@ -21,8 +21,8 @@ NavigationStack::~NavigationStack() {
   clear();
 }
 
-void NavigationStack::push(std::unique_ptr<juce::Component> view, TransitionType transition,
-                           int durationMs, NavigationCallback onComplete) {
+void NavigationStack::push(std::unique_ptr<juce::Component> view, TransitionType transition, int durationMs,
+                           NavigationCallback onComplete) {
   if (!view) {
     return;
   }
@@ -47,15 +47,15 @@ void NavigationStack::push(std::unique_ptr<juce::Component> view, TransitionType
     newView->setBounds(getBounds());
 
     if (transitionsEnabled_) {
-      applyEntryTransition(
-          newView, transition, durationMs, [this, onComplete, newView, previousView](juce::Component *nv, juce::Component *pv) {
-            if (onComplete) {
-              onComplete(newView, previousView);
-            }
-            if (navigationCallback_) {
-              navigationCallback_(newView, previousView);
-            }
-          });
+      applyEntryTransition(newView, transition, durationMs,
+                           [this, onComplete, newView, previousView](juce::Component *nv, juce::Component *pv) {
+                             if (onComplete) {
+                               onComplete(newView, previousView);
+                             }
+                             if (navigationCallback_) {
+                               navigationCallback_(newView, previousView);
+                             }
+                           });
     } else {
       if (onComplete) {
         onComplete(newView, previousView);
@@ -68,7 +68,7 @@ void NavigationStack::push(std::unique_ptr<juce::Component> view, TransitionType
 }
 
 std::unique_ptr<juce::Component> NavigationStack::pop(TransitionType transition, int durationMs,
-                                                       NavigationCallback onComplete) {
+                                                      NavigationCallback onComplete) {
   if (stack_.empty()) {
     return nullptr;
   }
@@ -92,15 +92,15 @@ std::unique_ptr<juce::Component> NavigationStack::pop(TransitionType transition,
       showView(nextView);
 
       if (transitionsEnabled_) {
-        applyEntryTransition(
-            nextView, TransitionType::FadeIn, durationMs / 2, [this, onComplete, nextView, currentView](juce::Component *nv, juce::Component *pv) {
-              if (onComplete) {
-                onComplete(nextView, currentView);
-              }
-              if (navigationCallback_) {
-                navigationCallback_(nextView, currentView);
-              }
-            });
+        applyEntryTransition(nextView, TransitionType::FadeIn, durationMs / 2,
+                             [this, onComplete, nextView, currentView](juce::Component *nv, juce::Component *pv) {
+                               if (onComplete) {
+                                 onComplete(nextView, currentView);
+                               }
+                               if (navigationCallback_) {
+                                 navigationCallback_(nextView, currentView);
+                               }
+                             });
       } else {
         if (onComplete) {
           onComplete(nextView, currentView);
@@ -122,8 +122,8 @@ std::unique_ptr<juce::Component> NavigationStack::pop(TransitionType transition,
   return popped;
 }
 
-void NavigationStack::replace(std::unique_ptr<juce::Component> view, TransitionType transition,
-                              int durationMs, NavigationCallback onComplete) {
+void NavigationStack::replace(std::unique_ptr<juce::Component> view, TransitionType transition, int durationMs,
+                              NavigationCallback onComplete) {
   if (!view) {
     return;
   }
@@ -131,13 +131,13 @@ void NavigationStack::replace(std::unique_ptr<juce::Component> view, TransitionT
   // Capture view in a shared_ptr to ensure it stays alive until push completes
   auto viewPtr = std::make_shared<std::unique_ptr<juce::Component>>(std::move(view));
 
-  pop(TransitionType::FadeOut, durationMs / 2, [this, viewPtr, transition, durationMs, onComplete](
-                                                  juce::Component *newView, juce::Component *prevView) {
-    // Push new view after pop completes
-    if (viewPtr && *viewPtr) {
-      push(std::move(*viewPtr), transition, durationMs, onComplete);
-    }
-  });
+  pop(TransitionType::FadeOut, durationMs / 2,
+      [this, viewPtr, transition, durationMs, onComplete](juce::Component *newView, juce::Component *prevView) {
+        // Push new view after pop completes
+        if (viewPtr && *viewPtr) {
+          push(std::move(*viewPtr), transition, durationMs, onComplete);
+        }
+      });
 }
 
 void NavigationStack::popToRoot(TransitionType transition, int durationMs) {
@@ -207,8 +207,8 @@ void NavigationStack::resized() {
   }
 }
 
-void NavigationStack::applyEntryTransition(juce::Component *view, TransitionType type,
-                                            int durationMs, NavigationCallback onComplete) {
+void NavigationStack::applyEntryTransition(juce::Component *view, TransitionType type, int durationMs,
+                                           NavigationCallback onComplete) {
   if (!view) {
     return;
   }
@@ -217,53 +217,51 @@ void NavigationStack::applyEntryTransition(juce::Component *view, TransitionType
   AnimationHandle handle;
 
   switch (type) {
-    case TransitionType::SlideInFromLeft:
-      handle = controller.slideInFromLeft(view, durationMs);
-      break;
-    case TransitionType::SlideInFromRight:
-      handle = controller.slideInFromRight(view, durationMs);
-      break;
-    case TransitionType::SlideInFromTop:
-      handle = controller.slideInFromTop(view, durationMs);
-      break;
-    case TransitionType::SlideInFromBottom:
-      handle = controller.slideInFromBottom(view, durationMs);
-      break;
-    case TransitionType::FadeIn:
-      handle = controller.fadeIn(view, durationMs);
-      break;
-    case TransitionType::ScaleIn:
-      handle = controller.scaleIn(view, durationMs);
-      break;
-    case TransitionType::ZoomIn:
-      handle = controller.scaleIn(view, durationMs);
-      break;
-    case TransitionType::CrossFade:
-      // CrossFade is fade in of new view + fade out of previous (handled elsewhere)
-      handle = controller.fadeIn(view, durationMs);
-      break;
-    case TransitionType::Instant:
-      // No animation
-      if (onComplete) {
-        onComplete(view, nullptr);
-      }
-      return;
-    default:
-      handle = controller.fadeIn(view, durationMs);
-      break;
+  case TransitionType::SlideInFromLeft:
+    handle = controller.slideInFromLeft(view, durationMs);
+    break;
+  case TransitionType::SlideInFromRight:
+    handle = controller.slideInFromRight(view, durationMs);
+    break;
+  case TransitionType::SlideInFromTop:
+    handle = controller.slideInFromTop(view, durationMs);
+    break;
+  case TransitionType::SlideInFromBottom:
+    handle = controller.slideInFromBottom(view, durationMs);
+    break;
+  case TransitionType::FadeIn:
+    handle = controller.fadeIn(view, durationMs);
+    break;
+  case TransitionType::ScaleIn:
+    handle = controller.scaleIn(view, durationMs);
+    break;
+  case TransitionType::ZoomIn:
+    handle = controller.scaleIn(view, durationMs);
+    break;
+  case TransitionType::CrossFade:
+    // CrossFade is fade in of new view + fade out of previous (handled elsewhere)
+    handle = controller.fadeIn(view, durationMs);
+    break;
+  case TransitionType::Instant:
+    // No animation
+    if (onComplete) {
+      onComplete(view, nullptr);
+    }
+    return;
+  default:
+    handle = controller.fadeIn(view, durationMs);
+    break;
   }
 
   if (onComplete) {
     // Note: AnimationController callbacks don't include component parameters
     // We wrap to call onComplete with the correct signature
-    controller.onCompletion(handle, [onComplete, view]() {
-      onComplete(view, nullptr);
-    });
+    controller.onCompletion(handle, [onComplete, view]() { onComplete(view, nullptr); });
   }
 }
 
-void NavigationStack::applyExitTransition(juce::Component *view, TransitionType type,
-                                           int durationMs, NavigationCallback onComplete) {
+void NavigationStack::applyExitTransition(juce::Component *view, TransitionType type, int durationMs,
+                                          NavigationCallback onComplete) {
   if (!view) {
     return;
   }
@@ -272,37 +270,37 @@ void NavigationStack::applyExitTransition(juce::Component *view, TransitionType 
   AnimationHandle handle;
 
   switch (type) {
-    case TransitionType::SlideOutToLeft:
-      // For slide out, we'd need controller to support slide out animations
-      // For now, fall through to fade
-      [[fallthrough]];
-    case TransitionType::SlideOutToRight:
-    case TransitionType::SlideOutToTop:
-    case TransitionType::SlideOutToBottom:
-      // Slide out animations not yet implemented, use fade
-      handle = controller.fadeOut(view, durationMs);
-      break;
-    case TransitionType::FadeOut:
-      handle = controller.fadeOut(view, durationMs);
-      break;
-    case TransitionType::ScaleOut:
-      handle = controller.scaleOut(view, durationMs);
-      break;
-    case TransitionType::ZoomOut:
-      handle = controller.scaleOut(view, durationMs);
-      break;
-    case TransitionType::CrossFade:
-      handle = controller.fadeOut(view, durationMs);
-      break;
-    case TransitionType::Instant:
-      hideView(view);
-      if (onComplete) {
-        onComplete(view, nullptr);
-      }
-      return;
-    default:
-      handle = controller.fadeOut(view, durationMs);
-      break;
+  case TransitionType::SlideOutToLeft:
+    // For slide out, we'd need controller to support slide out animations
+    // For now, fall through to fade
+    [[fallthrough]];
+  case TransitionType::SlideOutToRight:
+  case TransitionType::SlideOutToTop:
+  case TransitionType::SlideOutToBottom:
+    // Slide out animations not yet implemented, use fade
+    handle = controller.fadeOut(view, durationMs);
+    break;
+  case TransitionType::FadeOut:
+    handle = controller.fadeOut(view, durationMs);
+    break;
+  case TransitionType::ScaleOut:
+    handle = controller.scaleOut(view, durationMs);
+    break;
+  case TransitionType::ZoomOut:
+    handle = controller.scaleOut(view, durationMs);
+    break;
+  case TransitionType::CrossFade:
+    handle = controller.fadeOut(view, durationMs);
+    break;
+  case TransitionType::Instant:
+    hideView(view);
+    if (onComplete) {
+      onComplete(view, nullptr);
+    }
+    return;
+  default:
+    handle = controller.fadeOut(view, durationMs);
+    break;
   }
 
   if (onComplete) {
@@ -311,8 +309,7 @@ void NavigationStack::applyExitTransition(juce::Component *view, TransitionType 
       onComplete(view, nullptr);
     });
   } else {
-    controller.onCompletion(
-        handle, [view, this]() { hideView(view); });
+    controller.onCompletion(handle, [view, this]() { hideView(view); });
   }
 }
 

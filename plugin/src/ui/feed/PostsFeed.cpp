@@ -126,9 +126,7 @@ PostsFeed::PostsFeed(Sidechain::Stores::AppStore *store) : AppStoreComponent(sto
   postsSlice = Sidechain::Stores::Slices::AppSliceManager::getInstance().getPostsSlice();
   if (postsSlice) {
     postsSlice->subscribe([this](const Sidechain::Stores::PostsState &state) {
-      juce::MessageManager::callAsync([this]() {
-        handleFeedStateChanged();
-      });
+      juce::MessageManager::callAsync([this]() { handleFeedStateChanged(); });
     });
   }
 }
@@ -1702,7 +1700,6 @@ void PostsFeed::resized() {
   }
 }
 
-
 void PostsFeed::mouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel) {
   if (feedDisplayState != PostsFeedDisplayState::Loaded) {
     Log::debug("PostsFeed::mouseWheelMove: Ignoring wheel - feed not loaded");
@@ -1751,14 +1748,14 @@ void PostsFeed::updateScrollBounds() {
   if (contentGrew && userNearBottom) {
     // Scroll to middle of new content
     targetScrollPosition = maxScrollPosition / 2.0;
-    auto scrollAnim2 = Sidechain::UI::Animations::TransitionAnimation<double>::create(
-                           scrollPosition, targetScrollPosition, 150)
-                           ->withEasing(Sidechain::UI::Animations::Easing::easeOutQuad)
-                           ->onProgress([this](const double &newValue) {
-                             scrollPosition = newValue;
-                             scrollBar.setCurrentRangeStart(scrollPosition);
-                             repaint();
-                           });
+    auto scrollAnim2 =
+        Sidechain::UI::Animations::TransitionAnimation<double>::create(scrollPosition, targetScrollPosition, 150)
+            ->withEasing(Sidechain::UI::Animations::Easing::easeOutQuad)
+            ->onProgress([this](const double &newValue) {
+              scrollPosition = newValue;
+              scrollBar.setCurrentRangeStart(scrollPosition);
+              repaint();
+            });
     scrollAnimationHandle = Sidechain::UI::Animations::AnimationController::getInstance().schedule(scrollAnim2, this);
   }
 
@@ -2023,7 +2020,8 @@ void PostsFeed::showCommentsForPost(const FeedPost &post) {
                                  }
                                  repaint();
                                });
-  commentsPanelAnimationHandle = Sidechain::UI::Animations::AnimationController::getInstance().schedule(commentsPanelAnim, this);
+  commentsPanelAnimationHandle =
+      Sidechain::UI::Animations::AnimationController::getInstance().schedule(commentsPanelAnim, this);
 
   // Bring to front
   commentsPanel->toFront(true);
@@ -2081,7 +2079,8 @@ void PostsFeed::handleNewPostNotification(const juce::var &postData) {
 
   // Extract post information from notification data
   juce::String postId = postData.hasProperty("id") ? postData.getProperty("id", juce::var()).toString() : "unknown";
-  juce::String authorName = postData.hasProperty("author") ? postData.getProperty("author", juce::var()).toString() : "Someone";
+  juce::String authorName =
+      postData.hasProperty("author") ? postData.getProperty("author", juce::var()).toString() : "Someone";
   Log::debug("PostsFeed: New post from " + authorName + " (ID: " + postId + ")");
 
   // Increment pending new posts count (5.5.2)
@@ -2151,11 +2150,10 @@ void PostsFeed::showNewPostsToast(int count) {
                               repaint();
                             });
     toastAnimationHandle = Sidechain::UI::Animations::AnimationController::getInstance().schedule(toastFadeOut, this);
-    Sidechain::UI::Animations::AnimationController::getInstance().onCompletion(
-        toastAnimationHandle, [this]() {
-          showingNewPostsToast = false;
-          repaint();
-        });
+    Sidechain::UI::Animations::AnimationController::getInstance().onCompletion(toastAnimationHandle, [this]() {
+      showingNewPostsToast = false;
+      repaint();
+    });
   });
 }
 

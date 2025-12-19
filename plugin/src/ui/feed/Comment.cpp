@@ -974,7 +974,8 @@ void CommentsPanel::MentionListener::textEditorTextChanged(juce::TextEditor &edi
       isMentioning = true;
       break;
     }
-    if (text[i] == ' ') break; // Stop at space
+    if (text[i] == ' ')
+      break; // Stop at space
   }
 
   if (isMentioning) {
@@ -998,7 +999,8 @@ void CommentsPanel::MentionListener::textEditorReturnKeyPressed(juce::TextEditor
       isInMention = true;
       break;
     }
-    if (text[i] == ' ') break;
+    if (text[i] == ' ')
+      break;
   }
 
   if (isInMention) {

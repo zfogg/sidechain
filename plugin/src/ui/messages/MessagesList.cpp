@@ -60,7 +60,7 @@ void MessagesList::onAppStateChanged(const Sidechain::Stores::ChatState &state) 
         StreamChatClient::Channel channel;
         channel.id = channelState.id;
         channel.name = channelState.name;
-        channel.type = "messaging";  // Always messaging type for now (from AppStore)
+        channel.type = "messaging"; // Always messaging type for now (from AppStore)
         channel.unreadCount = channelState.unreadCount;
         // TODO: Map more fields from ChannelState to StreamChatClient::Channel as needed
         channels.push_back(channel);
@@ -129,7 +129,8 @@ void MessagesList::paint(juce::Graphics &g) {
       if (y - scrollPos > getHeight())
         break; // Past visible area
 
-      Log::debug("MessagesList::paint - Drawing conversation at index " + juce::String(i) + " at y=" + juce::String(y - scrollPos));
+      Log::debug("MessagesList::paint - Drawing conversation at index " + juce::String(i) +
+                 " at y=" + juce::String(y - scrollPos));
       drawChannelItem(g, channels[i], static_cast<int>(y - scrollPos), getWidth() - scrollBar.getWidth());
       y += ITEM_HEIGHT;
     }
@@ -741,7 +742,6 @@ juce::Rectangle<int> MessagesList::getCreateGroupButtonBounds() const {
 juce::Rectangle<int> MessagesList::getChannelItemBounds(int index) const {
   return juce::Rectangle<int>(0, HEADER_HEIGHT + index * ITEM_HEIGHT, getWidth() - scrollBar.getWidth(), ITEM_HEIGHT);
 }
-
 
 bool MessagesList::isGroupChannel(const StreamChatClient::Channel &channel) const {
   return channel.type == "team" || (!channel.name.isEmpty() && channel.members.isArray());

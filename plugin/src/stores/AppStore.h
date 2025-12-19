@@ -183,8 +183,7 @@ public:
    * @param createdAt ISO 8601 timestamp
    */
   void addMessageToChannel(const juce::String &channelId, const juce::String &messageId, const juce::String &text,
-                           const juce::String &userId, const juce::String &userName,
-                           const juce::String &createdAt);
+                           const juce::String &userId, const juce::String &userName, const juce::String &createdAt);
 
   //==============================================================================
   // Search Methods (Search.cpp)
@@ -391,7 +390,6 @@ public:
    * @param callback Called with image when available (may be null if fetch fails)
    */
   void getImage(const juce::String &url, std::function<void(const juce::Image &)> callback);
-
 
   //==============================================================================
   // Image Service Operations (File Cache: memory → file → network)

@@ -377,8 +377,7 @@ private:
     // Timeline's progress calculation will account for this delay
     if (delayMs > 0) {
       // Delay before starting - update start time to account for stagger
-      startTime_ =
-          std::chrono::steady_clock::now() - std::chrono::milliseconds(delayMs);
+      startTime_ = std::chrono::steady_clock::now() - std::chrono::milliseconds(delayMs);
     } else {
       // No delay - update to current time
       startTime_ = std::chrono::steady_clock::now();

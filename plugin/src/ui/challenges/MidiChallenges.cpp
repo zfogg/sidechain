@@ -292,21 +292,21 @@ void MidiChallenges::fetchChallenges(FilterType filter) {
     bool includeChallenge = false;
 
     switch (filter) {
-      case FilterType::All:
-        includeChallenge = true;
-        break;
-      case FilterType::Active:
-        includeChallenge = (challenge.status == "active");
-        break;
-      case FilterType::Voting:
-        includeChallenge = (challenge.status == "voting");
-        break;
-      case FilterType::Past:
-        includeChallenge = (challenge.status == "completed" || challenge.status == "closed");
-        break;
-      case FilterType::Upcoming:
-        includeChallenge = (challenge.status == "upcoming" || challenge.status == "scheduled");
-        break;
+    case FilterType::All:
+      includeChallenge = true;
+      break;
+    case FilterType::Active:
+      includeChallenge = (challenge.status == "active");
+      break;
+    case FilterType::Voting:
+      includeChallenge = (challenge.status == "voting");
+      break;
+    case FilterType::Past:
+      includeChallenge = (challenge.status == "completed" || challenge.status == "closed");
+      break;
+    case FilterType::Upcoming:
+      includeChallenge = (challenge.status == "upcoming" || challenge.status == "scheduled");
+      break;
     }
 
     if (includeChallenge) {

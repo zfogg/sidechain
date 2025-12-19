@@ -115,7 +115,8 @@ void AppStore::switchFeedType(FeedType feedType) {
 
 void AppStore::loadSavedPosts() {
   if (!networkClient) {
-    sliceManager.getPostsSlice()->dispatch([](PostsState &state) { state.savedPosts.error = "Network client not initialized"; });
+    sliceManager.getPostsSlice()->dispatch(
+        [](PostsState &state) { state.savedPosts.error = "Network client not initialized"; });
     return;
   }
 
@@ -179,7 +180,8 @@ void AppStore::unsavePost(const juce::String &postId) {
 
 void AppStore::loadArchivedPosts() {
   if (!networkClient) {
-    sliceManager.getPostsSlice()->dispatch([](PostsState &state) { state.archivedPosts.error = "Network client not initialized"; });
+    sliceManager.getPostsSlice()->dispatch(
+        [](PostsState &state) { state.archivedPosts.error = "Network client not initialized"; });
     return;
   }
 
@@ -480,7 +482,8 @@ void AppStore::toggleFollow(const juce::String &postId, bool willFollow) {
       }
     });
 
-    Util::logDebug("AppStore", "Follow post optimistic update: " + postId + " - " + juce::String(willFollow ? "follow" : "unfollow"));
+    Util::logDebug("AppStore", "Follow post optimistic update: " + postId + " - " +
+                                   juce::String(willFollow ? "follow" : "unfollow"));
 
     if (willFollow) {
       networkClient->followUser(userId, [this, postId, previousFollowState](Outcome<juce::var> result) {
@@ -572,7 +575,8 @@ void AppStore::togglePin(const juce::String &postId, bool pinned) {
 // Helper Methods
 
 void AppStore::performFetch(FeedType feedType, int limit, int offset) {
-  Util::logDebug("AppStore", "performFetch called for feedType=" + feedTypeToString(feedType) + ", limit=" + juce::String(limit) + ", offset=" + juce::String(offset));
+  Util::logDebug("AppStore", "performFetch called for feedType=" + feedTypeToString(feedType) +
+                                 ", limit=" + juce::String(limit) + ", offset=" + juce::String(offset));
 
   if (!networkClient) {
     Util::logError("AppStore", "performFetch: networkClient is null!");
@@ -627,86 +631,87 @@ void AppStore::handleFetchSuccess(FeedType feedType, const juce::var &data, int 
   try {
     // Log pagination info for debugging
     Log::debug("handleFetchSuccess: feedType=" + feedTypeToString(feedType) + ", offset=" + juce::String(offset) +
-              ", limit=" + juce::String(limit));
+               ", limit=" + juce::String(limit));
 
-  // TODO: Implement aggregated feed handling
-  // For now, skip aggregated feed types
-  /*
-  if (isAggregatedFeedType(feedType)) {
-    auto response = parseAggregatedJsonResponse(data);
+    // TODO: Implement aggregated feed handling
+    // For now, skip aggregated feed types
+    /*
+    if (isAggregatedFeedType(feedType)) {
+      auto response = parseAggregatedJsonResponse(data);
 
+      sliceManager.getPostsSlice()->dispatch([feedType, response, offset](PostsState &s) {
+        if (s.aggregatedFeeds.count(feedType) == 0) {
+          s.aggregatedFeeds[feedType] = AggregatedFeedState();
+        }
+
+        auto &feedState = s.aggregatedFeeds[feedType];
+        if (offset == 0) {
+          feedState.groups = response.groups;
+        } else {
+          for (const auto &group : response.groups) {
+            feedState.groups.add(group);
+          }
+        }
+
+        feedState.isLoading = false;
+        feedState.isRefreshing = false;
+        feedState.offset = offset + response.groups.size();
+        feedState.total = response.total;
+        feedState.hasMore = feedState.offset < feedState.total;
+        feedState.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
+        feedState.error = "";
+        feedState.isSynced = true;
+      });
+    } else {*/
+
+    Log::debug("========== About to call parseJsonResponse ==========");
+    auto response = parseJsonResponse(data);
+    Log::debug("========== parseJsonResponse COMPLETE, got " + juce::String(response.posts.size()) +
+               " posts ==========");
+
+    // Validate response size against requested limit
+    const size_t responseSize = response.posts.size();
+    const size_t expectedLimit = static_cast<size_t>(limit);
+    if (responseSize > expectedLimit) {
+      Log::warn("AppStore: Response size (" + juce::String(static_cast<int>(responseSize)) +
+                ") exceeds requested limit (" + juce::String(limit) + ")");
+    }
+
+    // Cache the feed data in memory cache (5-minute TTL)
+    Log::debug("========== About to cache feed data ==========");
+    auto cacheKey = "feed:" + feedTypeToString(feedType).toLowerCase();
+    Log::debug("========== Feed cached successfully ==========");
+
+    Log::debug("========== About to call updateFeedState ==========");
     sliceManager.getPostsSlice()->dispatch([feedType, response, offset](PostsState &s) {
-      if (s.aggregatedFeeds.count(feedType) == 0) {
-        s.aggregatedFeeds[feedType] = AggregatedFeedState();
+      if (s.feeds.count(feedType) == 0) {
+        s.feeds[feedType] = FeedState();
       }
 
-      auto &feedState = s.aggregatedFeeds[feedType];
+      auto &feedState = s.feeds[feedType];
       if (offset == 0) {
-        feedState.groups = response.groups;
+        feedState.posts = response.posts;
       } else {
-        for (const auto &group : response.groups) {
-          feedState.groups.add(group);
+        for (const auto &post : response.posts) {
+          feedState.posts.add(post);
         }
       }
 
       feedState.isLoading = false;
       feedState.isRefreshing = false;
-      feedState.offset = offset + response.groups.size();
+      feedState.offset = offset + response.posts.size();
       feedState.total = response.total;
-      feedState.hasMore = feedState.offset < feedState.total;
+      feedState.hasMore = response.hasMore; // Use has_more from API response
       feedState.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
       feedState.error = "";
       feedState.isSynced = true;
     });
-  } else {*/
+    Log::debug("========== updateFeedState COMPLETE ==========");
+    //}
 
-  Log::debug("========== About to call parseJsonResponse ==========");
-  auto response = parseJsonResponse(data);
-  Log::debug("========== parseJsonResponse COMPLETE, got " + juce::String(response.posts.size()) + " posts ==========");
-
-  // Validate response size against requested limit
-  const size_t responseSize = response.posts.size();
-  const size_t expectedLimit = static_cast<size_t>(limit);
-  if (responseSize > expectedLimit) {
-    Log::warn("AppStore: Response size (" + juce::String(static_cast<int>(responseSize)) +
-             ") exceeds requested limit (" + juce::String(limit) + ")");
-  }
-
-  // Cache the feed data in memory cache (5-minute TTL)
-  Log::debug("========== About to cache feed data ==========");
-  auto cacheKey = "feed:" + feedTypeToString(feedType).toLowerCase();
-  Log::debug("========== Feed cached successfully ==========");
-
-  Log::debug("========== About to call updateFeedState ==========");
-  sliceManager.getPostsSlice()->dispatch([feedType, response, offset](PostsState &s) {
-    if (s.feeds.count(feedType) == 0) {
-      s.feeds[feedType] = FeedState();
-    }
-
-    auto &feedState = s.feeds[feedType];
-    if (offset == 0) {
-      feedState.posts = response.posts;
-    } else {
-      for (const auto &post : response.posts) {
-        feedState.posts.add(post);
-      }
-    }
-
-    feedState.isLoading = false;
-    feedState.isRefreshing = false;
-    feedState.offset = offset + response.posts.size();
-    feedState.total = response.total;
-    feedState.hasMore = response.hasMore;  // Use has_more from API response
-    feedState.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
-    feedState.error = "";
-    feedState.isSynced = true;
-  });
-  Log::debug("========== updateFeedState COMPLETE ==========");
-  //}
-
-  Log::info("========== handleFetchSuccess COMPLETE ==========");
-  Log::debug("Loaded feed for feedType=" + feedTypeToString(feedType));
-  } catch (const std::exception& e) {
+    Log::info("========== handleFetchSuccess COMPLETE ==========");
+    Log::debug("Loaded feed for feedType=" + feedTypeToString(feedType));
+  } catch (const std::exception &e) {
     Log::error("========== EXCEPTION in handleFetchSuccess: " + juce::String(e.what()) + " ==========");
     Log::error("Exception in handleFetchSuccess: " + juce::String(e.what()));
   } catch (...) {
