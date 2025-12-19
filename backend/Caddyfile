@@ -2,7 +2,7 @@
     # Enable HTTPS with Let's Encrypt
     tls {$LETSENCRYPT_EMAIL:admin@example.com}
 
-    # Proxy to backend (ALL requests including OPTIONS)
+    # Proxy to backend (ALL requests including OPTIONS and WebSocket)
     reverse_proxy backend:8787 {
         # Health checks for load balancing - less aggressive
         health_uri /health
@@ -21,6 +21,8 @@
         # WebSocket support - preserve upgrade headers
         header_up Connection "upgrade"
         header_up Upgrade "websocket"
+        header_up X-Forwarded-Proto "https"
+        header_up X-Forwarded-Scheme "https"
 
         # Preserve original request info
         header_up X-Forwarded-For {http.request.header.X-Forwarded-For}
@@ -29,20 +31,9 @@
         header_up X-Real-IP {http.request.header.X-Real-IP}
     }
 
-    # CORS headers - Caddy pass-through layer
-    # These ensure CORS headers are present on all responses including OPTIONS preflight
-    # The backend CORS middleware is the primary handler - Caddy provides fallback headers
-    header {
-        # Allow requests from the web frontend
-        Access-Control-Allow-Origin "https://www.sidechain.live"
-        Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS, PATCH"
-        Access-Control-Allow-Headers "Content-Type, Authorization, Origin, X-Requested-With, Accept"
-        Access-Control-Allow-Credentials "true"
-        Access-Control-Max-Age "86400"
-
-        # Vary header to ensure caching respects CORS
-        Vary "Origin"
-    }
+    # NOTE: CORS headers are handled by backend gin-contrib/cors middleware
+    # DO NOT set CORS headers here as it duplicates headers and breaks browser CORS validation
+    # Backend is configured to allow: https://www.sidechain.live
 
     # Security headers
     header {
