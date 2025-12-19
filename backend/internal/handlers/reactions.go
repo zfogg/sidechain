@@ -2,9 +2,12 @@ package handlers
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/models"
 )
 
 // ============================================================================
@@ -144,6 +147,16 @@ func (h *Handlers) EmojiReact(c *gin.Context) {
 		return
 	}
 
+	// If activity_id looks like a database UUID (not a stream activity), look it up
+	activityID := req.ActivityID
+	if activityID != "" && !strings.Contains(activityID, ":") {
+		// It's likely a database post UUID, look up the stream_activity_id
+		var post models.AudioPost
+		if err := database.DB.Select("stream_activity_id").Where("id = ?", activityID).First(&post).Error; err == nil && post.StreamActivityID != "" {
+			activityID = post.StreamActivityID
+		}
+	}
+
 	// Default reaction type based on emoji or use provided type
 	reactionType := req.Type
 	if reactionType == "" {
@@ -167,7 +180,7 @@ func (h *Handlers) EmojiReact(c *gin.Context) {
 	}
 
 	// Add the emoji reaction
-	if err := h.stream.AddReactionWithEmoji(reactionType, userID, req.ActivityID, req.Emoji); err != nil {
+	if err := h.stream.AddReactionWithEmoji(reactionType, userID, activityID, req.Emoji); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to add emoji reaction"})
 		return
 	}

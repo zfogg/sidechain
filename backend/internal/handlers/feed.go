@@ -339,6 +339,25 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 		return
 	}
 
+	// Save AudioPost to database with Stream activity ID for future lookups
+	post := &models.AudioPost{
+		ID:               postID,
+		UserID:           userID,
+		AudioURL:         req.AudioURL,
+		Filename:         req.AudioURL, // Use audio URL as fallback filename
+		BPM:              req.BPM,
+		Key:              req.Key,
+		DAW:              req.DAW,
+		DurationBars:     req.DurationBars,
+		Genre:            models.StringArray(req.Genre),
+		MIDIPatternID:    midiPatternID,
+		StreamActivityID: activity.ID, // Store the Stream activity ID for likes/reactions
+	}
+	if err := database.DB.Create(post).Error; err != nil {
+		fmt.Printf("Warning: Failed to save AudioPost %s to database: %v\n", postID, err)
+		// Don't fail the request - the Stream activity was created successfully
+	}
+
 	// Broadcast feed invalidation for real-time updates (Phase 2.1) + Activity broadcast (Phase 5)
 	if h.wsHandler != nil {
 		go func() {
