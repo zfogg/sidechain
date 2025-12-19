@@ -83,13 +83,15 @@ export const useUserStore = create<UserStoreState & UserStoreActions>()(
 
       restoreSession: async () => {
         const storedToken = localStorage.getItem('auth_token');
+        const storedUser = localStorage.getItem('user-store');
+
         if (storedToken) {
           set({ isLoading: true });
           try {
             apiClient.setToken(storedToken);
 
             // Fetch current user to validate token and get fresh user data
-            const response = await apiClient.get<{ user: User }>('/users/me');
+            const response = await apiClient.get<{ user: User }>('/users/me', {}, 5000);
             if (response.isOk()) {
               const { user } = response.getValue();
               set({
@@ -99,8 +101,22 @@ export const useUserStore = create<UserStoreState & UserStoreActions>()(
                 isLoading: false,
               });
             } else {
-              // Token is invalid or user couldn't be fetched
-              throw new Error('Failed to fetch user');
+              // Token might be invalid, try to use cached user data
+              if (storedUser) {
+                try {
+                  const cachedState = JSON.parse(storedUser);
+                  set({
+                    user: cachedState.state?.user || null,
+                    token: storedToken,
+                    isAuthenticated: !!cachedState.state?.user,
+                    isLoading: false,
+                  });
+                } catch {
+                  throw new Error('Failed to fetch user');
+                }
+              } else {
+                throw new Error('Failed to fetch user');
+              }
             }
           } catch (error) {
             apiClient.clearToken();
