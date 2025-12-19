@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/models"
+	"golang.org/x/oauth2"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -58,13 +59,14 @@ func (suite *AuthServiceTestSuite) SetupSuite() {
 	suite.db = db
 
 	// Initialize auth service with test secrets (nil stream client for tests)
+	oauthConfig := &OAuthConfigData{
+		GoogleConfig:  &oauth2.Config{ClientID: "test_google_client_id", ClientSecret: "test_google_client_secret"},
+		DiscordConfig: &oauth2.Config{ClientID: "test_discord_client_id", ClientSecret: "test_discord_client_secret"},
+	}
 	suite.authService = NewService(
 		[]byte("test_jwt_secret_key"),
 		nil, // Stream client not needed for unit tests
-		"test_google_client_id",
-		"test_google_client_secret",
-		"test_discord_client_id",
-		"test_discord_client_secret",
+		oauthConfig,
 	)
 }
 
@@ -210,7 +212,11 @@ func (suite *AuthServiceTestSuite) TestJWTTokenValidation() {
 
 	// Test expired token (would need to mock time for proper test)
 	// For now, test with wrong signing key
-	wrongService := NewService([]byte("wrong_secret"), nil, "", "", "", "")
+	wrongOAuthConfig := &OAuthConfigData{
+		GoogleConfig:  &oauth2.Config{ClientID: "test", ClientSecret: "test"},
+		DiscordConfig: &oauth2.Config{ClientID: "test", ClientSecret: "test"},
+	}
+	wrongService := NewService([]byte("wrong_secret"), nil, wrongOAuthConfig)
 	_, err = wrongService.ValidateToken(authResp.Token)
 	assert.Error(t, err)
 }

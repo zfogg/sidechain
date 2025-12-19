@@ -78,7 +78,17 @@ func main() {
 	}
 
 	// Create Stream.io activity for the post
-	if err := streamClient.CreatePost(bob.ID, post.ID, post.Filename, post.AudioURL, post.WaveformURL, post.Duration, post.BPM, post.Key, post.DAW, post.Genre); err != nil {
+	activity := &stream.Activity{
+		Object:      post.ID,
+		AudioURL:    post.AudioURL,
+		WaveformURL: post.WaveformURL,
+		BPM:         post.BPM,
+		Key:         post.Key,
+		DAW:         post.DAW,
+		Genre:       []string(post.Genre),
+		DurationBars: post.DurationBars,
+	}
+	if err := streamClient.CreateLoopActivity(bob.ID, activity); err != nil {
 		log.Printf("⚠️  Failed to create Stream.io activity: %v\n", err)
 	} else {
 		fmt.Printf("✓ Created Stream.io activity for post\n")

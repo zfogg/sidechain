@@ -413,7 +413,7 @@ void SelectHighlightDialog::addStoryToHighlight(const juce::String &highlightId)
   });
 }
 
-void SelectHighlightDialog::loadCoverImage(const StoryHighlight &highlight) {
+void SelectHighlightDialog::loadCoverImage(const StoryHighlight & [[maybe_unused]] highlight) {
   // TODO: Load highlight cover image using ImageLoader
   // Image loading to be implemented
 }

@@ -393,12 +393,12 @@ void Auth::paint(juce::Graphics &g) {
     const float angleOffset = static_cast<float>(oauthAnimationFrame) * 0.15f;
 
     for (int i = 0; i < numDots; ++i) {
-      float angle = angleOffset + (i * juce::MathConstants<float>::twoPi / numDots);
+      float angle = angleOffset + (i * juce::MathConstants<float>::twoPi / static_cast<float>(numDots));
       float x = static_cast<float>(spinnerArea.getCentreX()) + std::cos(angle) * spinnerRadius;
       float y = static_cast<float>(spinnerArea.getCentreY()) + std::sin(angle) * spinnerRadius;
 
       // Fade dots based on position in rotation
-      float alpha = 0.3f + 0.7f * (static_cast<float>(i) / numDots);
+      float alpha = 0.3f + 0.7f * (static_cast<float>(i) / static_cast<float>(numDots));
       g.setColour(Colors::primaryButton.withAlpha(alpha));
       g.fillEllipse(x - dotRadius, y - dotRadius, dotRadius * 2, dotRadius * 2);
     }

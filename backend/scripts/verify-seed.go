@@ -35,7 +35,8 @@ func main() {
 	// GORM uses pluralized table names
 	database.DB.Table("hashtags").Count(&hashtagCount)
 	database.DB.Table("play_histories").Count(&playHistoryCount)
-	database.DB.Model(&models.Device{}).Where("deleted_at IS NULL").Count(&deviceCount)
+	// Device model doesn't exist - skip device count
+	deviceCount = 0
 
 	fmt.Println("📊 Record Counts:")
 	fmt.Printf("  Users:        %d\n", userCount)

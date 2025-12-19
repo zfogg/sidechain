@@ -400,7 +400,7 @@ void SavedPosts::setupPostCardCallbacks(PostCard *card) {
               return;
             Log::debug("SavedPosts: Post unsaved successfully");
           },
-          [safeThis](std::exception_ptr error) {
+          [safeThis](std::exception_ptr [[maybe_unused]] error) {
             if (safeThis == nullptr)
               return;
             Log::error("SavedPosts: Failed to unsave post");
@@ -409,7 +409,7 @@ void SavedPosts::setupPostCardCallbacks(PostCard *card) {
   };
 
   // Like functionality (callback fallback)
-  card->onLikeToggled = [this](const FeedPost &post, bool liked) {
+  card->onLikeToggled = [this](const FeedPost &post, bool [[maybe_unused]] liked) {
     if (appStore != nullptr) {
       juce::Component::SafePointer<SavedPosts> safeThis(this);
       appStore->likePostObservable(post.id).subscribe(

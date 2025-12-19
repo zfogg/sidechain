@@ -164,7 +164,7 @@ void SoundPage::mouseUp(const juce::MouseEvent &event) {
         FeedPost feedPost;
         feedPost.id = posts[i].id;
         feedPost.audioUrl = posts[i].audioUrl;
-        feedPost.durationSeconds = posts[i].duration;
+        feedPost.durationSeconds = static_cast<float>(posts[i].duration);
 
         if (currentlyPlayingPostId == posts[i].id) {
           if (onPausePost)

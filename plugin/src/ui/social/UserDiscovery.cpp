@@ -576,7 +576,7 @@ void UserDiscovery::fetchSuggestedUsers() {}
 void UserDiscovery::fetchSimilarProducers() {}
 void UserDiscovery::fetchRecommendedToFollow() {}
 void UserDiscovery::fetchAvailableGenres() {}
-void UserDiscovery::fetchUsersByGenre(const juce::String &genre) {}
+void UserDiscovery::fetchUsersByGenre(const juce::String & [[maybe_unused]] genre) {}
 
 void UserDiscovery::handleFollowToggle(const DiscoveredUser &user, bool willFollow) {
   jassert(userStore != nullptr);

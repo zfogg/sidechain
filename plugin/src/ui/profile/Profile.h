@@ -223,7 +223,7 @@ protected:
 
   // ==============================================================================
   // SmoothScrollable overrides
-  void onScrollUpdate(double newScrollPosition) override {
+  void onScrollUpdate(double [[maybe_unused]] newScrollPosition) override {
     updatePostCards();
     repaint();
   }

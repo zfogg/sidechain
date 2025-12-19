@@ -76,7 +76,7 @@ public:
 
   // ========== Lifecycle ==========
 
-  ~AnimationController();
+  ~AnimationController() override;
 
   /**
    * Enable/disable all animations globally

@@ -44,7 +44,7 @@ static inline juce::String feedTypeToString(FeedType feedType) {
 // ==============================================================================
 // Feed Loading
 
-void AppStore::loadFeed(FeedType feedType, bool forceRefresh) {
+void AppStore::loadFeed(FeedType feedType, bool [[maybe_unused]] forceRefresh) {
   if (!networkClient) {
     sliceManager.getPostsSlice()->dispatch([feedType](PostsState &state) {
       state.currentFeedType = feedType;
@@ -263,7 +263,7 @@ void AppStore::toggleLike(const juce::String &postId) {
   }
 
   // Optimistic update
-  sliceManager.getPostsSlice()->dispatch([postId, isCurrentlyLiked](PostsState &state) {
+  sliceManager.getPostsSlice()->dispatch([postId](PostsState &state) {
     // Update all occurrences of the post across all feeds
     for (auto &[feedType, feedState] : state.feeds) {
       for (auto &post : feedState.posts) {
@@ -291,7 +291,7 @@ void AppStore::toggleLike(const juce::String &postId) {
 
   // Send to server - like or unlike based on previous state
   if (isCurrentlyLiked) {
-    networkClient->unlikePost(postId, [this](Outcome<juce::var> result) {
+    networkClient->unlikePost(postId, [](Outcome<juce::var> result) {
       if (!result.isOk()) {
         Util::logError("AppStore", "Failed to unlike post: " + result.getError());
       } else {
@@ -299,7 +299,7 @@ void AppStore::toggleLike(const juce::String &postId) {
       }
     });
   } else {
-    networkClient->likePost(postId, "", [this](Outcome<juce::var> result) {
+    networkClient->likePost(postId, "", [](Outcome<juce::var> result) {
       if (!result.isOk()) {
         Util::logError("AppStore", "Failed to like post: " + result.getError());
       } else {
@@ -328,7 +328,7 @@ void AppStore::toggleSave(const juce::String &postId) {
   }
 
   // Optimistic update
-  sliceManager.getPostsSlice()->dispatch([postId, isCurrentlySaved](PostsState &state) {
+  sliceManager.getPostsSlice()->dispatch([postId](PostsState &state) {
     for (auto &[feedType, feedState] : state.feeds) {
       for (auto &post : feedState.posts) {
         if (post.id == postId) {
@@ -355,7 +355,7 @@ void AppStore::toggleSave(const juce::String &postId) {
 
   // Send to server
   if (isCurrentlySaved) {
-    networkClient->unsavePost(postId, [this](Outcome<juce::var> result) {
+    networkClient->unsavePost(postId, [](Outcome<juce::var> result) {
       if (!result.isOk()) {
         Util::logError("AppStore", "Failed to unsave post: " + result.getError());
       } else {
@@ -392,7 +392,7 @@ void AppStore::toggleRepost(const juce::String &postId) {
   }
 
   // Optimistic update
-  sliceManager.getPostsSlice()->dispatch([postId, isCurrentlyReposted](PostsState &state) {
+  sliceManager.getPostsSlice()->dispatch([postId](PostsState &state) {
     for (auto &[feedType, feedState] : state.feeds) {
       for (auto &post : feedState.posts) {
         if (post.id == postId) {
@@ -419,7 +419,7 @@ void AppStore::toggleRepost(const juce::String &postId) {
 
   // Send to server
   if (isCurrentlyReposted) {
-    networkClient->undoRepost(postId, [this](Outcome<juce::var> result) {
+    networkClient->undoRepost(postId, [](Outcome<juce::var> result) {
       if (!result.isOk()) {
         Util::logError("AppStore", "Failed to undo repost: " + result.getError());
       } else {
@@ -427,7 +427,7 @@ void AppStore::toggleRepost(const juce::String &postId) {
       }
     });
   } else {
-    networkClient->repostPost(postId, "", [this](Outcome<juce::var> result) {
+    networkClient->repostPost(postId, "", [](Outcome<juce::var> result) {
       if (!result.isOk()) {
         Util::logError("AppStore", "Failed to repost: " + result.getError());
       } else {
@@ -443,7 +443,7 @@ void AppStore::addReaction(const juce::String &postId, const juce::String &emoji
   }
 
   // Add a reaction by liking with an emoji
-  networkClient->likePost(postId, emoji, [this](Outcome<juce::var> result) {
+  networkClient->likePost(postId, emoji, [](Outcome<juce::var> result) {
     if (!result.isOk()) {
       Util::logError("AppStore", "Failed to add reaction: " + result.getError());
     }
@@ -541,7 +541,7 @@ void AppStore::toggleMute(const juce::String &userId, bool willMute) {
       }
     });
   } else {
-    networkClient->unmuteUser(userId, [this](Outcome<juce::var> result) {
+    networkClient->unmuteUser(userId, [](Outcome<juce::var> result) {
       if (!result.isOk()) {
         Util::logError("AppStore", "Failed to unmute user: " + result.getError());
       } else {
@@ -934,7 +934,7 @@ rxcpp::observable<juce::var> AppStore::loadFeedObservable(FeedType feedType) {
     Util::logDebug("AppStore", "Loading feed from network: " + feedTypeToString(feedType));
 
     // Create callback to handle network response
-    auto callback = [this, feedType, observer](Outcome<juce::var> result) {
+    auto callback = [feedType, observer](Outcome<juce::var> result) {
       if (result.isOk()) {
         // Cache the response (30 seconds for feeds - they update frequently)
         auto data = result.getValue();
@@ -1005,7 +1005,7 @@ rxcpp::observable<int> AppStore::likePostObservable(const juce::String &postId) 
     auto previousState = isCurrentlyLiked;
 
     // Apply optimistic update
-    sliceManager.getPostsSlice()->dispatch([postId, isCurrentlyLiked](PostsState &state) {
+    sliceManager.getPostsSlice()->dispatch([postId](PostsState &state) {
       for (auto &[feedType, feedState] : state.feeds) {
         for (auto &post : feedState.posts) {
           if (post.id == postId) {
@@ -1097,7 +1097,7 @@ rxcpp::observable<int> AppStore::toggleSaveObservable(const juce::String &postId
     auto previousState = isCurrentlySaved;
 
     // Apply optimistic update
-    sliceManager.getPostsSlice()->dispatch([postId, isCurrentlySaved](PostsState &state) {
+    sliceManager.getPostsSlice()->dispatch([postId](PostsState &state) {
       for (auto &[feedType, feedState] : state.feeds) {
         for (auto &post : feedState.posts) {
           if (post.id == postId) {

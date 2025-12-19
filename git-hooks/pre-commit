@@ -6,6 +6,8 @@
 # - Builds Go backend if changed
 # - Builds Go CLI if changed
 # - Builds C++ plugin if changed
+# - Compiles tests when plugin code changes
+# - Compiles tests and plugin when CMake changes
 
 set -e  # Exit on error
 
@@ -21,6 +23,7 @@ has_typescript=false
 has_backend=false
 has_cli=false
 has_cpp=false
+has_cmake=false
 
 # Check for TypeScript/web changes
 if echo "$staged_files" | grep -qE '^web/.*\.(ts|tsx|js|jsx)$'; then
@@ -37,14 +40,15 @@ if echo "$staged_files" | grep -qE '^cli/.*\.go$'; then
     has_cli=true
 fi
 
-# Check for C++ plugin changes (source files or CMake files)
+# Check for C++ plugin changes (source files only, not CMake)
 if echo "$staged_files" | grep -qE '^plugin/.*\.(cpp|h|hpp|c)$'; then
     has_cpp=true
 fi
 
-# Check for CMake changes (affects plugin build)
-if echo "$staged_files" | grep -qE '\.(cmake|CMakeLists\.txt)$'; then
-    has_cpp=true
+# Check for CMake changes (affects plugin build and tests)
+if echo "$staged_files" | grep -qE '^plugin/.*\.(cmake|CMakeLists\.txt)$'; then
+    has_cmake=true
+    has_cpp=true  # CMake changes also affect C++ build
 fi
 
 # Format C/C++ files
@@ -101,8 +105,8 @@ if [[ "$has_cli" == true ]]; then
     echo "✅ CLI build succeeded"
 fi
 
-# Build C++ plugin if changed
-if [[ "$has_cpp" == true ]]; then
+# Build C++ plugin if changed (cpp files or CMake changes)
+if [[ "$has_cpp" == true && "$has_cmake" != true ]]; then
     echo "🔨 Building C++ plugin..."
     if ! make plugin-fast > /dev/null 2>&1; then
         echo "❌ Plugin build failed. Please fix errors before committing."
@@ -110,6 +114,44 @@ if [[ "$has_cpp" == true ]]; then
         exit 1
     fi
     echo "✅ Plugin build succeeded"
+    
+    # Compile tests when plugin code changes
+    echo "🧪 Compiling plugin tests..."
+    if ! make test-plugin-configure > /dev/null 2>&1; then
+        echo "❌ Test configuration failed. Please fix errors before committing."
+        exit 1
+    fi
+    if ! cmake --build plugin/build --config Release --target SidechainTests --parallel > /dev/null 2>&1; then
+        echo "❌ Test compilation failed. Please fix errors before committing."
+        echo "   Run 'make test-plugin-unit' manually to see detailed error messages."
+        exit 1
+    fi
+    echo "✅ Plugin tests compiled successfully"
+fi
+
+# Build C++ plugin AND compile tests if CMake changes
+if [[ "$has_cmake" == true ]]; then
+    echo "🔨 Building C++ plugin (CMake changed)..."
+    if ! make plugin-fast > /dev/null 2>&1; then
+        echo "❌ Plugin build failed. Please fix errors before committing."
+        echo "   Run 'make plugin-fast' manually to see detailed error messages."
+        exit 1
+    fi
+    echo "✅ Plugin build succeeded"
+    
+    # Compile tests when CMake changes
+    echo "🧪 Compiling plugin tests (CMake changed)..."
+    if ! make test-plugin-configure > /dev/null 2>&1; then
+        echo "❌ Test configuration failed. Please fix errors before committing."
+        exit 1
+    fi
+    if ! cmake --build plugin/build --config Release --target SidechainTests --parallel > /dev/null 2>&1; then
+        echo "❌ Test compilation failed. Please fix errors before committing."
+        echo "   Run 'make test-plugin-unit' manually to see detailed error messages."
+        exit 1
+    fi
+    echo "✅ Plugin tests compiled successfully"
 fi
 
 exit 0
+

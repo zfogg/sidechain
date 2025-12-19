@@ -54,17 +54,18 @@ HiddenSynth::HiddenSynth(SynthEngine &engine) : synthEngine(engine) {
   presetSelector.onChange = [this]() {
     int idx = presetSelector.getSelectedItemIndex();
     if (idx >= 0 && idx < static_cast<int>(presets.size())) {
-      synthEngine.loadPreset(presets[idx]);
+      size_t presetIdx = static_cast<size_t>(idx);
+      synthEngine.loadPreset(presets[presetIdx]);
       updateWaveformButtons();
 
       // Update UI controls to match preset
-      attackSlider.setValue(presets[idx].attack, juce::dontSendNotification);
-      decaySlider.setValue(presets[idx].decay, juce::dontSendNotification);
-      sustainSlider.setValue(presets[idx].sustain, juce::dontSendNotification);
-      releaseSlider.setValue(presets[idx].release, juce::dontSendNotification);
-      cutoffSlider.setValue(presets[idx].filterCutoff, juce::dontSendNotification);
-      resonanceSlider.setValue(presets[idx].filterResonance, juce::dontSendNotification);
-      volumeSlider.setValue(presets[idx].volume, juce::dontSendNotification);
+      attackSlider.setValue(presets[presetIdx].attack, juce::dontSendNotification);
+      decaySlider.setValue(presets[presetIdx].decay, juce::dontSendNotification);
+      sustainSlider.setValue(presets[presetIdx].sustain, juce::dontSendNotification);
+      releaseSlider.setValue(presets[presetIdx].release, juce::dontSendNotification);
+      cutoffSlider.setValue(presets[presetIdx].filterCutoff, juce::dontSendNotification);
+      resonanceSlider.setValue(presets[presetIdx].filterResonance, juce::dontSendNotification);
+      volumeSlider.setValue(presets[presetIdx].volume, juce::dontSendNotification);
     }
   };
 

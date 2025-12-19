@@ -4,7 +4,7 @@
 namespace Sidechain {
 namespace Stores {
 
-void AppStore::uploadPost(const juce::var &postData, const juce::File &audioFile) {
+void AppStore::uploadPost(const juce::var & [[maybe_unused]] postData, const juce::File &audioFile) {
   if (!networkClient) {
     Util::logError("AppStore", "Network client not available");
     sliceManager.getUploadSlice()->dispatch([](UploadState &state) {

@@ -47,6 +47,8 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
         "-Wno-implicit-int-float-conversion"        # Audio processing math (GCC 7.1+, Clang 5+)
         "-Wno-nullable-to-nonnull-conversion"       # macOS API bridge (Clang 3.8+)
         "-Wno-missing-designated-field-initializers" # Designated field init (GCC 9.2+, Clang 10+)
+        "-Wno-implicit-int-conversion-on-negation"  # JUCE library int8_t conversions (Clang 12+)
+        "-Wno-virtual-in-final"                     # JUCE final class virtual methods (Clang 12+)
     )
 
     foreach(flag ${CONDITIONAL_CXX_FLAGS})

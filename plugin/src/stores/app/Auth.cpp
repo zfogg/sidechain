@@ -117,7 +117,7 @@ void AppStore::verify2FA(const juce::String &code) {
 
   networkClient->verify2FALogin(currentAuth.twoFactorUserId, code,
                                 [this](Outcome<std::pair<juce::String, juce::String>> result) {
-                                  auto authSlice = sliceManager.getAuthSlice();
+                                  auto authSlicePtr = sliceManager.getAuthSlice();
 
                                   if (!result.isOk()) {
                                     authSlice->dispatch([error = result.getError()](AuthState &state) {
@@ -226,7 +226,7 @@ void AppStore::logout() {
   });
 }
 
-void AppStore::oauthCallback(const juce::String &provider, const juce::String &code) {
+void AppStore::oauthCallback(const juce::String & [[maybe_unused]] provider, const juce::String & [[maybe_unused]] code) {
   // TODO: Implement OAuth flow
   sliceManager.getAuthSlice()->dispatch([](AuthState &state) { state.authError = "OAuth not yet implemented"; });
 }

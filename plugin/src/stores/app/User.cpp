@@ -76,16 +76,15 @@ void AppStore::updateProfile(const juce::String &username, const juce::String &d
       state.bio = bio;
   });
 
-  networkClient->updateUserProfile(
-      username, displayName, bio, [this, userSlice, previousState](Outcome<juce::var> result) {
-        juce::MessageManager::callAsync([this, userSlice, previousState, result]() {
-          if (!result.isOk()) {
-            Util::logError("AppStore", "Failed to update profile: " + result.getError());
-            // Revert on error
-            userSlice->dispatch([previousState](UserState &state) { state = previousState; });
-          }
-        });
-      });
+  networkClient->updateUserProfile(username, displayName, bio, [userSlice, previousState](Outcome<juce::var> result) {
+    juce::MessageManager::callAsync([userSlice, previousState, result]() {
+      if (!result.isOk()) {
+        Util::logError("AppStore", "Failed to update profile: " + result.getError());
+        // Revert on error
+        userSlice->dispatch([previousState](UserState &state) { state = previousState; });
+      }
+    });
+  });
 }
 
 void AppStore::setProfilePictureUrl(const juce::String &url) {
@@ -192,8 +191,8 @@ void AppStore::changeUsername(const juce::String &newUsername) {
 
   auto userSlice = sliceManager.getUserSlice();
 
-  networkClient->changeUsername(newUsername, [this, userSlice, newUsername](Outcome<juce::var> result) {
-    juce::MessageManager::callAsync([this, userSlice, newUsername, result]() {
+  networkClient->changeUsername(newUsername, [userSlice, newUsername](Outcome<juce::var> result) {
+    juce::MessageManager::callAsync([userSlice, newUsername, result]() {
       if (result.isOk()) {
         userSlice->dispatch([newUsername](UserState &state) { state.username = newUsername; });
         Util::logInfo("AppStore", "Username changed successfully");

@@ -13,7 +13,7 @@ void AppStore::loadChallenges() {
   auto challengeSlice = sliceManager.getChallengeSlice();
   challengeSlice->dispatch([](ChallengeState &state) { state.isLoading = true; });
 
-  networkClient->getMIDIChallenges("", [this, challengeSlice](Outcome<juce::var> result) {
+  networkClient->getMIDIChallenges("", [challengeSlice](Outcome<juce::var> result) {
     if (result.isOk()) {
       const auto data = result.getValue();
       juce::Array<juce::var> challengesList;
@@ -80,7 +80,7 @@ void AppStore::submitChallenge(const juce::String &challengeId, const juce::File
   // audioUrl is empty since we're submitting MIDI data directly
   // Backend will synthesize audio from MIDI data if needed
   networkClient->submitMIDIChallengeEntry(
-      challengeId, "", "", midiData, "", [this, challengeId](Outcome<juce::var> result) {
+      challengeId, "", "", midiData, "", [challengeId](Outcome<juce::var> result) {
         if (result.isOk()) {
           const auto data = result.getValue();
           Util::logInfo("AppStore", "Successfully submitted challenge " + challengeId);

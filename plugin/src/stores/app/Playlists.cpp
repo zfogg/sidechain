@@ -14,7 +14,7 @@ rxcpp::observable<juce::Array<juce::var>> AppStore::getPlaylistsObservable() {
 
     Util::logInfo("AppStore", "Fetching playlists");
 
-    networkClient->getPlaylists("all", [this, observer](Outcome<juce::var> result) {
+    networkClient->getPlaylists("all", [observer](Outcome<juce::var> result) {
       if (result.isOk()) {
         const auto data = result.getValue();
         juce::Array<juce::var> playlistsList;

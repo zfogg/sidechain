@@ -13,7 +13,7 @@ void AppStore::loadNotifications() {
   auto notificationSlice = sliceManager.getNotificationSlice();
   notificationSlice->dispatch([](NotificationState &state) { state.isLoading = true; });
 
-  networkClient->getNotifications(20, 0, [this, notificationSlice](Outcome<NetworkClient::NotificationResult> result) {
+  networkClient->getNotifications(20, 0, [notificationSlice](Outcome<NetworkClient::NotificationResult> result) {
     if (result.isOk()) {
       const auto notifResult = result.getValue();
       juce::Array<juce::var> notificationsList;
@@ -54,28 +54,27 @@ void AppStore::loadMoreNotifications() {
     return;
   }
 
-  networkClient->getNotifications(20, currentState.notifications.size(),
-                                  [this, notificationSlice](Outcome<NetworkClient::NotificationResult> result) {
-                                    if (result.isOk()) {
-                                      const auto notifResult = result.getValue();
-                                      juce::Array<juce::var> newNotifications;
+  networkClient->getNotifications(
+      20, currentState.notifications.size(), [notificationSlice](Outcome<NetworkClient::NotificationResult> result) {
+        if (result.isOk()) {
+          const auto notifResult = result.getValue();
+          juce::Array<juce::var> newNotifications;
 
-                                      if (notifResult.notifications.isArray()) {
-                                        for (int i = 0; i < notifResult.notifications.size(); ++i) {
-                                          newNotifications.add(notifResult.notifications[i]);
-                                        }
-                                      }
+          if (notifResult.notifications.isArray()) {
+            for (int i = 0; i < notifResult.notifications.size(); ++i) {
+              newNotifications.add(notifResult.notifications[i]);
+            }
+          }
 
-                                      notificationSlice->dispatch(
-                                          [newNotifications, notifResult](NotificationState &state) {
-                                            for (const auto &notification : newNotifications) {
-                                              state.notifications.add(notification);
-                                            }
-                                            state.unreadCount = notifResult.unread;
-                                            state.unseenCount = notifResult.unseen;
-                                          });
-                                    }
-                                  });
+          notificationSlice->dispatch([newNotifications, notifResult](NotificationState &state) {
+            for (const auto &notification : newNotifications) {
+              state.notifications.add(notification);
+            }
+            state.unreadCount = notifResult.unread;
+            state.unseenCount = notifResult.unseen;
+          });
+        }
+      });
 }
 
 void AppStore::markNotificationsAsRead() {
@@ -86,7 +85,7 @@ void AppStore::markNotificationsAsRead() {
 
   auto notificationSlice = sliceManager.getNotificationSlice();
 
-  networkClient->markNotificationsRead([this, notificationSlice](Outcome<juce::var> result) {
+  networkClient->markNotificationsRead([notificationSlice](Outcome<juce::var> result) {
     if (result.isOk()) {
       notificationSlice->dispatch([](NotificationState &state) {
         // Mark all notifications as read
@@ -113,7 +112,7 @@ void AppStore::markNotificationsAsSeen() {
 
   auto notificationSlice = sliceManager.getNotificationSlice();
 
-  networkClient->markNotificationsSeen([this, notificationSlice](Outcome<juce::var> result) {
+  networkClient->markNotificationsSeen([notificationSlice](Outcome<juce::var> result) {
     if (result.isOk()) {
       notificationSlice->dispatch([](NotificationState &state) {
         state.unseenCount = 0;

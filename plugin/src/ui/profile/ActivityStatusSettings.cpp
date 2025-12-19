@@ -18,7 +18,7 @@ ActivityStatusSettings::~ActivityStatusSettings() {
 }
 
 // ==============================================================================
-void ActivityStatusSettings::onAppStateChanged(const UserState &state) {
+void ActivityStatusSettings::onAppStateChanged(const UserState & [[maybe_unused]] state) {
   // Update activity status settings from user state if available
   // Note: Activity status settings might need to be loaded separately via NetworkClient
   repaint();

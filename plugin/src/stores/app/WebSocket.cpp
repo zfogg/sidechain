@@ -41,7 +41,7 @@ void AppStore::onWebSocketFollowerCountUpdate(const juce::String &userId, int fo
   }
 }
 
-void AppStore::onWebSocketNewPost(const juce::var &postData) {
+void AppStore::onWebSocketNewPost(const juce::var & [[maybe_unused]] postData) {
   Util::logDebug("AppStore", "WebSocket: New post notification received");
 
   // Invalidate all feed caches so the new post appears
@@ -69,7 +69,7 @@ void AppStore::onWebSocketPresenceUpdate(const juce::String &userId, bool isOnli
 
   // Update presence state directly without invalidating other caches
   // (presence changes don't affect feed/user data validity, just UI display)
-  sliceManager.getUserSlice()->dispatch([userId, isOnline](UserState &state) {
+  sliceManager.getUserSlice()->dispatch([userId](UserState &state) {
     // Store online status per user - could use a map if many users tracked
     // For now, we just log the update. Real implementation might maintain
     // a presence map or push to a dedicated presence state slice.

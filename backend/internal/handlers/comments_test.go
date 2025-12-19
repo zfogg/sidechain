@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/models"
+	"github.com/zfogg/sidechain/backend/internal/util"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -209,7 +210,7 @@ func TestExtractMentions(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result := extractMentions(tc.content)
+			result := util.ExtractMentions(tc.content)
 			assert.Equal(t, tc.expected, result)
 		})
 	}

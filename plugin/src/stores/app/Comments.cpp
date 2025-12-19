@@ -16,7 +16,7 @@ rxcpp::observable<juce::Array<juce::var>> AppStore::getCommentsObservable(const 
     Util::logInfo("AppStore", "Fetching comments for post: " + postId);
 
     networkClient->getComments(
-        postId, limit, offset, [this, observer, postId](Outcome<std::pair<juce::var, int>> result) {
+        postId, limit, offset, [observer, postId](Outcome<std::pair<juce::var, int>> result) {
           if (result.isOk()) {
             auto [commentsData, totalCount] = result.getValue();
             juce::Array<juce::var> commentsList;
@@ -47,7 +47,7 @@ void AppStore::createComment(const juce::String &postId, const juce::String &con
 
   Util::logInfo("AppStore", "Creating comment on post: " + postId);
 
-  networkClient->createComment(postId, content, parentId, [this, postId](Outcome<juce::var> result) {
+  networkClient->createComment(postId, content, parentId, [postId](Outcome<juce::var> result) {
     if (result.isOk()) {
       Util::logInfo("AppStore", "Comment created successfully");
       // Invalidate comments cache for this post so next load gets fresh data
@@ -65,7 +65,7 @@ void AppStore::deleteComment(const juce::String &commentId) {
 
   Util::logInfo("AppStore", "Deleting comment: " + commentId);
 
-  networkClient->deleteComment(commentId, [this](Outcome<juce::var> result) {
+  networkClient->deleteComment(commentId, [](Outcome<juce::var> result) {
     if (result.isOk()) {
       Util::logInfo("AppStore", "Comment deleted successfully");
       // Invalidate all comments caches since we don't know which post this came from
@@ -83,7 +83,7 @@ void AppStore::likeComment(const juce::String &commentId) {
 
   Util::logInfo("AppStore", "Liking comment: " + commentId);
 
-  networkClient->likeComment(commentId, [this](Outcome<juce::var> result) {
+  networkClient->likeComment(commentId, [](Outcome<juce::var> result) {
     if (result.isOk()) {
       Util::logInfo("AppStore", "Comment liked successfully");
       // Invalidate all comments caches to refresh like counts
@@ -119,7 +119,7 @@ void AppStore::updateComment(const juce::String &commentId, const juce::String &
 
   Util::logInfo("AppStore", "Updating comment: " + commentId);
 
-  networkClient->updateComment(commentId, content, [this](Outcome<juce::var> result) {
+  networkClient->updateComment(commentId, content, [](Outcome<juce::var> result) {
     if (result.isOk()) {
       Util::logInfo("AppStore", "Comment updated successfully");
       // Invalidate all comments caches to refresh content

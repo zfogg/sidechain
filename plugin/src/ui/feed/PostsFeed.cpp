@@ -125,7 +125,7 @@ PostsFeed::PostsFeed(Sidechain::Stores::AppStore *store) : AppStoreComponent(sto
   // Initialize PostsSlice subscription
   postsSlice = Sidechain::Stores::Slices::AppSliceManager::getInstance().getPostsSlice();
   if (postsSlice) {
-    postsSlice->subscribe([this](const Sidechain::Stores::PostsState &state) {
+    postsSlice->subscribe([this](const Sidechain::Stores::PostsState & [[maybe_unused]] state) {
       juce::MessageManager::callAsync([this]() { handleFeedStateChanged(); });
     });
   }

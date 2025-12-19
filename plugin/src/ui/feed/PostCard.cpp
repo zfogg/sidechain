@@ -498,7 +498,7 @@ void PostCard::drawMetadataBadges(juce::Graphics &g, juce::Rectangle<int> bounds
   }
 }
 
-void PostCard::drawSocialButtons(juce::Graphics &g, juce::Rectangle<int> bounds) {
+void PostCard::drawSocialButtons(juce::Graphics &g, juce::Rectangle<int> [[maybe_unused]] bounds) {
   // bounds parameter defines the area where social buttons should be drawn
   // Like/Reaction button
   auto likeBounds = getLikeButtonBounds();
@@ -1055,7 +1055,7 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
                 return;
               Log::debug("PostCard: Like toggled successfully");
             },
-            [safeThis](std::exception_ptr error) {
+            [safeThis](std::exception_ptr [[maybe_unused]] error) {
               if (safeThis == nullptr)
                 return;
               Log::error("PostCard: Failed to toggle like");
@@ -1092,7 +1092,7 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
               return;
             Log::debug("PostCard: Post save toggled successfully");
           },
-          [safeThis](std::exception_ptr error) {
+          [safeThis](std::exception_ptr [[maybe_unused]] error) {
             if (safeThis == nullptr)
               return;
             Log::error("PostCard: Failed to toggle save");
@@ -1114,7 +1114,7 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
               return;
             Log::debug("PostCard: Post repost toggled successfully");
           },
-          [safeThis](std::exception_ptr error) {
+          [safeThis](std::exception_ptr [[maybe_unused]] error) {
             if (safeThis == nullptr)
               return;
             Log::error("PostCard: Failed to toggle repost");
@@ -1137,7 +1137,7 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
                   return;
                 Log::debug("PostCard: Post pin toggled successfully");
               },
-              [safeThis](std::exception_ptr error) {
+              [safeThis](std::exception_ptr [[maybe_unused]] error) {
                 if (safeThis == nullptr)
                   return;
                 Log::error("PostCard: Failed to toggle pin");
@@ -1160,7 +1160,7 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
                   return;
                 Log::debug("PostCard: Follow toggled successfully");
               },
-              [safeThis](std::exception_ptr error) {
+              [safeThis](std::exception_ptr [[maybe_unused]] error) {
                 if (safeThis == nullptr)
                   return;
                 Log::error("PostCard: Failed to toggle follow");
@@ -1500,7 +1500,7 @@ void PostCard::handleEmojiSelected(const juce::String &emoji) {
                 return;
               Log::debug("PostCard: Reaction added successfully");
             },
-            [safeThis](std::exception_ptr error) {
+            [safeThis](std::exception_ptr [[maybe_unused]] error) {
               if (safeThis == nullptr)
                 return;
               Log::error("PostCard: Failed to add reaction");

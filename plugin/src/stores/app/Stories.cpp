@@ -62,7 +62,7 @@ void AppStore::markStoryAsViewed(const juce::String &storyId) {
 
   Util::logInfo("AppStore", "Marking story as viewed: " + storyId);
 
-  networkClient->viewStory(storyId, [this](Outcome<juce::var> result) {
+  networkClient->viewStory(storyId, [](Outcome<juce::var> result) {
     if (!result.isOk()) {
       Util::logError("AppStore", "Failed to mark story as viewed: " + result.getError());
     }
@@ -127,7 +127,7 @@ void AppStore::createHighlight(const juce::String &name, const juce::Array<juce:
         // Add each story to the highlight
         for (const auto &storyId : storyIds) {
           networkClient->addStoryToHighlight(
-              highlightId, storyId, [this, storyId, highlightId](Outcome<juce::var> addResult) {
+              highlightId, storyId, [storyId, highlightId](Outcome<juce::var> addResult) {
                 if (addResult.isOk()) {
                   Util::logInfo("AppStore", "Added story " + storyId + " to highlight " + highlightId);
                 } else {

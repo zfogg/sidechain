@@ -36,7 +36,7 @@ namespace Sidechain::UI {
  */
 class SmoothScrollable : public juce::ScrollBar::Listener {
 public:
-  virtual ~SmoothScrollable() = default;
+  virtual ~SmoothScrollable() override = default;
 
   // ==============================================================================
   // Scroll state access
@@ -49,7 +49,7 @@ public:
 
   // ==============================================================================
   // Called by component's mouseWheelMove
-  void handleMouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel, int viewportHeight,
+  void handleMouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel, int [[maybe_unused]] viewportHeight,
                             int scrollBarWidth) {
     if (!scrollBar)
       return;
@@ -125,7 +125,7 @@ protected:
   // ==============================================================================
   // Helper to get scrollable area width (total width - scrollbar width)
   // Override in derived class to return juce::Component::getWidth - scrollBarWidth
-  virtual int getScrollableWidth(int scrollBarWidth) const {
+  virtual int getScrollableWidth(int [[maybe_unused]] scrollBarWidth) const {
     // Default implementation: override in derived classes that inherit from juce::Component
     // Example: return Component::getWidth - scrollBarWidth;
     return 1388; // Keep original default for backward compatibility

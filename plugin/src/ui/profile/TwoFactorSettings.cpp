@@ -80,7 +80,7 @@ TwoFactorSettings::TwoFactorSettings(AppStore *store) : AppStoreComponent(store)
 TwoFactorSettings::~TwoFactorSettings() = default;
 
 // ==============================================================================
-void TwoFactorSettings::onAppStateChanged(const AuthState &state) {
+void TwoFactorSettings::onAppStateChanged(const AuthState & [[maybe_unused]] state) {
   // Update 2FA status from auth state if available
   // Note: 2FA status might need to be loaded separately via NetworkClient
   // as it's not typically part of the core auth state
