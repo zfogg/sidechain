@@ -481,7 +481,11 @@ func (h *Handlers) GetEnrichedTimeline(c *gin.Context) {
 // First tries Gorse recommendations, then falls back to recent posts from database
 func (h *Handlers) getFallbackFeed(userID string, limit int) []map[string]interface{} {
 	// Get muted user IDs for filtering
-	mutedUserIDs, _ := GetMutedUserIDs(userID)
+	mutedUserIDs, err := GetMutedUserIDs(userID)
+	if err != nil {
+		logger.WarnWithFields("Failed to fetch muted users for "+userID+", feed may show muted content", err)
+		mutedUserIDs = []string{}  // Explicit empty list on error
+	}
 	mutedUserSet := make(map[string]bool, len(mutedUserIDs))
 	for _, id := range mutedUserIDs {
 		mutedUserSet[id] = true
