@@ -70,31 +70,15 @@ echo "→ Setting up deployment directory: $DEPLOYMENT_DIR"
 mkdir -p "$DEPLOYMENT_DIR"
 cd "$DEPLOYMENT_DIR"
 
-# Set up SSH directory and deploy key
+# Set up SSH directory (if needed for future use)
 echo "→ Setting up SSH directory..."
 mkdir -p /root/.ssh
 chmod 700 /root/.ssh
 
-if [ -n "$GITHUB_DEPLOY_KEY" ]; then
-    echo "→ Adding GitHub deploy key..."
-    echo "$GITHUB_DEPLOY_KEY" > /root/.ssh/github_deploy_key
-    chmod 600 /root/.ssh/github_deploy_key
-
-    # Configure git to use the deploy key
-    cat > /root/.ssh/config << 'SSHCONFIG'
-Host github.com
-    HostName github.com
-    User git
-    IdentityFile /root/.ssh/github_deploy_key
-    StrictHostKeyChecking=accept-new
-SSHCONFIG
-    chmod 600 /root/.ssh/config
-fi
-
-# Clone repository
+# Clone repository (using HTTPS for public repo)
 echo "→ Cloning repository..."
 if [ ! -d "$DEPLOYMENT_DIR/.git" ]; then
-    git clone git@github.com:zfogg/sidechain.git "$DEPLOYMENT_DIR"
+    git clone https://github.com/zfogg/sidechain.git "$DEPLOYMENT_DIR"
 else
     echo "  Repository already cloned"
 fi
