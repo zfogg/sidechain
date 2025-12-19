@@ -592,7 +592,6 @@ void StreamChatClient::connectWebSocket() {
   bool alreadyConnecting = wsConnectionActive.exchange(true);
   if (wsConnected.load() || alreadyConnecting) {
     Log::debug("StreamChatClient: WebSocket already connected or connecting");
-    wsConnectionActive.store(false);  // Reset if we're not actually connecting
     return;
   }
 
@@ -714,6 +713,7 @@ void StreamChatClient::cleanupWebSocket() {
 // WebSocket event handlers
 void StreamChatClient::onWsOpen(connection_hdl /* hdl */) {
   wsConnected.store(true);
+  wsConnectionActive.store(false);  // Connection attempt complete
   updateConnectionStatus(ConnectionStatus::Connected);
   Log::info("StreamChatClient: WebSocket connected to getstream.io");
 }
