@@ -889,7 +889,7 @@ func main() {
 			errors.PUT("/:error_id/resolve", errorTrackingHandler.ResolveError)
 		}
 
-		// Story routes (7.5) - with upload rate limiting for creation
+		// Story routes - with upload rate limiting for creation
 		stories := api.Group("/stories")
 		{
 			stories.Use(authHandlers.AuthMiddleware())

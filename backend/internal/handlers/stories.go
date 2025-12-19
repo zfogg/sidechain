@@ -579,7 +579,7 @@ func (h *Handlers) GetStory(c *gin.Context) {
 	})
 }
 
-// GetUserStories returns all active stories for a specific user (7.5.1.3.3)
+// GetUserStories returns all active stories for a specific user
 func (h *Handlers) GetUserStories(c *gin.Context) {
 	userID := c.Param("id")
 
@@ -749,7 +749,7 @@ func (h *Handlers) DownloadStory(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// GetStoryViews returns the list of users who viewed a story (7.5.1.4.2)
+// GetStoryViews returns the list of users who viewed a story
 func (h *Handlers) GetStoryViews(c *gin.Context) {
 	user, exists := c.Get("user")
 	if !exists {
