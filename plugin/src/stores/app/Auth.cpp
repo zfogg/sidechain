@@ -152,7 +152,7 @@ void AppStore::requestPasswordReset(const juce::String &email) {
 
   authSlice->dispatch([](AuthState &state) { state.isResettingPassword = true; });
 
-  networkClient->requestPasswordReset(email, [this, authSlice](Outcome<juce::var> result) {
+  networkClient->requestPasswordReset(email, [authSlice](Outcome<juce::var> result) {
     if (!result.isOk()) {
       authSlice->dispatch([error = result.getError()](AuthState &state) {
         state.isResettingPassword = false;
@@ -232,9 +232,43 @@ void AppStore::setAuthToken(const juce::String &token) {
 }
 
 void AppStore::refreshAuthToken() {
-  // TODO: Implement token refresh
-  sliceManager.getAuthSlice()->dispatch(
-      [](AuthState &state) { state.authError = "Token refresh not yet implemented"; });
+  auto authSlice = sliceManager.getAuthSlice();
+  auto currentAuth = authSlice->getState();
+
+  if (!networkClient) {
+    authSlice->dispatch([](AuthState &state) { state.authError = "Network client not initialized"; });
+    return;
+  }
+
+  if (currentAuth.authToken.isEmpty()) {
+    authSlice->dispatch([](AuthState &state) { state.authError = "No token to refresh"; });
+    return;
+  }
+
+  // Call backend to validate and potentially refresh the token
+  // The backend will either return the same token (still valid) or reject it (expired)
+  juce::String endpoint = juce::String(Constants::Endpoints::AUTH_ME);
+  networkClient->getAbsolute(endpoint, [this, authSlice](Outcome<juce::var> result) {
+    if (!result.isOk()) {
+      // Token is invalid or expired - user needs to log in again
+      authSlice->dispatch([error = result.getError()](AuthState &state) {
+        state.isLoggedIn = false;
+        state.authToken = "";
+        state.authError = "Session expired. Please log in again.";
+      });
+      Util::logInfo("AppStore", "Token refresh failed: " + result.getError());
+      return;
+    }
+
+    // Token is still valid, update last auth time to extend session
+    auto userData = result.getValue();
+    authSlice->dispatch([userData](AuthState &state) {
+      state.lastAuthTime = juce::Time::getCurrentTime().toMilliseconds();
+      state.authError = "";
+    });
+
+    Util::logInfo("AppStore", "Token refreshed successfully");
+  });
 }
 
 } // namespace Stores
