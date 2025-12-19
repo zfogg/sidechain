@@ -60,7 +60,7 @@ enum class FeedType {
 
 struct FeedState {
   // Store shared_ptr to posts - same memory shared across app, freed when all references drop (RAII)
-  std::vector<std::shared_ptr<FeedPost>> posts;
+  std::vector<std::shared_ptr<Sidechain::FeedPost>> posts;
   bool isLoading = false;
   bool isRefreshing = false;
   bool hasMore = true;
@@ -84,7 +84,7 @@ struct SavedPostsState {
 };
 
 struct ArchivedPostsState {
-  std::vector<std::shared_ptr<FeedPost>> posts;
+  std::vector<std::shared_ptr<Sidechain::FeedPost>> posts;
   bool isLoading = false;
   juce::String error;
   int totalCount = 0;
@@ -203,7 +203,7 @@ struct NotificationState {
 // ==============================================================================
 
 struct SearchResultsState {
-  std::vector<std::shared_ptr<FeedPost>> posts;
+  std::vector<std::shared_ptr<Sidechain::FeedPost>> posts;
   std::vector<std::shared_ptr<Sidechain::User>> users;
   juce::String searchQuery;
   juce::String currentGenre;
