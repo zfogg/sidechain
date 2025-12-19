@@ -16,9 +16,6 @@ func TestRateLimiter(t *testing.T) {
 	config := RateLimitConfig{
 		Limit:  3,
 		Window: time.Second,
-		KeyFunc: func(c *gin.Context) string {
-			return c.ClientIP()
-		},
 	}
 
 	limiter := NewRateLimiter(config)
@@ -59,9 +56,6 @@ func TestRateLimiterDifferentClients(t *testing.T) {
 	config := RateLimitConfig{
 		Limit:  2,
 		Window: time.Second,
-		KeyFunc: func(c *gin.Context) string {
-			return c.GetHeader("X-Client-ID")
-		},
 	}
 
 	limiter := NewRateLimiter(config)
@@ -72,10 +66,10 @@ func TestRateLimiterDifferentClients(t *testing.T) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
 
-	// Client A makes 2 requests (at limit)
+	// Client A (IP 1) makes 2 requests (at limit)
 	for i := 0; i < 2; i++ {
 		req := httptest.NewRequest("GET", "/test", nil)
-		req.Header.Set("X-Client-ID", "client-a")
+		req.RemoteAddr = "192.168.1.1:12345"
 		w := httptest.NewRecorder()
 		router.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -83,14 +77,14 @@ func TestRateLimiterDifferentClients(t *testing.T) {
 
 	// Client A is now rate limited
 	req := httptest.NewRequest("GET", "/test", nil)
-	req.Header.Set("X-Client-ID", "client-a")
+	req.RemoteAddr = "192.168.1.1:12345"
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusTooManyRequests, w.Code, "Client A should be rate limited")
 
-	// Client B should still work
+	// Client B (different IP) should still work
 	req = httptest.NewRequest("GET", "/test", nil)
-	req.Header.Set("X-Client-ID", "client-b")
+	req.RemoteAddr = "192.168.1.2:12345"
 	w = httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code, "Client B should not be rate limited")
@@ -101,7 +95,6 @@ func TestDefaultConfigs(t *testing.T) {
 	defaultConfig := DefaultRateLimitConfig()
 	assert.Equal(t, 100, defaultConfig.Limit)
 	assert.Equal(t, time.Minute, defaultConfig.Window)
-	assert.NotNil(t, defaultConfig.KeyFunc)
 
 	authConfig := AuthRateLimitConfig()
 	assert.Equal(t, 10, authConfig.Limit)

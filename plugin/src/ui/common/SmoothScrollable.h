@@ -49,8 +49,8 @@ public:
 
   // ==============================================================================
   // Called by component's mouseWheelMove
-  void handleMouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel, int [[maybe_unused]] viewportHeight,
-                            int scrollBarWidth) {
+  void handleMouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel,
+                            int [[maybe_unused]] viewportHeight, int scrollBarWidth) {
     if (!scrollBar)
       return;
 
@@ -125,7 +125,7 @@ protected:
   // ==============================================================================
   // Helper to get scrollable area width (total width - scrollbar width)
   // Override in derived class to return juce::Component::getWidth - scrollBarWidth
-  virtual int getScrollableWidth(int [[maybe_unused]] scrollBarWidth) const {
+  virtual int getScrollableWidth([[maybe_unused]] int scrollBarWidth) const {
     // Default implementation: override in derived classes that inherit from juce::Component
     // Example: return Component::getWidth - scrollBarWidth;
     return 1388; // Keep original default for backward compatibility

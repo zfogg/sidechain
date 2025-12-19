@@ -400,10 +400,16 @@ void SavedPosts::setupPostCardCallbacks(PostCard *card) {
               return;
             Log::debug("SavedPosts: Post unsaved successfully");
           },
-          [safeThis](std::exception_ptr [[maybe_unused]] error) {
+          [safeThis](std::exception_ptr error) {
             if (safeThis == nullptr)
               return;
-            Log::error("SavedPosts: Failed to unsave post");
+            try {
+              std::rethrow_exception(error);
+            } catch (const std::exception &e) {
+              Log::error("SavedPosts: Failed to unsave post - " + juce::String(e.what()));
+            } catch (...) {
+              Log::error("SavedPosts: Failed to unsave post - unknown error");
+            }
           });
     }
   };
@@ -421,7 +427,13 @@ void SavedPosts::setupPostCardCallbacks(PostCard *card) {
           [safeThis](std::exception_ptr error) {
             if (safeThis == nullptr)
               return;
-            Log::error("SavedPosts: Failed to toggle like");
+            try {
+              std::rethrow_exception(error);
+            } catch (const std::exception &e) {
+              Log::error("SavedPosts: Failed to toggle like - " + juce::String(e.what()));
+            } catch (...) {
+              Log::error("SavedPosts: Failed to toggle like - unknown error");
+            }
           });
     }
   };

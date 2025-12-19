@@ -146,7 +146,7 @@ void StoryHighlights::drawHighlight(juce::Graphics &g, const StoryHighlight &hig
     juce::Component::SafePointer<StoryHighlights> safeThis(this);
     appStore->loadImageObservable(highlight.coverImageUrl)
         .subscribe(
-            [safeThis](const juce::Image & [[maybe_unused]] image) {
+            [safeThis](const juce::Image &[[maybe_unused]] image) {
               if (safeThis == nullptr)
                 return;
               // Image loaded successfully (from any cache level or HTTP)
@@ -259,7 +259,8 @@ juce::Rectangle<int> StoryHighlights::getAddButtonBounds() const {
 }
 
 // ==============================================================================
-void StoryHighlights::loadCoverImage(const StoryHighlight & [[maybe_unused]] highlight) {
+void StoryHighlights::loadCoverImage([[maybe_unused]] const StoryHighlight &highlight) {
+  (void)highlight; // Not implemented yet
   // TODO: Load highlight cover image from URL
   // Image loading to be implemented
 }

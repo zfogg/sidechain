@@ -44,7 +44,7 @@ static inline juce::String feedTypeToString(FeedType feedType) {
 // ==============================================================================
 // Feed Loading
 
-void AppStore::loadFeed(FeedType feedType, bool [[maybe_unused]] forceRefresh) {
+void AppStore::loadFeed(FeedType feedType, [[maybe_unused]] bool forceRefresh) {
   if (!networkClient) {
     sliceManager.getPostsSlice()->dispatch([feedType](PostsState &state) {
       state.currentFeedType = feedType;
@@ -363,7 +363,7 @@ void AppStore::toggleSave(const juce::String &postId) {
       }
     });
   } else {
-    networkClient->savePost(postId, [this](Outcome<juce::var> result) {
+    networkClient->savePost(postId, [](Outcome<juce::var> result) {
       if (!result.isOk()) {
         Util::logError("AppStore", "Failed to save post: " + result.getError());
       } else {
@@ -533,7 +533,7 @@ void AppStore::toggleMute(const juce::String &userId, bool willMute) {
   }
 
   if (willMute) {
-    networkClient->muteUser(userId, [this](Outcome<juce::var> result) {
+    networkClient->muteUser(userId, [](Outcome<juce::var> result) {
       if (!result.isOk()) {
         Util::logError("AppStore", "Failed to mute user: " + result.getError());
       } else {

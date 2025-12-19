@@ -282,4 +282,32 @@ void shutdown() {
   initialized = false;
 }
 
+void logException(std::exception_ptr error, const juce::String &context) {
+  logException(error, context, "");
+}
+
+void logException(std::exception_ptr error, const juce::String &context, const juce::String &action) {
+  if (!error) {
+    return;
+  }
+
+  try {
+    std::rethrow_exception(error);
+  } catch (const std::exception &e) {
+    juce::String message = context;
+    if (!action.isEmpty()) {
+      message += ": " + action;
+    }
+    message += " - " + juce::String(e.what());
+    error(message);
+  } catch (...) {
+    juce::String message = context;
+    if (!action.isEmpty()) {
+      message += ": " + action;
+    }
+    message += " - unknown error";
+    error(message);
+  }
+}
+
 } // namespace Log

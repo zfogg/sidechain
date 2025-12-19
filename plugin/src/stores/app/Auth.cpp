@@ -155,17 +155,17 @@ void AppStore::requestPasswordReset(const juce::String &email) {
   authSlice->dispatch([](AuthState &state) { state.isResettingPassword = true; });
 
   networkClient->requestPasswordReset(email, [this](Outcome<juce::var> result) {
-    auto authSlice = sliceManager.getAuthSlice();
+    auto authSlicePtrPtr = sliceManager.getAuthSlice();
 
     if (!result.isOk()) {
-      authSlice->dispatch([error = result.getError()](AuthState &state) {
+      authSlicePtr->dispatch([error = result.getError()](AuthState &state) {
         state.isResettingPassword = false;
         state.authError = error;
       });
       return;
     }
 
-    authSlice->dispatch([](AuthState &state) {
+    authSlicePtr->dispatch([](AuthState &state) {
       state.isResettingPassword = false;
       state.authError = "";
     });
@@ -185,17 +185,17 @@ void AppStore::resetPassword(const juce::String &token, const juce::String &newP
   authSlice->dispatch([](AuthState &state) { state.isResettingPassword = true; });
 
   networkClient->resetPassword(token, newPassword, [this](Outcome<juce::var> result) {
-    auto authSlice = sliceManager.getAuthSlice();
+    auto authSlicePtr = sliceManager.getAuthSlice();
 
     if (!result.isOk()) {
-      authSlice->dispatch([error = result.getError()](AuthState &state) {
+      authSlicePtr->dispatch([error = result.getError()](AuthState &state) {
         state.isResettingPassword = false;
         state.authError = error;
       });
       return;
     }
 
-    authSlice->dispatch([](AuthState &state) {
+    authSlicePtr->dispatch([](AuthState &state) {
       state.isResettingPassword = false;
       state.authError = "";
     });
@@ -226,7 +226,7 @@ void AppStore::logout() {
   });
 }
 
-void AppStore::oauthCallback(const juce::String & [[maybe_unused]] provider, const juce::String & [[maybe_unused]] code) {
+void AppStore::oauthCallback(const juce::String &[[maybe_unused]] provider, const juce::String &[[maybe_unused]] code) {
   // TODO: Implement OAuth flow
   sliceManager.getAuthSlice()->dispatch([](AuthState &state) { state.authError = "OAuth not yet implemented"; });
 }

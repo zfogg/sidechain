@@ -79,13 +79,13 @@ func main() {
 
 	// Create Stream.io activity for the post
 	activity := &stream.Activity{
-		Object:      post.ID,
-		AudioURL:    post.AudioURL,
-		WaveformURL: post.WaveformURL,
-		BPM:         post.BPM,
-		Key:         post.Key,
-		DAW:         post.DAW,
-		Genre:       []string(post.Genre),
+		Object:       post.ID,
+		AudioURL:     post.AudioURL,
+		WaveformURL:  post.WaveformURL,
+		BPM:          post.BPM,
+		Key:          post.Key,
+		DAW:          post.DAW,
+		Genre:        []string(post.Genre),
 		DurationBars: post.DurationBars,
 	}
 	if err := streamClient.CreateLoopActivity(bob.ID, activity); err != nil {

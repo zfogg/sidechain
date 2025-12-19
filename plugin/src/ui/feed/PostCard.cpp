@@ -498,7 +498,7 @@ void PostCard::drawMetadataBadges(juce::Graphics &g, juce::Rectangle<int> bounds
   }
 }
 
-void PostCard::drawSocialButtons(juce::Graphics &g, juce::Rectangle<int> [[maybe_unused]] bounds) {
+void PostCard::drawSocialButtons(juce::Graphics &g, [[maybe_unused]] juce::Rectangle<int> bounds) {
   // bounds parameter defines the area where social buttons should be drawn
   // Like/Reaction button
   auto likeBounds = getLikeButtonBounds();
@@ -1055,10 +1055,16 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
                 return;
               Log::debug("PostCard: Like toggled successfully");
             },
-            [safeThis](std::exception_ptr [[maybe_unused]] error) {
+            [safeThis](std::exception_ptr error) {
               if (safeThis == nullptr)
                 return;
-              Log::error("PostCard: Failed to toggle like");
+              try {
+                std::rethrow_exception(error);
+              } catch (const std::exception &e) {
+                Log::error("PostCard: Failed to toggle like - " + juce::String(e.what()));
+              } catch (...) {
+                Log::error("PostCard: Failed to toggle like - unknown error");
+              }
             });
       } else if (onLikeToggled) {
         // Fallback for when AppStore is not set
@@ -1092,10 +1098,16 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
               return;
             Log::debug("PostCard: Post save toggled successfully");
           },
-          [safeThis](std::exception_ptr [[maybe_unused]] error) {
+          [safeThis](std::exception_ptr error) {
             if (safeThis == nullptr)
               return;
-            Log::error("PostCard: Failed to toggle save");
+            try {
+              std::rethrow_exception(error);
+            } catch (const std::exception &e) {
+              Log::error("PostCard: Failed to toggle save - " + juce::String(e.what()));
+            } catch (...) {
+              Log::error("PostCard: Failed to toggle save - unknown error");
+            }
           });
     } else if (onSaveToggled) {
       // Fallback for when AppStore is not set
@@ -1114,10 +1126,16 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
               return;
             Log::debug("PostCard: Post repost toggled successfully");
           },
-          [safeThis](std::exception_ptr [[maybe_unused]] error) {
+          [safeThis](std::exception_ptr error) {
             if (safeThis == nullptr)
               return;
-            Log::error("PostCard: Failed to toggle repost");
+            try {
+              std::rethrow_exception(error);
+            } catch (const std::exception &e) {
+              Log::error("PostCard: Failed to toggle repost - " + juce::String(e.what()));
+            } catch (...) {
+              Log::error("PostCard: Failed to toggle repost - unknown error");
+            }
           });
     } else if (onRepostClicked) {
       // Fallback for when AppStore is not set
@@ -1137,10 +1155,16 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
                   return;
                 Log::debug("PostCard: Post pin toggled successfully");
               },
-              [safeThis](std::exception_ptr [[maybe_unused]] error) {
+              [safeThis](std::exception_ptr error) {
                 if (safeThis == nullptr)
                   return;
-                Log::error("PostCard: Failed to toggle pin");
+                try {
+                  std::rethrow_exception(error);
+                } catch (const std::exception &e) {
+                  Log::error("PostCard: Failed to toggle pin - " + juce::String(e.what()));
+                } catch (...) {
+                  Log::error("PostCard: Failed to toggle pin - unknown error");
+                }
               });
     } else if (onPinToggled) {
       // Fallback for when AppStore is not set
@@ -1160,10 +1184,16 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
                   return;
                 Log::debug("PostCard: Follow toggled successfully");
               },
-              [safeThis](std::exception_ptr [[maybe_unused]] error) {
+              [safeThis](std::exception_ptr error) {
                 if (safeThis == nullptr)
                   return;
-                Log::error("PostCard: Failed to toggle follow");
+                try {
+                  std::rethrow_exception(error);
+                } catch (const std::exception &e) {
+                  Log::error("PostCard: Failed to toggle follow - " + juce::String(e.what()));
+                } catch (...) {
+                  Log::error("PostCard: Failed to toggle follow - unknown error");
+                }
               });
     } else if (onFollowToggled) {
       // Fallback for when AppStore is not set
@@ -1500,10 +1530,16 @@ void PostCard::handleEmojiSelected(const juce::String &emoji) {
                 return;
               Log::debug("PostCard: Reaction added successfully");
             },
-            [safeThis](std::exception_ptr [[maybe_unused]] error) {
+            [safeThis](std::exception_ptr error) {
               if (safeThis == nullptr)
                 return;
-              Log::error("PostCard: Failed to add reaction");
+              try {
+                std::rethrow_exception(error);
+              } catch (const std::exception &e) {
+                Log::error("PostCard: Failed to add reaction - " + juce::String(e.what()));
+              } catch (...) {
+                Log::error("PostCard: Failed to add reaction - unknown error");
+              }
             });
   } else if (onEmojiReaction) {
     // Fallback for when AppStore is not set

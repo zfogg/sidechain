@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zfogg/sidechain/backend/internal/util"
 )
 
 // =============================================================================
@@ -36,7 +37,7 @@ func TestIsValidAudioFile(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.filename, func(t *testing.T) {
-			result := isValidAudioFile(tc.filename)
+			result := util.IsValidAudioFile(tc.filename)
 			assert.Equal(t, tc.expected, result, "Expected %v for %s", tc.expected, tc.filename)
 		})
 	}
@@ -57,7 +58,7 @@ func TestParseInt(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.input, func(t *testing.T) {
-			result := parseInt(tc.input, tc.defaultValue)
+			result := util.ParseInt(tc.input, tc.defaultValue)
 			assert.Equal(t, tc.expected, result)
 		})
 	}
@@ -77,7 +78,7 @@ func TestParseFloat(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.input, func(t *testing.T) {
-			result := parseFloat(tc.input, tc.defaultValue)
+			result := util.ParseFloat(tc.input, tc.defaultValue)
 			assert.Equal(t, tc.expected, result)
 		})
 	}
@@ -95,7 +96,7 @@ func TestParseGenreArray(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.input, func(t *testing.T) {
-			result := parseGenreArray(tc.input)
+			result := util.ParseGenreArray(tc.input)
 			assert.Equal(t, tc.expected, result)
 		})
 	}

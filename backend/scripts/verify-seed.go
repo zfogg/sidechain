@@ -36,7 +36,6 @@ func main() {
 	database.DB.Table("hashtags").Count(&hashtagCount)
 	database.DB.Table("play_histories").Count(&playHistoryCount)
 	// Device model doesn't exist - skip device count
-	deviceCount = 0
 
 	fmt.Println("📊 Record Counts:")
 	fmt.Printf("  Users:        %d\n", userCount)
@@ -44,7 +43,6 @@ func main() {
 	fmt.Printf("  Comments:     %d\n", commentCount)
 	fmt.Printf("  Hashtags:     %d\n", hashtagCount)
 	fmt.Printf("  Play History: %d\n", playHistoryCount)
-	fmt.Printf("  Devices:      %d\n", deviceCount)
 	fmt.Println()
 
 	// Sample data

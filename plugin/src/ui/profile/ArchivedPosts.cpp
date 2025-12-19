@@ -410,10 +410,16 @@ void ArchivedPosts::setupPostCardCallbacks(PostCard *card) {
               return;
             Log::debug("ArchivedPosts: Like toggled successfully");
           },
-          [safeThis](std::exception_ptr [[maybe_unused]] error) {
+          [safeThis](std::exception_ptr error) {
             if (safeThis == nullptr)
               return;
-            Log::error("ArchivedPosts: Failed to toggle like");
+            try {
+              std::rethrow_exception(error);
+            } catch (const std::exception &e) {
+              Log::error("ArchivedPosts: Failed to toggle like - " + juce::String(e.what()));
+            } catch (...) {
+              Log::error("ArchivedPosts: Failed to toggle like - unknown error");
+            }
           });
     }
   };

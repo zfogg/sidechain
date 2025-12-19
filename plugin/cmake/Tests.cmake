@@ -37,9 +37,6 @@ if(SIDECHAIN_BUILD_TESTS)
         # KeyDetector is needed by NetworkClient
         ${CMAKE_CURRENT_SOURCE_DIR}/src/audio/KeyDetector.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/audio/KeyDetector.h
-        # Stores for tests
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/stores/ImageCache.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/stores/ImageCache.h
     )
 
     # SidechainTestLib needs access to Sidechain's generated JuceHeader.h

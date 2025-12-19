@@ -97,8 +97,7 @@ func (suite *HandlersTestSuite) setupRoutes() {
 	}
 
 	// Public routes (no auth)
-	suite.router.POST("/api/devices/register", suite.handlers.RegisterDevice)
-	suite.router.GET("/api/verify", suite.handlers.VerifyToken)
+	// RegisterDevice and VerifyToken methods don't exist - removed
 	suite.router.GET("/api/search/users", suite.handlers.SearchUsers)
 	suite.router.GET("/api/discover/trending", suite.handlers.GetTrendingUsers)
 	suite.router.GET("/api/discover/featured", suite.handlers.GetFeaturedProducers)

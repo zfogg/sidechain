@@ -1,0 +1,797 @@
+🔄 Configuring CMake build for linux (Debug)...
+✅ Using Ninja generator (faster parallel builds)
+-- Using Ninja generator for faster parallel builds
+-- Found ccache: /usr/bin/ccache
+-- Enabling ccache for faster incremental builds
+-- Sidechain version: 0.0.2
+-- The CXX compiler identification is Clang 21.1.6
+-- The C compiler identification is Clang 21.1.6
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/lib/ccache/bin/clang++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/lib/ccache/bin/clang - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Performing Test CXX_FLAG_SUPPORTED_-Wno-implicit-int-float-conversion
+-- Performing Test CXX_FLAG_SUPPORTED_-Wno-implicit-int-float-conversion - Success
+-- Performing Test CXX_FLAG_SUPPORTED_-Wno-nullable-to-nonnull-conversion
+-- Performing Test CXX_FLAG_SUPPORTED_-Wno-nullable-to-nonnull-conversion - Success
+-- Performing Test CXX_FLAG_SUPPORTED_-Wno-missing-designated-field-initializers
+-- Performing Test CXX_FLAG_SUPPORTED_-Wno-missing-designated-field-initializers - Success
+-- Performing Test CXX_FLAG_SUPPORTED_-Wno-implicit-int-conversion-on-negation
+-- Performing Test CXX_FLAG_SUPPORTED_-Wno-implicit-int-conversion-on-negation - Success
+-- Performing Test CXX_FLAG_SUPPORTED_-Wno-virtual-in-final
+-- Performing Test CXX_FLAG_SUPPORTED_-Wno-virtual-in-final - Failed
+-- Using LLD linker for faster link times: /usr/local/bin/ld.lld
+-- Dependencies cache: /home/zfogg/src/github.com/zfogg/sidechain/plugin/../.cache/cmake/Debug
+-- Found PkgConfig: /usr/bin/pkg-config (found version "2.5.1")
+-- Checking for module 'alsa'
+--   Found alsa, version 1.2.14
+-- Checking for modules 'freetype2;fontconfig'
+--   Found freetype2, version 26.4.20
+--   Found fontconfig, version 2.17.1
+-- Checking for module 'gl'
+--   Found gl, version 1.2
+-- Checking for module 'libcurl'
+--   Found libcurl, version 8.17.0
+-- Checking for modules 'webkit2gtk-4.1;gtk+-x11-3.0'
+--   Found webkit2gtk-4.1, version 2.50.3
+--   Found gtk+-x11-3.0, version 3.24.51
+-- Configuring juceaide
+-- Building juceaide
+-- Exporting juceaide
+-- Testing juceaide
+-- Finished setting up juceaide
+-- FFTW3 found - Key detection enabled
+-- Using pre-built libkeyfinder from cache: /home/zfogg/src/github.com/zfogg/sidechain/plugin/../.cache/cmake/Debug/libkeyfinder/libkeyfinder.a
+-- ASIO found at: /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/asio
+-- ASIO will be available as an interface library (standalone mode)
+-- websocketpp found at: /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/websocketpp
+-- websocketpp will use standalone ASIO backend
+-- OpenSSL found - TLS support enabled for websocketpp
+-- websocketpp will be available as an interface library
+-- RxCpp found at: /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/RxCpp
+-- RxCpp will be available as an interface library (header-only)
+-- stduuid found at: /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/uuid
+-- stduuid will be available as an interface library (header-only)
+-- ========================================
+--   Plugin Installation Paths
+--   VST3: /usr/local/lib/vst3
+-- Detected 16 CPU cores available for parallel builds
+-- Found clang-tidy: /usr/local/bin/clang-tidy
+-- Found clang-format: /usr/local/bin/clang-format
+-- Standalone app will be built
+-- Checking for module 'gtk+-3.0'
+--   Found gtk+-3.0, version 3.24.51
+-- Checking for module 'webkit2gtk-4.1'
+--   Found webkit2gtk-4.1, version 2.50.3
+-- Checking for module 'libcurl'
+--   Found libcurl, version 8.17.0
+-- Found libnotify - using for desktop notifications
+-- Found D-Bus - using for secure storage (Secret Service)
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE
+-- Standalone app will be configured to use microphone input by default
+-- Found CURL: /usr/lib/libcurl.so (found version "8.17.0")
+-- Sidechain will link with websocketpp for WebSocket support
+-- Documentation build disabled (enable with -DSIDECHAIN_BUILD_DOCS=ON)
+-- Configuring done (3.0s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/zfogg/src/github.com/zfogg/sidechain/plugin/build
+✅ CMake configuration complete
+✅ Linked compile_commands.json to project root
+🔄 Building VST plugin for linux (Debug)...
+[0/2] Re-checking globbed directories...
+ninja: Jobserver mode detected:  -j16 --jobserver-auth=fifo:/tmp/GMfifo1427766
+[1/489] Generating SidechainJuceHeaderHelper_artefacts/JuceLibraryCode/JuceHeader.h
+[2/489] Building CXX object src/core/CMakeFiles/juce_vst3_helper.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_plugin_client/VST3/juce_VST3ManifestHelper.cpp.o
+[3/489] Building CXX object CMakeFiles/SidechainJuceHeaderHelper.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_core/juce_core_CompilationTime.cpp.o
+[4/489] Building CXX object CMakeFiles/SidechainJuceHeaderHelper.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_processors/juce_audio_processors_lv2_libs.cpp.o
+[5/489] Building C object CMakeFiles/SidechainJuceHeaderHelper.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics_Sheenbidi.c.o
+[6/489] Building CXX object CMakeFiles/SidechainJuceHeaderHelper.dir/cmake/JuceHeaderHelper.cpp.o
+[7/489] Building CXX object CMakeFiles/SidechainJuceHeaderHelper.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_processors/juce_audio_processors_ara.cpp.o
+[8/489] Building CXX object CMakeFiles/SidechainJuceHeaderHelper.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_basics/juce_audio_basics.cpp.o
+[9/489] Building CXX object CMakeFiles/SidechainJuceHeaderHelper.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_devices/juce_audio_devices.cpp.o
+[10/489] Building CXX object CMakeFiles/SidechainJuceHeaderHelper.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_events/juce_events.cpp.o
+[11/489] Building CXX object CMakeFiles/SidechainJuceHeaderHelper.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_core/juce_core.cpp.o
+[12/489] Building CXX object CMakeFiles/SidechainJuceHeaderHelper.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_data_structures/juce_data_structures.cpp.o
+[13/489] Building CXX object CMakeFiles/SidechainJuceHeaderHelper.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_formats/juce_audio_formats.cpp.o
+[14/489] Building CXX object CMakeFiles/SidechainJuceHeaderHelper.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_cryptography/juce_cryptography.cpp.o
+[15/489] Building CXX object CMakeFiles/SidechainJuceHeaderHelper.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_processors/juce_audio_processors.cpp.o
+[16/489] Building CXX object CMakeFiles/SidechainJuceHeaderHelper.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_utils/juce_audio_utils.cpp.o
+[17/489] Building CXX object CMakeFiles/SidechainJuceHeaderHelper.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.cpp.o
+[18/489] Building CXX object CMakeFiles/SidechainJuceHeaderHelper.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_gui_extra/juce_gui_extra.cpp.o
+[19/489] Building CXX object CMakeFiles/SidechainJuceHeaderHelper.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_dsp/juce_dsp.cpp.o
+[20/489] Building CXX object CMakeFiles/SidechainJuceHeaderHelper.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_gui_basics/juce_gui_basics.cpp.o
+[21/489] Linking CXX executable src/core/juce_vst3_helper
+[22/489] Building CXX object CMakeFiles/SidechainJuceHeaderHelper.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics_Harfbuzz.cpp.o
+[23/489] Linking CXX executable SidechainJuceHeaderHelper_artefacts/Debug/SidechainJuceHeaderHelper
+[24/489] Building CXX object src/network/CMakeFiles/SidechainNetwork.dir/api/AudioClient.cpp.o
+[25/489] Building CXX object src/network/CMakeFiles/SidechainNetwork.dir/api/UploadDownloadClient.cpp.o
+[26/489] Building CXX object src/network/CMakeFiles/SidechainNetwork.dir/api/NotificationClient.cpp.o
+[27/489] Building CXX object src/network/CMakeFiles/SidechainNetwork.dir/api/AuthClient.cpp.o
+[28/489] Building CXX object src/network/CMakeFiles/SidechainNetwork.dir/api/ChallengesClient.cpp.o
+[29/489] Building CXX object src/network/CMakeFiles/SidechainNetwork.dir/api/SocialClient.cpp.o
+[30/489] Building CXX object src/network/CMakeFiles/SidechainNetwork.dir/api/StoriesClient.cpp.o
+[31/489] Building CXX object src/network/CMakeFiles/SidechainNetwork.dir/NetworkClient.cpp.o
+[32/489] Building CXX object src/network/CMakeFiles/SidechainNetwork.dir/WebSocketClient.cpp.o
+[33/489] Building CXX object src/network/CMakeFiles/SidechainNetwork.dir/api/CommentsClient.cpp.o
+[34/489] Building CXX object src/network/CMakeFiles/SidechainNetwork.dir/api/DiscoveryClient.cpp.o
+[35/489] Building CXX object src/network/CMakeFiles/SidechainNetwork.dir/api/SearchClient.cpp.o
+[36/489] Building CXX object src/network/CMakeFiles/SidechainNetwork.dir/StreamChatClient.cpp.o
+[37/489] Building CXX object src/network/CMakeFiles/SidechainNetwork.dir/api/PlaylistClient.cpp.o
+[38/489] Building CXX object src/network/CMakeFiles/SidechainNetwork.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_core/juce_core_CompilationTime.cpp.o
+[39/489] Building CXX object src/network/CMakeFiles/SidechainNetwork.dir/api/FeedClient.cpp.o
+[40/489] Building CXX object src/network/CMakeFiles/SidechainNetwork.dir/api/ProfileClient.cpp.o
+[41/489] Building CXX object src/network/CMakeFiles/SidechainNetwork.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_cryptography/juce_cryptography.cpp.o
+[42/489] Building CXX object src/network/CMakeFiles/SidechainNetwork.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_events/juce_events.cpp.o
+[43/489] Building C object src/network/CMakeFiles/SidechainNetwork.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics_Sheenbidi.c.o
+[44/489] Building CXX object src/network/CMakeFiles/SidechainNetwork.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_data_structures/juce_data_structures.cpp.o
+[45/489] Building CXX object src/network/CMakeFiles/SidechainNetwork.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_core/juce_core.cpp.o
+[46/489] Building CXX object src/network/CMakeFiles/SidechainNetwork.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_basics/juce_audio_basics.cpp.o
+[47/489] Building CXX object src/util/CMakeFiles/SidechainUtil.dir/TaskScheduler.cpp.o
+[48/489] Building CXX object src/util/CMakeFiles/SidechainUtil.dir/Time.cpp.o
+[49/489] Building CXX object src/util/CMakeFiles/SidechainUtil.dir/Log.cpp.o
+[50/489] Building CXX object src/network/CMakeFiles/SidechainNetwork.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_formats/juce_audio_formats.cpp.o
+[51/489] Building CXX object src/util/CMakeFiles/SidechainUtil.dir/Json.cpp.o
+[52/489] Building CXX object src/network/CMakeFiles/SidechainNetwork.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.cpp.o
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.cpp:50:
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.h:142:
+/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/detail/juce_SimpleShapedText.h:275:64: warning: implicit conversion loses integer precision: 'int' to 'int8_t' (aka 'signed char') on negation [-Wimplicit-int-conversion-on-negation]
+  275 |     int8_t getNumTrailingLigaturePlaceholders() const { return -distanceFromLigature; }
+      |                                                         ~~~~~~ ^~~~~~~~~~~~~~~~~~~~~
+1 warning generated.
+[53/489] Building CXX object src/util/CMakeFiles/SidechainUtil.dir/Image.cpp.o
+[54/489] Building CXX object src/util/CMakeFiles/SidechainUtil.dir/Validate.cpp.o
+[55/489] Building CXX object src/util/CMakeFiles/SidechainUtil.dir/UIHelpers.cpp.o
+[56/489] Building CXX object src/util/CMakeFiles/SidechainUtil.dir/StringFormatter.cpp.o
+[57/489] Building CXX object src/util/CMakeFiles/SidechainUtil.dir/TextEditorStyler.cpp.o
+[58/489] Building CXX object src/util/CMakeFiles/SidechainUtil.dir/Async.cpp.o
+[59/489] Building CXX object src/util/CMakeFiles/SidechainUtil.dir/DAWProjectFolder.cpp.o
+[60/489] Building CXX object src/util/CMakeFiles/SidechainUtil.dir/WaveformGenerator.cpp.o
+[61/489] Building CXX object src/util/CMakeFiles/SidechainUtil.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_core/juce_core_CompilationTime.cpp.o
+[62/489] Building CXX object src/util/CMakeFiles/SidechainUtil.dir/OSNotification.cpp.o
+[63/489] Building CXX object src/util/CMakeFiles/SidechainUtil.dir/cache/FileCache.cpp.o
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/plugin/src/util/cache/FileCache.cpp:1:
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/util/cache/FileCache.h:247:37: warning: implicit conversion from 'int64_t' (aka 'long') to 'double' may lose precision [-Wimplicit-int-float-conversion]
+  247 |       evictLRU(static_cast<int64_t>(maxSize * 0.8));
+      |                                     ^~~~~~~ ~
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/util/cache/FileCache.cpp:9:16: note: in instantiation of member function 'FileCache<juce::String>::cacheFile' requested here
+    9 | template class FileCache<juce::String>;
+      |                ^
+1 warning generated.
+[64/489] Building CXX object src/util/CMakeFiles/SidechainUtil.dir/cache/ImageCache.cpp.o
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/plugin/src/util/cache/ImageCache.cpp:1:
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/plugin/src/util/cache/ImageCache.h:3:
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/util/cache/FileCache.h:247:37: warning: implicit conversion from 'int64_t' (aka 'long') to 'double' may lose precision [-Wimplicit-int-float-conversion]
+  247 |       evictLRU(static_cast<int64_t>(maxSize * 0.8));
+      |                                     ^~~~~~~ ~
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/util/cache/ImageCache.cpp:79:31: note: in instantiation of member function 'FileCache<juce::String>::cacheFile' requested here
+   79 |   auto cachedFile = fileCache.cacheFile(url, tempFile);
+      |                               ^
+1 warning generated.
+[65/489] Building CXX object src/util/CMakeFiles/SidechainUtil.dir/cache/AudioCache.cpp.o
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/plugin/src/util/cache/AudioCache.cpp:1:
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/plugin/src/util/cache/AudioCache.h:3:
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/util/cache/FileCache.h:247:37: warning: implicit conversion from 'int64_t' (aka 'long') to 'double' may lose precision [-Wimplicit-int-float-conversion]
+  247 |       evictLRU(static_cast<int64_t>(maxSize * 0.8));
+      |                                     ^~~~~~~ ~
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/util/cache/AudioCache.cpp:22:31: note: in instantiation of member function 'FileCache<juce::String>::cacheFile' requested here
+   22 |   auto cachedFile = fileCache.cacheFile(url, sourceFile);
+      |                               ^
+1 warning generated.
+[66/489] Building CXX object src/util/CMakeFiles/SidechainUtil.dir/cache/DraftCache.cpp.o
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/plugin/src/util/cache/DraftCache.cpp:1:
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/plugin/src/util/cache/DraftCache.h:3:
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/util/cache/FileCache.h:247:37: warning: implicit conversion from 'int64_t' (aka 'long') to 'double' may lose precision [-Wimplicit-int-float-conversion]
+  247 |       evictLRU(static_cast<int64_t>(maxSize * 0.8));
+      |                                     ^~~~~~~ ~
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/util/cache/DraftCache.cpp:10:20: note: in instantiation of member function 'FileCache<DraftKey>::cacheFile' requested here
+   10 |   return fileCache.cacheFile(key, sourceFile);
+      |                    ^
+1 warning generated.
+[67/489] Building CXX object src/network/CMakeFiles/SidechainNetwork.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_gui_basics/juce_gui_basics.cpp.o
+[68/489] Building CXX object src/util/CMakeFiles/SidechainUtil.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_data_structures/juce_data_structures.cpp.o
+[69/489] Building CXX object src/util/CMakeFiles/SidechainUtil.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_events/juce_events.cpp.o
+[70/489] Building C object src/util/CMakeFiles/SidechainUtil.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics_Sheenbidi.c.o
+[71/489] Building CXX object src/util/CMakeFiles/SidechainUtil.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_core/juce_core.cpp.o
+[72/489] Building CXX object src/util/CMakeFiles/SidechainUtil.dir/error/ErrorTracking.cpp.o
+[73/489] Building CXX object src/util/CMakeFiles/SidechainUtil.dir/PresenceManager.cpp.o
+[74/489] Building CXX object src/util/CMakeFiles/SidechainUtil.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_cryptography/juce_cryptography.cpp.o
+[75/489] Building CXX object src/models/CMakeFiles/SidechainModels.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_core/juce_core_CompilationTime.cpp.o
+[76/489] Building CXX object src/util/CMakeFiles/SidechainUtil.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_basics/juce_audio_basics.cpp.o
+[77/489] Building CXX object src/util/CMakeFiles/SidechainUtil.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.cpp.o
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.cpp:50:
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.h:142:
+/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/detail/juce_SimpleShapedText.h:275:64: warning: implicit conversion loses integer precision: 'int' to 'int8_t' (aka 'signed char') on negation [-Wimplicit-int-conversion-on-negation]
+  275 |     int8_t getNumTrailingLigaturePlaceholders() const { return -distanceFromLigature; }
+      |                                                         ~~~~~~ ^~~~~~~~~~~~~~~~~~~~~
+1 warning generated.
+[78/489] Building CXX object src/models/CMakeFiles/SidechainModels.dir/FeedPost.cpp.o
+[79/489] Building CXX object src/models/CMakeFiles/SidechainModels.dir/Story.cpp.o
+[80/489] Building CXX object src/models/CMakeFiles/SidechainModels.dir/Playlist.cpp.o
+[81/489] Building CXX object src/util/CMakeFiles/SidechainUtil.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_formats/juce_audio_formats.cpp.o
+[82/489] Building CXX object src/models/CMakeFiles/SidechainModels.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_cryptography/juce_cryptography.cpp.o
+[83/489] Building CXX object src/models/CMakeFiles/SidechainModels.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_data_structures/juce_data_structures.cpp.o
+[84/489] Building CXX object src/models/CMakeFiles/SidechainModels.dir/MidiChallenge.cpp.o
+[85/489] Building CXX object src/models/CMakeFiles/SidechainModels.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_events/juce_events.cpp.o
+[86/489] Building CXX object src/models/CMakeFiles/SidechainModels.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_core/juce_core.cpp.o
+[87/489] Building C object src/models/CMakeFiles/SidechainModels.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics_Sheenbidi.c.o
+[88/489] Building CXX object src/models/CMakeFiles/SidechainModels.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.cpp.o
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.cpp:50:
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.h:142:
+/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/detail/juce_SimpleShapedText.h:275:64: warning: implicit conversion loses integer precision: 'int' to 'int8_t' (aka 'signed char') on negation [-Wimplicit-int-conversion-on-negation]
+  275 |     int8_t getNumTrailingLigaturePlaceholders() const { return -distanceFromLigature; }
+      |                                                         ~~~~~~ ^~~~~~~~~~~~~~~~~~~~~
+1 warning generated.
+[89/489] Building CXX object src/stores/CMakeFiles/SidechainStores.dir/app/Base.cpp.o
+[90/489] Building CXX object src/models/CMakeFiles/SidechainModels.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_formats/juce_audio_formats.cpp.o
+[91/489] Building CXX object src/models/CMakeFiles/SidechainModels.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_basics/juce_audio_basics.cpp.o
+[92/489] Building CXX object src/stores/CMakeFiles/SidechainStores.dir/app/Service.cpp.o
+[93/489] Building CXX object src/util/CMakeFiles/SidechainUtil.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_gui_basics/juce_gui_basics.cpp.o
+[94/489] Building CXX object src/stores/CMakeFiles/SidechainStores.dir/app/Chat.cpp.o
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Chat.cpp:112:18: warning: declaration shadows a local variable [-Wshadow-uncaptured-local]
+  112 |             auto channelIt = state.channels.find(channelId);
+      |                  ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Chat.cpp:67:8: note: previous declaration is here
+   67 |   auto channelIt = chatState.channels.find(channelId);
+      |        ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Chat.cpp:127:16: warning: declaration shadows a local variable [-Wshadow-uncaptured-local]
+  127 |           auto channelIt = state.channels.find(channelId);
+      |                ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Chat.cpp:67:8: note: previous declaration is here
+   67 |   auto channelIt = chatState.channels.find(channelId);
+      |        ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Chat.cpp:216:48: warning: unused parameter 'channelId' [-Wunused-parameter]
+  216 | void AppStore::startTyping(const juce::String &channelId) {
+      |                                                ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Chat.cpp:222:47: warning: unused parameter 'channelId' [-Wunused-parameter]
+  222 | void AppStore::stopTyping(const juce::String &channelId) {
+      |                                               ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Chat.cpp:228:50: warning: unused parameter 'messageData' [-Wunused-parameter]
+  228 | void AppStore::handleNewMessage(const juce::var &messageData) {
+      |                                                  ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Chat.cpp:234:54: warning: unused parameter 'userId' [-Wunused-parameter]
+  234 | void AppStore::handleTypingStart(const juce::String &userId) {
+      |                                                      ^
+6 warnings generated.
+[95/489] Building CXX object src/stores/CMakeFiles/SidechainStores.dir/app/User.cpp.o
+[96/489] Building CXX object src/stores/CMakeFiles/SidechainStores.dir/app/Search.cpp.o
+[97/489] Building CXX object src/stores/CMakeFiles/SidechainStores.dir/app/Notifications.cpp.o
+[98/489] Building CXX object src/stores/CMakeFiles/SidechainStores.dir/app/Presence.cpp.o
+[99/489] Building CXX object src/stores/CMakeFiles/SidechainStores.dir/app/Challenges.cpp.o
+[100/489] Building CXX object src/stores/CMakeFiles/SidechainStores.dir/app/Stories.cpp.o
+[101/489] Building CXX object src/stores/CMakeFiles/SidechainStores.dir/app/Sounds.cpp.o
+[102/489] Building CXX object src/stores/CMakeFiles/SidechainStores.dir/app/Playlists.cpp.o
+[103/489] Building CXX object src/models/CMakeFiles/SidechainModels.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_gui_basics/juce_gui_basics.cpp.o
+[104/489] Building CXX object src/stores/CMakeFiles/SidechainStores.dir/app/Comments.cpp.o
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Comments.cpp:104:44: warning: lambda capture 'this' is not used [-Wunused-lambda-capture]
+  104 |   networkClient->unlikeComment(commentId, [this](Outcome<juce::var> result) {
+      |                                            ^~~~
+1 warning generated.
+[105/489] Building CXX object src/stores/CMakeFiles/SidechainStores.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_core/juce_core_CompilationTime.cpp.o
+[106/489] Building CXX object src/stores/CMakeFiles/SidechainStores.dir/app/Draft.cpp.o
+[107/489] Building CXX object src/stores/CMakeFiles/SidechainStores.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_events/juce_events.cpp.o
+[108/489] Building CXX object src/stores/CMakeFiles/SidechainStores.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_cryptography/juce_cryptography.cpp.o
+[109/489] Building CXX object src/stores/CMakeFiles/SidechainStores.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_core/juce_core.cpp.o
+[110/489] Building CXX object src/stores/CMakeFiles/SidechainStores.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_data_structures/juce_data_structures.cpp.o
+[111/489] Building C object src/stores/CMakeFiles/SidechainStores.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics_Sheenbidi.c.o
+[112/489] Building CXX object src/stores/CMakeFiles/SidechainStores.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_formats/juce_audio_formats.cpp.o
+[113/489] Building CXX object src/audio/CMakeFiles/SidechainAudio.dir/MIDICapture.cpp.o
+[114/489] Building CXX object src/audio/CMakeFiles/SidechainAudio.dir/AudioCapture.cpp.o
+[115/489] Building CXX object src/stores/CMakeFiles/SidechainStores.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.cpp.o
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.cpp:50:
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.h:142:
+/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/detail/juce_SimpleShapedText.h:275:64: warning: implicit conversion loses integer precision: 'int' to 'int8_t' (aka 'signed char') on negation [-Wimplicit-int-conversion-on-negation]
+  275 |     int8_t getNumTrailingLigaturePlaceholders() const { return -distanceFromLigature; }
+      |                                                         ~~~~~~ ^~~~~~~~~~~~~~~~~~~~~
+1 warning generated.
+[116/489] Building CXX object src/stores/CMakeFiles/SidechainStores.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_basics/juce_audio_basics.cpp.o
+[117/489] Building CXX object src/audio/CMakeFiles/SidechainAudio.dir/BufferAudioPlayer.cpp.o
+[118/489] Building CXX object src/stores/CMakeFiles/SidechainStores.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_gui_basics/juce_gui_basics.cpp.o
+[119/489] Building CXX object src/audio/CMakeFiles/SidechainAudio.dir/HttpAudioPlayer.cpp.o
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/audio/HttpAudioPlayer.cpp:482:52: warning: declaration shadows a local variable [-Wshadow-uncaptured-local]
+  482 |     juce::MessageManager::callAsync([this, postId, data = std::move(data), success]() mutable {
+      |                                                    ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/audio/HttpAudioPlayer.cpp:450:10: note: previous declaration is here
+  450 |     auto data = std::make_unique<juce::MemoryBlock>();
+      |          ^
+1 warning generated.
+[120/489] Building CXX object src/audio/CMakeFiles/SidechainAudio.dir/KeyDetector.cpp.o
+[121/489] Building CXX object src/audio/CMakeFiles/SidechainAudio.dir/ChordSequenceDetector.cpp.o
+[122/489] Building CXX object src/audio/CMakeFiles/SidechainAudio.dir/ProgressiveKeyDetector.cpp.o
+[123/489] Building CXX object src/audio/CMakeFiles/SidechainAudio.dir/NotificationSound.cpp.o
+[124/489] Building CXX object src/audio/CMakeFiles/SidechainAudio.dir/SynthEngine.cpp.o
+[125/489] Building CXX object src/audio/CMakeFiles/SidechainAudio.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_core/juce_core_CompilationTime.cpp.o
+[126/489] Building CXX object src/audio/CMakeFiles/SidechainAudio.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_cryptography/juce_cryptography.cpp.o
+[127/489] Building CXX object src/audio/CMakeFiles/SidechainAudio.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_events/juce_events.cpp.o
+[128/489] Building CXX object src/audio/CMakeFiles/SidechainAudio.dir/Microphone.cpp.o
+[129/489] Building CXX object src/audio/CMakeFiles/SidechainAudio.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_core/juce_core.cpp.o
+[130/489] Building CXX object src/audio/CMakeFiles/SidechainAudio.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_data_structures/juce_data_structures.cpp.o
+[131/489] Building C object src/audio/CMakeFiles/SidechainAudio.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics_Sheenbidi.c.o
+[132/489] Building CXX object src/audio/CMakeFiles/SidechainAudio.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_basics/juce_audio_basics.cpp.o
+[133/489] Building CXX object src/audio/CMakeFiles/SidechainAudio.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_formats/juce_audio_formats.cpp.o
+[134/489] Building CXX object src/audio/CMakeFiles/SidechainAudio.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.cpp.o
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.cpp:50:
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.h:142:
+/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/detail/juce_SimpleShapedText.h:275:64: warning: implicit conversion loses integer precision: 'int' to 'int8_t' (aka 'signed char') on negation [-Wimplicit-int-conversion-on-negation]
+  275 |     int8_t getNumTrailingLigaturePlaceholders() const { return -distanceFromLigature; }
+      |                                                         ~~~~~~ ^~~~~~~~~~~~~~~~~~~~~
+1 warning generated.
+[135/489] Building CXX object src/audio/CMakeFiles/SidechainAudio.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_devices/juce_audio_devices.cpp.o
+[136/489] Building CXX object src/audio/CMakeFiles/SidechainAudio.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_utils/juce_audio_utils.cpp.o
+[137/489] Building CXX object src/audio/CMakeFiles/SidechainAudio.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_processors/juce_audio_processors_lv2_libs.cpp.o
+[138/489] Building CXX object src/audio/CMakeFiles/SidechainAudio.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_processors/juce_audio_processors_ara.cpp.o
+[139/489] Building CXX object src/audio/CMakeFiles/SidechainAudio.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_gui_basics/juce_gui_basics.cpp.o
+[140/489] Building CXX object src/audio/CMakeFiles/SidechainAudio.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_processors/juce_audio_processors.cpp.o
+[141/489] Building CXX object src/audio/CMakeFiles/SidechainAudio.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_dsp/juce_dsp.cpp.o
+[142/489] Building CXX object src/ui/common/CMakeFiles/SidechainUICommon.dir/ErrorState.cpp.o
+[143/489] Building CXX object src/audio/CMakeFiles/SidechainAudio.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_gui_extra/juce_gui_extra.cpp.o
+[144/489] Building CXX object src/ui/common/CMakeFiles/SidechainUICommon.dir/SkeletonLoader.cpp.o
+[145/489] Building CXX object src/ui/common/CMakeFiles/SidechainUICommon.dir/Header.cpp.o
+[146/489] Building CXX object src/ui/common/CMakeFiles/SidechainUICommon.dir/ToastNotification.cpp.o
+[147/489] Building CXX object src/ui/common/CMakeFiles/SidechainUICommon.dir/WaveformImageView.cpp.o
+[148/489] Building CXX object src/network/CMakeFiles/SidechainNetwork.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics_Harfbuzz.cpp.o
+[149/489] Building CXX object src/ui/common/CMakeFiles/SidechainUICommon.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_core/juce_core_CompilationTime.cpp.o
+[150/489] Building CXX object src/ui/common/CMakeFiles/SidechainUICommon.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_core/juce_core.cpp.o
+[151/489] Building CXX object src/ui/common/CMakeFiles/SidechainUICommon.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_events/juce_events.cpp.o
+[152/489] Building CXX object src/ui/common/CMakeFiles/SidechainUICommon.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_data_structures/juce_data_structures.cpp.o
+[153/489] Building C object src/ui/common/CMakeFiles/SidechainUICommon.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics_Sheenbidi.c.o
+[154/489] Building CXX object src/ui/common/CMakeFiles/SidechainUICommon.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_cryptography/juce_cryptography.cpp.o
+[155/489] Building CXX object src/util/CMakeFiles/SidechainUtil.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics_Harfbuzz.cpp.o
+[156/489] Building CXX object src/ui/common/CMakeFiles/SidechainUICommon.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.cpp.o
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.cpp:50:
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.h:142:
+/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/detail/juce_SimpleShapedText.h:275:64: warning: implicit conversion loses integer precision: 'int' to 'int8_t' (aka 'signed char') on negation [-Wimplicit-int-conversion-on-negation]
+  275 |     int8_t getNumTrailingLigaturePlaceholders() const { return -distanceFromLigature; }
+      |                                                         ~~~~~~ ^~~~~~~~~~~~~~~~~~~~~
+1 warning generated.
+[157/489] Building CXX object src/ui/common/CMakeFiles/SidechainUICommon.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_basics/juce_audio_basics.cpp.o
+[158/489] Building CXX object src/ui/animations/CMakeFiles/SidechainUIAnimations.dir/NavigationStack.cpp.o
+[159/489] Building CXX object src/ui/animations/CMakeFiles/SidechainUIAnimations.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_core/juce_core_CompilationTime.cpp.o
+[160/489] Building CXX object src/ui/animations/CMakeFiles/SidechainUIAnimations.dir/AnimationController.cpp.o
+[161/489] Building CXX object src/ui/animations/CMakeFiles/SidechainUIAnimations.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_core/juce_core.cpp.o
+[162/489] Building CXX object src/models/CMakeFiles/SidechainModels.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics_Harfbuzz.cpp.o
+[163/489] Building CXX object src/ui/common/CMakeFiles/SidechainUICommon.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_formats/juce_audio_formats.cpp.o
+[164/489] Building CXX object src/ui/animations/CMakeFiles/SidechainUIAnimations.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_data_structures/juce_data_structures.cpp.o
+[165/489] Building CXX object src/ui/animations/CMakeFiles/SidechainUIAnimations.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_events/juce_events.cpp.o
+[166/489] Building CXX object src/ui/common/CMakeFiles/SidechainUICommon.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_gui_extra/juce_gui_extra.cpp.o
+[167/489] Building C object src/ui/animations/CMakeFiles/SidechainUIAnimations.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics_Sheenbidi.c.o
+[168/489] Building CXX object src/ui/common/CMakeFiles/SidechainUICommon.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_gui_basics/juce_gui_basics.cpp.o
+[169/489] Building CXX object src/ui/auth/CMakeFiles/SidechainUIAuth.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_core/juce_core_CompilationTime.cpp.o
+[170/489] Building CXX object src/ui/animations/CMakeFiles/SidechainUIAnimations.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.cpp.o
+[171/489] Building CXX object src/ui/auth/CMakeFiles/SidechainUIAuth.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_data_structures/juce_data_structures.cpp.o
+[172/489] Building CXX object src/ui/auth/CMakeFiles/SidechainUIAuth.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_cryptography/juce_cryptography.cpp.o
+[173/489] Building CXX object src/ui/animations/CMakeFiles/SidechainUIAnimations.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_gui_extra/juce_gui_extra.cpp.o
+[174/489] Building CXX object src/ui/auth/CMakeFiles/SidechainUIAuth.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_core/juce_core.cpp.o
+[175/489] Building CXX object src/ui/auth/CMakeFiles/SidechainUIAuth.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_events/juce_events.cpp.o
+[176/489] Building CXX object src/ui/auth/CMakeFiles/SidechainUIAuth.dir/Auth.cpp.o
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/auth/Auth.cpp:396:36: warning: implicit conversion from 'int' to 'float' may lose precision [-Wimplicit-int-float-conversion]
+  396 |       float angle = angleOffset + (i * juce::MathConstants<float>::twoPi / static_cast<float>(numDots));
+      |                                    ^ ~
+1 warning generated.
+[177/489] Building CXX object src/ui/animations/CMakeFiles/SidechainUIAnimations.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_gui_basics/juce_gui_basics.cpp.o
+[178/489] Building C object src/ui/auth/CMakeFiles/SidechainUIAuth.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics_Sheenbidi.c.o
+[179/489] Building CXX object src/stores/CMakeFiles/SidechainStores.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics_Harfbuzz.cpp.o
+[180/489] Building CXX object src/ui/auth/CMakeFiles/SidechainUIAuth.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.cpp.o
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.cpp:50:
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.h:142:
+/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/detail/juce_SimpleShapedText.h:275:64: warning: implicit conversion loses integer precision: 'int' to 'int8_t' (aka 'signed char') on negation [-Wimplicit-int-conversion-on-negation]
+  275 |     int8_t getNumTrailingLigaturePlaceholders() const { return -distanceFromLigature; }
+      |                                                         ~~~~~~ ^~~~~~~~~~~~~~~~~~~~~
+1 warning generated.
+[181/489] Building CXX object src/ui/auth/CMakeFiles/SidechainUIAuth.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_formats/juce_audio_formats.cpp.o
+[182/489] Building CXX object src/ui/auth/CMakeFiles/SidechainUIAuth.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_basics/juce_audio_basics.cpp.o
+[183/489] Building CXX object src/ui/challenges/CMakeFiles/SidechainUIChallenges.dir/MidiChallenges.cpp.o
+[184/489] Building CXX object src/ui/auth/CMakeFiles/SidechainUIAuth.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_gui_extra/juce_gui_extra.cpp.o
+[185/489] Linking CXX static library src/network/libSidechainNetwork.a
+[186/489] Building CXX object src/ui/challenges/CMakeFiles/SidechainUIChallenges.dir/MidiChallengeDetail.cpp.o
+[187/489] Building CXX object src/ui/challenges/CMakeFiles/SidechainUIChallenges.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_core/juce_core_CompilationTime.cpp.o
+[188/489] Building CXX object src/ui/challenges/CMakeFiles/SidechainUIChallenges.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_cryptography/juce_cryptography.cpp.o
+[189/489] Building CXX object src/ui/challenges/CMakeFiles/SidechainUIChallenges.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_events/juce_events.cpp.o
+[190/489] Building CXX object src/ui/challenges/CMakeFiles/SidechainUIChallenges.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_core/juce_core.cpp.o
+[191/489] Building CXX object src/ui/challenges/CMakeFiles/SidechainUIChallenges.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_data_structures/juce_data_structures.cpp.o
+[192/489] Building C object src/ui/challenges/CMakeFiles/SidechainUIChallenges.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics_Sheenbidi.c.o
+[193/489] Building CXX object src/ui/auth/CMakeFiles/SidechainUIAuth.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_gui_basics/juce_gui_basics.cpp.o
+[194/489] Building CXX object src/ui/challenges/CMakeFiles/SidechainUIChallenges.dir/MidiChallengeSubmission.cpp.o
+[195/489] Building CXX object src/ui/challenges/CMakeFiles/SidechainUIChallenges.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.cpp.o
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.cpp:50:
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.h:142:
+/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/detail/juce_SimpleShapedText.h:275:64: warning: implicit conversion loses integer precision: 'int' to 'int8_t' (aka 'signed char') on negation [-Wimplicit-int-conversion-on-negation]
+  275 |     int8_t getNumTrailingLigaturePlaceholders() const { return -distanceFromLigature; }
+      |                                                         ~~~~~~ ^~~~~~~~~~~~~~~~~~~~~
+1 warning generated.
+[196/489] Building CXX object src/ui/challenges/CMakeFiles/SidechainUIChallenges.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_formats/juce_audio_formats.cpp.o
+[197/489] Building CXX object src/ui/challenges/CMakeFiles/SidechainUIChallenges.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_basics/juce_audio_basics.cpp.o
+[198/489] Building CXX object src/ui/feed/CMakeFiles/SidechainUIFeed.dir/AggregatedFeedCard.cpp.o
+[199/489] Building CXX object src/ui/challenges/CMakeFiles/SidechainUIChallenges.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_gui_basics/juce_gui_basics.cpp.o
+[200/489] Building CXX object src/ui/feed/CMakeFiles/SidechainUIFeed.dir/Comment.cpp.o
+[201/489] Building CXX object src/ui/challenges/CMakeFiles/SidechainUIChallenges.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_gui_extra/juce_gui_extra.cpp.o
+[202/489] Building CXX object src/audio/CMakeFiles/SidechainAudio.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics_Harfbuzz.cpp.o
+[203/489] Building CXX object src/ui/feed/CMakeFiles/SidechainUIFeed.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_core/juce_core_CompilationTime.cpp.o
+[204/489] Building CXX object src/ui/feed/CMakeFiles/SidechainUIFeed.dir/EmojiReactionsPanel.cpp.o
+[205/489] Building CXX object src/ui/feed/CMakeFiles/SidechainUIFeed.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_core/juce_core.cpp.o
+[206/489] Building CXX object src/ui/feed/CMakeFiles/SidechainUIFeed.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_events/juce_events.cpp.o
+[207/489] Linking CXX static library src/util/libSidechainUtil.a
+[208/489] Building CXX object src/ui/feed/CMakeFiles/SidechainUIFeed.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_cryptography/juce_cryptography.cpp.o
+[209/489] Building CXX object src/ui/feed/CMakeFiles/SidechainUIFeed.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_data_structures/juce_data_structures.cpp.o
+[210/489] Building C object src/ui/feed/CMakeFiles/SidechainUIFeed.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics_Sheenbidi.c.o
+[211/489] Building CXX object src/ui/feed/CMakeFiles/SidechainUIFeed.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.cpp.o
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.cpp:50:
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.h:142:
+/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/detail/juce_SimpleShapedText.h:275:64: warning: implicit conversion loses integer precision: 'int' to 'int8_t' (aka 'signed char') on negation [-Wimplicit-int-conversion-on-negation]
+  275 |     int8_t getNumTrailingLigaturePlaceholders() const { return -distanceFromLigature; }
+      |                                                         ~~~~~~ ^~~~~~~~~~~~~~~~~~~~~
+1 warning generated.
+[212/489] Building CXX object src/ui/feed/CMakeFiles/SidechainUIFeed.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_basics/juce_audio_basics.cpp.o
+[213/489] Building CXX object src/ui/feed/CMakeFiles/SidechainUIFeed.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_formats/juce_audio_formats.cpp.o
+[214/489] Building CXX object src/ui/common/CMakeFiles/SidechainUICommon.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics_Harfbuzz.cpp.o
+[215/489] Building CXX object src/ui/feed/CMakeFiles/SidechainUIFeed.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_gui_basics/juce_gui_basics.cpp.o
+[216/489] Linking CXX static library src/models/libSidechainModels.a
+[217/489] Building CXX object src/ui/animations/CMakeFiles/SidechainUIAnimations.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics_Harfbuzz.cpp.o
+[218/489] Linking CXX static library src/audio/libSidechainAudio.a
+[219/489] Building CXX object src/ui/auth/CMakeFiles/SidechainUIAuth.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics_Harfbuzz.cpp.o
+[220/489] Building CXX object src/ui/challenges/CMakeFiles/SidechainUIChallenges.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics_Harfbuzz.cpp.o
+[221/489] Building CXX object src/ui/feed/CMakeFiles/SidechainUIFeed.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics_Harfbuzz.cpp.o
+[222/489] Building CXX object src/ui/messages/CMakeFiles/SidechainUIMessages.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_core/juce_core_CompilationTime.cpp.o
+[223/489] Building CXX object src/ui/messages/CMakeFiles/SidechainUIMessages.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_core/juce_core.cpp.o
+[224/489] Building CXX object src/ui/feed/CMakeFiles/SidechainUIFeed.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_gui_extra/juce_gui_extra.cpp.o
+[225/489] Building CXX object src/ui/messages/CMakeFiles/SidechainUIMessages.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_events/juce_events.cpp.o
+[226/489] Building CXX object src/ui/messages/CMakeFiles/SidechainUIMessages.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_cryptography/juce_cryptography.cpp.o
+[227/489] Building CXX object src/ui/messages/CMakeFiles/SidechainUIMessages.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_data_structures/juce_data_structures.cpp.o
+[228/489] Building C object src/ui/messages/CMakeFiles/SidechainUIMessages.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics_Sheenbidi.c.o
+[229/489] Building CXX object src/ui/messages/CMakeFiles/SidechainUIMessages.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics_Harfbuzz.cpp.o
+[230/489] Building CXX object src/ui/messages/CMakeFiles/SidechainUIMessages.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_basics/juce_audio_basics.cpp.o
+[231/489] Building CXX object src/ui/messages/CMakeFiles/SidechainUIMessages.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.cpp.o
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.cpp:50:
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.h:142:
+/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/detail/juce_SimpleShapedText.h:275:64: warning: implicit conversion loses integer precision: 'int' to 'int8_t' (aka 'signed char') on negation [-Wimplicit-int-conversion-on-negation]
+  275 |     int8_t getNumTrailingLigaturePlaceholders() const { return -distanceFromLigature; }
+      |                                                         ~~~~~~ ^~~~~~~~~~~~~~~~~~~~~
+1 warning generated.
+[232/489] Building CXX object src/ui/messages/CMakeFiles/SidechainUIMessages.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_formats/juce_audio_formats.cpp.o
+[233/489] Building CXX object src/ui/messages/CMakeFiles/SidechainUIMessages.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_processors/juce_audio_processors_ara.cpp.o
+[234/489] Building CXX object src/ui/messages/CMakeFiles/SidechainUIMessages.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_gui_basics/juce_gui_basics.cpp.o
+[235/489] Building CXX object src/ui/messages/CMakeFiles/SidechainUIMessages.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_processors/juce_audio_processors_lv2_libs.cpp.o
+[236/489] Building CXX object src/ui/messages/CMakeFiles/SidechainUIMessages.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_devices/juce_audio_devices.cpp.o
+[237/489] Building CXX object src/ui/messages/CMakeFiles/SidechainUIMessages.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_utils/juce_audio_utils.cpp.o
+[238/489] Building CXX object src/ui/messages/CMakeFiles/SidechainUIMessages.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_processors/juce_audio_processors.cpp.o
+[239/489] Building CXX object src/ui/messages/CMakeFiles/SidechainUIMessages.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_dsp/juce_dsp.cpp.o
+[240/489] Building CXX object src/ui/messages/CMakeFiles/SidechainUIMessages.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_gui_extra/juce_gui_extra.cpp.o
+[241/489] Building CXX object src/ui/notifications/CMakeFiles/SidechainUINotifications.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_core/juce_core_CompilationTime.cpp.o
+[242/489] Building CXX object src/ui/notifications/CMakeFiles/SidechainUINotifications.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_core/juce_core.cpp.o
+[243/489] Building CXX object src/ui/notifications/CMakeFiles/SidechainUINotifications.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_events/juce_events.cpp.o
+[244/489] Building CXX object src/ui/notifications/CMakeFiles/SidechainUINotifications.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_cryptography/juce_cryptography.cpp.o
+[245/489] Building CXX object src/ui/notifications/CMakeFiles/SidechainUINotifications.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_data_structures/juce_data_structures.cpp.o
+[246/489] Building C object src/ui/notifications/CMakeFiles/SidechainUINotifications.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics_Sheenbidi.c.o
+[247/489] Building CXX object src/ui/notifications/CMakeFiles/SidechainUINotifications.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.cpp.o
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.cpp:50:
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.h:142:
+/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/detail/juce_SimpleShapedText.h:275:64: warning: implicit conversion loses integer precision: 'int' to 'int8_t' (aka 'signed char') on negation [-Wimplicit-int-conversion-on-negation]
+  275 |     int8_t getNumTrailingLigaturePlaceholders() const { return -distanceFromLigature; }
+      |                                                         ~~~~~~ ^~~~~~~~~~~~~~~~~~~~~
+1 warning generated.
+[248/489] Building CXX object src/ui/notifications/CMakeFiles/SidechainUINotifications.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics_Harfbuzz.cpp.o
+[249/489] Building CXX object src/ui/notifications/CMakeFiles/SidechainUINotifications.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_gui_basics/juce_gui_basics.cpp.o
+[250/489] Building CXX object src/ui/notifications/CMakeFiles/SidechainUINotifications.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_formats/juce_audio_formats.cpp.o
+[251/489] Building CXX object src/ui/notifications/CMakeFiles/SidechainUINotifications.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_basics/juce_audio_basics.cpp.o
+[252/489] Building CXX object src/ui/notifications/CMakeFiles/SidechainUINotifications.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_gui_extra/juce_gui_extra.cpp.o
+[253/489] Building CXX object src/ui/playlists/CMakeFiles/SidechainUIPlaylists.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_core/juce_core.cpp.o
+[254/489] Building CXX object src/ui/playlists/CMakeFiles/SidechainUIPlaylists.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_core/juce_core_CompilationTime.cpp.o
+[255/489] Building CXX object src/ui/playlists/CMakeFiles/SidechainUIPlaylists.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_events/juce_events.cpp.o
+[256/489] Building CXX object src/ui/playlists/CMakeFiles/SidechainUIPlaylists.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_cryptography/juce_cryptography.cpp.o
+[257/489] Building CXX object src/ui/playlists/CMakeFiles/SidechainUIPlaylists.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_data_structures/juce_data_structures.cpp.o
+[258/489] Building CXX object src/ui/playlists/CMakeFiles/SidechainUIPlaylists.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.cpp.o
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.cpp:50:
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics.h:142:
+/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/detail/juce_SimpleShapedText.h:275:64: warning: implicit conversion loses integer precision: 'int' to 'int8_t' (aka 'signed char') on negation [-Wimplicit-int-conversion-on-negation]
+  275 |     int8_t getNumTrailingLigaturePlaceholders() const { return -distanceFromLigature; }
+      |                                                         ~~~~~~ ^~~~~~~~~~~~~~~~~~~~~
+1 warning generated.
+[259/489] Building CXX object src/ui/playlists/CMakeFiles/SidechainUIPlaylists.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics_Harfbuzz.cpp.o
+[260/489] Building C object src/ui/playlists/CMakeFiles/SidechainUIPlaylists.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_graphics/juce_graphics_Sheenbidi.c.o
+[261/489] Building CXX object src/ui/playlists/CMakeFiles/SidechainUIPlaylists.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_gui_basics/juce_gui_basics.cpp.o
+[262/489] Building CXX object src/ui/playlists/CMakeFiles/SidechainUIPlaylists.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_formats/juce_audio_formats.cpp.o
+[263/489] Building CXX object src/ui/messages/CMakeFiles/SidechainUIMessages.dir/AudioSnippetRecorder.cpp.o
+[264/489] Building CXX object src/ui/playlists/CMakeFiles/SidechainUIPlaylists.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_basics/juce_audio_basics.cpp.o
+[265/489] Building CXX object src/ui/playlists/CMakeFiles/SidechainUIPlaylists.dir/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_gui_extra/juce_gui_extra.cpp.o
+[266/489] Building CXX object src/stores/CMakeFiles/SidechainStores.dir/app/Upload.cpp.o
+FAILED: [code=1] src/stores/CMakeFiles/SidechainStores.dir/app/Upload.cpp.o 
+/usr/bin/ccache /usr/lib/ccache/bin/clang++ -DASIO_HAS_STD_INVOKE_RESULT=1 -DASIO_STANDALONE=1 -DDEBUG=1 -DJUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1 -DJUCE_MODULE_AVAILABLE_juce_audio_basics=1 -DJUCE_MODULE_AVAILABLE_juce_audio_formats=1 -DJUCE_MODULE_AVAILABLE_juce_core=1 -DJUCE_MODULE_AVAILABLE_juce_cryptography=1 -DJUCE_MODULE_AVAILABLE_juce_data_structures=1 -DJUCE_MODULE_AVAILABLE_juce_events=1 -DJUCE_MODULE_AVAILABLE_juce_graphics=1 -DJUCE_MODULE_AVAILABLE_juce_gui_basics=1 -DLINUX=1 -D_DEBUG=1 -D_WEBSOCKETPP_CPP11_FUNCTIONAL_ -D_WEBSOCKETPP_CPP11_INTERNAL_ -D_WEBSOCKETPP_CPP11_MEMORY_ -D_WEBSOCKETPP_CPP11_RANDOM_DEVICE_ -D_WEBSOCKETPP_CPP11_SYSTEM_ERROR_ -D_WEBSOCKETPP_CPP11_THREAD_ -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/.. -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/util/.. -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/build/SidechainJuceHeaderHelper_artefacts/JuceLibraryCode -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/network/.. -I/usr/include/freetype2 -I/usr/include/libpng16 -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/models/.. -isystem /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/RxCpp/Rx/v2/src -isystem /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules -isystem /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/websocketpp -isystem /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/asio/asio/include -g -std=gnu++20 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-missing-field-initializers -Wno-deprecated-declarations -Wno-sign-conversion -Wno-missing-braces -Wno-unused-function -Wno-unused-variable -Wno-float-equal -Wno-switch-enum -Wno-shadow -Wno-implicit-int-float-conversion -Wno-nullable-to-nonnull-conversion -Wno-missing-designated-field-initializers -Wno-implicit-int-conversion-on-negation -O0 -g3 -fno-omit-frame-pointer -DDEBUG=1 -D_DEBUG=1 -fvisibility=hidden -g -Wshadow-all -Wshorten-64-to-32 -Wstrict-aliasing -Wuninitialized -Wunused-parameter -Wconversion -Wsign-compare -Wint-conversion -Wconditional-uninitialized -Wconstant-conversion -Wsign-conversion -Wbool-conversion -Wextra-semi -Wunreachable-code -Wcast-align -Wshift-sign-overflow -Wmissing-prototypes -Wnullable-to-nonnull-conversion -Wno-ignored-qualifiers -Wswitch-enum -Wdeprecated -Wfloat-equal -Wmissing-field-initializers -Wzero-as-null-pointer-constant -Wunused-private-field -Woverloaded-virtual -Wreorder -Winconsistent-missing-destructor-override -MD -MT src/stores/CMakeFiles/SidechainStores.dir/app/Upload.cpp.o -MF src/stores/CMakeFiles/SidechainStores.dir/app/Upload.cpp.o.d -o src/stores/CMakeFiles/SidechainStores.dir/app/Upload.cpp.o -c /home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Upload.cpp
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Upload.cpp:7:47: error: 'maybe_unused' attribute cannot be applied to types
+    7 | void AppStore::uploadPost(const juce::var & [[maybe_unused]] postData, const juce::File &audioFile) {
+      |                                               ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Upload.cpp:7:62: warning: unused parameter 'postData' [-Wunused-parameter]
+    7 | void AppStore::uploadPost(const juce::var & [[maybe_unused]] postData, const juce::File &audioFile) {
+      |                                                              ^
+1 warning and 1 error generated.
+[267/489] Building CXX object src/stores/CMakeFiles/SidechainStores.dir/app/WebSocket.cpp.o
+FAILED: [code=1] src/stores/CMakeFiles/SidechainStores.dir/app/WebSocket.cpp.o 
+/usr/bin/ccache /usr/lib/ccache/bin/clang++ -DASIO_HAS_STD_INVOKE_RESULT=1 -DASIO_STANDALONE=1 -DDEBUG=1 -DJUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1 -DJUCE_MODULE_AVAILABLE_juce_audio_basics=1 -DJUCE_MODULE_AVAILABLE_juce_audio_formats=1 -DJUCE_MODULE_AVAILABLE_juce_core=1 -DJUCE_MODULE_AVAILABLE_juce_cryptography=1 -DJUCE_MODULE_AVAILABLE_juce_data_structures=1 -DJUCE_MODULE_AVAILABLE_juce_events=1 -DJUCE_MODULE_AVAILABLE_juce_graphics=1 -DJUCE_MODULE_AVAILABLE_juce_gui_basics=1 -DLINUX=1 -D_DEBUG=1 -D_WEBSOCKETPP_CPP11_FUNCTIONAL_ -D_WEBSOCKETPP_CPP11_INTERNAL_ -D_WEBSOCKETPP_CPP11_MEMORY_ -D_WEBSOCKETPP_CPP11_RANDOM_DEVICE_ -D_WEBSOCKETPP_CPP11_SYSTEM_ERROR_ -D_WEBSOCKETPP_CPP11_THREAD_ -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/.. -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/util/.. -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/build/SidechainJuceHeaderHelper_artefacts/JuceLibraryCode -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/network/.. -I/usr/include/freetype2 -I/usr/include/libpng16 -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/models/.. -isystem /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/RxCpp/Rx/v2/src -isystem /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules -isystem /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/websocketpp -isystem /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/asio/asio/include -g -std=gnu++20 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-missing-field-initializers -Wno-deprecated-declarations -Wno-sign-conversion -Wno-missing-braces -Wno-unused-function -Wno-unused-variable -Wno-float-equal -Wno-switch-enum -Wno-shadow -Wno-implicit-int-float-conversion -Wno-nullable-to-nonnull-conversion -Wno-missing-designated-field-initializers -Wno-implicit-int-conversion-on-negation -O0 -g3 -fno-omit-frame-pointer -DDEBUG=1 -D_DEBUG=1 -fvisibility=hidden -g -Wshadow-all -Wshorten-64-to-32 -Wstrict-aliasing -Wuninitialized -Wunused-parameter -Wconversion -Wsign-compare -Wint-conversion -Wconditional-uninitialized -Wconstant-conversion -Wsign-conversion -Wbool-conversion -Wextra-semi -Wunreachable-code -Wcast-align -Wshift-sign-overflow -Wmissing-prototypes -Wnullable-to-nonnull-conversion -Wno-ignored-qualifiers -Wswitch-enum -Wdeprecated -Wfloat-equal -Wmissing-field-initializers -Wzero-as-null-pointer-constant -Wunused-private-field -Woverloaded-virtual -Wreorder -Winconsistent-missing-destructor-override -MD -MT src/stores/CMakeFiles/SidechainStores.dir/app/WebSocket.cpp.o -MF src/stores/CMakeFiles/SidechainStores.dir/app/WebSocket.cpp.o.d -o src/stores/CMakeFiles/SidechainStores.dir/app/WebSocket.cpp.o -c /home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/WebSocket.cpp
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/WebSocket.cpp:44:55: error: 'maybe_unused' attribute cannot be applied to types
+   44 | void AppStore::onWebSocketNewPost(const juce::var & [[maybe_unused]] postData) {
+      |                                                       ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/WebSocket.cpp:44:70: warning: unused parameter 'postData' [-Wunused-parameter]
+   44 | void AppStore::onWebSocketNewPost(const juce::var & [[maybe_unused]] postData) {
+      |                                                                      ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/WebSocket.cpp:72:61: warning: unused parameter 'state' [-Wunused-parameter]
+   72 |   sliceManager.getUserSlice()->dispatch([userId](UserState &state) {
+      |                                                             ^
+2 warnings and 1 error generated.
+[268/489] Building CXX object src/stores/CMakeFiles/SidechainStores.dir/app/Feed.cpp.o
+FAILED: [code=1] src/stores/CMakeFiles/SidechainStores.dir/app/Feed.cpp.o 
+/usr/bin/ccache /usr/lib/ccache/bin/clang++ -DASIO_HAS_STD_INVOKE_RESULT=1 -DASIO_STANDALONE=1 -DDEBUG=1 -DJUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1 -DJUCE_MODULE_AVAILABLE_juce_audio_basics=1 -DJUCE_MODULE_AVAILABLE_juce_audio_formats=1 -DJUCE_MODULE_AVAILABLE_juce_core=1 -DJUCE_MODULE_AVAILABLE_juce_cryptography=1 -DJUCE_MODULE_AVAILABLE_juce_data_structures=1 -DJUCE_MODULE_AVAILABLE_juce_events=1 -DJUCE_MODULE_AVAILABLE_juce_graphics=1 -DJUCE_MODULE_AVAILABLE_juce_gui_basics=1 -DLINUX=1 -D_DEBUG=1 -D_WEBSOCKETPP_CPP11_FUNCTIONAL_ -D_WEBSOCKETPP_CPP11_INTERNAL_ -D_WEBSOCKETPP_CPP11_MEMORY_ -D_WEBSOCKETPP_CPP11_RANDOM_DEVICE_ -D_WEBSOCKETPP_CPP11_SYSTEM_ERROR_ -D_WEBSOCKETPP_CPP11_THREAD_ -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/.. -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/util/.. -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/build/SidechainJuceHeaderHelper_artefacts/JuceLibraryCode -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/network/.. -I/usr/include/freetype2 -I/usr/include/libpng16 -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/models/.. -isystem /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/RxCpp/Rx/v2/src -isystem /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules -isystem /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/websocketpp -isystem /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/asio/asio/include -g -std=gnu++20 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-missing-field-initializers -Wno-deprecated-declarations -Wno-sign-conversion -Wno-missing-braces -Wno-unused-function -Wno-unused-variable -Wno-float-equal -Wno-switch-enum -Wno-shadow -Wno-implicit-int-float-conversion -Wno-nullable-to-nonnull-conversion -Wno-missing-designated-field-initializers -Wno-implicit-int-conversion-on-negation -O0 -g3 -fno-omit-frame-pointer -DDEBUG=1 -D_DEBUG=1 -fvisibility=hidden -g -Wshadow-all -Wshorten-64-to-32 -Wstrict-aliasing -Wuninitialized -Wunused-parameter -Wconversion -Wsign-compare -Wint-conversion -Wconditional-uninitialized -Wconstant-conversion -Wsign-conversion -Wbool-conversion -Wextra-semi -Wunreachable-code -Wcast-align -Wshift-sign-overflow -Wmissing-prototypes -Wnullable-to-nonnull-conversion -Wno-ignored-qualifiers -Wswitch-enum -Wdeprecated -Wfloat-equal -Wmissing-field-initializers -Wzero-as-null-pointer-constant -Wunused-private-field -Woverloaded-virtual -Wreorder -Winconsistent-missing-destructor-override -MD -MT src/stores/CMakeFiles/SidechainStores.dir/app/Feed.cpp.o -MF src/stores/CMakeFiles/SidechainStores.dir/app/Feed.cpp.o.d -o src/stores/CMakeFiles/SidechainStores.dir/app/Feed.cpp.o -c /home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Feed.cpp
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Feed.cpp:47:51: error: 'maybe_unused' attribute cannot be applied to types
+   47 | void AppStore::loadFeed(FeedType feedType, bool [[maybe_unused]] forceRefresh) {
+      |                                                   ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Feed.cpp:47:66: warning: unused parameter 'forceRefresh' [-Wunused-parameter]
+   47 | void AppStore::loadFeed(FeedType feedType, bool [[maybe_unused]] forceRefresh) {
+      |                                                                  ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Feed.cpp:266:63: warning: declaration shadows a local variable [-Wshadow-uncaptured-local]
+  266 |   sliceManager.getPostsSlice()->dispatch([postId](PostsState &state) {
+      |                                                               ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Feed.cpp:253:8: note: previous declaration is here
+  253 |   auto state = sliceManager.getPostsSlice()->getState();
+      |        ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Feed.cpp:331:63: warning: declaration shadows a local variable [-Wshadow-uncaptured-local]
+  331 |   sliceManager.getPostsSlice()->dispatch([postId](PostsState &state) {
+      |                                                               ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Feed.cpp:318:8: note: previous declaration is here
+  318 |   auto state = sliceManager.getPostsSlice()->getState();
+      |        ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Feed.cpp:366:38: warning: lambda capture 'this' is not used [-Wunused-lambda-capture]
+  366 |     networkClient->savePost(postId, [this](Outcome<juce::var> result) {
+      |                                      ^~~~
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Feed.cpp:395:63: warning: declaration shadows a local variable [-Wshadow-uncaptured-local]
+  395 |   sliceManager.getPostsSlice()->dispatch([postId](PostsState &state) {
+      |                                                               ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Feed.cpp:382:8: note: previous declaration is here
+  382 |   auto state = sliceManager.getPostsSlice()->getState();
+      |        ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Feed.cpp:475:77: warning: declaration shadows a local variable [-Wshadow-uncaptured-local]
+  475 |     sliceManager.getPostsSlice()->dispatch([postId, willFollow](PostsState &state) {
+      |                                                                             ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Feed.cpp:459:8: note: previous declaration is here
+  459 |   auto state = sliceManager.getPostsSlice()->getState();
+      |        ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Feed.cpp:496:92: warning: declaration shadows a local variable [-Wshadow-uncaptured-local]
+  496 |           sliceManager.getPostsSlice()->dispatch([postId, previousFollowState](PostsState &state) {
+      |                                                                                            ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Feed.cpp:459:8: note: previous declaration is here
+  459 |   auto state = sliceManager.getPostsSlice()->getState();
+      |        ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Feed.cpp:515:92: warning: declaration shadows a local variable [-Wshadow-uncaptured-local]
+  515 |           sliceManager.getPostsSlice()->dispatch([postId, previousFollowState](PostsState &state) {
+      |                                                                                            ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Feed.cpp:459:8: note: previous declaration is here
+  459 |   auto state = sliceManager.getPostsSlice()->getState();
+      |        ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Feed.cpp:536:38: warning: lambda capture 'this' is not used [-Wunused-lambda-capture]
+  536 |     networkClient->muteUser(userId, [this](Outcome<juce::var> result) {
+      |                                      ^~~~
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Feed.cpp:673:48: warning: implicit conversion changes signedness: 'int' to 'const size_t' (aka 'const unsigned long') [-Wsign-conversion]
+  673 |     const size_t responseSize = response.posts.size();
+      |                  ~~~~~~~~~~~~   ~~~~~~~~~~~~~~~^~~~~~
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Feed.cpp:1008:65: warning: declaration shadows a local variable [-Wshadow-uncaptured-local]
+ 1008 |     sliceManager.getPostsSlice()->dispatch([postId](PostsState &state) {
+      |                                                                 ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Feed.cpp:992:10: note: previous declaration is here
+  992 |     auto state = sliceManager.getPostsSlice()->getState();
+      |          ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Feed.cpp:1032:86: warning: declaration shadows a local variable [-Wshadow-uncaptured-local]
+ 1032 |           sliceManager.getPostsSlice()->dispatch([postId, previousState](PostsState &state) {
+      |                                                                                      ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Feed.cpp:992:10: note: previous declaration is here
+  992 |     auto state = sliceManager.getPostsSlice()->getState();
+      |          ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Feed.cpp:1055:86: warning: declaration shadows a local variable [-Wshadow-uncaptured-local]
+ 1055 |           sliceManager.getPostsSlice()->dispatch([postId, previousState](PostsState &state) {
+      |                                                                                      ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Feed.cpp:992:10: note: previous declaration is here
+  992 |     auto state = sliceManager.getPostsSlice()->getState();
+      |          ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Feed.cpp:1100:65: warning: declaration shadows a local variable [-Wshadow-uncaptured-local]
+ 1100 |     sliceManager.getPostsSlice()->dispatch([postId](PostsState &state) {
+      |                                                                 ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Feed.cpp:1084:10: note: previous declaration is here
+ 1084 |     auto state = sliceManager.getPostsSlice()->getState();
+      |          ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Feed.cpp:1137:86: warning: declaration shadows a local variable [-Wshadow-uncaptured-local]
+ 1137 |           sliceManager.getPostsSlice()->dispatch([postId, previousState](PostsState &state) {
+      |                                                                                      ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Feed.cpp:1084:10: note: previous declaration is here
+ 1084 |     auto state = sliceManager.getPostsSlice()->getState();
+      |          ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Feed.cpp:1171:86: warning: declaration shadows a local variable [-Wshadow-uncaptured-local]
+ 1171 |           sliceManager.getPostsSlice()->dispatch([postId, previousState](PostsState &state) {
+      |                                                                                      ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Feed.cpp:1084:10: note: previous declaration is here
+ 1084 |     auto state = sliceManager.getPostsSlice()->getState();
+      |          ^
+16 warnings and 1 error generated.
+[269/489] Building CXX object src/ui/messages/CMakeFiles/SidechainUIMessages.dir/ShareToMessageDialog.cpp.o
+[270/489] Building CXX object src/stores/CMakeFiles/SidechainStores.dir/app/Auth.cpp.o
+FAILED: [code=1] src/stores/CMakeFiles/SidechainStores.dir/app/Auth.cpp.o 
+/usr/bin/ccache /usr/lib/ccache/bin/clang++ -DASIO_HAS_STD_INVOKE_RESULT=1 -DASIO_STANDALONE=1 -DDEBUG=1 -DJUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1 -DJUCE_MODULE_AVAILABLE_juce_audio_basics=1 -DJUCE_MODULE_AVAILABLE_juce_audio_formats=1 -DJUCE_MODULE_AVAILABLE_juce_core=1 -DJUCE_MODULE_AVAILABLE_juce_cryptography=1 -DJUCE_MODULE_AVAILABLE_juce_data_structures=1 -DJUCE_MODULE_AVAILABLE_juce_events=1 -DJUCE_MODULE_AVAILABLE_juce_graphics=1 -DJUCE_MODULE_AVAILABLE_juce_gui_basics=1 -DLINUX=1 -D_DEBUG=1 -D_WEBSOCKETPP_CPP11_FUNCTIONAL_ -D_WEBSOCKETPP_CPP11_INTERNAL_ -D_WEBSOCKETPP_CPP11_MEMORY_ -D_WEBSOCKETPP_CPP11_RANDOM_DEVICE_ -D_WEBSOCKETPP_CPP11_SYSTEM_ERROR_ -D_WEBSOCKETPP_CPP11_THREAD_ -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/.. -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/util/.. -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/build/SidechainJuceHeaderHelper_artefacts/JuceLibraryCode -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/network/.. -I/usr/include/freetype2 -I/usr/include/libpng16 -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/models/.. -isystem /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/RxCpp/Rx/v2/src -isystem /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules -isystem /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/websocketpp -isystem /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/asio/asio/include -g -std=gnu++20 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-missing-field-initializers -Wno-deprecated-declarations -Wno-sign-conversion -Wno-missing-braces -Wno-unused-function -Wno-unused-variable -Wno-float-equal -Wno-switch-enum -Wno-shadow -Wno-implicit-int-float-conversion -Wno-nullable-to-nonnull-conversion -Wno-missing-designated-field-initializers -Wno-implicit-int-conversion-on-negation -O0 -g3 -fno-omit-frame-pointer -DDEBUG=1 -D_DEBUG=1 -fvisibility=hidden -g -Wshadow-all -Wshorten-64-to-32 -Wstrict-aliasing -Wuninitialized -Wunused-parameter -Wconversion -Wsign-compare -Wint-conversion -Wconditional-uninitialized -Wconstant-conversion -Wsign-conversion -Wbool-conversion -Wextra-semi -Wunreachable-code -Wcast-align -Wshift-sign-overflow -Wmissing-prototypes -Wnullable-to-nonnull-conversion -Wno-ignored-qualifiers -Wswitch-enum -Wdeprecated -Wfloat-equal -Wmissing-field-initializers -Wzero-as-null-pointer-constant -Wunused-private-field -Woverloaded-virtual -Wreorder -Winconsistent-missing-destructor-override -MD -MT src/stores/CMakeFiles/SidechainStores.dir/app/Auth.cpp.o -MF src/stores/CMakeFiles/SidechainStores.dir/app/Auth.cpp.o.d -o src/stores/CMakeFiles/SidechainStores.dir/app/Auth.cpp.o -c /home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Auth.cpp
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Auth.cpp:158:10: warning: declaration shadows a local variable [-Wshadow-uncaptured-local]
+  158 |     auto authSlice = sliceManager.getAuthSlice();
+      |          ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Auth.cpp:148:8: note: previous declaration is here
+  148 |   auto authSlice = sliceManager.getAuthSlice();
+      |        ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Auth.cpp:188:10: warning: declaration shadows a local variable [-Wshadow-uncaptured-local]
+  188 |     auto authSlice = sliceManager.getAuthSlice();
+      |          ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Auth.cpp:178:8: note: previous declaration is here
+  178 |   auto authSlice = sliceManager.getAuthSlice();
+      |        ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Auth.cpp:229:53: error: 'maybe_unused' attribute cannot be applied to types
+  229 | void AppStore::oauthCallback(const juce::String & [[maybe_unused]] provider, const juce::String & [[maybe_unused]] code) {
+      |                                                     ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Auth.cpp:229:101: error: 'maybe_unused' attribute cannot be applied to types
+  229 | void AppStore::oauthCallback(const juce::String & [[maybe_unused]] provider, const juce::String & [[maybe_unused]] code) {
+      |                                                                                                     ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Auth.cpp:229:68: warning: unused parameter 'provider' [-Wunused-parameter]
+  229 | void AppStore::oauthCallback(const juce::String & [[maybe_unused]] provider, const juce::String & [[maybe_unused]] code) {
+      |                                                                    ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/app/Auth.cpp:229:116: warning: unused parameter 'code' [-Wunused-parameter]
+  229 | void AppStore::oauthCallback(const juce::String & [[maybe_unused]] provider, const juce::String & [[maybe_unused]] code) {
+      |                                                                                                                    ^
+4 warnings and 2 errors generated.
+[271/489] Building CXX object src/ui/messages/CMakeFiles/SidechainUIMessages.dir/MessagesList.cpp.o
+FAILED: [code=1] src/ui/messages/CMakeFiles/SidechainUIMessages.dir/MessagesList.cpp.o 
+/usr/bin/ccache /usr/lib/ccache/bin/clang++ -DASIO_HAS_STD_INVOKE_RESULT=1 -DASIO_STANDALONE=1 -DDEBUG=1 -DJUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1 -DJUCE_MODULE_AVAILABLE_juce_audio_basics=1 -DJUCE_MODULE_AVAILABLE_juce_audio_devices=1 -DJUCE_MODULE_AVAILABLE_juce_audio_formats=1 -DJUCE_MODULE_AVAILABLE_juce_audio_processors=1 -DJUCE_MODULE_AVAILABLE_juce_audio_utils=1 -DJUCE_MODULE_AVAILABLE_juce_core=1 -DJUCE_MODULE_AVAILABLE_juce_cryptography=1 -DJUCE_MODULE_AVAILABLE_juce_data_structures=1 -DJUCE_MODULE_AVAILABLE_juce_dsp=1 -DJUCE_MODULE_AVAILABLE_juce_events=1 -DJUCE_MODULE_AVAILABLE_juce_graphics=1 -DJUCE_MODULE_AVAILABLE_juce_gui_basics=1 -DJUCE_MODULE_AVAILABLE_juce_gui_extra=1 -DLINUX=1 -DSIDECHAIN_HAS_KEYFINDER=1 -D_DEBUG=1 -D_WEBSOCKETPP_CPP11_FUNCTIONAL_ -D_WEBSOCKETPP_CPP11_INTERNAL_ -D_WEBSOCKETPP_CPP11_MEMORY_ -D_WEBSOCKETPP_CPP11_RANDOM_DEVICE_ -D_WEBSOCKETPP_CPP11_SYSTEM_ERROR_ -D_WEBSOCKETPP_CPP11_THREAD_ -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/messages/../.. -I/usr/include/gtk-3.0 -I/usr/include/pango-1.0 -I/usr/include/cloudproviders -I/usr/include/cairo -I/usr/include/gdk-pixbuf-2.0 -I/usr/include/glycin-2 -I/usr/include/at-spi2-atk/2.0 -I/usr/include/at-spi-2.0 -I/usr/include/atk-1.0 -I/usr/include/dbus-1.0 -I/usr/lib/dbus-1.0/include -I/usr/include/fribidi -I/usr/include/pixman-1 -I/usr/include/harfbuzz -I/usr/include/freetype2 -I/usr/include/libpng16 -I/usr/include/gio-unix-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/libmount -I/usr/include/blkid -I/usr/include/sysprof-6 -I/usr/include/webkitgtk-4.1 -I/usr/include/libsoup-3.0 -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/util/.. -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/build/SidechainJuceHeaderHelper_artefacts/JuceLibraryCode -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/network/.. -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/models/.. -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/audio/.. -I/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_processors/format_types/VST3_SDK -I/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_processors/format_types/LV2_SDK -I/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/lv2 -I/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/serd -I/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/sord -I/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/sord/src -I/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/sratom -I/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/lilv -I/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/lilv/src -isystem /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/RxCpp/Rx/v2/src -isystem /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules -isystem /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/websocketpp -isystem /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/asio/asio/include -g -std=gnu++20 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-missing-field-initializers -Wno-deprecated-declarations -Wno-sign-conversion -Wno-missing-braces -Wno-unused-function -Wno-unused-variable -Wno-float-equal -Wno-switch-enum -Wno-shadow -Wno-implicit-int-float-conversion -Wno-nullable-to-nonnull-conversion -Wno-missing-designated-field-initializers -Wno-implicit-int-conversion-on-negation -O0 -g3 -fno-omit-frame-pointer -DDEBUG=1 -D_DEBUG=1 -fvisibility=hidden -g -Wshadow-all -Wshorten-64-to-32 -Wstrict-aliasing -Wuninitialized -Wunused-parameter -Wconversion -Wsign-compare -Wint-conversion -Wconditional-uninitialized -Wconstant-conversion -Wsign-conversion -Wbool-conversion -Wextra-semi -Wunreachable-code -Wcast-align -Wshift-sign-overflow -Wmissing-prototypes -Wnullable-to-nonnull-conversion -Wno-ignored-qualifiers -Wswitch-enum -Wdeprecated -Wfloat-equal -Wmissing-field-initializers -Wzero-as-null-pointer-constant -Wunused-private-field -Woverloaded-virtual -Wreorder -Winconsistent-missing-destructor-override -MD -MT src/ui/messages/CMakeFiles/SidechainUIMessages.dir/MessagesList.cpp.o -MF src/ui/messages/CMakeFiles/SidechainUIMessages.dir/MessagesList.cpp.o.d -o src/ui/messages/CMakeFiles/SidechainUIMessages.dir/MessagesList.cpp.o -c /home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/messages/MessagesList.cpp
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/messages/MessagesList.cpp:1:
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/messages/MessagesList.h:6:
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/messages/../../ui/common/SmoothScrollable.h:52:104: error: 'maybe_unused' attribute cannot be applied to types
+   52 |   void handleMouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel, int [[maybe_unused]] viewportHeight,
+      |                                                                                                        ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/messages/../../ui/common/SmoothScrollable.h:128:40: error: 'maybe_unused' attribute cannot be applied to types
+  128 |   virtual int getScrollableWidth(int [[maybe_unused]] scrollBarWidth) const {
+      |                                        ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/messages/../../ui/common/SmoothScrollable.h:52:119: warning: unused parameter 'viewportHeight' [-Wunused-parameter]
+   52 |   void handleMouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel, int [[maybe_unused]] viewportHeight,
+      |                                                                                                                       ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/messages/../../ui/common/SmoothScrollable.h:128:55: warning: unused parameter 'scrollBarWidth' [-Wunused-parameter]
+  128 |   virtual int getScrollableWidth(int [[maybe_unused]] scrollBarWidth) const {
+      |                                                       ^
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/messages/MessagesList.cpp:1:
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/messages/MessagesList.h:97:32: error: 'maybe_unused' attribute cannot be applied to types
+   97 |   void onScrollUpdate(double [[maybe_unused]] newScrollPosition) override {
+      |                                ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/messages/MessagesList.h:97:47: warning: unused parameter 'newScrollPosition' [-Wunused-parameter]
+   97 |   void onScrollUpdate(double [[maybe_unused]] newScrollPosition) override {
+      |                                               ^
+3 warnings and 3 errors generated.
+[272/489] Building CXX object src/ui/feed/CMakeFiles/SidechainUIFeed.dir/PostCard.cpp.o
+FAILED: [code=1] src/ui/feed/CMakeFiles/SidechainUIFeed.dir/PostCard.cpp.o 
+/usr/bin/ccache /usr/lib/ccache/bin/clang++ -DASIO_HAS_STD_INVOKE_RESULT=1 -DASIO_STANDALONE=1 -DDEBUG=1 -DJUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1 -DJUCE_MODULE_AVAILABLE_juce_audio_basics=1 -DJUCE_MODULE_AVAILABLE_juce_audio_formats=1 -DJUCE_MODULE_AVAILABLE_juce_core=1 -DJUCE_MODULE_AVAILABLE_juce_cryptography=1 -DJUCE_MODULE_AVAILABLE_juce_data_structures=1 -DJUCE_MODULE_AVAILABLE_juce_events=1 -DJUCE_MODULE_AVAILABLE_juce_graphics=1 -DJUCE_MODULE_AVAILABLE_juce_gui_basics=1 -DJUCE_MODULE_AVAILABLE_juce_gui_extra=1 -DLINUX=1 -D_DEBUG=1 -D_WEBSOCKETPP_CPP11_FUNCTIONAL_ -D_WEBSOCKETPP_CPP11_INTERNAL_ -D_WEBSOCKETPP_CPP11_MEMORY_ -D_WEBSOCKETPP_CPP11_RANDOM_DEVICE_ -D_WEBSOCKETPP_CPP11_SYSTEM_ERROR_ -D_WEBSOCKETPP_CPP11_THREAD_ -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/feed/../.. -I/usr/include/gtk-3.0 -I/usr/include/pango-1.0 -I/usr/include/cloudproviders -I/usr/include/cairo -I/usr/include/gdk-pixbuf-2.0 -I/usr/include/glycin-2 -I/usr/include/at-spi2-atk/2.0 -I/usr/include/at-spi-2.0 -I/usr/include/atk-1.0 -I/usr/include/dbus-1.0 -I/usr/lib/dbus-1.0/include -I/usr/include/fribidi -I/usr/include/pixman-1 -I/usr/include/harfbuzz -I/usr/include/freetype2 -I/usr/include/libpng16 -I/usr/include/gio-unix-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/libmount -I/usr/include/blkid -I/usr/include/sysprof-6 -I/usr/include/webkitgtk-4.1 -I/usr/include/libsoup-3.0 -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/util/.. -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/build/SidechainJuceHeaderHelper_artefacts/JuceLibraryCode -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/network/.. -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/models/.. -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/.. -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/common/../.. -isystem /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/RxCpp/Rx/v2/src -isystem /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules -isystem /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/websocketpp -isystem /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/asio/asio/include -g -std=gnu++20 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-missing-field-initializers -Wno-deprecated-declarations -Wno-sign-conversion -Wno-missing-braces -Wno-unused-function -Wno-unused-variable -Wno-float-equal -Wno-switch-enum -Wno-shadow -Wno-implicit-int-float-conversion -Wno-nullable-to-nonnull-conversion -Wno-missing-designated-field-initializers -Wno-implicit-int-conversion-on-negation -O0 -g3 -fno-omit-frame-pointer -DDEBUG=1 -D_DEBUG=1 -fvisibility=hidden -g -Wshadow-all -Wshorten-64-to-32 -Wstrict-aliasing -Wuninitialized -Wunused-parameter -Wconversion -Wsign-compare -Wint-conversion -Wconditional-uninitialized -Wconstant-conversion -Wsign-conversion -Wbool-conversion -Wextra-semi -Wunreachable-code -Wcast-align -Wshift-sign-overflow -Wmissing-prototypes -Wnullable-to-nonnull-conversion -Wno-ignored-qualifiers -Wswitch-enum -Wdeprecated -Wfloat-equal -Wmissing-field-initializers -Wzero-as-null-pointer-constant -Wunused-private-field -Woverloaded-virtual -Wreorder -Winconsistent-missing-destructor-override -MD -MT src/ui/feed/CMakeFiles/SidechainUIFeed.dir/PostCard.cpp.o -MF src/ui/feed/CMakeFiles/SidechainUIFeed.dir/PostCard.cpp.o.d -o src/ui/feed/CMakeFiles/SidechainUIFeed.dir/PostCard.cpp.o -c /home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/feed/PostCard.cpp
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/feed/PostCard.cpp:86:44: warning: declaration shadows a local variable [-Wshadow]
+   86 |     juce::Component::SafePointer<PostCard> safeThis(this);
+      |                                            ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/feed/PostCard.cpp:71:42: note: previous declaration is here
+   71 |   juce::Component::SafePointer<PostCard> safeThis(this);
+      |                                          ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/feed/PostCard.cpp:501:76: error: 'maybe_unused' attribute cannot be applied to types
+  501 | void PostCard::drawSocialButtons(juce::Graphics &g, juce::Rectangle<int> [[maybe_unused]] bounds) {
+      |                                                                            ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/feed/PostCard.cpp:501:91: warning: unused parameter 'bounds' [-Wunused-parameter]
+  501 | void PostCard::drawSocialButtons(juce::Graphics &g, juce::Rectangle<int> [[maybe_unused]] bounds) {
+      |                                                                                           ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/feed/PostCard.cpp:1058:45: error: 'maybe_unused' attribute cannot be applied to types
+ 1058 |             [safeThis](std::exception_ptr [[maybe_unused]] error) {
+      |                                             ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/feed/PostCard.cpp:1058:60: warning: unused parameter 'error' [-Wunused-parameter]
+ 1058 |             [safeThis](std::exception_ptr [[maybe_unused]] error) {
+      |                                                            ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/feed/PostCard.cpp:1095:43: error: 'maybe_unused' attribute cannot be applied to types
+ 1095 |           [safeThis](std::exception_ptr [[maybe_unused]] error) {
+      |                                           ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/feed/PostCard.cpp:1095:58: warning: unused parameter 'error' [-Wunused-parameter]
+ 1095 |           [safeThis](std::exception_ptr [[maybe_unused]] error) {
+      |                                                          ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/feed/PostCard.cpp:1117:43: error: 'maybe_unused' attribute cannot be applied to types
+ 1117 |           [safeThis](std::exception_ptr [[maybe_unused]] error) {
+      |                                           ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/feed/PostCard.cpp:1117:58: warning: unused parameter 'error' [-Wunused-parameter]
+ 1117 |           [safeThis](std::exception_ptr [[maybe_unused]] error) {
+      |                                                          ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/feed/PostCard.cpp:1140:47: error: 'maybe_unused' attribute cannot be applied to types
+ 1140 |               [safeThis](std::exception_ptr [[maybe_unused]] error) {
+      |                                               ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/feed/PostCard.cpp:1140:62: warning: unused parameter 'error' [-Wunused-parameter]
+ 1140 |               [safeThis](std::exception_ptr [[maybe_unused]] error) {
+      |                                                              ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/feed/PostCard.cpp:1163:47: error: 'maybe_unused' attribute cannot be applied to types
+ 1163 |               [safeThis](std::exception_ptr [[maybe_unused]] error) {
+      |                                               ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/feed/PostCard.cpp:1163:62: warning: unused parameter 'error' [-Wunused-parameter]
+ 1163 |               [safeThis](std::exception_ptr [[maybe_unused]] error) {
+      |                                                              ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/feed/PostCard.cpp:1503:45: error: 'maybe_unused' attribute cannot be applied to types
+ 1503 |             [safeThis](std::exception_ptr [[maybe_unused]] error) {
+      |                                             ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/feed/PostCard.cpp:1503:60: warning: unused parameter 'error' [-Wunused-parameter]
+ 1503 |             [safeThis](std::exception_ptr [[maybe_unused]] error) {
+      |                                                            ^
+8 warnings and 7 errors generated.
+[273/489] Building CXX object src/ui/messages/CMakeFiles/SidechainUIMessages.dir/MessageThread.cpp.o
+FAILED: [code=1] src/ui/messages/CMakeFiles/SidechainUIMessages.dir/MessageThread.cpp.o 
+/usr/bin/ccache /usr/lib/ccache/bin/clang++ -DASIO_HAS_STD_INVOKE_RESULT=1 -DASIO_STANDALONE=1 -DDEBUG=1 -DJUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1 -DJUCE_MODULE_AVAILABLE_juce_audio_basics=1 -DJUCE_MODULE_AVAILABLE_juce_audio_devices=1 -DJUCE_MODULE_AVAILABLE_juce_audio_formats=1 -DJUCE_MODULE_AVAILABLE_juce_audio_processors=1 -DJUCE_MODULE_AVAILABLE_juce_audio_utils=1 -DJUCE_MODULE_AVAILABLE_juce_core=1 -DJUCE_MODULE_AVAILABLE_juce_cryptography=1 -DJUCE_MODULE_AVAILABLE_juce_data_structures=1 -DJUCE_MODULE_AVAILABLE_juce_dsp=1 -DJUCE_MODULE_AVAILABLE_juce_events=1 -DJUCE_MODULE_AVAILABLE_juce_graphics=1 -DJUCE_MODULE_AVAILABLE_juce_gui_basics=1 -DJUCE_MODULE_AVAILABLE_juce_gui_extra=1 -DLINUX=1 -DSIDECHAIN_HAS_KEYFINDER=1 -D_DEBUG=1 -D_WEBSOCKETPP_CPP11_FUNCTIONAL_ -D_WEBSOCKETPP_CPP11_INTERNAL_ -D_WEBSOCKETPP_CPP11_MEMORY_ -D_WEBSOCKETPP_CPP11_RANDOM_DEVICE_ -D_WEBSOCKETPP_CPP11_SYSTEM_ERROR_ -D_WEBSOCKETPP_CPP11_THREAD_ -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/messages/../.. -I/usr/include/gtk-3.0 -I/usr/include/pango-1.0 -I/usr/include/cloudproviders -I/usr/include/cairo -I/usr/include/gdk-pixbuf-2.0 -I/usr/include/glycin-2 -I/usr/include/at-spi2-atk/2.0 -I/usr/include/at-spi-2.0 -I/usr/include/atk-1.0 -I/usr/include/dbus-1.0 -I/usr/lib/dbus-1.0/include -I/usr/include/fribidi -I/usr/include/pixman-1 -I/usr/include/harfbuzz -I/usr/include/freetype2 -I/usr/include/libpng16 -I/usr/include/gio-unix-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/libmount -I/usr/include/blkid -I/usr/include/sysprof-6 -I/usr/include/webkitgtk-4.1 -I/usr/include/libsoup-3.0 -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/util/.. -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/build/SidechainJuceHeaderHelper_artefacts/JuceLibraryCode -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/network/.. -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/models/.. -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/audio/.. -I/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_processors/format_types/VST3_SDK -I/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_processors/format_types/LV2_SDK -I/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/lv2 -I/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/serd -I/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/sord -I/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/sord/src -I/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/sratom -I/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/lilv -I/home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/lilv/src -isystem /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/RxCpp/Rx/v2/src -isystem /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules -isystem /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/websocketpp -isystem /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/asio/asio/include -g -std=gnu++20 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-missing-field-initializers -Wno-deprecated-declarations -Wno-sign-conversion -Wno-missing-braces -Wno-unused-function -Wno-unused-variable -Wno-float-equal -Wno-switch-enum -Wno-shadow -Wno-implicit-int-float-conversion -Wno-nullable-to-nonnull-conversion -Wno-missing-designated-field-initializers -Wno-implicit-int-conversion-on-negation -O0 -g3 -fno-omit-frame-pointer -DDEBUG=1 -D_DEBUG=1 -fvisibility=hidden -g -Wshadow-all -Wshorten-64-to-32 -Wstrict-aliasing -Wuninitialized -Wunused-parameter -Wconversion -Wsign-compare -Wint-conversion -Wconditional-uninitialized -Wconstant-conversion -Wsign-conversion -Wbool-conversion -Wextra-semi -Wunreachable-code -Wcast-align -Wshift-sign-overflow -Wmissing-prototypes -Wnullable-to-nonnull-conversion -Wno-ignored-qualifiers -Wswitch-enum -Wdeprecated -Wfloat-equal -Wmissing-field-initializers -Wzero-as-null-pointer-constant -Wunused-private-field -Woverloaded-virtual -Wreorder -Winconsistent-missing-destructor-override -MD -MT src/ui/messages/CMakeFiles/SidechainUIMessages.dir/MessageThread.cpp.o -MF src/ui/messages/CMakeFiles/SidechainUIMessages.dir/MessageThread.cpp.o.d -o src/ui/messages/CMakeFiles/SidechainUIMessages.dir/MessageThread.cpp.o -c /home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/messages/MessageThread.cpp
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/messages/MessageThread.cpp:1:
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/messages/MessageThread.h:6:
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/messages/../../ui/common/SmoothScrollable.h:52:104: error: 'maybe_unused' attribute cannot be applied to types
+   52 |   void handleMouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel, int [[maybe_unused]] viewportHeight,
+      |                                                                                                        ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/messages/../../ui/common/SmoothScrollable.h:128:40: error: 'maybe_unused' attribute cannot be applied to types
+  128 |   virtual int getScrollableWidth(int [[maybe_unused]] scrollBarWidth) const {
+      |                                        ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/messages/../../ui/common/SmoothScrollable.h:52:119: warning: unused parameter 'viewportHeight' [-Wunused-parameter]
+   52 |   void handleMouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel, int [[maybe_unused]] viewportHeight,
+      |                                                                                                                       ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/messages/../../ui/common/SmoothScrollable.h:128:55: warning: unused parameter 'scrollBarWidth' [-Wunused-parameter]
+  128 |   virtual int getScrollableWidth(int [[maybe_unused]] scrollBarWidth) const {
+      |                                                       ^
+2 warnings and 2 errors generated.
+[274/489] Building CXX object src/ui/messages/CMakeFiles/SidechainUIMessages.dir/UserPickerDialog.cpp.o
+[275/489] Building CXX object src/ui/feed/CMakeFiles/SidechainUIFeed.dir/PostsFeed.cpp.o
+FAILED: [code=1] src/ui/feed/CMakeFiles/SidechainUIFeed.dir/PostsFeed.cpp.o 
+/usr/bin/ccache /usr/lib/ccache/bin/clang++ -DASIO_HAS_STD_INVOKE_RESULT=1 -DASIO_STANDALONE=1 -DDEBUG=1 -DJUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1 -DJUCE_MODULE_AVAILABLE_juce_audio_basics=1 -DJUCE_MODULE_AVAILABLE_juce_audio_formats=1 -DJUCE_MODULE_AVAILABLE_juce_core=1 -DJUCE_MODULE_AVAILABLE_juce_cryptography=1 -DJUCE_MODULE_AVAILABLE_juce_data_structures=1 -DJUCE_MODULE_AVAILABLE_juce_events=1 -DJUCE_MODULE_AVAILABLE_juce_graphics=1 -DJUCE_MODULE_AVAILABLE_juce_gui_basics=1 -DJUCE_MODULE_AVAILABLE_juce_gui_extra=1 -DLINUX=1 -D_DEBUG=1 -D_WEBSOCKETPP_CPP11_FUNCTIONAL_ -D_WEBSOCKETPP_CPP11_INTERNAL_ -D_WEBSOCKETPP_CPP11_MEMORY_ -D_WEBSOCKETPP_CPP11_RANDOM_DEVICE_ -D_WEBSOCKETPP_CPP11_SYSTEM_ERROR_ -D_WEBSOCKETPP_CPP11_THREAD_ -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/feed/../.. -I/usr/include/gtk-3.0 -I/usr/include/pango-1.0 -I/usr/include/cloudproviders -I/usr/include/cairo -I/usr/include/gdk-pixbuf-2.0 -I/usr/include/glycin-2 -I/usr/include/at-spi2-atk/2.0 -I/usr/include/at-spi-2.0 -I/usr/include/atk-1.0 -I/usr/include/dbus-1.0 -I/usr/lib/dbus-1.0/include -I/usr/include/fribidi -I/usr/include/pixman-1 -I/usr/include/harfbuzz -I/usr/include/freetype2 -I/usr/include/libpng16 -I/usr/include/gio-unix-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/libmount -I/usr/include/blkid -I/usr/include/sysprof-6 -I/usr/include/webkitgtk-4.1 -I/usr/include/libsoup-3.0 -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/util/.. -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/build/SidechainJuceHeaderHelper_artefacts/JuceLibraryCode -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/network/.. -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/models/.. -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/.. -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/common/../.. -isystem /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/RxCpp/Rx/v2/src -isystem /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules -isystem /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/websocketpp -isystem /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/asio/asio/include -g -std=gnu++20 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-missing-field-initializers -Wno-deprecated-declarations -Wno-sign-conversion -Wno-missing-braces -Wno-unused-function -Wno-unused-variable -Wno-float-equal -Wno-switch-enum -Wno-shadow -Wno-implicit-int-float-conversion -Wno-nullable-to-nonnull-conversion -Wno-missing-designated-field-initializers -Wno-implicit-int-conversion-on-negation -O0 -g3 -fno-omit-frame-pointer -DDEBUG=1 -D_DEBUG=1 -fvisibility=hidden -g -Wshadow-all -Wshorten-64-to-32 -Wstrict-aliasing -Wuninitialized -Wunused-parameter -Wconversion -Wsign-compare -Wint-conversion -Wconditional-uninitialized -Wconstant-conversion -Wsign-conversion -Wbool-conversion -Wextra-semi -Wunreachable-code -Wcast-align -Wshift-sign-overflow -Wmissing-prototypes -Wnullable-to-nonnull-conversion -Wno-ignored-qualifiers -Wswitch-enum -Wdeprecated -Wfloat-equal -Wmissing-field-initializers -Wzero-as-null-pointer-constant -Wunused-private-field -Woverloaded-virtual -Wreorder -Winconsistent-missing-destructor-override -MD -MT src/ui/feed/CMakeFiles/SidechainUIFeed.dir/PostsFeed.cpp.o -MF src/ui/feed/CMakeFiles/SidechainUIFeed.dir/PostsFeed.cpp.o.d -o src/ui/feed/CMakeFiles/SidechainUIFeed.dir/PostsFeed.cpp.o -c /home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/feed/PostsFeed.cpp
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/feed/PostsFeed.cpp:1:
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/feed/PostsFeed.h:13:
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/feed/../common/SmoothScrollable.h:52:104: error: 'maybe_unused' attribute cannot be applied to types
+   52 |   void handleMouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel, int [[maybe_unused]] viewportHeight,
+      |                                                                                                        ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/feed/../common/SmoothScrollable.h:128:40: error: 'maybe_unused' attribute cannot be applied to types
+  128 |   virtual int getScrollableWidth(int [[maybe_unused]] scrollBarWidth) const {
+      |                                        ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/feed/../common/SmoothScrollable.h:52:119: warning: unused parameter 'viewportHeight' [-Wunused-parameter]
+   52 |   void handleMouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel, int [[maybe_unused]] viewportHeight,
+      |                                                                                                                       ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/feed/../common/SmoothScrollable.h:128:55: warning: unused parameter 'scrollBarWidth' [-Wunused-parameter]
+  128 |   virtual int getScrollableWidth(int [[maybe_unused]] scrollBarWidth) const {
+      |                                                       ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/feed/PostsFeed.cpp:128:74: error: 'maybe_unused' attribute cannot be applied to types
+  128 |     postsSlice->subscribe([this](const Sidechain::Stores::PostsState & [[maybe_unused]] state) {
+      |                                                                          ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/feed/PostsFeed.cpp:128:89: warning: unused parameter 'state' [-Wunused-parameter]
+  128 |     postsSlice->subscribe([this](const Sidechain::Stores::PostsState & [[maybe_unused]] state) {
+      |                                                                                         ^
+3 warnings and 3 errors generated.
+[276/489] Building CXX object src/ui/notifications/CMakeFiles/SidechainUINotifications.dir/NotificationBell.cpp.o
+[277/489] Building CXX object src/ui/notifications/CMakeFiles/SidechainUINotifications.dir/NotificationList.cpp.o
+[278/489] Building CXX object src/ui/playlists/CMakeFiles/SidechainUIPlaylists.dir/PlaylistDetail.cpp.o
+[279/489] Building CXX object src/ui/playlists/CMakeFiles/SidechainUIPlaylists.dir/Playlists.cpp.o
+[280/489] Building CXX object src/ui/profile/CMakeFiles/SidechainUIProfile.dir/ProfileSetup.cpp.o
+[281/489] Building CXX object src/ui/profile/CMakeFiles/SidechainUIProfile.dir/Profile.cpp.o
+FAILED: [code=1] src/ui/profile/CMakeFiles/SidechainUIProfile.dir/Profile.cpp.o 
+/usr/bin/ccache /usr/lib/ccache/bin/clang++ -DASIO_HAS_STD_INVOKE_RESULT=1 -DASIO_STANDALONE=1 -DDEBUG=1 -DJUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1 -DJUCE_MODULE_AVAILABLE_juce_audio_basics=1 -DJUCE_MODULE_AVAILABLE_juce_audio_formats=1 -DJUCE_MODULE_AVAILABLE_juce_core=1 -DJUCE_MODULE_AVAILABLE_juce_cryptography=1 -DJUCE_MODULE_AVAILABLE_juce_data_structures=1 -DJUCE_MODULE_AVAILABLE_juce_events=1 -DJUCE_MODULE_AVAILABLE_juce_graphics=1 -DJUCE_MODULE_AVAILABLE_juce_gui_basics=1 -DJUCE_MODULE_AVAILABLE_juce_gui_extra=1 -DLINUX=1 -D_DEBUG=1 -D_WEBSOCKETPP_CPP11_FUNCTIONAL_ -D_WEBSOCKETPP_CPP11_INTERNAL_ -D_WEBSOCKETPP_CPP11_MEMORY_ -D_WEBSOCKETPP_CPP11_RANDOM_DEVICE_ -D_WEBSOCKETPP_CPP11_SYSTEM_ERROR_ -D_WEBSOCKETPP_CPP11_THREAD_ -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/profile/../.. -I/usr/include/gtk-3.0 -I/usr/include/pango-1.0 -I/usr/include/cloudproviders -I/usr/include/cairo -I/usr/include/gdk-pixbuf-2.0 -I/usr/include/glycin-2 -I/usr/include/at-spi2-atk/2.0 -I/usr/include/at-spi-2.0 -I/usr/include/atk-1.0 -I/usr/include/dbus-1.0 -I/usr/lib/dbus-1.0/include -I/usr/include/fribidi -I/usr/include/pixman-1 -I/usr/include/harfbuzz -I/usr/include/freetype2 -I/usr/include/libpng16 -I/usr/include/gio-unix-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/libmount -I/usr/include/blkid -I/usr/include/sysprof-6 -I/usr/include/webkitgtk-4.1 -I/usr/include/libsoup-3.0 -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/util/.. -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/build/SidechainJuceHeaderHelper_artefacts/JuceLibraryCode -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/network/.. -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/models/.. -I/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/stores/.. -isystem /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/RxCpp/Rx/v2/src -isystem /home/zfogg/src/github.com/zfogg/sidechain/deps/JUCE/modules -isystem /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/websocketpp -isystem /home/zfogg/src/github.com/zfogg/sidechain/plugin/../deps/asio/asio/include -g -std=gnu++20 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-missing-field-initializers -Wno-deprecated-declarations -Wno-sign-conversion -Wno-missing-braces -Wno-unused-function -Wno-unused-variable -Wno-float-equal -Wno-switch-enum -Wno-shadow -Wno-implicit-int-float-conversion -Wno-nullable-to-nonnull-conversion -Wno-missing-designated-field-initializers -Wno-implicit-int-conversion-on-negation -O0 -g3 -fno-omit-frame-pointer -DDEBUG=1 -D_DEBUG=1 -fvisibility=hidden -g -Wshadow-all -Wshorten-64-to-32 -Wstrict-aliasing -Wuninitialized -Wunused-parameter -Wconversion -Wsign-compare -Wint-conversion -Wconditional-uninitialized -Wconstant-conversion -Wsign-conversion -Wbool-conversion -Wextra-semi -Wunreachable-code -Wcast-align -Wshift-sign-overflow -Wmissing-prototypes -Wnullable-to-nonnull-conversion -Wno-ignored-qualifiers -Wswitch-enum -Wdeprecated -Wfloat-equal -Wmissing-field-initializers -Wzero-as-null-pointer-constant -Wunused-private-field -Woverloaded-virtual -Wreorder -Winconsistent-missing-destructor-override -MD -MT src/ui/profile/CMakeFiles/SidechainUIProfile.dir/Profile.cpp.o -MF src/ui/profile/CMakeFiles/SidechainUIProfile.dir/Profile.cpp.o.d -o src/ui/profile/CMakeFiles/SidechainUIProfile.dir/Profile.cpp.o -c /home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/profile/Profile.cpp
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/profile/Profile.cpp:1:
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/profile/Profile.h:7:
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/profile/../common/SmoothScrollable.h:52:104: error: 'maybe_unused' attribute cannot be applied to types
+   52 |   void handleMouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel, int [[maybe_unused]] viewportHeight,
+      |                                                                                                        ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/profile/../common/SmoothScrollable.h:128:40: error: 'maybe_unused' attribute cannot be applied to types
+  128 |   virtual int getScrollableWidth(int [[maybe_unused]] scrollBarWidth) const {
+      |                                        ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/profile/../common/SmoothScrollable.h:52:119: warning: unused parameter 'viewportHeight' [-Wunused-parameter]
+   52 |   void handleMouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel, int [[maybe_unused]] viewportHeight,
+      |                                                                                                                       ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/profile/../common/SmoothScrollable.h:128:55: warning: unused parameter 'scrollBarWidth' [-Wunused-parameter]
+  128 |   virtual int getScrollableWidth(int [[maybe_unused]] scrollBarWidth) const {
+      |                                                       ^
+In file included from /home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/profile/Profile.cpp:1:
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/profile/Profile.h:226:32: error: 'maybe_unused' attribute cannot be applied to types
+  226 |   void onScrollUpdate(double [[maybe_unused]] newScrollPosition) override {
+      |                                ^
+/home/zfogg/src/github.com/zfogg/sidechain/plugin/src/ui/profile/Profile.h:226:47: warning: unused parameter 'newScrollPosition' [-Wunused-parameter]
+  226 |   void onScrollUpdate(double [[maybe_unused]] newScrollPosition) override {
+      |                                               ^
+3 warnings and 3 errors generated.
+ninja: build stopped: subcommand failed.
+Cursor-2.1.46-x86_64.AppImage: *** [Makefile:103: plugin] Error 1

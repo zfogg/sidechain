@@ -84,4 +84,20 @@ void shutdown();
 // Get string representation of log level
 const char *levelToString(Level level);
 
+// ==========================================================================
+// Exception handling
+
+/**
+ * Log an exception with context
+ *
+ * Usage:
+ *   Log::logException(error, "PostCard::toggleLike");
+ *   // outputs: "PostCard::toggleLike - error message"
+ *
+ *   Log::logException(error, "PostCard", "Failed to toggle like");
+ *   // outputs: "PostCard: Failed to toggle like - error message"
+ */
+void logException(std::exception_ptr error, const juce::String &context);
+void logException(std::exception_ptr error, const juce::String &context, const juce::String &action);
+
 } // namespace Log
