@@ -27,7 +27,7 @@ export class UserProfileClient {
     if (updates.bio) payload.bio = updates.bio
     if (updates.website) payload.website = updates.website
 
-    return apiClient.put('/users/profile', payload)
+    return apiClient.put('/users/me', payload)
   }
 
   /**
