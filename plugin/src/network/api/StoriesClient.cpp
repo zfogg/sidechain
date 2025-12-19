@@ -80,7 +80,7 @@ void NetworkClient::uploadStory(const juce::AudioBuffer<float> &audioBuffer, dou
     return;
   }
 
-  // Upload rate limiting check (Task 4.18)
+  // Upload rate limiting check
   if (uploadRateLimiter) {
     juce::String identifier = currentUserId.isEmpty() ? "anonymous" : currentUserId;
     auto rateLimitStatus = uploadRateLimiter->tryConsume(identifier, 1);

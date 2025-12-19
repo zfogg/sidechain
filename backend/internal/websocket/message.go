@@ -49,18 +49,18 @@ const (
 	MessageTypeAuth   = "auth"
 
 	// Feed/Activity messages
-	MessageTypeNewPost       = "new_post"
-	MessageTypePostLiked     = "post_liked"
-	MessageTypePostUnliked   = "post_unliked"
-	MessageTypeNewComment    = "new_comment"
-	MessageTypeCommentLiked  = "comment_liked"
+	MessageTypeNewPost        = "new_post"
+	MessageTypePostLiked      = "post_liked"
+	MessageTypePostUnliked    = "post_unliked"
+	MessageTypeNewComment     = "new_comment"
+	MessageTypeCommentLiked   = "comment_liked"
 	MessageTypeCommentUnliked = "comment_unliked"
-	MessageTypeNewReaction   = "new_reaction"
+	MessageTypeNewReaction    = "new_reaction"
 
 	// Social messages
-	MessageTypeNewFollower            = "new_follower"
-	MessageTypeUnfollowed             = "unfollowed"
-	MessageTypeFollowRequestAccepted  = "follow_request_accepted"
+	MessageTypeNewFollower           = "new_follower"
+	MessageTypeUnfollowed            = "unfollowed"
+	MessageTypeFollowRequestAccepted = "follow_request_accepted"
 
 	// Presence messages
 	MessageTypePresence     = "presence"
@@ -78,19 +78,19 @@ const (
 	MessageTypePlaybackStopped = "playback_stopped"
 
 	// Real-time updates
-	MessageTypeLikeCountUpdate     = "like_count_update"
-	MessageTypeCommentCountUpdate  = "comment_count_update"
-	MessageTypeFollowerCountUpdate = "follower_count_update"
-	MessageTypeFeedInvalidate      = "feed_invalidate"      // Invalidate feed cache
-	MessageTypeTimelineUpdate      = "timeline_update"      // Activity timeline changed
-	MessageTypeActivityUpdate      = "activity_update"      // New activity (post, like, follow, etc.)
+	MessageTypeLikeCountUpdate         = "like_count_update"
+	MessageTypeCommentCountUpdate      = "comment_count_update"
+	MessageTypeFollowerCountUpdate     = "follower_count_update"
+	MessageTypeFeedInvalidate          = "feed_invalidate"           // Invalidate feed cache
+	MessageTypeTimelineUpdate          = "timeline_update"           // Activity timeline changed
+	MessageTypeActivityUpdate          = "activity_update"           // New activity (post, like, follow, etc.)
 	MessageTypeNotificationCountUpdate = "notification_count_update" // Unread notification count
 
 	// Typing indicators
 	MessageTypeUserTyping     = "user_typing"      // User started typing a comment
 	MessageTypeUserStopTyping = "user_stop_typing" // User stopped typing a comment
 
-	// Collaborative editing (Task 4.20)
+	// Collaborative editing
 	MessageTypeOperation    = "operation"
 	MessageTypeOperationAck = "operation_ack"
 )
@@ -283,27 +283,27 @@ func (m *Message) ParsePayload(target interface{}) error {
 
 // FeedInvalidatePayload signals clients to refresh a specific feed
 type FeedInvalidatePayload struct {
-	FeedType string `json:"feed_type"` // "timeline", "global", "trending", "notification"
+	FeedType string `json:"feed_type"`        // "timeline", "global", "trending", "notification"
 	Reason   string `json:"reason,omitempty"` // "new_post", "follow", "like", etc.
 }
 
 // TimelineUpdatePayload indicates activity timeline has new content
 type TimelineUpdatePayload struct {
-	UserID    string `json:"user_id"`       // User whose timeline changed
-	FeedType  string `json:"feed_type"`     // Which feed was updated
-	NewCount  int    `json:"new_count"`     // Number of new activities
+	UserID    string `json:"user_id"`   // User whose timeline changed
+	FeedType  string `json:"feed_type"` // Which feed was updated
+	NewCount  int    `json:"new_count"` // Number of new activities
 	Timestamp int64  `json:"timestamp"`
 }
 
 // ActivityUpdatePayload represents a new activity (post, like, follow, comment)
 type ActivityUpdatePayload struct {
-	ID          string                 `json:"id,omitempty"`           // Activity ID
-	Actor       string                 `json:"actor"`                  // User ID who performed the action
-	ActorName   string                 `json:"actor_name,omitempty"`   // Actor username
-	ActorAvatar string                 `json:"actor_avatar,omitempty"` // Actor avatar URL
-	Verb        string                 `json:"verb"`                   // "posted", "liked", "followed", "commented"
-	Object      string                 `json:"object"`                 // Post ID or target object
-	ObjectType  string                 `json:"object_type,omitempty"`  // "loop_post", "user", "comment"
+	ID          string `json:"id,omitempty"`           // Activity ID
+	Actor       string `json:"actor"`                  // User ID who performed the action
+	ActorName   string `json:"actor_name,omitempty"`   // Actor username
+	ActorAvatar string `json:"actor_avatar,omitempty"` // Actor avatar URL
+	Verb        string `json:"verb"`                   // "posted", "liked", "followed", "commented"
+	Object      string `json:"object"`                 // Post ID or target object
+	ObjectType  string `json:"object_type,omitempty"`  // "loop_post", "user", "comment"
 	// Post metadata (when verb="posted")
 	AudioURL    string   `json:"audio_url,omitempty"`
 	BPM         int      `json:"bpm,omitempty"`
@@ -316,22 +316,22 @@ type ActivityUpdatePayload struct {
 	CommentCount int    `json:"comment_count,omitempty"`
 	CommentText  string `json:"comment_text,omitempty"` // For comments
 	// Metadata
-	Timestamp int64  `json:"timestamp"`
+	Timestamp int64    `json:"timestamp"`
 	FeedTypes []string `json:"feed_types,omitempty"` // Which feeds this affects: "global", "timeline", "user_activity"
 }
 
 // NotificationCountPayload indicates unread notification count changed
 type NotificationCountPayload struct {
-	UnreadCount int `json:"unread_count"`
-	UnseenCount int `json:"unseen_count"`
+	UnreadCount int   `json:"unread_count"`
+	UnseenCount int   `json:"unseen_count"`
 	Timestamp   int64 `json:"timestamp"`
 }
 
 // TypingPayload indicates a user is typing a comment
 type TypingPayload struct {
-	PostID      string `json:"post_id"`       // Post being commented on
-	UserID      string `json:"user_id"`       // User typing
-	Username    string `json:"username"`      // Display name for UI
+	PostID      string `json:"post_id"`  // Post being commented on
+	UserID      string `json:"user_id"`  // User typing
+	Username    string `json:"username"` // Display name for UI
 	DisplayName string `json:"display_name,omitempty"`
 	AvatarURL   string `json:"avatar_url,omitempty"`
 	Timestamp   int64  `json:"timestamp"`
@@ -348,7 +348,7 @@ type StopTypingPayload struct {
 type OperationPayload struct {
 	DocumentID string `json:"document_id"` // Format: "channel:channelId:field" e.g., "channel:abc123:description"
 	Operation  struct {
-		Type      string `json:"type"`       // "Insert" or "Delete"
+		Type      string `json:"type"` // "Insert" or "Delete"
 		ClientID  int    `json:"client_id"`
 		Timestamp int64  `json:"timestamp"` // Client timestamp
 		Position  int    `json:"position"`
@@ -358,12 +358,12 @@ type OperationPayload struct {
 
 // OperationAckPayload is sent back to clients after server transformation
 type OperationAckPayload struct {
-	DocumentID       string                 `json:"document_id"`
-	ClientID         int                    `json:"client_id"`
-	ServerTimestamp  int64                  `json:"server_timestamp"`
-	NewPosition      int                    `json:"new_position"`
-	CurrentContent   string                 `json:"current_content"` // Full document state after operation
-	TransformedOp    *OperationPayload      `json:"transformed_operation"`
-	Success          bool                   `json:"success"`
-	Error            string                 `json:"error,omitempty"`
+	DocumentID      string            `json:"document_id"`
+	ClientID        int               `json:"client_id"`
+	ServerTimestamp int64             `json:"server_timestamp"`
+	NewPosition     int               `json:"new_position"`
+	CurrentContent  string            `json:"current_content"` // Full document state after operation
+	TransformedOp   *OperationPayload `json:"transformed_operation"`
+	Success         bool              `json:"success"`
+	Error           string            `json:"error,omitempty"`
 }

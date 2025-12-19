@@ -520,7 +520,7 @@ func (h *Handlers) getFallbackFeed(userID string, limit int) []map[string]interf
 	mutedUserIDs, err := GetMutedUserIDs(userID)
 	if err != nil {
 		logger.WarnWithFields("Failed to fetch muted users for "+userID+", feed may show muted content", err)
-		mutedUserIDs = []string{}  // Explicit empty list on error
+		mutedUserIDs = []string{} // Explicit empty list on error
 	}
 	mutedUserSet := make(map[string]bool, len(mutedUserIDs))
 	for _, id := range mutedUserIDs {
@@ -1151,7 +1151,7 @@ func (h *Handlers) DownloadPost(c *gin.Context) {
 	// Reload post to get updated download count
 	database.DB.First(&post, "id = ?", postID)
 
-	// Real-time Gorse feedback sync (Task 1.4)
+	// Real-time Gorse feedback sync
 	if h.gorse != nil {
 		go func() {
 			if err := h.gorse.SyncFeedback(userID, postID, "download"); err != nil {
@@ -1247,7 +1247,7 @@ func (h *Handlers) UpdateCommentAudience(c *gin.Context) {
 	})
 }
 
-// TrackPlay tracks a play event for analytics and recommendations (Task 1.2)
+// TrackPlay tracks a play event for analytics and recommendations
 // POST /api/v1/posts/:id/play
 func (h *Handlers) TrackPlay(c *gin.Context) {
 	user, exists := c.Get("user")
@@ -1294,7 +1294,7 @@ func (h *Handlers) TrackPlay(c *gin.Context) {
 		return
 	}
 
-	// Real-time Gorse feedback sync (Task 1.2)
+	// Real-time Gorse feedback sync
 	// Completed plays are stronger signals (like), partial plays are weaker (view)
 	if h.gorse != nil {
 		go func() {
@@ -1316,7 +1316,7 @@ func (h *Handlers) TrackPlay(c *gin.Context) {
 	})
 }
 
-// ViewPost tracks when a user views a post in their feed (Task 1.5)
+// ViewPost tracks when a user views a post in their feed
 // POST /api/v1/posts/:id/view
 func (h *Handlers) ViewPost(c *gin.Context) {
 	user, exists := c.Get("user")
@@ -1348,7 +1348,7 @@ func (h *Handlers) ViewPost(c *gin.Context) {
 		return
 	}
 
-	// Real-time Gorse feedback sync (Task 1.5)
+	// Real-time Gorse feedback sync
 	// View events are important for understanding user behavior even if they don't play
 	if h.gorse != nil {
 		go func() {

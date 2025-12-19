@@ -730,11 +730,10 @@ func (c *GorseRESTClient) BatchSyncFollowsFromList(follows []struct {
 }
 
 // =============================================================================
-// Category-Based Filtering Methods (Task 6)
+// Category-Based Filtering Methods
 // =============================================================================
 
 // GetForYouFeedByGenre returns personalized recommendations filtered by genre
-// Task 6.1
 func (c *GorseRESTClient) GetForYouFeedByGenre(userID, genre string, limit, offset int) ([]PostScore, error) {
 	// Gorse category parameter: GET /api/recommend/{user-id}/{category}?n={n}
 	totalLimit := limit + offset
@@ -790,7 +789,6 @@ func (c *GorseRESTClient) GetForYouFeedByGenre(userID, genre string, limit, offs
 }
 
 // GetForYouFeedByBPMRange returns personalized recommendations filtered by BPM range
-// Task 6.3
 func (c *GorseRESTClient) GetForYouFeedByBPMRange(userID string, minBPM, maxBPM, limit, offset int) ([]PostScore, error) {
 	// Get general recommendations first
 	totalLimit := (limit + offset) * 3 // Fetch extra to account for filtering
@@ -853,7 +851,6 @@ func (c *GorseRESTClient) GetForYouFeedByBPMRange(userID string, minBPM, maxBPM,
 }
 
 // GetSimilarPostsByGenre returns similar posts filtered by genre
-// Task 6.4
 func (c *GorseRESTClient) GetSimilarPostsByGenre(postID, genre string, limit int) ([]models.AudioPost, error) {
 	// Get all similar posts first
 	fetchLimit := limit * 3 // Fetch extra to account for genre filtering
@@ -897,7 +894,6 @@ func (c *GorseRESTClient) GetSimilarPostsByGenre(postID, genre string, limit int
 }
 
 // GetPopular returns globally popular posts based on engagement metrics
-// Task 7.1
 func (c *GorseRESTClient) GetPopular(limit, offset int) ([]PostScore, error) {
 	// Note: Gorse in-one doesn't have /api/popular, so we use /api/latest
 	// which returns recently added items (works as a fallback for popular)
@@ -968,7 +964,6 @@ func (c *GorseRESTClient) GetPopular(limit, offset int) ([]PostScore, error) {
 }
 
 // GetLatest returns recently added posts
-// Task 7.2
 func (c *GorseRESTClient) GetLatest(limit, offset int) ([]PostScore, error) {
 	// Gorse latest endpoint: GET /api/latest?n={n}
 	// Note: Gorse doesn't support offset parameter, so we fetch more and slice

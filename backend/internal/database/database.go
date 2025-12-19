@@ -89,7 +89,7 @@ func Migrate() error {
 	err = DB.AutoMigrate(
 		&models.User{},
 		&models.OAuthProvider{}, // OAuth account linking for email-based unification
-		&models.MIDIPattern{}, // Must come before AudioPost and Story (foreign key dependency)
+		&models.MIDIPattern{},   // Must come before AudioPost and Story (foreign key dependency)
 		&models.AudioPost{},
 		&models.ProjectFile{}, // R.3.4 Project File Exchange
 		&models.PasswordReset{},
@@ -107,22 +107,22 @@ func Migrate() error {
 		&models.StoryView{},
 		&models.StoryHighlight{},
 		&models.HighlightedStory{},
-		&models.Playlist{},             // R.3.1 Collaborative Playlists
-		&models.PlaylistEntry{},        // R.3.1 Collaborative Playlists
-		&models.PlaylistCollaborator{}, // R.3.1 Collaborative Playlists
-		&models.MIDIChallenge{},        // R.2.2 MIDI Battle Royale
-		&models.MIDIChallengeEntry{},   // R.2.2 MIDI Battle Royale (references AudioPost and MIDIPattern)
-		&models.MIDIChallengeVote{},    // R.2.2 MIDI Battle Royale
-		&models.SavedPost{},               // Save/Bookmark posts feature
-		&models.Repost{},                  // Repost/Share to feed feature
-		&models.NotificationPreferences{}, // Notification preferences per user
-		&models.MutedUser{},               // Mute users without unfollowing
-		&models.Sound{},                   // Feature #15: Sound/Sample Pages
-		&models.AudioFingerprint{},        // Feature #15: Audio fingerprinting for sound detection
-		&models.SoundUsage{},              // Feature #15: Track sound usage across posts
-		&models.ErrorLog{},                // Task 4.19: Error tracking and reporting
-		&models.RecommendationImpression{}, // Task 8.1: CTR tracking - impressions
-		&models.RecommendationClick{},      // Task 8.2: CTR tracking - clicks
+		&models.Playlist{},                 // R.3.1 Collaborative Playlists
+		&models.PlaylistEntry{},            // R.3.1 Collaborative Playlists
+		&models.PlaylistCollaborator{},     // R.3.1 Collaborative Playlists
+		&models.MIDIChallenge{},            // R.2.2 MIDI Battle Royale
+		&models.MIDIChallengeEntry{},       // R.2.2 MIDI Battle Royale (references AudioPost and MIDIPattern)
+		&models.MIDIChallengeVote{},        // R.2.2 MIDI Battle Royale
+		&models.SavedPost{},                // Save/Bookmark posts feature
+		&models.Repost{},                   // Repost/Share to feed feature
+		&models.NotificationPreferences{},  // Notification preferences per user
+		&models.MutedUser{},                // Mute users without unfollowing
+		&models.Sound{},                    // Feature #15: Sound/Sample Pages
+		&models.AudioFingerprint{},         // Feature #15: Audio fingerprinting for sound detection
+		&models.SoundUsage{},               // Feature #15: Track sound usage across posts
+		&models.ErrorLog{},                 // Error tracking and reporting
+		&models.RecommendationImpression{}, // CTR tracking - impressions
+		&models.RecommendationClick{},      // CTR tracking - clicks
 	)
 	if err != nil {
 		return fmt.Errorf("failed to run migrations: %w", err)
@@ -306,7 +306,7 @@ func createIndexes() error {
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_sound_usages_post ON sound_usages (audio_post_id) WHERE audio_post_id IS NOT NULL")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_sound_usages_sound_created ON sound_usages (sound_id, created_at DESC)")
 
-	// Error log indexes (Task 4.19: Error tracking)
+	// Error log indexes
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_error_logs_user ON error_logs (user_id)")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_error_logs_severity ON error_logs (severity)")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_error_logs_source ON error_logs (source)")

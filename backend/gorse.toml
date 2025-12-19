@@ -26,12 +26,12 @@ refresh_recommend_period = "1h"
 [recommend.data_source]
 positive_feedback_types = ["like", "follow", "download"]
 read_feedback_types = ["view", "play"]
-negative_feedback_types = ["dislike", "skip", "hide"]  # Task 5.1
-positive_feedback_ttl = 365  # Decay likes after 1 year (Task 5.1)
-read_feedback_ttl = 90  # Decay views after 90 days (Task 5.1)
+negative_feedback_types = ["dislike", "skip", "hide"]
+positive_feedback_ttl = 365  # Decay likes after 1 year
+read_feedback_ttl = 90  # Decay views after 90 days
 item_ttl = 0
 
-# Offline recommendation settings (Task 9.1)
+# Offline recommendation settings
 [recommend.offline]
 # Enable multiple recommendation algorithms
 enable_popular_recommendation = true
@@ -39,7 +39,7 @@ enable_latest_recommendation = true
 enable_collaborative_recommendation = true
 enable_click_through_prediction = true
 
-# Exploration/exploitation mix (Task 9.1)
+# Exploration/exploitation mix
 # Mix in popular and latest content to prevent filter bubbles
 explore_recommend = { popular = 0.1, latest = 0.2 }
 
@@ -54,7 +54,7 @@ enable_index = true
 index_recall = 0.9
 index_fit_epoch = 20
 
-# Diversity settings (Task 9.2)
+# Diversity settings
 [recommend.online]
 # Number of fallback recommendations if not enough personalized
 fallback_recommend = ["popular", "latest"]

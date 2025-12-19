@@ -68,7 +68,6 @@ public:
   //==============================================================================
   // Update UI state (not persisted to PostsStore)
   // Note: Post data updates now come automatically via PostsStore subscription
-  // (Task 2.5)
 
   /** Set the playback progress indicator
    * @param progress Progress from 0.0 to 1.0

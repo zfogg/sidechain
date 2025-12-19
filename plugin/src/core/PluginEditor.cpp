@@ -73,7 +73,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   auto &toastManager = ToastManager::getInstance();
   addAndMakeVisible(&toastManager);
 
-  // Set up critical error alerts (Task 4.19)
+  // Set up critical error alerts
   using namespace Sidechain::Util::Error;
   auto errorTracker = ErrorTracker::getInstance();
   errorTracker->setOnCriticalError([](const ErrorInfo &error) {
@@ -651,7 +651,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   // Create EditProfile dialog (Settings page)
   editProfileDialog = std::make_unique<EditProfile>(&appStore);
   editProfileDialog->setNetworkClient(networkClient.get());
-  // Task 2.4: Profile save is now handled via UserStore subscription in
+  // Profile save is now handled via UserStore subscription in
   // EditProfile Callbacks removed: onCancel, onSave, onProfilePicSelected
   editProfileDialog->onActivityStatusClicked = [this]() { showActivityStatusSettings(); };
   editProfileDialog->onMutedUsersClicked = []() {
@@ -1120,7 +1120,7 @@ void SidechainAudioProcessorEditor::showView(AppView view, NavigationDirection d
   // Don't animate: auth transitions, same view, missing components, or
   // explicitly no animation
   //
-  // TODO (Task 4.21): Fix ViewTransitionManager.slideLeft animation for
+  // TODO: Fix ViewTransitionManager.slideLeft animation for
   // PostsFeed ISSUE: When navigating TO PostsFeed, the slideLeft animation
   // starts but the completion callback never fires, causing the component to
   // never appear on screen until a second click. This is specific to PostsFeed
@@ -1950,7 +1950,7 @@ void SidechainAudioProcessorEditor::showEditProfile() {
   if (!editProfileDialog)
     return;
 
-  // Task 2.4: Use reactive pattern - showWithCurrentProfile reads from
+  // Use reactive pattern - showWithCurrentProfile reads from
   // UserStore
   editProfileDialog->showWithCurrentProfile(this);
 }

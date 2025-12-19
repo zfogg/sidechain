@@ -24,7 +24,7 @@ void NetworkClient::uploadAudio(const juce::String &recordingId, const juce::Aud
     return;
   }
 
-  // Upload rate limiting check (Task 4.18)
+  // Upload rate limiting check
   if (uploadRateLimiter) {
     juce::String identifier = currentUserId.isEmpty() ? "anonymous" : currentUserId;
     auto rateLimitStatus = uploadRateLimiter->tryConsume(identifier, 1);
@@ -153,7 +153,7 @@ void NetworkClient::uploadAudioWithMetadata(const juce::AudioBuffer<float> &audi
     return;
   }
 
-  // Upload rate limiting check (Task 4.18)
+  // Upload rate limiting check
   if (uploadRateLimiter) {
     juce::String identifier = currentUserId.isEmpty() ? "anonymous" : currentUserId;
     auto rateLimitStatus = uploadRateLimiter->tryConsume(identifier, 1);

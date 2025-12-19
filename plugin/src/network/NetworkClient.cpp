@@ -133,7 +133,7 @@ NetworkClient::NetworkClient(const Config &cfg) : config(cfg) {
   Log::info("NetworkClient initialized with base URL: " + config.baseUrl);
   Log::debug("  Timeout: " + juce::String(config.timeoutMs) + "ms, Max retries: " + juce::String(config.maxRetries));
 
-  // Initialize rate limiters (Task 4.18)
+  // Initialize rate limiters
   using namespace Sidechain::Security;
 
   // API rate limiter: 100 requests per 60 seconds with 20 burst allowance
@@ -216,7 +216,7 @@ NetworkClient::RequestResult NetworkClient::makeRequestWithRetry(const juce::Str
   SCOPED_TIMER_THRESHOLD("network::api_call", 2000.0);
   RequestResult result;
 
-  // Rate limiting check (Task 4.18)
+  // Rate limiting check
   if (apiRateLimiter) {
     // Use user ID as identifier, or "anonymous" if not authenticated
     juce::String identifier = currentUserId.isEmpty() ? "anonymous" : currentUserId;
@@ -250,7 +250,7 @@ NetworkClient::RequestResult NetworkClient::makeRequestWithRetry(const juce::Str
       HttpErrorHandler::getInstance().reportError(endpoint, method, 429, result.errorMessage,
                                                   juce::JSON::toString(result.data));
 
-      // Track rate limit error (Task 4.19)
+      // Track rate limit error
       using namespace Sidechain::Util::Error;
       auto errorTracker = ErrorTracker::getInstance();
       errorTracker->recordError(ErrorSource::Network, "Rate limit exceeded: " + result.errorMessage,
@@ -333,7 +333,7 @@ NetworkClient::RequestResult NetworkClient::makeRequestWithRetry(const juce::Str
       // Report connection error after all retries exhausted
       HttpErrorHandler::getInstance().reportError(endpoint, method, 0, result.errorMessage, "");
 
-      // Track connection error (Task 4.19)
+      // Track connection error
       using namespace Sidechain::Util::Error;
       auto errorTracker = ErrorTracker::getInstance();
       errorTracker->recordError(ErrorSource::Network, "Connection failed: " + result.errorMessage, ErrorSeverity::Error,
@@ -364,7 +364,6 @@ NetworkClient::RequestResult NetworkClient::makeRequestWithRetry(const juce::Str
     Log::debug("API Response from " + endpoint + " (HTTP " + juce::String(result.httpStatus) + "): " + response);
 
     // Check for server rate limiting (429) and honor Retry-After header
-    // (Task 4.18)
     if (result.httpStatus == 429 && attempts < config.maxRetries) {
       auto retryAfterHeader = responseHeaders.getValue("Retry-After", "");
       int retryDelaySeconds = 60; // Default to 60 seconds
@@ -398,7 +397,7 @@ NetworkClient::RequestResult NetworkClient::makeRequestWithRetry(const juce::Str
       HttpErrorHandler::getInstance().reportError(endpoint, method, result.httpStatus, result.getUserFriendlyError(),
                                                   juce::JSON::toString(result.data));
 
-      // Track HTTP errors (Task 4.19)
+      // Track HTTP errors
       using namespace Sidechain::Util::Error;
       auto errorTracker = ErrorTracker::getInstance();
 
@@ -839,7 +838,7 @@ NetworkClient::uploadMultipartData(const juce::String &endpoint, const juce::Str
   SCOPED_TIMER_THRESHOLD("network::upload", 5000.0);
   RequestResult result;
 
-  // Rate limiting check (Task 4.18) - BEFORE authentication check to prevent
+  // Rate limiting check - BEFORE authentication check to prevent
   // wasted resources
   if (uploadRateLimiter) {
     juce::String identifier = currentUserId.isEmpty() ? "anonymous" : currentUserId;
@@ -870,7 +869,7 @@ NetworkClient::uploadMultipartData(const juce::String &endpoint, const juce::Str
       HttpErrorHandler::getInstance().reportError(endpoint, "POST", 429, result.errorMessage,
                                                   juce::JSON::toString(result.data));
 
-      // Track error (Task 4.19 integration point)
+      // Track error
       using namespace Sidechain::Util::Error;
       auto errorTracker = ErrorTracker::getInstance();
       errorTracker->recordError(ErrorSource::Network, "Upload rate limit exceeded: " + result.errorMessage,
@@ -983,7 +982,7 @@ NetworkClient::uploadMultipartData(const juce::String &endpoint, const juce::Str
 }
 
 /**
- * Upload file data to an external endpoint using absolute URL (Task 4.18)
+ * Upload file data to an external endpoint using absolute URL
  *
  * IMPORTANT: This method bypasses rate limiting because it's designed for
  * external endpoints (CDN, S3, etc.) which have their own rate limiting
@@ -998,7 +997,7 @@ NetworkClient::uploadMultipartData(const juce::String &endpoint, const juce::Str
  * @param customHeaders Additional HTTP headers to include
  * @return RequestResult with status and error details
  */
-// Note: uploadMultipartDataAbsolute is NOT rate limited (Task 4.18)
+// Note: uploadMultipartDataAbsolute is NOT rate limited
 // External endpoints (CDN, S3, etc.) have their own rate limiting and should
 // not count against our API rate limits. This is intentional for external
 // uploads.

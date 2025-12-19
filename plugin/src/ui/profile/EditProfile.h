@@ -47,7 +47,7 @@ public:
   void closeDialog();
 
   //==============================================================================
-  // Navigation callbacks (Task 2.4 - settings section navigation)
+  // Navigation callbacks
   // Note: Profile save is now handled via UserStore subscription
   std::function<void()> onActivityStatusClicked;
   std::function<void()> onMutedUsersClicked;
@@ -122,13 +122,13 @@ private:
   //==============================================================================
   // Helpers
   void setupEditors();
-  void populateFromUserStore(); // Task 2.4: Populate form from UserStore
-  void updateHasChanges();      // Task 2.4: Compare editors to UserStore
-  void handleSave();            // Task 2.4: Save editors to UserStore
+  void populateFromUserStore(); // Populate form from UserStore
+  void updateHasChanges();      // Compare editors to UserStore
+  void handleSave();            // Save editors to UserStore
   void handlePhotoSelect();
   void validateUsername(const juce::String &username);
 
-  // Task 2.4: Helper to build social links JSON from editors
+  // Helper to build social links JSON from editors
   juce::var getSocialLinksFromEditors() const;
 
   //==============================================================================

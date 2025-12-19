@@ -58,6 +58,10 @@ services:
 
       # Elasticsearch
       ELASTICSEARCH_URL: "${ELASTICSEARCH_URL:-http://elasticsearch:9200}"
+
+      # Redis
+      REDIS_HOST: "${REDIS_HOST:-redis}"
+      REDIS_PORT: "${REDIS_PORT:-6379}"
     depends_on:
       postgres:
         condition: service_healthy

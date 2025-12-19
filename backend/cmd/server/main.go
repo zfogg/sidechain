@@ -796,7 +796,7 @@ func main() {
 			recommendations.POST("/dislike/:post_id", h.NotInterestedInPost) // "Not interested" button
 			recommendations.POST("/skip/:post_id", h.SkipPost)               // Track when user scrolls past quickly
 			recommendations.POST("/hide/:post_id", h.HidePost)               // "Hide this post" button
-			// Discovery endpoints (Task 7)
+			// Discovery endpoints
 			recommendations.GET("/popular", h.GetPopular)              // Globally popular posts
 			recommendations.GET("/latest", h.GetLatest)                // Recently added posts
 			recommendations.GET("/discovery-feed", h.GetDiscoveryFeed) // Blended discovery feed

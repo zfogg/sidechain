@@ -57,7 +57,7 @@ func (h *Handlers) ArchivePost(c *gin.Context) {
 		return
 	}
 
-	// Re-sync to Gorse to hide archived post (Task 2.2)
+	// Re-sync to Gorse to hide archived post
 	if h.gorse != nil {
 		go func() {
 			if err := h.gorse.SyncItem(postID); err != nil {
@@ -118,7 +118,7 @@ func (h *Handlers) UnarchivePost(c *gin.Context) {
 		return
 	}
 
-	// Re-sync to Gorse to show unarchived post (Task 2.2)
+	// Re-sync to Gorse to show unarchived post
 	if h.gorse != nil {
 		go func() {
 			if err := h.gorse.SyncItem(postID); err != nil {

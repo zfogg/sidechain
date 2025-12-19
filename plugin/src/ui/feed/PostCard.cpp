@@ -119,7 +119,6 @@ void PostCard::setPost(const FeedPost &newPost) {
 //==============================================================================
 // UI State Updates (not persisted to PostsStore)
 // Post data updates now come automatically via PostsStore subscription
-// (Task 2.5)
 
 void PostCard::setPlaybackProgress(float progress) {
   playbackProgress = juce::jlimit(0.0f, 1.0f, progress);

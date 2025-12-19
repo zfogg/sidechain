@@ -42,7 +42,7 @@ func (h *Handlers) FollowUser(c *gin.Context) {
 		return
 	}
 
-	// Real-time Gorse feedback sync (Task 1.3)
+	// Real-time Gorse feedback sync
 	if h.gorse != nil {
 		go func() {
 			if err := h.gorse.SyncFollowEvent(userID, req.TargetUserID); err != nil {
@@ -120,7 +120,7 @@ func (h *Handlers) UnfollowUser(c *gin.Context) {
 		return
 	}
 
-	// Real-time Gorse feedback removal (Task 1.3)
+	// Real-time Gorse feedback removal
 	if h.gorse != nil {
 		go func() {
 			if err := h.gorse.RemoveFollowEvent(userID, req.TargetUserID); err != nil {
@@ -175,7 +175,7 @@ func (h *Handlers) LikePost(c *gin.Context) {
 		}
 	}
 
-	// Real-time Gorse feedback sync (Task 1.1)
+	// Real-time Gorse feedback sync
 	if h.gorse != nil {
 		go func() {
 			if err := h.gorse.SyncFeedback(userID, req.ActivityID, "like"); err != nil {
@@ -618,7 +618,7 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 	// Reload user
 	database.DB.First(currentUser, "id = ?", currentUser.ID)
 
-	// Re-sync user to Gorse when profile changes (Task 2.3 & 2.4)
+	// Re-sync user to Gorse when profile changes
 	// This updates recommendation preferences and user-as-item for follow recommendations
 	if h.gorse != nil {
 		go func() {

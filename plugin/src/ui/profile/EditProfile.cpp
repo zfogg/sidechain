@@ -197,7 +197,7 @@ void EditProfile::populateFromUserStore() {
   repaint();
 }
 
-// Task 2.4: Build social links JSON from editors
+// Build social links JSON from editors
 juce::var EditProfile::getSocialLinksFromEditors() const {
   using namespace Sidechain::Security;
 
@@ -383,7 +383,7 @@ void EditProfile::drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds) {
                                            static_cast<float>(bounds.getBottom()), true));
     g.fillEllipse(bounds.toFloat());
 
-    // Task 2.4: Display initial from UserStore
+    // Display initial from UserStore
     g.setColour(Colors::textPrimary);
     g.setFont(juce::FontOptions(32.0f).withStyle("Bold"));
     juce::String initial = "?";
@@ -476,7 +476,7 @@ juce::Rectangle<int> EditProfile::getAvatarBounds() const {
 //==============================================================================
 void EditProfile::buttonClicked(juce::Button *button) {
   if (button == cancelButton.get()) {
-    // Task 2.4: Close dialog directly without callback
+    // Close dialog directly without callback
     closeDialog();
   } else if (button == saveButton.get()) {
     handleSave();

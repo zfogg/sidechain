@@ -338,7 +338,7 @@ void MessageThread::textEditorTextChanged(juce::TextEditor &editor) {
 
 //==============================================================================
 void MessageThread::setStreamChatClient(StreamChatClient *client) {
-  // Task 2.3: streamChatClient only kept for backward compatibility, not used
+  // streamChatClient only kept for backward compatibility, not used
   // for message updates
   streamChatClient = client;
 }
@@ -1077,7 +1077,7 @@ void MessageThread::scrollToMessage(const juce::String &messageId) {
   if (messageId.isEmpty())
     return;
 
-  // Task 2.3: Get messages from ChatStore instead of local array
+  // Get messages from ChatStore instead of local array
   if (false) // TODO: refactor to use AppStore
     return;
 

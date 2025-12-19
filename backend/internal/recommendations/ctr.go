@@ -18,7 +18,6 @@ type CTRMetric struct {
 }
 
 // CalculateCTR calculates click-through rates for each recommendation source
-// Task 8.3
 func CalculateCTR(db *gorm.DB, since time.Time) ([]CTRMetric, error) {
 	var metrics []CTRMetric
 
@@ -64,7 +63,6 @@ func CalculateCTR(db *gorm.DB, since time.Time) ([]CTRMetric, error) {
 }
 
 // LogCTRMetrics calculates and logs CTR metrics for the past 24 hours
-// Task 8.3
 func LogCTRMetrics(db *gorm.DB) error {
 	since := time.Now().Add(-24 * time.Hour)
 	metrics, err := CalculateCTR(db, since)
@@ -88,7 +86,6 @@ func LogCTRMetrics(db *gorm.DB) error {
 }
 
 // GetCTRBySource returns CTR metrics for a specific source over a time period
-// Task 8.3
 func GetCTRBySource(db *gorm.DB, source string, since time.Time) (*CTRMetric, error) {
 	metrics, err := CalculateCTR(db, since)
 	if err != nil {

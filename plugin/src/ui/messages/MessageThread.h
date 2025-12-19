@@ -94,7 +94,7 @@ protected:
 
 private:
   //==============================================================================
-  // Task 2.3: All state now comes from ChatStore - no duplicate state!
+  // All state now comes from ChatStore - no duplicate state!
   // - Messages: chatStore->getState().getCurrentChannel()->messages
   // - Loading: chatStore->getState().getCurrentChannel()->isLoadingMessages
   // - Error: chatStore->getState().error
@@ -109,7 +109,7 @@ private:
   juce::String currentUserId;
   StreamChatClient::Channel currentChannel; // Store full channel data for group management
 
-  // Typing indicator state (Task 2.3: local state for current user's typing)
+  // Typing indicator state (local state for current user's typing)
   bool isTyping = false;      // Is current user typing?
   int64_t lastTypingTime = 0; // When current user last typed
   // Note: Typing indicators from other users come from ChatStore.usersTyping

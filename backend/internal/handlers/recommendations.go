@@ -16,7 +16,6 @@ import (
 )
 
 // trackImpression records that a recommendation was shown to a user
-// Task 8.1
 func trackImpression(userID, postID, source string, position int, score float64, reason string) {
 	impression := models.RecommendationImpression{
 		UserID:   userID,
@@ -36,7 +35,6 @@ func trackImpression(userID, postID, source string, position int, score float64,
 }
 
 // trackImpressions records multiple recommendation impressions
-// Task 8.1
 func trackImpressions(userID, source string, scores []recommendations.PostScore) {
 	if len(scores) == 0 {
 		return
@@ -65,7 +63,6 @@ func trackImpressions(userID, source string, scores []recommendations.PostScore)
 // GetForYouFeed returns personalized recommendations for the current user
 // GET /api/v1/recommendations/for-you
 // Query params: ?genre=electronic&min_bpm=120&max_bpm=140
-// Task 6.2, 6.3
 func (h *Handlers) GetForYouFeed(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
@@ -100,11 +97,11 @@ func (h *Handlers) GetForYouFeed(c *gin.Context) {
 	var recommendationType string
 
 	if genre != "" {
-		// Filter by genre (Task 6.1, 6.2)
+		// Filter by genre
 		recommendationType = "for-you-by-genre"
 		scores, err = recService.GetForYouFeedByGenre(userID, genre, limit, offset)
 	} else if minBPM > 0 || maxBPM > 0 {
-		// Filter by BPM range (Task 6.3)
+		// Filter by BPM range
 		recommendationType = "for-you-by-bpm"
 		scores, err = recService.GetForYouFeedByBPMRange(userID, minBPM, maxBPM, limit, offset)
 	} else {
@@ -169,7 +166,7 @@ func (h *Handlers) GetForYouFeed(c *gin.Context) {
 		meta["filter_max_bpm"] = maxBPM
 	}
 
-	// Track impressions for CTR analysis (Task 8.1)
+	// Track impressions for CTR analysis
 	trackImpressions(userID, "for-you", scores)
 
 	c.JSON(http.StatusOK, gin.H{
@@ -180,7 +177,7 @@ func (h *Handlers) GetForYouFeed(c *gin.Context) {
 
 // GetSimilarPosts returns posts similar to a given post
 // GET /api/v1/recommendations/similar-posts/:post_id
-// Query params: ?genre=electronic (Task 6.4)
+// Query params: ?genre=electronic
 func (h *Handlers) GetSimilarPosts(c *gin.Context) {
 	postID := c.Param("post_id")
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
@@ -201,7 +198,7 @@ func (h *Handlers) GetSimilarPosts(c *gin.Context) {
 	}
 	recService := recommendations.NewGorseRESTClient(gorseURL, gorseAPIKey, database.DB)
 
-	// Get similar posts with optional genre filter (Task 6.4)
+	// Get similar posts with optional genre filter
 	var posts []models.AudioPost
 	var err error
 	var recommendationType string
@@ -397,7 +394,6 @@ func (h *Handlers) GetRecommendedUsers(c *gin.Context) {
 
 // NotInterestedInPost marks a post as "not interested" (negative feedback)
 // POST /api/v1/recommendations/dislike/:post_id
-// Task 5.2
 func (h *Handlers) NotInterestedInPost(c *gin.Context) {
 	userID, ok := util.GetUserIDFromContext(c)
 	if !ok {
@@ -410,7 +406,7 @@ func (h *Handlers) NotInterestedInPost(c *gin.Context) {
 		return
 	}
 
-	// Send negative feedback to Gorse (Task 5.2)
+	// Send negative feedback to Gorse
 	if h.gorse != nil {
 		go func() {
 			if err := h.gorse.SyncFeedback(userID, postID, "dislike"); err != nil {
@@ -427,7 +423,6 @@ func (h *Handlers) NotInterestedInPost(c *gin.Context) {
 
 // SkipPost records when a user skips past a post (negative signal)
 // POST /api/v1/recommendations/skip/:post_id
-// Task 5.3
 func (h *Handlers) SkipPost(c *gin.Context) {
 	userID, ok := util.GetUserIDFromContext(c)
 	if !ok {
@@ -440,7 +435,7 @@ func (h *Handlers) SkipPost(c *gin.Context) {
 		return
 	}
 
-	// Send skip feedback to Gorse (Task 5.3)
+	// Send skip feedback to Gorse
 	if h.gorse != nil {
 		go func() {
 			if err := h.gorse.SyncFeedback(userID, postID, "skip"); err != nil {
@@ -457,7 +452,6 @@ func (h *Handlers) SkipPost(c *gin.Context) {
 
 // HidePost hides a post from the user's feed (strongest negative signal)
 // POST /api/v1/recommendations/hide/:post_id
-// Task 5.4
 func (h *Handlers) HidePost(c *gin.Context) {
 	userID, ok := util.GetUserIDFromContext(c)
 	if !ok {
@@ -470,7 +464,7 @@ func (h *Handlers) HidePost(c *gin.Context) {
 		return
 	}
 
-	// Send hide feedback to Gorse (Task 5.4)
+	// Send hide feedback to Gorse
 	if h.gorse != nil {
 		go func() {
 			if err := h.gorse.SyncFeedback(userID, postID, "hide"); err != nil {
@@ -487,9 +481,9 @@ func (h *Handlers) HidePost(c *gin.Context) {
 }
 
 // GetPopular returns globally popular posts based on engagement metrics
+// GetPopular returns globally popular posts based on engagement metrics
 // GET /api/v1/recommendations/popular
 // Query params: ?limit=20&offset=0
-// Task 7.3
 func (h *Handlers) GetPopular(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
@@ -561,7 +555,7 @@ func (h *Handlers) GetPopular(c *gin.Context) {
 		activities = append(activities, activity)
 	}
 
-	// Track impressions for CTR analysis (Task 8.1)
+	// Track impressions for CTR analysis
 	trackImpressions(userID, "popular", scores)
 
 	c.JSON(http.StatusOK, gin.H{
@@ -578,7 +572,6 @@ func (h *Handlers) GetPopular(c *gin.Context) {
 // GetLatest returns recently added posts
 // GET /api/v1/recommendations/latest
 // Query params: ?limit=20&offset=0
-// Task 7.3
 func (h *Handlers) GetLatest(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
@@ -650,7 +643,7 @@ func (h *Handlers) GetLatest(c *gin.Context) {
 		activities = append(activities, activity)
 	}
 
-	// Track impressions for CTR analysis (Task 8.1)
+	// Track impressions for CTR analysis
 	trackImpressions(userID, "latest", scores)
 
 	c.JSON(http.StatusOK, gin.H{
@@ -667,7 +660,7 @@ func (h *Handlers) GetLatest(c *gin.Context) {
 // GetDiscoveryFeed returns a blended feed of popular, latest, and personalized content
 // GET /api/v1/recommendations/discovery-feed
 // Query params: ?limit=20&offset=0
-// Task 7.4 - Mix 30% popular, 20% latest, 50% personalized
+// Mix 30% popular, 20% latest, 50% personalized
 func (h *Handlers) GetDiscoveryFeed(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
@@ -842,7 +835,7 @@ func (h *Handlers) GetDiscoveryFeed(c *gin.Context) {
 		activities = append(activities, activity)
 	}
 
-	// Track impressions for CTR analysis (Task 8.1)
+	// Track impressions for CTR analysis
 	trackImpressions(userID, "discovery", blendedScores)
 
 	c.JSON(http.StatusOK, gin.H{
@@ -865,7 +858,6 @@ func (h *Handlers) GetDiscoveryFeed(c *gin.Context) {
 // TrackRecommendationClick tracks when a user clicks/plays a recommended post
 // POST /api/v1/recommendations/click
 // Body: {"post_id": "uuid", "source": "for-you", "position": 0, "play_duration": 45.2, "completed": true}
-// Task 8.2
 func (h *Handlers) TrackRecommendationClick(c *gin.Context) {
 	userID, ok := util.GetUserIDFromContext(c)
 	if !ok {
@@ -943,7 +935,6 @@ func (h *Handlers) TrackRecommendationClick(c *gin.Context) {
 // GetCTRMetrics returns click-through rate metrics for recommendation sources
 // GET /api/v1/recommendations/metrics/ctr
 // Query params: ?period=24h (24h, 7d, 30d)
-// Task 8.3
 func (h *Handlers) GetCTRMetrics(c *gin.Context) {
 	period := c.DefaultQuery("period", "24h")
 

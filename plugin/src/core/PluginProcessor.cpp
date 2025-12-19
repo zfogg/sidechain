@@ -222,7 +222,7 @@ bool SidechainAudioProcessor::isBusesLayoutSupported(const BusesLayout &layouts)
 void SidechainAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &midiMessages) {
   juce::ScopedNoDenormals noDenormals;
 
-  // Aggregated performance monitoring (Task 4.15)
+  // Aggregated performance monitoring
   // Record per-block timing but only report every 1000 calls to avoid audio
   // thread blocking
   static int processBlockCallCount = 0;
@@ -292,7 +292,7 @@ void SidechainAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer, juc
     bufferAudioPlayer->processBlock(buffer, buffer.getNumSamples());
   }
 
-  // Record aggregated timing (Task 4.15)
+  // Record aggregated timing
   // Only report every 1000 calls to minimize audio thread overhead
   auto processBlockElapsedMs = juce::Time::getMillisecondCounterHiRes() - processBlockStartTime;
   processBlockTotalMs += processBlockElapsedMs;

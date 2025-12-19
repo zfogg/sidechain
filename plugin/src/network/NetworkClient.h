@@ -1339,7 +1339,7 @@ private:
   std::atomic<bool> shuttingDown{false};
   std::atomic<int> activeRequestCount{0};
 
-  // Rate limiting (Task 4.18)
+  // Rate limiting
   std::shared_ptr<Sidechain::Security::RateLimiter> apiRateLimiter;    // 100 requests per 60 seconds
   std::shared_ptr<Sidechain::Security::RateLimiter> uploadRateLimiter; // 10 uploads per hour
 

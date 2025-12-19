@@ -21,13 +21,13 @@ func NewErrorTrackingHandler() *ErrorTrackingHandler {
 	return &ErrorTrackingHandler{}
 }
 
-// RecordErrors saves a batch of errors from the plugin (Task 4.19)
+// RecordErrors saves a batch of errors from the plugin
 // POST /api/v1/errors/batch
 func (h *ErrorTrackingHandler) RecordErrors(c *gin.Context) {
 	var req models.ErrorBatch
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid_request",
+			"error":   "invalid_request",
 			"message": err.Error(),
 		})
 		return
@@ -108,15 +108,15 @@ func (h *ErrorTrackingHandler) RecordErrors(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"status": "recorded",
+		"status":         "recorded",
 		"recorded_count": recordedCount,
-		"total_count": len(req.Errors),
+		"total_count":    len(req.Errors),
 	})
 
 	log.Printf("Recorded %d/%d errors for user %s", recordedCount, len(req.Errors), userID)
 }
 
-// GetErrorStats returns error statistics for the authenticated user (Task 4.19)
+// GetErrorStats returns error statistics for the authenticated user
 // GET /api/v1/errors/stats
 func (h *ErrorTrackingHandler) GetErrorStats(c *gin.Context) {
 	userID, exists := c.Get("user_id")
@@ -237,7 +237,7 @@ func (h *ErrorTrackingHandler) ResolveError(c *gin.Context) {
 
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "database_error",
+			"error":   "database_error",
 			"message": result.Error.Error(),
 		})
 		return
@@ -328,7 +328,7 @@ func (h *ErrorTrackingHandler) getErrorTrend(userID string, hours int, stats *mo
 	// Reverse to get ascending order (oldest first)
 	for i := len(results) - 1; i >= 0; i-- {
 		stats.ErrorTrendHourly = append(stats.ErrorTrendHourly, models.TrendItem{
-			Hour:      results[i].Hour,
+			Hour:       results[i].Hour,
 			ErrorCount: results[i].ErrorCount,
 		})
 	}

@@ -151,7 +151,7 @@ void PostsFeed::setNetworkClient(NetworkClient *client) {
     return;
   }
   networkClient = client;
-  // Set NetworkClient on PostsStore (Task 2.6)
+  // Set NetworkClient on PostsStore
   if (appStore)
     appStore->setNetworkClient(client);
   Log::info("PostsFeed::setNetworkClient: NetworkClient set successfully");
@@ -207,7 +207,7 @@ void PostsFeed::setAudioPlayer(HttpAudioPlayer *player) {
               Log::debug("PostsFeedComponent: Updating play count to " + juce::String(newPlayCount) +
                          " for postId: " + postId);
               // Note: PostCard now updates automatically via PostsStore
-              // subscription (Task 2.5) Manual update calls have been removed
+              // subscription. Manual update calls have been removed
             }
           } else {
             Log::warn("PostsFeedComponent: Play tracking failed for postId: " + postId);
@@ -365,7 +365,7 @@ void PostsFeed::setAudioPlayer(HttpAudioPlayer *player) {
 void PostsFeed::loadFeed() {
   using namespace Sidechain::Stores;
 
-  Log::info("PostsFeed::loadFeed: Loading feed via PostsStore (Task 2.6)");
+  Log::info("PostsFeed::loadFeed: Loading feed via PostsStore");
 
   // PostsStore will handle loading and notify via subscription
   if (appStore) {
@@ -379,7 +379,7 @@ void PostsFeed::loadFeed() {
 void PostsFeed::refreshFeed() {
   using namespace Sidechain::Stores;
 
-  Log::info("PostsFeed::refreshFeed: Refreshing feed via PostsStore (Task 2.6)");
+  Log::info("PostsFeed::refreshFeed: Refreshing feed via PostsStore");
 
   // PostsStore will handle refresh and notify via subscription
   if (appStore) {
@@ -580,7 +580,7 @@ void PostsFeed::updateUserPresence(const juce::String &userId, bool isOnline, co
 
   bool isInStudio = (status == "in_studio" || status == "in studio" || status == "recording");
 
-  // Update PostCards with presence data (Task 2.6 - no local posts array)
+  // Update PostCards with presence data (no local posts array)
   for (auto *card : postCards) {
     if (card->getPost().userId == userId) {
       auto updatedPost = card->getPost();
@@ -1055,13 +1055,11 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
     showCommentsForPost(post);
   };
 
-  // Like/unlike handled by FeedStore.toggleLike() (Task 2.1 - reactive
-  // refactoring) The callback is no longer needed as PostCard now uses
-  // FeedStore directly
+  // Like/unlike handled by FeedStore.toggleLike() (reactive refactoring)
+  // The callback is no longer needed as PostCard now uses FeedStore directly
 
-  // Emoji reactions handled by FeedStore.addReaction() (Task 2.1 - reactive
-  // refactoring) The callback is no longer needed as PostCard now uses
-  // FeedStore directly
+  // Emoji reactions handled by FeedStore.addReaction() (reactive refactoring)
+  // The callback is no longer needed as PostCard now uses FeedStore directly
 
   card->onUserClicked = [this](const FeedPost &post) {
     Log::debug("User clicked: " + post.username + " (id: " + post.userId + ")");
@@ -1137,8 +1135,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
                       response.posts.add(feedPost);
                   }
                   response.hasMore = false; // Similar posts don't paginate
-                  // onFeedLoaded(response); // Task 2.6: Refactored to use
-                  // FeedStore subscription
+                  // onFeedLoaded(response); // Refactored to use FeedStore subscription
                   Log::info("PostsFeedComponent: Loaded " + juce::String(response.posts.size()) + " similar posts");
                 }
               }
@@ -1168,7 +1165,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
             networkClient->deletePost(post.id, [postId = post.id](Outcome<juce::var> deleteResult) {
               if (deleteResult.isOk()) {
                 Log::info("PostsFeedComponent: Post deleted successfully - " + postId);
-                // Task 2.6: Post deletion now handled by FeedStore subscription
+                // Post deletion now handled by FeedStore subscription
                 // The feed will automatically update when the delete succeeds
                 juce::MessageManager::callAsync([]() {
                   juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon, "Post Deleted",
@@ -1628,18 +1625,15 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
     });
   };
 
-  // Follow/Unfollow handled by FeedStore.toggleFollow() (Task 2.2 - reactive
-  // refactoring) The callback is no longer needed as PostCard now uses
-  // FeedStore directly
+  // Follow/Unfollow handled by FeedStore.toggleFollow() (reactive refactoring)
+  // The callback is no longer needed as PostCard now uses FeedStore directly
 
-  // Save/Bookmark handled by FeedStore.toggleSave() (Task 2.1 - reactive
-  // refactoring) The callback is no longer needed as PostCard now uses
-  // FeedStore directly
+  // Save/Bookmark handled by FeedStore.toggleSave() (reactive refactoring)
+  // The callback is no longer needed as PostCard now uses FeedStore directly
 
-  // Repost handled by FeedStore.toggleRepost() (Task 2.1 - reactive
-  // refactoring) The callback is no longer needed as PostCard now uses
-  // FeedStore directly Note: Confirmation dialogs moved to a future enhancement
-  // in PostCard or a dialog service
+  // Repost handled by FeedStore.toggleRepost() (reactive refactoring)
+  // The callback is no longer needed as PostCard now uses FeedStore directly Note: Confirmation dialogs moved to a
+  // future enhancement in PostCard or a dialog service
 
   card->onWaveformClicked = [this](const FeedPost &post, float position) {
     Log::debug("Waveform seek for post: " + post.id + " to " + juce::String(position, 2));
@@ -1726,7 +1720,7 @@ juce::String PostsFeed::getComponentName() const {
 
 void PostsFeed::updateScrollBounds() {
   auto contentBounds = getFeedContentBounds();
-  // Task 2.6: Use FeedStore instead of local posts array
+  // Use FeedStore instead of local posts array
   juce::Array<FeedPost> posts;
   if (appStore) {
     const auto &state = appStore->getPostsState();
@@ -2050,7 +2044,7 @@ void PostsFeed::updateAudioPlayerPlaylist() {
   juce::StringArray postIds;
   juce::StringArray audioUrls;
 
-  // Task 2.6: Use FeedStore instead of local posts array
+  // Use FeedStore instead of local posts array
   juce::Array<FeedPost> posts;
   if (appStore) {
     const auto currentFeed = postsSlice->getState().getCurrentFeed();
@@ -2109,7 +2103,7 @@ void PostsFeed::handleLikeCountUpdate(const juce::String &postId, int likeCount)
   Log::debug("PostsFeed::handleLikeCountUpdate: Updating like count - postId: " + postId +
              ", count: " + juce::String(likeCount));
   // Note: PostCard now updates automatically via PostsStore subscription
-  // (Task 2.5) This method is kept for backward compatibility with WebSocket
+  // This method is kept for backward compatibility with WebSocket
   // notifications but manual update calls have been removed
   juce::ignoreUnused(postId, likeCount);
 }
