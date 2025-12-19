@@ -1,7 +1,7 @@
 #pragma once
 
+#include "../util/Emoji.h"
 #include "../util/Result.h"
-#include "../util/Time.h"
 #include <JuceHeader.h>
 #include <map>
 
@@ -132,12 +132,12 @@ public:
 
   // Standard reaction emojis for music content
   static inline const juce::StringArray REACTION_EMOJIS = {
-      juce::String(juce::CharPointer_UTF8("\xE2\x9D\xA4\xEF\xB8\x8F")), // heart - love
-      juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xA5")),         // fire - fire/hot
-      juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xB5")),         // music note - music note
-      juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xAF")),         // 100 - perfect
-      juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x8D")),         // heart eyes - heart eyes
-      juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x80"))          // rocket - rocket/hype
+      Emoji::SMILING_FACE_WITH_HEART_EYES, // ❤️ - love
+      Emoji::FIRE,                         // 🔥 - fire/hot
+      Emoji::MUSICAL_NOTE,                 // 🎵 - music note
+      Emoji::HUNDRED_POINTS,               // 💯 - perfect
+      Emoji::SMILING_FACE_WITH_HEART_EYES, // 😍 - heart eyes
+      Emoji::ROCKET                        // 🚀 - rocket/hype
   };
 
   // ==============================================================================
