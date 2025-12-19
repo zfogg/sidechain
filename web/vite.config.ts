@@ -16,10 +16,6 @@ export default defineConfig({
         target: process.env.VITE_API_URL || 'http://localhost:8787',
         changeOrigin: true,
         ws: true,
-        rewrite: (path) => {
-          // Remove /api prefix since target URL already has /api/v1
-          return path.replace(/^\/api/, '')
-        }
       }
     }
   },

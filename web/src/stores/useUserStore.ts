@@ -83,42 +83,48 @@ export const useUserStore = create<UserStoreState & UserStoreActions>()(
 
       restoreSession: async () => {
         const storedToken = localStorage.getItem('auth_token');
-        const storedUser = localStorage.getItem('user-store');
+        const storedUserStore = localStorage.getItem('user-store');
 
         if (storedToken) {
-          set({ isLoading: true });
           try {
             apiClient.setToken(storedToken);
 
-            // Fetch current user to validate token and get fresh user data
-            const response = await apiClient.get<{ user: User }>('/users/me', {}, 5000);
-            if (response.isOk()) {
-              const { user } = response.getValue();
-              set({
-                user,
-                token: storedToken,
-                isAuthenticated: true,
-                isLoading: false,
-              });
-            } else {
-              // Token might be invalid, try to use cached user data
-              if (storedUser) {
-                try {
-                  const cachedState = JSON.parse(storedUser);
-                  set({
-                    user: cachedState.state?.user || null,
-                    token: storedToken,
-                    isAuthenticated: !!cachedState.state?.user,
-                    isLoading: false,
-                  });
-                } catch {
-                  throw new Error('Failed to fetch user');
-                }
-              } else {
-                throw new Error('Failed to fetch user');
+            // Restore user from localStorage cache immediately
+            let cachedUser = null;
+            if (storedUserStore) {
+              try {
+                const parsed = JSON.parse(storedUserStore);
+                cachedUser = parsed.state?.user;
+              } catch (e) {
+                console.error('Failed to parse cached user store:', e);
               }
             }
+
+            // Set state immediately with cached user so header renders
+            set({
+              token: storedToken,
+              isAuthenticated: true,
+              user: cachedUser,
+              isLoading: true,
+            });
+
+            // Fetch fresh user data - this is critical for showing actual user info
+            try {
+              const response = await apiClient.get<User>('/users/me');
+              if (response.isOk()) {
+                const freshUser = response.getValue();
+                set({ user: freshUser, isLoading: false });
+              } else {
+                console.error('Failed to fetch user data:', response);
+                set({ isLoading: false });
+              }
+            } catch (error) {
+              console.error('Error fetching user data during session restore:', error);
+              set({ isLoading: false });
+              // If fetch fails, keep using cached user - don't logout
+            }
           } catch (error) {
+            console.error('Session restore error:', error);
             apiClient.clearToken();
             localStorage.removeItem('auth_token');
             set({
