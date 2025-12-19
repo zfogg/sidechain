@@ -163,6 +163,7 @@ function(suppress_juce_warnings target_name)
             -Wno-shadow                                 # JUCE captures
             -Wno-virtual-in-final                       # JUCE final classes
             -Wno-unnecessary-virtual-specifier          # JUCE VST3
+            -Wno-nan-infinity-disabled                  # Audio processing math
         )
     elseif(MSVC)
         target_compile_options(${target_name} PRIVATE

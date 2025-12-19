@@ -346,3 +346,43 @@ else()
     set(SIDECHAIN_HAS_STDUUID FALSE CACHE INTERNAL "")
 endif()
 
+#==============================================================================
+# nlohmann/json - Modern JSON Library (Header-Only)
+#==============================================================================
+set(NLOHMANN_JSON_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../deps/json")
+if(EXISTS "${NLOHMANN_JSON_DIR}/include/nlohmann/json.hpp")
+    message(STATUS "nlohmann/json found at: ${NLOHMANN_JSON_DIR}")
+
+    # Disable tests and other options
+    set(JSON_BuildTests OFF CACHE INTERNAL "")
+    set(JSON_Install OFF CACHE INTERNAL "")
+    set(JSON_MultipleHeaders OFF CACHE INTERNAL "")
+
+    # Add nlohmann_json subdirectory
+    # This creates the nlohmann_json::nlohmann_json target
+    add_subdirectory("${NLOHMANN_JSON_DIR}" "${SIDECHAIN_DEPS_CACHE_DIR}/nlohmann_json" EXCLUDE_FROM_ALL)
+
+    if(TARGET nlohmann_json::nlohmann_json)
+        message(STATUS "nlohmann/json will be available as an interface library (header-only)")
+        set(SIDECHAIN_HAS_NLOHMANN_JSON TRUE CACHE INTERNAL "")
+        
+        # Suppress warnings from nlohmann/json headers
+        # Note: nlohmann_json::nlohmann_json is an ALIAS target, we need to work with nlohmann_json base target
+        if(TARGET nlohmann_json)
+            get_target_property(json_include_dirs nlohmann_json INTERFACE_INCLUDE_DIRECTORIES)
+            if(json_include_dirs)
+                set_target_properties(nlohmann_json PROPERTIES
+                    INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${json_include_dirs}"
+                )
+            endif()
+        endif()
+    else()
+        message(WARNING "nlohmann_json::nlohmann_json target not created")
+        set(SIDECHAIN_HAS_NLOHMANN_JSON FALSE CACHE INTERNAL "")
+    endif()
+else()
+    message(WARNING "nlohmann/json not found at ${NLOHMANN_JSON_DIR}")
+    message(STATUS "Run: git submodule update --init --recursive")
+    set(SIDECHAIN_HAS_NLOHMANN_JSON FALSE CACHE INTERNAL "")
+endif()
+

@@ -13,3 +13,6 @@
 [submodule "deps/uuid"]
 	path = deps/uuid
 	url = https://github.com/mariusbancila/stduuid.git
+[submodule "deps/json"]
+	path = deps/json
+	url = https://github.com/nlohmann/json.git

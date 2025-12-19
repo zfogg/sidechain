@@ -257,6 +257,18 @@ public:
   }
 
   /**
+   * Normalize Playlist from JSON
+   */
+  std::shared_ptr<Playlist> normalizePlaylist(const juce::var &json) {
+    auto playlist = Playlist::fromJson(json);
+    if (playlist.id.isEmpty()) {
+      return nullptr;
+    }
+
+    return playlists_.getOrCreate(playlist.id, [playlist]() { return std::make_shared<Playlist>(playlist); });
+  }
+
+  /**
    * Normalize array of posts from JSON
    * Returns vector of shared_ptrs with deduplication
    */
@@ -271,6 +283,22 @@ public:
     }
 
     return posts;
+  }
+
+  /**
+   * Normalize array of playlists from JSON
+   */
+  std::vector<std::shared_ptr<Playlist>> normalizePlaylists(const juce::Array<juce::var> &jsonArray) {
+    std::vector<std::shared_ptr<Playlist>> playlists;
+    playlists.reserve(jsonArray.size());
+
+    for (const auto &json : jsonArray) {
+      if (auto playlist = normalizePlaylist(json)) {
+        playlists.push_back(playlist);
+      }
+    }
+
+    return playlists;
   }
 
   // ==============================================================================

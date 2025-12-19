@@ -394,7 +394,7 @@ void NetworkClient::refreshAuthToken(const juce::String &currentToken, Authentic
     auto tempToken = authToken;
     authToken = currentToken;
 
-    auto result = makeRequestWithRetry(buildApiPath(Constants::AUTH_REFRESH), "POST", refreshData, false);
+    auto result = makeRequestWithRetry(buildApiPath(Constants::Endpoints::AUTH_REFRESH), "POST", refreshData, false);
 
     // Restore previous token in case refresh fails
     if (!result.success) {

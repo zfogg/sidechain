@@ -14,6 +14,7 @@ add_library(SidechainCore STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Image.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Json.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Json.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/json/JsonValidation.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Validate.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Validate.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Async.cpp
@@ -64,6 +65,11 @@ add_library(SidechainCore STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../models/Sound.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../models/Story.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../models/Story.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../models/User.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../models/Conversation.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../models/Message.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../models/Notification.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../models/Draft.h
     # Security
     ${CMAKE_CURRENT_SOURCE_DIR}/../security/InputValidation.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../security/RateLimiter.cpp
@@ -91,6 +97,11 @@ target_link_libraries(SidechainCore PUBLIC
     juce::juce_recommended_lto_flags
     juce::juce_recommended_warning_flags
 )
+
+# Link nlohmann_json for typed JSON support
+if(TARGET nlohmann_json::nlohmann_json)
+    target_link_libraries(SidechainCore PUBLIC nlohmann_json::nlohmann_json)
+endif()
 
 # Set visibility to hidden by default (faster linking, smaller binaries)
 # Enable PIC for Release builds (required for linking into shared libraries/VST plugins)
