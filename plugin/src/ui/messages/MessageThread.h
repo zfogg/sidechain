@@ -153,7 +153,7 @@ private:
 
   // Threading helpers
   juce::String getReplyToMessageId(const StreamChatClient::Message &message) const;
-  const StreamChatClient::Message *findParentMessage(const juce::String &messageId) const;
+  std::optional<StreamChatClient::Message> findParentMessage(const juce::String &messageId) const;
   void scrollToMessage(const juce::String &messageId);
 
   // Message sending (state managed by AppStore)
