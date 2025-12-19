@@ -310,7 +310,7 @@ resource "null_resource" "provision_server" {
       private_key = file(var.ssh_private_key_path)
       host        = var.server_host
       port        = var.server_port
-      timeout     = "5m"
+      timeout     = "10m"
     }
   }
 
@@ -324,7 +324,7 @@ resource "null_resource" "provision_server" {
       private_key = file(var.ssh_private_key_path)
       host        = var.server_host
       port        = var.server_port
-      timeout     = "5m"
+      timeout     = "10m"
     }
   }
 
@@ -346,7 +346,7 @@ resource "null_resource" "provision_server" {
       private_key = file(var.ssh_private_key_path)
       host        = var.server_host
       port        = var.server_port
-      timeout     = "15m"
+      timeout     = "25m"
     }
   }
 
