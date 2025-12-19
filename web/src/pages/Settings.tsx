@@ -16,6 +16,7 @@ export function Settings() {
   const [isSaving, setIsSaving] = useState(false)
 
   // Profile state
+  const [username, setUsername] = useState(user?.username || '')
   const [displayName, setDisplayName] = useState(user?.displayName || '')
   const [bio, setBio] = useState(user?.bio || '')
   const [socialLinks, setSocialLinks] = useState({
@@ -52,8 +53,17 @@ export function Settings() {
     setIsSaving(true)
     try {
       // TODO: Call API to update profile
-      // await updateProfile({ displayName, bio, socialLinks })
-      console.log('Saving profile:', { displayName, bio, socialLinks })
+      const { UserProfileClient } = await import('@/api/UserProfileClient')
+      const result = await UserProfileClient.updateProfile({
+        username: username.trim(),
+        displayName: displayName.trim(),
+        bio: bio.trim(),
+      })
+      if (result.isOk()) {
+        console.log('Profile saved successfully')
+      } else {
+        console.error('Failed to save profile:', result.getError())
+      }
     } finally {
       setIsSaving(false)
     }
@@ -130,6 +140,22 @@ export function Settings() {
                 <h2 className="text-2xl font-bold text-foreground mb-6">Profile Settings</h2>
 
                 <div className="space-y-6">
+                  {/* Username */}
+                  <div className="space-y-3">
+                    <Label htmlFor="username" className="text-sm font-semibold text-foreground">
+                      Username
+                    </Label>
+                    <Input
+                      id="username"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="@username"
+                      maxLength={30}
+                      className="h-11 px-4 bg-bg-secondary/80 border-border/50 text-foreground text-sm focus:border-coral-pink focus:ring-1 focus:ring-coral-pink/50"
+                    />
+                    <p className="text-xs text-muted-foreground">{username.length}/30</p>
+                  </div>
+
                   {/* Display Name */}
                   <div className="space-y-3">
                     <Label htmlFor="displayName" className="text-sm font-semibold text-foreground">

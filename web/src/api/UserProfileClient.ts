@@ -7,6 +7,7 @@ import { apiClient } from './client'
 import { Outcome } from './types'
 
 export interface ProfileUpdatePayload {
+  username?: string
   displayName?: string
   bio?: string
   website?: string
@@ -23,6 +24,7 @@ export class UserProfileClient {
   static async updateProfile(updates: ProfileUpdatePayload): Promise<Outcome<any>> {
     const payload: any = {}
 
+    if (updates.username) payload.username = updates.username
     if (updates.displayName) payload.display_name = updates.displayName
     if (updates.bio) payload.bio = updates.bio
     if (updates.website) payload.website = updates.website
