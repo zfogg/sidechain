@@ -218,23 +218,18 @@ target_include_directories(SidechainJuceHeader INTERFACE
 add_dependencies(SidechainJuceHeader SidechainJuceHeaderHelper)
 
 #==============================================================================
-# Build libraries in dependency order
+# Build libraries in dependency order (4-library architecture)
 #==============================================================================
-# Libraries must be built in dependency order:
-# 1. Util (base - no dependencies)
-# 2. Models (depends on Util)
-# 3. Network (depends on Util)
-# 4. Audio (depends on Util, Network)
-# 5. Stores (depends on Util, Models, Network)
-# 6. UI (depends on all above)
-# 7. Core plugin (depends on all libraries)
+# Libraries are built in dependency order:
+# 1. Core (util + models + security - no other deps)
+# 2. Network (network + stores - depends on Core)
+# 3. Audio (depends on Core, Network)
+# 4. UI (depends on Core, Network)
+# 5. Core plugin (depends on all libraries)
 
 add_subdirectory(src/util)
-add_subdirectory(src/security)
-add_subdirectory(src/models)
 add_subdirectory(src/network)
 add_subdirectory(src/audio)
-add_subdirectory(src/stores)
 add_subdirectory(src/ui)
 add_subdirectory(src/core)
 

@@ -88,15 +88,12 @@ target_include_directories(Sidechain PRIVATE
     "${CMAKE_CURRENT_BINARY_DIR}/../../generated"
 )
 
-# Link all library modules
+# Link all library modules (4-library architecture)
 target_link_libraries(Sidechain
     PRIVATE
-        SidechainUtil
-        SidechainSecurity
-        SidechainModels
+        SidechainCore
         SidechainNetwork
         SidechainAudio
-        SidechainStores
         SidechainUI
         # JUCE modules
         juce::juce_audio_basics
