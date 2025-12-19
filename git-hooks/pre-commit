@@ -106,7 +106,7 @@ if [[ "$has_cli" == true ]]; then
 fi
 
 # Build C++ plugin if changed (cpp files or CMake changes)
-if [[ "$has_cpp" == true && "$has_cmake" != true ]]; then
+if [[ "$has_cpp" == true ]]; then
     echo "🔨 Building C++ plugin..."
     if ! make plugin-fast > /dev/null 2>&1; then
         echo "❌ Plugin build failed. Please fix errors before committing."
@@ -115,32 +115,8 @@ if [[ "$has_cpp" == true && "$has_cmake" != true ]]; then
     fi
     echo "✅ Plugin build succeeded"
     
-    # Compile tests when plugin code changes
+    # Compile tests when plugin code or CMake changes
     echo "🧪 Compiling plugin tests..."
-    if ! make test-plugin-configure > /dev/null 2>&1; then
-        echo "❌ Test configuration failed. Please fix errors before committing."
-        exit 1
-    fi
-    if ! cmake --build plugin/build --config Release --target SidechainTests --parallel > /dev/null 2>&1; then
-        echo "❌ Test compilation failed. Please fix errors before committing."
-        echo "   Run 'make test-plugin-unit' manually to see detailed error messages."
-        exit 1
-    fi
-    echo "✅ Plugin tests compiled successfully"
-fi
-
-# Build C++ plugin AND compile tests if CMake changes
-if [[ "$has_cmake" == true ]]; then
-    echo "🔨 Building C++ plugin (CMake changed)..."
-    if ! make plugin-fast > /dev/null 2>&1; then
-        echo "❌ Plugin build failed. Please fix errors before committing."
-        echo "   Run 'make plugin-fast' manually to see detailed error messages."
-        exit 1
-    fi
-    echo "✅ Plugin build succeeded"
-    
-    # Compile tests when CMake changes
-    echo "🧪 Compiling plugin tests (CMake changed)..."
     if ! make test-plugin-configure > /dev/null 2>&1; then
         echo "❌ Test configuration failed. Please fix errors before committing."
         exit 1
