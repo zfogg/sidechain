@@ -47,7 +47,7 @@ void AudioSnippetRecorder::timerCallback() {
 // ==============================================================================
 void AudioSnippetRecorder::paint(juce::Graphics &g) {
   // Dark background
-  g.fillAll(juce::Colour(0xff1a1a1a));
+  g.fillAll(SidechainColors::background());
 
   switch (currentState) {
   case State::Idle:
@@ -140,7 +140,7 @@ void AudioSnippetRecorder::drawPreviewState(juce::Graphics &g) {
 }
 
 void AudioSnippetRecorder::drawRecordButton(juce::Graphics &g, bool isRecording) {
-  juce::Colour buttonColor = isRecording ? juce::Colour(0xffff0000) : SidechainColors::primary();
+  juce::Colour buttonColor = isRecording ? SidechainColors::error() : SidechainColors::primary();
 
   g.setColour(buttonColor);
   g.fillEllipse(recordButtonArea.toFloat());
@@ -167,10 +167,10 @@ void AudioSnippetRecorder::drawTimer(juce::Graphics &g) {
 
     // Progress bar below timer
     auto progressBar = timerArea.withY(timerArea.getBottom() - 3).withHeight(2);
-    g.setColour(juce::Colour(0xff3a3a3a));
+    g.setColour(SidechainColors::borderSubtle());
     g.fillRect(progressBar);
 
-    g.setColour(progress > 0.9f ? juce::Colour(0xffff0000) : SidechainColors::primary());
+    g.setColour(progress > 0.9f ? SidechainColors::error() : SidechainColors::primary());
     g.fillRect(progressBar.withWidth(static_cast<int>(static_cast<float>(progressBar.getWidth()) * progress)));
   }
 }
@@ -213,7 +213,7 @@ void AudioSnippetRecorder::drawWaveform(juce::Graphics &g) {
 }
 
 void AudioSnippetRecorder::drawCancelButton(juce::Graphics &g) {
-  g.setColour(juce::Colour(0xff888888));
+  g.setColour(SidechainColors::textMuted());
   g.fillEllipse(cancelButtonArea.toFloat());
 
   // X icon

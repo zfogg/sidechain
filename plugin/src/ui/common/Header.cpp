@@ -183,7 +183,7 @@ void Header::drawRecordButton(juce::Graphics &g, juce::Rectangle<int> bounds) {
   // Draw red recording dot indicator
   auto dotBounds = bounds.withWidth(bounds.getHeight()).reduced(bounds.getHeight() / 3);
   dotBounds.setX(bounds.getX() + 12);
-  g.setColour(juce::Colour(0xFFFF4444)); // Red recording indicator
+  g.setColour(SidechainColors::error()); // Red recording indicator
   g.fillEllipse(dotBounds.toFloat());
 }
 
@@ -209,7 +209,7 @@ void Header::drawMessagesButton(juce::Graphics &g, juce::Rectangle<int> bounds) 
     auto badgeBounds = juce::Rectangle<int>(bounds.getX() + 20, bounds.getY() + 6, badgeSize, badgeSize);
 
     // Draw red badge background
-    g.setColour(juce::Colour(0xFFFF4444));
+    g.setColour(SidechainColors::error());
     g.fillEllipse(badgeBounds.toFloat());
 
     // Draw badge text
@@ -250,11 +250,11 @@ void Header::drawCircularProfilePic(juce::Graphics &g, juce::Rectangle<int> boun
   // Draw highlighted circle if user has stories (Instagram-style)
   if (hasStories) {
     // Outer gradient circle (highlighted)
-    juce::ColourGradient gradient(juce::Colour(0xFFFF6B6B), // Red
+    juce::ColourGradient gradient(SidechainColors::error(), // Red
                                   0.0f, 0.0f,
-                                  juce::Colour(0xFFFFD93D), // Yellow
+                                  SidechainColors::warning(), // Yellow
                                   1.0f, 1.0f, true);
-    gradient.addColour(0.5f, juce::Colour(0xFFFF8E53)); // Orange
+    gradient.addColour(0.5f, SidechainColors::primary()); // Orange/coral
 
     g.setGradientFill(gradient);
     g.drawEllipse(bounds.toFloat().expanded(2.0f), 2.5f);

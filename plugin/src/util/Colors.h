@@ -311,4 +311,65 @@ inline juce::Colour darken(const juce::Colour &c, float amount) {
 inline juce::Colour lighten(const juce::Colour &c, float amount) {
   return c.brighter(amount);
 }
+
+// ==========================================================================
+// MIDI Note Colors (for visualizations)
+// ==========================================================================
+
+// Array of colors for MIDI notes (12-color palette for octaves)
+inline juce::Array<juce::Colour> getMidiNoteColors() {
+  return {
+      juce::Colour(0xff7c4dff), // Purple (C)
+      juce::Colour(0xff00bcd4), // Cyan (C#)
+      juce::Colour(0xff4caf50), // Green (D)
+      juce::Colour(0xffffc107), // Amber (D#)
+      juce::Colour(0xffe91e63), // Pink (E)
+      juce::Colour(0xff2196f3), // Blue (F)
+      juce::Colour(0xffff5722), // Deep Orange (F#)
+      juce::Colour(0xff9c27b0), // Purple (G)
+      juce::Colour(0xff00e676), // Light Green (G#)
+      juce::Colour(0xffff9800), // Orange (A)
+      juce::Colour(0xffc0392b), // Dark Red (A#)
+      juce::Colour(0xff3498db)  // Sky Blue (B)
+  };
+}
+
+// Get a MIDI note color by note number (0-127)
+inline juce::Colour getMidiNoteColor(int noteNumber) {
+  auto colors = getMidiNoteColors();
+  return colors[noteNumber % 12];
+}
+
+// ==========================================================================
+// Medal Colors
+// ==========================================================================
+
+// Gold medal color
+inline juce::Colour medalGold() {
+  return juce::Colour(0xFFFFD700);
+}
+
+// Silver medal color
+inline juce::Colour medalSilver() {
+  return juce::Colour(0xFFC0C0C0);
+}
+
+// Bronze medal color
+inline juce::Colour medalBronze() {
+  return juce::Colour(0xFFCD7F32);
+}
+
+// Get medal color by ranking position (0=gold, 1=silver, 2=bronze)
+inline juce::Colour getMedalColor(int rank) {
+  switch (rank) {
+  case 0:
+    return medalGold();
+  case 1:
+    return medalSilver();
+  case 2:
+    return medalBronze();
+  default:
+    return textMuted();
+  }
+}
 } // namespace SidechainColors

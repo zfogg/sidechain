@@ -375,8 +375,7 @@ void MidiChallengeDetail::drawEntryCard(juce::Graphics &g, juce::Rectangle<int> 
   // Rank badge (top 3)
   if (index < 3) {
     auto badgeBounds = bounds.removeFromLeft(40).reduced(8, 8);
-    g.setColour(index == 0 ? juce::Colour(0xFFFFD700)
-                           : (index == 1 ? juce::Colour(0xFFC0C0C0) : juce::Colour(0xFFCD7F32)));
+    g.setColour(SidechainColors::getMedalColor(index));
     g.fillRoundedRectangle(badgeBounds.toFloat(), 4.0f);
     g.setColour(SidechainColors::textPrimary());
     g.setFont(16.0f);

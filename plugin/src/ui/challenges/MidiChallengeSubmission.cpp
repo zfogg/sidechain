@@ -340,7 +340,7 @@ void MidiChallengeSubmission::drawConstraintItem(juce::Graphics &g, juce::Rectan
                                                  const juce::String &text, const ConstraintCheck &check) {
   // Checkmark or X
   auto iconBounds = bounds.removeFromLeft(24);
-  g.setColour(check.passed ? juce::Colour(0xFF4CAF50) : juce::Colour(0xFFF44336));
+  g.setColour(check.passed ? SidechainColors::success() : SidechainColors::error());
   g.setFont(14.0f);
   g.drawText(check.passed ? "[OK]" : "[X]", iconBounds, juce::Justification::centred);
 

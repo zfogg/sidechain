@@ -2,6 +2,7 @@
 #include "../../network/NetworkClient.h"
 #include "../../security/InputValidation.h"
 #include "../../stores/AppStore.h"
+#include "../../util/Colors.h"
 #include "../../util/Constants.h"
 #include "../../util/Log.h"
 #include "../../util/Result.h"
@@ -502,13 +503,11 @@ void Auth::drawPasswordStrengthIndicator(juce::Graphics &g, juce::Rectangle<int>
     // Calculate color based on strength (0=weak red, 4=very strong green)
     juce::Colour strengthColor;
     if (strength <= 1)
-      strengthColor = juce::Colour(0xffff4757); // Red - weak
-    else if (strength == 2)
-      strengthColor = juce::Colour(0xffffa502); // Orange - fair
-    else if (strength == 3)
-      strengthColor = juce::Colour(0xffffd32a); // Yellow - good
+      strengthColor = SidechainColors::error(); // Red - weak
+    else if (strength == 2 || strength == 3)
+      strengthColor = SidechainColors::warning(); // Orange - fair
     else
-      strengthColor = juce::Colour(0xff2ed573); // Green - very strong
+      strengthColor = SidechainColors::success(); // Green - very strong
 
     // Draw strength bar (width based on strength)
     float strengthWidth = (static_cast<float>(bounds.getWidth()) * static_cast<float>(strength)) / 4.0f;

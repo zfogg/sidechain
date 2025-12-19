@@ -134,15 +134,15 @@ void DraftsView::drawRecoveryBanner(juce::Graphics &g) {
   auto bounds = getRecoveryBannerBounds();
 
   // Background
-  g.setColour(juce::Colour(0xFF3D2C1E)); // Warm amber background
+  g.setColour(SidechainColors::warning().darker(0.5f)); // Warm amber background
   g.fillRoundedRectangle(bounds.toFloat(), 8.0f);
 
   // Border
-  g.setColour(juce::Colour(0xFFE69500));
+  g.setColour(SidechainColors::warning());
   g.drawRoundedRectangle(bounds.toFloat().reduced(1.0f), 8.0f, 2.0f);
 
   // Icon
-  g.setColour(juce::Colour(0xFFE69500));
+  g.setColour(SidechainColors::warning());
   g.setFont(24.0f);
   g.drawText(juce::String::fromUTF8("\xE2\x9A\xA0"), // Warning symbol
              bounds.withWidth(50), juce::Justification::centred);
