@@ -479,9 +479,9 @@ void MessageThread::drawHeader(juce::Graphics &g) {
 void MessageThread::drawInputArea(juce::Graphics &g) {
   auto bounds = getLocalBounds();
   auto inputBounds = bounds.removeFromBottom(INPUT_HEIGHT);
-  int padding = 10;
-  int sendButtonWidth = 80;
-  int audioButtonWidth = 40;
+  // int padding = 10; // Currently unused
+  // int sendButtonWidth = 80; // Currently unused
+  // int audioButtonWidth = 40; // Currently unused
 
   // Background
   g.setColour(juce::Colour(0xff252525));
@@ -830,12 +830,11 @@ juce::Rectangle<int> MessageThread::getAudioButtonBounds() const {
     bottomAreaHeight += AUDIO_RECORDER_HEIGHT;
 
   int padding = 10;
-  int audioButtonWidth = 40;
-  int sendButtonWidth = 80;
-  int audioButtonX = getWidth() - padding - audioButtonWidth;
+  // int audioButtonWidth = 40; // Currently unused (getWidth is used instead)
+  // int sendButtonWidth = 80; // Currently unused
+  int audioButtonX = getWidth() - padding - 40; // audioButtonWidth inline
 
-  return juce::Rectangle<int>(audioButtonX, getHeight() - bottomAreaHeight + padding, audioButtonWidth,
-                              INPUT_HEIGHT - 2 * padding);
+  return juce::Rectangle<int>(audioButtonX, getHeight() - bottomAreaHeight + padding, 40, INPUT_HEIGHT - 2 * padding);
 }
 
 juce::Rectangle<int> MessageThread::getSendButtonBounds() const {
@@ -1493,30 +1492,65 @@ void MessageThread::toggleReaction(const juce::String &messageId, const juce::St
 
   Log::info("MessageThread: Toggling reaction " + reactionType + " on message " + messageId);
 
-  // Check if user has already reacted with this type
-  // We need to find the message first
+  // Get messages from ChatStore to check current reactions
   bool userHasReacted = false;
-
-  // TODO: Get messages from ChatStore to check current reactions
-  // For now, we'll attempt to add the reaction - if it fails, we can try removing
-
-  // Try adding the reaction
-  streamChatClient->addReaction(
-      channelType, channelId, messageId, reactionType, [this, messageId, reactionType](Outcome<void> result) {
-        if (!result.isOk()) {
-          // If adding failed, try removing (user might have already reacted)
-          if (streamChatClient) {
-            streamChatClient->removeReaction(
-                channelType, channelId, messageId, reactionType, [](Outcome<void> removeResult) {
-                  if (!removeResult.isOk()) {
-                    Log::warn("MessageThread: Failed to remove reaction: " + removeResult.getError());
+  if (appStore) {
+    const auto &chatState = appStore->getChatState();
+    auto channelIt = chatState.channels.find(channelId);
+    if (channelIt != chatState.channels.end()) {
+      const auto &messages = channelIt->second.messages;
+      for (const auto &msg : messages) {
+        if (msg.isObject()) {
+          auto *obj = msg.getDynamicObject();
+          if (obj && obj->getProperty("id").toString() == messageId) {
+            // Found the message, check if user has reacted with this type
+            auto msgOwnReactions = msg.getProperty("reactions", juce::var()).getProperty("own_reactions", juce::var());
+            if (msgOwnReactions.isArray()) {
+              auto *arr = msgOwnReactions.getArray();
+              if (arr != nullptr) {
+                for (int i = 0; i < arr->size(); ++i) {
+                  auto reaction = (*arr)[i];
+                  if (reaction.isObject()) {
+                    auto type = reaction.getProperty("type", "").toString();
+                    if (type == reactionType) {
+                      userHasReacted = true;
+                      break;
+                    }
                   }
-                });
+                }
+              }
+            }
+            break;
           }
-        } else {
-          Log::info("MessageThread: Successfully added reaction " + reactionType);
         }
-      });
+      }
+    }
+  }
+
+  // Toggle the reaction based on current state
+  if (userHasReacted) {
+    // User has already reacted, remove the reaction
+    Log::info("MessageThread: User already reacted with " + reactionType + ", removing reaction");
+    streamChatClient->removeReaction(
+        channelType, channelId, messageId, reactionType, [messageId, reactionType](Outcome<void> result) {
+          if (result.isOk()) {
+            Log::info("MessageThread: Successfully removed reaction " + reactionType + " from message " + messageId);
+          } else {
+            Log::warn("MessageThread: Failed to remove reaction: " + result.getError());
+          }
+        });
+  } else {
+    // User hasn't reacted, add the reaction
+    Log::info("MessageThread: User hasn't reacted with " + reactionType + ", adding reaction");
+    streamChatClient->addReaction(
+        channelType, channelId, messageId, reactionType, [messageId, reactionType](Outcome<void> result) {
+          if (result.isOk()) {
+            Log::info("MessageThread: Successfully added reaction " + reactionType + " to message " + messageId);
+          } else {
+            Log::warn("MessageThread: Failed to add reaction: " + result.getError());
+          }
+        });
+  }
 }
 
 void MessageThread::drawMessageReactions(juce::Graphics &g, const StreamChatClient::Message &message, int &y, int x,

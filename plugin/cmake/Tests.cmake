@@ -105,6 +105,7 @@ if(SIDECHAIN_BUILD_TESTS)
         tests/NetworkClientTest.cpp
         tests/FeedDataTest.cpp
         tests/PostCardTest.cpp
+        tests/MessagingE2ETest.cpp
     )
 
     # Test executable
