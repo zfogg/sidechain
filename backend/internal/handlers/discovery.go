@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/metrics"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/search"
@@ -86,7 +87,15 @@ func (h *Handlers) enrichUsersWithFollowState(currentUserID string, users []mode
 		// Use database IDs - no caching for fresh data
 		isFollowing := false
 		if currentUserID != "" && user.ID != "" && user.ID != currentUserID {
-			isFollowing, _ = h.stream.CheckIsFollowing(currentUserID, user.ID)
+			isFollowing, err := h.stream.CheckIsFollowing(currentUserID, user.ID)
+
+			if err != nil {
+
+				logger.WarnWithFields("Failed to check follow status", err)
+
+				isFollowing = false
+
+			}
 		}
 
 		userResults = append(userResults, gin.H{
@@ -182,7 +191,15 @@ func (h *Handlers) SearchUsers(c *gin.Context) {
 
 		// User is private - only show if current user follows them
 		if currentUserID != "" {
-			isFollowing, _ := h.stream.CheckIsFollowing(currentUserID, user.ID)
+			isFollowing, err := h.stream.CheckIsFollowing(currentUserID, user.ID)
+
+			if err != nil {
+
+				logger.WarnWithFields("Failed to check follow status", err)
+
+				isFollowing = false
+
+			}
 			if isFollowing {
 				filteredUsers = append(filteredUsers, user)
 			}
@@ -353,7 +370,15 @@ func (h *Handlers) SearchPosts(c *gin.Context) {
 					filteredPosts = append(filteredPosts, post)
 				} else {
 					// Check if current user follows this private user
-					isFollowing, _ := h.stream.CheckIsFollowing(currentUserID, post.UserID)
+					isFollowing, err := h.stream.CheckIsFollowing(currentUserID, post.UserID)
+
+					if err != nil {
+
+						logger.WarnWithFields("Failed to check follow status", err)
+
+						isFollowing = false
+
+					}
 					if isFollowing {
 						filteredPosts = append(filteredPosts, post)
 					}
@@ -527,7 +552,15 @@ func (h *Handlers) SearchStories(c *gin.Context) {
 		// Story creator is private - only show if current user follows them
 		if story.User.ID != "" && story.User.IsPrivate {
 			if currentUserID != "" {
-				isFollowing, _ := h.stream.CheckIsFollowing(currentUserID, story.UserID)
+				isFollowing, err := h.stream.CheckIsFollowing(currentUserID, story.UserID)
+
+				if err != nil {
+
+					logger.WarnWithFields("Failed to check follow status", err)
+
+					isFollowing = false
+
+				}
 				if isFollowing {
 					filteredStories = append(filteredStories, story)
 				}
@@ -878,7 +911,15 @@ func (h *Handlers) GetTrendingUsers(c *gin.Context) {
 		// Query follow state using database IDs - no caching for fresh data
 		isFollowing := false
 		if currentUserID != "" && user.ID != "" && user.ID != currentUserID {
-			isFollowing, _ = h.stream.CheckIsFollowing(currentUserID, user.ID)
+			isFollowing, err := h.stream.CheckIsFollowing(currentUserID, user.ID)
+
+			if err != nil {
+
+				logger.WarnWithFields("Failed to check follow status", err)
+
+				isFollowing = false
+
+			}
 		}
 
 		userResults = append(userResults, gin.H{
@@ -948,7 +989,15 @@ func (h *Handlers) GetFeaturedProducers(c *gin.Context) {
 		// Query follow state using database IDs - no caching for fresh data
 		isFollowing := false
 		if currentUserID != "" && user.ID != "" && user.ID != currentUserID {
-			isFollowing, _ = h.stream.CheckIsFollowing(currentUserID, user.ID)
+			isFollowing, err := h.stream.CheckIsFollowing(currentUserID, user.ID)
+
+			if err != nil {
+
+				logger.WarnWithFields("Failed to check follow status", err)
+
+				isFollowing = false
+
+			}
 		}
 
 		userResults = append(userResults, gin.H{
@@ -1015,7 +1064,15 @@ func (h *Handlers) GetUsersByGenre(c *gin.Context) {
 		// Query follow state using database IDs - no caching for fresh data
 		isFollowing := false
 		if currentUserID != "" && user.ID != "" && user.ID != currentUserID {
-			isFollowing, _ = h.stream.CheckIsFollowing(currentUserID, user.ID)
+			isFollowing, err := h.stream.CheckIsFollowing(currentUserID, user.ID)
+
+			if err != nil {
+
+				logger.WarnWithFields("Failed to check follow status", err)
+
+				isFollowing = false
+
+			}
 		}
 
 		userResults = append(userResults, gin.H{
@@ -1117,7 +1174,15 @@ func (h *Handlers) GetSuggestedUsers(c *gin.Context) {
 		// Check follow state using database IDs - no caching for fresh data
 		isFollowing := false
 		if u.ID != "" && u.ID != currentUser.ID {
-			isFollowing, _ = h.stream.CheckIsFollowing(currentUser.ID, u.ID)
+			isFollowing, err := h.stream.CheckIsFollowing(currentUser.ID, u.ID)
+
+			if err != nil {
+
+				logger.WarnWithFields("Failed to check follow status", err)
+
+				isFollowing = false
+
+			}
 		}
 
 		userResults = append(userResults, gin.H{
@@ -1242,7 +1307,15 @@ func (h *Handlers) GetSimilarUsers(c *gin.Context) {
 		// Query follow state using database IDs - no caching for fresh data
 		isFollowing := false
 		if currentUserID != "" && u.ID != "" && u.ID != currentUserID {
-			isFollowing, _ = h.stream.CheckIsFollowing(currentUserID, u.ID)
+			isFollowing, err := h.stream.CheckIsFollowing(currentUserID, u.ID)
+
+			if err != nil {
+
+				logger.WarnWithFields("Failed to check follow status", err)
+
+				isFollowing = false
+
+			}
 		}
 
 		userResults = append(userResults, gin.H{
