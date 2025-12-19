@@ -81,6 +81,8 @@ public:
   void logout();
   void setAuthToken(const juce::String &token);
   void refreshAuthToken();
+  void startTokenRefreshTimer();
+  void stopTokenRefreshTimer();
 
   // ==============================================================================
   // Feed/Posts Methods (AppStore_Feed.cpp)
@@ -725,6 +727,24 @@ private:
   void downloadProfileImage(const juce::String &userId, const juce::String &url);
   void handleProfileFetchSuccess(const juce::var &data);
   void handleProfileFetchError(const juce::String &error);
+
+  // Token refresh timer
+  class TokenRefreshTimer : public juce::Timer {
+  public:
+    TokenRefreshTimer(AppStore* store) : store_(store) {}
+    
+    void timerCallback() override {
+      if (store_) {
+        store_->checkAndRefreshToken();
+      }
+    }
+    
+  private:
+    AppStore* store_;
+  };
+  
+  std::unique_ptr<TokenRefreshTimer> tokenRefreshTimer_;
+  void checkAndRefreshToken();
 
   // Private constructor for singleton pattern
   AppStore();

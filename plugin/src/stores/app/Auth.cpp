@@ -49,11 +49,16 @@ void AppStore::login(const juce::String &email, const juce::String &password) {
       state.email = email;
       state.authToken = result.token;
       state.lastAuthTime = juce::Time::getCurrentTime().toMilliseconds();
+      // Set token expiry to 24 hours from now (backend default)
+      state.tokenExpiresAt = juce::Time::getCurrentTime().toMilliseconds() + (24 * 60 * 60 * 1000);
       state.authError = "";
     });
 
     // Fetch user profile after successful login
     fetchUserProfile(false);
+    
+    // Start token refresh timer after successful login
+    startTokenRefreshTimer();
   });
 }
 
@@ -95,6 +100,8 @@ void AppStore::registerAccount(const juce::String &email, const juce::String &us
           state.authToken = token;
           state.authError = "";
           state.lastAuthTime = juce::Time::getCurrentTime().toMilliseconds();
+          // Set token expiry to 24 hours from now (backend default)
+          state.tokenExpiresAt = juce::Time::getCurrentTime().toMilliseconds() + (24 * 60 * 60 * 1000);
         });
       });
 }
@@ -135,6 +142,8 @@ void AppStore::verify2FA(const juce::String &code) {
                                     state.authToken = token;
                                     state.userId = userId;
                                     state.authError = "";
+                                    // Set token expiry to 24 hours from now (backend default)
+                                    state.tokenExpiresAt = juce::Time::getCurrentTime().toMilliseconds() + (24 * 60 * 60 * 1000);
                                   });
 
                                   // Fetch user profile after successful 2FA
@@ -204,6 +213,9 @@ void AppStore::logout() {
   auto authSlice = sliceManager.getAuthSlice();
   auto userSlice = sliceManager.getUserSlice();
 
+  // Stop token refresh timer
+  stopTokenRefreshTimer();
+
   authSlice->dispatch([](AuthState &state) {
     state.isLoggedIn = false;
     state.userId = "";
@@ -211,6 +223,7 @@ void AppStore::logout() {
     state.email = "";
     state.authToken = "";
     state.refreshToken = "";
+    state.tokenExpiresAt = 0;
     state.is2FARequired = false;
     state.twoFactorUserId = "";
     state.authError = "";
@@ -241,34 +254,80 @@ void AppStore::refreshAuthToken() {
   }
 
   if (currentAuth.authToken.isEmpty()) {
-    authSlice->dispatch([](AuthState &state) { state.authError = "No token to refresh"; });
+    Util::logInfo("AppStore", "No token to refresh (token is empty)");
     return;
   }
 
-  // Call backend to validate and potentially refresh the token
-  // The backend will either return the same token (still valid) or reject it (expired)
-  juce::String endpoint = juce::String(Constants::Endpoints::AUTH_ME);
-  networkClient->getAbsolute(endpoint, [this, authSlice](Outcome<juce::var> result) {
-    if (!result.isOk()) {
-      // Token is invalid or expired - user needs to log in again
+
+  // Call the new refresh endpoint
+  networkClient->refreshAuthToken(currentAuth.authToken, [this, authSlice](Outcome<std::pair<juce::String, juce::String>> result) {
+    if (result.isOk()) {
+      // Extract new token and userId
+      auto [newToken, userId] = result.getValue();
+      
+      authSlice->dispatch([newToken, userId](AuthState &state) {
+        state.authToken = newToken;
+        state.userId = userId;
+        // Reset token expiry to 24 hours from now
+        state.tokenExpiresAt = juce::Time::getCurrentTime().toMilliseconds() + (24 * 60 * 60 * 1000);
+        state.lastAuthTime = juce::Time::getCurrentTime().toMilliseconds();
+        state.authError = "";
+      });
+      
+      Util::logInfo("AppStore", "Token refreshed successfully");
+    } else {
+      // Token refresh failed - likely invalid/expired token
+      Util::logError("AppStore", "Token refresh failed: " + result.getError());
+      
+      // If token is truly expired, log user out
       authSlice->dispatch([error = result.getError()](AuthState &state) {
+        state.authError = "Session expired - please log in again";
         state.isLoggedIn = false;
         state.authToken = "";
-        state.authError = "Session expired. Please log in again.";
+        state.userId = "";
+        state.tokenExpiresAt = 0;
       });
-      Util::logInfo("AppStore", "Token refresh failed: " + result.getError());
-      return;
     }
-
-    // Token is still valid, update last auth time to extend session
-    auto userData = result.getValue();
-    authSlice->dispatch([userData](AuthState &state) {
-      state.lastAuthTime = juce::Time::getCurrentTime().toMilliseconds();
-      state.authError = "";
-    });
-
-    Util::logInfo("AppStore", "Token refreshed successfully");
   });
+}
+
+void AppStore::startTokenRefreshTimer() {
+  if (!tokenRefreshTimer_) {
+    tokenRefreshTimer_ = std::make_unique<TokenRefreshTimer>(this);
+  }
+  
+  // Check every 30 minutes if token needs refresh
+  tokenRefreshTimer_->startTimer(30 * 60 * 1000);
+  Util::logInfo("AppStore", "Token refresh timer started (checks every 30 minutes)");
+}
+
+void AppStore::stopTokenRefreshTimer() {
+  if (tokenRefreshTimer_) {
+    tokenRefreshTimer_->stopTimer();
+    Util::logInfo("AppStore", "Token refresh timer stopped");
+  }
+}
+
+void AppStore::checkAndRefreshToken() {
+  auto authSlice = sliceManager.getAuthSlice();
+  auto currentAuth = authSlice->getState();
+  
+  // Only refresh if logged in and token needs refresh
+  if (!currentAuth.isLoggedIn) {
+    return;
+  }
+  
+  if (currentAuth.shouldRefreshToken()) {
+    Util::logInfo("AppStore", "Token needs refresh (< 1 hour remaining), refreshing automatically");
+    refreshAuthToken();
+  } else if (currentAuth.isTokenExpired()) {
+    Util::logError("AppStore", "Token already expired, logging out");
+    logout();
+  } else {
+    auto timeRemaining = currentAuth.tokenExpiresAt - juce::Time::getCurrentTime().toMilliseconds();
+    auto hoursRemaining = timeRemaining / (60 * 60 * 1000);
+    Util::logInfo("AppStore", "Token still valid (" + juce::String(hoursRemaining) + " hours remaining)");
+  }
 }
 
 } // namespace Stores
