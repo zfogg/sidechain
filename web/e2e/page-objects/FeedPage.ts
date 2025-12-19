@@ -222,6 +222,7 @@ export class PostCardElement {
   readonly saveButton: Locator
   readonly shareButton: Locator
   readonly playButton: Locator
+  readonly followButton: Locator
 
   // Post metadata
   readonly audioPlayer: Locator
@@ -244,6 +245,7 @@ export class PostCardElement {
     this.saveButton = cardLocator.locator('button', { hasText: /💾|Save|save|bookmark/i })
     this.shareButton = cardLocator.locator('button', { hasText: /🔗|Share|share/i })
     this.playButton = cardLocator.locator('button', { hasText: /▶|Play|play/i }).first()
+    this.followButton = cardLocator.locator('button', { hasText: /^Follow$|^Following$/i }).first()
 
     this.audioPlayer = cardLocator.locator('audio, [data-testid="audio-player"]')
     this.playCount = cardLocator.locator('text=/\\d+\\s+play/i')
@@ -346,6 +348,35 @@ export class PostCardElement {
    */
   async clickAuthor(): Promise<void> {
     await this.authorName.click()
+  }
+
+  /**
+   * Click follow button
+   */
+  async follow(): Promise<void> {
+    const initialText = await this.followButton.textContent()
+    await this.followButton.click()
+    
+    // Wait for button text to change
+    await expect(async () => {
+      const newText = await this.followButton.textContent()
+      expect(newText).not.toBe(initialText)
+    }).toPass({ timeout: 3000 })
+  }
+
+  /**
+   * Check if following this user
+   */
+  async isFollowing(): Promise<boolean> {
+    const text = await this.followButton.textContent()
+    return (text || '').includes('Following')
+  }
+
+  /**
+   * Check if follow button is visible
+   */
+  async hasFollowButton(): Promise<boolean> {
+    return await this.followButton.isVisible({ timeout: 1000 }).catch(() => false)
   }
 
   /**

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { getWebSocketClient } from '@/api/websocket'
 import type {
   NewPostPayload,
@@ -46,6 +47,7 @@ import { useFeedStore } from '@/stores/useFeedStore'
 export function useWebSocket() {
   const { token, isAuthenticated } = useUserStore()
   const feedStore = useFeedStore()
+  const queryClient = useQueryClient()
   const wsRef = useRef(getWebSocketClient())
 
   useEffect(() => {
@@ -173,9 +175,21 @@ export function useWebSocket() {
     const unsubscribeFeedInvalidate = ws.on('feed_invalidate', (payload) => {
       const invalidatePayload = payload as FeedInvalidatePayload
       console.log('[RT] Feed invalidate:', invalidatePayload)
-      // Force refresh the specified feed type so next fetch gets fresh data from Stream.io
+      // For follow-related invalidations, we delay the invalidation to prevent
+      // overwriting optimistic updates before Stream.io propagates the follow
       const feedType = invalidatePayload.feed_type as any // Map to FeedType
       if (['timeline', 'global', 'trending', 'forYou'].includes(feedType)) {
+        if (invalidatePayload.reason === 'follow') {
+          // Delay invalidation for follow actions to allow Stream.io to propagate
+          // The optimistic update will persist until the query naturally refetches
+          setTimeout(() => {
+            queryClient.invalidateQueries({ queryKey: ['feed', feedType], refetchType: 'none' })
+          }, 3000) // 3 seconds delay (backend already delays by 2 seconds)
+        } else {
+          // For other reasons (new_post, etc.), invalidate immediately but don't refetch
+          queryClient.invalidateQueries({ queryKey: ['feed', feedType], refetchType: 'none' })
+        }
+        // Also update Zustand store for components that use it
         feedStore.loadFeed(feedType, true)
       }
     })
@@ -184,7 +198,9 @@ export function useWebSocket() {
       const timelinePayload = payload as TimelineUpdatePayload
       console.log('[RT] Timeline update:', timelinePayload)
       // Timeline was updated (e.g., followed user posted new activity)
-      // Force refresh timeline feed to show updated activity
+      // Mark as stale but don't force immediate refetch to prevent overwriting optimistic updates
+      queryClient.invalidateQueries({ queryKey: ['feed', 'timeline'], refetchType: 'none' })
+      // Also update Zustand store for components that use it
       feedStore.loadFeed('timeline', true)
     })
 

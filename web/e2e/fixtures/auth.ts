@@ -79,14 +79,16 @@ async function authenticateWithBackend(user: TestUser): Promise<string> {
 
     const data = await response.json()
 
-    if (!data.token) {
-      throw new Error('No token in login response')
+    // Backend returns token nested under auth.token
+    const token = data.auth?.token || data.token
+    if (!token) {
+      throw new Error(`No token in login response: ${JSON.stringify(data)}`)
     }
 
     console.log(
       `✓ Authenticated as ${user.email} (${user.username}) with token`
     )
-    return data.token
+    return token
   } catch (error) {
     throw new Error(
       `Failed to authenticate with backend: ${error instanceof Error ? error.message : String(error)}`
@@ -99,24 +101,51 @@ async function authenticateWithBackend(user: TestUser): Promise<string> {
  * This simulates browser-based auth after receiving token from login endpoint
  */
 async function loginAsWithToken(page: Page, token: string): Promise<void> {
-  // Navigate to app
+  // Navigate to app first to initialize localStorage and React
   await page.goto('/')
+  
+  // Wait for page to load and React to initialize
+  await page.waitForLoadState('networkidle')
+  await page.waitForTimeout(500)
 
   // Set auth token in localStorage (how the frontend stores it)
   await page.evaluate((t) => {
     localStorage.setItem('auth_token', t)
+    // Trigger a storage event to notify React components
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'auth_token',
+      newValue: t,
+      storageArea: localStorage
+    }))
   }, token)
+
+  // Reload page to trigger restoreSession() in AuthProvider
+  await page.reload()
+  await page.waitForLoadState('networkidle')
+  
+  // Wait for auth to be restored (AuthProvider calls restoreSession on mount)
+  await page.waitForTimeout(2000)
 
   // Navigate to feed - should be automatically authorized
   await page.goto('/feed')
-
-  // Wait for page to load and recognize we're authenticated
-  // The page should not redirect to /login
-  await page.waitForTimeout(500)
+  await page.waitForLoadState('networkidle')
+  
+  // Wait a bit more for auth check and any redirects
+  await page.waitForTimeout(1000)
 
   const url = page.url()
   if (url.includes('/login')) {
-    throw new Error('Still on login page after setting auth token')
+    // Check what's in localStorage and if user store is initialized
+    const debugInfo = await page.evaluate(() => {
+      const token = localStorage.getItem('auth_token')
+      const userStore = localStorage.getItem('user-store')
+      return {
+        token: token ? 'present' : 'missing',
+        userStore: userStore ? 'present' : 'missing',
+        currentUrl: window.location.href
+      }
+    })
+    throw new Error(`Still on login page after setting auth token. Debug: ${JSON.stringify(debugInfo)}`)
   }
 }
 

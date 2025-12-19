@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { FeedPost } from '@/models/FeedPost'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
@@ -10,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useLikeMutation, useSaveMutation, usePlayTrackMutation } from '@/hooks/mutations/useFeedMutations'
+import { useFollowMutation } from '@/hooks/mutations/useFollowMutation'
 import { createAudioPlayer, formatTime, formatGenres, type AudioPlayer } from '@/utils/audio'
 import { CommentsPanel } from '@/components/comments/CommentsPanel'
 import { ReportButton } from '@/components/report/ReportButton'
@@ -36,6 +38,7 @@ interface PostCardProps {
  * - Genre and metadata display
  */
 export function PostCard({ post }: PostCardProps) {
+  const navigate = useNavigate()
   const [isPlaying, setIsPlaying] = useState(false)
   const [progress, setProgress] = useState(0)
   const [duration, setDuration] = useState(0)
@@ -50,6 +53,7 @@ export function PostCard({ post }: PostCardProps) {
   const { mutate: toggleLike, isPending: isLikePending } = useLikeMutation()
   const { mutate: toggleSave, isPending: isSavePending } = useSaveMutation()
   const { mutate: trackPlay } = usePlayTrackMutation()
+  const { mutate: toggleFollow, isPending: isFollowPending } = useFollowMutation()
 
   // Initialize audio player
   useEffect(() => {
@@ -174,6 +178,20 @@ export function PostCard({ post }: PostCardProps) {
     setSocialActionLoading(null)
   }
 
+  const handleFollowClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (post.userId && !post.isOwnPost) {
+      toggleFollow({ userId: post.userId, shouldFollow: !post.isFollowing })
+    }
+  }
+
+  const handleUserClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (post.username) {
+      navigate(`/profile/${post.username}`)
+    }
+  }
+
   const timeDisplay = `${formatTime(progress * duration)} / ${formatTime(duration)}`
 
   return (
@@ -184,15 +202,21 @@ export function PostCard({ post }: PostCardProps) {
         <img
           src={post.userAvatarUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + post.userId}
           alt={post.displayName}
-          className="w-10 h-10 rounded-full bg-muted"
+          className="w-10 h-10 rounded-full bg-muted cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={handleUserClick}
         />
-        <div className="flex-1 min-w-0">
-          <div className="font-medium text-sm truncate">{post.displayName}</div>
-          <div className="text-xs text-muted-foreground truncate">@{post.username}</div>
+        <div className="flex-1 min-w-0 cursor-pointer" onClick={handleUserClick}>
+          <div className="font-medium text-sm truncate hover:underline">{post.displayName || post.username || 'Unknown User'}</div>
+          <div className="text-xs text-muted-foreground truncate">@{post.username || 'unknown'}</div>
         </div>
         {!post.isOwnPost && (
-          <Button variant="outline" size="sm">
-            {post.isFollowing ? 'Following' : 'Follow'}
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleFollowClick}
+            disabled={isFollowPending}
+          >
+            {isFollowPending ? <Spinner size="sm" /> : (post.isFollowing ? 'Following' : 'Follow')}
           </Button>
         )}
       </div>
