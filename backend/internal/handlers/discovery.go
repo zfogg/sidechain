@@ -87,7 +87,8 @@ func (h *Handlers) enrichUsersWithFollowState(currentUserID string, users []mode
 		// Use database IDs - no caching for fresh data
 		isFollowing := false
 		if currentUserID != "" && user.ID != "" && user.ID != currentUserID {
-			isFollowing, err := h.stream.CheckIsFollowing(currentUserID, user.ID)
+			var err error
+			isFollowing, err = h.stream.CheckIsFollowing(currentUserID, user.ID)
 
 			if err != nil {
 
@@ -911,7 +912,8 @@ func (h *Handlers) GetTrendingUsers(c *gin.Context) {
 		// Query follow state using database IDs - no caching for fresh data
 		isFollowing := false
 		if currentUserID != "" && user.ID != "" && user.ID != currentUserID {
-			isFollowing, err := h.stream.CheckIsFollowing(currentUserID, user.ID)
+			var err error
+			isFollowing, err = h.stream.CheckIsFollowing(currentUserID, user.ID)
 
 			if err != nil {
 
@@ -989,7 +991,8 @@ func (h *Handlers) GetFeaturedProducers(c *gin.Context) {
 		// Query follow state using database IDs - no caching for fresh data
 		isFollowing := false
 		if currentUserID != "" && user.ID != "" && user.ID != currentUserID {
-			isFollowing, err := h.stream.CheckIsFollowing(currentUserID, user.ID)
+			var err error
+			isFollowing, err = h.stream.CheckIsFollowing(currentUserID, user.ID)
 
 			if err != nil {
 
@@ -1064,7 +1067,8 @@ func (h *Handlers) GetUsersByGenre(c *gin.Context) {
 		// Query follow state using database IDs - no caching for fresh data
 		isFollowing := false
 		if currentUserID != "" && user.ID != "" && user.ID != currentUserID {
-			isFollowing, err := h.stream.CheckIsFollowing(currentUserID, user.ID)
+			var err error
+			isFollowing, err = h.stream.CheckIsFollowing(currentUserID, user.ID)
 
 			if err != nil {
 
@@ -1174,7 +1178,8 @@ func (h *Handlers) GetSuggestedUsers(c *gin.Context) {
 		// Check follow state using database IDs - no caching for fresh data
 		isFollowing := false
 		if u.ID != "" && u.ID != currentUser.ID {
-			isFollowing, err := h.stream.CheckIsFollowing(currentUser.ID, u.ID)
+			var err error
+			isFollowing, err = h.stream.CheckIsFollowing(currentUser.ID, u.ID)
 
 			if err != nil {
 
@@ -1307,7 +1312,8 @@ func (h *Handlers) GetSimilarUsers(c *gin.Context) {
 		// Query follow state using database IDs - no caching for fresh data
 		isFollowing := false
 		if currentUserID != "" && u.ID != "" && u.ID != currentUserID {
-			isFollowing, err := h.stream.CheckIsFollowing(currentUserID, u.ID)
+			var err error
+			isFollowing, err = h.stream.CheckIsFollowing(currentUserID, u.ID)
 
 			if err != nil {
 

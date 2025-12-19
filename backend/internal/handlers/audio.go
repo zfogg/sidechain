@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/util"
 )
@@ -73,11 +74,26 @@ func (h *Handlers) UploadAudio(c *gin.Context) {
 		}
 	}
 
-	// Parse metadata from form
+	// Parse and validate metadata from form
+	bpm := util.ParseInt(c.PostForm("bpm"), 120)
+	durationBars := util.ParseInt(c.PostForm("duration_bars"), 8)
+
+	// Validate BPM (1-300 range)
+	if bpm < 1 || bpm > 300 {
+		logger.WarnWithFields(fmt.Sprintf("Invalid BPM value %d, using default 120", bpm), fmt.Errorf("bpm out of range"))
+		bpm = 120
+	}
+
+	// Validate duration_bars (1-256 range)
+	if durationBars < 1 || durationBars > 256 {
+		logger.WarnWithFields(fmt.Sprintf("Invalid duration_bars value %d, using default 8", durationBars), fmt.Errorf("duration_bars out of range"))
+		durationBars = 8
+	}
+
 	metadata := map[string]interface{}{
-		"bpm":           util.ParseInt(c.PostForm("bpm"), 120),
+		"bpm":           bpm,
 		"key":           c.DefaultPostForm("key", "C major"),
-		"duration_bars": util.ParseInt(c.PostForm("duration_bars"), 8),
+		"duration_bars": durationBars,
 		"daw":           c.DefaultPostForm("daw", "Unknown"),
 		"genre":         c.DefaultPostForm("genre", "Electronic"),
 		"sample_rate":   util.ParseFloat(c.PostForm("sample_rate"), 44100.0),
@@ -109,7 +125,14 @@ func (h *Handlers) UploadAudio(c *gin.Context) {
 				TimeSignature: midiData.TimeSignature,
 				IsPublic:      true,
 			}
-			if err := database.DB.Create(pattern).Error; err == nil {
+			// DB-5: Validate MIDI pattern before saving (DB-5)
+			if validationErr := pattern.Validate(); validationErr != nil {
+				logger.WarnWithFields("Invalid MIDI pattern data, skipping MIDI creation", validationErr)
+				// Continue without MIDI pattern - audio upload proceeds
+			} else if err := database.DB.Create(pattern).Error; err != nil {
+				logger.WarnWithFields("Failed to save MIDI pattern to database", err)
+				// Continue without MIDI pattern - audio upload proceeds
+			} else {
 				midiPatternID = &pattern.ID
 			}
 		}
@@ -132,9 +155,9 @@ func (h *Handlers) UploadAudio(c *gin.Context) {
 		OriginalFilename: file.Filename,
 		Filename:         filename, // User-provided display filename
 		FileSize:         file.Size,
-		BPM:              util.ParseInt(c.PostForm("bpm"), 120),
+		BPM:              bpm, // Use validated BPM value
 		Key:              c.DefaultPostForm("key", "C major"),
-		DurationBars:     util.ParseInt(c.PostForm("duration_bars"), 8),
+		DurationBars:     durationBars, // Use validated duration_bars value
 		DAW:              c.DefaultPostForm("daw", "Unknown"),
 		Genre:            util.ParseGenreArray(c.PostForm("genre")),
 		ProcessingStatus: "pending",
