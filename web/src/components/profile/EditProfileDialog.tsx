@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar } from '@/components/ui/avatar'
 import { UserProfileClient } from '@/api/UserProfileClient'
+import { UserClient } from '@/api/UserClient'
 import { useUserStore } from '@/stores/useUserStore'
 
 interface EditProfileDialogProps {
@@ -74,21 +75,41 @@ export function EditProfileDialog({ isOpen, onOpenChange }: EditProfileDialogPro
       username: username.trim(),
       displayName: displayName.trim(),
       bio: bio.trim(),
+      profilePictureUrl,
     })
 
     if (result.isOk()) {
-      // Update local user store
-      useUserStore.setState((state) => ({
-        user: state.user
-          ? {
-              ...state.user,
-              username: username.trim(),
-              displayName: displayName.trim(),
-              bio: bio.trim(),
-              profilePictureUrl,
-            }
-          : null,
-      }))
+      // Fetch fresh user profile to get all updated data from backend
+      // This ensures profile picture URL and other fields are synchronized
+      const profileResult = await UserClient.getProfile(username.trim())
+
+      if (profileResult.isOk()) {
+        const freshProfile = profileResult.getValue()
+        useUserStore.setState((state) => ({
+          user: state.user
+            ? {
+                ...state.user,
+                username: freshProfile.username,
+                displayName: freshProfile.displayName,
+                bio: freshProfile.bio,
+                profilePictureUrl: freshProfile.profilePictureUrl,
+              }
+            : null,
+        }))
+      } else {
+        // Fallback: at least update with local state
+        useUserStore.setState((state) => ({
+          user: state.user
+            ? {
+                ...state.user,
+                username: username.trim(),
+                displayName: displayName.trim(),
+                bio: bio.trim(),
+                profilePictureUrl,
+              }
+            : null,
+        }))
+      }
 
       onOpenChange(false)
     } else {

@@ -112,7 +112,25 @@ export const useUserStore = create<UserStoreState & UserStoreActions>()(
             try {
               const response = await apiClient.get<User>('/users/me');
               if (response.isOk()) {
-                const freshUser = response.getValue();
+                let freshUser = response.getValue();
+
+                // If /users/me doesn't return profile picture, fetch from /users/{username}
+                // to ensure we have complete profile data for the header
+                if (freshUser && !freshUser.profilePictureUrl && freshUser.username) {
+                  try {
+                    const profileResponse = await apiClient.get<any>(`/users/${freshUser.username}`);
+                    if (profileResponse.isOk()) {
+                      const profileData = profileResponse.getValue();
+                      freshUser = {
+                        ...freshUser,
+                        profilePictureUrl: profileData.profilePictureUrl || profileData.profile_picture_url || ''
+                      };
+                    }
+                  } catch (e) {
+                    // Silently fail - use what we have
+                  }
+                }
+
                 set({ user: freshUser, isLoading: false });
               } else {
                 console.error('Failed to fetch user data:', response);

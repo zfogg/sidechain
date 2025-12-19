@@ -26,10 +26,8 @@ const Profile = lazy(() => import('@/pages/Profile').then(m => ({ default: m.Pro
 const Notifications = lazy(() => import('@/pages/Notifications').then(m => ({ default: m.Notifications })))
 const Messages = lazy(() => import('@/pages/Messages').then(m => ({ default: m.Messages })))
 const Search = lazy(() => import('@/pages/Search').then(m => ({ default: m.Search })))
-const Discovery = lazy(() => import('@/pages/Discovery').then(m => ({ default: m.Discovery })))
 const Playlists = lazy(() => import('@/pages/Playlists').then(m => ({ default: m.Playlists })))
 const PlaylistDetail = lazy(() => import('@/pages/PlaylistDetail').then(m => ({ default: m.PlaylistDetail })))
-const Trending = lazy(() => import('@/pages/Trending').then(m => ({ default: m.Trending })))
 const Activity = lazy(() => import('@/pages/Activity').then(m => ({ default: m.Activity })))
 const Remixes = lazy(() => import('@/pages/Remixes').then(m => ({ default: m.Remixes })))
 
@@ -146,30 +144,6 @@ function AppContent() {
             <ProtectedRoute>
               <Suspense fallback={<RouteLoader />}>
                 <Search />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
-
-        {/* Discovery Routes (Protected) */}
-        <Route
-          path="/discover"
-          element={
-            <ProtectedRoute>
-              <Suspense fallback={<RouteLoader />}>
-                <Discovery />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
-
-        {/* Trending Routes (Protected) */}
-        <Route
-          path="/trending"
-          element={
-            <ProtectedRoute>
-              <Suspense fallback={<RouteLoader />}>
-                <Trending />
               </Suspense>
             </ProtectedRoute>
           }

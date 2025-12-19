@@ -28,18 +28,6 @@ export function useKeyboardShortcuts() {
       handler: () => navigate('/feed'),
     },
     {
-      key: 'd',
-      description: 'Go to Discover',
-      category: 'navigation',
-      handler: () => navigate('/discover'),
-    },
-    {
-      key: 't',
-      description: 'Go to Trending',
-      category: 'navigation',
-      handler: () => navigate('/trending'),
-    },
-    {
       key: 'u',
       description: 'Go to Upload',
       category: 'navigation',

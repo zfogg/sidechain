@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useUserStore } from '@/stores/useUserStore'
 import { UserModel } from '@/models/User'
+import { UserClient } from '@/api/UserClient'
 import { Spinner } from '@/components/ui/spinner'
 
 /**
@@ -19,44 +20,71 @@ export function AuthCallback() {
   const [error, setError] = useState<string>('')
 
   useEffect(() => {
-    const token = searchParams.get('token')
-    const userJson = searchParams.get('user')
-    const errorParam = searchParams.get('error')
+    const handleAuth = async () => {
+      const token = searchParams.get('token')
+      const userJson = searchParams.get('user')
+      const errorParam = searchParams.get('error')
 
-    if (errorParam) {
-      setError(errorParam || 'Authentication failed')
-      // Redirect to login after delay
-      setTimeout(() => {
-        navigate(`/login?error=${encodeURIComponent(errorParam)}`)
-      }, 2000)
-      return
+      if (errorParam) {
+        setError(errorParam || 'Authentication failed')
+        // Redirect to login after delay
+        setTimeout(() => {
+          navigate(`/login?error=${encodeURIComponent(errorParam)}`)
+        }, 2000)
+        return
+      }
+
+      if (!token || !userJson) {
+        setError('Missing authentication data')
+        setTimeout(() => {
+          navigate('/login?error=missing_data')
+        }, 2000)
+        return
+      }
+
+      try {
+        // Decode the user JSON (it should be URL-encoded by backend)
+        const userData = JSON.parse(decodeURIComponent(userJson))
+        const user = UserModel.fromJson(userData)
+
+        // Login with the token and user data
+        login(token, user)
+
+        // Fetch complete profile to ensure we have profile picture URL
+        // The auth response may not include all fields, especially profile_picture_url
+        if (user.username) {
+          try {
+            const profileResult = await UserClient.getProfile(user.username)
+            if (profileResult.isOk()) {
+              const profile = profileResult.getValue()
+              // Update user store with complete profile data
+              useUserStore.setState((state) => ({
+                user: state.user
+                  ? {
+                      ...state.user,
+                      profilePictureUrl: profile.profilePictureUrl || '',
+                    }
+                  : null,
+              }))
+            }
+          } catch (e) {
+            // Silently fail - user can still proceed
+            console.debug('Failed to fetch complete profile after auth:', e)
+          }
+        }
+
+        // Redirect to feed
+        navigate('/feed')
+      } catch (err) {
+        console.error('Failed to parse auth response:', err)
+        setError('Failed to process authentication')
+        setTimeout(() => {
+          navigate('/login?error=parse_error')
+        }, 2000)
+      }
     }
 
-    if (!token || !userJson) {
-      setError('Missing authentication data')
-      setTimeout(() => {
-        navigate('/login?error=missing_data')
-      }, 2000)
-      return
-    }
-
-    try {
-      // Decode the user JSON (it should be URL-encoded by backend)
-      const userData = JSON.parse(decodeURIComponent(userJson))
-      const user = UserModel.fromJson(userData)
-
-      // Login with the token and user data
-      login(token, user)
-
-      // Redirect to feed
-      navigate('/feed')
-    } catch (err) {
-      console.error('Failed to parse auth response:', err)
-      setError('Failed to process authentication')
-      setTimeout(() => {
-        navigate('/login?error=parse_error')
-      }, 2000)
-    }
+    handleAuth()
   }, [searchParams, navigate, login])
 
   if (error) {
