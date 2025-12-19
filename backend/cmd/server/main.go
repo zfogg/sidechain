@@ -13,9 +13,8 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/joho/godotenv"
-	"go.uber.org/zap"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/zfogg/sidechain/backend/internal/alerts"
 	"github.com/zfogg/sidechain/backend/internal/audio"
 	"github.com/zfogg/sidechain/backend/internal/auth"
@@ -37,6 +36,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/stream"
 	"github.com/zfogg/sidechain/backend/internal/waveform"
 	"github.com/zfogg/sidechain/backend/internal/websocket"
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -137,7 +137,6 @@ func main() {
 			logger.Log.Info("✅ Elasticsearch indices initialized successfully")
 		}
 	}
-
 
 	// Initialize alert system (Phase 7.2)
 	alertManager := alerts.NewAlertManager()
@@ -277,7 +276,7 @@ func main() {
 		zap.String("url", gorseURL),
 	)
 
-	// Set up post completion callback to sync to Gorse (Task 2.1)
+	// Set up post completion callback to sync to Gorse
 	audioProcessor.SetPostCompleteCallback(func(postID string) {
 		logger.Log.Debug("Post completed processing, syncing to Gorse",
 			logger.WithPostID(postID),
@@ -294,7 +293,7 @@ func main() {
 		}
 	})
 
-	// Configure batch sync interval (Task 3.4)
+	// Configure batch sync interval
 	syncIntervalStr := os.Getenv("GORSE_SYNC_INTERVAL")
 	syncInterval := 1 * time.Hour // Default: 1 hour
 	if syncIntervalStr != "" {
@@ -308,11 +307,11 @@ func main() {
 		}
 	}
 
-	// Start background batch sync (Task 3.1, 3.2, 3.3)
+	// Start background batch sync
 	syncCtx, syncCancel := context.WithCancel(context.Background())
 	defer syncCancel()
 
-	// Initial sync on startup (Task 3.3)
+	// Initial sync on startup
 	go func() {
 		logger.Log.Info("🔄 Starting initial Gorse batch sync...")
 		if err := gorseClient.BatchSyncUsers(); err != nil {
@@ -342,7 +341,7 @@ func main() {
 		logger.Log.Info("✅ Initial Gorse batch sync completed")
 	}()
 
-	// Periodic batch sync (Task 3.1)
+	// Periodic batch sync
 	go func() {
 		ticker := time.NewTicker(syncInterval)
 		defer ticker.Stop()
@@ -381,7 +380,7 @@ func main() {
 		}
 	}()
 
-	// Daily CTR metrics logging (Task 8.3)
+	// Daily CTR metrics logging
 	go func() {
 		ticker := time.NewTicker(24 * time.Hour)
 		defer ticker.Stop()
@@ -519,9 +518,9 @@ func main() {
 	)
 
 	// Standard Gin middleware (after CORS)
-	r.Use(middleware.RequestIDMiddleware())   // Add request ID tracking
-	r.Use(middleware.MetricsMiddleware())     // Prometheus metrics collection
-	r.Use(middleware.GinLoggerMiddleware())   // Structured logging
+	r.Use(middleware.RequestIDMiddleware()) // Add request ID tracking
+	r.Use(middleware.MetricsMiddleware())   // Prometheus metrics collection
+	r.Use(middleware.GinLoggerMiddleware()) // Structured logging
 	r.Use(gin.Recovery())
 
 	// Gzip compression middleware (compress responses > 1KB)
@@ -529,6 +528,7 @@ func main() {
 		"/api/v1/ws",         // Don't compress WebSocket connections
 		"/api/v1/ws/connect", // Don't compress WebSocket connections
 		"/metrics",           // Don't compress Prometheus metrics (binary format issue)
+		"/internal/metrics",  // Don't compress internal Prometheus metrics
 	})))
 
 	// Health check endpoint
@@ -547,9 +547,15 @@ func main() {
 		gin.WrapH(promhttp.Handler()),
 	)
 
+	// Internal Prometheus metrics endpoint (unauthenticated, for Prometheus scraping)
+	// This endpoint should only be accessible from the Docker network
+	r.GET("/internal/metrics",
+		gin.WrapH(promhttp.Handler()),
+	)
+
 	// API routes
 	api := r.Group("/api/v1")
-	api.Use(middleware.RateLimit()) // Global rate limit: 100 req/min per IP
+	api.Use(middleware.RateLimit())                    // Global rate limit: 100 req/min per IP
 	api.Use(middleware.AdminImpersonationMiddleware()) // Admin user impersonation support
 	{
 		// Authentication routes (public) - stricter rate limit
@@ -718,6 +724,8 @@ func main() {
 		{
 			search.Use(authHandlers.AuthMiddlewareOptional())
 			search.Use(middleware.RateLimitSearch()) // Phase 6.3: Rate limit search requests
+			// Cache search results for 2 minutes (Elasticsearch results are cached)
+			search.Use(middleware.ResponseCacheMiddleware(2 * time.Minute))
 			search.GET("/users", h.SearchUsers)
 			search.GET("/posts", h.SearchPosts)       // Phase 1.2: Search posts with Elasticsearch
 			search.GET("/stories", h.SearchStories)   // Phase 1.3: Search stories by creator username
@@ -733,32 +741,31 @@ func main() {
 			}
 		}
 
+		// Metrics routes (Phase 7.1)
 
-	// Metrics routes (Phase 7.1)
-
-	// Alert routes (Phase 7.2)
-	alert := api.Group("/alerts")
-	{
-		alert.GET("", h.GetAlerts)                  // Get all alerts
-		alert.GET("/active", h.GetActiveAlerts)      // Get active alerts
-		alert.GET("/type/:type", h.GetAlertsByType) // Get alerts by type
-		alert.PUT("/:id/resolve", h.ResolveAlert)   // Resolve an alert
-		alert.GET("/stats", h.GetAlertStats)        // Get alert statistics
-
-		// Alert rules management
-		rules := alert.Group("/rules")
+		// Alert routes (Phase 7.2)
+		alert := api.Group("/alerts")
 		{
-			rules.GET("", h.GetRules)        // Get all rules
-			rules.POST("", h.CreateRule)     // Create new rule
-			rules.PUT("/:id", h.UpdateRule)  // Update rule
+			alert.GET("", h.GetAlerts)                  // Get all alerts
+			alert.GET("/active", h.GetActiveAlerts)     // Get active alerts
+			alert.GET("/type/:type", h.GetAlertsByType) // Get alerts by type
+			alert.PUT("/:id/resolve", h.ResolveAlert)   // Resolve an alert
+			alert.GET("/stats", h.GetAlertStats)        // Get alert statistics
+
+			// Alert rules management
+			rules := alert.Group("/rules")
+			{
+				rules.GET("", h.GetRules)       // Get all rules
+				rules.POST("", h.CreateRule)    // Create new rule
+				rules.PUT("/:id", h.UpdateRule) // Update rule
+			}
 		}
-	}
-	metrics := api.Group("/metrics")
-	{
-		metrics.GET("", h.GetAllMetrics)            // Get all metrics
-		metrics.GET("/search", h.GetSearchMetrics)  // Get search-specific metrics
-		metrics.POST("/reset", h.ResetMetrics)      // Reset metrics (admin only)
-	}
+		metrics := api.Group("/metrics")
+		{
+			metrics.GET("", h.GetAllMetrics)           // Get all metrics
+			metrics.GET("/search", h.GetSearchMetrics) // Get search-specific metrics
+			metrics.POST("/reset", h.ResetMetrics)     // Reset metrics (admin only)
+		}
 		// Activity routes - Timeline from followed users and global activity
 		activity := api.Group("/activity")
 		{
@@ -785,17 +792,17 @@ func main() {
 			recommendations.GET("/for-you", h.GetForYouFeed)
 			recommendations.GET("/similar-posts/:post_id", h.GetSimilarPosts)
 			recommendations.GET("/similar-users/:user_id", h.GetRecommendedUsers)
-			// Negative feedback endpoints (Task 5)
+			// Negative feedback endpoints
 			recommendations.POST("/dislike/:post_id", h.NotInterestedInPost) // "Not interested" button
 			recommendations.POST("/skip/:post_id", h.SkipPost)               // Track when user scrolls past quickly
 			recommendations.POST("/hide/:post_id", h.HidePost)               // "Hide this post" button
 			// Discovery endpoints (Task 7)
 			recommendations.GET("/popular", h.GetPopular)              // Globally popular posts
 			recommendations.GET("/latest", h.GetLatest)                // Recently added posts
-			recommendations.GET("/discovery-feed", h.GetDiscoveryFeed) // Blended discovery feed (Task 7.4)
-			// CTR tracking (Task 8)
-			recommendations.POST("/click", h.TrackRecommendationClick) // Track recommendation clicks (Task 8.2)
-			recommendations.GET("/metrics/ctr", h.GetCTRMetrics)       // Get CTR metrics (Task 8.3)
+			recommendations.GET("/discovery-feed", h.GetDiscoveryFeed) // Blended discovery feed
+			// CTR tracking
+			recommendations.POST("/click", h.TrackRecommendationClick) // Track recommendation clicks
+			recommendations.GET("/metrics/ctr", h.GetCTRMetrics)       // Get CTR metrics
 		}
 
 		// Post routes (for comments, deletion, reporting, saving, reposting)
@@ -807,8 +814,8 @@ func main() {
 			posts.DELETE("/:id", h.DeletePost)
 			posts.POST("/:id/report", h.ReportPost)
 			posts.POST("/:id/download", h.DownloadPost)
-			posts.POST("/:id/play", h.TrackPlay)   // Play tracking for analytics and recommendations
-			posts.POST("/:id/view", h.ViewPost)    // View tracking for analytics and recommendations
+			posts.POST("/:id/play", h.TrackPlay) // Play tracking for analytics and recommendations
+			posts.POST("/:id/view", h.ViewPost)  // View tracking for analytics and recommendations
 			// Save/Bookmark routes (P0 Social Feature)
 			posts.POST("/:id/save", h.SavePost)
 			posts.DELETE("/:id/save", h.UnsavePost)
@@ -843,7 +850,7 @@ func main() {
 			comments.POST("/:id/report", h.ReportComment)
 		}
 
-		// Error tracking routes (Task 4.19: Error tracking and reporting)
+		// Error tracking routes
 		errorTrackingHandler := handlers.NewErrorTrackingHandler()
 		errors := api.Group("/errors")
 		{
