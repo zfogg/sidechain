@@ -13,6 +13,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"
@@ -132,8 +133,10 @@ func (s *Service) updateOAuthTokens(oauthProvider *models.OAuthProvider, userInf
 		oauthProvider.ProfilePictureURL = userInfo.OAuthProfilePictureURL
 	}
 
-	// Save updates (fire and forget - don't fail login if token update fails)
-	database.DB.Save(oauthProvider)
+	// Save updates - log errors but don't fail login if token update fails
+	if err := database.DB.Save(oauthProvider).Error; err != nil {
+		logger.WarnWithFields("Failed to save OAuth token updates for user "+oauthProvider.UserID+" provider "+oauthProvider.Provider, err)
+	}
 }
 
 // linkOAuthToExistingUser links OAuth provider to existing user account
@@ -156,7 +159,9 @@ func (s *Service) linkOAuthToExistingUser(user *models.User, provider string, us
 	// Update user OAuth avatar if they don't have one
 	if user.OAuthProfilePictureURL == "" && userInfo.OAuthProfilePictureURL != "" {
 		user.OAuthProfilePictureURL = userInfo.OAuthProfilePictureURL
-		database.DB.Save(user)
+		if err := database.DB.Save(user).Error; err != nil {
+			logger.WarnWithFields("Failed to save OAuth profile picture for user "+user.ID, err)
+		}
 	}
 
 	return s.generateAuthResponse(user)
