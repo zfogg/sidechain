@@ -10,6 +10,7 @@
 #include "../../util/Result.h"
 #include "../../util/StringFormatter.h"
 #include "../../util/StringUtils.h"
+#include "../../util/UIHelpers.h"
 #include "../feed/PostCard.h"
 #include <vector>
 

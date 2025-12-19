@@ -3,6 +3,7 @@
 #include "../../stores/AppStore.h"
 #include "../../util/Colors.h"
 #include "../../util/Log.h"
+#include "../../util/StringUtils.h"
 
 using namespace Sidechain::Stores;
 
@@ -523,11 +524,7 @@ void UserPickerDialog::drawUserItem(juce::Graphics &g, const UserItem &user, int
   // Avatar initials
   g.setColour(SidechainColors::textSecondary());
   g.setFont(juce::FontOptions(18.0f).withStyle("Bold"));
-  juce::String initials;
-  if (user.displayName.isNotEmpty())
-    initials = user.displayName.substring(0, 1).toUpperCase();
-  else if (user.username.isNotEmpty())
-    initials = user.username.substring(0, 1).toUpperCase();
+  juce::String initials = StringUtils::getInitials(user.displayName.isNotEmpty() ? user.displayName : user.username);
   g.drawText(initials, x, avatarY, avatarSize, avatarSize, juce::Justification::centred);
 
   // Online indicator

@@ -12,6 +12,7 @@
 #include "../../util/StringFormatter.h"
 #include "../../util/TextEditorStyler.h"
 #include "../../util/UIHelpers.h"
+#include "../../util/Validate.h"
 
 using namespace Sidechain::Stores;
 
@@ -140,7 +141,9 @@ void CommentRow::drawContent(juce::Graphics &g, juce::Rectangle<int> bounds) {
   g.setFont(13.0f);
 
   // Draw comment text, wrapping if needed
-  g.drawFittedText(comment.content, bounds, juce::Justification::topLeft, 3, 1.0f);
+  // Escape HTML entities to prevent XSS
+  juce::String safeContent = Validate::escapeHtml(comment.content);
+  g.drawFittedText(safeContent, bounds, juce::Justification::topLeft, 3, 1.0f);
 }
 
 void CommentRow::drawActions(juce::Graphics &g, juce::Rectangle<int> bounds) {
@@ -728,6 +731,11 @@ void CommentsPanel::submitComment() {
     Log::debug("CommentsPanel::submitComment: Content is empty, not submitting");
     return;
   }
+
+  // Sanitize content before sending to prevent XSS
+  // Normalize whitespace and escape HTML entities
+  content = Validate::normalizeWhitespace(content);
+  content = Validate::escapeHtml(content);
 
   // Check if we're editing an existing comment
   if (editCommentId.isNotEmpty()) {

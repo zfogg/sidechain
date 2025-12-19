@@ -3,6 +3,7 @@
 #include "../../util/HoverState.h"
 #include "../../util/Json.h"
 #include "../../util/Log.h"
+#include "../../util/StringUtils.h"
 #include "../../util/Time.h"
 #include "../../util/UIHelpers.h"
 
@@ -205,14 +206,7 @@ void NotificationRow::drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds)
   g.fillEllipse(avatarCircle);
 
   // Draw initials
-  juce::String initials;
-  if (notification.actorName.isNotEmpty()) {
-    initials = notification.actorName.substring(0, 1).toUpperCase();
-    // Try to get second initial from word boundary
-    int spaceIdx = notification.actorName.indexOf(" ");
-    if (spaceIdx > 0 && spaceIdx < notification.actorName.length() - 1)
-      initials += notification.actorName.substring(spaceIdx + 1, spaceIdx + 2).toUpperCase();
-  }
+  juce::String initials = StringUtils::getInitials(notification.actorName);
 
   g.setColour(SidechainColors::textPrimary());
   g.setFont(juce::Font(juce::FontOptions().withHeight(14.0f).withStyle("Bold")));
