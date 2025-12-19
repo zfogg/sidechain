@@ -26,6 +26,8 @@ add_library(SidechainCore STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Constants.h
     ${CMAKE_CURRENT_SOURCE_DIR}/StringFormatter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/StringFormatter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/StringUtils.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/StringUtils.h
     ${CMAKE_CURRENT_SOURCE_DIR}/TextEditorStyler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/TextEditorStyler.h
     ${CMAKE_CURRENT_SOURCE_DIR}/HoverState.h

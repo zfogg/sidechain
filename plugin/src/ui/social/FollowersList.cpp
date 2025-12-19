@@ -7,6 +7,7 @@
 #include "../../util/Json.h"
 #include "../../util/Log.h"
 #include "../../util/Result.h"
+#include "../../util/StringUtils.h"
 #include "../../util/UIHelpers.h"
 
 using namespace Sidechain::Stores;
@@ -14,8 +15,6 @@ using namespace Sidechain::Stores;
 // ==============================================================================
 // Forward declarations
 // ==============================================================================
-
-static juce::String getInitialsFromName(const juce::String &name);
 static juce::Image loadImageFromURL(const juce::String &urlStr);
 
 // ==============================================================================
@@ -99,7 +98,7 @@ void FollowUserRow::paint(juce::Graphics &g) {
   }
 
   // Fallback: colored circle with user initials (will be replaced with actual image when loaded)
-  juce::String initials = getInitialsFromName(name);
+  juce::String initials = StringUtils::getInitials(name);
 
   g.setColour(SidechainColors::surface());
   g.fillEllipse(avatarBounds.toFloat());
@@ -448,23 +447,6 @@ void FollowersList::resized() {
 // Helper functions
 // ==============================================================================
 
-static juce::String getInitialsFromName(const juce::String &name) {
-  if (name.isEmpty())
-    return "?";
-
-  auto trimmedName = name.trim();
-  auto parts = juce::StringArray::fromTokens(trimmedName, " ", "");
-
-  if (parts.size() >= 2) {
-    // First letter of first and last word
-    return parts[0].substring(0, 1).toUpperCase() + parts[parts.size() - 1].substring(0, 1).toUpperCase();
-  } else if (parts.size() == 1) {
-    // First two letters
-    return parts[0].substring(0, 2).toUpperCase();
-  }
-
-  return "?";
-}
 
 static juce::Image loadImageFromURL(const juce::String &urlStr) {
   try {

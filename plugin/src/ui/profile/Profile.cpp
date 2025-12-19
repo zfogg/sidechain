@@ -9,6 +9,7 @@
 #include "../../util/Log.h"
 #include "../../util/Result.h"
 #include "../../util/StringFormatter.h"
+#include "../../util/StringUtils.h"
 #include "../feed/PostCard.h"
 #include <vector>
 
@@ -17,8 +18,6 @@ using namespace Sidechain::Stores;
 // ==============================================================================
 // Forward declarations
 // ==============================================================================
-
-static juce::String getInitialsFromName(const juce::String &name);
 static juce::Image loadImageFromURL(const juce::String &urlStr);
 
 // ==============================================================================
@@ -414,7 +413,7 @@ void Profile::drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds) {
     g.restoreState();
   } else {
     // Fallback: draw colored circle with user initials
-    juce::String initials = getInitialsFromName(name);
+    juce::String initials = StringUtils::getInitials(name);
 
     g.setColour(Colors::accent.darker(0.5f));
     g.fillEllipse(bounds.toFloat());
@@ -1686,25 +1685,6 @@ static juce::Image loadImageFromURL(const juce::String &urlStr) {
   }
 }
 
-static juce::String getInitialsFromName(const juce::String &name) {
-  if (name.isEmpty()) {
-    return "?";
-  }
-
-  juce::StringArray parts;
-  parts.addTokens(name, " ", "");
-
-  if (parts.size() >= 2) {
-    // Get first letter of first and last name
-    return (parts[0].substring(0, 1) + parts[parts.size() - 1].substring(0, 1)).toUpperCase();
-  } else if (parts.size() == 1) {
-    // Get first two letters of single word name
-    juce::String initials = parts[0].substring(0, 2).toUpperCase();
-    return initials.length() > 0 ? initials : "?";
-  }
-
-  return "?";
-}
 
 // ==============================================================================
 // AppStoreComponent overrides
