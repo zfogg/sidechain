@@ -276,7 +276,7 @@ updateAuthState([](AuthState &state) { state.authError = "Token refresh not yet 
 
 ---
 
-### 3.5 PluginEditor - Fix slideLeft Animation
+### 3.5 PluginEditor - Fix slideLeft Animation (skip this for now)
 **File**: `src/core/PluginEditor.cpp`
 **TODO (Task 4.21)**: Fix ViewTransitionManager.slideLeft animation for PostsFeed
 **Complexity**: MEDIUM
