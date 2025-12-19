@@ -30,8 +30,13 @@ if echo "$staged_files" | grep -qE '^backend/.*\.go$'; then
     has_go=true
 fi
 
-# Check for C++ plugin changes
+# Check for C++ plugin changes (source files or CMake files)
 if echo "$staged_files" | grep -qE '^plugin/.*\.(cpp|h|hpp|c)$'; then
+    has_cpp=true
+fi
+
+# Check for CMake changes (affects plugin build)
+if echo "$staged_files" | grep -qE '\.(cmake|CMakeLists\.txt)$'; then
     has_cpp=true
 fi
 
