@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"html"
 	"io"
 	"net/http"
 	"net/url"
@@ -282,7 +283,7 @@ func (h *AuthHandlers) GoogleCallback(c *gin.Context) {
 		<p>Please try again or use a different login method.</p>
 	</div>
 </body>
-</html>`, err.Error())
+</html>`, html.EscapeString(err.Error()))
 		c.Header("Content-Type", "text/html; charset=utf-8")
 		c.String(http.StatusInternalServerError, errorHTML)
 		return
@@ -436,7 +437,7 @@ func (h *AuthHandlers) DiscordCallback(c *gin.Context) {
 		<p>Please try again or use a different login method.</p>
 	</div>
 </body>
-</html>`, err.Error())
+</html>`, html.EscapeString(err.Error()))
 		c.Header("Content-Type", "text/html; charset=utf-8")
 		c.String(http.StatusInternalServerError, errorHTML)
 		return
@@ -636,12 +637,11 @@ func (h *AuthHandlers) GetStreamToken(c *gin.Context) {
 // It uses the backend's admin credentials to create/sync the user in Stream Chat.
 func (h *AuthHandlers) SyncUserToStream(c *gin.Context) {
 	// Require authentication - only authenticated users can initiate sync
-	userID, exists := c.Get("user_id")
+	currentUserID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
-	_ = userID // We have the current user, but we're syncing a target user
 
 	if h.stream == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "stream_client_not_configured"})
@@ -652,6 +652,14 @@ func (h *AuthHandlers) SyncUserToStream(c *gin.Context) {
 	targetUserID := c.Param("user_id")
 	if targetUserID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "user_id_required"})
+		return
+	}
+
+	// SEC-4: Enforce authorization - users can only sync themselves
+	// This prevents users from syncing arbitrary other users to Stream Chat
+	currentUserIDStr, ok := currentUserID.(string)
+	if !ok || currentUserIDStr != targetUserID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "you can only sync your own user"})
 		return
 	}
 
