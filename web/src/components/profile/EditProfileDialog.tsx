@@ -19,6 +19,7 @@ export function EditProfileDialog({ isOpen, onOpenChange }: EditProfileDialogPro
   const { user } = useUserStore()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  const [username, setUsername] = useState(user?.username || '')
   const [displayName, setDisplayName] = useState(user?.displayName || '')
   const [bio, setBio] = useState(user?.bio || '')
   const [profilePictureUrl, setProfilePictureUrl] = useState(user?.profilePictureUrl || '')
@@ -57,6 +58,10 @@ export function EditProfileDialog({ isOpen, onOpenChange }: EditProfileDialogPro
   }
 
   const handleSave = async () => {
+    if (!username.trim()) {
+      setError('Username is required')
+      return
+    }
     if (!displayName.trim()) {
       setError('Display name is required')
       return
@@ -66,6 +71,7 @@ export function EditProfileDialog({ isOpen, onOpenChange }: EditProfileDialogPro
     setError('')
 
     const result = await UserProfileClient.updateProfile({
+      username: username.trim(),
       displayName: displayName.trim(),
       bio: bio.trim(),
     })
@@ -76,6 +82,7 @@ export function EditProfileDialog({ isOpen, onOpenChange }: EditProfileDialogPro
         user: state.user
           ? {
               ...state.user,
+              username: username.trim(),
               displayName: displayName.trim(),
               bio: bio.trim(),
               profilePictureUrl,
@@ -126,6 +133,19 @@ export function EditProfileDialog({ isOpen, onOpenChange }: EditProfileDialogPro
           {/* Error Message */}
           {error && <div className="text-sm text-red-400 text-center">{error}</div>}
 
+          {/* Username */}
+          <div>
+            <label className="text-sm font-medium text-foreground mb-2 block">Username</label>
+            <Input
+              placeholder="@username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              disabled={isSaving}
+              maxLength={30}
+            />
+            <p className="text-xs text-muted-foreground mt-1">{username.length}/30</p>
+          </div>
+
           {/* Display Name */}
           <div>
             <label className="text-sm font-medium text-foreground mb-2 block">Display Name</label>
@@ -158,7 +178,7 @@ export function EditProfileDialog({ isOpen, onOpenChange }: EditProfileDialogPro
             <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={isSaving || !displayName.trim()}>
+            <Button onClick={handleSave} disabled={isSaving || !username.trim() || !displayName.trim()}>
               {isSaving ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>

@@ -466,6 +466,7 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 	}
 
 	var req struct {
+		Username          *string             `json:"username"`
 		DisplayName       *string             `json:"display_name"`
 		Bio               *string             `json:"bio"`
 		Location          *string             `json:"location"`
@@ -483,6 +484,9 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 
 	// Build update map for non-nil fields
 	updates := make(map[string]interface{})
+	if req.Username != nil {
+		updates["username"] = *req.Username
+	}
 	if req.DisplayName != nil {
 		updates["display_name"] = *req.DisplayName
 	}
