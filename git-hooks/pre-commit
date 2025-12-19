@@ -1,29 +1,93 @@
 #!/usr/bin/env bash
 
-# Get list of C/C++ files that are staged for commit
-staged_files=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(c|h|cpp|hpp|m|mm)$' || true)
+# Pre-commit hook for Sidechain
+# - Formats C/C++ code with clang-format
+# - Builds TypeScript/web code if changed
+# - Builds Go backend if changed
+# - Builds C++ plugin if changed
+
+set -e  # Exit on error
+
+# Get list of staged files
+staged_files=$(git diff --cached --name-only --diff-filter=ACM || true)
 
 if [[ -z "$staged_files" ]]; then
     exit 0
 fi
 
-# Format only the staged files
-for file in $staged_files; do
-    if [[ -f "$file" ]]; then
-        clang-format -i "$file"
-    fi
-done
+# Check what types of files changed
+has_typescript=false
+has_go=false
+has_cpp=false
 
-# Re-stage any files that were modified by formatting
-formatted_files=""
-for file in $staged_files; do
-    if [[ -f "$file" ]] && git diff --name-only | grep -q "^$file$"; then
-        formatted_files="$formatted_files $file"
-        git add "$file"
-    fi
-done
-
-# Show what was formatted
-if [[ -n "$formatted_files" ]]; then
-    echo "🎨 Code formatting applied to:$formatted_files"
+# Check for TypeScript/web changes
+if echo "$staged_files" | grep -qE '^web/.*\.(ts|tsx|js|jsx)$'; then
+    has_typescript=true
 fi
+
+# Check for Go backend changes
+if echo "$staged_files" | grep -qE '^backend/.*\.go$'; then
+    has_go=true
+fi
+
+# Check for C++ plugin changes
+if echo "$staged_files" | grep -qE '^plugin/.*\.(cpp|h|hpp|c)$'; then
+    has_cpp=true
+fi
+
+# Format C/C++ files
+cpp_files=$(echo "$staged_files" | grep -E '\.(c|h|cpp|hpp|m|mm)$' || true)
+if [[ -n "$cpp_files" ]]; then
+    echo "🎨 Formatting C/C++ files..."
+    formatted_files=""
+    for file in $cpp_files; do
+        if [[ -f "$file" ]]; then
+            clang-format -i "$file"
+            # Check if file was modified by formatting
+            if git diff --name-only | grep -q "^$file$"; then
+                formatted_files="$formatted_files $file"
+                git add "$file"
+            fi
+        fi
+    done
+    
+    if [[ -n "$formatted_files" ]]; then
+        echo "✅ Code formatting applied to:$formatted_files"
+    fi
+fi
+
+# Save original directory
+ORIGINAL_DIR=$(pwd)
+
+# Build TypeScript/web if changed
+if [[ "$has_typescript" == true ]]; then
+    echo "🔨 Building TypeScript/web code..."
+    if ! (cd web && npm run build); then
+        echo "❌ TypeScript build failed. Please fix errors before committing."
+        exit 1
+    fi
+    echo "✅ TypeScript build succeeded"
+fi
+
+# Build Go backend if changed
+if [[ "$has_go" == true ]]; then
+    echo "🔨 Building Go backend..."
+    if ! (cd backend && go build ./cmd/server/main.go); then
+        echo "❌ Go build failed. Please fix errors before committing."
+        exit 1
+    fi
+    echo "✅ Go build succeeded"
+fi
+
+# Build C++ plugin if changed
+if [[ "$has_cpp" == true ]]; then
+    echo "🔨 Building C++ plugin..."
+    if ! make plugin-fast > /dev/null 2>&1; then
+        echo "❌ Plugin build failed. Please fix errors before committing."
+        echo "   Run 'make plugin-fast' manually to see detailed error messages."
+        exit 1
+    fi
+    echo "✅ Plugin build succeeded"
+fi
+
+exit 0
