@@ -1,5 +1,7 @@
+import { useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useUserStore } from '@/stores/useUserStore'
+import { UserClient } from '@/api/UserClient'
 import { Button } from '@/components/ui/button'
 
 /**
@@ -9,6 +11,26 @@ export function Navigation() {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, logout, isLoading } = useUserStore()
+
+  // Fetch complete profile (with picture URL) if not in user store
+  useEffect(() => {
+    if (user && user.username && !user.profilePictureUrl) {
+      UserClient.getProfile(user.username)
+        .then((result) => {
+          if (result.isOk()) {
+            const profile = result.getValue()
+            useUserStore.setState((state) => ({
+              user: state.user
+                ? { ...state.user, profilePictureUrl: profile.profilePictureUrl || '' }
+                : null,
+            }))
+          }
+        })
+        .catch(() => {
+          // Silently fail
+        })
+    }
+  }, [user?.username])
 
   const isActive = (path: string) => location.pathname === path
 
@@ -74,22 +96,6 @@ export function Navigation() {
             >
               <span>📰</span>
               Feed
-            </Button>
-            <Button
-              variant={isActive('/discover') ? 'default' : 'ghost'}
-              onClick={() => navigate('/discover')}
-              className="gap-2"
-            >
-              <span>✨</span>
-              Discover
-            </Button>
-            <Button
-              variant={isActive('/trending') ? 'default' : 'ghost'}
-              onClick={() => navigate('/trending')}
-              className="gap-2"
-            >
-              <span>🔥</span>
-              Trending
             </Button>
             <Button
               variant={isActive('/activity') ? 'default' : 'ghost'}
@@ -158,11 +164,13 @@ export function Navigation() {
                 className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-bg-secondary transition-colors"
                 title="Your Profile"
               >
-                <img
-                  src={user.profilePictureUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`}
-                  alt={user.displayName}
-                  className="w-6 h-6 rounded-full"
-                />
+                {user.profilePictureUrl && (
+                  <img
+                    src={user.profilePictureUrl}
+                    alt={user.displayName}
+                    className="w-6 h-6 rounded-full"
+                  />
+                )}
                 <span className="text-sm font-medium text-foreground hidden sm:inline">
                   {user.displayName}
                 </span>
@@ -202,24 +210,6 @@ export function Navigation() {
           >
             <span>📰</span>
             Feed
-          </Button>
-          <Button
-            variant={isActive('/discover') ? 'default' : 'outline'}
-            onClick={() => navigate('/discover')}
-            size="sm"
-            className="gap-1 whitespace-nowrap"
-          >
-            <span>✨</span>
-            Discover
-          </Button>
-          <Button
-            variant={isActive('/trending') ? 'default' : 'outline'}
-            onClick={() => navigate('/trending')}
-            size="sm"
-            className="gap-1 whitespace-nowrap"
-          >
-            <span>🔥</span>
-            Trending
           </Button>
           <Button
             variant={isActive('/activity') ? 'default' : 'outline'}

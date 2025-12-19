@@ -11,6 +11,7 @@ export interface ProfileUpdatePayload {
   displayName?: string
   bio?: string
   website?: string
+  profilePictureUrl?: string
 }
 
 export interface ProfilePictureUpdatePayload {
@@ -28,6 +29,7 @@ export class UserProfileClient {
     if (updates.displayName) payload.display_name = updates.displayName
     if (updates.bio) payload.bio = updates.bio
     if (updates.website) payload.website = updates.website
+    if (updates.profilePictureUrl) payload.profile_picture_url = updates.profilePictureUrl
 
     return apiClient.put('/users/me', payload)
   }
