@@ -61,9 +61,9 @@ export class FeedClient {
    */
   static async toggleLike(postId: string, shouldLike: boolean): Promise<Outcome<void>> {
     if (shouldLike) {
-      return apiClient.post('/social/like', { post_id: postId });
+      return apiClient.post('/social/like', { activity_id: postId });
     } else {
-      return apiClient.post('/social/unlike', { post_id: postId });
+      return apiClient.delete('/social/like', { activity_id: postId });
     }
   }
 

@@ -147,9 +147,9 @@ export class ApiClient {
   /**
    * DELETE request with Outcome<T> return type
    */
-  async delete<T>(url: string): Promise<Outcome<T>> {
+  async delete<T>(url: string, data?: object): Promise<Outcome<T>> {
     try {
-      const response = await this.client.delete<T>(url);
+      const response = await this.client.delete<T>(url, { data });
       return Outcome.ok(response.data);
     } catch (error) {
       return this.handleError<T>(error as Error | AxiosError);

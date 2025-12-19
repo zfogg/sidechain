@@ -26,13 +26,13 @@ export function useLikeMutation() {
     },
     onMutate: async ({ postId, shouldLike }) => {
       // Cancel any outgoing refetches to prevent overwriting optimistic update
-      await queryClient.cancelQueries({ queryKey: ['feed'] })
+      await queryClient.cancelQueries({ queryKey: ['feed'], exact: false })
 
-      // Snapshot the previous data
-      const previousFeeds = queryClient.getQueriesData<any>({ queryKey: ['feed'] })
+      // Snapshot the previous data for all feed queries
+      const previousFeeds = queryClient.getQueriesData<any>({ queryKey: ['feed'], exact: false })
 
-      // Optimistic update: Update both React Query cache and Zustand store
-      queryClient.setQueriesData({ queryKey: ['feed'] }, (old: any) => {
+      // Optimistic update: Update all feed queries (timeline, global, trending, etc.)
+      queryClient.setQueriesData({ queryKey: ['feed'], exact: false }, (old: any) => {
         if (!old?.pages) return old
 
         return {
@@ -57,6 +57,39 @@ export function useLikeMutation() {
         likeCount:
           (feedStore.feeds[feedStore.currentFeedType]?.posts.find((p) => p.id === postId)?.likeCount || 0) +
           (shouldLike ? 1 : -1),
+      })
+
+      // Update gorse-recommendations query as well (for "For You" tab)
+      queryClient.setQueriesData({ queryKey: ['gorse-recommendations'], exact: false }, (old: any) => {
+        if (!Array.isArray(old)) return old
+
+        return old.map((rec: any) =>
+          rec.post?.id === postId
+            ? {
+                ...rec,
+                post: {
+                  ...rec.post,
+                  isLiked: shouldLike,
+                  likeCount: rec.post.likeCount + (shouldLike ? 1 : -1),
+                },
+              }
+            : rec
+        )
+      })
+
+      // Update genre-recommendations query
+      queryClient.setQueriesData({ queryKey: ['gorse-genres'], exact: false }, (old: any) => {
+        if (!Array.isArray(old)) return old
+
+        return old.map((post: FeedPost) =>
+          post.id === postId
+            ? {
+                ...post,
+                isLiked: shouldLike,
+                likeCount: post.likeCount + (shouldLike ? 1 : -1),
+              }
+            : post
+        )
       })
 
       return { previousFeeds }
@@ -93,11 +126,11 @@ export function useSaveMutation() {
       }
     },
     onMutate: async ({ postId, shouldSave }) => {
-      await queryClient.cancelQueries({ queryKey: ['feed'] })
+      await queryClient.cancelQueries({ queryKey: ['feed'], exact: false })
 
-      const previousFeeds = queryClient.getQueriesData<any>({ queryKey: ['feed'] })
+      const previousFeeds = queryClient.getQueriesData<any>({ queryKey: ['feed'], exact: false })
 
-      queryClient.setQueriesData({ queryKey: ['feed'] }, (old: any) => {
+      queryClient.setQueriesData({ queryKey: ['feed'], exact: false }, (old: any) => {
         if (!old?.pages) return old
 
         return {
@@ -114,6 +147,39 @@ export function useSaveMutation() {
             )
           ),
         }
+      })
+
+      // Update gorse-recommendations query as well (for "For You" tab)
+      queryClient.setQueriesData({ queryKey: ['gorse-recommendations'], exact: false }, (old: any) => {
+        if (!Array.isArray(old)) return old
+
+        return old.map((rec: any) =>
+          rec.post?.id === postId
+            ? {
+                ...rec,
+                post: {
+                  ...rec.post,
+                  isSaved: shouldSave,
+                  saveCount: rec.post.saveCount + (shouldSave ? 1 : -1),
+                },
+              }
+            : rec
+        )
+      })
+
+      // Update genre-recommendations query
+      queryClient.setQueriesData({ queryKey: ['gorse-genres'], exact: false }, (old: any) => {
+        if (!Array.isArray(old)) return old
+
+        return old.map((post: FeedPost) =>
+          post.id === postId
+            ? {
+                ...post,
+                isSaved: shouldSave,
+                saveCount: post.saveCount + (shouldSave ? 1 : -1),
+              }
+            : post
+        )
       })
 
       feedStore.updatePost(postId, {
