@@ -58,7 +58,7 @@ interface CollaboratorsResponse {
 }
 
 interface PlaylistUpdatePayload {
-  title?: string
+  name?: string
   description?: string
   is_public?: boolean
   is_collaborative?: boolean
@@ -130,7 +130,7 @@ export class PlaylistClient {
    */
   static async createPlaylist(title: string, description: string = '', isPublic: boolean = false): Promise<Outcome<Playlist>> {
     const result = await apiClient.post<PlaylistResponse>('/playlists', {
-      title,
+      name: title,
       description,
       is_public: isPublic,
     })
@@ -157,7 +157,7 @@ export class PlaylistClient {
     }
   ): Promise<Outcome<Playlist>> {
     const payload: PlaylistUpdatePayload = {}
-    if (updates.title) payload.title = updates.title
+    if (updates.title) payload.name = updates.title
     if (updates.description) payload.description = updates.description
     if (updates.isPublic !== undefined) payload.is_public = updates.isPublic
     if (updates.isCollaborative !== undefined) payload.is_collaborative = updates.isCollaborative
