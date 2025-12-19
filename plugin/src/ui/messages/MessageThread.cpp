@@ -422,7 +422,8 @@ void MessageThread::sendMessage() {
   messageInput.setTextToShowWhenEmpty("Type a message...", juce::Colour(0xff888888));
   resized();
 
-  Log::debug("MessageThread::sendMessage - Text to send: " + text.substring(0, 50));
+  Log::debug("MessageThread::sendMessage - Text to send: " +
+             text.substring(0, juce::jmin(50, text.length())));
 
   try {
     if (isEditing) {
@@ -530,7 +531,8 @@ void MessageThread::drawMessages(juce::Graphics &g, const std::vector<StreamChat
     const auto &message = messages[i];
     int messageHeight = calculateMessageHeight(message, MESSAGE_MAX_WIDTH);
 
-    Log::debug("MessageThread::drawMessages - message " + juce::String(i) + ": text='" + message.text.substring(0, 20) +
+    Log::debug("MessageThread::drawMessages - message " + juce::String(i) + ": text='" +
+               message.text.substring(0, juce::jmin(20, message.text.length())) +
                "', height=" + juce::String(messageHeight) + ", y=" + juce::String(y) + ", visible=" +
                juce::String((y + messageHeight > HEADER_HEIGHT && y < getHeight() - bottomAreaHeight) ? "YES" : "NO"));
 
@@ -545,9 +547,9 @@ void MessageThread::drawMessages(juce::Graphics &g, const std::vector<StreamChat
 }
 
 void MessageThread::drawMessageBubble(juce::Graphics &g, const StreamChatClient::Message &message, int &y, int width) {
-  Log::debug("MessageThread::drawMessageBubble - Starting to draw message: " + message.text.substring(0, 20) +
-             ", y=" + juce::String(y) + ", width=" + juce::String(width) +
-             ", ownMessage=" + juce::String(isOwnMessage(message) ? "YES" : "NO"));
+  Log::debug("MessageThread::drawMessageBubble - Starting to draw message: " +
+             message.text.substring(0, juce::jmin(20, message.text.length())) + ", y=" + juce::String(y) +
+             ", width=" + juce::String(width) + ", ownMessage=" + juce::String(isOwnMessage(message) ? "YES" : "NO"));
 
   bool ownMessage = isOwnMessage(message);
   int bubbleMaxWidth = MESSAGE_MAX_WIDTH;
@@ -865,7 +867,7 @@ juce::Rectangle<int> MessageThread::getMessageBounds(const StreamChatClient::Mes
   // Estimate message height from text length and bubble properties
   int messageHeight = 60; // Minimum height
   if (message.text.length() > 0) {
-    // Simple estimation: ~40 pixels per line of text
+    // Simple estimation: ~40 pixels per line of text (using character count)
     int estimatedLines = (message.text.length() / 50) + 1;
     messageHeight = 30 + (estimatedLines * 20);
   }
@@ -1291,7 +1293,7 @@ void MessageThread::drawSharedPostPreview(juce::Graphics &g, const StreamChatCli
   // Music icon
   g.setColour(SidechainColors::primary());
   g.setFont(juce::Font(juce::FontOptions().withHeight(18.0f)));
-  g.drawText(juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xB5")), // Music note emoji
+  g.drawText(juce::String::fromUTF8("🎵"), // Music note emoji
              contentBounds.removeFromLeft(24), juce::Justification::centred);
 
   contentBounds.removeFromLeft(8);
@@ -1365,7 +1367,7 @@ void MessageThread::drawSharedStoryPreview(juce::Graphics &g, const StreamChatCl
   // Story icon (camera/story emoji)
   g.setColour(SidechainColors::primary());
   g.setFont(juce::Font(juce::FontOptions().withHeight(18.0f)));
-  g.drawText(juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xA4")), // Microphone emoji
+  g.drawText(juce::String::fromUTF8("🎤"), // Microphone emoji
              contentBounds.removeFromLeft(24), juce::Justification::centred);
 
   contentBounds.removeFromLeft(8);
@@ -1657,7 +1659,7 @@ void MessageThread::showQuickReactionPicker(const StreamChatClient::Message &mes
   for (const auto &reaction : reactions) {
     juce::String displayText = reaction.display;
     if (hasUserReacted(message, reaction.type))
-      displayText += " ✓"; // Checkmark for already reacted
+      displayText += juce::String::fromUTF8(" ✓"); // Checkmark for already reacted
 
     menu.addItem(itemId++, displayText);
   }
