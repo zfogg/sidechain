@@ -68,8 +68,8 @@ void UserDiscovery::setUserStore(std::shared_ptr<Sidechain::Stores::AppStore> st
   userStore = store;
   jassert(userStore != nullptr); // UserStore is required
 
-  Log::info("UserDiscovery: UserStore set (Phase 2: full integration pending)");
-  // Phase 2: Will subscribe to UserStore for discovery data
+  Log::info("UserDiscovery: UserStore set");
+  // Will subscribe to UserStore for discovery data
   // TODO: Implement discovery data in UserStore (loadTrendingUsers, loadSuggestedUsers, etc.)
 }
 

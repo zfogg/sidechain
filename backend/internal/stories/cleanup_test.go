@@ -136,7 +136,7 @@ func (suite *CleanupTestSuite) createTestStory(userID string, duration float64, 
 }
 
 // =============================================================================
-// CLEANUP SERVICE TESTS (7.5.7.1.4)
+// CLEANUP SERVICE TESTS
 // =============================================================================
 
 func (suite *CleanupTestSuite) TestCleanupExpiredStoriesDeletesFromDatabase() {

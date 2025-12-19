@@ -55,18 +55,21 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(cache_hits_total[5m]))",
+          "expr": "sum(rate(cache_hits_total[5m])) or on() vector(0)",
           "legendFormat": "Hits",
-          "refId": "A"
+          "refId": "A",
+          "hide": false
         },
         {
-          "expr": "sum(rate(cache_misses_total[5m]))",
+          "expr": "sum(rate(cache_misses_total[5m])) or on() vector(0)",
           "legendFormat": "Misses",
-          "refId": "B"
+          "refId": "B",
+          "hide": false
         }
       ],
       "title": "Cache Hit/Miss Ratio",
-      "type": "piechart"
+      "type": "piechart",
+      "description": "Shows cache hit/miss ratio. Requires Redis to be configured (set REDIS_HOST environment variable) and ResponseCacheMiddleware to be active. Cache metrics are only recorded when cache operations occur."
     },
     {
       "datasource": "Prometheus",
@@ -93,7 +96,7 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(cache_hits_total[5m])) / (sum(rate(cache_hits_total[5m])) + sum(rate(cache_misses_total[5m])))",
+          "expr": "sum(rate(cache_hits_total[5m])) / (sum(rate(cache_hits_total[5m])) + sum(rate(cache_misses_total[5m]))) or vector(0)",
           "legendFormat": "Hit Rate",
           "refId": "A"
         }

@@ -548,6 +548,21 @@ func main() {
 		})
 	})
 
+	// Test endpoint to initialize cache metrics for Grafana dashboard
+	r.GET("/test-cache-init", func(c *gin.Context) {
+		// Initialize cache metrics so they appear in Prometheus
+		middleware.RecordCacheHit("response_cache")
+		middleware.RecordCacheMiss("response_cache")
+		// Reset to 0 so we start fresh but metrics exist
+		m := metrics.Get()
+		m.CacheHitsTotal.Reset()
+		m.CacheMissesTotal.Reset()
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "initialized",
+			"message": "Cache metrics initialized for Grafana dashboard",
+		})
+	})
+
 	// Prometheus metrics endpoint (admin only - requires authentication)
 	r.GET("/metrics",
 		authHandlers.AuthMiddleware(),
@@ -655,8 +670,8 @@ func main() {
 		social := api.Group("/social")
 		{
 			social.Use(authHandlers.AuthMiddleware())
-			social.POST("/follow", h.FollowUser)
-			social.POST("/unfollow", h.UnfollowUser)
+			social.POST("/follow", middleware.CacheInvalidationMiddleware("response:/api/v1/feed/*"), h.FollowUser)
+			social.POST("/unfollow", middleware.CacheInvalidationMiddleware("response:/api/v1/feed/*"), h.UnfollowUser)
 			social.POST("/like", h.LikePost)
 			social.DELETE("/like", h.UnlikePost)
 			social.POST("/react", h.EmojiReact)
@@ -666,14 +681,19 @@ func main() {
 		// Returns the profile picture URL for JUCE to download directly via HTTPS
 		api.GET("/users/:id/profile-picture", authHandlers.GetProfilePictureURL)
 
-		// Public user profile endpoints (no auth required)
-		api.GET("/users/:id/profile", h.GetUserProfile)
-		api.GET("/users/:id/posts", h.GetUserPosts)
-		api.GET("/users/:id/followers", h.GetUserFollowers)
-		api.GET("/users/:id/following", h.GetUserFollowing)
-		api.GET("/users/:id/reposts", h.GetUserReposts)
-		api.GET("/users/:id/pinned", h.GetPinnedPosts)
-		api.GET("/users/:id/muted", h.IsUserMuted)
+		// Public user profile endpoints (optional auth for personalized data like is_following)
+		// Use AuthMiddlewareOptional to set user context if token is provided
+		publicUsers := api.Group("/users")
+		publicUsers.Use(authHandlers.AuthMiddlewareOptional())
+		{
+			publicUsers.GET("/:id/profile", h.GetUserProfile)
+			publicUsers.GET("/:id/posts", h.GetUserPosts)
+			publicUsers.GET("/:id/followers", h.GetUserFollowers)
+			publicUsers.GET("/:id/following", h.GetUserFollowing)
+			publicUsers.GET("/:id/reposts", h.GetUserReposts)
+			publicUsers.GET("/:id/pinned", h.GetPinnedPosts)
+			publicUsers.GET("/:id/muted", h.IsUserMuted)
+		}
 
 		// Authenticated user routes
 		users := api.Group("/users")
@@ -702,8 +722,8 @@ func main() {
 			// User profile interaction endpoints (require auth)
 			users.GET("/:id/activity", h.GetUserActivitySummary)
 			users.GET("/:id/similar", h.GetSimilarUsers)
-			users.POST("/:id/follow", h.FollowUserByID)
-			users.DELETE("/:id/follow", h.UnfollowUserByID)
+			users.POST("/:id/follow", middleware.CacheInvalidationMiddleware("response:/api/v1/feed/*"), h.FollowUserByID)
+			users.DELETE("/:id/follow", middleware.CacheInvalidationMiddleware("response:/api/v1/feed/*"), h.UnfollowUserByID)
 			users.GET("/:id/follow-request-status", h.CheckFollowRequestStatus)
 			// Mute endpoints
 			users.POST("/:id/mute", h.MuteUser)
@@ -722,9 +742,9 @@ func main() {
 		followRequests := api.Group("/follow-requests")
 		{
 			followRequests.Use(authHandlers.AuthMiddleware())
-			followRequests.POST("/:id/accept", h.AcceptFollowRequest)
-			followRequests.POST("/:id/reject", h.RejectFollowRequest)
-			followRequests.DELETE("/:id", h.CancelFollowRequest)
+			followRequests.POST("/:id/accept", middleware.CacheInvalidationMiddleware("response:/api/v1/feed/*"), h.AcceptFollowRequest)
+			followRequests.POST("/:id/reject", middleware.CacheInvalidationMiddleware("response:/api/v1/feed/*"), h.RejectFollowRequest)
+			followRequests.DELETE("/:id", middleware.CacheInvalidationMiddleware("response:/api/v1/feed/*"), h.CancelFollowRequest)
 		}
 
 		// Search routes (public, optional auth for privacy filtering - )
@@ -886,7 +906,7 @@ func main() {
 			stories.GET("/:id/remix-source", h.GetRemixSource)
 		}
 
-		// User stories route (7.5.1.3.3)
+		// User stories route
 		users.GET("/:id/stories", h.GetUserStories)
 
 		// Story highlight routes
@@ -965,7 +985,7 @@ func main() {
 			midiChallenges.POST("/:id/entries/:entry_id/vote", h.VoteMIDIChallengeEntry)
 		}
 
-		// Sound routes ( - Sound/Sample Pages)
+		// Sound routes
 		soundHandlers := handlers.NewSoundHandlers()
 		sounds := api.Group("/sounds")
 		{

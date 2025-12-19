@@ -21,6 +21,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/timeline"
 	"github.com/zfogg/sidechain/backend/internal/util"
 	"github.com/zfogg/sidechain/backend/internal/websocket"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -467,8 +468,46 @@ func (h *Handlers) GetEnrichedTimeline(c *gin.Context) {
 		}
 	}
 
-	// Enrich activities with is_following state for each poster
+	// Enrich activities with is_following state and user data for each poster
 	enrichedActivities := make([]interface{}, len(activities))
+
+	// Collect unique user IDs to batch fetch user data
+	userIDSet := make(map[string]bool)
+	for _, activity := range activities {
+		actorField := activity.Actor
+		posterUserID := strings.TrimPrefix(actorField, "user:")
+		if posterUserID != "" {
+			userIDSet[posterUserID] = true
+		}
+	}
+
+	// Batch fetch user data
+	userIDs := make([]string, 0, len(userIDSet))
+	for userID := range userIDSet {
+		userIDs = append(userIDs, userID)
+	}
+
+	usersMap := make(map[string]*models.User)
+	if len(userIDs) > 0 {
+		var users []models.User
+		if err := database.DB.Select("id", "username", "display_name", "profile_picture_url", "oauth_profile_picture_url").
+			Where("id IN ?", userIDs).Find(&users).Error; err != nil {
+			logger.WarnWithFields("Failed to fetch users for enriched timeline", err)
+		} else {
+			for i := range users {
+				usersMap[users[i].ID] = &users[i]
+			}
+			if len(users) != len(userIDs) {
+				logger.Warn(fmt.Sprintf("Expected %d users but found %d in database. Looking for: %v", len(userIDs), len(users), userIDs))
+				// Log which users were found
+				foundIDs := make([]string, len(users))
+				for i, u := range users {
+					foundIDs[i] = u.ID
+				}
+				logger.Warn(fmt.Sprintf("Found users: %v", foundIDs))
+			}
+		}
+	}
 
 	for i, activity := range activities {
 		// Convert EnrichedActivity to map using JSON marshal/unmarshal
@@ -481,18 +520,51 @@ func (h *Handlers) GetEnrichedTimeline(c *gin.Context) {
 		actorField := activity.Actor
 		posterUserID := strings.TrimPrefix(actorField, "user:")
 
+		// Add user data if available
+		if user, ok := usersMap[posterUserID]; ok && user != nil {
+			activityMap["user_id"] = user.ID
+			activityMap["username"] = user.Username
+			activityMap["display_name"] = user.DisplayName
+			// Use profile picture URL, fallback to OAuth profile picture
+			avatarURL := user.ProfilePictureURL
+			if avatarURL == "" {
+				avatarURL = user.OAuthProfilePictureURL
+			}
+			activityMap["user_avatar_url"] = avatarURL
+			activityMap["profile_picture_url"] = avatarURL
+		} else if posterUserID != "" {
+			// Log warning if user not found (but don't fail the request)
+			logger.Warn(fmt.Sprintf("User not found in database for posterUserID: %s (actor: %s)", posterUserID, actorField))
+		}
+
 		// Query follow state using database IDs - no caching for fresh data
 		isFollowing := false
 		if posterUserID != currentUser.ID && posterUserID != "" {
+			// Ensure we have a valid database user ID (not Stream.io user ID)
+			// If user lookup failed, posterUserID might still be valid, but log it
+			if _, userFound := usersMap[posterUserID]; !userFound && posterUserID != "" {
+				logger.Log.Debug("Checking follow status for user not in usersMap",
+					zap.String("poster_user_id", posterUserID),
+					zap.String("current_user_id", currentUser.ID),
+				)
+			}
+			
 			var err error
 			isFollowing, err = h.stream.CheckIsFollowing(currentUser.ID, posterUserID)
 
 			if err != nil {
-
-				logger.WarnWithFields("Failed to check follow status", err)
-
+				logger.Log.Warn("Failed to check follow status",
+					zap.String("current_user_id", currentUser.ID),
+					zap.String("poster_user_id", posterUserID),
+					zap.Error(err),
+				)
 				isFollowing = false
-
+			} else {
+				logger.Log.Debug("Checked follow status",
+					zap.String("current_user_id", currentUser.ID),
+					zap.String("poster_user_id", posterUserID),
+					zap.Bool("is_following", isFollowing),
+				)
 			}
 		}
 
@@ -502,14 +574,66 @@ func (h *Handlers) GetEnrichedTimeline(c *gin.Context) {
 		enrichedActivities[i] = activityMap
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	// Ensure activities is always a proper array, not nil
+	if enrichedActivities == nil {
+		enrichedActivities = []interface{}{}
+	}
+
+	// Log response structure for debugging
+	logger.Log.Debug("GetEnrichedTimeline response",
+		zap.Int("activities_count", len(enrichedActivities)),
+		zap.Int("limit", limit),
+		zap.Int("offset", offset),
+	)
+
+	response := gin.H{
 		"activities": enrichedActivities,
 		"meta": gin.H{
 			"limit":  limit,
 			"offset": offset,
-			"count":  len(activities),
+			"count":  len(enrichedActivities),
 		},
-	})
+	}
+
+	// Verify response structure before sending
+	if responseBytes, err := json.Marshal(response); err == nil {
+		var verify map[string]interface{}
+		if err := json.Unmarshal(responseBytes, &verify); err == nil {
+			responseKeysCount := len(verify)
+			if activities, ok := verify["activities"].([]interface{}); ok {
+				logger.Log.Debug("Response structure verified",
+					zap.Int("activities_array_length", len(activities)),
+					zap.Int("response_keys_count", responseKeysCount),
+				)
+				// Warn if response has suspiciously many keys (should only have 2: activities and meta)
+				if responseKeysCount > 10 {
+					logger.Log.Warn("Suspicious response structure detected",
+						zap.Int("response_keys_count", responseKeysCount),
+						zap.Strings("response_keys", func() []string {
+							keys := make([]string, 0, len(verify))
+							for k := range verify {
+								keys = append(keys, k)
+							}
+							return keys
+						}()),
+					)
+				}
+			} else {
+				logger.Log.Warn("Response activities is not an array",
+					zap.Any("activities_type", fmt.Sprintf("%T", verify["activities"])),
+					zap.Int("response_keys_count", responseKeysCount),
+				)
+				// Force activities to be an array if it's not
+				response["activities"] = []interface{}{}
+			}
+		} else {
+			logger.Log.Warn("Failed to verify response structure", zap.Error(err))
+		}
+	} else {
+		logger.Log.Warn("Failed to marshal response for verification", zap.Error(err))
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 // getFallbackFeed returns recommended posts when the user's timeline is empty
@@ -539,6 +663,34 @@ func (h *Handlers) getFallbackFeed(userID string, limit int) []map[string]interf
 	recService := recommendations.NewGorseRESTClient(gorseURL, gorseAPIKey, database.DB)
 	scores, err := recService.GetForYouFeed(userID, limit, 0)
 	if err == nil && len(scores) > 0 {
+		// Collect user IDs and batch fetch user data
+		userIDSet := make(map[string]bool)
+		for _, score := range scores {
+			if !mutedUserSet[score.Post.UserID] {
+				userIDSet[score.Post.UserID] = true
+			}
+		}
+		userIDs := make([]string, 0, len(userIDSet))
+		for id := range userIDSet {
+			userIDs = append(userIDs, id)
+		}
+
+		usersMap := make(map[string]*models.User)
+		if len(userIDs) > 0 {
+			var users []models.User
+			if err := database.DB.Select("id", "username", "display_name", "profile_picture_url", "oauth_profile_picture_url").
+				Where("id IN ?", userIDs).Find(&users).Error; err != nil {
+				logger.WarnWithFields("Failed to fetch users for fallback feed", err)
+			} else {
+				for i := range users {
+					usersMap[users[i].ID] = &users[i]
+				}
+				if len(users) != len(userIDs) {
+					logger.Warn(fmt.Sprintf("Expected %d users but found %d in database", len(userIDs), len(users)))
+				}
+			}
+		}
+
 		activities := make([]map[string]interface{}, 0, len(scores))
 		for _, score := range scores {
 			// Skip posts from muted users
@@ -563,6 +715,22 @@ func (h *Handlers) getFallbackFeed(userID string, limit int) []map[string]interf
 				"recommendation_reason": score.Reason,
 				"is_recommended":        true,
 			}
+
+			// Add user data if available
+			if user, ok := usersMap[score.Post.UserID]; ok && user != nil {
+				activity["user_id"] = user.ID
+				activity["username"] = user.Username
+				activity["display_name"] = user.DisplayName
+				avatarURL := user.ProfilePictureURL
+				if avatarURL == "" {
+					avatarURL = user.OAuthProfilePictureURL
+				}
+				activity["user_avatar_url"] = avatarURL
+				activity["profile_picture_url"] = avatarURL
+			} else if score.Post.UserID != "" {
+				logger.Warn(fmt.Sprintf("User not found in database for UserID: %s", score.Post.UserID))
+			}
+
 			activities = append(activities, activity)
 		}
 		return activities
@@ -587,6 +755,27 @@ func (h *Handlers) getFallbackFeed(userID string, limit int) []map[string]interf
 		return nil
 	}
 
+	// Collect user IDs and batch fetch user data
+	userIDSet := make(map[string]bool)
+	for _, post := range posts {
+		userIDSet[post.UserID] = true
+	}
+	userIDs := make([]string, 0, len(userIDSet))
+	for id := range userIDSet {
+		userIDs = append(userIDs, id)
+	}
+
+	usersMap := make(map[string]*models.User)
+	if len(userIDs) > 0 {
+		var users []models.User
+		if err := database.DB.Select("id", "username", "display_name", "profile_picture_url", "oauth_profile_picture_url").
+			Where("id IN ?", userIDs).Find(&users).Error; err == nil {
+			for i := range users {
+				usersMap[users[i].ID] = &users[i]
+			}
+		}
+	}
+
 	activities := make([]map[string]interface{}, 0, len(posts))
 	for _, post := range posts {
 		activity := map[string]interface{}{
@@ -606,6 +795,22 @@ func (h *Handlers) getFallbackFeed(userID string, limit int) []map[string]interf
 			"play_count":     post.PlayCount,
 			"is_recommended": true,
 		}
+
+		// Add user data if available
+		if user, ok := usersMap[post.UserID]; ok && user != nil {
+			activity["user_id"] = user.ID
+			activity["username"] = user.Username
+			activity["display_name"] = user.DisplayName
+			avatarURL := user.ProfilePictureURL
+			if avatarURL == "" {
+				avatarURL = user.OAuthProfilePictureURL
+			}
+			activity["user_avatar_url"] = avatarURL
+			activity["profile_picture_url"] = avatarURL
+		} else if post.UserID != "" {
+			logger.Warn(fmt.Sprintf("User not found in database for UserID: %s", post.UserID))
+		}
+
 		activities = append(activities, activity)
 	}
 
@@ -685,13 +890,20 @@ func (h *Handlers) GetUnifiedTimeline(c *gin.Context) {
 			activity["is_recommended"] = true
 		}
 
-		// Add user info if available
+		// Add user info if available (flatten to top level for frontend compatibility)
 		if item.User != nil {
+			activity["user_id"] = item.User.ID
+			activity["username"] = item.User.Username
+			activity["display_name"] = item.User.DisplayName
+			avatarURL := item.User.GetAvatarURL()
+			activity["user_avatar_url"] = avatarURL
+			activity["profile_picture_url"] = avatarURL
+			// Also keep nested user object for backwards compatibility
 			activity["user"] = map[string]interface{}{
 				"id":           item.User.ID,
 				"username":     item.User.Username,
 				"display_name": item.User.DisplayName,
-				"avatar_url":   item.User.GetAvatarURL(),
+				"avatar_url":   avatarURL,
 			}
 		}
 

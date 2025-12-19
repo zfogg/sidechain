@@ -6,7 +6,6 @@
 // ==============================================================================
 /**
  * CircularVisualization displays MIDI data in a radial/circular style
- * (7.5.5.2.2)
  *
  * Features:
  * - Notes arranged in a circle (like a clock or radar)

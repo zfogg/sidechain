@@ -5,7 +5,7 @@
 
 // ==============================================================================
 /**
- * PianoRoll visualizes MIDI data in a piano roll format (7.5.5.1.1)
+ * PianoRoll visualizes MIDI data in a piano roll format
  *
  * Features:
  * - Vertical piano keys (configurable range)

@@ -103,7 +103,7 @@ public:
   void refreshFeed();
   void switchFeedType(Sidechain::Stores::FeedType type);
 
-  // Real-time updates (5.5)
+  // Real-time updates
   void handleNewPostNotification(const juce::var &postData);
   void handleLikeCountUpdate(const juce::String &postId, int likeCount);
   void handleFollowerCountUpdate(const juce::String &userId, int followerCount);
@@ -120,7 +120,7 @@ protected:
 
 private:
   // ==============================================================================
-  // Real-time update state (5.5)
+  // Real-time update state
   int pendingNewPostsCount = 0; // Count of new posts received while user is viewing feed
   juce::Time lastNewPostTime;   // Track when last new post notification arrived
   bool showingNewPostsToast = false;
@@ -195,7 +195,7 @@ private:
   void drawEmptyState(juce::Graphics &g);
   void drawErrorState(juce::Graphics &g);
   void drawFeedPosts(juce::Graphics &g);
-  void drawNewPostsToast(juce::Graphics &g); // 5.5.2
+  void drawNewPostsToast(juce::Graphics &g);
 
   // Post card management
   void rebuildPostCards();

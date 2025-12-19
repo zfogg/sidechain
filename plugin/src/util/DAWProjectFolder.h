@@ -5,7 +5,6 @@
 // ==============================================================================
 /**
  * DAWProjectFolder utility for detecting and accessing DAW project folders
- * (R.3.3.7.1)
  *
  * Provides functions to:
  * - Detect the current DAW hosting the plugin
@@ -23,7 +22,7 @@ struct DAWProjectInfo {
 };
 
 /**
- * Detect the current DAW project folder information (R.3.3.7.1)
+ * Detect the current DAW project folder information
  *
  * Attempts to detect:
  * - Which DAW is hosting the plugin
@@ -37,7 +36,7 @@ struct DAWProjectInfo {
 DAWProjectInfo detectDAWProjectFolder(const juce::String &detectedDAWName = "");
 
 /**
- * Get the recommended MIDI file location for the current DAW (R.3.3.7.2)
+ * Get the recommended MIDI file location for the current DAW
  *
  * Returns the best location to save MIDI files:
  * 1. DAW project folder (if accessible)

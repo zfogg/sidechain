@@ -437,7 +437,7 @@ type UserPreference struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
-// PlayHistory tracks individual play events for velocity calculation (7.2.1.3, 7.2.4)
+// PlayHistory tracks individual play events for velocity calculation
 type PlayHistory struct {
 	ID        string    `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
 	UserID    string    `gorm:"not null;index" json:"user_id"`
@@ -471,7 +471,7 @@ type PostHashtag struct {
 
 // NOTE: MIDIEvent and MIDIData have been moved to midi.go
 
-// Story represents a short music clip (15-60 seconds) with MIDI visualization (7.5.1.1.1)
+// Story represents a short music clip (15-60 seconds) with MIDI visualization
 type Story struct {
 	ID     string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
 	UserID string `gorm:"not null;index" json:"user_id"`
@@ -521,7 +521,7 @@ func (s *Story) HasMIDI() bool {
 	return s.MIDIPatternID != nil
 }
 
-// StoryView tracks who viewed a story (7.5.1.1.2)
+// StoryView tracks who viewed a story
 type StoryView struct {
 	ID       string    `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
 	StoryID  string    `gorm:"not null;index" json:"story_id"`

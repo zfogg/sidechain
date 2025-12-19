@@ -218,7 +218,7 @@ void StoryViewer::mouseUp(const juce::MouseEvent &event) {
     return;
   }
 
-  // Audio download button (19.1 - available to all viewers when story has
+  // Audio download button - available to all viewers when story has
   // audio)
   if (story && story->audioUrl.isNotEmpty() && audioDownloadButtonArea.contains(pos)) {
     handleDownloadAudio(*story);
@@ -887,7 +887,7 @@ void StoryViewer::handleDownloadAudio(const StoryData &story) {
     return;
   }
 
-  // Get download info from backend (19.1)
+  // Get download info from backend
   networkClient->getStoryDownloadInfo(
       story.id, [this, story](Outcome<NetworkClient::DownloadInfo> downloadInfoOutcome) {
         if (!downloadInfoOutcome.isOk()) {

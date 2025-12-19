@@ -2528,7 +2528,7 @@ void SidechainAudioProcessorEditor::handleWebSocketMessage(const WebSocketClient
 
   switch (message.type) {
   case WebSocketClient::MessageType::NewPost: {
-    // A new post was created - invalidate feed caches and show notification (5.5.1, 5.5.2)
+    // A new post was created - invalidate feed caches and show notification
     auto payload = message.getProperty("payload");
     appStore.onWebSocketNewPost(payload);
 
@@ -2558,7 +2558,7 @@ void SidechainAudioProcessorEditor::handleWebSocketMessage(const WebSocketClient
   }
 
   case WebSocketClient::MessageType::Unlike: {
-    // Post was unliked - update like count (5.5.5a)
+    // Post was unliked - update like count
     auto payload = message.getProperty("payload");
     auto postId = payload.getProperty("post_id", juce::var()).toString();
     auto likeCount = static_cast<int>(payload.getProperty("like_count", juce::var(0)));
@@ -2574,7 +2574,7 @@ void SidechainAudioProcessorEditor::handleWebSocketMessage(const WebSocketClient
     break;
   }
 
-  // TODO: Phase 3+ WebSocket handlers for comments - implement when needed
+  // TODO: WebSocket handlers for comments - implement when needed
   case WebSocketClient::MessageType::NewComment:
   case WebSocketClient::MessageType::CommentLiked:
   case WebSocketClient::MessageType::CommentUnliked:
@@ -2641,7 +2641,7 @@ void SidechainAudioProcessorEditor::handleWebSocketMessage(const WebSocketClient
     break;
 
   case WebSocketClient::MessageType::UserTyping: {
-    // User started typing a comment (Phase 3)
+    // User started typing a comment
     auto postId = message.getProperty("post_id").toString();
     auto userId = message.getProperty("user_id").toString();
     auto username = message.getProperty("username").toString();
@@ -2653,7 +2653,7 @@ void SidechainAudioProcessorEditor::handleWebSocketMessage(const WebSocketClient
   }
 
   case WebSocketClient::MessageType::UserStopTyping: {
-    // User stopped typing a comment (Phase 3)
+    // User stopped typing a comment
     auto postId = message.getProperty("post_id").toString();
     auto userId = message.getProperty("user_id").toString();
 
@@ -3013,7 +3013,7 @@ void SidechainAudioProcessorEditor::startOAuthPolling(const juce::String &sessio
   oauthProvider = provider;
   oauthPollCount = 0;
 
-  // Show OAuth waiting UI with animated spinner and countdown (8.3.11.9-12)
+  // Show OAuth waiting UI with animated spinner and countdown
   if (authComponent) {
     authComponent->showOAuthWaiting(provider,
                                     MAX_OAUTH_POLLS); // 300 seconds = 5 minutes

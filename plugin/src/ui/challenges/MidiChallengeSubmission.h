@@ -12,7 +12,6 @@ class SidechainAudioProcessor;
 // ==============================================================================
 /**
  * MidiChallengeSubmission wraps the Upload component with constraint validation
- * (R.2.2.4.3)
  *
  * Features:
  * - Shows constraint checklist (BPM ✓, Key ✓, etc.)

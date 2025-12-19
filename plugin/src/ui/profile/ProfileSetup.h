@@ -52,7 +52,7 @@ public:
   // Set the profile image directly (from UserDataStore's cached image)
   void setProfileImage(const juce::Image &image);
 
-  // Upload progress control (8.3.11.6-7)
+  // Upload progress control
   /** Set the upload progress (0.0 to 1.0) and show progress indicator */
   void setUploadProgress(float progress);
 
@@ -75,7 +75,7 @@ private:
   juce::String localPreviewPath; // Local file path for preview while uploading
   juce::Image previewImage;      // Cached image for display
 
-  // Upload progress state (8.3.11.6-7)
+  // Upload progress state
   bool isUploading = false;
   float uploadProgress = 0.0f;
   bool uploadSuccess = false;

@@ -22,7 +22,7 @@ struct MIDIChallengeConstraints {
 
 // ==============================================================================
 /**
- * MIDIChallenge represents a MIDI challenge (R.2.2.1.1)
+ * MIDIChallenge represents a MIDI challenge
  */
 struct MIDIChallenge {
   juce::String id;

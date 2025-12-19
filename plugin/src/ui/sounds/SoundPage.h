@@ -10,7 +10,7 @@ class NetworkClient;
 
 // ==============================================================================
 /**
- * SoundPage displays a sound's details and all posts using it (Feature # 15)
+ * SoundPage displays a sound's details and all posts using it
  *
  * Features:
  * - Sound name and creator info

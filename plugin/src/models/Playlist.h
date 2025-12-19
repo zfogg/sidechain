@@ -4,8 +4,7 @@
 
 // ==============================================================================
 /**
- * Playlist represents a collection of audio posts (R.3.1 Collaborative
- * Playlists)
+ * Playlist represents a collection of audio posts
  */
 struct Playlist {
   juce::String id;

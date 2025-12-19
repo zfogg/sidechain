@@ -427,7 +427,7 @@ public:
 
   // ==============================================================================
   // UI Component Subscription Helpers (Thin delegates to slices)
-  // TODO: Phase 5 - Remove these and update UI components to subscribe directly to slices
+  // TODO: Remove these and update UI components to subscribe directly to slices
 
   std::function<void()> subscribeToAuth(std::function<void(const AuthState &)> callback) {
     sliceManager.getAuthSlice()->subscribe(callback);
@@ -499,7 +499,7 @@ public:
     return []() {};
   }
 
-  // Temporary accessor for UI components - to be removed in Phase 5
+  // Temporary accessor for UI components - to be removed
   const Stores::AuthState &getAuthState() const {
     return sliceManager.getAuthSlice()->getState();
   }
@@ -631,7 +631,7 @@ public:
   rxcpp::observable<int> unfollowUserObservable(const juce::String &userId);
 
   // ==============================================================================
-  // WebSocket Event Handlers for Real-Time Cache Invalidation (Phase 5)
+  // WebSocket Event Handlers for Real-Time Cache Invalidation
 
   // Called by PluginEditor when WebSocket messages arrive from backend.
   // Each handler invalidates relevant cache entries to keep data fresh in real-time.
@@ -700,7 +700,7 @@ private:
   StreamChatClient *streamChatClient = nullptr;
 
   // ==============================================================================
-  // Slice Architecture (Phase 3 refactoring)
+  // Slice Architecture
   // AppStore is now a pure orchestration/service layer
   // All state is managed by independent slices via AppSliceManager
   Slices::AppSliceManager &sliceManager = Slices::AppSliceManager::getInstance();

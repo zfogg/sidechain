@@ -61,11 +61,11 @@ public:
     CommentCountUpdate,      // Comment count updated
     FollowerCountUpdate,     // Follower count updated
     EngagementMetrics,       // Combined engagement metrics
-    FeedInvalidate,          // Refresh feed cache (5.5.10 - )
-    TimelineUpdate,          // Activity timeline changed (5.5.11 - )
-    NotificationCountUpdate, // Notification count updated (5.5.12 - )
-    UserTyping,              // User is typing a comment (5.5.13 - Phase 3)
-    UserStopTyping,          // User stopped typing (5.5.14 - Phase 3)
+    FeedInvalidate,          // Refresh feed cache
+    TimelineUpdate,          // Activity timeline changed
+    NotificationCountUpdate, // Notification count updated
+    UserTyping,              // User is typing a comment
+    UserStopTyping,          // User stopped typing
     Heartbeat,               // Server heartbeat response
     Error                    // Server error message
   };

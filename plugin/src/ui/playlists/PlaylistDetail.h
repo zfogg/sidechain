@@ -11,7 +11,7 @@ class NetworkClient;
 
 // ==============================================================================
 /**
- * PlaylistDetail displays a single playlist with entries (R.3.1.3.2)
+ * PlaylistDetail displays a single playlist with entries
  *
  * Features:
  * - Show playlist name, description, collaborators

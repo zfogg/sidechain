@@ -6,7 +6,6 @@
 // ==============================================================================
 /**
  * NoteWaterfall visualizes MIDI data in a waterfall/falling notes style
- * (7.5.5.2.1)
  *
  * Features:
  * - Notes fall from top as they play

@@ -156,7 +156,7 @@ import (
 // - Backup all stories before expiration
 // - See common_todos.go for general export/backup infrastructure
 
-// CreateStory handles story creation with multipart file upload (7.5.1.2.1)
+// CreateStory handles story creation with multipart file upload
 func (h *Handlers) CreateStory(c *gin.Context) {
 	user, exists := c.Get("user")
 	if !exists {
@@ -371,7 +371,7 @@ func (h *Handlers) CreateStory(c *gin.Context) {
 	c.JSON(http.StatusCreated, response)
 }
 
-// GetStories returns active stories from followed users + own stories (7.5.1.3.1)
+// GetStories returns active stories from followed users + own stories
 func (h *Handlers) GetStories(c *gin.Context) {
 	user, exists := c.Get("user")
 	if !exists {
@@ -440,7 +440,7 @@ func (h *Handlers) GetStories(c *gin.Context) {
 	})
 }
 
-// DeleteStory deletes a story (7.5.1.6.1)
+// DeleteStory deletes a story
 // DELETE /api/v1/stories/:id
 func (h *Handlers) DeleteStory(c *gin.Context) {
 	user, exists := c.Get("user")
@@ -511,7 +511,7 @@ func (h *Handlers) DeleteStory(c *gin.Context) {
 	})
 }
 
-// GetStory returns a single story by ID (7.5.1.3.2)
+// GetStory returns a single story by ID
 func (h *Handlers) GetStory(c *gin.Context) {
 	storyID := c.Param("id")
 
@@ -601,7 +601,7 @@ func (h *Handlers) GetUserStories(c *gin.Context) {
 	})
 }
 
-// ViewStory marks a story as viewed by the current user (7.5.1.4.1)
+// ViewStory marks a story as viewed by the current user
 func (h *Handlers) ViewStory(c *gin.Context) {
 	user, exists := c.Get("user")
 	if !exists {
@@ -677,7 +677,7 @@ func (h *Handlers) ViewStory(c *gin.Context) {
 	})
 }
 
-// DownloadStory returns download URLs for story audio and MIDI (19.1)
+// DownloadStory returns download URLs for story audio and MIDI
 // POST /api/v1/stories/:id/download
 func (h *Handlers) DownloadStory(c *gin.Context) {
 	user, exists := c.Get("user")

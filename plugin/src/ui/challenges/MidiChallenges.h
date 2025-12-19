@@ -9,7 +9,7 @@
 
 // ==============================================================================
 /**
- * MidiChallenges displays active MIDI challenges (R.2.2.4.1)
+ * MidiChallenges displays active MIDI challenges
  *
  * Features:
  * - List of active challenges

@@ -4,7 +4,7 @@
 
 // ==============================================================================
 /**
- * Sound represents a unique audio signature detected across posts (Feature # 15)
+ * Sound represents a unique audio signature detected across posts
  *
  * When the same sample/sound is used in multiple posts, they are linked
  * to the same Sound, enabling "See X other posts with this sound" discovery.

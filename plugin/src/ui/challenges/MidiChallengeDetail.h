@@ -10,7 +10,7 @@ class HttpAudioPlayer;
 
 // ==============================================================================
 /**
- * MidiChallengeDetail displays a single MIDI challenge with entries (R.2.2.4.2)
+ * MidiChallengeDetail displays a single MIDI challenge with entries
  *
  * Features:
  * - Show full challenge description

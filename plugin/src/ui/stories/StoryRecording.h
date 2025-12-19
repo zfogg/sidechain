@@ -13,7 +13,7 @@ class SidechainAudioProcessor;
 // ==============================================================================
 /**
  * StoryRecording provides UI for recording short music clips (stories)
- * with MIDI visualization support (7.5.3.1.1)
+ * with MIDI visualization support
  *
  * Features:
  * - Record button with 60-second countdown

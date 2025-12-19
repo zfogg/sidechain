@@ -6,8 +6,8 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/brianvoe/gofakeit/v7"
 	chat "github.com/GetStream/stream-chat-go/v5"
+	"github.com/brianvoe/gofakeit/v7"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/recommendations"
 	"github.com/zfogg/sidechain/backend/internal/stream"
@@ -114,9 +114,66 @@ func (s *Seeder) SeedTest() error {
 	}
 
 	log("Creating test users...")
-	users, err := s.seedUsers(3)
-	if err != nil {
-		return fmt.Errorf("failed to seed users: %w", err)
+	// Create specific test users matching web/e2e/fixtures/test-users.ts
+	testUserSpecs := []struct {
+		username    string
+		email       string
+		displayName string
+	}{
+		{"alice", "alice@example.com", "Alice Smith"},
+		{"bob", "bob@example.com", "Bob Johnson"},
+		{"charlie", "charlie@example.com", "Charlie Brown"},
+		{"diana", "diana@example.com", "Diana Prince"},
+		{"eve", "eve@example.com", "Eve Wilson"},
+	}
+
+	var users []models.User
+	for _, spec := range testUserSpecs {
+		var user models.User
+		err := s.db.Where("username = ? OR email = ?", spec.username, spec.email).First(&user).Error
+		if err == nil {
+			// User already exists
+			users = append(users, user)
+			continue
+		}
+
+		// Hash password (default: "password123" for test)
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
+		if err != nil {
+			return fmt.Errorf("failed to hash password: %w", err)
+		}
+		hashedPasswordStr := string(hashedPassword)
+
+		user = models.User{
+			Email:             spec.email,
+			Username:          spec.username,
+			DisplayName:       spec.displayName,
+			PasswordHash:      &hashedPasswordStr,
+			EmailVerified:     true,
+			ProfilePictureURL: fmt.Sprintf("https://api.dicebear.com/7.x/avataaars/png?seed=%s", spec.username),
+			DAWPreference:     "Ableton",
+			Genre:             models.StringArray{"Electronic", "House"},
+			FollowerCount:     0,
+			FollowingCount:    0,
+			PostCount:         0,
+		}
+
+		if err := s.db.Create(&user).Error; err != nil {
+			return fmt.Errorf("failed to create test user %s: %w", spec.username, err)
+		}
+
+		// Create Stream.io user if client is available
+		if s.streamClient != nil {
+			if err := s.streamClient.CreateUser(user.ID, user.Username); err != nil {
+				fmt.Printf("    ⚠️  Failed to create Stream.io user for %s: %v\n", spec.username, err)
+			}
+		}
+
+		users = append(users, user)
+	}
+
+	if len(users) == 0 {
+		return fmt.Errorf("no test users available")
 	}
 
 	log("Creating test audio posts...")
@@ -233,20 +290,20 @@ func (s *Seeder) seedUsers(count int) ([]models.User, error) {
 		}
 
 		user := models.User{
-			Email:          email,
-			Username:       username,
-			DisplayName:    gofakeit.Name(),
-			Bio:            gofakeit.HipsterSentence(),
-			Location:       fmt.Sprintf("%s, %s", gofakeit.City(), gofakeit.Country()),
-			PasswordHash:   &hashedPasswordStr,
-			EmailVerified:  true,
+			Email:             email,
+			Username:          username,
+			DisplayName:       gofakeit.Name(),
+			Bio:               gofakeit.HipsterSentence(),
+			Location:          fmt.Sprintf("%s, %s", gofakeit.City(), gofakeit.Country()),
+			PasswordHash:      &hashedPasswordStr,
+			EmailVerified:     true,
 			ProfilePictureURL: fmt.Sprintf("https://api.dicebear.com/7.x/avataaars/png?seed=%s", username),
-			DAWPreference:  daws[rand.Intn(len(daws))],
-			Genre:          userGenres,
-			FollowerCount:  rand.Intn(1000),
-			FollowingCount: rand.Intn(500),
-			PostCount:      0,                    // Will be updated when posts are created
-			IsOnline:       rand.Float32() < 0.3, // 30% chance of being online
+			DAWPreference:     daws[rand.Intn(len(daws))],
+			Genre:             userGenres,
+			FollowerCount:     rand.Intn(1000),
+			FollowingCount:    rand.Intn(500),
+			PostCount:         0,                    // Will be updated when posts are created
+			IsOnline:          rand.Float32() < 0.3, // 30% chance of being online
 		}
 
 		// Set last active time
@@ -323,7 +380,7 @@ func (s *Seeder) seedAudioPosts(users []models.User, count int) ([]models.AudioP
 			UserID:           user.ID,
 			AudioURL:         testAudioURLs[rand.Intn(len(testAudioURLs))], // Use real test audio
 			OriginalFilename: generatedFilename,
-			Filename:         generatedFilename, // User-editable display filename (required)
+			Filename:         generatedFilename,                   // User-editable display filename (required)
 			FileSize:         int64(rand.Intn(5000000) + 1000000), // 1-6 MB
 			Duration:         duration,
 			BPM:              bpm,
@@ -347,6 +404,28 @@ func (s *Seeder) seedAudioPosts(users []models.User, count int) ([]models.AudioP
 
 		if err := s.db.Create(&post).Error; err != nil {
 			return fmt.Errorf("failed to create audio post: %w", err)
+		}
+
+		// Create Stream.io activity for the post if stream client is available
+		if s.streamClient != nil {
+			activity := &stream.Activity{
+				Object:       fmt.Sprintf("loop:%s", post.ID),
+				AudioURL:     post.AudioURL,
+				BPM:          post.BPM,
+				Key:          post.Key,
+				DAW:          post.DAW,
+				DurationBars: post.DurationBars,
+				Genre:        post.Genre,
+				WaveformURL:  post.WaveformURL,
+			}
+			if err := s.streamClient.CreateLoopActivity(user.ID, activity); err != nil {
+				// Log but don't fail - Stream.io might not be configured in test environment
+				fmt.Printf("    ⚠️  Failed to create Stream.io activity for post %s: %v\n", post.ID, err)
+			} else {
+				// Update post with Stream activity ID
+				post.StreamActivityID = activity.ID
+				s.db.Model(&post).Update("stream_activity_id", activity.ID)
+			}
 		}
 
 		posts = append(posts, post)
@@ -457,6 +536,28 @@ func (s *Seeder) seedAudioPostsWithVariedDistribution(users []models.User, total
 
 		if err := s.db.Create(&post).Error; err != nil {
 			return fmt.Errorf("failed to create audio post: %w", err)
+		}
+
+		// Create Stream.io activity for the post if stream client is available
+		if s.streamClient != nil {
+			activity := &stream.Activity{
+				Object:       fmt.Sprintf("loop:%s", post.ID),
+				AudioURL:     post.AudioURL,
+				BPM:          post.BPM,
+				Key:          post.Key,
+				DAW:          post.DAW,
+				DurationBars: post.DurationBars,
+				Genre:        post.Genre,
+				WaveformURL:  post.WaveformURL,
+			}
+			if err := s.streamClient.CreateLoopActivity(user.ID, activity); err != nil {
+				// Log but don't fail - Stream.io might not be configured in test environment
+				fmt.Printf("    ⚠️  Failed to create Stream.io activity for post %s: %v\n", post.ID, err)
+			} else {
+				// Update post with Stream activity ID
+				post.StreamActivityID = activity.ID
+				s.db.Model(&post).Update("stream_activity_id", activity.ID)
+			}
 		}
 
 		posts = append(posts, post)

@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -20,6 +21,12 @@ func ResponseCacheMiddleware(ttl time.Duration) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Only cache GET requests
 		if c.Request.Method != "GET" {
+			c.Next()
+			return
+		}
+
+		// Check for cache-bypass header (for handling corrupted cache)
+		if c.GetHeader("X-Cache-Bypass") == "true" || c.GetHeader("Cache-Control") == "no-cache" {
 			c.Next()
 			return
 		}
@@ -49,17 +56,30 @@ func ResponseCacheMiddleware(ttl time.Duration) gin.HandlerFunc {
 		getDuration := time.Since(startTime)
 
 		if err == nil {
-			logger.Log.Debug("Cache hit",
-				zap.String("key", cacheKey),
-				zap.Duration("ttl", ttl),
-			)
-			// Record cache metrics
-			RecordCacheHit("response_cache")
-			RecordCacheOperation("GET", "response_cache", getDuration)
-			c.Data(http.StatusOK, "application/json", []byte(cachedData))
-			c.Header("X-Cache", "HIT")
-			c.Header("Cache-Control", fmt.Sprintf("public, max-age=%d", int(ttl.Seconds())))
-			return
+			// Validate cached response is valid JSON before returning it
+			var jsonCheck interface{}
+			if jsonErr := json.Unmarshal([]byte(cachedData), &jsonCheck); jsonErr != nil {
+				logger.Log.Warn("Cached response is not valid JSON, clearing cache and fetching fresh",
+					zap.String("key", cacheKey),
+					zap.Error(jsonErr),
+					zap.Int("cached_data_length", len(cachedData)),
+				)
+				// Clear corrupted cache entry
+				redisClient.Del(ctx, cacheKey)
+				// Fall through to fetch fresh data
+			} else {
+				logger.Log.Debug("Cache hit",
+					zap.String("key", cacheKey),
+					zap.Duration("ttl", ttl),
+				)
+				// Record cache metrics
+				RecordCacheHit("response_cache")
+				RecordCacheOperation("GET", "response_cache", getDuration)
+				c.Data(http.StatusOK, "application/json", []byte(cachedData))
+				c.Header("X-Cache", "HIT")
+				c.Header("Cache-Control", fmt.Sprintf("public, max-age=%d", int(ttl.Seconds())))
+				return
+			}
 		}
 
 		// Record cache miss

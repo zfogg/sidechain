@@ -55,7 +55,6 @@ struct StoryData {
 // ==============================================================================
 /**
  * StoriesFeed displays a horizontal scrollable list of story circles
- * (7.5.4.1.1)
  *
  * Features:
  * - Horizontal scroll with story avatar circles

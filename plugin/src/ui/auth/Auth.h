@@ -38,7 +38,7 @@ public:
    */
   std::function<void(const juce::String &provider)> onOAuthRequested;
 
-  /** Called when user cancels OAuth flow (8.3.11.11)
+  /** Called when user cancels OAuth flow
    */
   std::function<void()> onOAuthCancelled;
 
@@ -102,7 +102,7 @@ protected:
 
 public:
   // ==============================================================================
-  // OAuth waiting mode (8.3.11.9-12)
+  // OAuth waiting mode
 
   /** Show OAuth waiting screen with provider name and countdown
    * @param provider The OAuth provider name (e.g., "Google", "Discord")
@@ -126,7 +126,7 @@ private:
     Welcome,        // Initial state with login/signup options
     Login,          // Email login form
     Signup,         // Account creation form
-    OAuthWaiting,   // Waiting for OAuth callback (8.3.11.9-12)
+    OAuthWaiting,   // Waiting for OAuth callback
     TwoFactorVerify // 2FA code entry after password login
   };
 
@@ -138,7 +138,7 @@ private:
   juce::String twoFactorUserId; // User ID for 2FA verification
   juce::String twoFactorType;   // "totp" or "hotp"
 
-  // OAuth waiting state (8.3.11.9-12)
+  // OAuth waiting state
   juce::String oauthWaitingProvider; // Provider being waited for
   int oauthSecondsRemaining = 0;     // Countdown seconds
   int oauthAnimationFrame = 0;       // For animated spinner
@@ -174,7 +174,7 @@ private:
   std::unique_ptr<juce::TextButton> signupBackButton;
 
   // ==============================================================================
-  // OAuth waiting components (8.3.11.9-12)
+  // OAuth waiting components
   std::unique_ptr<juce::TextButton> oauthCancelButton;
 
   // ==============================================================================

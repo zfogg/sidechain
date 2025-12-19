@@ -11,7 +11,7 @@ class NetworkClient;
 
 // ==============================================================================
 /**
- * StoryViewer displays stories in a full-screen viewer (7.5.4.2.1)
+ * StoryViewer displays stories in a full-screen viewer
  *
  * Features:
  * - Full-screen story view (Snapchat-style)
@@ -81,7 +81,7 @@ public:
   // Called when user wants to download MIDI from story
   std::function<void(const StoryData &story)> onDownloadMIDIClicked;
 
-  // Called when user wants to download audio from story (19.1)
+  // Called when user wants to download audio from story
   std::function<void(const StoryData &story)> onDownloadAudioClicked;
 
   // Called when user wants to remix the story
@@ -180,7 +180,7 @@ private:
   // Download MIDI from story
   void handleDownloadMIDI(const StoryData &story);
 
-  // Download audio from story (19.1)
+  // Download audio from story
   void handleDownloadAudio(const StoryData &story);
 
   // Delete story (for story owner)

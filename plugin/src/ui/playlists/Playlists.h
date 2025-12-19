@@ -10,7 +10,7 @@
 
 // ==============================================================================
 /**
- * Playlists displays user's playlists and allows creating new ones (R.3.1.3.1)
+ * Playlists displays user's playlists and allows creating new ones
  *
  * Features:
  * - List of user's playlists (owned + collaborated)

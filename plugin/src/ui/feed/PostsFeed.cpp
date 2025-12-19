@@ -2065,7 +2065,7 @@ void PostsFeed::updateAudioPlayerPlaylist() {
 }
 
 // ==============================================================================
-// Real-time Feed Updates (5.5)
+// Real-time Feed Updates
 // ==============================================================================
 
 void PostsFeed::handleNewPostNotification(const juce::var &postData) {

@@ -29,16 +29,16 @@ const (
 
 // Notification verbs - these become the "verb" field in notification activities
 const (
-	NotifVerbLike                    = "like"                     // Someone liked your loop
-	NotifVerbFollow                  = "follow"                   // Someone followed you
-	NotifVerbFollowRequestAccepted   = "follow_request_accepted"  // Your follow request was accepted
-	NotifVerbComment                 = "comment"                  // Someone commented on your loop
-	NotifVerbMention                 = "mention"                  // Someone mentioned you in a comment
-	NotifVerbRepost                  = "repost"                   // Someone reposted your loop
-	NotifVerbChallengeCreated        = "challenge_created"        // New MIDI challenge created
-	NotifVerbChallengeDeadline       = "challenge_deadline"       // Challenge deadline approaching
-	NotifVerbChallengeVotingOpen     = "challenge_voting"         // Challenge voting period started
-	NotifVerbChallengeEnded          = "challenge_ended"          // Challenge ended (winner announced)
+	NotifVerbLike                  = "like"                    // Someone liked your loop
+	NotifVerbFollow                = "follow"                  // Someone followed you
+	NotifVerbFollowRequestAccepted = "follow_request_accepted" // Your follow request was accepted
+	NotifVerbComment               = "comment"                 // Someone commented on your loop
+	NotifVerbMention               = "mention"                 // Someone mentioned you in a comment
+	NotifVerbRepost                = "repost"                  // Someone reposted your loop
+	NotifVerbChallengeCreated      = "challenge_created"       // New MIDI challenge created
+	NotifVerbChallengeDeadline     = "challenge_deadline"      // Challenge deadline approaching
+	NotifVerbChallengeVotingOpen   = "challenge_voting"        // Challenge voting period started
+	NotifVerbChallengeEnded        = "challenge_ended"         // Challenge ended (winner announced)
 )
 
 // NotificationPreferencesChecker is an interface for checking notification preferences
@@ -56,7 +56,7 @@ type Client struct {
 
 // Activity represents a Sidechain activity (loop post)
 type Activity struct {
-	ID               string                 `json:"id,omitempty"`               // Database UUID from Object field
+	ID               string                 `json:"id,omitempty"`                 // Database UUID from Object field
 	StreamActivityID string                 `json:"stream_activity_id,omitempty"` // Stream.io activity ID for reactions
 	Actor            string                 `json:"actor"`
 	Verb             string                 `json:"verb"`
@@ -224,7 +224,7 @@ func (c *Client) CreateLoopActivity(userID string, activity *Activity) error {
 	trendingFeed, err := c.feedsClient.AggregatedFeed(FeedGroupTrending, "main")
 	if err != nil {
 		// Log but don't fail - trending feed might not exist yet
-		fmt.Printf("⚠️ Could not get trending feed: %v\n", err)
+		fmt.Printf("?? Could not get trending feed: %v\n", err)
 	} else {
 		toFeeds = append(toFeeds, trendingFeed.ID())
 	}
@@ -233,7 +233,7 @@ func (c *Client) CreateLoopActivity(userID string, activity *Activity) error {
 	userActivityFeed, err := c.feedsClient.AggregatedFeed(FeedGroupUserActivity, userID)
 	if err != nil {
 		// Log but don't fail - user activity feed might not exist yet
-		fmt.Printf("⚠️ Could not get user activity feed: %v\n", err)
+		fmt.Printf("?? Could not get user activity feed: %v\n", err)
 	} else {
 		toFeeds = append(toFeeds, userActivityFeed.ID())
 	}
@@ -253,7 +253,7 @@ func (c *Client) CreateLoopActivity(userID string, activity *Activity) error {
 		activity.Time = resp.Time.Format(time.RFC3339)
 	}
 
-	fmt.Printf("📝 getstream.io Activity Created: user:%s posted loop (ID: %s) with BPM:%d, Key:%s → fanned out to %d feeds\n",
+	fmt.Printf("?? getstream.io Activity Created: user:%s posted loop (ID: %s) with BPM:%d, Key:%s ? fanned out to %d feeds\n",
 		userID, activity.ID, activity.BPM, activity.Key, len(toFeeds)+1)
 
 	return nil
@@ -274,7 +274,7 @@ func (c *Client) DeleteLoopActivity(userID, activityID string) error {
 		return fmt.Errorf("failed to delete activity: %w", err)
 	}
 
-	fmt.Printf("🗑️ Deleted activity %s from user:%s feed\n", activityID, userID)
+	fmt.Printf("??? Deleted activity %s from user:%s feed\n", activityID, userID)
 	return nil
 }
 
@@ -304,7 +304,7 @@ func (c *Client) GetUserTimeline(userID string, limit int, offset int) ([]*Activ
 		activities = append(activities, activity)
 	}
 
-	fmt.Printf("📱 Fetched %d activities from timeline for user:%s\n", len(activities), userID)
+	fmt.Printf("?? Fetched %d activities from timeline for user:%s\n", len(activities), userID)
 	return activities, nil
 }
 
@@ -334,7 +334,7 @@ func (c *Client) GetGlobalFeed(limit int, offset int) ([]*Activity, error) {
 		activities = append(activities, activity)
 	}
 
-	fmt.Printf("🌍 Fetched %d activities from global feed\n", len(activities))
+	fmt.Printf("?? Fetched %d activities from global feed\n", len(activities))
 	return activities, nil
 }
 
@@ -346,7 +346,7 @@ func (c *Client) FollowUser(userID, targetUserID string) error {
 	ctx := context.Background()
 
 	// Validation: Log the IDs being used to help catch misuse
-	fmt.Printf("🔗 FollowUser: userID=%s targetUserID=%s (MUST be database IDs)\n", userID, targetUserID)
+	fmt.Printf("?? FollowUser: userID=%s targetUserID=%s (MUST be database IDs)\n", userID, targetUserID)
 
 	// Get the follower's timeline feed
 	timelineFeed, err := c.feedsClient.FlatFeed(FeedGroupTimeline, userID)
@@ -367,21 +367,45 @@ func (c *Client) FollowUser(userID, targetUserID string) error {
 		return fmt.Errorf("failed to follow user: %w", err)
 	}
 
+	fmt.Printf("?? FollowUser: Created follow relationship %s -> %s\n", userID, targetUserID)
+
+	// Verify the follow was created successfully (with retry for eventual consistency)
+	verified := false
+	for i := 0; i < 3; i++ {
+		if i > 0 {
+			time.Sleep(time.Duration(100*i) * time.Millisecond)
+		}
+		isFollowing, checkErr := c.CheckIsFollowing(userID, targetUserID)
+		if checkErr == nil && isFollowing {
+			verified = true
+			fmt.Printf("? FollowUser: Verified follow relationship %s -> %s (attempt %d)\n", userID, targetUserID, i+1)
+			break
+		} else if checkErr != nil {
+			fmt.Printf("?? FollowUser: Verification attempt %d failed: %v\n", i+1, checkErr)
+		} else {
+			fmt.Printf("?? FollowUser: Verification attempt %d: follow not found yet (eventual consistency)\n", i+1)
+		}
+	}
+
+	if !verified {
+		fmt.Printf("?? FollowUser: Could not verify follow relationship %s -> %s (may be eventual consistency issue)\n", userID, targetUserID)
+	}
+
 	// Also set up aggregated timeline follow (for grouped timeline view)
 	err = c.FollowAggregatedFeed(userID, targetUserID)
 	if err != nil {
 		// Log but don't fail - aggregated feed might not exist yet
-		fmt.Printf("⚠️ Could not set up aggregated timeline follow: %v\n", err)
+		fmt.Printf("?? Could not set up aggregated timeline follow: %v\n", err)
 	}
 
 	// Send follow notification to the target user
 	err = c.NotifyFollow(userID, targetUserID)
 	if err != nil {
 		// Log but don't fail - notification is best-effort
-		fmt.Printf("⚠️ Failed to send follow notification: %v\n", err)
+		fmt.Printf("?? Failed to send follow notification: %v\n", err)
 	}
 
-	fmt.Printf("👥 %s followed %s\n", userID, targetUserID)
+	fmt.Printf("?? %s followed %s (verified: %v)\n", userID, targetUserID, verified)
 	return nil
 }
 
@@ -392,7 +416,7 @@ func (c *Client) UnfollowUser(userID, targetUserID string) error {
 	ctx := context.Background()
 
 	// Validation: Log the IDs being used to help catch misuse
-	fmt.Printf("🔓 UnfollowUser: userID=%s targetUserID=%s (MUST be database IDs)\n", userID, targetUserID)
+	fmt.Printf("?? UnfollowUser: userID=%s targetUserID=%s (MUST be database IDs)\n", userID, targetUserID)
 
 	// Get the follower's timeline feed
 	timelineFeed, err := c.feedsClient.FlatFeed(FeedGroupTimeline, userID)
@@ -416,10 +440,10 @@ func (c *Client) UnfollowUser(userID, targetUserID string) error {
 	err = c.UnfollowAggregatedFeed(userID, targetUserID)
 	if err != nil {
 		// Log but don't fail - aggregated feed might not exist
-		fmt.Printf("⚠️ Could not remove aggregated timeline follow: %v\n", err)
+		fmt.Printf("?? Could not remove aggregated timeline follow: %v\n", err)
 	}
 
-	fmt.Printf("👥 %s unfollowed %s\n", userID, targetUserID)
+	fmt.Printf("?? %s unfollowed %s\n", userID, targetUserID)
 	return nil
 }
 
@@ -457,7 +481,7 @@ func (c *Client) AddReactionWithEmoji(kind, userID, activityID, emoji string) er
 	if emoji != "" {
 		emojiSuffix = fmt.Sprintf(" %s", emoji)
 	}
-	fmt.Printf("😀 %s reacted %s to %s%s\n", userID, kind, activityID, emojiSuffix)
+	fmt.Printf("?? %s reacted %s to %s%s\n", userID, kind, activityID, emojiSuffix)
 	return nil
 }
 
@@ -481,7 +505,7 @@ func (c *Client) AddReactionWithNotification(kind, actorUserID, activityID, targ
 		err = c.NotifyLike(actorUserID, targetUserID, loopID)
 		if err != nil {
 			// Log but don't fail the reaction - notification is best-effort
-			fmt.Printf("⚠️ Failed to send like notification: %v\n", err)
+			fmt.Printf("?? Failed to send like notification: %v\n", err)
 		}
 	}
 
@@ -497,7 +521,7 @@ func (c *Client) RemoveReaction(reactionID string) error {
 		return fmt.Errorf("failed to remove reaction: %w", err)
 	}
 
-	fmt.Printf("😀 Removed reaction %s\n", reactionID)
+	fmt.Printf("?? Removed reaction %s\n", reactionID)
 	return nil
 }
 
@@ -533,7 +557,7 @@ func (c *Client) RemoveReactionByActivityAndUser(activityID, userID, kind string
 		return fmt.Errorf("failed to remove reaction: %w", err)
 	}
 
-	fmt.Printf("😀 Removed %s reaction %s by user %s on activity %s\n", kind, reactionID, userID, activityID)
+	fmt.Printf("?? Removed %s reaction %s by user %s on activity %s\n", kind, reactionID, userID, activityID)
 	return nil
 }
 
@@ -563,7 +587,7 @@ func (c *Client) RepostActivity(userID, activityID string) (*RepostResponse, err
 		return nil, fmt.Errorf("failed to create repost: %w", err)
 	}
 
-	fmt.Printf("🔄 %s reposted activity %s (reaction_id: %s)\n", userID, activityID, resp.ID)
+	fmt.Printf("?? %s reposted activity %s (reaction_id: %s)\n", userID, activityID, resp.ID)
 
 	return &RepostResponse{
 		ReactionID: resp.ID,
@@ -610,7 +634,7 @@ func (c *Client) NotifyRepost(actorUserID, targetUserID, loopID string) error {
 
 	// Check notification preferences
 	if c.notifPrefs != nil && !c.notifPrefs.IsEnabled(targetUserID, NotifVerbRepost) {
-		fmt.Printf("🔕 Skipping repost notification to %s (disabled in preferences)\n", targetUserID)
+		fmt.Printf("?? Skipping repost notification to %s (disabled in preferences)\n", targetUserID)
 		return nil
 	}
 
@@ -693,7 +717,7 @@ func (c *Client) GetFollowStats(userID string) (*FollowStats, error) {
 		FollowingCount: followingData.Results.Following.Count,
 	}
 
-	fmt.Printf("📊 Follow stats for %s: %d followers, %d following\n",
+	fmt.Printf("?? Follow stats for %s: %d followers, %d following\n",
 		userID, result.FollowerCount, result.FollowingCount)
 	return result, nil
 }
@@ -733,7 +757,7 @@ func (c *Client) GetFollowers(userID string, limit, offset int) ([]*FollowRelati
 		})
 	}
 
-	fmt.Printf("👥 Got %d followers for user %s\n", len(followers), userID)
+	fmt.Printf("?? Got %d followers for user %s\n", len(followers), userID)
 	return followers, nil
 }
 
@@ -756,44 +780,86 @@ func (c *Client) GetFollowing(userID string, limit, offset int) ([]*FollowRelati
 
 	following := make([]*FollowRelation, 0, len(resp.Results))
 	for _, f := range resp.Results {
-		// Extract user ID from target ID (format: "user:user123")
+		// Extract user ID from target ID (format: "user:databaseID")
+		// TargetID should be "user:databaseID" where databaseID is the database UUID
 		userIDFromFeed := extractUserIDFromFeed(f.TargetID)
 		following = append(following, &FollowRelation{
 			FeedID:   f.FeedID,
 			TargetID: f.TargetID,
 			UserID:   userIDFromFeed,
 		})
+		fmt.Printf("  GetFollowing: Extracted userID=%s from TargetID=%s (FeedID=%s)\n",
+			userIDFromFeed, f.TargetID, f.FeedID)
 	}
 
-	fmt.Printf("👥 Got %d following for user %s\n", len(following), userID)
+	fmt.Printf("?? Got %d following for user %s\n", len(following), userID)
 	return following, nil
 }
 
 // CheckIsFollowing checks if userID is following targetUserID
 // CheckIsFollowing checks if userID follows targetUserID
 // IMPORTANT: userID and targetUserID MUST be database IDs, NOT Stream User IDs
+// This function uses GetFollowing and searches the list, which is more reliable than WithFollowingFilter
+// Retries up to 3 times with exponential backoff to handle Stream.io eventual consistency
 func (c *Client) CheckIsFollowing(userID, targetUserID string) (bool, error) {
-	ctx := context.Background()
+	// Retry logic to handle Stream.io eventual consistency
+	maxRetries := 3
+	var lastErr error
 
-	timelineFeed, err := c.feedsClient.FlatFeed(FeedGroupTimeline, userID)
-	if err != nil {
-		return false, fmt.Errorf("failed to get timeline feed: %w", err)
+	for attempt := 0; attempt < maxRetries; attempt++ {
+		if attempt > 0 {
+			// Exponential backoff: 100ms, 200ms, 400ms
+			backoff := time.Duration(100*attempt) * time.Millisecond
+			time.Sleep(backoff)
+		}
+
+		// Use GetFollowing and check if targetUserID is in the list
+		// This is more reliable than WithFollowingFilter which may have caching issues
+		// We fetch a reasonable limit (100) to check - if user follows more than 100 people,
+		// we might need to paginate, but for most cases this is sufficient
+		following, err := c.GetFollowing(userID, 100, 0)
+		if err != nil {
+			lastErr = err
+			fmt.Printf("?? CheckIsFollowing attempt %d failed: %v (userID=%s targetUserID=%s)\n",
+				attempt+1, err, userID, targetUserID)
+			continue
+		}
+
+		// Check if targetUserID is in the following list
+		isFollowing := false
+		for _, f := range following {
+			// Log each comparison to debug ID mismatches
+			if f.UserID == targetUserID {
+				isFollowing = true
+				fmt.Printf("? CheckIsFollowing: Found match! f.UserID=%s == targetUserID=%s\n",
+					f.UserID, targetUserID)
+				break
+			} else {
+				fmt.Printf("  CheckIsFollowing: f.UserID=%s != targetUserID=%s (f.TargetID=%s)\n",
+					f.UserID, targetUserID, f.TargetID)
+			}
+		}
+
+		// Debug logging
+		if isFollowing {
+			fmt.Printf("? CheckIsFollowing: %s DOES follow %s (database IDs, attempt %d, checked %d following)\n",
+				userID, targetUserID, attempt+1, len(following))
+			return isFollowing, nil
+		} else {
+			fmt.Printf("? CheckIsFollowing: %s does NOT follow %s (database IDs, attempt %d, checked %d following)\n",
+				userID, targetUserID, attempt+1, len(following))
+			// If this is not the last attempt and we got 0 results, retry (might be eventual consistency)
+			// But if we got results and targetUserID wasn't in them, don't retry (user genuinely doesn't follow)
+			if attempt < maxRetries-1 && len(following) == 0 {
+				fmt.Printf("  CheckIsFollowing: Got 0 following results, will retry (eventual consistency)\n")
+				continue
+			}
+			// If we got results but targetUserID wasn't found, return false (user doesn't follow)
+			return false, nil
+		}
 	}
 
-	targetFeedID := fmt.Sprintf("%s:%s", FeedGroupUser, targetUserID)
-	resp, err := timelineFeed.GetFollowing(ctx,
-		stream.WithFollowingFilter(targetFeedID),
-	)
-	if err != nil {
-		return false, fmt.Errorf("failed to check following: %w", err)
-	}
-
-	isFollowing := len(resp.Results) > 0
-	// Debug log to help track ID usage
-	if isFollowing {
-		fmt.Printf("✅ CheckIsFollowing: %s DOES follow %s (database IDs)\n", userID, targetUserID)
-	}
-	return isFollowing, nil
+	return false, fmt.Errorf("failed to check following after %d attempts: %w", maxRetries, lastErr)
 }
 
 // EnrichedActivity extends Activity with reaction data
@@ -1077,7 +1143,7 @@ func (c *Client) GetNotifications(userID string, limit, offset int) (*Notificati
 		Unread: resp.Unread,
 	}
 
-	fmt.Printf("🔔 Fetched %d notification groups for user:%s (unseen: %d, unread: %d)\n",
+	fmt.Printf("?? Fetched %d notification groups for user:%s (unseen: %d, unread: %d)\n",
 		len(groups), userID, resp.Unseen, resp.Unread)
 	return result, nil
 }
@@ -1104,7 +1170,7 @@ func (c *Client) MarkNotificationsRead(userID string) error {
 		return fmt.Errorf("failed to mark notifications read: %w", err)
 	}
 
-	fmt.Printf("✓ Marked all notifications read for user:%s\n", userID)
+	fmt.Printf("? Marked all notifications read for user:%s\n", userID)
 	return nil
 }
 
@@ -1130,7 +1196,7 @@ func (c *Client) MarkNotificationsSeen(userID string) error {
 		return fmt.Errorf("failed to mark notifications seen: %w", err)
 	}
 
-	fmt.Printf("👁 Marked all notifications seen for user:%s\n", userID)
+	fmt.Printf("?? Marked all notifications seen for user:%s\n", userID)
 	return nil
 }
 
@@ -1186,7 +1252,7 @@ func (c *Client) AddToNotificationFeed(targetUserID string, activity *Activity) 
 		return fmt.Errorf("failed to add notification activity: %w", err)
 	}
 
-	fmt.Printf("🔔 Added %s notification to user:%s\n", activity.Verb, targetUserID)
+	fmt.Printf("?? Added %s notification to user:%s\n", activity.Verb, targetUserID)
 	return nil
 }
 
@@ -1194,7 +1260,7 @@ func (c *Client) AddToNotificationFeed(targetUserID string, activity *Activity) 
 func (c *Client) NotifyLike(actorUserID, targetUserID, loopID string) error {
 	// Check if target user has like notifications enabled
 	if !c.isNotificationEnabled(targetUserID, NotifVerbLike) {
-		fmt.Printf("🔕 Like notification skipped for user:%s (disabled in preferences)\n", targetUserID)
+		fmt.Printf("?? Like notification skipped for user:%s (disabled in preferences)\n", targetUserID)
 		return nil
 	}
 
@@ -1214,7 +1280,7 @@ func (c *Client) NotifyLike(actorUserID, targetUserID, loopID string) error {
 func (c *Client) NotifyFollow(actorUserID, targetUserID string) error {
 	// Check if target user has follow notifications enabled
 	if !c.isNotificationEnabled(targetUserID, NotifVerbFollow) {
-		fmt.Printf("🔕 Follow notification skipped for user:%s (disabled in preferences)\n", targetUserID)
+		fmt.Printf("?? Follow notification skipped for user:%s (disabled in preferences)\n", targetUserID)
 		return nil
 	}
 
@@ -1235,7 +1301,7 @@ func (c *Client) NotifyFollow(actorUserID, targetUserID string) error {
 func (c *Client) NotifyFollowRequestAccepted(acceptorUserID, requesterUserID string) error {
 	// Check if requester has follow notifications enabled (use same pref as follow)
 	if !c.isNotificationEnabled(requesterUserID, NotifVerbFollow) {
-		fmt.Printf("🔕 Follow request accepted notification skipped for user:%s (disabled in preferences)\n", requesterUserID)
+		fmt.Printf("?? Follow request accepted notification skipped for user:%s (disabled in preferences)\n", requesterUserID)
 		return nil
 	}
 
@@ -1244,9 +1310,9 @@ func (c *Client) NotifyFollowRequestAccepted(acceptorUserID, requesterUserID str
 		Verb:   NotifVerbFollowRequestAccepted,
 		Object: fmt.Sprintf("user:%s", requesterUserID),
 		Extra: map[string]interface{}{
-			"actor_id":    acceptorUserID,   // The private account user who accepted
-			"target_id":   requesterUserID,  // The user whose request was accepted
-			"request_id":  "",               // Will be populated by caller if needed
+			"actor_id":   acceptorUserID,  // The private account user who accepted
+			"target_id":  requesterUserID, // The user whose request was accepted
+			"request_id": "",              // Will be populated by caller if needed
 		},
 	}
 	return c.AddToNotificationFeed(requesterUserID, activity)
@@ -1256,7 +1322,7 @@ func (c *Client) NotifyFollowRequestAccepted(acceptorUserID, requesterUserID str
 func (c *Client) NotifyComment(actorUserID, targetUserID, loopID, commentText string) error {
 	// Check if target user has comment notifications enabled
 	if !c.isNotificationEnabled(targetUserID, NotifVerbComment) {
-		fmt.Printf("🔕 Comment notification skipped for user:%s (disabled in preferences)\n", targetUserID)
+		fmt.Printf("?? Comment notification skipped for user:%s (disabled in preferences)\n", targetUserID)
 		return nil
 	}
 
@@ -1277,7 +1343,7 @@ func (c *Client) NotifyComment(actorUserID, targetUserID, loopID, commentText st
 func (c *Client) NotifyMention(actorUserID, targetUserID, loopID, commentID string) error {
 	// Check if target user has mention notifications enabled
 	if !c.isNotificationEnabled(targetUserID, NotifVerbMention) {
-		fmt.Printf("🔕 Mention notification skipped for user:%s (disabled in preferences)\n", targetUserID)
+		fmt.Printf("?? Mention notification skipped for user:%s (disabled in preferences)\n", targetUserID)
 		return nil
 	}
 
@@ -1299,7 +1365,7 @@ func (c *Client) NotifyMention(actorUserID, targetUserID, loopID, commentID stri
 func (c *Client) NotifyChallengeCreated(targetUserID, challengeID, challengeTitle string) error {
 	// Check if target user has challenge notifications enabled
 	if !c.isNotificationEnabled(targetUserID, NotifVerbChallengeCreated) {
-		fmt.Printf("🔕 Challenge created notification skipped for user:%s (disabled in preferences)\n", targetUserID)
+		fmt.Printf("?? Challenge created notification skipped for user:%s (disabled in preferences)\n", targetUserID)
 		return nil
 	}
 
@@ -1319,7 +1385,7 @@ func (c *Client) NotifyChallengeCreated(targetUserID, challengeID, challengeTitl
 func (c *Client) NotifyChallengeDeadline(targetUserID, challengeID, challengeTitle string, hoursRemaining int) error {
 	// Check if target user has challenge notifications enabled
 	if !c.isNotificationEnabled(targetUserID, NotifVerbChallengeDeadline) {
-		fmt.Printf("🔕 Challenge deadline notification skipped for user:%s (disabled in preferences)\n", targetUserID)
+		fmt.Printf("?? Challenge deadline notification skipped for user:%s (disabled in preferences)\n", targetUserID)
 		return nil
 	}
 
@@ -1340,7 +1406,7 @@ func (c *Client) NotifyChallengeDeadline(targetUserID, challengeID, challengeTit
 func (c *Client) NotifyChallengeVotingOpen(targetUserID, challengeID, challengeTitle string) error {
 	// Check if target user has challenge notifications enabled
 	if !c.isNotificationEnabled(targetUserID, NotifVerbChallengeVotingOpen) {
-		fmt.Printf("🔕 Challenge voting notification skipped for user:%s (disabled in preferences)\n", targetUserID)
+		fmt.Printf("?? Challenge voting notification skipped for user:%s (disabled in preferences)\n", targetUserID)
 		return nil
 	}
 
@@ -1360,7 +1426,7 @@ func (c *Client) NotifyChallengeVotingOpen(targetUserID, challengeID, challengeT
 func (c *Client) NotifyChallengeEnded(targetUserID, challengeID, challengeTitle string, winnerUserID, winnerUsername string, userEntryRank int) error {
 	// Check if target user has challenge notifications enabled
 	if !c.isNotificationEnabled(targetUserID, NotifVerbChallengeEnded) {
-		fmt.Printf("🔕 Challenge ended notification skipped for user:%s (disabled in preferences)\n", targetUserID)
+		fmt.Printf("?? Challenge ended notification skipped for user:%s (disabled in preferences)\n", targetUserID)
 		return nil
 	}
 
@@ -1422,7 +1488,7 @@ func (c *Client) GetAggregatedTimeline(userID string, limit, offset int) (*Aggre
 	}
 
 	groups := convertAggregatedGroups(resp.Results)
-	fmt.Printf("📊 Fetched %d aggregated groups from timeline for user:%s\n", len(groups), userID)
+	fmt.Printf("?? Fetched %d aggregated groups from timeline for user:%s\n", len(groups), userID)
 
 	return &AggregatedFeedResponse{Groups: groups}, nil
 }
@@ -1446,7 +1512,7 @@ func (c *Client) GetTrendingFeed(limit, offset int) (*AggregatedFeedResponse, er
 	}
 
 	groups := convertAggregatedGroups(resp.Results)
-	fmt.Printf("🔥 Fetched %d trending groups\n", len(groups))
+	fmt.Printf("?? Fetched %d trending groups\n", len(groups))
 
 	return &AggregatedFeedResponse{Groups: groups}, nil
 }
@@ -1469,7 +1535,7 @@ func (c *Client) GetUserActivitySummary(userID string, limit int) (*AggregatedFe
 	}
 
 	groups := convertAggregatedGroups(resp.Results)
-	fmt.Printf("📈 Fetched %d activity groups for user:%s profile\n", len(groups), userID)
+	fmt.Printf("?? Fetched %d activity groups for user:%s profile\n", len(groups), userID)
 
 	return &AggregatedFeedResponse{Groups: groups}, nil
 }
@@ -1515,7 +1581,7 @@ func (c *Client) AddToAggregatedFeed(feedGroup, feedID string, activity *Activit
 		return fmt.Errorf("failed to add to aggregated feed: %w", err)
 	}
 
-	fmt.Printf("📊 Added activity to aggregated feed %s:%s\n", feedGroup, feedID)
+	fmt.Printf("?? Added activity to aggregated feed %s:%s\n", feedGroup, feedID)
 	return nil
 }
 
@@ -1542,7 +1608,7 @@ func (c *Client) FollowAggregatedFeed(userID, targetUserID string) error {
 		return fmt.Errorf("failed to follow for aggregated timeline: %w", err)
 	}
 
-	fmt.Printf("📊 %s aggregated timeline now follows %s\n", userID, targetUserID)
+	fmt.Printf("?? %s aggregated timeline now follows %s\n", userID, targetUserID)
 	return nil
 }
 
@@ -1565,7 +1631,7 @@ func (c *Client) UnfollowAggregatedFeed(userID, targetUserID string) error {
 		return fmt.Errorf("failed to unfollow for aggregated timeline: %w", err)
 	}
 
-	fmt.Printf("📊 %s aggregated timeline unfollowed %s\n", userID, targetUserID)
+	fmt.Printf("?? %s aggregated timeline unfollowed %s\n", userID, targetUserID)
 	return nil
 }
 
@@ -1621,8 +1687,8 @@ func convertStreamActivity(act *stream.Activity) *Activity {
 	}
 
 	activity := &Activity{
-		ID:               postID,      // Use database UUID as ID for frontend matching
-		StreamActivityID: act.ID,      // Store Stream activity ID for reactions
+		ID:               postID, // Use database UUID as ID for frontend matching
+		StreamActivityID: act.ID, // Store Stream activity ID for reactions
 		Actor:            act.Actor,
 		Verb:             act.Verb,
 	}

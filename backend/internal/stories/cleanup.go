@@ -67,7 +67,7 @@ func (s *CleanupService) run() {
 	}
 }
 
-// cleanupExpiredStories deletes expired stories and their associated data (7.5.1.5.1)
+// cleanupExpiredStories deletes expired stories and their associated data
 func (s *CleanupService) cleanupExpiredStories() {
 	startTime := time.Now()
 	log.Println("🧹 Starting story cleanup...")

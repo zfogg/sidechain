@@ -4,7 +4,7 @@
 
 // ==============================================================================
 /**
- * Story represents a short music clip with MIDI visualization (Phase 7.5)
+ * Story represents a short music clip with MIDI visualization
  *
  * Stories are 5-60 second audio clips captured from the DAW, optionally
  * including MIDI data for piano roll visualization. They expire after 24 hours.

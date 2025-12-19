@@ -77,7 +77,7 @@ void AppStore::onWebSocketPresenceUpdate(const juce::String &userId, bool isOnli
   });
 }
 
-// TODO: Implement Phase 3+ comment handlers when comment system is added
+// TODO: Implement comment handlers when comment system is added
 // void AppStore::onWebSocketCommentCountUpdate(const juce::String &postId, int commentCount) { }
 // void AppStore::onWebSocketNewComment(const juce::String &postId, const juce::String &commentId,
 // const juce::String &username) { }

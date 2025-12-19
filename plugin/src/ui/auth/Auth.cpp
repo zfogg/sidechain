@@ -377,7 +377,7 @@ void Auth::paint(juce::Graphics &g) {
     drawDivider(g, dividerY, "or continue with");
   }
 
-  // Draw OAuth waiting UI (8.3.11.9-12)
+  // Draw OAuth waiting UI
   if (currentMode == AuthMode::OAuthWaiting) {
     auto contentArea = cardBounds.reduced(CARD_PADDING);
     contentArea.removeFromTop(100); // Skip logo/title area
@@ -767,7 +767,7 @@ void Auth::showTwoFactorVerify() {
 }
 
 // ==============================================================================
-// OAuth Waiting Mode (8.3.11.9-12)
+// OAuth Waiting Mode
 // ==============================================================================
 
 void Auth::showOAuthWaiting(const juce::String &provider, int timeoutSeconds) {
