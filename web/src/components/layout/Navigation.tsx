@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 export function Navigation() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { user, logout } = useUserStore()
+  const { user, logout, isLoading } = useUserStore()
 
   const isActive = (path: string) => location.pathname === path
 
@@ -17,8 +17,37 @@ export function Navigation() {
     navigate('/login')
   }
 
-  if (!user) return null
+  // Guard against null user or loading state while session is restoring
+  if (!user || isLoading) {
+    return (
+      <nav className="sticky top-0 z-50 bg-card/95 backdrop-blur border-b border-border">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo & App Name */}
+            <div
+              className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => navigate('/feed')}
+            >
+              <div className="w-8 h-8 bg-gradient-to-br from-coral-pink to-rose-pink rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-lg">◈</span>
+              </div>
+              <span className="text-lg font-bold text-foreground hidden sm:inline">
+                Sidechain
+              </span>
+            </div>
 
+            {/* Loading state placeholder */}
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-bg-secondary rounded-full animate-pulse" />
+              <div className="w-20 h-4 bg-bg-secondary rounded animate-pulse hidden sm:block" />
+            </div>
+          </div>
+        </div>
+      </nav>
+    )
+  }
+
+  // Always render header - guard individual user references instead
   return (
     <nav className="sticky top-0 z-50 bg-card/95 backdrop-blur border-b border-border">
       <div className="max-w-7xl mx-auto px-4">
