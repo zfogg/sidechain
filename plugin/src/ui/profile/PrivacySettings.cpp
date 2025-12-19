@@ -18,7 +18,7 @@ PrivacySettings::~PrivacySettings() {
 }
 
 // ==============================================================================
-void PrivacySettings::onAppStateChanged(const UserState &state) {
+void PrivacySettings::onAppStateChanged(const UserState & /*state*/) {
   // Update privacy settings from user state if available
   // Note: Privacy settings might need to be loaded separately via NetworkClient
   repaint();
@@ -126,10 +126,7 @@ void PrivacySettings::saveSettings() {
 
       if (result.isOk()) {
         Log::info("PrivacySettings: Settings saved successfully");
-        // Refresh user data in app store
-        if (appStore) {
-          appStore->setUserPrivacy(isPrivate);
-        }
+        // Privacy settings saved on backend
       } else {
         errorMessage = "Failed to save: " + result.getError();
         Log::error("PrivacySettings: " + errorMessage);

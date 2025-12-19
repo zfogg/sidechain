@@ -635,7 +635,7 @@ void EditProfile::closeDialog() {
 // ==============================================================================
 // AppStoreComponent overrides
 // ==============================================================================
-void EditProfile::onAppStateChanged(const Sidechain::Stores::UserState & [[maybe_unused]] state) {
+void EditProfile::onAppStateChanged(const Sidechain::Stores::UserState & /*state*/) {
   // Update form if there are saved changes (e.g., username change completed)
   if (!hasUnsavedChanges && isVisible()) {
     // Refresh UI from updated UserStore state

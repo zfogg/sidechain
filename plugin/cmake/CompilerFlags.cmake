@@ -23,35 +23,22 @@ endif()
 # Add RxCpp header-only library to all targets
 include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/../deps/RxCpp/Rx/v2/src")
 
-# Common warning flags
+# Strict warning flags for our code (no JUCE suppressions here)
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
     # GCC/Clang flags - always supported
     add_compile_options(
         -Wall
         -Wextra
         -Wpedantic
-        -Wno-unused-parameter                      # JUCE and generated code have unused params
-        -Wno-missing-field-initializers             # JUCE structures initialization
-        -Wno-deprecated-declarations                # JUCE uses deprecated APIs
-        -Wno-sign-conversion                        # JUCE and size_t conversions
-        -Wno-missing-braces                         # JUCE macros generate missing braces
-        -Wno-unused-function                        # Some static functions only used conditionally
-        -Wno-unused-variable                        # Generated code may have unused vars
-        -Wno-float-equal                            # Animation comparisons need float equality
-        -Wno-switch-enum                            # Not all enum values need explicit handling
-        -Wno-shadow                                 # Lambda captures may shadow outer variables
-        -Wno-implicit-int-conversion-on-negation    # JUCE graphics library (already in conditional but add for safety)
-        -Wnan-infinity-disabled                     # JUCE audio processing math
     )
 
-    # Conditionally supported flags (check compiler support)
+    # Conditionally supported flags (check compiler support) - only essentials, not JUCE suppressions
     set(CONDITIONAL_CXX_FLAGS
-        "-Wno-implicit-int-float-conversion"        # Audio processing math (GCC 7.1+, Clang 5+)
-        "-Wno-nullable-to-nonnull-conversion"       # macOS API bridge (Clang 3.8+)
-        "-Wno-missing-designated-field-initializers" # Designated field init (GCC 9.2+, Clang 10+)
-        "-Wno-implicit-int-conversion-on-negation"  # JUCE library int8_t conversions (Clang 12+)
-        "-Wno-virtual-in-final"                     # JUCE final class virtual methods (Clang 12+)
-        "-Wno-unnecessary-virtual-specifier"        # JUCE VST3 plugin factory virtual methods (Clang 11+)
+        "-Wno-implicit-int-float-conversion"          # Audio processing math (GCC 7.1+, Clang 5+)
+        "-Wno-nullable-to-nonnull-conversion"         # macOS API bridge (Clang 3.8+)
+        "-Wno-missing-designated-field-initializers"  # Designated field init (GCC 9.2+, Clang 10+)
+        "-Wno-implicit-int-conversion-on-negation"    # int8_t conversions in math (Clang 12+)
+        "-Wnan-infinity-disabled"                     # Audio processing math
     )
 
     foreach(flag ${CONDITIONAL_CXX_FLAGS})
@@ -152,3 +139,37 @@ elseif(MSVC)
     )
 endif()
 
+#==============================================================================
+# JUCE Library Warning Suppressions
+# These flags are only for JUCE and similar third-party code
+#==============================================================================
+function(suppress_juce_warnings target_name)
+    if(NOT TARGET ${target_name})
+        return()
+    endif()
+
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+        # JUCE-specific warning suppressions (not for our code)
+        target_compile_options(${target_name} PRIVATE
+            -Wno-unused-parameter                      # JUCE has unused params
+            -Wno-missing-field-initializers             # JUCE structures initialization
+            -Wno-deprecated-declarations                # JUCE uses deprecated APIs
+            -Wno-sign-conversion                        # size_t conversions
+            -Wno-missing-braces                         # JUCE macros
+            -Wno-unused-function                        # JUCE conditionally used functions
+            -Wno-unused-variable                        # JUCE unused vars
+            -Wno-float-equal                            # JUCE comparisons
+            -Wno-switch-enum                            # JUCE enum handling
+            -Wno-shadow                                 # JUCE captures
+            -Wno-virtual-in-final                       # JUCE final classes
+            -Wno-unnecessary-virtual-specifier          # JUCE VST3
+        )
+    elseif(MSVC)
+        target_compile_options(${target_name} PRIVATE
+            /wd4100 # Unreferenced formal parameter
+            /wd4244 # Conversion warnings
+            /wd4267 # Size_t conversions
+            /wd4458 # Declaration hides class member
+        )
+    endif()
+endfunction()

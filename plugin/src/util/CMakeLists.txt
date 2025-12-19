@@ -1,9 +1,9 @@
 #==============================================================================
-# SidechainUtil - Utility Library
+# SidechainCore - Utility Library
 # Base utilities with minimal dependencies
 #==============================================================================
 
-add_library(SidechainUtil STATIC
+add_library(SidechainCore STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Time.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Time.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Colors.h
@@ -49,24 +49,37 @@ add_library(SidechainUtil STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/cache/MemoryCache.h
     ${CMAKE_CURRENT_SOURCE_DIR}/error/ErrorTracking.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/error/ErrorTracking.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/PresenceManager.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/PresenceManager.h
+    # Models
+    ${CMAKE_CURRENT_SOURCE_DIR}/../models/FeedPost.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../models/FeedPost.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../models/FeedResponse.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../models/AggregatedFeedResponse.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../models/AggregatedFeedGroup.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../models/MidiChallenge.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../models/MidiChallenge.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../models/Playlist.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../models/Playlist.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../models/Sound.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../models/Story.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../models/Story.h
+    # Security
+    ${CMAKE_CURRENT_SOURCE_DIR}/../security/InputValidation.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../security/RateLimiter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../security/RateLimiter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../security/SecureTokenStore.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../security/SecureTokenStore.h
 )
 
 # Include directories - use source root so includes work as "util/Log.h"
-target_include_directories(SidechainUtil PUBLIC
+target_include_directories(SidechainCore PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/..
 )
 
 # Link JuceHeader target to get generated header (generated during CMake config)
-target_link_libraries(SidechainUtil PUBLIC SidechainJuceHeader)
-# Header generation happens during CMake configuration, not build
-
-# Link to SidechainNetwork for PresenceManager (which uses StreamChatClient)
-target_link_libraries(SidechainUtil PUBLIC SidechainNetwork)
+target_link_libraries(SidechainCore PUBLIC SidechainJuceHeader)
 
 # Link JUCE core modules (minimal dependencies)
-target_link_libraries(SidechainUtil PUBLIC
+target_link_libraries(SidechainCore PUBLIC
     juce::juce_core
     juce::juce_data_structures
     juce::juce_graphics
@@ -83,7 +96,7 @@ target_link_libraries(SidechainUtil PUBLIC
 # Handle both single-config (CMAKE_BUILD_TYPE) and multi-config generators (CMAKE_CONFIGURATION_TYPES)
 if(CMAKE_CONFIGURATION_TYPES)
     # Multi-config generator (Visual Studio, Xcode) - set per-config via generator expressions
-    set_target_properties(SidechainUtil PROPERTIES
+    set_target_properties(SidechainCore PROPERTIES
         CXX_VISIBILITY_PRESET hidden
         VISIBILITY_INLINES_HIDDEN ON
         POSITION_INDEPENDENT_CODE "$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>,$<CONFIG:MinSizeRel>>"
@@ -94,7 +107,7 @@ else()
     if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo" OR CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
         set(PIC_ENABLED ON)
     endif()
-    set_target_properties(SidechainUtil PROPERTIES
+    set_target_properties(SidechainCore PROPERTIES
         CXX_VISIBILITY_PRESET hidden
         VISIBILITY_INLINES_HIDDEN ON
         POSITION_INDEPENDENT_CODE ${PIC_ENABLED}
@@ -104,7 +117,7 @@ endif()
 # Platform-specific dependencies for OSNotification
 if(APPLE)
     # macOS: UserNotifications framework for native notifications
-    target_link_libraries(SidechainUtil PUBLIC "-framework UserNotifications")
+    target_link_libraries(SidechainCore PUBLIC "-framework UserNotifications")
 elseif(UNIX AND NOT APPLE)
     # Linux: Prefer libnotify over raw D-Bus for notifications
     find_package(PkgConfig)
@@ -112,27 +125,27 @@ elseif(UNIX AND NOT APPLE)
         # Try libnotify first (simpler API, wraps D-Bus)
         pkg_check_modules(LIBNOTIFY QUIET libnotify)
         if(LIBNOTIFY_FOUND)
-            target_include_directories(SidechainUtil PRIVATE ${LIBNOTIFY_INCLUDE_DIRS})
-            target_link_libraries(SidechainUtil PRIVATE ${LIBNOTIFY_LIBRARIES})
-            target_compile_definitions(SidechainUtil PRIVATE SIDECHAIN_HAS_LIBNOTIFY=1)
+            target_include_directories(SidechainCore PRIVATE ${LIBNOTIFY_INCLUDE_DIRS})
+            target_link_libraries(SidechainCore PRIVATE ${LIBNOTIFY_LIBRARIES})
+            target_compile_definitions(SidechainCore PRIVATE SIDECHAIN_HAS_LIBNOTIFY=1)
             message(STATUS "Found libnotify - using for desktop notifications")
         else()
-            target_compile_definitions(SidechainUtil PRIVATE SIDECHAIN_HAS_LIBNOTIFY=0)
+            target_compile_definitions(SidechainCore PRIVATE SIDECHAIN_HAS_LIBNOTIFY=0)
             # Fall back to raw D-Bus
             pkg_check_modules(DBUS QUIET dbus-1)
             if(DBUS_FOUND)
-                target_include_directories(SidechainUtil PRIVATE ${DBUS_INCLUDE_DIRS})
-                target_link_libraries(SidechainUtil PRIVATE ${DBUS_LIBRARIES})
-                target_compile_definitions(SidechainUtil PRIVATE SIDECHAIN_HAS_DBUS=1)
+                target_include_directories(SidechainCore PRIVATE ${DBUS_INCLUDE_DIRS})
+                target_link_libraries(SidechainCore PRIVATE ${DBUS_LIBRARIES})
+                target_compile_definitions(SidechainCore PRIVATE SIDECHAIN_HAS_DBUS=1)
                 message(STATUS "Found D-Bus - using for desktop notifications")
             else()
-                target_compile_definitions(SidechainUtil PRIVATE SIDECHAIN_HAS_DBUS=0)
+                target_compile_definitions(SidechainCore PRIVATE SIDECHAIN_HAS_DBUS=0)
                 message(WARNING "Neither libnotify nor D-Bus found. OSNotification will not work on Linux.")
             endif()
         endif()
     else()
-        target_compile_definitions(SidechainUtil PRIVATE SIDECHAIN_HAS_LIBNOTIFY=0)
-        target_compile_definitions(SidechainUtil PRIVATE SIDECHAIN_HAS_DBUS=0)
+        target_compile_definitions(SidechainCore PRIVATE SIDECHAIN_HAS_LIBNOTIFY=0)
+        target_compile_definitions(SidechainCore PRIVATE SIDECHAIN_HAS_DBUS=0)
     endif()
 elseif(WIN32)
     # Windows: Windows Runtime (WinRT) for toast notifications

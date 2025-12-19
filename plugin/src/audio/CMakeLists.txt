@@ -40,7 +40,7 @@ endif()
 
 # Dependencies
 target_link_libraries(SidechainAudio PUBLIC
-    SidechainUtil
+    SidechainCore
     SidechainNetwork
     juce::juce_audio_basics
     juce::juce_audio_devices

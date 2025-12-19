@@ -50,7 +50,7 @@ public:
   // ==============================================================================
   // Called by component's mouseWheelMove
   void handleMouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel,
-                            int [[maybe_unused]] viewportHeight, int scrollBarWidth) {
+                            [[maybe_unused]] int viewportHeight, int scrollBarWidth) {
     if (!scrollBar)
       return;
 

@@ -94,7 +94,7 @@ private:
 
 protected:
   // SmoothScrollable implementation
-  void onScrollUpdate(double [[maybe_unused]] newScrollPosition) override {
+  void onScrollUpdate(double newScrollPosition [[maybe_unused]]) override {
     repaint();
   }
 

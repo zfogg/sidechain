@@ -401,7 +401,7 @@ void ArchivedPosts::setupPostCardCallbacks(PostCard *card) {
   };
 
   // Like functionality (callback fallback)
-  card->onLikeToggled = [this](const FeedPost &post, bool [[maybe_unused]] liked) {
+  card->onLikeToggled = [this](const FeedPost &post, [[maybe_unused]] bool liked) {
     if (appStore != nullptr) {
       juce::Component::SafePointer<ArchivedPosts> safeThis(this);
       appStore->likePostObservable(post.id).subscribe(

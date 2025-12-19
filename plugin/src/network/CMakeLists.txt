@@ -25,6 +25,52 @@ add_library(SidechainNetwork STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/api/SearchClient.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/api/ChallengesClient.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/api/PlaylistClient.cpp
+    # Store implementations
+    ${CMAKE_CURRENT_SOURCE_DIR}/../stores/AppStore.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../stores/Store.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../stores/StateSlice.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../stores/CacheWarmer.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/AppState.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/Base.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/Auth.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/Feed.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/Chat.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/Service.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/Upload.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/User.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/WebSocket.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/Comments.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/Notifications.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/Sounds.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/Stories.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/Challenges.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/Playlists.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/Search.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/Presence.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/Draft.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../stores/slices/AppSlices.h
+    # Models
+    ${CMAKE_CURRENT_SOURCE_DIR}/../models/FeedPost.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../models/FeedPost.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../models/FeedResponse.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../models/AggregatedFeedResponse.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../models/AggregatedFeedGroup.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../models/MidiChallenge.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../models/MidiChallenge.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../models/Playlist.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../models/Playlist.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../models/Sound.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../models/Story.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../models/Story.h
+    # Security
+    ${CMAKE_CURRENT_SOURCE_DIR}/../security/InputValidation.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../security/RateLimiter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../security/RateLimiter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../security/SecureTokenStore.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../security/SecureTokenStore.h
+    # Util - PresenceManager
+    ${CMAKE_CURRENT_SOURCE_DIR}/../util/PresenceManager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../util/PresenceManager.h
 )
 
 # Include directories
@@ -32,9 +78,10 @@ target_include_directories(SidechainNetwork PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/..
 )
 
-# Dependencies: Util library and external networking libraries
+# Dependencies: Core library and external networking libraries
 target_link_libraries(SidechainNetwork PUBLIC
-    SidechainUtil
+    SidechainCore
+    rxcpp
     juce::juce_core
     juce::juce_events
     juce::juce_cryptography

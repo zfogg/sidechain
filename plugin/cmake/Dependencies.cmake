@@ -3,17 +3,17 @@
 #==============================================================================
 
 #==============================================================================
-# Helper function to suppress warnings on dependency targets
-# This prevents noisy warnings from third-party code cluttering our build output
+# Helper function to suppress JUCE-specific warnings
+# Only applied to JUCE libraries, not our code
 #==============================================================================
-function(suppress_warnings_for_target target_name)
+function(suppress_juce_warnings target_name)
     if(NOT TARGET ${target_name})
         return()
     endif()
 
     get_target_property(target_type ${target_name} TYPE)
 
-    # For interface libraries, mark includes as SYSTEM
+    # For interface libraries, mark includes as SYSTEM (suppresses warnings from header-only libs)
     if(target_type STREQUAL "INTERFACE_LIBRARY")
         get_target_property(include_dirs ${target_name} INTERFACE_INCLUDE_DIRECTORIES)
         if(include_dirs)
@@ -22,13 +22,26 @@ function(suppress_warnings_for_target target_name)
             )
         endif()
     else()
-        # For compiled libraries, add warning suppression flags
-        if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-            target_compile_options(${target_name} PRIVATE -w)
-        elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-            target_compile_options(${target_name} PRIVATE -w)
+        # For compiled JUCE modules, apply targeted warning suppressions
+        if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+            target_compile_options(${target_name} PRIVATE
+                -Wno-unused-parameter
+                -Wno-missing-field-initializers
+                -Wno-deprecated-declarations
+                -Wno-sign-conversion
+                -Wno-missing-braces
+                -Wno-unused-function
+                -Wno-unused-variable
+                -Wno-float-equal
+                -Wno-switch-enum
+                -Wno-shadow
+                -Wno-virtual-in-final
+                -Wno-unnecessary-virtual-specifier
+            )
         elseif(MSVC)
-            target_compile_options(${target_name} PRIVATE /w)
+            target_compile_options(${target_name} PRIVATE
+                /wd4100 /wd4244 /wd4267 /wd4458
+            )
         endif()
 
         # Also mark include directories as SYSTEM
@@ -40,6 +53,7 @@ function(suppress_warnings_for_target target_name)
         endif()
     endif()
 endfunction()
+
 
 #==============================================================================
 # Dependencies Cache Directory
@@ -108,7 +122,7 @@ set(JUCE_MODULES
     juce_video
 )
 foreach(module ${JUCE_MODULES})
-    suppress_warnings_for_target(${module})
+    suppress_juce_warnings(${module})
 endforeach()
 
 #==============================================================================
@@ -157,8 +171,8 @@ if(SIDECHAIN_ENABLE_KEY_DETECTION)
                     set(SIDECHAIN_HAS_KEYFINDER TRUE CACHE INTERNAL "")
                     # Enable position independent code for shared library linking
                     set_target_properties(keyfinder PROPERTIES POSITION_INDEPENDENT_CODE ON)
-                    # Suppress warnings from libkeyfinder
-                    suppress_warnings_for_target(keyfinder)
+                    # Suppress JUCE-like warnings from libkeyfinder
+                    suppress_juce_warnings(keyfinder)
                 endif()
             endif()
         else()

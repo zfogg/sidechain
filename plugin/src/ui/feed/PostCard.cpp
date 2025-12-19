@@ -498,7 +498,7 @@ void PostCard::drawMetadataBadges(juce::Graphics &g, juce::Rectangle<int> bounds
   }
 }
 
-void PostCard::drawSocialButtons(juce::Graphics &g, [[maybe_unused]] juce::Rectangle<int> bounds) {
+void PostCard::drawSocialButtons(juce::Graphics &g, juce::Rectangle<int> /*bounds*/) {
   // bounds parameter defines the area where social buttons should be drawn
   // Like/Reaction button
   auto likeBounds = getLikeButtonBounds();
