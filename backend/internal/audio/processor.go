@@ -12,6 +12,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/queue"
 	"github.com/zfogg/sidechain/backend/internal/storage"
@@ -144,8 +145,8 @@ func (p *Processor) ProcessUpload(ctx context.Context, file *multipart.FileHeade
 	// 6. Upload waveform to S3
 	waveformResult, err := p.s3Uploader.UploadWaveform(ctx, []byte(waveformSVG), uploadResult.Key)
 	if err != nil {
-		// Non-fatal error - audio upload succeeded
-		fmt.Printf("Warning: Failed to upload waveform: %v\n", err)
+		// Non-fatal error - audio upload succeeded but waveform failed
+		logger.WarnWithFields("Failed to upload waveform visualization", err)
 		waveformSVG = "" // Use empty string if upload failed
 	}
 
