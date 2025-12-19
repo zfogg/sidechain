@@ -422,8 +422,7 @@ void MessageThread::sendMessage() {
   messageInput.setTextToShowWhenEmpty("Type a message...", juce::Colour(0xff888888));
   resized();
 
-  Log::debug("MessageThread::sendMessage - Text to send: " +
-             text.substring(0, juce::jmin(50, text.length())));
+  Log::debug("MessageThread::sendMessage - Text to send: " + text.substring(0, juce::jmin(50, text.length())));
 
   try {
     if (isEditing) {
@@ -1664,7 +1663,7 @@ void MessageThread::showQuickReactionPicker(const StreamChatClient::Message &mes
     menu.addItem(itemId++, displayText);
   }
 
-  menu.showMenuAsync(
+  (void)menu.showMenuAsync(
       juce::PopupMenu::Options().withTargetScreenArea(juce::Rectangle<int>(screenPos.x, screenPos.y, 1, 1)),
       [this, message, reactions](int result) {
         if (result > 0 && result <= static_cast<int>(reactions.size())) {
@@ -1683,6 +1682,6 @@ void MessageThread::scrollBarMoved(juce::ScrollBar *scrollBarPtr, double newScro
 }
 
 // ==============================================================================
-// Message persistence (save/load from disk)
+// Message persistence (save/load from disk or memory)
 
 // Message persistence is now managed by AppStore - no local storage needed
