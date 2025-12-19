@@ -116,9 +116,7 @@ void AppStore::verify2FA(const juce::String &code) {
   authSlice->dispatch([](AuthState &state) { state.isVerifying2FA = true; });
 
   networkClient->verify2FALogin(currentAuth.twoFactorUserId, code,
-                                [this](Outcome<std::pair<juce::String, juce::String>> result) {
-                                  auto authSlicePtr = sliceManager.getAuthSlice();
-
+                                [this, authSlice](Outcome<std::pair<juce::String, juce::String>> result) {
                                   if (!result.isOk()) {
                                     authSlice->dispatch([error = result.getError()](AuthState &state) {
                                       state.isVerifying2FA = false;
@@ -154,18 +152,16 @@ void AppStore::requestPasswordReset(const juce::String &email) {
 
   authSlice->dispatch([](AuthState &state) { state.isResettingPassword = true; });
 
-  networkClient->requestPasswordReset(email, [this](Outcome<juce::var> result) {
-    auto authSlicePtrPtr = sliceManager.getAuthSlice();
-
+  networkClient->requestPasswordReset(email, [this, authSlice](Outcome<juce::var> result) {
     if (!result.isOk()) {
-      authSlicePtr->dispatch([error = result.getError()](AuthState &state) {
+      authSlice->dispatch([error = result.getError()](AuthState &state) {
         state.isResettingPassword = false;
         state.authError = error;
       });
       return;
     }
 
-    authSlicePtr->dispatch([](AuthState &state) {
+    authSlice->dispatch([](AuthState &state) {
       state.isResettingPassword = false;
       state.authError = "";
     });
@@ -224,11 +220,6 @@ void AppStore::logout() {
   userSlice->dispatch([](UserState &state) {
     state = UserState{}; // Reset to default state
   });
-}
-
-void AppStore::oauthCallback(const juce::String &[[maybe_unused]] provider, const juce::String &[[maybe_unused]] code) {
-  // TODO: Implement OAuth flow
-  sliceManager.getAuthSlice()->dispatch([](AuthState &state) { state.authError = "OAuth not yet implemented"; });
 }
 
 void AppStore::setAuthToken(const juce::String &token) {

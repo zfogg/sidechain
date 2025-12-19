@@ -79,7 +79,6 @@ public:
   void requestPasswordReset(const juce::String &email);
   void resetPassword(const juce::String &token, const juce::String &newPassword);
   void logout();
-  void oauthCallback(const juce::String &provider, const juce::String &code);
   void setAuthToken(const juce::String &token);
   void refreshAuthToken();
 
