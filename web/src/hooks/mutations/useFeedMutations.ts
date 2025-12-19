@@ -19,36 +19,48 @@ export function useLikeMutation() {
 
   return useMutation({
     mutationFn: async ({ postId, shouldLike }: { postId: string; shouldLike: boolean }) => {
+      console.log('[Like] Starting mutation:', { postId, shouldLike })
       const result = await FeedClient.toggleLike(postId, shouldLike)
+      console.log('[Like] API response:', { result: result.isOk() ? 'success' : 'error', error: result.isError() ? result.getError() : null })
       if (result.isError()) {
+        console.error('[Like] Error from API:', result.getError())
         throw new Error(result.getError())
       }
+      console.log('[Like] Mutation succeeded')
     },
     onMutate: async ({ postId, shouldLike }) => {
+      console.log('[Like] onMutate starting:', { postId, shouldLike })
+
       // Cancel any outgoing refetches to prevent overwriting optimistic update
       await queryClient.cancelQueries({ queryKey: ['feed'], exact: false })
 
       // Snapshot the previous data for all feed queries
       const previousFeeds = queryClient.getQueriesData<any>({ queryKey: ['feed'], exact: false })
+      console.log('[Like] Found queries to update:', previousFeeds.length)
 
       // Optimistic update: Update all feed queries (timeline, global, trending, etc.)
       queryClient.setQueriesData({ queryKey: ['feed'], exact: false }, (old: any) => {
+        console.log('[Like] Updating cache for key:', old, 'hasPages:', !!old?.pages)
         if (!old?.pages) return old
 
-        return {
+        const updated = {
           ...old,
           pages: old.pages.map((page: FeedPost[]) =>
-            page.map((post) =>
-              post.id === postId
-                ? {
-                    ...post,
-                    isLiked: shouldLike,
-                    likeCount: post.likeCount + (shouldLike ? 1 : -1),
-                  }
-                : post
-            )
+            page.map((post) => {
+              if (post.id === postId) {
+                console.log('[Like] Found post to update, changing isLiked from', post.isLiked, 'to', shouldLike)
+                return {
+                  ...post,
+                  isLiked: shouldLike,
+                  likeCount: post.likeCount + (shouldLike ? 1 : -1),
+                }
+              }
+              return post
+            })
           ),
         }
+        console.log('[Like] Returning updated cache')
+        return updated
       })
 
       // Also update Zustand store for consistency
@@ -94,9 +106,11 @@ export function useLikeMutation() {
 
       return { previousFeeds }
     },
-    onError: (_err, _variables, context: any) => {
+    onError: (err, _variables, context: any) => {
+      console.error('[Like] Mutation failed:', err)
       // Rollback React Query cache on error
       if (context?.previousFeeds) {
+        console.log('[Like] Rolling back', context.previousFeeds.length, 'queries')
         context.previousFeeds.forEach(([queryKey, data]: [any, any]) => {
           queryClient.setQueryData(queryKey, data)
         })
