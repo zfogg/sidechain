@@ -176,6 +176,12 @@ public:
    */
   void resetPassword(const juce::String &token, const juce::String &newPassword, ResponseCallback callback = nullptr);
 
+  /** Refresh an expired or soon-to-expire authentication token
+   * @param currentToken Current (possibly expired) authentication token
+   * @param callback Called with new token and expiry or error
+   */
+  void refreshAuthToken(const juce::String &currentToken, AuthenticationCallback callback);
+
   /** Set the authentication callback for login/register operations
    * @param callback Called when authentication completes
    */

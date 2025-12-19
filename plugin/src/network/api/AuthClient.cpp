@@ -379,3 +379,63 @@ void NetworkClient::regenerateBackupCodes(const juce::String &code, ResponseCall
     }
   });
 }
+
+// ==============================================================================
+// Token Refresh
+// ==============================================================================
+
+void NetworkClient::refreshAuthToken(const juce::String &currentToken, AuthenticationCallback callback) {
+  Async::runVoid([this, currentToken, callback]() {
+    // Create request with current token in Authorization header
+    juce::var refreshData = juce::var(new juce::DynamicObject());
+    refreshData.getDynamicObject()->setProperty("token", currentToken);
+
+    // Don't use current authToken for this request - use the provided token
+    auto tempToken = authToken;
+    authToken = currentToken;
+
+    auto result = makeRequestWithRetry(buildApiPath(Constants::AUTH_REFRESH), "POST", refreshData, false);
+
+    // Restore previous token in case refresh fails
+    if (!result.success) {
+      authToken = tempToken;
+    }
+
+    juce::String newToken, userId;
+    bool success = false;
+
+    if (result.success && result.data.isObject()) {
+      newToken = result.data.getProperty("token", "").toString();
+      auto user = result.data.getProperty("user", juce::var());
+
+      if (!newToken.isEmpty() && user.isObject()) {
+        userId = user.getProperty("id", "").toString();
+        success = true;
+      }
+    }
+
+    juce::MessageManager::callAsync([this, callback, newToken, userId, success, result]() {
+      if (success) {
+        // Update stored auth token with new one
+        authToken = newToken;
+        currentUserId = userId;
+
+        auto authResult = Outcome<std::pair<juce::String, juce::String>>::ok({newToken, userId});
+        callback(authResult);
+        Log::info("Auth token refreshed successfully");
+      } else {
+        juce::String errorMsg = "Token refresh failed";
+        if (result.data.isObject()) {
+          auto error = result.data.getProperty("error", juce::var());
+          if (error.isString() && !error.toString().isEmpty()) {
+            errorMsg = error.toString();
+          }
+        }
+
+        auto authResult = Outcome<std::pair<juce::String, juce::String>>::error(errorMsg);
+        callback(authResult);
+        Log::error("Token refresh failed: " + errorMsg);
+      }
+    });
+  });
+}

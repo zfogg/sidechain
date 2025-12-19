@@ -50,6 +50,7 @@ constexpr const char *API_VERSION = "/api/v1";
 // Auth endpoints
 constexpr const char *AUTH_LOGIN = "/api/v1/auth/login";
 constexpr const char *AUTH_REGISTER = "/api/v1/auth/register";
+constexpr const char *AUTH_REFRESH = "/api/v1/auth/refresh";
 constexpr const char *AUTH_OAUTH_POLL = "/api/v1/auth/oauth/poll";
 constexpr const char *AUTH_ME = "/api/v1/auth/me";
 

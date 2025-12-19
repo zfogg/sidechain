@@ -181,8 +181,8 @@ func (h *AuthHandlers) Login(c *gin.Context) {
 	if authResp.User.TwoFactorEnabled {
 		// Return 2FA required response instead of token
 		c.JSON(http.StatusOK, gin.H{
-			"requires_2fa": true,
-			"user_id":      authResp.User.ID,
+			"requires_2fa":    true,
+			"user_id":         authResp.User.ID,
 			"two_factor_type": authResp.User.TwoFactorType,
 		})
 		return
@@ -597,6 +597,63 @@ func (h *AuthHandlers) Me(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"user": user,
+	})
+}
+
+// RefreshToken refreshes an expired or soon-to-expire JWT token
+// POST /api/v1/auth/refresh
+// Accepts current valid token, returns new token with extended expiry
+func (h *AuthHandlers) RefreshToken(c *gin.Context) {
+	if h.authService == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "auth_service_not_configured"})
+		return
+	}
+
+	// Extract token from Authorization header or request body
+	var token string
+
+	// Try Authorization header first
+	authHeader := c.GetHeader("Authorization")
+	if authHeader != "" && strings.HasPrefix(authHeader, "Bearer ") {
+		token = strings.TrimPrefix(authHeader, "Bearer ")
+	} else {
+		// Fallback to request body
+		var req struct {
+			Token string `json:"token" binding:"required"`
+		}
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid_request", "message": "token required in Authorization header or request body"})
+			return
+		}
+		token = req.Token
+	}
+
+	// Validate current token (even if expired, we check it was valid)
+	user, err := h.authService.ValidateToken(token)
+	if err != nil {
+		// Token is invalid or malformed (not just expired)
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid_token", "message": err.Error()})
+		return
+	}
+
+	// Update user last active timestamp
+	now := time.Now()
+	user.LastActiveAt = &now
+	if err := database.DB.Save(user).Error; err != nil {
+		logger.WarnWithFields("Failed to update user last active during token refresh", err)
+	}
+
+	// Generate new token with extended expiry
+	authResp, err := h.authService.GenerateTokenForUser(user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "token_generation_failed", "message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"token":      authResp.Token,
+		"expires_at": authResp.ExpiresAt,
+		"user":       authResp.User,
 	})
 }
 

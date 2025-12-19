@@ -2,9 +2,20 @@
 
 #include "../../models/FeedPost.h"
 #include "../../models/AggregatedFeedGroup.h"
+#include "../../models/Story.h"
+#include "../../models/Playlist.h"
+#include "../../models/User.h"
+#include "../../models/Notification.h"
+#include "../../models/Message.h"
+#include "../../models/Conversation.h"
+#include "../../models/MidiChallenge.h"
+#include "../../models/Draft.h"
+#include "../../models/Sound.h"
 #include "../../util/logging/Logger.h"
 #include <JuceHeader.h>
 #include <map>
+#include <vector>
+#include <memory>
 
 namespace Sidechain {
 namespace Stores {
@@ -48,7 +59,9 @@ enum class FeedType {
 };
 
 struct FeedState {
-  juce::Array<FeedPost> posts;
+  // Store shared pointers to posts - same memory shared across app
+  // When all references drop (feed cleared, UI closed), memory is freed automatically
+  std::vector<std::shared_ptr<FeedPost>> posts;
   bool isLoading = false;
   bool isRefreshing = false;
   bool hasMore = true;
@@ -61,7 +74,8 @@ struct FeedState {
 };
 
 struct SavedPostsState {
-  juce::Array<FeedPost> posts;
+  // Store shared pointers to posts
+  std::vector<std::shared_ptr<FeedPost>> posts;
   bool isLoading = false;
   juce::String error;
   int totalCount = 0;
@@ -72,7 +86,8 @@ struct SavedPostsState {
 };
 
 struct ArchivedPostsState {
-  juce::Array<FeedPost> posts;
+  // Store shared pointers to posts
+  std::vector<std::shared_ptr<FeedPost>> posts;
   bool isLoading = false;
   juce::String error;
   int totalCount = 0;
@@ -156,7 +171,8 @@ struct UserState {
 struct ChannelState {
   juce::String id;
   juce::String name;
-  std::vector<juce::var> messages;
+  // Store shared pointers to messages
+  std::vector<std::shared_ptr<Sidechain::Message>> messages;
   std::vector<juce::String> usersTyping;
   bool isLoadingMessages = false;
   int unreadCount = 0;
@@ -164,6 +180,8 @@ struct ChannelState {
 
 struct ChatState {
   std::map<juce::String, ChannelState> channels;
+  // Store shared pointers to conversations
+  std::vector<std::shared_ptr<Sidechain::Conversation>> conversations;
   std::vector<juce::String> channelOrder;
   juce::String currentChannelId;
   bool isLoadingChannels = false;
@@ -178,7 +196,8 @@ struct ChatState {
 // ==============================================================================
 
 struct NotificationState {
-  juce::Array<juce::var> notifications;
+  // Store shared pointers to notifications
+  std::vector<std::shared_ptr<Sidechain::Notification>> notifications;
   int unreadCount = 0;
   int unseenCount = 0;
   bool isLoading = false;
@@ -190,8 +209,9 @@ struct NotificationState {
 // ==============================================================================
 
 struct SearchResultsState {
-  juce::Array<FeedPost> posts;
-  juce::Array<juce::var> users;
+  // Store shared pointers to entities
+  std::vector<std::shared_ptr<FeedPost>> posts;
+  std::vector<std::shared_ptr<Sidechain::User>> users;
   juce::String searchQuery;
   juce::String currentGenre; // Currently selected genre filter
   bool isSearching = false;
@@ -242,9 +262,10 @@ struct PresenceState {
 // ==============================================================================
 
 struct StoriesState {
-  juce::Array<juce::var> feedUserStories;
-  juce::Array<juce::var> myStories;
-  juce::Array<juce::var> highlights;
+  // Store shared pointers to stories
+  std::vector<std::shared_ptr<Story>> feedStories;
+  std::vector<std::shared_ptr<Story>> myStories;
+  std::vector<std::shared_ptr<Story>> highlights;
   bool isFeedLoading = false;
   bool isMyStoriesLoading = false;
   juce::String storiesError;
@@ -267,7 +288,8 @@ struct UploadState {
 // ==============================================================================
 
 struct PlaylistState {
-  juce::Array<juce::var> playlists;
+  // Store shared pointers to playlists
+  std::vector<std::shared_ptr<Playlist>> playlists;
   bool isLoading = false;
   juce::String playlistError;
 };
@@ -277,7 +299,8 @@ struct PlaylistState {
 // ==============================================================================
 
 struct ChallengeState {
-  juce::Array<juce::var> challenges;
+  // Store shared pointers to challenges
+  std::vector<std::shared_ptr<MIDIChallenge>> challenges;
   bool isLoading = false;
   juce::String challengeError;
 };
@@ -287,12 +310,13 @@ struct ChallengeState {
 // ==============================================================================
 
 struct SoundState {
-  juce::var soundData;
+  // Store shared pointer to current sound
+  std::shared_ptr<Sound> currentSound;
   bool isLoading = false;
   bool isRefreshing = false;
-  juce::Array<juce::var> featuredSounds;
+  std::vector<std::shared_ptr<Sound>> featuredSounds;
   bool isFeaturedLoading = false;
-  juce::Array<juce::var> recentSounds;
+  std::vector<std::shared_ptr<Sound>> recentSounds;
   int recentOffset = 0;
   bool hasMoreRecent = true;
   int offset = 0;
@@ -307,7 +331,8 @@ struct SoundState {
 // ==============================================================================
 
 struct DraftState {
-  juce::Array<juce::var> drafts;
+  // Store shared pointers to drafts
+  std::vector<std::shared_ptr<Sidechain::Draft>> drafts;
   bool isLoading = false;
   juce::String draftError;
 };
@@ -317,8 +342,9 @@ struct DraftState {
 // ==============================================================================
 
 struct FollowersState {
-  juce::Array<juce::var> followers;
-  juce::Array<juce::var> following;
+  // Store shared pointers to users
+  std::vector<std::shared_ptr<Sidechain::User>> followers;
+  std::vector<std::shared_ptr<Sidechain::User>> following;
   bool isLoading = false;
   juce::String followersError;
 };

@@ -589,6 +589,9 @@ func main() {
 			authGroup.POST("/register", authHandlers.Register)
 			authGroup.POST("/login", authHandlers.Login)
 
+			// Token refresh (accepts old token, returns new one)
+			authGroup.POST("/refresh", authHandlers.RefreshToken)
+
 			// Password reset (public)
 			authGroup.POST("/reset-password", authHandlers.RequestPasswordReset)
 			authGroup.POST("/reset-password/confirm", authHandlers.ResetPassword)
