@@ -104,6 +104,7 @@ if(SIDECHAIN_BUILD_TESTS)
         tests/AudioCaptureTest.cpp
         tests/NetworkClientTest.cpp
         tests/FeedDataTest.cpp
+        tests/PostCardTest.cpp
     )
 
     # Test executable
@@ -114,6 +115,7 @@ if(SIDECHAIN_BUILD_TESTS)
     target_link_libraries(SidechainTests PRIVATE
         Catch2::Catch2WithMain
         SidechainNetwork
+        SidechainUI
         SidechainTestLib
     )
 
