@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -16,7 +15,6 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/metrics"
 	"github.com/zfogg/sidechain/backend/internal/models"
-	"github.com/zfogg/sidechain/backend/internal/recommendations"
 	"github.com/zfogg/sidechain/backend/internal/stream"
 	"github.com/zfogg/sidechain/backend/internal/timeline"
 	"github.com/zfogg/sidechain/backend/internal/util"
@@ -548,7 +546,7 @@ func (h *Handlers) GetEnrichedTimeline(c *gin.Context) {
 					zap.String("current_user_id", currentUser.ID),
 				)
 			}
-			
+
 			var err error
 			isFollowing, err = h.stream.CheckIsFollowing(currentUser.ID, posterUserID)
 
@@ -651,89 +649,81 @@ func (h *Handlers) getFallbackFeed(userID string, limit int) []map[string]interf
 	}
 
 	// Try Gorse recommendations first
-	gorseURL := os.Getenv("GORSE_URL")
-	if gorseURL == "" {
-		gorseURL = "http://localhost:8087"
-	}
-	gorseAPIKey := os.Getenv("GORSE_API_KEY")
-	if gorseAPIKey == "" {
-		gorseAPIKey = "sidechain_gorse_api_key"
-	}
-
-	recService := recommendations.NewGorseRESTClient(gorseURL, gorseAPIKey, database.DB)
-	scores, err := recService.GetForYouFeed(userID, limit, 0)
-	if err == nil && len(scores) > 0 {
-		// Collect user IDs and batch fetch user data
-		userIDSet := make(map[string]bool)
-		for _, score := range scores {
-			if !mutedUserSet[score.Post.UserID] {
-				userIDSet[score.Post.UserID] = true
-			}
-		}
-		userIDs := make([]string, 0, len(userIDSet))
-		for id := range userIDSet {
-			userIDs = append(userIDs, id)
-		}
-
-		usersMap := make(map[string]*models.User)
-		if len(userIDs) > 0 {
-			var users []models.User
-			if err := database.DB.Select("id", "username", "display_name", "profile_picture_url", "oauth_profile_picture_url").
-				Where("id IN ?", userIDs).Find(&users).Error; err != nil {
-				logger.WarnWithFields("Failed to fetch users for fallback feed", err)
-			} else {
-				for i := range users {
-					usersMap[users[i].ID] = &users[i]
-				}
-				if len(users) != len(userIDs) {
-					logger.Warn(fmt.Sprintf("Expected %d users but found %d in database", len(userIDs), len(users)))
+	if h.gorse != nil {
+		scores, err := h.gorse.GetForYouFeed(userID, limit, 0)
+		if err == nil && len(scores) > 0 {
+			// Collect user IDs and batch fetch user data
+			userIDSet := make(map[string]bool)
+			for _, score := range scores {
+				if !mutedUserSet[score.Post.UserID] {
+					userIDSet[score.Post.UserID] = true
 				}
 			}
-		}
-
-		activities := make([]map[string]interface{}, 0, len(scores))
-		for _, score := range scores {
-			// Skip posts from muted users
-			if mutedUserSet[score.Post.UserID] {
-				continue
-			}
-			activity := map[string]interface{}{
-				"id":                    score.Post.ID,
-				"actor":                 "user:" + score.Post.UserID,
-				"verb":                  "posted",
-				"object":                "loop:" + score.Post.ID,
-				"audio_url":             score.Post.AudioURL,
-				"waveform_url":          score.Post.WaveformURL,
-				"bpm":                   score.Post.BPM,
-				"key":                   score.Post.Key,
-				"daw":                   score.Post.DAW,
-				"duration":              score.Post.Duration,
-				"genre":                 score.Post.Genre,
-				"time":                  score.Post.CreatedAt,
-				"like_count":            score.Post.LikeCount,
-				"play_count":            score.Post.PlayCount,
-				"recommendation_reason": score.Reason,
-				"is_recommended":        true,
+			userIDs := make([]string, 0, len(userIDSet))
+			for id := range userIDSet {
+				userIDs = append(userIDs, id)
 			}
 
-			// Add user data if available
-			if user, ok := usersMap[score.Post.UserID]; ok && user != nil {
-				activity["user_id"] = user.ID
-				activity["username"] = user.Username
-				activity["display_name"] = user.DisplayName
-				avatarURL := user.ProfilePictureURL
-				if avatarURL == "" {
-					avatarURL = user.OAuthProfilePictureURL
+			usersMap := make(map[string]*models.User)
+			if len(userIDs) > 0 {
+				var users []models.User
+				if err := database.DB.Select("id", "username", "display_name", "profile_picture_url", "oauth_profile_picture_url").
+					Where("id IN ?", userIDs).Find(&users).Error; err != nil {
+					logger.WarnWithFields("Failed to fetch users for fallback feed", err)
+				} else {
+					for i := range users {
+						usersMap[users[i].ID] = &users[i]
+					}
+					if len(users) != len(userIDs) {
+						logger.Warn(fmt.Sprintf("Expected %d users but found %d in database", len(userIDs), len(users)))
+					}
 				}
-				activity["user_avatar_url"] = avatarURL
-				activity["profile_picture_url"] = avatarURL
-			} else if score.Post.UserID != "" {
-				logger.Warn(fmt.Sprintf("User not found in database for UserID: %s", score.Post.UserID))
 			}
 
-			activities = append(activities, activity)
+			activities := make([]map[string]interface{}, 0, len(scores))
+			for _, score := range scores {
+				// Skip posts from muted users
+				if mutedUserSet[score.Post.UserID] {
+					continue
+				}
+				activity := map[string]interface{}{
+					"id":                    score.Post.ID,
+					"actor":                 "user:" + score.Post.UserID,
+					"verb":                  "posted",
+					"object":                "loop:" + score.Post.ID,
+					"audio_url":             score.Post.AudioURL,
+					"waveform_url":          score.Post.WaveformURL,
+					"bpm":                   score.Post.BPM,
+					"key":                   score.Post.Key,
+					"daw":                   score.Post.DAW,
+					"duration":              score.Post.Duration,
+					"genre":                 score.Post.Genre,
+					"time":                  score.Post.CreatedAt,
+					"like_count":            score.Post.LikeCount,
+					"play_count":            score.Post.PlayCount,
+					"recommendation_reason": score.Reason,
+					"is_recommended":        true,
+				}
+
+				// Add user data if available
+				if user, ok := usersMap[score.Post.UserID]; ok && user != nil {
+					activity["user_id"] = user.ID
+					activity["username"] = user.Username
+					activity["display_name"] = user.DisplayName
+					avatarURL := user.ProfilePictureURL
+					if avatarURL == "" {
+						avatarURL = user.OAuthProfilePictureURL
+					}
+					activity["user_avatar_url"] = avatarURL
+					activity["profile_picture_url"] = avatarURL
+				} else if score.Post.UserID != "" {
+					logger.Warn(fmt.Sprintf("User not found in database for UserID: %s", score.Post.UserID))
+				}
+
+				activities = append(activities, activity)
+			}
+			return activities
 		}
-		return activities
 	}
 
 	// Fall back to recent posts from database
@@ -846,7 +836,7 @@ func (h *Handlers) GetUnifiedTimeline(c *gin.Context) {
 	}
 
 	// Create timeline service and get unified timeline
-	timelineSvc := timeline.NewService(streamClient)
+	timelineSvc := timeline.NewService(streamClient, h.gorse)
 	resp, err := timelineSvc.GetTimeline(context.Background(), currentUser.ID, limit, offset)
 	if err != nil {
 		util.RespondInternalError(c, "failed_to_get_timeline", err.Error())
@@ -1007,7 +997,7 @@ func (h *Handlers) GetAggregatedTimeline(c *gin.Context) {
 		return
 	}
 
-	timelineSvc := timeline.NewService(streamClient)
+	timelineSvc := timeline.NewService(streamClient, h.gorse)
 	timelineResp, err := timelineSvc.GetTimeline(context.Background(), currentUser.ID, limit, offset)
 	if err != nil {
 		util.RespondInternalError(c, "failed_to_get_aggregated_timeline", err.Error())

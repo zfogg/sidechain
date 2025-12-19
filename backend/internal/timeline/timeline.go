@@ -3,7 +3,6 @@ package timeline
 import (
 	"context"
 	"fmt"
-	"os"
 	"sort"
 	"time"
 
@@ -29,9 +28,9 @@ type TimelineItem struct {
 
 // TimelineResponse is the response from GetTimeline
 type TimelineResponse struct {
-	Items      []TimelineItem         `json:"items"`
-	Meta       TimelineMeta           `json:"meta"`
-	NextCursor string                 `json:"next_cursor,omitempty"`
+	Items      []TimelineItem `json:"items"`
+	Meta       TimelineMeta   `json:"meta"`
+	NextCursor string         `json:"next_cursor,omitempty"`
 }
 
 // TimelineMeta contains metadata about the timeline response
@@ -54,20 +53,12 @@ type Service struct {
 }
 
 // NewService creates a new timeline service
-func NewService(streamClient *stream.Client) *Service {
-	gorseURL := os.Getenv("GORSE_URL")
-	if gorseURL == "" {
-		gorseURL = "http://localhost:8087"
-	}
-	gorseAPIKey := os.Getenv("GORSE_API_KEY")
-	if gorseAPIKey == "" {
-		gorseAPIKey = "sidechain_gorse_api_key"
-	}
-
+// Both streamClient and gorseClient should be initialized in main.go and passed here
+func NewService(streamClient *stream.Client, gorseClient *recommendations.GorseRESTClient) *Service {
 	return &Service{
 		db:           database.DB,
 		streamClient: streamClient,
-		gorseClient:  recommendations.NewGorseRESTClient(gorseURL, gorseAPIKey, database.DB),
+		gorseClient:  gorseClient,
 	}
 }
 
@@ -185,7 +176,7 @@ func (s *Service) GetTimeline(ctx context.Context, userID string, limit, offset 
 
 	// Rank and sort items
 	rankedItems := s.rankItems(filteredItems, userID)
-	fmt.Printf("📊 Timeline: rankedItems after ranking = %d, limit=%d, offset=%d, hasMore=%v\n", len(rankedItems), limit, offset, (offset + limit) < len(rankedItems))
+	fmt.Printf("📊 Timeline: rankedItems after ranking = %d, limit=%d, offset=%d, hasMore=%v\n", len(rankedItems), limit, offset, (offset+limit) < len(rankedItems))
 
 	// Apply pagination
 	start := offset

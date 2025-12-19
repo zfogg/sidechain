@@ -3,7 +3,6 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 
@@ -80,16 +79,15 @@ func (h *Handlers) GetForYouFeed(c *gin.Context) {
 		limit = 100
 	}
 
-	// Create Gorse recommendation service (using REST client)
-	gorseURL := os.Getenv("GORSE_URL")
-	if gorseURL == "" {
-		gorseURL = "http://localhost:8087"
+	// Use the centralized Gorse client from handlers
+	if h.gorse == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"error":   "recommendations_unavailable",
+			"message": "Recommendation service is not configured",
+		})
+		return
 	}
-	gorseAPIKey := os.Getenv("GORSE_API_KEY")
-	if gorseAPIKey == "" {
-		gorseAPIKey = "sidechain_gorse_api_key"
-	}
-	recService := recommendations.NewGorseRESTClient(gorseURL, gorseAPIKey, database.DB)
+	recService := h.gorse
 
 	// Get recommendations with optional filters
 	var scores []recommendations.PostScore
@@ -187,16 +185,15 @@ func (h *Handlers) GetSimilarPosts(c *gin.Context) {
 		limit = 50
 	}
 
-	// Create Gorse recommendation service (using REST client)
-	gorseURL := os.Getenv("GORSE_URL")
-	if gorseURL == "" {
-		gorseURL = "http://localhost:8087"
+	// Use the centralized Gorse client from handlers
+	if h.gorse == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"error":   "recommendations_unavailable",
+			"message": "Recommendation service is not configured",
+		})
+		return
 	}
-	gorseAPIKey := os.Getenv("GORSE_API_KEY")
-	if gorseAPIKey == "" {
-		gorseAPIKey = "sidechain_gorse_api_key"
-	}
-	recService := recommendations.NewGorseRESTClient(gorseURL, gorseAPIKey, database.DB)
+	recService := h.gorse
 
 	// Get similar posts with optional genre filter
 	var posts []models.AudioPost
@@ -272,22 +269,15 @@ func (h *Handlers) GetUsersToFollow(c *gin.Context) {
 		limit = 50
 	}
 
-	// Use the injected Gorse client if available
-	var recService *recommendations.GorseRESTClient
-	if h.gorse != nil {
-		recService = h.gorse
-	} else {
-		// Fallback to creating a new client
-		gorseURL := os.Getenv("GORSE_URL")
-		if gorseURL == "" {
-			gorseURL = "http://localhost:8087"
-		}
-		gorseAPIKey := os.Getenv("GORSE_API_KEY")
-		if gorseAPIKey == "" {
-			gorseAPIKey = "sidechain_gorse_api_key"
-		}
-		recService = recommendations.NewGorseRESTClient(gorseURL, gorseAPIKey, database.DB)
+	// Use the centralized Gorse client from handlers
+	if h.gorse == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"error":   "recommendations_unavailable",
+			"message": "Recommendation service is not configured",
+		})
+		return
 	}
+	recService := h.gorse
 
 	// Get recommended users to follow
 	userScores, err := recService.GetUsersToFollow(currentUserID, limit, offset)
@@ -342,16 +332,15 @@ func (h *Handlers) GetRecommendedUsers(c *gin.Context) {
 		limit = 50
 	}
 
-	// Create Gorse recommendation service (using REST client)
-	gorseURL := os.Getenv("GORSE_URL")
-	if gorseURL == "" {
-		gorseURL = "http://localhost:8087"
+	// Use the centralized Gorse client from handlers
+	if h.gorse == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"error":   "recommendations_unavailable",
+			"message": "Recommendation service is not configured",
+		})
+		return
 	}
-	gorseAPIKey := os.Getenv("GORSE_API_KEY")
-	if gorseAPIKey == "" {
-		gorseAPIKey = "sidechain_gorse_api_key"
-	}
-	recService := recommendations.NewGorseRESTClient(gorseURL, gorseAPIKey, database.DB)
+	recService := h.gorse
 
 	// Get similar users (using current user's preferences to find similar users)
 	users, err := recService.GetSimilarUsers(currentUserID, limit)
@@ -498,22 +487,15 @@ func (h *Handlers) GetPopular(c *gin.Context) {
 		limit = 100
 	}
 
-	// Use the injected Gorse client if available
-	var recService *recommendations.GorseRESTClient
-	if h.gorse != nil {
-		recService = h.gorse
-	} else {
-		// Fallback to creating a new client
-		gorseURL := os.Getenv("GORSE_URL")
-		if gorseURL == "" {
-			gorseURL = "http://localhost:8087"
-		}
-		gorseAPIKey := os.Getenv("GORSE_API_KEY")
-		if gorseAPIKey == "" {
-			gorseAPIKey = "sidechain_gorse_api_key"
-		}
-		recService = recommendations.NewGorseRESTClient(gorseURL, gorseAPIKey, database.DB)
+	// Use the centralized Gorse client from handlers
+	if h.gorse == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"error":   "recommendations_unavailable",
+			"message": "Recommendation service is not configured",
+		})
+		return
 	}
+	recService := h.gorse
 
 	// Get popular posts
 	scores, err := recService.GetPopular(limit, offset)
@@ -586,22 +568,15 @@ func (h *Handlers) GetLatest(c *gin.Context) {
 		limit = 100
 	}
 
-	// Use the injected Gorse client if available
-	var recService *recommendations.GorseRESTClient
-	if h.gorse != nil {
-		recService = h.gorse
-	} else {
-		// Fallback to creating a new client
-		gorseURL := os.Getenv("GORSE_URL")
-		if gorseURL == "" {
-			gorseURL = "http://localhost:8087"
-		}
-		gorseAPIKey := os.Getenv("GORSE_API_KEY")
-		if gorseAPIKey == "" {
-			gorseAPIKey = "sidechain_gorse_api_key"
-		}
-		recService = recommendations.NewGorseRESTClient(gorseURL, gorseAPIKey, database.DB)
+	// Use the centralized Gorse client from handlers
+	if h.gorse == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"error":   "recommendations_unavailable",
+			"message": "Recommendation service is not configured",
+		})
+		return
 	}
+	recService := h.gorse
 
 	// Get latest posts
 	scores, err := recService.GetLatest(limit, offset)
@@ -675,22 +650,15 @@ func (h *Handlers) GetDiscoveryFeed(c *gin.Context) {
 		limit = 100
 	}
 
-	// Use the injected Gorse client if available
-	var recService *recommendations.GorseRESTClient
-	if h.gorse != nil {
-		recService = h.gorse
-	} else {
-		// Fallback to creating a new client
-		gorseURL := os.Getenv("GORSE_URL")
-		if gorseURL == "" {
-			gorseURL = "http://localhost:8087"
-		}
-		gorseAPIKey := os.Getenv("GORSE_API_KEY")
-		if gorseAPIKey == "" {
-			gorseAPIKey = "sidechain_gorse_api_key"
-		}
-		recService = recommendations.NewGorseRESTClient(gorseURL, gorseAPIKey, database.DB)
+	// Use the centralized Gorse client from handlers
+	if h.gorse == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"error":   "recommendations_unavailable",
+			"message": "Recommendation service is not configured",
+		})
+		return
 	}
+	recService := h.gorse
 
 	// Calculate how many items to fetch from each source
 	// Ratio: 30% popular, 20% latest, 50% personalized

@@ -93,10 +93,10 @@ type User struct {
 
 	// Profile data
 	OAuthProfilePictureURL string       `gorm:"column:oauth_profile_picture_url" json:"oauth_profile_picture_url"` // From OAuth provider (Google/Discord)
-	ProfilePictureURL      string       `json:"profile_picture_url"`       // S3 URL for user-uploaded profile picture
-	DAWPreference     string       `json:"daw_preference"`
-	Genre             StringArray  `gorm:"type:text[]" json:"genre"`
-	SocialLinks       *SocialLinks `gorm:"type:jsonb;serializer:json" json:"social_links"`
+	ProfilePictureURL      string       `json:"profile_picture_url"`                                               // S3 URL for user-uploaded profile picture
+	DAWPreference          string       `json:"daw_preference"`
+	Genre                  StringArray  `gorm:"type:text[]" json:"genre"`
+	SocialLinks            *SocialLinks `gorm:"type:jsonb;serializer:json" json:"social_links"`
 
 	// Social stats (fetched from getstream.io - these are cached values, not source of truth)
 	// Use stream.Client.GetFollowStats for real-time counts
@@ -135,10 +135,10 @@ type AudioPost struct {
 	User   User   `gorm:"foreignKey:UserID" json:"user,omitempty"`
 
 	// Audio file data
-	AudioURL         string `gorm:"not null" json:"audio_url"`
-	OriginalFilename string `json:"original_filename"`         // System filename from upload
-	Filename         string `json:"filename"`                  // User-editable display filename
-	FileSize         int64  `json:"file_size"`
+	AudioURL         string  `gorm:"not null" json:"audio_url"`
+	OriginalFilename string  `json:"original_filename"` // System filename from upload
+	Filename         string  `json:"filename"`          // User-editable display filename
+	FileSize         int64   `json:"file_size"`
 	Duration         float64 `json:"duration"` // seconds
 
 	// Audio metadata
@@ -154,14 +154,14 @@ type AudioPost struct {
 
 	// Remix relationship
 	// A post can be a remix of another post OR a story
-	RemixOfPostID  *string    `gorm:"index" json:"remix_of_post_id,omitempty"`
-	RemixOfPost    *AudioPost `gorm:"foreignKey:RemixOfPostID" json:"remix_of_post,omitempty"`
-	RemixOfStoryID *string    `gorm:"index" json:"remix_of_story_id,omitempty"`
-	RemixOfStory   *Story     `gorm:"foreignKey:RemixOfStoryID" json:"remix_of_story,omitempty"`
-	RemixChainDepth int       `gorm:"default:0" json:"remix_chain_depth"` // 0=original, 1=remix, 2=remix of remix
-	RemixCount     int        `gorm:"default:0" json:"remix_count"`       // How many posts remix this one
+	RemixOfPostID   *string    `gorm:"index" json:"remix_of_post_id,omitempty"`
+	RemixOfPost     *AudioPost `gorm:"foreignKey:RemixOfPostID" json:"remix_of_post,omitempty"`
+	RemixOfStoryID  *string    `gorm:"index" json:"remix_of_story_id,omitempty"`
+	RemixOfStory    *Story     `gorm:"foreignKey:RemixOfStoryID" json:"remix_of_story,omitempty"`
+	RemixChainDepth int        `gorm:"default:0" json:"remix_chain_depth"` // 0=original, 1=remix, 2=remix of remix
+	RemixCount      int        `gorm:"default:0" json:"remix_count"`       // How many posts remix this one
 	// What was remixed: "audio", "midi", "both"
-	RemixType      string     `json:"remix_type,omitempty"`
+	RemixType string `json:"remix_type,omitempty"`
 
 	// Visual data
 	WaveformURL string `json:"waveform_url"` // CDN URL to waveform PNG
@@ -848,8 +848,8 @@ type Sound struct {
 	ID string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
 
 	// Sound metadata
-	Name        string `json:"name"`         // Display name (auto-generated or user-provided)
-	Description string `json:"description"`  // Optional description
+	Name        string  `json:"name"`        // Display name (auto-generated or user-provided)
+	Description string  `json:"description"` // Optional description
 	Duration    float64 `json:"duration"`    // Duration in seconds of the original sample
 
 	// Original source (first post that used this sound)
@@ -863,7 +863,7 @@ type Sound struct {
 	Creator   User   `gorm:"foreignKey:CreatorID" json:"creator,omitempty"`
 
 	// Usage statistics (cached, updated periodically)
-	UsageCount   int `gorm:"default:1" json:"usage_count"`   // Number of posts using this sound
+	UsageCount   int `gorm:"default:1" json:"usage_count"`         // Number of posts using this sound
 	TrendingRank int `gorm:"default:0;index" json:"trending_rank"` // For trending sounds discovery
 
 	// Fingerprint data (Shazam-style)
@@ -871,7 +871,7 @@ type Sound struct {
 	FingerprintHash string `gorm:"index;not null" json:"fingerprint_hash"`
 
 	// Status
-	IsPublic   bool `gorm:"default:true" json:"is_public"`   // Can others use this sound
+	IsPublic   bool `gorm:"default:true" json:"is_public"`          // Can others use this sound
 	IsTrending bool `gorm:"default:false;index" json:"is_trending"` // Featured in trending
 
 	// GORM fields
@@ -973,16 +973,16 @@ func (su *SoundUsage) BeforeCreate(tx *gorm.DB) error {
 // OAuthProvider links OAuth accounts to Sidechain users
 // Enables email-based account unification across OAuth providers
 type OAuthProvider struct {
-	ID               string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
-	Provider         string `gorm:"index;not null" json:"provider"` // "google", "discord", etc
-	ProviderUserID   string `gorm:"index;not null" json:"provider_user_id"` // OAuth provider's unique user ID
-	UserID           string `gorm:"index;not null" json:"user_id"`
-	User             User   `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"-"`
+	ID             string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	Provider       string `gorm:"index;not null" json:"provider"`         // "google", "discord", etc
+	ProviderUserID string `gorm:"index;not null" json:"provider_user_id"` // OAuth provider's unique user ID
+	UserID         string `gorm:"index;not null" json:"user_id"`
+	User           User   `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"-"`
 
 	// OAuth tokens for API calls
-	AccessToken      string     `gorm:"type:text" json:"-"`
-	RefreshToken     string     `gorm:"type:text" json:"-"`
-	TokenExpiry      *time.Time `json:"-"`
+	AccessToken  string     `gorm:"type:text" json:"-"`
+	RefreshToken string     `gorm:"type:text" json:"-"`
+	TokenExpiry  *time.Time `json:"-"`
 
 	// Provider's profile picture URL (may differ from User.ProfilePictureURL)
 	ProfilePictureURL string `json:"profile_picture_url,omitempty"`
