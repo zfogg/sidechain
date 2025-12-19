@@ -152,14 +152,24 @@ func (h *Handlers) LikePost(c *gin.Context) {
 		return
 	}
 
+	// If activity_id looks like a database UUID (not a stream activity), look it up
+	activityID := req.ActivityID
+	if activityID != "" && !strings.Contains(activityID, ":") {
+		// It's likely a database post UUID, look up the stream_activity_id
+		var post models.AudioPost
+		if err := database.DB.Select("stream_activity_id").Where("id = ?", activityID).First(&post).Error; err == nil && post.StreamActivityID != "" {
+			activityID = post.StreamActivityID
+		}
+	}
+
 	// Use emoji reaction if provided, otherwise default like
 	if req.Emoji != "" {
-		if err := h.stream.AddReactionWithEmoji("like", userID, req.ActivityID, req.Emoji); err != nil {
+		if err := h.stream.AddReactionWithEmoji("like", userID, activityID, req.Emoji); err != nil {
 			util.RespondInternalError(c, "reaction_failed", "Failed to add emoji reaction")
 			return
 		}
 	} else {
-		if err := h.stream.AddReaction("like", userID, req.ActivityID); err != nil {
+		if err := h.stream.AddReaction("like", userID, activityID); err != nil {
 			util.RespondInternalError(c, "like_failed", "Failed to like post")
 			return
 		}
@@ -237,8 +247,18 @@ func (h *Handlers) UnlikePost(c *gin.Context) {
 		return
 	}
 
+	// If activity_id looks like a database UUID (not a stream activity), look it up
+	activityID := req.ActivityID
+	if activityID != "" && !strings.Contains(activityID, ":") {
+		// It's likely a database post UUID, look up the stream_activity_id
+		var post models.AudioPost
+		if err := database.DB.Select("stream_activity_id").Where("id = ?", activityID).First(&post).Error; err == nil && post.StreamActivityID != "" {
+			activityID = post.StreamActivityID
+		}
+	}
+
 	// Remove the like reaction using activity ID and user ID
-	if err := h.stream.RemoveReactionByActivityAndUser(req.ActivityID, userID, "like"); err != nil {
+	if err := h.stream.RemoveReactionByActivityAndUser(activityID, userID, "like"); err != nil {
 		util.RespondInternalError(c, "unlike_failed", "Failed to unlike post: "+err.Error())
 		return
 	}
@@ -247,7 +267,7 @@ func (h *Handlers) UnlikePost(c *gin.Context) {
 	if h.search != nil {
 		go func() {
 			var post models.AudioPost
-			if err := database.DB.Where("stream_activity_id = ?", req.ActivityID).First(&post).Error; err == nil {
+			if err := database.DB.Where("stream_activity_id = ?", activityID).First(&post).Error; err == nil {
 				var user models.User
 				if err := database.DB.First(&user, "id = ?", post.UserID).Error; err == nil {
 					postDoc := search.AudioPostToSearchDoc(post, user.Username)
