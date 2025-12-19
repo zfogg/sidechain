@@ -79,16 +79,15 @@ void AppStore::submitChallenge(const juce::String &challengeId, const juce::File
   // Submit challenge entry with MIDI data
   // audioUrl is empty since we're submitting MIDI data directly
   // Backend will synthesize audio from MIDI data if needed
-  networkClient->submitMIDIChallengeEntry(
-      challengeId, "", "", midiData, "", [challengeId](Outcome<juce::var> result) {
-        if (result.isOk()) {
-          const auto data = result.getValue();
-          Util::logInfo("AppStore", "Successfully submitted challenge " + challengeId);
-          // Update state if needed
-        } else {
-          Util::logError("AppStore", "Failed to submit challenge: " + result.getError());
-        }
-      });
+  networkClient->submitMIDIChallengeEntry(challengeId, "", "", midiData, "", [challengeId](Outcome<juce::var> result) {
+    if (result.isOk()) {
+      const auto data = result.getValue();
+      Util::logInfo("AppStore", "Successfully submitted challenge " + challengeId);
+      // Update state if needed
+    } else {
+      Util::logError("AppStore", "Failed to submit challenge: " + result.getError());
+    }
+  });
 }
 
 } // namespace Stores

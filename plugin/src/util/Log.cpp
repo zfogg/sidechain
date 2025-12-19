@@ -299,14 +299,14 @@ void logException(std::exception_ptr error, const juce::String &context, const j
       message += ": " + action;
     }
     message += " - " + juce::String(e.what());
-    error(message);
+    Log::error(message);
   } catch (...) {
     juce::String message = context;
     if (!action.isEmpty()) {
       message += ": " + action;
     }
     message += " - unknown error";
-    error(message);
+    Log::error(message);
   }
 }
 

@@ -4,7 +4,19 @@
 namespace Sidechain {
 namespace Stores {
 
-void AppStore::uploadPost(const juce::var & [[maybe_unused]] postData, const juce::File &audioFile) {
+void AppStore::uploadPost(const juce::var &postData, const juce::File &audioFile) {
+  // Extract post metadata if available
+  juce::String postId;
+  if (postData.isObject()) {
+    const auto *obj = postData.getDynamicObject();
+    if (obj) {
+      postId = obj->getProperty("id").toString();
+      if (!postId.isEmpty()) {
+        Util::logInfo("AppStore", "Starting upload for post ID: " + postId);
+      }
+    }
+  }
+
   if (!networkClient) {
     Util::logError("AppStore", "Network client not available");
     sliceManager.getUploadSlice()->dispatch([](UploadState &state) {

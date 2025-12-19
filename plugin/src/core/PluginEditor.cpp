@@ -2307,10 +2307,10 @@ void SidechainAudioProcessorEditor::loadLoginState() {
                         userState.userError);
 
               // Clear the invalid token from persistent storage
-              auto appProperties =
+              auto invalidTokenProperties =
                   std::make_unique<juce::PropertiesFile>(Sidechain::Util::PropertiesFileUtils::getStandardOptions());
-              appProperties->removeValue("authToken");
-              appProperties->save();
+              invalidTokenProperties->removeValue("authToken");
+              invalidTokenProperties->save();
 
           // Also try to clear from secure storage (Release builds)
 #ifdef NDEBUG
@@ -2644,9 +2644,9 @@ void SidechainAudioProcessorEditor::handleWebSocketMessage(const WebSocketClient
     // User started typing a comment
     auto postId = message.getProperty("post_id").toString();
     auto userId = message.getProperty("user_id").toString();
-    auto username = message.getProperty("username").toString();
+    auto typingUsername = message.getProperty("username").toString();
 
-    Log::debug("User typing: " + username + " on post " + postId);
+    Log::debug("User typing: " + typingUsername + " on post " + postId);
     // Typing indicators are handled at the comment thread level
     // This message is logged for debugging and can update comment UI if needed
     break;

@@ -244,7 +244,7 @@ template <typename T> juce::File FileCache<T>::cacheFile(const T &value, const j
     manifest[key] = entry;
 
     if (getCacheSizeBytes() > maxSize) {
-      evictLRU(static_cast<int64_t>(maxSize * 0.8));
+      evictLRU(static_cast<int64_t>(static_cast<double>(maxSize) * 0.8));
     }
 
     saveManifest();

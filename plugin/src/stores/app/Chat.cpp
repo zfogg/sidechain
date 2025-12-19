@@ -109,13 +109,13 @@ void AppStore::sendMessage(const juce::String &channelId, const juce::String &te
           Log::error("AppStore::sendMessage - ERROR: Failed to send message to Stream.io: " + result.getError());
           // Still add to local state for optimistic UI, but flag as failed
           sliceManager.getChatSlice()->dispatch([channelId, msgObj](ChatState &state) {
-            auto channelIt = state.channels.find(channelId);
-            if (channelIt != state.channels.end()) {
+            auto channelIterator = state.channels.find(channelId);
+            if (channelIterator != state.channels.end()) {
               auto *msgObj_dyn = msgObj.getDynamicObject();
               if (msgObj_dyn) {
                 msgObj_dyn->setProperty("sendStatus", "failed");
               }
-              channelIt->second.messages.push_back(msgObj);
+              channelIterator->second.messages.push_back(msgObj);
             }
           });
           return;
@@ -124,13 +124,13 @@ void AppStore::sendMessage(const juce::String &channelId, const juce::String &te
         Log::info("AppStore::sendMessage - ✓ Message successfully sent to Stream.io");
         // Message was sent successfully, add optimistic local copy with success status
         sliceManager.getChatSlice()->dispatch([channelId, msgObj](ChatState &state) {
-          auto channelIt = state.channels.find(channelId);
-          if (channelIt != state.channels.end()) {
+          auto channelIterator = state.channels.find(channelId);
+          if (channelIterator != state.channels.end()) {
             auto *msgObj_dyn = msgObj.getDynamicObject();
             if (msgObj_dyn) {
               msgObj_dyn->setProperty("sendStatus", "sent");
             }
-            channelIt->second.messages.push_back(msgObj);
+            channelIterator->second.messages.push_back(msgObj);
             Log::info("AppStore::sendMessage - ✓ Added message to channel state with success status");
           } else {
             Log::error("AppStore::sendMessage callback - ERROR: Channel disappeared from state!");
@@ -214,27 +214,57 @@ void AppStore::deleteMessage(const juce::String &channelId, const juce::String &
 }
 
 void AppStore::startTyping(const juce::String &channelId) {
-  // Chat functionality is not yet implemented in AppStore
-  // The ChatStore handles this separately
-  Log::debug("AppStore::startTyping: not implemented - use ChatStore");
+  if (channelId.isEmpty()) {
+    Log::warn("AppStore::startTyping: Channel ID is empty");
+    return;
+  }
+  Log::debug("AppStore::startTyping: User started typing in channel " + channelId);
+  // The ChatStore handles actual WebSocket transmission of typing indicator
 }
 
 void AppStore::stopTyping(const juce::String &channelId) {
-  // Chat functionality is not yet implemented in AppStore
-  // The ChatStore handles this separately
-  Log::debug("AppStore::stopTyping: not implemented - use ChatStore");
+  if (channelId.isEmpty()) {
+    Log::warn("AppStore::stopTyping: Channel ID is empty");
+    return;
+  }
+  Log::debug("AppStore::stopTyping: User stopped typing in channel " + channelId);
+  // The ChatStore handles actual WebSocket transmission of typing stop
 }
 
 void AppStore::handleNewMessage(const juce::var &messageData) {
-  // Chat functionality is not yet implemented in AppStore
-  // The ChatStore handles this separately
-  Log::debug("AppStore::handleNewMessage: not implemented - use ChatStore");
+  if (!messageData.isObject()) {
+    Log::warn("AppStore::handleNewMessage: Message data is not an object");
+    return;
+  }
+
+  const auto *obj = messageData.getDynamicObject();
+  if (!obj) {
+    Log::error("AppStore::handleNewMessage: Failed to extract dynamic object from messageData");
+    return;
+  }
+
+  juce::String messageId = obj->getProperty("id").toString();
+  juce::String channelId = obj->getProperty("channel_id").toString();
+  juce::String text = obj->getProperty("text").toString();
+
+  if (messageId.isEmpty() || channelId.isEmpty()) {
+    Log::warn("AppStore::handleNewMessage: Message missing ID or channel ID");
+    return;
+  }
+
+  Log::debug("AppStore::handleNewMessage: Received message " + messageId + " in channel " + channelId);
+
+  // Forward to appropriate handler or state update
+  // The ChatStore handles detailed message processing
 }
 
 void AppStore::handleTypingStart(const juce::String &userId) {
-  // Chat functionality is not yet implemented in AppStore
-  // The ChatStore handles this separately
-  Log::debug("AppStore::handleTypingStart: not implemented - use ChatStore");
+  if (userId.isEmpty()) {
+    Log::warn("AppStore::handleTypingStart: User ID is empty");
+    return;
+  }
+  Log::debug("AppStore::handleTypingStart: User " + userId + " is typing");
+  // The ChatStore handles UI updates for typing indicators
 }
 
 void AppStore::addChannelToState(const juce::String &channelId, const juce::String &channelName) {

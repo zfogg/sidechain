@@ -15,27 +15,26 @@ rxcpp::observable<juce::Array<juce::var>> AppStore::getCommentsObservable(const 
 
     Util::logInfo("AppStore", "Fetching comments for post: " + postId);
 
-    networkClient->getComments(
-        postId, limit, offset, [observer, postId](Outcome<std::pair<juce::var, int>> result) {
-          if (result.isOk()) {
-            auto [commentsData, totalCount] = result.getValue();
-            juce::Array<juce::var> commentsList;
+    networkClient->getComments(postId, limit, offset, [observer, postId](Outcome<std::pair<juce::var, int>> result) {
+      if (result.isOk()) {
+        auto [commentsData, totalCount] = result.getValue();
+        juce::Array<juce::var> commentsList;
 
-            // Parse comments array
-            if (commentsData.isArray()) {
-              for (int i = 0; i < commentsData.size(); ++i) {
-                commentsList.add(commentsData[i]);
-              }
-            }
-
-            Util::logInfo("AppStore", "Loaded " + juce::String(commentsList.size()) + " comments for post: " + postId);
-            observer.on_next(commentsList);
-            observer.on_completed();
-          } else {
-            Util::logError("AppStore", "Failed to get comments: " + result.getError());
-            observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+        // Parse comments array
+        if (commentsData.isArray()) {
+          for (int i = 0; i < commentsData.size(); ++i) {
+            commentsList.add(commentsData[i]);
           }
-        });
+        }
+
+        Util::logInfo("AppStore", "Loaded " + juce::String(commentsList.size()) + " comments for post: " + postId);
+        observer.on_next(commentsList);
+        observer.on_completed();
+      } else {
+        Util::logError("AppStore", "Failed to get comments: " + result.getError());
+        observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+      }
+    });
   });
 }
 
@@ -101,7 +100,7 @@ void AppStore::unlikeComment(const juce::String &commentId) {
 
   Util::logInfo("AppStore", "Unliking comment: " + commentId);
 
-  networkClient->unlikeComment(commentId, [this](Outcome<juce::var> result) {
+  networkClient->unlikeComment(commentId, [](Outcome<juce::var> result) {
     if (result.isOk()) {
       Util::logInfo("AppStore", "Comment unliked successfully");
       // Invalidate all comments caches to refresh like counts

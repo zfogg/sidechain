@@ -40,6 +40,8 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
         -Wno-float-equal                            # Animation comparisons need float equality
         -Wno-switch-enum                            # Not all enum values need explicit handling
         -Wno-shadow                                 # Lambda captures may shadow outer variables
+        -Wno-implicit-int-conversion-on-negation    # JUCE graphics library (already in conditional but add for safety)
+        -Wnan-infinity-disabled                     # JUCE audio processing math
     )
 
     # Conditionally supported flags (check compiler support)
@@ -49,6 +51,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
         "-Wno-missing-designated-field-initializers" # Designated field init (GCC 9.2+, Clang 10+)
         "-Wno-implicit-int-conversion-on-negation"  # JUCE library int8_t conversions (Clang 12+)
         "-Wno-virtual-in-final"                     # JUCE final class virtual methods (Clang 12+)
+        "-Wno-unnecessary-virtual-specifier"        # JUCE VST3 plugin factory virtual methods (Clang 11+)
     )
 
     foreach(flag ${CONDITIONAL_CXX_FLAGS})

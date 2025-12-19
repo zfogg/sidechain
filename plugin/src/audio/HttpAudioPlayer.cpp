@@ -479,7 +479,7 @@ void HttpAudioPlayer::downloadAudio(const juce::String &postId, const juce::Stri
     }
 
     // Back to message thread
-    juce::MessageManager::callAsync([this, postId, data = std::move(data), success]() mutable {
+    juce::MessageManager::callAsync([this, postId, audioData = std::move(data), success]() mutable {
       Log::debug("HttpAudioPlayer: MessageManager callback - post: " + postId +
                  ", success: " + juce::String(success ? "true" : "false"));
 
@@ -487,13 +487,13 @@ void HttpAudioPlayer::downloadAudio(const juce::String &postId, const juce::Stri
 
       if (success && postId == currentPostId) {
         Log::info("HttpAudioPlayer: Download successful - post: " + postId +
-                  ", size: " + juce::String((int)data->getSize()) + " bytes");
+                  ", size: " + juce::String((int)audioData->getSize()) + " bytes");
 
         // Add to cache
-        addToCache(postId, std::make_unique<juce::MemoryBlock>(*data));
+        addToCache(postId, std::make_unique<juce::MemoryBlock>(*audioData));
 
         // Load and play
-        loadFromMemory(postId, *data);
+        loadFromMemory(postId, *audioData);
         play();
       } else if (!success) {
         Log::error("HttpAudioPlayer: Download failed - post: " + postId);

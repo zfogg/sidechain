@@ -250,10 +250,10 @@ void AppStore::toggleLike(const juce::String &postId) {
   }
 
   // Check current like state to determine whether to like or unlike
-  auto state = sliceManager.getPostsSlice()->getState();
+  auto currentPostsState = sliceManager.getPostsSlice()->getState();
   bool isCurrentlyLiked = false;
 
-  for (const auto &[feedType, feedState] : state.feeds) {
+  for (const auto &[feedType, feedState] : currentPostsState.feeds) {
     for (const auto &post : feedState.posts) {
       if (post.id == postId) {
         isCurrentlyLiked = post.isLiked;
@@ -315,10 +315,10 @@ void AppStore::toggleSave(const juce::String &postId) {
   }
 
   // Check current save state
-  auto state = sliceManager.getPostsSlice()->getState();
+  auto currentPostsState = sliceManager.getPostsSlice()->getState();
   bool isCurrentlySaved = false;
 
-  for (const auto &[feedType, feedState] : state.feeds) {
+  for (const auto &[feedType, feedState] : currentPostsState.feeds) {
     for (const auto &post : feedState.posts) {
       if (post.id == postId) {
         isCurrentlySaved = post.isSaved;
@@ -379,10 +379,10 @@ void AppStore::toggleRepost(const juce::String &postId) {
   }
 
   // Check current repost state
-  auto state = sliceManager.getPostsSlice()->getState();
+  auto currentPostsState = sliceManager.getPostsSlice()->getState();
   bool isCurrentlyReposted = false;
 
-  for (const auto &[feedType, feedState] : state.feeds) {
+  for (const auto &[feedType, feedState] : currentPostsState.feeds) {
     for (const auto &post : feedState.posts) {
       if (post.id == postId) {
         isCurrentlyReposted = post.isReposted;
@@ -456,11 +456,11 @@ void AppStore::toggleFollow(const juce::String &postId, bool willFollow) {
   }
 
   // Extract user ID and current follow state from post
-  auto state = sliceManager.getPostsSlice()->getState();
+  auto currentPostsState = sliceManager.getPostsSlice()->getState();
   juce::String userId;
   bool previousFollowState = false;
 
-  for (const auto &[feedType, feedState] : state.feeds) {
+  for (const auto &[feedType, feedState] : currentPostsState.feeds) {
     for (const auto &post : feedState.posts) {
       if (post.id == postId) {
         userId = post.userId;
@@ -670,7 +670,7 @@ void AppStore::handleFetchSuccess(FeedType feedType, const juce::var &data, int 
                " posts ==========");
 
     // Validate response size against requested limit
-    const size_t responseSize = response.posts.size();
+    const size_t responseSize = static_cast<size_t>(response.posts.size());
     const size_t expectedLimit = static_cast<size_t>(limit);
     if (responseSize > expectedLimit) {
       Log::warn("AppStore: Response size (" + juce::String(static_cast<int>(responseSize)) +
@@ -989,10 +989,10 @@ rxcpp::observable<int> AppStore::likePostObservable(const juce::String &postId) 
     }
 
     // Check current like state from app state
-    auto state = sliceManager.getPostsSlice()->getState();
+    auto currentPostsState = sliceManager.getPostsSlice()->getState();
     bool isCurrentlyLiked = false;
 
-    for (const auto &[feedType, feedState] : state.feeds) {
+    for (const auto &[feedType, feedState] : currentPostsState.feeds) {
       for (const auto &post : feedState.posts) {
         if (post.id == postId) {
           isCurrentlyLiked = post.isLiked;
@@ -1081,10 +1081,10 @@ rxcpp::observable<int> AppStore::toggleSaveObservable(const juce::String &postId
     }
 
     // Check current save state
-    auto state = sliceManager.getPostsSlice()->getState();
+    auto currentPostsState = sliceManager.getPostsSlice()->getState();
     bool isCurrentlySaved = false;
 
-    for (const auto &[feedType, feedState] : state.feeds) {
+    for (const auto &[feedType, feedState] : currentPostsState.feeds) {
       for (const auto &post : feedState.posts) {
         if (post.id == postId) {
           isCurrentlySaved = post.isSaved;
