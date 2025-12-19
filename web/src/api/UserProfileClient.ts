@@ -25,11 +25,13 @@ export class UserProfileClient {
   static async updateProfile(updates: ProfileUpdatePayload): Promise<Outcome<any>> {
     const payload: any = {}
 
-    if (updates.username) payload.username = updates.username
-    if (updates.displayName) payload.display_name = updates.displayName
-    if (updates.bio) payload.bio = updates.bio
-    if (updates.website) payload.website = updates.website
-    if (updates.profilePictureUrl) payload.profile_picture_url = updates.profilePictureUrl
+    // Always send fields that are explicitly provided (even if empty string)
+    // This allows clearing fields and ensures backend receives all intended updates
+    if (updates.username !== undefined) payload.username = updates.username
+    if (updates.displayName !== undefined) payload.display_name = updates.displayName
+    if (updates.bio !== undefined) payload.bio = updates.bio
+    if (updates.website !== undefined) payload.website = updates.website
+    if (updates.profilePictureUrl !== undefined) payload.profile_picture_url = updates.profilePictureUrl
 
     return apiClient.put('/users/me', payload)
   }
