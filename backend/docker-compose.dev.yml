@@ -122,15 +122,28 @@ services:
     restart: unless-stopped
     ports:
       - "8088:8088"  # API + Dashboard (combined in gorse-in-one)
+    environment:
+      # Database connection
+      POSTGRES_USER: "${POSTGRES_USER:-sidechain}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-sidechain_dev_password}"
+      POSTGRES_HOST: "${POSTGRES_HOST:-postgres}"
+      POSTGRES_PORT: "${POSTGRES_PORT:-5432}"
+      POSTGRES_GORSE_DB: "${POSTGRES_GORSE_DB:-gorse}"
+      # Redis connection
+      REDIS_URL: "${REDIS_URL:-redis://redis:6379}"
+      # Gorse API key
+      GORSE_API_KEY: "${GORSE_API_KEY:-sidechain_gorse_api_key}"
     volumes:
-      - ./gorse.toml:/etc/gorse/config.toml:ro
+      - ./gorse.toml.template:/etc/gorse/config.toml.template:ro
+      - ./entrypoint-gorse.sh:/entrypoint-gorse.sh:ro
+    entrypoint: ["/bin/bash", "/entrypoint-gorse.sh"]
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "timeout 1 bash -c '</dev/tcp/localhost/8088'"]
+      test: ["CMD-SHELL", "timeout 1 bash -c '</dev/tcp/localhost/8088' 2>/dev/null"]
       interval: 5s
       timeout: 3s
       retries: 5

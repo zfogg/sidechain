@@ -892,6 +892,7 @@ func main() {
 			playlists.POST("", h.CreatePlaylist)
 			playlists.GET("", h.GetPlaylists)
 			playlists.GET("/:id", h.GetPlaylist)
+			playlists.PUT("/:id", h.UpdatePlaylist)
 			playlists.POST("/:id/entries", h.AddPlaylistEntry)
 			playlists.DELETE("/:id/entries/:entry_id", h.DeletePlaylistEntry)
 			playlists.POST("/:id/collaborators", h.AddPlaylistCollaborator)

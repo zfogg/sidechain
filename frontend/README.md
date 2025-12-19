@@ -84,7 +84,6 @@ The frontend is **intentionally minimal**. The VST is where producers spend thei
 frontend/
 ├── src/
 │   ├── components/
-│   │   ├── DeviceClaiming/     # Core claiming flow
 │   │   ├── AudioPlayer/        # Loop preview components
 │   │   ├── UserProfile/        # Profile management
 │   │   └── Layout/             # Shared layout components

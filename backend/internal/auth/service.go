@@ -8,6 +8,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/stream"
 	"golang.org/x/crypto/bcrypt"
@@ -120,8 +121,20 @@ func (s *Service) RegisterNativeUser(req RegisterRequest) (*AuthResponse, error)
 	// Create getstream.io user for social features (feeds + chat)
 	if s.streamClient != nil {
 		if err := s.streamClient.CreateUser(user.StreamUserID, user.Username); err != nil {
-			// Log but don't fail registration - getstream.io user can be created later
-			fmt.Printf("Warning: failed to create getstream.io user: %v\n", err)
+			logger.WarnWithFields("Failed to create Stream.io user during registration", err)
+		}
+
+		// Sync full profile data to Stream.io so chat system has complete user information
+		customData := make(map[string]interface{})
+		customData["display_name"] = user.DisplayName
+		customData["bio"] = user.Bio
+		customData["profile_picture_url"] = user.ProfilePictureURL
+		customData["genre"] = user.Genre
+		customData["daw_preference"] = user.DAWPreference
+		customData["is_private"] = user.IsPrivate
+
+		if err := s.streamClient.UpdateUserProfile(user.StreamUserID, user.Username, customData); err != nil {
+			logger.WarnWithFields("Failed to sync user profile to Stream.io during registration", err)
 		}
 	}
 

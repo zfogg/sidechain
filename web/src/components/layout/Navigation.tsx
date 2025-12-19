@@ -129,18 +129,17 @@ export function Navigation() {
               <span>💬</span>
               Messages
             </Button>
+          </div>
+
+          {/* Right Side - User Menu */}
+          <div className="flex items-center gap-1">
             <Button
               variant={isActive('/notifications') ? 'default' : 'ghost'}
               onClick={() => navigate('/notifications')}
               className="gap-2"
             >
               <span>🔔</span>
-              Notifications
             </Button>
-          </div>
-
-          {/* Right Side - User Menu */}
-          <div className="flex items-center gap-3">
             {/* Search Button */}
             <Button
               variant="ghost"
@@ -172,6 +171,7 @@ export function Navigation() {
                 <span className="text-sm font-medium text-foreground hidden sm:inline">
                   {user.displayName}
                 </span>
+                <span className="hidden sm:inline">{user.username}</span>
               </button>
 
               {/* Settings Button */}

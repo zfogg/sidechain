@@ -137,6 +137,75 @@ func (h *Handlers) GetPlaylist(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"playlist": playlist})
 }
 
+// UpdatePlaylist updates playlist metadata (R.3.1.2.3b)
+// PUT /api/v1/playlists/:id
+func (h *Handlers) UpdatePlaylist(c *gin.Context) {
+	playlistID := c.Param("id")
+	currentUser, ok := util.GetUserFromContext(c)
+	if !ok {
+		return
+	}
+
+	var playlist models.Playlist
+	if err := database.DB.Preload("Owner").First(&playlist, "id = ?", playlistID).Error; err != nil {
+		if util.HandleDBError(c, err, "playlist") {
+			return
+		}
+		util.RespondInternalError(c, "query_failed", "Failed to fetch playlist")
+		return
+	}
+
+	// Only owner can update playlist
+	if playlist.OwnerID != currentUser.ID {
+		util.RespondForbidden(c, "forbidden", "You don't have permission to update this playlist")
+		return
+	}
+
+	var req struct {
+		Name            *string `json:"name"`
+		Description     *string `json:"description"`
+		IsCollaborative *bool   `json:"is_collaborative"`
+		IsPublic        *bool   `json:"is_public"`
+		CoverUrl        *string `json:"cover_url"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		util.RespondBadRequest(c, "invalid_request", err.Error())
+		return
+	}
+
+	// Update only provided fields
+	updates := map[string]interface{}{}
+	if req.Name != nil {
+		updates["name"] = *req.Name
+	}
+	if req.Description != nil {
+		updates["description"] = *req.Description
+	}
+	if req.IsCollaborative != nil {
+		updates["is_collaborative"] = *req.IsCollaborative
+	}
+	if req.IsPublic != nil {
+		updates["is_public"] = *req.IsPublic
+	}
+	if req.CoverUrl != nil {
+		updates["cover_url"] = *req.CoverUrl
+	}
+
+	if err := database.DB.Model(&playlist).Updates(updates).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "update_failed",
+			"message": "Failed to update playlist",
+		})
+		return
+	}
+
+	// Reload with relationships
+	database.DB.Preload("Owner").First(&playlist, playlistID)
+
+	c.JSON(http.StatusOK, gin.H{"playlist": playlist})
+}
+
 // AddPlaylistEntry adds a post to a playlist (R.3.1.2.4)
 // POST /api/v1/playlists/:id/entries
 func (h *Handlers) AddPlaylistEntry(c *gin.Context) {

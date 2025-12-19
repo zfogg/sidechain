@@ -114,7 +114,6 @@ toggleLike({ postId, shouldLike: true })
 **Public Pages:**
 - `Login.tsx` - Email/password + Google/Discord OAuth
 - `AuthCallback.tsx` - OAuth redirect handler
-- `DeviceClaim.tsx` - VST device claiming flow
 
 **Protected Pages:**
 - `Feed.tsx` - Main feed with type selector (Timeline/Global/Trending/ForYou)
