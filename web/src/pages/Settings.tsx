@@ -1,11 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useUserStore } from '@/stores/useUserStore'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Avatar } from '@/components/ui/avatar'
 import { FollowRequestsSection } from '@/components/social/FollowRequestsSection'
+import { UserProfileClient } from '@/api/UserProfileClient'
 
 type SettingTab = 'profile' | 'privacy' | 'audio' | 'notifications' | 'appearance' | 'account'
 
@@ -19,6 +21,8 @@ export function Settings() {
   const [username, setUsername] = useState(user?.username || '')
   const [displayName, setDisplayName] = useState(user?.displayName || '')
   const [bio, setBio] = useState(user?.bio || '')
+  const [profilePictureUrl, setProfilePictureUrl] = useState(user?.profilePictureUrl || '')
+  const [isUploadingPicture, setIsUploadingPicture] = useState(false)
   const [profileError, setProfileError] = useState('')
   const [profileSuccess, setProfileSuccess] = useState('')
   const [socialLinks, setSocialLinks] = useState({
@@ -26,6 +30,7 @@ export function Settings() {
     instagram: user?.socialLinks?.instagram || '',
     website: user?.socialLinks?.website || '',
   })
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Sync form state with user store when it updates (handles async session restore)
   useEffect(() => {
@@ -33,6 +38,7 @@ export function Settings() {
       setUsername(user.username || '')
       setDisplayName(user.displayName || '')
       setBio(user.bio || '')
+      setProfilePictureUrl(user.profilePictureUrl || '')
       setSocialLinks({
         twitter: user.socialLinks?.twitter || '',
         instagram: user.socialLinks?.instagram || '',
@@ -65,6 +71,55 @@ export function Settings() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark')
   const [fontSize, setFontSize] = useState<'small' | 'normal' | 'large'>('normal')
 
+  const handlePictureChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setProfileError('Please select an image file')
+      return
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      setProfileError('Image must be less than 5MB')
+      return
+    }
+
+    setIsUploadingPicture(true)
+    setProfileError('')
+    setProfileSuccess('')
+
+    try {
+      const result = await UserProfileClient.uploadProfilePicture(file)
+
+      if (result.isOk()) {
+        const newUrl = result.getValue().url
+        setProfilePictureUrl(newUrl)
+        
+        // Update user store immediately
+        useUserStore.setState((state) => ({
+          user: state.user
+            ? {
+                ...state.user,
+                profilePictureUrl: newUrl,
+              }
+            : null,
+        }))
+
+        setProfileSuccess('Profile picture updated successfully!')
+        setTimeout(() => setProfileSuccess(''), 3000)
+      } else {
+        setProfileError(result.getError() || 'Failed to upload profile picture')
+      }
+    } catch (error) {
+      setProfileError(error instanceof Error ? error.message : 'Failed to upload profile picture')
+    } finally {
+      setIsUploadingPicture(false)
+    }
+  }
+
   const handleSaveProfile = async () => {
     setIsSaving(true)
     setProfileError('')
@@ -75,6 +130,7 @@ export function Settings() {
         username: username.trim(),
         displayName: displayName.trim(),
         bio: bio.trim(),
+        profilePictureUrl,
       })
       if (result.isOk()) {
         // Fetch fresh user data from server to ensure everything is in sync
@@ -186,6 +242,38 @@ export function Settings() {
                       {profileSuccess}
                     </div>
                   )}
+
+                  {/* Profile Picture */}
+                  <div className="flex flex-col items-center gap-4 pb-6 border-b border-border/30">
+                    <Avatar 
+                      src={profilePictureUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id || 'default'}`} 
+                      alt={displayName || 'Profile picture'} 
+                      size="xl" 
+                    />
+                    <div className="flex flex-col items-center gap-2">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePictureChange}
+                        className="hidden"
+                        disabled={isUploadingPicture}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isUploadingPicture}
+                        className="h-9 px-4 bg-bg-secondary/80 border-border/50 text-foreground hover:bg-bg-secondary"
+                      >
+                        {isUploadingPicture ? 'Uploading...' : profilePictureUrl ? 'Change Picture' : 'Upload Picture'}
+                      </Button>
+                      <p className="text-xs text-muted-foreground text-center">
+                        JPG, PNG or GIF. Max 5MB.
+                      </p>
+                    </div>
+                  </div>
 
                   {/* Username */}
                   <div className="space-y-3">

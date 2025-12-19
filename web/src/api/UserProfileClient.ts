@@ -44,7 +44,7 @@ export class UserProfileClient {
     formData.append('type', 'profile_picture')
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/users/profile/picture`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/users/upload-profile-picture`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
