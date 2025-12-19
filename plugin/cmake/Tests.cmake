@@ -62,8 +62,7 @@ if(SIDECHAIN_BUILD_TESTS)
 
     # Link against modular libraries instead of duplicating sources
     target_link_libraries(SidechainTestLib PUBLIC
-        SidechainUtil
-        SidechainModels
+        SidechainCore
         SidechainNetwork
         # Use test audio lib for subset of audio sources
         juce::juce_audio_basics

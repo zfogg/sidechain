@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
 #include "models/FeedPost.h"
+#include "models/FeedResponse.h"
 // FeedDataManager.h removed - class no longer exists
 
 using Catch::Approx;
