@@ -193,9 +193,6 @@ void HiddenSynth::drawUnlockAnimation(juce::Graphics &g) {
 }
 
 void HiddenSynth::drawSynthUI(juce::Graphics &g) {
-  // Section backgrounds
-  auto bounds = getLocalBounds();
-
   // Oscillator section
   g.setColour(juce::Colour(0xff252540));
   g.fillRoundedRectangle(10.0f, 50.0f, 200.0f, 60.0f, 5.0f);

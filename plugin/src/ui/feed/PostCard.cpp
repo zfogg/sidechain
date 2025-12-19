@@ -83,23 +83,23 @@ void PostCard::setPost(const FeedPost &newPost) {
   avatarImage = juce::Image(); // Clear previous image
   if (post.userAvatarUrl.isNotEmpty() && appStore) {
     Log::debug("PostCard: Loading avatar from URL: " + post.userAvatarUrl);
-    juce::Component::SafePointer<PostCard> safeThis(this);
+    juce::Component::SafePointer<PostCard> safeThisAvatar(this);
     appStore->loadImageObservable(post.userAvatarUrl)
         .subscribe(
-            [safeThis](const juce::Image &image) {
-              if (safeThis == nullptr)
+            [safeThisAvatar](const juce::Image &image) {
+              if (safeThisAvatar == nullptr)
                 return;
               if (image.isValid()) {
                 Log::debug("PostCard: Avatar image loaded successfully - size: " + juce::String(image.getWidth()) +
                            "x" + juce::String(image.getHeight()));
-                safeThis->avatarImage = image;
-                safeThis->repaint();
+                safeThisAvatar->avatarImage = image;
+                safeThisAvatar->repaint();
               } else {
                 Log::warn("PostCard: Avatar image is invalid");
               }
             },
-            [safeThis](std::exception_ptr) {
-              if (safeThis == nullptr)
+            [safeThisAvatar](std::exception_ptr) {
+              if (safeThisAvatar == nullptr)
                 return;
               Log::warn("PostCard: Failed to load avatar image");
             });

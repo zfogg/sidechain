@@ -2,7 +2,6 @@
 #include "../../network/NetworkClient.h"
 #include "../../stores/AppStore.h"
 
-#include "../../util/Async.h"
 #include "../../util/Colors.h"
 #include "../../util/Json.h"
 #include "../../util/Log.h"
@@ -11,11 +10,6 @@
 #include "../../util/UIHelpers.h"
 
 using namespace Sidechain::Stores;
-
-// ==============================================================================
-// Forward declarations
-// ==============================================================================
-static juce::Image loadImageFromURL(const juce::String &urlStr);
 
 // ==============================================================================
 // FollowUserRow Implementation
@@ -441,25 +435,4 @@ void FollowersList::resized() {
   viewport->setBounds(bounds);
   contentContainer->setSize(viewport->getWidth() - 10, contentContainer->getHeight());
   updateUsersList();
-}
-
-// ==============================================================================
-// Helper functions
-// ==============================================================================
-
-
-static juce::Image loadImageFromURL(const juce::String &urlStr) {
-  try {
-    juce::URL url(urlStr);
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    auto inputStream = std::unique_ptr<juce::InputStream>(url.createInputStream(false));
-#pragma clang diagnostic pop
-    if (inputStream == nullptr)
-      return juce::Image();
-    return juce::ImageFileFormat::loadFrom(*inputStream);
-  } catch (const std::exception &e) {
-    Log::error("FollowersList: Failed to load image from URL: " + juce::String(e.what()));
-    return juce::Image();
-  }
 }

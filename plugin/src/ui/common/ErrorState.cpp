@@ -49,7 +49,6 @@ void ErrorState::paint(juce::Graphics &g) {
     int iconSize = 48;
     int spacing = 16;
     int buttonHeight = 40;
-    int buttonWidth = 140;
 
     // Calculate content height
     int contentHeight = 0;

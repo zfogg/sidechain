@@ -71,7 +71,7 @@ void Upload::subscribeToAppStore() {
 
       if (isUploading) {
         safeThis->uploadState = Upload::UploadState::Uploading;
-        safeThis->uploadProgress = progress;
+        safeThis->uploadProgress = static_cast<float>(progress);
         safeThis->errorMessage = "";
       } else if (!errorMsg.isEmpty()) {
         safeThis->uploadState = Upload::UploadState::Error;

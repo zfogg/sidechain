@@ -140,7 +140,7 @@ private:
   void drawSuggestedSection(juce::Graphics &g, juce::Rectangle<int> &bounds);
   void drawSimilarSection(juce::Graphics &g, juce::Rectangle<int> &bounds);
   void drawRecommendedSection(juce::Graphics &g, juce::Rectangle<int> &bounds);
-  void drawGenreChips(juce::Graphics &g, juce::Rectangle<int> &bounds, const juce::StringArray &availableGenres);
+  void drawGenreChips(juce::Graphics &g, juce::Rectangle<int> &bounds, const juce::StringArray &genres);
   void drawSearchResults(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawLoadingState(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawEmptyState(juce::Graphics &g, juce::Rectangle<int> bounds, const juce::String &message);

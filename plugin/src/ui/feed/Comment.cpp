@@ -4,7 +4,6 @@
 
 #include "../../ui/common/ToastNotification.h"
 #include "../../ui/feed/EmojiReactionsPanel.h"
-#include "../../util/Async.h"
 #include "../../util/Emoji.h"
 #include "../../util/HoverState.h"
 #include "../../util/Log.h"
@@ -1201,54 +1200,3 @@ void CommentsPanel::insertEmoji(const juce::String &emoji) {
 
 // ==============================================================================
 // Helper functions for image loading and avatar rendering
-
-static juce::Image loadImageFromURL(const juce::String &urlStr) {
-  if (urlStr.isEmpty()) {
-    return juce::Image();
-  }
-
-  try {
-    juce::URL url(urlStr);
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    auto inputStream = std::unique_ptr<juce::InputStream>(url.createInputStream(false));
-#pragma clang diagnostic pop
-
-    if (inputStream == nullptr) {
-      Log::error("loadImageFromURL: Failed to create input stream from URL: " + urlStr);
-      return juce::Image();
-    }
-
-    auto image = juce::ImageFileFormat::loadFrom(*inputStream);
-    if (!image.isValid()) {
-      Log::error("loadImageFromURL: Failed to parse image from URL: " + urlStr);
-      return juce::Image();
-    }
-
-    Log::debug("loadImageFromURL: Successfully loaded image from: " + urlStr);
-    return image;
-  } catch (const std::exception &e) {
-    Log::error("loadImageFromURL: Exception loading image from URL: " + juce::String(e.what()));
-    return juce::Image();
-  }
-}
-
-static juce::String getInitialsFromName(const juce::String &name) {
-  if (name.isEmpty()) {
-    return "?";
-  }
-
-  juce::StringArray parts;
-  parts.addTokens(name, " ", "");
-
-  if (parts.size() >= 2) {
-    // Get first letter of first and last name
-    return (parts[0].substring(0, 1) + parts[parts.size() - 1].substring(0, 1)).toUpperCase();
-  } else if (parts.size() == 1) {
-    // Get first two letters of single word name
-    juce::String initials = parts[0].substring(0, 2).toUpperCase();
-    return initials.length() > 0 ? initials : "?";
-  }
-
-  return "?";
-}

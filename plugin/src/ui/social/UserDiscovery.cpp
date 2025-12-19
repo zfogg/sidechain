@@ -347,9 +347,8 @@ void UserDiscovery::drawRecommendedSection(juce::Graphics &g, juce::Rectangle<in
   }
 }
 
-void UserDiscovery::drawGenreChips(juce::Graphics &g, juce::Rectangle<int> &bounds,
-                                   const juce::StringArray &availableGenres) {
-  if (availableGenres.isEmpty())
+void UserDiscovery::drawGenreChips(juce::Graphics &g, juce::Rectangle<int> &bounds, const juce::StringArray &genres) {
+  if (genres.isEmpty())
     return;
 
   auto chipArea = bounds.removeFromTop(GENRE_CHIP_HEIGHT + 16);
@@ -361,8 +360,8 @@ void UserDiscovery::drawGenreChips(juce::Graphics &g, juce::Rectangle<int> &boun
   int y = chipArea.getY();
   int maxWidth = chipArea.getRight() - PADDING;
 
-  for (int i = 0; i < availableGenres.size(); ++i) {
-    auto genre = availableGenres[i];
+  for (int i = 0; i < genres.size(); ++i) {
+    auto genre = genres[i];
     juce::GlyphArrangement glyphs;
     glyphs.addLineOfText(g.getCurrentFont(), genre, 0, 0);
     auto textWidth = static_cast<int>(glyphs.getBoundingBox(0, -1, true).getWidth());

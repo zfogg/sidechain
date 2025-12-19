@@ -3,10 +3,7 @@
 #include "../../security/InputValidation.h"
 #include "../../stores/AppStore.h"
 #include "../../util/Colors.h"
-#include "../../util/Constants.h"
-#include "../../util/Emoji.h"
 #include "../../util/Log.h"
-#include "../../util/Result.h"
 
 // ==============================================================================
 Auth::Auth(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
@@ -393,7 +390,8 @@ void Auth::paint(juce::Graphics &g) {
     const float angleOffset = static_cast<float>(oauthAnimationFrame) * 0.15f;
 
     for (int i = 0; i < numDots; ++i) {
-      float angle = angleOffset + (i * juce::MathConstants<float>::twoPi / static_cast<float>(numDots));
+      float angle =
+          angleOffset + (static_cast<float>(i) * juce::MathConstants<float>::twoPi / static_cast<float>(numDots));
       float x = static_cast<float>(spinnerArea.getCentreX()) + std::cos(angle) * spinnerRadius;
       float y = static_cast<float>(spinnerArea.getCentreY()) + std::sin(angle) * spinnerRadius;
 

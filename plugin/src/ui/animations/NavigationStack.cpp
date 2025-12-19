@@ -93,7 +93,7 @@ std::unique_ptr<juce::Component> NavigationStack::pop(TransitionType transition,
 
       if (transitionsEnabled_) {
         applyEntryTransition(nextView, TransitionType::FadeIn, durationMs / 2,
-                             [this, onComplete, nextView, currentView](juce::Component *nv, juce::Component *pv) {
+                             [this, onComplete, nextView, currentView](juce::Component *, juce::Component *) {
                                if (onComplete) {
                                  onComplete(nextView, currentView);
                                }
@@ -132,7 +132,7 @@ void NavigationStack::replace(std::unique_ptr<juce::Component> view, TransitionT
   auto viewPtr = std::make_shared<std::unique_ptr<juce::Component>>(std::move(view));
 
   pop(TransitionType::FadeOut, durationMs / 2,
-      [this, viewPtr, transition, durationMs, onComplete](juce::Component *newView, juce::Component *prevView) {
+      [this, viewPtr, transition, durationMs, onComplete](juce::Component *, juce::Component *) {
         // Push new view after pop completes
         if (viewPtr && *viewPtr) {
           push(std::move(*viewPtr), transition, durationMs, onComplete);
