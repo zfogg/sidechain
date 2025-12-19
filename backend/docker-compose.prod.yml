@@ -123,12 +123,20 @@ services:
     mem_limit: 256m
     memswap_limit: 256m
     environment:
-      - POSTGRES_USER=${POSTGRES_USER:-sidechain}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      # Database connection
+      POSTGRES_USER: "${POSTGRES_USER:-sidechain}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-sidechain_dev_password}"
+      POSTGRES_HOST: "${POSTGRES_HOST:-postgres}"
+      POSTGRES_PORT: "${POSTGRES_PORT:-5432}"
+      POSTGRES_GORSE_DB: "${POSTGRES_GORSE_DB:-gorse}"
+      # Redis connection
+      REDIS_URL: "${REDIS_URL:-redis://redis:6379}"
+      # Gorse API key
+      GORSE_API_KEY: "${GORSE_API_KEY:-sidechain_gorse_api_key}"
     volumes:
-      - ./gorse.toml:/tmp/gorse.toml.template:ro
-      - ./gorse-entrypoint.sh:/usr/local/bin/gorse-entrypoint.sh:ro
-    entrypoint: /usr/local/bin/gorse-entrypoint.sh
+      - ./gorse.toml.template:/etc/gorse/config.toml.template:ro
+      - ./entrypoint-gorse.sh:/entrypoint-gorse.sh:ro
+    entrypoint: ["/bin/bash", "/entrypoint-gorse.sh"]
     depends_on:
       postgres:
         condition: service_healthy
@@ -243,6 +251,10 @@ volumes:
   caddy_data:
     driver: local
   caddy_config:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
     driver: local
 
 networks:
