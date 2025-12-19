@@ -370,6 +370,7 @@ func (h *Handlers) GetUserProfile(c *gin.Context) {
 		"post_count":                 postCount,
 		"is_following":               isFollowing,
 		"is_followed_by":             isFollowedBy,
+		"is_own_profile":             currentUserID == user.ID,
 		"is_private":                 user.IsPrivate,
 		"is_muted":                   isMuted,
 		"follow_request_status":      followRequestStatus,
@@ -940,7 +941,7 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 		streamAvatarURL = user.OAuthProfilePictureURL
 	}
 
-	// Enrich activities with is_following state
+	// Enrich activities with is_following state and user avatar
 	// All posts from Stream.io are by the same user (profile owner), so apply to all
 	log.Printf("GetUserPosts: Enriching %d activities from Stream.io with is_following=%v", len(activities), isFollowingUser)
 	enrichedActivities := make([]gin.H, len(activities))
@@ -954,6 +955,12 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 		// Add is_following to the activity
 		activityMap["is_following"] = isFollowingUser
 		activityMap["is_own_post"] = currentUserID == user.ID
+
+		// Add user avatar URL (required for PostCard in frontend)
+		// Frontend looks for both user_avatar_url and profile_picture_url
+		activityMap["user_avatar_url"] = streamAvatarURL
+		activityMap["profile_picture_url"] = user.ProfilePictureURL
+
 		enrichedActivities[i] = activityMap
 	}
 
