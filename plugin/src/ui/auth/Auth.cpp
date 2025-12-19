@@ -4,6 +4,7 @@
 #include "../../stores/AppStore.h"
 #include "../../util/Colors.h"
 #include "../../util/Constants.h"
+#include "../../util/Emoji.h"
 #include "../../util/Log.h"
 #include "../../util/Result.h"
 

@@ -158,3 +158,48 @@ void NetworkClient::getFollowing(const juce::String &userId, int limit, int offs
     });
   });
 }
+
+void NetworkClient::getUser(const juce::String &userId, ResponseCallback callback) {
+  if (userId.isEmpty()) {
+    if (callback)
+      callback(Outcome<juce::var>::error("User ID is empty"));
+    return;
+  }
+
+  if (callback == nullptr)
+    return;
+
+  juce::String endpoint = buildApiPath("/users") + "/" + userId + "/profile";
+
+  Async::runVoid([this, endpoint, callback]() {
+    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+
+    juce::MessageManager::callAsync([callback, result]() {
+      auto outcome = requestResultToOutcome(result);
+      callback(outcome);
+    });
+  });
+}
+
+void NetworkClient::getUserPosts(const juce::String &userId, int limit, int offset, ResponseCallback callback) {
+  if (userId.isEmpty()) {
+    if (callback)
+      callback(Outcome<juce::var>::error("User ID is empty"));
+    return;
+  }
+
+  if (callback == nullptr)
+    return;
+
+  juce::String endpoint =
+      buildApiPath("/users") + "/" + userId + "/posts?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
+
+  Async::runVoid([this, endpoint, callback]() {
+    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+
+    juce::MessageManager::callAsync([callback, result]() {
+      auto outcome = requestResultToOutcome(result);
+      callback(outcome);
+    });
+  });
+}

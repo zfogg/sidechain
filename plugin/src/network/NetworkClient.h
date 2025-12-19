@@ -832,6 +832,20 @@ public:
    */
   void getFollowing(const juce::String &userId, int limit = 20, int offset = 0, ResponseCallback callback = nullptr);
 
+  /** Get a user's profile data
+   * @param userId The user ID to fetch profile for
+   * @param callback Called with user profile data or error
+   */
+  void getUser(const juce::String &userId, ResponseCallback callback = nullptr);
+
+  /** Get a user's posts
+   * @param userId The user ID
+   * @param limit Maximum number of results
+   * @param offset Pagination offset
+   * @param callback Called with posts array or error
+   */
+  void getUserPosts(const juce::String &userId, int limit = 20, int offset = 0, ResponseCallback callback = nullptr);
+
   // ==========================================================================
   // Comment operations
   using CommentCallback = std::function<void(Outcome<juce::var> comment)>;

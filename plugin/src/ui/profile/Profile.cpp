@@ -3,8 +3,8 @@
 #include "../../network/StreamChatClient.h"
 #include "../../stores/AppStore.h"
 
-#include "../../util/Async.h"
 #include "../../util/Colors.h"
+#include "../../util/Emoji.h"
 #include "../../util/Json.h"
 #include "../../util/Log.h"
 #include "../../util/Result.h"
@@ -698,17 +698,17 @@ void Profile::drawSocialLinks(juce::Graphics &g, juce::Rectangle<int> bounds) {
 
     juce::String icon;
     if (platform.containsIgnoreCase("instagram"))
-      icon = "📷";
+      icon = Emoji::CAMERA;
     else if (platform.containsIgnoreCase("soundcloud"))
-      icon = "☁";
+      icon = Emoji::CLOUD;
     else if (platform.containsIgnoreCase("spotify"))
-      icon = "🎵";
+      icon = Emoji::MUSICAL_NOTE;
     else if (platform.containsIgnoreCase("twitter") || platform.containsIgnoreCase("x"))
-      icon = "𝕏";
+      icon = "𝕏"; // Twitter X - no emoji equivalent in Emoji.h
     else if (platform.containsIgnoreCase("youtube"))
-      icon = "▶";
+      icon = Emoji::PLAY_BUTTON;
     else
-      icon = "🔗";
+      icon = Emoji::LINK;
 
     g.drawText(icon, x, bounds.getY(), iconSize, bounds.getHeight(), juce::Justification::centred);
     x += iconSize + spacing;
@@ -1128,10 +1128,9 @@ void Profile::fetchProfile(const juce::String &userId) {
     return;
   }
 
-  juce::String endpoint = "/api/v1/users/" + safeUserId + "/profile";
-  Log::info("Profile::fetchProfile: Fetching profile from: " + endpoint);
+  Log::info("Profile::fetchProfile: Fetching profile for userId: " + safeUserId);
 
-  networkClient->get(endpoint, [this, userId](Outcome<juce::var> result) {
+  networkClient->getUser(safeUserId, [this, userId](Outcome<juce::var> result) {
     juce::MessageManager::callAsync([this, result, userId]() {
       isLoading = false;
 
@@ -1174,10 +1173,9 @@ void Profile::fetchUserPosts(const juce::String &userId) {
     return;
   }
 
-  juce::String endpoint = "/api/v1/users/" + userId + "/posts?limit=20";
-  Log::info("Profile::fetchUserPosts: Fetching posts from: " + endpoint);
+  Log::info("Profile::fetchUserPosts: Fetching posts for userId: " + userId);
 
-  networkClient->get(endpoint, [this, userId](Outcome<juce::var> result) {
+  networkClient->getUserPosts(userId, 20, 0, [this, userId](Outcome<juce::var> result) {
     juce::MessageManager::callAsync([this, result, userId]() {
       if (result.isOk() && result.getValue().isObject()) {
         auto response = result.getValue();
@@ -1237,29 +1235,8 @@ void Profile::handleFollowToggle() {
   updatePostCards();
   repaint();
 
-  // TODO: Update AppStore to sync all posts by this user
-  auto callback = [this, wasFollowing](Outcome<juce::var> result) {
-    juce::MessageManager::callAsync([this, result, wasFollowing]() {
-      if (result.isError()) {
-        Log::error("Profile::handleFollowToggle: Follow toggle failed, reverting");
-        // Revert on failure
-        profile.isFollowing = wasFollowing;
-        profile.followerCount += wasFollowing ? 1 : -1;
-        for (auto &post : userPosts) {
-          post.isFollowing = wasFollowing;
-        }
-        updatePostCards();
-        repaint();
-      } else {
-        Log::info("Profile::handleFollowToggle: Follow toggle successful");
-        if (onFollowToggled) {
-          onFollowToggled(profile.id);
-        }
-      }
-    });
-  };
-
-  // Use AppStore to handle follow/unfollow with cache invalidation
+  // Use AppStore to handle follow/unfollow via the profile slice
+  // This ensures proper cache invalidation and feed updates
   auto &appStore = AppStore::getInstance();
 
   if (willFollow) {
@@ -1684,7 +1661,6 @@ static juce::Image loadImageFromURL(const juce::String &urlStr) {
     return juce::Image();
   }
 }
-
 
 // ==============================================================================
 // AppStoreComponent overrides
