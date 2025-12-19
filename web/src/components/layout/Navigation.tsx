@@ -164,13 +164,11 @@ export function Navigation() {
                 className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-bg-secondary transition-colors"
                 title="Your Profile"
               >
-                {user.profilePictureUrl && (
-                  <img
-                    src={user.profilePictureUrl}
-                    alt={user.displayName}
-                    className="w-6 h-6 rounded-full"
-                  />
-                )}
+                <img
+                  src={user.profilePictureUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`}
+                  alt={user.displayName}
+                  className="w-6 h-6 rounded-full"
+                />
                 <span className="text-sm font-medium text-foreground hidden sm:inline">
                   {user.displayName}
                 </span>
