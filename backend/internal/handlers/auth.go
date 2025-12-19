@@ -304,16 +304,29 @@ func (h *AuthHandlers) GoogleCallback(c *gin.Context) {
 		sessionID = stateParam
 	}
 
-	// If redirect_uri provided (web flow), redirect back with token and user
+	// Generate a new session ID to securely store the auth response
+	// This prevents exposing tokens in redirect URLs (SEC-5)
+	secureSessionID := "oauth_" + uuid.New().String()
+
+	// Store session for secure retrieval (expires in 5 minutes)
+	// Used by both VST and web flows to prevent token exposure in URLs
+	h.oauthMutex.Lock()
+	h.oauthSessions[secureSessionID] = &OAuthSession{
+		AuthResponse: authResp,
+		CreatedAt:    time.Now(),
+		ExpiresAt:    time.Now().Add(5 * time.Minute),
+	}
+	h.oauthMutex.Unlock()
+
+	// If redirect_uri provided (web flow), redirect back with only session ID
+	// Client must POST to /api/v1/auth/oauth-token to exchange session ID for token
 	if redirectURI != "" {
-		userJSON, _ := json.Marshal(authResp.User)
-		userJSONEncoded := url.QueryEscape(string(userJSON))
-		redirectURL := fmt.Sprintf("%s?token=%s&user=%s", redirectURI, authResp.Token, userJSONEncoded)
+		redirectURL := fmt.Sprintf("%s?session_id=%s", redirectURI, url.QueryEscape(secureSessionID))
 		c.Redirect(http.StatusTemporaryRedirect, redirectURL)
 		return
 	}
 
-	// VST flow: Store session for polling (expires in 5 minutes)
+	// VST flow: Store legacy session ID if provided
 	if sessionID != "" {
 		h.oauthMutex.Lock()
 		h.oauthSessions[sessionID] = &OAuthSession{
@@ -458,16 +471,29 @@ func (h *AuthHandlers) DiscordCallback(c *gin.Context) {
 		sessionID = stateParam
 	}
 
-	// If redirect_uri provided (web flow), redirect back with token and user
+	// Generate a new session ID to securely store the auth response
+	// This prevents exposing tokens in redirect URLs (SEC-5)
+	secureSessionID := "oauth_" + uuid.New().String()
+
+	// Store session for secure retrieval (expires in 5 minutes)
+	// Used by both VST and web flows to prevent token exposure in URLs
+	h.oauthMutex.Lock()
+	h.oauthSessions[secureSessionID] = &OAuthSession{
+		AuthResponse: authResp,
+		CreatedAt:    time.Now(),
+		ExpiresAt:    time.Now().Add(5 * time.Minute),
+	}
+	h.oauthMutex.Unlock()
+
+	// If redirect_uri provided (web flow), redirect back with only session ID
+	// Client must POST to /api/v1/auth/oauth-token to exchange session ID for token
 	if redirectURI != "" {
-		userJSON, _ := json.Marshal(authResp.User)
-		userJSONEncoded := url.QueryEscape(string(userJSON))
-		redirectURL := fmt.Sprintf("%s?token=%s&user=%s", redirectURI, authResp.Token, userJSONEncoded)
+		redirectURL := fmt.Sprintf("%s?session_id=%s", redirectURI, url.QueryEscape(secureSessionID))
 		c.Redirect(http.StatusTemporaryRedirect, redirectURL)
 		return
 	}
 
-	// VST flow: Store session for polling (expires in 5 minutes)
+	// VST flow: Store legacy session ID if provided
 	if sessionID != "" {
 		h.oauthMutex.Lock()
 		h.oauthSessions[sessionID] = &OAuthSession{
@@ -976,6 +1002,59 @@ func (h *AuthHandlers) ResetPassword(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "password_reset_successful",
+	})
+}
+
+// ExchangeOAuthToken exchanges an OAuth session ID for the authentication token
+// POST /api/v1/auth/oauth-token
+// This prevents exposing tokens in redirect URLs by using a secure session-based exchange (SEC-5)
+func (h *AuthHandlers) ExchangeOAuthToken(c *gin.Context) {
+	var req struct {
+		SessionID string `json:"session_id" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "invalid_request",
+			"message": "session_id is required",
+		})
+		return
+	}
+
+	// Retrieve the session from the in-memory store
+	h.oauthMutex.RLock()
+	session, exists := h.oauthSessions[req.SessionID]
+	h.oauthMutex.RUnlock()
+
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "session_not_found",
+		})
+		return
+	}
+
+	// Check if session has expired
+	if time.Now().After(session.ExpiresAt) {
+		// Clean up expired session
+		h.oauthMutex.Lock()
+		delete(h.oauthSessions, req.SessionID)
+		h.oauthMutex.Unlock()
+
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "session_expired",
+		})
+		return
+	}
+
+	// Clean up the session after use (one-time use)
+	h.oauthMutex.Lock()
+	delete(h.oauthSessions, req.SessionID)
+	h.oauthMutex.Unlock()
+
+	// Return the auth response with token
+	c.JSON(http.StatusOK, gin.H{
+		"token": session.AuthResponse.Token,
+		"user":  session.AuthResponse.User,
 	})
 }
 

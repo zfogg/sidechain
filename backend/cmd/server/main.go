@@ -457,10 +457,39 @@ func main() {
 	if allowedOrigins != "" {
 		// Parse comma-separated origins
 		corsConfig.AllowOrigins = strings.FieldsFunc(allowedOrigins, func(r rune) bool { return r == ',' })
-		// Trim whitespace from each origin
-		for i, origin := range corsConfig.AllowOrigins {
-			corsConfig.AllowOrigins[i] = strings.TrimSpace(origin)
+		// Trim whitespace from each origin and validate
+		validOrigins := []string{}
+		for _, origin := range corsConfig.AllowOrigins {
+			origin = strings.TrimSpace(origin)
+
+			// Security: Reject dangerous CORS patterns
+			if origin == "*" {
+				logger.Log.Warn("⚠️ CORS misconfiguration: wildcard origin '*' not allowed for security",
+					zap.String("env_var", "ALLOWED_ORIGINS"),
+				)
+				continue
+			}
+			if strings.Contains(origin, "*") {
+				logger.Log.Warn("⚠️ CORS misconfiguration: origins with wildcards not allowed",
+					zap.String("rejected_origin", origin),
+				)
+				continue
+			}
+			if !strings.HasPrefix(origin, "http://") && !strings.HasPrefix(origin, "https://") {
+				logger.Log.Warn("⚠️ CORS misconfiguration: origin must use http:// or https://",
+					zap.String("rejected_origin", origin),
+				)
+				continue
+			}
+			validOrigins = append(validOrigins, origin)
 		}
+
+		// If all origins were rejected, fall back to safe defaults
+		if len(validOrigins) == 0 {
+			logger.Log.Error("⚠️ CORS configuration had no valid origins, using safe defaults")
+			validOrigins = []string{"https://www.sidechain.live", "https://sidechain.live"}
+		}
+		corsConfig.AllowOrigins = validOrigins
 	} else {
 		// Default: allow frontend and localhost for development
 		if os.Getenv("ENVIRONMENT") == "development" || os.Getenv("ENVIRONMENT") == "" {
@@ -511,8 +540,12 @@ func main() {
 		})
 	})
 
-	// Prometheus metrics endpoint
-	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
+	// Prometheus metrics endpoint (admin only - requires authentication)
+	r.GET("/metrics",
+		authHandlers.AuthMiddleware(),
+		middleware.RequireAdmin(),
+		gin.WrapH(promhttp.Handler()),
+	)
 
 	// API routes
 	api := r.Group("/api/v1")
@@ -539,6 +572,9 @@ func main() {
 
 			// OAuth polling endpoint for plugin flow
 			authGroup.GET("/oauth/poll", authHandlers.OAuthPoll)
+
+			// OAuth token exchange endpoint for web flow (secure session-based token retrieval - SEC-5)
+			authGroup.POST("/oauth-token", authHandlers.ExchangeOAuthToken)
 
 			// User info (protected)
 			authGroup.GET("/me", authHandlers.AuthMiddleware(), authHandlers.Me)

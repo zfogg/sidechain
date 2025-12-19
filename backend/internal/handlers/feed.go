@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/logger"
+	"github.com/zfogg/sidechain/backend/internal/metrics"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/recommendations"
 	"github.com/zfogg/sidechain/backend/internal/stream"
@@ -202,6 +203,13 @@ func (h *Handlers) GetTimeline(c *gin.Context) {
 
 // GetGlobalFeed gets the global feed
 func (h *Handlers) GetGlobalFeed(c *gin.Context) {
+	// Record feed generation timing metric (ENG-2)
+	startTime := time.Now()
+	defer func() {
+		duration := time.Since(startTime).Seconds()
+		metrics.Get().FeedGenerationTime.WithLabelValues("global").Observe(duration)
+	}()
+
 	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
 	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
@@ -724,6 +732,13 @@ func (h *Handlers) GetUnifiedTimeline(c *gin.Context) {
 // GetEnrichedGlobalFeed gets the global feed with reaction counts
 // GET /api/feed/global/enriched
 func (h *Handlers) GetEnrichedGlobalFeed(c *gin.Context) {
+	// Record feed generation timing metric (ENG-2)
+	startTime := time.Now()
+	defer func() {
+		duration := time.Since(startTime).Seconds()
+		metrics.Get().FeedGenerationTime.WithLabelValues("enriched_global").Observe(duration)
+	}()
+
 	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
 	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
@@ -836,6 +851,13 @@ func (h *Handlers) GetAggregatedTimeline(c *gin.Context) {
 // Activities are extracted from aggregated groups and sorted by engagement score
 // GET /api/feed/trending
 func (h *Handlers) GetTrendingFeed(c *gin.Context) {
+	// Record feed generation timing metric (ENG-2)
+	startTime := time.Now()
+	defer func() {
+		duration := time.Since(startTime).Seconds()
+		metrics.Get().FeedGenerationTime.WithLabelValues("trending").Observe(duration)
+	}()
+
 	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
 	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
