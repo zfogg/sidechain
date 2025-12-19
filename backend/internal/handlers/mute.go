@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/util"
 	"gorm.io/gorm"
@@ -137,7 +139,10 @@ func (h *Handlers) GetMutedUsers(c *gin.Context) {
 
 	// Get total count
 	var totalCount int64
-	database.DB.Model(&models.MutedUser{}).Where("user_id = ?", userID).Count(&totalCount)
+	if err := database.DB.Model(&models.MutedUser{}).Where("user_id = ?", userID).Count(&totalCount).Error; err != nil {
+		logger.WarnWithFields("Failed to count muted users for "+userID, err)
+		totalCount = 0  // Default to 0 on error
+	}
 
 	// Transform to response format
 	users := make([]gin.H, len(mutedUsers))
@@ -177,9 +182,15 @@ func (h *Handlers) IsUserMuted(c *gin.Context) {
 	var mutedUser models.MutedUser
 	err := database.DB.Where("user_id = ? AND muted_user_id = ?", userID, targetUserID).First(&mutedUser).Error
 
+	// Return muted_at as null if user is not muted
+	var mutedAt *time.Time
+	if err == nil {
+		mutedAt = &mutedUser.CreatedAt
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"muted":    err == nil,
-		"muted_at": mutedUser.CreatedAt,
+		"muted_at": mutedAt,
 	})
 }
 

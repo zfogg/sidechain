@@ -107,8 +107,9 @@ func main() {
 	// Auto-seed development data if in development mode and database is empty
 	if os.Getenv("ENVIRONMENT") == "development" || os.Getenv("ENVIRONMENT") == "" {
 		var userCount int64
-		database.DB.Model(&models.User{}).Count(&userCount)
-		if userCount == 0 {
+		if err := database.DB.Model(&models.User{}).Count(&userCount).Error; err != nil {
+			logger.WarnWithFields("Failed to count users, skipping auto-seed to prevent data corruption", err)
+		} else if userCount == 0 {
 			logger.Log.Info("🌱 Development mode: Database is empty, auto-seeding development data...")
 			seeder := seed.NewSeeder(database.DB)
 			if err := seeder.SeedDev(); err != nil {

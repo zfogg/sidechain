@@ -458,7 +458,8 @@ func (h *Handlers) GetEnrichedTimeline(c *gin.Context) {
 		// Query follow state using database IDs - no caching for fresh data
 		isFollowing := false
 		if posterUserID != currentUser.ID && posterUserID != "" {
-			isFollowing, err := h.stream.CheckIsFollowing(currentUser.ID, posterUserID)
+			var err error
+			isFollowing, err = h.stream.CheckIsFollowing(currentUser.ID, posterUserID)
 
 			if err != nil {
 
@@ -676,7 +677,8 @@ func (h *Handlers) GetUnifiedTimeline(c *gin.Context) {
 		// Check if this post is the current user's own post
 		if posterUserID != currentUser.ID && posterUserID != "" && item.User != nil && item.User.ID != "" {
 			// Query follow state using DATABASE IDs - no caching to ensure fresh data
-			isFollowing, err := h.stream.CheckIsFollowing(currentUser.ID, item.User.ID)
+			var err error
+			isFollowing, err = h.stream.CheckIsFollowing(currentUser.ID, item.User.ID)
 
 			if err != nil {
 
