@@ -115,6 +115,7 @@ if(SIDECHAIN_BUILD_TESTS)
     # List SidechainTestLib last to resolve the circular dependency
     target_link_libraries(SidechainTests PRIVATE
         Catch2::Catch2WithMain
+        Sidechain
         SidechainNetwork
         SidechainUI
         SidechainTestLib

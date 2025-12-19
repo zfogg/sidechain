@@ -6,8 +6,6 @@
 #include "../../util/Constants.h"
 #include "../../util/Log.h"
 #include "../../util/Result.h"
-#include "../../util/TextEditorStyler.h"
-#include "../../util/Validate.h"
 
 // ==============================================================================
 Auth::Auth(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
