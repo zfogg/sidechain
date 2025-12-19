@@ -4,172 +4,148 @@
 #==============================================================================
 
 # Collect all source files from UI subdirectories
-set(UI_SOURCES)
-
-# Animations
-list(APPEND UI_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/animations/AnimationController.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/animations/AnimationController.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/animations/AnimationTimeline.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/animations/Easing.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/animations/NavigationStack.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/animations/NavigationStack.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/animations/TransitionAnimation.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/animations/ViewTransitionManager.h
-)
-
-# Auth
-list(APPEND UI_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/auth/Auth.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/auth/Auth.h
-)
-
-# Challenges
-list(APPEND UI_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/challenges/MidiChallengeDetail.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/challenges/MidiChallengeDetail.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/challenges/MidiChallenges.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/challenges/MidiChallenges.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/challenges/MidiChallengeSubmission.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/challenges/MidiChallengeSubmission.h
-)
-
-# Common
-list(APPEND UI_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/common/Avatar.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/common/Avatar.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/common/Button.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/common/CarouselView.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/common/CarouselView.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/common/Colors.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/common/Divider.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/common/EmptyState.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/common/EmptyState.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/common/LoadingSpinner.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/common/LoadingSpinner.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/common/ScrollableContainer.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/common/ScrollableContainer.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/common/SmoothScrollable.h
-)
-
-# Feed
-list(APPEND UI_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/feed/AggregatedFeedCard.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/feed/AggregatedFeedCard.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/feed/Comment.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/feed/Comment.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/feed/EmojiReactionsPanel.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/feed/EmojiReactionsPanel.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/feed/PostCard.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/feed/PostCard.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/feed/PostsFeed.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/feed/PostsFeed.h
-)
-
-# Messages
-list(APPEND UI_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/messages/DirectMessages.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/messages/DirectMessages.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/messages/Message.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/messages/Message.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/messages/MessagesList.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/messages/NewMessageDialog.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/messages/NewMessageDialog.h
-)
-
-# Notifications
-list(APPEND UI_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/notifications/NotificationCenter.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/notifications/NotificationCenter.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/notifications/NotificationItem.h
-)
-
-# Playlists
-list(APPEND UI_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/playlists/PlaylistDetail.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/playlists/PlaylistDetail.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/playlists/Playlists.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/playlists/Playlists.h
-)
-
-# Profile
-list(APPEND UI_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/profile/ActivityStatusSettings.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/profile/ActivityStatusSettings.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/profile/ArchivedPosts.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/profile/ArchivedPosts.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/profile/EditProfile.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/profile/EditProfile.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/profile/NotificationSettings.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/profile/NotificationSettings.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/profile/PrivacySettings.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/profile/PrivacySettings.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/profile/Profile.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/profile/Profile.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/profile/ProfileSetup.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/profile/ProfileSetup.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/profile/SavedPosts.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/profile/SavedPosts.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/profile/TwoFactorSettings.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/profile/TwoFactorSettings.h
-)
-
-# Recording
-list(APPEND UI_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/recording/Upload.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/recording/Upload.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/recording/UploadProgress.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/recording/UploadProgress.h
-)
-
-# Search
-list(APPEND UI_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/search/Search.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/search/Search.h
-)
-
-# Social
-list(APPEND UI_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/social/FollowersList.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/social/FollowersList.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/social/UserCard.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/social/UserCard.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/social/UserDiscovery.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/social/UserDiscovery.h
-)
-
-# Sounds
-list(APPEND UI_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/sounds/SoundPage.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/sounds/SoundPage.h
-)
-
-# Stories
-list(APPEND UI_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/stories/CircularVisualization.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/stories/CircularVisualization.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/stories/CreateHighlightDialog.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/stories/CreateHighlightDialog.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/stories/NoteWaterfall.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/stories/NoteWaterfall.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/stories/PianoRoll.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/stories/PianoRoll.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/stories/SelectHighlightDialog.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/stories/SelectHighlightDialog.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/stories/StoriesFeed.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/stories/StoriesFeed.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/stories/StoryHighlights.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/stories/StoryHighlights.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/stories/StoryRecording.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/stories/StoryRecording.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/stories/StoryViewer.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/stories/StoryViewer.h
-)
-
-# Synth
-list(APPEND UI_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/synth/HiddenSynth.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/synth/HiddenSynth.h
+set(UI_SOURCES
+    # Animations
+    animations/AnimationController.cpp
+    animations/AnimationController.h
+    animations/AnimationTimeline.h
+    animations/Easing.h
+    animations/NavigationStack.cpp
+    animations/NavigationStack.h
+    animations/TransitionAnimation.h
+    animations/ViewTransitionManager.h
+    
+    # Auth
+    auth/Auth.cpp
+    auth/Auth.h
+    
+    # Challenges
+    challenges/MidiChallengeDetail.cpp
+    challenges/MidiChallengeDetail.h
+    challenges/MidiChallenges.cpp
+    challenges/MidiChallenges.h
+    challenges/MidiChallengeSubmission.cpp
+    challenges/MidiChallengeSubmission.h
+    
+    # Common
+    common/AppStoreComponent.h
+    common/ConnectionIndicator.h
+    common/ErrorState.cpp
+    common/ErrorState.h
+    common/Header.cpp
+    common/Header.h
+    common/SkeletonLoader.cpp
+    common/SkeletonLoader.h
+    common/SmoothScrollable.h
+    common/ToastNotification.cpp
+    common/ToastNotification.h
+    common/WaveformImageView.cpp
+    common/WaveformImageView.h
+    
+    # Feed
+    feed/AggregatedFeedCard.cpp
+    feed/AggregatedFeedCard.h
+    feed/Comment.cpp
+    feed/Comment.h
+    feed/EmojiReactionsPanel.cpp
+    feed/EmojiReactionsPanel.h
+    feed/PostCard.cpp
+    feed/PostCard.h
+    feed/PostsFeed.cpp
+    feed/PostsFeed.h
+    
+    # Messages
+    messages/AudioSnippetRecorder.cpp
+    messages/AudioSnippetRecorder.h
+    messages/MessagesList.cpp
+    messages/MessagesList.h
+    messages/MessageThread.cpp
+    messages/MessageThread.h
+    messages/ShareToMessageDialog.cpp
+    messages/ShareToMessageDialog.h
+    messages/UserPickerDialog.cpp
+    messages/UserPickerDialog.h
+    
+    # Notifications
+    notifications/NotificationBell.cpp
+    notifications/NotificationBell.h
+    notifications/NotificationItem.h
+    notifications/NotificationList.cpp
+    notifications/NotificationList.h
+    
+    # Playlists
+    playlists/PlaylistDetail.cpp
+    playlists/PlaylistDetail.h
+    playlists/Playlists.cpp
+    playlists/Playlists.h
+    
+    # Profile
+    profile/ActivityStatusSettings.cpp
+    profile/ActivityStatusSettings.h
+    profile/ArchivedPosts.cpp
+    profile/ArchivedPosts.h
+    profile/EditProfile.cpp
+    profile/EditProfile.h
+    profile/NotificationSettings.cpp
+    profile/NotificationSettings.h
+    profile/PrivacySettings.cpp
+    profile/PrivacySettings.h
+    profile/Profile.cpp
+    profile/Profile.h
+    profile/ProfileSetup.cpp
+    profile/ProfileSetup.h
+    profile/SavedPosts.cpp
+    profile/SavedPosts.h
+    profile/TwoFactorSettings.cpp
+    profile/TwoFactorSettings.h
+    
+    # Recording
+    recording/DraftsView.cpp
+    recording/DraftsView.h
+    recording/Recording.cpp
+    recording/Recording.h
+    recording/Upload.cpp
+    recording/Upload.h
+    
+    # Search
+    search/Search.cpp
+    search/Search.h
+    
+    # Social
+    social/FollowersList.cpp
+    social/FollowersList.h
+    social/UserCard.cpp
+    social/UserCard.h
+    social/UserDiscovery.cpp
+    social/UserDiscovery.h
+    
+    # Sounds
+    sounds/SoundPage.cpp
+    sounds/SoundPage.h
+    
+    # Stories
+    stories/CircularVisualization.cpp
+    stories/CircularVisualization.h
+    stories/CreateHighlightDialog.cpp
+    stories/CreateHighlightDialog.h
+    stories/NoteWaterfall.cpp
+    stories/NoteWaterfall.h
+    stories/PianoRoll.cpp
+    stories/PianoRoll.h
+    stories/SelectHighlightDialog.cpp
+    stories/SelectHighlightDialog.h
+    stories/StoriesFeed.cpp
+    stories/StoriesFeed.h
+    stories/StoryHighlights.cpp
+    stories/StoryHighlights.h
+    stories/StoryRecording.cpp
+    stories/StoryRecording.h
+    stories/StoryViewer.cpp
+    stories/StoryViewer.h
+    
+    # Synth
+    synth/HiddenSynth.cpp
+    synth/HiddenSynth.h
 )
 
 # Create the main UI library
