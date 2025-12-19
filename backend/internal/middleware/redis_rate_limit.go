@@ -38,12 +38,14 @@ func RedisRateLimitMiddleware(maxRequests int, window time.Duration) gin.Handler
 		// Get current count
 		val, err := redisClient.GetInt(ctx, key)
 		if err != nil && err.Error() != "redis: nil" {
-			// On error, let request through but log
-			logger.Log.Warn("Rate limit check failed",
+			// On Redis error, reject request to maintain security
+			// Allowing requests through when rate limiter is broken opens API to DoS
+			logger.Log.Error("Rate limit check failed - rejecting request for security",
 				zap.String("client_ip", clientIP),
 				zap.Error(err),
 			)
-			c.Next()
+			c.JSON(503, gin.H{"error": "Service temporarily unavailable"})
+			c.Abort()
 			return
 		}
 
