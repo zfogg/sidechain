@@ -43,7 +43,7 @@ jobs:
         run: go build -v -o sidechain-backend ./cmd/server
 
       - name: Upload backend artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: sidechain-backend
           path: backend/sidechain-backend
@@ -87,7 +87,12 @@ jobs:
 
       - name: Run Backend Tests
         working-directory: ./backend
-        run: go test ./... -v -race
+        run: |
+          # Fix vendor directory if it exists
+          if [ -d "vendor" ]; then
+            go mod vendor
+          fi
+          go test ./... -v -race
 
       - name: Stop Docker Compose Services
         if: always()
