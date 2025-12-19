@@ -484,9 +484,32 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 
 	// Build update map for non-nil fields
 	updates := make(map[string]interface{})
+
+	// Validate and handle username update
 	if req.Username != nil {
-		updates["username"] = *req.Username
+		newUsername := strings.TrimSpace(*req.Username)
+		if newUsername == "" {
+			util.RespondBadRequest(c, "invalid_username", "Username cannot be empty")
+			return
+		}
+
+		// Check if new username is already taken (only if different from current username)
+		if newUsername != currentUser.Username {
+			var existingUser models.User
+			if err := database.DB.Where("LOWER(username) = LOWER(?)", newUsername).First(&existingUser).Error; err == nil {
+				// Username already exists
+				util.RespondBadRequest(c, "username_taken", "This username is already taken")
+				return
+			} else if err != gorm.ErrRecordNotFound {
+				// Database error
+				util.RespondInternalError(c, "username_check_failed", err.Error())
+				return
+			}
+		}
+
+		updates["username"] = newUsername
 	}
+
 	if req.DisplayName != nil {
 		updates["display_name"] = *req.DisplayName
 	}
