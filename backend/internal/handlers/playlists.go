@@ -49,7 +49,7 @@ func (h *Handlers) CreatePlaylist(c *gin.Context) {
 	// Load owner relationship
 	database.DB.Preload("Owner").First(playlist, playlist.ID)
 
-	c.JSON(http.StatusCreated, playlist)
+	c.JSON(http.StatusCreated, gin.H{"playlist": playlist})
 }
 
 // GetPlaylists returns user's playlists (R.3.1.2.2)
@@ -134,7 +134,7 @@ func (h *Handlers) GetPlaylist(c *gin.Context) {
 	// Note: GORM doesn't automatically sort, so we'll do it in the response
 	// or we can add ORDER BY in the query
 
-	c.JSON(http.StatusOK, playlist)
+	c.JSON(http.StatusOK, gin.H{"playlist": playlist})
 }
 
 // AddPlaylistEntry adds a post to a playlist (R.3.1.2.4)
