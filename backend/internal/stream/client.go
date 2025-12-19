@@ -56,20 +56,21 @@ type Client struct {
 
 // Activity represents a Sidechain activity (loop post)
 type Activity struct {
-	ID           string                 `json:"id,omitempty"`
-	Actor        string                 `json:"actor"`
-	Verb         string                 `json:"verb"`
-	Object       string                 `json:"object"`
-	ForeignID    string                 `json:"foreign_id,omitempty"`
-	Time         string                 `json:"time,omitempty"`
-	AudioURL     string                 `json:"audio_url"`
-	BPM          int                    `json:"bpm"`
-	Key          string                 `json:"key,omitempty"`
-	DAW          string                 `json:"daw,omitempty"`
-	DurationBars int                    `json:"duration_bars"`
-	Genre        []string               `json:"genre,omitempty"`
-	WaveformURL  string                 `json:"waveform_url,omitempty"`
-	Extra        map[string]interface{} `json:"extra,omitempty"`
+	ID               string                 `json:"id,omitempty"`               // Database UUID from Object field
+	StreamActivityID string                 `json:"stream_activity_id,omitempty"` // Stream.io activity ID for reactions
+	Actor            string                 `json:"actor"`
+	Verb             string                 `json:"verb"`
+	Object           string                 `json:"object"`
+	ForeignID        string                 `json:"foreign_id,omitempty"`
+	Time             string                 `json:"time,omitempty"`
+	AudioURL         string                 `json:"audio_url"`
+	BPM              int                    `json:"bpm"`
+	Key              string                 `json:"key,omitempty"`
+	DAW              string                 `json:"daw,omitempty"`
+	DurationBars     int                    `json:"duration_bars"`
+	Genre            []string               `json:"genre,omitempty"`
+	WaveformURL      string                 `json:"waveform_url,omitempty"`
+	Extra            map[string]interface{} `json:"extra,omitempty"`
 }
 
 // NewClient creates a new getstream.io client for Sidechain
@@ -1612,10 +1613,18 @@ func truncateString(s string, maxLen int) string {
 
 // convertStreamActivity converts getstream.io Activity to our Activity type
 func convertStreamActivity(act *stream.Activity) *Activity {
+	// Extract database UUID from Object field (format: "loop:uuid")
+	// Use this as the ID so frontend can match with database UUIDs
+	postID := ""
+	if act.Object != "" && len(act.Object) > 5 && act.Object[:5] == "loop:" {
+		postID = act.Object[5:]
+	}
+
 	activity := &Activity{
-		ID:    act.ID,
-		Actor: act.Actor,
-		Verb:  act.Verb,
+		ID:               postID,      // Use database UUID as ID for frontend matching
+		StreamActivityID: act.ID,      // Store Stream activity ID for reactions
+		Actor:            act.Actor,
+		Verb:             act.Verb,
 	}
 
 	// Extract timestamp
