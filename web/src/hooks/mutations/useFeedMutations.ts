@@ -31,37 +31,90 @@ export function useLikeMutation() {
     onMutate: async ({ postId, shouldLike }) => {
       console.log('[Like] onMutate starting:', { postId, shouldLike })
 
+      // Debug: Log all queries in cache
+      const allQueries = queryClient.getQueriesData<any>({})
+      console.log('[Like] All queries in cache:', allQueries.map(([key]) => key))
+
       // Cancel any outgoing refetches to prevent overwriting optimistic update
       await queryClient.cancelQueries({ queryKey: ['feed'], exact: false })
+      await queryClient.cancelQueries({ queryKey: ['gorse-recommendations'], exact: false })
+      await queryClient.cancelQueries({ queryKey: ['post'], exact: false })
+      await queryClient.cancelQueries({ queryKey: ['user'], exact: false })
 
       // Snapshot the previous data for all feed queries
-      const previousFeeds = queryClient.getQueriesData<any>({ queryKey: ['feed'], exact: false })
-      console.log('[Like] Found queries to update:', previousFeeds.length)
+      const previousFeeds = queryClient.getQueriesData<any>({})
+      console.log('[Like] Snapshotted all queries:', previousFeeds.length)
 
-      // Optimistic update: Update all feed queries (timeline, global, trending, etc.)
-      queryClient.setQueriesData({ queryKey: ['feed'], exact: false }, (old: any) => {
-        console.log('[Like] Updating cache for key:', old, 'hasPages:', !!old?.pages)
-        if (!old?.pages) return old
-
-        const updated = {
-          ...old,
-          pages: old.pages.map((page: FeedPost[]) =>
-            page.map((post) => {
-              if (post.id === postId) {
-                console.log('[Like] Found post to update, changing isLiked from', post.isLiked, 'to', shouldLike)
-                return {
-                  ...post,
-                  isLiked: shouldLike,
-                  likeCount: post.likeCount + (shouldLike ? 1 : -1),
+      // Optimistic update: Update ANY query that contains this post
+      let foundAndUpdated = false
+      queryClient.setQueriesData({}, (old: any) => {
+        // Handle paginated feed queries (pages: FeedPost[][])
+        if (old?.pages && Array.isArray(old.pages)) {
+          const updated = {
+            ...old,
+            pages: old.pages.map((page: FeedPost[]) =>
+              page.map((post) => {
+                if (post.id === postId) {
+                  console.log('[Like] Found post in paginated query, updating from isLiked:', post.isLiked)
+                  foundAndUpdated = true
+                  return {
+                    ...post,
+                    isLiked: shouldLike,
+                    likeCount: post.likeCount + (shouldLike ? 1 : -1),
+                  }
                 }
-              }
-              return post
-            })
-          ),
+                return post
+              })
+            ),
+          }
+          return updated
         }
-        console.log('[Like] Returning updated cache')
-        return updated
+
+        // Handle flat arrays (gorse-recommendations, gorse-genres, user posts, etc.)
+        if (Array.isArray(old)) {
+          const updated = old.map((item: any) => {
+            // Handle wrapped posts { post: FeedPost }
+            if (item?.post?.id === postId) {
+              console.log('[Like] Found post in recommendation, updating from isLiked:', item.post.isLiked)
+              foundAndUpdated = true
+              return {
+                ...item,
+                post: {
+                  ...item.post,
+                  isLiked: shouldLike,
+                  likeCount: item.post.likeCount + (shouldLike ? 1 : -1),
+                },
+              }
+            }
+            // Handle direct posts
+            if (item?.id === postId) {
+              console.log('[Like] Found direct post in array, updating from isLiked:', item.isLiked)
+              foundAndUpdated = true
+              return {
+                ...item,
+                isLiked: shouldLike,
+                likeCount: item.likeCount + (shouldLike ? 1 : -1),
+              }
+            }
+            return item
+          })
+          return updated
+        }
+
+        // Handle single post objects
+        if (old?.id === postId) {
+          console.log('[Like] Found single post object, updating from isLiked:', old.isLiked)
+          foundAndUpdated = true
+          return {
+            ...old,
+            isLiked: shouldLike,
+            likeCount: old.likeCount + (shouldLike ? 1 : -1),
+          }
+        }
+
+        return old
       })
+      console.log('[Like] Updated cache, found and updated post:', foundAndUpdated)
 
       // Also update Zustand store for consistency
       feedStore.updatePost(postId, {
@@ -69,39 +122,6 @@ export function useLikeMutation() {
         likeCount:
           (feedStore.feeds[feedStore.currentFeedType]?.posts.find((p) => p.id === postId)?.likeCount || 0) +
           (shouldLike ? 1 : -1),
-      })
-
-      // Update gorse-recommendations query as well (for "For You" tab)
-      queryClient.setQueriesData({ queryKey: ['gorse-recommendations'], exact: false }, (old: any) => {
-        if (!Array.isArray(old)) return old
-
-        return old.map((rec: any) =>
-          rec.post?.id === postId
-            ? {
-                ...rec,
-                post: {
-                  ...rec.post,
-                  isLiked: shouldLike,
-                  likeCount: rec.post.likeCount + (shouldLike ? 1 : -1),
-                },
-              }
-            : rec
-        )
-      })
-
-      // Update genre-recommendations query
-      queryClient.setQueriesData({ queryKey: ['gorse-genres'], exact: false }, (old: any) => {
-        if (!Array.isArray(old)) return old
-
-        return old.map((post: FeedPost) =>
-          post.id === postId
-            ? {
-                ...post,
-                isLiked: shouldLike,
-                likeCount: post.likeCount + (shouldLike ? 1 : -1),
-              }
-            : post
-        )
       })
 
       return { previousFeeds }
@@ -134,67 +154,99 @@ export function useSaveMutation() {
 
   return useMutation({
     mutationFn: async ({ postId, shouldSave }: { postId: string; shouldSave: boolean }) => {
+      console.log('[Save] Starting mutation:', { postId, shouldSave })
       const result = await FeedClient.toggleSave(postId, shouldSave)
+      console.log('[Save] API response:', { result: result.isOk() ? 'success' : 'error', error: result.isError() ? result.getError() : null })
       if (result.isError()) {
+        console.error('[Save] Error from API:', result.getError())
         throw new Error(result.getError())
       }
+      console.log('[Save] Mutation succeeded')
     },
     onMutate: async ({ postId, shouldSave }) => {
-      await queryClient.cancelQueries({ queryKey: ['feed'], exact: false })
+      console.log('[Save] onMutate starting:', { postId, shouldSave })
 
-      const previousFeeds = queryClient.getQueriesData<any>({ queryKey: ['feed'], exact: false })
+      // Debug: Log all queries in cache
+      const allQueries = queryClient.getQueriesData<any>({})
+      console.log('[Save] All queries in cache:', allQueries.map(([key]) => key))
 
-      queryClient.setQueriesData({ queryKey: ['feed'], exact: false }, (old: any) => {
-        if (!old?.pages) return old
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({})
 
-        return {
-          ...old,
-          pages: old.pages.map((page: FeedPost[]) =>
-            page.map((post) =>
-              post.id === postId
-                ? {
+      // Snapshot all previous data
+      const previousFeeds = queryClient.getQueriesData<any>({})
+      console.log('[Save] Snapshotted all queries:', previousFeeds.length)
+
+      // Optimistic update: Update ANY query that contains this post
+      let foundAndUpdated = false
+      queryClient.setQueriesData({}, (old: any) => {
+        // Handle paginated feed queries (pages: FeedPost[][])
+        if (old?.pages && Array.isArray(old.pages)) {
+          const updated = {
+            ...old,
+            pages: old.pages.map((page: FeedPost[]) =>
+              page.map((post) => {
+                if (post.id === postId) {
+                  console.log('[Save] Found post in paginated query, updating from isSaved:', post.isSaved)
+                  foundAndUpdated = true
+                  return {
                     ...post,
                     isSaved: shouldSave,
                     saveCount: post.saveCount + (shouldSave ? 1 : -1),
                   }
-                : post
-            )
-          ),
+                }
+                return post
+              })
+            ),
+          }
+          return updated
         }
-      })
 
-      // Update gorse-recommendations query as well (for "For You" tab)
-      queryClient.setQueriesData({ queryKey: ['gorse-recommendations'], exact: false }, (old: any) => {
-        if (!Array.isArray(old)) return old
-
-        return old.map((rec: any) =>
-          rec.post?.id === postId
-            ? {
-                ...rec,
+        // Handle flat arrays (gorse-recommendations, gorse-genres, user posts, etc.)
+        if (Array.isArray(old)) {
+          const updated = old.map((item: any) => {
+            // Handle wrapped posts { post: FeedPost }
+            if (item?.post?.id === postId) {
+              console.log('[Save] Found post in recommendation, updating from isSaved:', item.post.isSaved)
+              foundAndUpdated = true
+              return {
+                ...item,
                 post: {
-                  ...rec.post,
+                  ...item.post,
                   isSaved: shouldSave,
-                  saveCount: rec.post.saveCount + (shouldSave ? 1 : -1),
+                  saveCount: item.post.saveCount + (shouldSave ? 1 : -1),
                 },
               }
-            : rec
-        )
-      })
-
-      // Update genre-recommendations query
-      queryClient.setQueriesData({ queryKey: ['gorse-genres'], exact: false }, (old: any) => {
-        if (!Array.isArray(old)) return old
-
-        return old.map((post: FeedPost) =>
-          post.id === postId
-            ? {
-                ...post,
+            }
+            // Handle direct posts
+            if (item?.id === postId) {
+              console.log('[Save] Found direct post in array, updating from isSaved:', item.isSaved)
+              foundAndUpdated = true
+              return {
+                ...item,
                 isSaved: shouldSave,
-                saveCount: post.saveCount + (shouldSave ? 1 : -1),
+                saveCount: item.saveCount + (shouldSave ? 1 : -1),
               }
-            : post
-        )
+            }
+            return item
+          })
+          return updated
+        }
+
+        // Handle single post objects
+        if (old?.id === postId) {
+          console.log('[Save] Found single post object, updating from isSaved:', old.isSaved)
+          foundAndUpdated = true
+          return {
+            ...old,
+            isSaved: shouldSave,
+            saveCount: old.saveCount + (shouldSave ? 1 : -1),
+          }
+        }
+
+        return old
       })
+      console.log('[Save] Updated cache, found and updated post:', foundAndUpdated)
 
       feedStore.updatePost(postId, {
         isSaved: shouldSave,
@@ -205,8 +257,10 @@ export function useSaveMutation() {
 
       return { previousFeeds }
     },
-    onError: (_err, _variables, context: any) => {
+    onError: (err, _variables, context: any) => {
+      console.error('[Save] Mutation failed:', err)
       if (context?.previousFeeds) {
+        console.log('[Save] Rolling back', context.previousFeeds.length, 'queries')
         context.previousFeeds.forEach(([queryKey, data]: [any, any]) => {
           queryClient.setQueryData(queryKey, data)
         })
