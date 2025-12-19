@@ -49,6 +49,83 @@ jobs:
           path: backend/sidechain-backend
           retention-days: 5
 
+  test-backend:
+    name: Test Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Start Docker Compose Services
+        run: |
+          cd backend
+          docker compose up -d
+
+          # Wait for all services to be healthy (30 second timeout)
+          echo "Waiting for services to be healthy..."
+          for i in {1..30}; do
+            HEALTHY=$(docker compose ps | grep -c "healthy" || true)
+            if [ "$HEALTHY" -ge 4 ]; then
+              echo "✅ Services are healthy"
+              break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 1
+          done
+
+          # List running services
+          echo ""
+          echo "Running services:"
+          docker compose ps
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.23'
+
+      - name: Run Backend Tests
+        working-directory: ./backend
+        run: go test ./... -v -race
+
+      - name: Stop Docker Compose Services
+        if: always()
+        run: |
+          cd backend
+          docker compose down -v
+
+  build-plugin-debug:
+    name: Build Plugin (Debug)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Dependencies
+        uses: ./.github/actions/install-deps
+
+      - name: Restore Build Cache
+        uses: ./.github/actions/restore-build-cache
+        with:
+          arch: x86_64
+
+      - name: Configure CMake
+        run: cmake -S plugin -B plugin/build -G Ninja -DCMAKE_BUILD_TYPE=Debug
+
+      - name: Build Plugin
+        run: |
+          # Limit parallel jobs on Linux to avoid OOM
+          cmake --build plugin/build --config Debug --parallel 2
+
+      - name: Save Build Cache
+        if: always()
+        uses: ./.github/actions/save-build-cache
+        with:
+          arch: x86_64
+
   static-analysis-cpp:
     name: Static Analysis (C++)
     runs-on: ubuntu-latest
