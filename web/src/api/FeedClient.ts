@@ -149,7 +149,7 @@ export class FeedClient {
    * Get user's pinned posts (max 3)
    */
   static async getUserPinnedPosts(userId: string): Promise<Outcome<FeedPost[]>> {
-    const result = await apiClient.get<FeedPostsResponse>(`/users/${userId}/posts/pinned`);
+    const result = await apiClient.get<FeedPostsResponse>(`/users/${userId}/pinned`);
 
     if (result.isOk()) {
       try {
