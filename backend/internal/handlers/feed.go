@@ -458,7 +458,15 @@ func (h *Handlers) GetEnrichedTimeline(c *gin.Context) {
 		// Query follow state using database IDs - no caching for fresh data
 		isFollowing := false
 		if posterUserID != currentUser.ID && posterUserID != "" {
-			isFollowing, _ = h.stream.CheckIsFollowing(currentUser.ID, posterUserID)
+			isFollowing, err := h.stream.CheckIsFollowing(currentUser.ID, posterUserID)
+
+			if err != nil {
+
+				logger.WarnWithFields("Failed to check follow status", err)
+
+				isFollowing = false
+
+			}
 		}
 
 		// Add follow state to activity
@@ -668,7 +676,15 @@ func (h *Handlers) GetUnifiedTimeline(c *gin.Context) {
 		// Check if this post is the current user's own post
 		if posterUserID != currentUser.ID && posterUserID != "" && item.User != nil && item.User.ID != "" {
 			// Query follow state using DATABASE IDs - no caching to ensure fresh data
-			isFollowing, _ = h.stream.CheckIsFollowing(currentUser.ID, item.User.ID)
+			isFollowing, err := h.stream.CheckIsFollowing(currentUser.ID, item.User.ID)
+
+			if err != nil {
+
+				logger.WarnWithFields("Failed to check follow status", err)
+
+				isFollowing = false
+
+			}
 		}
 
 		activity["is_following"] = isFollowing
