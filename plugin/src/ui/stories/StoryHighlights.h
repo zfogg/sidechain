@@ -7,7 +7,7 @@
 
 class NetworkClient;
 
-//==============================================================================
+// ==============================================================================
 /**
  * StoryHighlights displays a horizontal row of story highlight circles
  *
@@ -19,7 +19,7 @@ public:
   StoryHighlights(Sidechain::Stores::AppStore *store = nullptr);
   ~StoryHighlights() override;
 
-  //==============================================================================
+  // ==============================================================================
   // Configuration
   void setNetworkClient(NetworkClient *client) {
     networkClient = client;
@@ -29,7 +29,7 @@ public:
     isOwnProfile = isOwn;
   }
 
-  //==============================================================================
+  // ==============================================================================
   // Data
   void loadHighlights();
   void setHighlights(const juce::Array<StoryHighlight> &highlights);
@@ -40,18 +40,18 @@ public:
     return !highlights.isEmpty();
   }
 
-  //==============================================================================
+  // ==============================================================================
   // Callbacks
   std::function<void(const StoryHighlight &)> onHighlightClicked;
   std::function<void()> onCreateHighlightClicked; // For "New" button on own profile
 
-  //==============================================================================
+  // ==============================================================================
   // Component overrides
   void paint(juce::Graphics &g) override;
   void resized() override;
   void mouseUp(const juce::MouseEvent &event) override;
 
-  //==============================================================================
+  // ==============================================================================
   // Layout
   int getPreferredHeight() const {
     return HIGHLIGHT_SIZE + NAME_HEIGHT + PADDING * 2;
@@ -62,7 +62,7 @@ protected:
   void subscribeToAppStore() override;
 
 private:
-  //==============================================================================
+  // ==============================================================================
   // Data
   NetworkClient *networkClient = nullptr;
   juce::String userId;
@@ -75,7 +75,7 @@ private:
   // Horizontal scroll
   int scrollOffset = 0;
 
-  //==============================================================================
+  // ==============================================================================
   // Layout constants
   static constexpr int HIGHLIGHT_SIZE = 64;
   static constexpr int NAME_HEIGHT = 20;
@@ -83,24 +83,24 @@ private:
   static constexpr int PADDING = 12;
   static constexpr int ADD_BUTTON_SIZE = 64;
 
-  //==============================================================================
+  // ==============================================================================
   // Drawing methods
   void drawHighlight(juce::Graphics &g, const StoryHighlight &highlight, juce::Rectangle<int> bounds);
   void drawAddButton(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawLoadingState(juce::Graphics &g);
 
-  //==============================================================================
+  // ==============================================================================
   // Hit testing
   int getHighlightIndexAt(juce::Point<int> pos) const;
   bool isAddButtonAt(juce::Point<int> pos) const;
   juce::Rectangle<int> getHighlightBounds(int index) const;
   juce::Rectangle<int> getAddButtonBounds() const;
 
-  //==============================================================================
+  // ==============================================================================
   // Image loading
   void loadCoverImage(const StoryHighlight &highlight);
 
-  //==============================================================================
+  // ==============================================================================
   // Colors
   struct Colors {
     static inline juce::Colour background{0xff1a1a1e};

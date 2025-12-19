@@ -5,7 +5,7 @@
 #include <map>
 #include "../logging/Logger.h"
 
-//==============================================================================
+// ==============================================================================
 /**
  * CacheKeyTraits - Template for extracting cache keys from domain types
  *
@@ -30,7 +30,7 @@ template <> struct CacheKeyTraits<juce::String> {
   }
 };
 
-//==============================================================================
+// ==============================================================================
 /**
  * FileCache - Generic cross-platform file caching with LRU eviction
  *
@@ -65,7 +65,7 @@ public:
   FileCache(const juce::String &subdirectory, int64_t maxSizeBytes);
   ~FileCache() = default;
 
-  //==============================================================================
+  // ==============================================================================
   // Public API
 
   /**
@@ -118,7 +118,7 @@ public:
   void flush();
 
 private:
-  //==============================================================================
+  // ==============================================================================
   // Manifest structure
   struct CacheEntry {
     juce::String key;
@@ -130,7 +130,7 @@ private:
     static CacheEntry fromJSON(const juce::var &json);
   };
 
-  //==============================================================================
+  // ==============================================================================
   juce::File cacheDir;
   int64_t maxSize;
   std::map<juce::String, CacheEntry> manifest;
@@ -155,9 +155,9 @@ private:
   static juce::String hashString(const juce::String &str);
 };
 
-//==============================================================================
+// ==============================================================================
 // Template implementations (inline in header for all translation units)
-//==============================================================================
+// ==============================================================================
 
 template <typename T>
 FileCache<T>::FileCache(const juce::String &subdirectory, int64_t maxSizeBytes) : maxSize(maxSizeBytes) {

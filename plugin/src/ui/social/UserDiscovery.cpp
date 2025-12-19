@@ -7,7 +7,7 @@
 #include <set>
 #include <vector>
 
-//==============================================================================
+// ==============================================================================
 UserDiscovery::UserDiscovery() {
   Log::info("UserDiscovery: Initializing");
 
@@ -47,7 +47,7 @@ UserDiscovery::~UserDiscovery() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void UserDiscovery::setNetworkClient(NetworkClient *client) {
   networkClient = client;
   Log::debug("UserDiscovery: NetworkClient set " + juce::String(client != nullptr ? "(valid)" : "(null)"));
@@ -73,7 +73,7 @@ void UserDiscovery::setUserStore(std::shared_ptr<Sidechain::Stores::AppStore> st
   // TODO: Implement discovery data in UserStore (loadTrendingUsers, loadSuggestedUsers, etc.)
 }
 
-//==============================================================================
+// ==============================================================================
 void UserDiscovery::paint(juce::Graphics &g) {
   // Background
   g.fillAll(Colors::background);
@@ -194,7 +194,7 @@ void UserDiscovery::resized() {
   updateScrollBounds();
 }
 
-//==============================================================================
+// ==============================================================================
 void UserDiscovery::drawHeader(juce::Graphics &g) {
   auto headerBounds = getLocalBounds().removeFromTop(HEADER_HEIGHT);
 
@@ -414,7 +414,7 @@ void UserDiscovery::drawEmptyState(juce::Graphics &g, juce::Rectangle<int> bound
   g.drawFittedText(message, textBounds, juce::Justification::centred, 3);
 }
 
-//==============================================================================
+// ==============================================================================
 juce::Rectangle<int> UserDiscovery::getBackButtonBounds() const {
   return {8, 12, 40, 36};
 }
@@ -436,7 +436,7 @@ juce::Rectangle<int> UserDiscovery::getContentBounds() const {
   return bounds;
 }
 
-//==============================================================================
+// ==============================================================================
 void UserDiscovery::mouseUp(const juce::MouseEvent &event) {
   auto point = event.getPosition();
 
@@ -531,7 +531,7 @@ void UserDiscovery::scrollBarMoved(juce::ScrollBar *bar, double newRangeStart) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void UserDiscovery::loadDiscoveryData() {
   jassert(userStore != nullptr);
   if (!userStore) {
@@ -549,7 +549,7 @@ void UserDiscovery::refresh() {
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void UserDiscovery::performSearch(const juce::String &query) {
   jassert(userStore != nullptr);
   if (!userStore) {
@@ -595,7 +595,7 @@ void UserDiscovery::handleFollowToggle(const DiscoveredUser &user, bool willFoll
   // For now, store will handle follow operations when these methods are added
 }
 
-//==============================================================================
+// ==============================================================================
 void UserDiscovery::loadRecentSearches() {
   auto file = getRecentSearchesFile();
   if (file.existsAsFile()) {
@@ -639,7 +639,7 @@ juce::File UserDiscovery::getRecentSearchesFile() const {
   return dataDir.getChildFile("recent_searches.txt");
 }
 
-//==============================================================================
+// ==============================================================================
 void UserDiscovery::rebuildUserCards() {
   // Remove all cards from component tree before deleting
   for (auto *card : userCards) {
@@ -911,7 +911,7 @@ juce::Rectangle<int> UserDiscovery::getGenreChipBounds(int index) const {
   return {};
 }
 
-//==============================================================================
+// ==============================================================================
 void UserDiscovery::queryPresenceForUsers(const juce::Array<DiscoveredUser> &users) {
   if (!streamChatClient || users.isEmpty()) {
     Log::debug("UserDiscovery::queryPresenceForUsers: Skipping - "

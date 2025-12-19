@@ -9,22 +9,22 @@
 #include "../../util/UIHelpers.h"
 #include "../../util/Validate.h"
 
-//==============================================================================
+// ==============================================================================
 Header::Header() {
   Log::info("Header: Initializing header component");
-  // Set initial size - parent will call setBounds() to resize to full width
-  // Note: Don't set a fixed width here - let parent's setBounds() control it
+  // Set initial size - parent will call setBounds to resize to full width
+  // Note: Don't set a fixed width here - let parent's setBounds control it
   setSize(100, HEADER_HEIGHT); // Minimal width, will be resized by parent
   Log::info("Header: Initialization complete");
 }
 
-//==============================================================================
+// ==============================================================================
 void Header::setNetworkClient(NetworkClient *client) {
   networkClient = client;
   Log::info("Header::setNetworkClient: NetworkClient set " + juce::String(client != nullptr ? "(valid)" : "(null)"));
 }
 
-//==============================================================================
+// ==============================================================================
 void Header::setUserInfo(const juce::String &user, const juce::String &picUrl) {
   Log::info("Header::setUserInfo: Setting user info - username: " + user + ", picUrl: " + picUrl);
   Log::debug("Header::setUserInfo: appStore is " + juce::String(appStore != nullptr ? "SET" : "NULL"));
@@ -74,7 +74,7 @@ void Header::setProfileImage(const juce::Image &image) {
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void Header::paint(juce::Graphics &g) {
   auto bounds = getLocalBounds();
 
@@ -159,7 +159,7 @@ void Header::mouseUp(const juce::MouseEvent &event) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void Header::drawLogo(juce::Graphics &g, juce::Rectangle<int> bounds) {
   g.setColour(SidechainColors::textPrimary());
   g.setFont(juce::Font(juce::FontOptions().withHeight(30.0f)).boldened());
@@ -309,7 +309,7 @@ void Header::drawCircularProfilePic(juce::Graphics &g, juce::Rectangle<int> boun
   }
 }
 
-//==============================================================================
+// ==============================================================================
 juce::Rectangle<int> Header::getLogoBounds() const {
   return juce::Rectangle<int>(20, 0, 240, getHeight());
 }
@@ -371,7 +371,7 @@ void Header::setHasStories(bool hasStoriesValue) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 juce::String Header::getTooltip() {
   auto mousePos = getMouseXYRelative();
 

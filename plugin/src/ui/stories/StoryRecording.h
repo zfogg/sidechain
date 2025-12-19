@@ -10,7 +10,7 @@
 
 class SidechainAudioProcessor;
 
-//==============================================================================
+// ==============================================================================
 /**
  * StoryRecording provides UI for recording short music clips (stories)
  * with MIDI visualization support (7.5.3.1.1)
@@ -31,16 +31,16 @@ public:
   StoryRecording(SidechainAudioProcessor &processor);
   ~StoryRecording() override;
 
-  //==============================================================================
+  // ==============================================================================
   void paint(juce::Graphics &) override;
   void resized() override;
   void mouseUp(const juce::MouseEvent &event) override;
 
-  //==============================================================================
+  // ==============================================================================
   // Timer callback for UI updates
   void timerCallback() override;
 
-  //==============================================================================
+  // ==============================================================================
   // Callbacks
 
   // Called when recording is complete and ready for upload
@@ -55,12 +55,12 @@ public:
   // Called when user cancels (goes back)
   std::function<void()> onCancel;
 
-  //==============================================================================
+  // ==============================================================================
   // Configuration
   static constexpr double MIN_DURATION_SECONDS = 5.0;
   static constexpr double MAX_DURATION_SECONDS = 60.0;
 
-  //==============================================================================
+  // ==============================================================================
   // Recording source selection
   enum class RecordingSource {
     DAW,       // Record from DAW (default)
@@ -73,7 +73,7 @@ public:
   }
 
 private:
-  //==============================================================================
+  // ==============================================================================
   SidechainAudioProcessor &audioProcessor;
 
   // Recording source
@@ -125,7 +125,7 @@ private:
   void stopRecordingDotAnimation();
   void triggerMIDIActivityAnimation();
 
-  // UI areas (calculated in resized())
+  // UI areas (calculated in resized)
   juce::Rectangle<int> headerArea;
   juce::Rectangle<int> recordButtonArea;
   juce::Rectangle<int> timeDisplayArea;
@@ -139,7 +139,7 @@ private:
   juce::Rectangle<int> cancelButtonArea;
   juce::Rectangle<int> sourceToggleArea;
 
-  //==============================================================================
+  // ==============================================================================
   // Drawing helpers
   void drawHeader(juce::Graphics &g);
   void drawRecordButton(juce::Graphics &g);
@@ -158,7 +158,7 @@ private:
   // Helper to format time as MM:SS
   juce::String formatTime(double seconds);
 
-  //==============================================================================
+  // ==============================================================================
   // Button actions
   void startRecording();
   void stopRecording();

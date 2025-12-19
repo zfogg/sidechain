@@ -7,7 +7,7 @@ WaveformImageView::WaveformImageView() {}
 
 WaveformImageView::~WaveformImageView() {}
 
-//==============================================================================
+// ==============================================================================
 void WaveformImageView::loadFromUrl(const juce::String &url) {
   if (url.isEmpty()) {
     clear();
@@ -50,7 +50,7 @@ void WaveformImageView::clear() {
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void WaveformImageView::paint(juce::Graphics &g) {
   auto bounds = getLocalBounds();
 
@@ -78,7 +78,7 @@ void WaveformImageView::resized() {
   // Nothing to resize
 }
 
-//==============================================================================
+// ==============================================================================
 void WaveformImageView::onImageDownloaded(const juce::String &url, juce::MemoryBlock imageData) {
   // Only process if URL matches current request (avoid race conditions)
   if (url != currentUrl)

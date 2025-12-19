@@ -6,7 +6,7 @@
 #include "NotificationItem.h"
 #include <JuceHeader.h>
 
-//==============================================================================
+// ==============================================================================
 /**
  * NotificationRow displays a single notification item
  */
@@ -43,7 +43,7 @@ private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(NotificationRow)
 };
 
-//==============================================================================
+// ==============================================================================
 /**
  * NotificationList displays a scrollable list of notification groups
  *
@@ -62,7 +62,7 @@ public:
   NotificationList(Sidechain::Stores::AppStore *store = nullptr);
   ~NotificationList() override;
 
-  //==============================================================================
+  // ==============================================================================
   // Data binding (legacy - prefer using store binding)
   void setNotifications(const juce::Array<NotificationItem> &notifications);
   void clearNotifications();
@@ -73,33 +73,33 @@ public:
   void setUnseenCount(int count);
   void setUnreadCount(int count);
 
-  //==============================================================================
+  // ==============================================================================
   // Callbacks
   std::function<void(const NotificationItem &)> onNotificationClicked;
   std::function<void()> onMarkAllReadClicked; // Legacy - store binding calls markAllRead directly
   std::function<void()> onCloseClicked;
   std::function<void()> onRefreshRequested;
 
-  //==============================================================================
+  // ==============================================================================
   // Component overrides
   void paint(juce::Graphics &g) override;
   void resized() override;
   void scrollBarMoved(juce::ScrollBar *scrollBar, double newRangeStart) override;
 
-  //==============================================================================
+  // ==============================================================================
   // Layout constants
   static constexpr int HEADER_HEIGHT = 50;
   static constexpr int PREFERRED_WIDTH = 360;
   static constexpr int MAX_HEIGHT = 500;
 
 protected:
-  //==============================================================================
+  // ==============================================================================
   // AppStoreComponent overrides
   void onAppStateChanged(const Sidechain::Stores::NotificationState &state) override;
   void subscribeToAppStore() override;
 
 private:
-  //==============================================================================
+  // ==============================================================================
   juce::Array<NotificationItem> notifications;
   juce::OwnedArray<NotificationRow> rowComponents;
 
@@ -113,7 +113,7 @@ private:
   juce::Component contentComponent;
   int scrollOffset = 0;
 
-  //==============================================================================
+  // ==============================================================================
   // Drawing helpers
   void drawHeader(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawEmptyState(juce::Graphics &g, juce::Rectangle<int> bounds);

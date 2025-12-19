@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 
-//==============================================================================
+// ==============================================================================
 /**
  * AudioCapture handles recording audio from the DAW
  *
@@ -22,12 +22,12 @@ public:
   AudioCapture();
   ~AudioCapture();
 
-  //==============================================================================
-  // Configuration - call from prepareToPlay() or message thread
+  // ==============================================================================
+  // Configuration - call from prepareToPlay or message thread
   void prepare(double sampleRate, int samplesPerBlock, int numChannels);
   void reset();
 
-  //==============================================================================
+  // ==============================================================================
   // Recording control - call from MESSAGE THREAD only
   void startRecording(const juce::String &recordingId = "");
   juce::AudioBuffer<float> stopRecording();
@@ -35,7 +35,7 @@ public:
     return recording.load();
   }
 
-  //==============================================================================
+  // ==============================================================================
   // Audio capture - call from AUDIO THREAD (processBlock) only
 
   /**
@@ -67,7 +67,7 @@ public:
    */
   void captureAudio(const juce::AudioBuffer<float> &buffer);
 
-  //==============================================================================
+  // ==============================================================================
   // Recording info - thread-safe reads
   double getRecordingLengthSeconds() const;
   int getRecordingLengthSamples() const {
@@ -80,13 +80,13 @@ public:
   float getRecordingProgress() const; // 0.0 - 1.0
   bool isBufferFull() const;
 
-  //==============================================================================
-  // Level metering - thread-safe, updated during captureAudio()
+  // ==============================================================================
+  // Level metering - thread-safe, updated during captureAudio
   float getPeakLevel(int channel) const;
   float getRMSLevel(int channel) const;
   void resetLevels();
 
-  //==============================================================================
+  // ==============================================================================
   // Export utilities - call from MESSAGE THREAD
   juce::String generateWaveformSVG(const juce::AudioBuffer<float> &buffer, int width = 400, int height = 100);
 
@@ -98,16 +98,16 @@ public:
     return currentNumChannels;
   }
 
-  //==============================================================================
+  // ==============================================================================
   // Audio file export - call from MESSAGE THREAD
 
   /** Export format options for audio files */
   enum class ExportFormat {
-    WAV_16bit,  ///< CD quality, smaller files
-    WAV_24bit,  ///< Professional quality, larger files
-    WAV_32bit,  ///< Maximum quality (float), largest files
-    FLAC_16bit, ///< Lossless compression, ~50-60% of WAV size
-    FLAC_24bit  ///< High-quality lossless, for professional use
+    WAV_16bit,  // /< CD quality, smaller files
+    WAV_24bit,  // /< Professional quality, larger files
+    WAV_32bit,  // /< Maximum quality (float), largest files
+    FLAC_16bit, // /< Lossless compression, ~50-60% of WAV size
+    FLAC_24bit  // /< High-quality lossless, for professional use
   };
 
   /** Save an audio buffer to a file (WAV or FLAC based on format)
@@ -175,7 +175,7 @@ public:
     return recordedAudio;
   }
 
-  //==============================================================================
+  // ==============================================================================
   // Duration and size utilities
 
   /** Format a duration in seconds as MM:SS or M:SS string
@@ -207,7 +207,7 @@ public:
   /** Get estimated file size for the recorded audio in a given format */
   juce::int64 getEstimatedFileSize(ExportFormat format) const;
 
-  //==============================================================================
+  // ==============================================================================
   // Audio processing utilities - all return NEW buffers (non-destructive)
 
   /** Trim an audio buffer to a specified range
@@ -231,9 +231,9 @@ public:
 
   /** Fade type for fade in/out operations */
   enum class FadeType {
-    Linear,      ///< Linear ramp (constant rate)
-    Exponential, ///< Exponential curve (more natural for audio)
-    SCurve       ///< S-curve (smooth start and end)
+    Linear,      // /< Linear ramp (constant rate)
+    Exponential, // /< Exponential curve (more natural for audio)
+    SCurve       // /< S-curve (smooth start and end)
   };
 
   /** Apply fade in to the beginning of a buffer
@@ -294,7 +294,7 @@ public:
   static float linearToDb(float linear);
 
 private:
-  //==============================================================================
+  // ==============================================================================
   // Thread-safe state (accessed from both threads)
   std::atomic<bool> recording{false};
   std::atomic<int> recordingPosition{0};
@@ -309,14 +309,14 @@ private:
   int rmsSampleCounts[MaxChannels] = {0, 0};
   static constexpr int RMSWindowSamples = 2048; // ~46ms @ 44.1kHz
 
-  //==============================================================================
+  // ==============================================================================
   // Configuration (set on message thread before recording)
   juce::String currentRecordingId;
   double currentSampleRate = 44100.0;
   int currentNumChannels = 2;
   int maxRecordingSamples = 0; // 60 seconds max
 
-  //==============================================================================
+  // ==============================================================================
   // Recording buffer (allocated on message thread, written on audio thread)
   juce::AudioBuffer<float> recordingBuffer;
 
@@ -324,7 +324,7 @@ private:
   juce::AudioBuffer<float> recordedAudio;
   bool hasRecordedData = false;
 
-  //==============================================================================
+  // ==============================================================================
   void initializeBuffers();
   void updateLevels(const juce::AudioBuffer<float> &buffer, int numSamples);
 

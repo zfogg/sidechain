@@ -14,16 +14,16 @@
 
 using namespace Sidechain::Stores;
 
-//==============================================================================
+// ==============================================================================
 // Forward declarations
-//==============================================================================
+// ==============================================================================
 
 static juce::String getInitialsFromName(const juce::String &name);
 static juce::Image loadImageFromURL(const juce::String &urlStr);
 
-//==============================================================================
+// ==============================================================================
 // UserProfile implementation
-//==============================================================================
+// ==============================================================================
 UserProfile UserProfile::fromJson(const juce::var &json) {
   UserProfile profile;
 
@@ -86,9 +86,9 @@ bool UserProfile::isOwnProfile(const juce::String &currentUserId) const {
   return id == currentUserId;
 }
 
-//==============================================================================
+// ==============================================================================
 // Profile implementation
-//==============================================================================
+// ==============================================================================
 Profile::Profile(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   Log::info("Profile: Initializing profile component");
 
@@ -145,7 +145,7 @@ Profile::Profile(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) 
   addChildComponent(errorStateComponent.get());
   Log::debug("Profile: Error state component created");
 
-  // IMPORTANT: setSize must be called LAST because it triggers resized()
+  // IMPORTANT: setSize must be called LAST because it triggers resized
   // which uses scrollBar and other child components
   setSize(600, 800);
   Log::info("Profile: Initialization complete");
@@ -157,7 +157,7 @@ Profile::~Profile() {
   // RAII: Arrays will clean up automatically
 }
 
-//==============================================================================
+// ==============================================================================
 void Profile::setNetworkClient(NetworkClient *client) {
   networkClient = client;
   if (storyHighlights)
@@ -176,7 +176,7 @@ void Profile::setCurrentUserId(const juce::String &userId) {
   Log::info("Profile: Current user ID set to: " + userId);
 }
 
-//==============================================================================
+// ==============================================================================
 void Profile::loadProfile(const juce::String &userId) {
   if (userId.isEmpty()) {
     Log::warn("Profile::loadProfile: Empty userId provided");
@@ -296,7 +296,7 @@ void Profile::refresh() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void Profile::paint(juce::Graphics &g) {
   drawBackground(g);
 
@@ -810,7 +810,7 @@ void Profile::drawEmptyState(juce::Graphics &g, juce::Rectangle<int> bounds) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void Profile::resized() {
   Log::debug("Profile::resized: Component resized to " + juce::String(getWidth()) + "x" + juce::String(getHeight()));
   auto bounds = getLocalBounds();
@@ -853,7 +853,7 @@ void Profile::resized() {
     errorStateComponent->setBounds(bounds);
   }
 
-  // TODO: Phase 4.1.10 - Add profile verification system (future: badges)
+  // TODO: - Add profile verification system (future: badges)
   // Note: Profile shows follower/following counts but clicking them opens
   // FollowersList panel - this is already implemented
 }
@@ -1002,7 +1002,7 @@ void Profile::mouseWheelMove(const juce::MouseEvent &event, const juce::MouseWhe
   handleMouseWheelMove(event, wheel, viewportHeight, scrollBar->getWidth());
 }
 
-//==============================================================================
+// ==============================================================================
 juce::Rectangle<int> Profile::getBackButtonBounds() const {
   return juce::Rectangle<int>(PADDING, 15, 40, 30);
 }
@@ -1098,7 +1098,7 @@ juce::Rectangle<int> Profile::getPostsAreaBounds() const {
   return juce::Rectangle<int>(0, topOffset, getWidth() - 12, getHeight() - topOffset);
 }
 
-//==============================================================================
+// ==============================================================================
 void Profile::fetchProfile(const juce::String &userId) {
   if (userId.isEmpty()) {
     Log::error("Profile::fetchProfile: userId is empty");
@@ -1313,7 +1313,7 @@ void Profile::shareProfile() {
   Log::debug("Profile::shareProfile: Profile link copied to clipboard");
 }
 
-//==============================================================================
+// ==============================================================================
 void Profile::updatePostCards() {
   Log::debug("Profile::updatePostCards: Updating post cards - current: " + juce::String(postCards.size()) +
              ", needed: " + juce::String(userPosts.size()));
@@ -1352,7 +1352,7 @@ void Profile::updatePostCards() {
     };
     postCards.add(card);
     addAndMakeVisible(card);
-    Log::debug("Profile::updatePostCards: Created new post card #" + juce::String(postCards.size()));
+    Log::debug("Profile::updatePostCards: Created new post card # " + juce::String(postCards.size()));
   }
 
   // Remove extra cards
@@ -1406,7 +1406,7 @@ bool Profile::isOwnProfile() const {
   return profile.id == currentUserId && currentUserId.isNotEmpty();
 }
 
-//==============================================================================
+// ==============================================================================
 void Profile::setCurrentlyPlayingPost(const juce::String &postId) {
   Log::debug("Profile::setCurrentlyPlayingPost: Setting playing post - postId: " + postId);
   currentlyPlayingPostId = postId;
@@ -1435,7 +1435,7 @@ void Profile::clearPlayingState() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void Profile::showFollowersList(const juce::String &userId, FollowersList::ListType type) {
   if (followersListPanel == nullptr || userId.isEmpty()) {
     Log::warn("Profile::showFollowersList: Cannot show list - panel: " +
@@ -1472,7 +1472,7 @@ void Profile::hideFollowersList() {
   followersListVisible = false;
 }
 
-//==============================================================================
+// ==============================================================================
 void Profile::queryPresenceForProfile() {
   if (!streamChatClient || profile.id.isEmpty()) {
     Log::debug("Profile::queryPresenceForProfile: Skipping - streamChatClient "
@@ -1582,7 +1582,7 @@ void Profile::checkForActiveStories(const juce::String &userId) {
   });
 }
 
-//==============================================================================
+// ==============================================================================
 juce::String Profile::getTooltip() {
   auto mousePos = getMouseXYRelative();
 
@@ -1652,7 +1652,7 @@ juce::String Profile::getTooltip() {
   return {};
 }
 
-//==============================================================================
+// ==============================================================================
 // Helper functions for image loading and avatar rendering
 
 static juce::Image loadImageFromURL(const juce::String &urlStr) {
@@ -1706,9 +1706,9 @@ static juce::String getInitialsFromName(const juce::String &name) {
   return "?";
 }
 
-//==============================================================================
+// ==============================================================================
 // AppStoreComponent overrides
-//==============================================================================
+// ==============================================================================
 void Profile::onAppStateChanged(const Sidechain::Stores::UserState &state) {
   // Update profile data from UserStore if viewing own profile
   if (isOwnProfile() && currentUserId == state.userId) {

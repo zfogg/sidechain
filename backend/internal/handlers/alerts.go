@@ -22,7 +22,7 @@ func SetAlertEvaluator(evaluator *alerts.Evaluator) {
 	alertEvaluator = evaluator
 }
 
-// GetAlerts returns all alerts (Phase 7.2)
+// GetAlerts returns all alerts
 // GET /api/v1/alerts
 func (h *Handlers) GetAlerts(c *gin.Context) {
 	if alertManager == nil {
@@ -51,7 +51,7 @@ func (h *Handlers) GetAlerts(c *gin.Context) {
 	})
 }
 
-// GetActiveAlerts returns only active/unresolved alerts (Phase 7.2)
+// GetActiveAlerts returns only active/unresolved alerts
 // GET /api/v1/alerts/active
 func (h *Handlers) GetActiveAlerts(c *gin.Context) {
 	if alertManager == nil {
@@ -68,7 +68,7 @@ func (h *Handlers) GetActiveAlerts(c *gin.Context) {
 	})
 }
 
-// GetAlertsByType returns alerts of a specific type (Phase 7.2)
+// GetAlertsByType returns alerts of a specific type
 // GET /api/v1/alerts/type/:type
 func (h *Handlers) GetAlertsByType(c *gin.Context) {
 	if alertManager == nil {
@@ -86,7 +86,7 @@ func (h *Handlers) GetAlertsByType(c *gin.Context) {
 	})
 }
 
-// ResolveAlert marks an alert as resolved (Phase 7.2)
+// ResolveAlert marks an alert as resolved
 // PUT /api/v1/alerts/:id/resolve
 func (h *Handlers) ResolveAlert(c *gin.Context) {
 	if alertManager == nil {
@@ -107,7 +107,7 @@ func (h *Handlers) ResolveAlert(c *gin.Context) {
 	})
 }
 
-// GetRules returns all alert rules (Phase 7.2)
+// GetRules returns all alert rules
 // GET /api/v1/alerts/rules
 func (h *Handlers) GetRules(c *gin.Context) {
 	if alertManager == nil {
@@ -123,7 +123,7 @@ func (h *Handlers) GetRules(c *gin.Context) {
 	})
 }
 
-// CreateRule creates a new alert rule (Phase 7.2)
+// CreateRule creates a new alert rule
 // POST /api/v1/alerts/rules
 func (h *Handlers) CreateRule(c *gin.Context) {
 	if alertManager == nil {
@@ -168,7 +168,7 @@ func (h *Handlers) CreateRule(c *gin.Context) {
 	})
 }
 
-// UpdateRule updates an alert rule (Phase 7.2)
+// UpdateRule updates an alert rule
 // PUT /api/v1/alerts/rules/:id
 func (h *Handlers) UpdateRule(c *gin.Context) {
 	if alertManager == nil {
@@ -201,7 +201,7 @@ func (h *Handlers) UpdateRule(c *gin.Context) {
 	})
 }
 
-// GetAlertStats returns alert statistics (Phase 7.2)
+// GetAlertStats returns alert statistics
 // GET /api/v1/alerts/stats
 func (h *Handlers) GetAlertStats(c *gin.Context) {
 	if alertManager == nil {

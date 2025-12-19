@@ -8,7 +8,7 @@
 class NetworkClient;
 class StreamChatClient;
 
-//==============================================================================
+// ==============================================================================
 /**
  * UserDiscovery provides user search and discovery functionality
  *
@@ -25,7 +25,7 @@ public:
   UserDiscovery();
   ~UserDiscovery() override;
 
-  //==============================================================================
+  // ==============================================================================
   // Store and network client integration
   void setNetworkClient(NetworkClient *client);
   void setStreamChatClient(StreamChatClient *client);
@@ -34,15 +34,15 @@ public:
     currentUserId = userId;
   }
 
-  // Presence updates (6.5.2.7)
+  // Presence updates
   void updateUserPresence(const juce::String &userId, bool isOnline, const juce::String &status);
 
-  //==============================================================================
+  // ==============================================================================
   // Callbacks
   std::function<void()> onBackPressed;
   std::function<void(const DiscoveredUser &)> onUserSelected; // Navigate to profile
 
-  //==============================================================================
+  // ==============================================================================
   // Component overrides
   void paint(juce::Graphics &g) override;
   void resized() override;
@@ -55,13 +55,13 @@ public:
   // ScrollBar::Listener
   void scrollBarMoved(juce::ScrollBar *scrollBar, double newRangeStart) override;
 
-  //==============================================================================
+  // ==============================================================================
   // Load initial data
   void loadDiscoveryData();
   void refresh();
 
 private:
-  //==============================================================================
+  // ==============================================================================
   // View modes
   enum class ViewMode {
     Discovery,     // Default view with trending, featured, suggested
@@ -71,7 +71,7 @@ private:
 
   ViewMode currentViewMode = ViewMode::Discovery;
 
-  //==============================================================================
+  // ==============================================================================
   // Data
   NetworkClient *networkClient = nullptr;
   StreamChatClient *streamChatClient = nullptr;
@@ -111,7 +111,7 @@ private:
   // Error state
   juce::String errorMessage;
 
-  //==============================================================================
+  // ==============================================================================
   // UI Components
   std::unique_ptr<juce::TextEditor> searchBox;
   juce::ScrollBar scrollBar{true}; // vertical
@@ -120,7 +120,7 @@ private:
   // Scroll state
   int scrollOffset = 0;
 
-  //==============================================================================
+  // ==============================================================================
   // Layout constants
   static constexpr int HEADER_HEIGHT = 60;
   static constexpr int SEARCH_BAR_HEIGHT = 44;
@@ -129,7 +129,7 @@ private:
   static constexpr int GENRE_CHIP_HEIGHT = 32;
   static constexpr int PADDING = 16;
 
-  //==============================================================================
+  // ==============================================================================
   // Drawing methods
   void drawHeader(juce::Graphics &g);
   void drawSearchBar(juce::Graphics &g);
@@ -145,7 +145,7 @@ private:
   void drawLoadingState(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawEmptyState(juce::Graphics &g, juce::Rectangle<int> bounds, const juce::String &message);
 
-  //==============================================================================
+  // ==============================================================================
   // Hit testing helpers
   juce::Rectangle<int> getBackButtonBounds() const;
   juce::Rectangle<int> getSearchBoxBounds() const;
@@ -154,7 +154,7 @@ private:
   juce::Rectangle<int> getRecentSearchBounds(int index) const;
   juce::Rectangle<int> getGenreChipBounds(int index) const;
 
-  //==============================================================================
+  // ==============================================================================
   // Network operations
   void performSearch(const juce::String &query);
   void fetchTrendingUsers();
@@ -166,14 +166,14 @@ private:
   void fetchUsersByGenre(const juce::String &genre);
   void handleFollowToggle(const DiscoveredUser &user, bool willFollow);
 
-  //==============================================================================
+  // ==============================================================================
   // Recent searches management
   void loadRecentSearches();
   void saveRecentSearches();
   void addToRecentSearches(const juce::String &query);
   void clearRecentSearches();
 
-  //==============================================================================
+  // ==============================================================================
   // User card management
   void rebuildUserCards();
   void updateUserCardPositions();
@@ -182,13 +182,13 @@ private:
   // Presence querying
   void queryPresenceForUsers(const juce::Array<DiscoveredUser> &users);
 
-  //==============================================================================
+  // ==============================================================================
   // Helper methods
   int calculateContentHeight() const;
   void updateScrollBounds();
   juce::File getRecentSearchesFile() const;
 
-  //==============================================================================
+  // ==============================================================================
   // Colors (matching app theme)
   struct Colors {
     static inline juce::Colour background{0xff1a1a1e};

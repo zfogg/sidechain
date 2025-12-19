@@ -3,7 +3,7 @@
 #include "Log.h"
 #include <JuceHeader.h>
 
-//==============================================================================
+// ==============================================================================
 juce::Path WaveformGenerator::generateWaveformPath(const juce::AudioBuffer<float> &buffer,
                                                    juce::Rectangle<int> bounds) {
   juce::Path path;

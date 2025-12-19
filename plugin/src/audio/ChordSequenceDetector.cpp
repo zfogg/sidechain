@@ -1,6 +1,6 @@
 #include "ChordSequenceDetector.h"
 
-//==============================================================================
+// ==============================================================================
 ChordSequenceDetector::ChordSequenceDetector() {
   currentChord.rootNote = -1;
   currentChord.type = ChordType::Unknown;
@@ -8,7 +8,7 @@ ChordSequenceDetector::ChordSequenceDetector() {
   lastDetectedChord.type = ChordType::Unknown;
 }
 
-//==============================================================================
+// ==============================================================================
 void ChordSequenceDetector::processMIDI(const juce::MidiBuffer &midiMessages, double /* sampleRate */) {
   if (!detecting.load())
     return;
@@ -73,7 +73,7 @@ void ChordSequenceDetector::processMIDI(const juce::MidiBuffer &midiMessages, do
   }
 }
 
-//==============================================================================
+// ==============================================================================
 ChordSequenceDetector::Chord ChordSequenceDetector::identifyChord(const std::set<int> &heldNotes) {
   Chord result;
   result.rootNote = -1;
@@ -97,7 +97,7 @@ ChordSequenceDetector::Chord ChordSequenceDetector::identifyChord(const std::set
   return result;
 }
 
-//==============================================================================
+// ==============================================================================
 ChordSequenceDetector::ChordType ChordSequenceDetector::identifyChordType(const std::set<int> &pitchClasses,
                                                                           int &outRoot) {
   // Try each pitch class as potential root
@@ -159,7 +159,7 @@ ChordSequenceDetector::ChordType ChordSequenceDetector::identifyChordType(const 
   return ChordType::Unknown;
 }
 
-//==============================================================================
+// ==============================================================================
 void ChordSequenceDetector::addUnlockSequence(UnlockSequence sequence) {
   juce::ScopedLock lock(sequenceLock);
   unlockSequences.push_back(std::move(sequence));
@@ -180,7 +180,7 @@ void ChordSequenceDetector::reset() {
   lastDetectedChord.type = ChordType::Unknown;
 }
 
-//==============================================================================
+// ==============================================================================
 ChordSequenceDetector::Chord ChordSequenceDetector::getCurrentChord() const {
   juce::ScopedLock lock(chordLock);
   return currentChord;
@@ -210,7 +210,7 @@ std::vector<juce::String> ChordSequenceDetector::getUnlockedSequences() const {
   return result;
 }
 
-//==============================================================================
+// ==============================================================================
 bool ChordSequenceDetector::checkSequenceMatch(const UnlockSequence &sequence) {
   if (chordHistory.size() < sequence.chords.size())
     return false;
@@ -234,7 +234,7 @@ void ChordSequenceDetector::triggerUnlock(UnlockSequence &sequence) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 // Predefined sequences
 
 ChordSequenceDetector::UnlockSequence ChordSequenceDetector::createBasicSynthSequence(std::function<void()> onUnlock) {

@@ -1,7 +1,7 @@
-//==============================================================================
+// ==============================================================================
 // StoriesClient.cpp - Stories operations
 // Part of NetworkClient implementation split
-//==============================================================================
+// ==============================================================================
 
 #include "../../util/Async.h"
 #include "../../util/Constants.h"
@@ -11,7 +11,7 @@
 
 using namespace Sidechain::Network::Api;
 
-//==============================================================================
+// ==============================================================================
 void NetworkClient::getStoriesFeed(ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
@@ -202,7 +202,7 @@ void NetworkClient::getStoryDownloadInfo(const juce::String &storyId, DownloadIn
   });
 }
 
-//==============================================================================
+// ==============================================================================
 // Story Highlights operations
 
 void NetworkClient::getHighlights(const juce::String &userId, ResponseCallback callback) {

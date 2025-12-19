@@ -3,12 +3,12 @@
 #include "../util/Log.h"
 #include "../util/error/ErrorTracking.h"
 
-//==============================================================================
+// ==============================================================================
 AudioCapture::AudioCapture() {}
 
 AudioCapture::~AudioCapture() {}
 
-//==============================================================================
+// ==============================================================================
 void AudioCapture::prepare(double sampleRate, int /* samplesPerBlock */, int numChannels) {
   currentSampleRate = sampleRate;
   currentNumChannels = juce::jmin(numChannels, MaxChannels);
@@ -32,7 +32,7 @@ void AudioCapture::reset() {
   resetLevels();
 }
 
-//==============================================================================
+// ==============================================================================
 void AudioCapture::startRecording(const juce::String &recordingId) {
   if (recording.load()) {
     Log::warn("Already recording, ignoring start request");
@@ -94,7 +94,7 @@ juce::AudioBuffer<float> AudioCapture::stopRecording() {
   return result;
 }
 
-//==============================================================================
+// ==============================================================================
 void AudioCapture::captureAudio(const juce::AudioBuffer<float> &buffer) {
   // Fast exit if not recording (atomic read with acquire for synchronization)
   if (!recording.load(std::memory_order_acquire))
@@ -126,7 +126,7 @@ void AudioCapture::captureAudio(const juce::AudioBuffer<float> &buffer) {
   updateLevels(buffer, numSamples);
 }
 
-//==============================================================================
+// ==============================================================================
 void AudioCapture::updateLevels(const juce::AudioBuffer<float> &buffer, int numSamples) {
   int numChannels = juce::jmin(buffer.getNumChannels(), MaxChannels);
 
@@ -169,7 +169,7 @@ void AudioCapture::updateLevels(const juce::AudioBuffer<float> &buffer, int numS
   }
 }
 
-//==============================================================================
+// ==============================================================================
 double AudioCapture::getRecordingLengthSeconds() const {
   if (currentSampleRate <= 0)
     return 0.0;
@@ -195,7 +195,7 @@ bool AudioCapture::isBufferFull() const {
   return recordingPosition.load() >= maxRecordingSamples;
 }
 
-//==============================================================================
+// ==============================================================================
 float AudioCapture::getPeakLevel(int channel) const {
   if (channel < 0 || channel >= MaxChannels)
     return 0.0f;
@@ -261,14 +261,14 @@ juce::String AudioCapture::generateWaveformSVG(const juce::AudioBuffer<float> &b
   return svg;
 }
 
-//==============================================================================
+// ==============================================================================
 void AudioCapture::initializeBuffers() {
   recordingBuffer.setSize(currentNumChannels, maxRecordingSamples, false, true, false);
   recordingBuffer.clear();
   recordingPosition = 0;
 }
 
-//==============================================================================
+// ==============================================================================
 bool AudioCapture::saveBufferToWavFile(const juce::File &file, const juce::AudioBuffer<float> &buffer,
                                        double sampleRate, ExportFormat format) {
   if (buffer.getNumSamples() == 0 || buffer.getNumChannels() == 0) {
@@ -397,7 +397,7 @@ bool AudioCapture::saveRecordedAudioToWavFile(const juce::File &file, ExportForm
   return saveBufferToWavFile(file, recordedAudio, currentSampleRate, format);
 }
 
-//==============================================================================
+// ==============================================================================
 bool AudioCapture::isFlacFormat(ExportFormat format) {
   return format == ExportFormat::FLAC_16bit || format == ExportFormat::FLAC_24bit;
 }
@@ -535,7 +535,7 @@ juce::File AudioCapture::getTempAudioFile(const juce::String &extension) {
   return sidechainDir.getChildFile(filename);
 }
 
-//==============================================================================
+// ==============================================================================
 juce::String AudioCapture::formatDuration(double seconds) {
   if (seconds < 0.0)
     seconds = 0.0;
@@ -629,9 +629,9 @@ juce::int64 AudioCapture::getEstimatedFileSize(ExportFormat format) const {
   return estimateFileSize(recordedAudio.getNumSamples(), recordedAudio.getNumChannels(), format);
 }
 
-//==============================================================================
+// ==============================================================================
 // Audio Processing Utilities
-//==============================================================================
+// ==============================================================================
 
 juce::AudioBuffer<float> AudioCapture::trimBuffer(const juce::AudioBuffer<float> &buffer, int startSample,
                                                   int endSample) {
@@ -671,7 +671,7 @@ juce::AudioBuffer<float> AudioCapture::trimBufferByTime(const juce::AudioBuffer<
   return trimBuffer(buffer, startSample, endSample);
 }
 
-//==============================================================================
+// ==============================================================================
 // Helper function to calculate fade gain based on type
 static float calculateFadeGain(float position, AudioCapture::FadeType fadeType, bool isFadeIn) {
   // position is 0.0 to 1.0 representing progress through the fade
@@ -764,7 +764,7 @@ void AudioCapture::applyFadeOutByTime(juce::AudioBuffer<float> &buffer, double s
   applyFadeOut(buffer, fadeSamples, fadeType);
 }
 
-//==============================================================================
+// ==============================================================================
 float AudioCapture::getBufferPeakLevel(const juce::AudioBuffer<float> &buffer) {
   if (buffer.getNumSamples() == 0 || buffer.getNumChannels() == 0)
     return 0.0f;

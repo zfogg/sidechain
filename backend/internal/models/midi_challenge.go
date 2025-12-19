@@ -17,7 +17,7 @@ const (
 	MIDIChallengeStatusEnded    MIDIChallengeStatus = "ended"
 )
 
-// MIDIChallengeConstraints represents the constraints for a MIDI challenge (R.2.2.1.1)
+// MIDIChallengeConstraints represents the constraints for a MIDI challenge
 type MIDIChallengeConstraints struct {
 	// BPM constraints
 	BPMMin *int `json:"bpm_min,omitempty"` // Minimum BPM (inclusive)
@@ -41,7 +41,7 @@ type MIDIChallengeConstraints struct {
 	AdditionalRules map[string]interface{} `json:"additional_rules,omitempty"`
 }
 
-// MIDIChallenge represents a MIDI challenge (R.2.2.1.1)
+// MIDIChallenge represents a MIDI challenge
 type MIDIChallenge struct {
 	ID          string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
 	Title       string `gorm:"not null" json:"title"`
@@ -123,7 +123,7 @@ func (c *MIDIChallenge) CalculateStatus() MIDIChallengeStatus {
 	return MIDIChallengeStatusActive
 }
 
-// MIDIChallengeEntry represents a user's submission to a MIDI challenge (R.2.2.1.2)
+// MIDIChallengeEntry represents a user's submission to a MIDI challenge
 type MIDIChallengeEntry struct {
 	ID          string        `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
 	ChallengeID string        `gorm:"not null;index" json:"challenge_id"`
@@ -158,7 +158,7 @@ func (MIDIChallengeEntry) TableName() string {
 	return "midi_challenge_entries"
 }
 
-// MIDIChallengeVote represents a vote for a challenge entry (R.2.2.1.3)
+// MIDIChallengeVote represents a vote for a challenge entry
 type MIDIChallengeVote struct {
 	ID          string             `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
 	ChallengeID string             `gorm:"not null;index" json:"challenge_id"`

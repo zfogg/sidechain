@@ -11,7 +11,7 @@
 class NetworkClient;
 class StreamChatClient;
 
-//==============================================================================
+// ==============================================================================
 /**
  * Search provides comprehensive search functionality for users and posts
  *
@@ -33,7 +33,7 @@ public:
   Search(Sidechain::Stores::AppStore *store = nullptr);
   ~Search() override;
 
-  //==============================================================================
+  // ==============================================================================
   // Network client integration
   void setNetworkClient(NetworkClient *client);
   void setCurrentUserId(const juce::String &userId) {
@@ -41,16 +41,16 @@ public:
   }
   void setStreamChatClient(StreamChatClient *client);
 
-  // Presence updates (6.5.2.7)
+  // Presence updates
   void updateUserPresence(const juce::String &userId, bool isOnline, const juce::String &status);
 
-  //==============================================================================
+  // ==============================================================================
   // Callbacks
   std::function<void()> onBackPressed;
   std::function<void(const juce::String &userId)> onUserSelected; // Navigate to user profile
   std::function<void(const FeedPost &post)> onPostSelected;       // Navigate to post details
 
-  //==============================================================================
+  // ==============================================================================
   // Component overrides
   void paint(juce::Graphics &g) override;
   void resized() override;
@@ -74,25 +74,25 @@ public:
   // Timer (for debouncing search)
   void timerCallback() override;
 
-  //==============================================================================
+  // ==============================================================================
   // Public methods
   void focusSearchInput();
   void clearSearch();
 
 protected:
-  //==============================================================================
+  // ==============================================================================
   // AppStoreComponent virtual methods
   void onAppStateChanged(const Sidechain::Stores::SearchState &state) override;
   void subscribeToAppStore() override;
 
 private:
-  //==============================================================================
+  // ==============================================================================
   // Result tabs
   enum class ResultTab { Users, Posts };
 
   ResultTab currentTab = ResultTab::Users;
 
-  //==============================================================================
+  // ==============================================================================
   // Search state
   enum class SearchState {
     Empty,     // No search query, show trending/recent
@@ -104,7 +104,7 @@ private:
 
   SearchState searchState = SearchState::Empty;
 
-  //==============================================================================
+  // ==============================================================================
   // Data
   NetworkClient *networkClient = nullptr;
   StreamChatClient *streamChatClient = nullptr;
@@ -134,7 +134,7 @@ private:
   // Available genres for filter
   juce::Array<juce::String> availableGenres;
 
-  //==============================================================================
+  // ==============================================================================
   // UI Components
   std::unique_ptr<juce::TextEditor> searchInput;
   std::unique_ptr<juce::ScrollBar> scrollBar;
@@ -159,10 +159,10 @@ private:
   static constexpr int FILTER_HEIGHT = 60;
   static constexpr int SEARCH_INPUT_HEIGHT = 50;
 
-  // Keyboard navigation state (7.3.8)
+  // Keyboard navigation state
   int selectedResultIndex = -1;
 
-  //==============================================================================
+  // ==============================================================================
   // Helper methods
   void performSearch();
   void loadRecentSearches();

@@ -2,7 +2,7 @@
 #include "../util/Log.h"
 #include <algorithm>
 
-//==============================================================================
+// ==============================================================================
 BufferAudioPlayer::BufferAudioPlayer() {
   // Create progress timer
   progressTimer = std::make_unique<BufferAudioPlayer::ProgressTimer>(*this);
@@ -24,7 +24,7 @@ BufferAudioPlayer::~BufferAudioPlayer() {
   progressTimer.reset();
 }
 
-//==============================================================================
+// ==============================================================================
 // Loading
 
 void BufferAudioPlayer::loadBuffer(const juce::AudioBuffer<float> &buffer, double sampleRate) {
@@ -64,7 +64,7 @@ bool BufferAudioPlayer::hasBuffer() const {
   return totalSamples > 0 && numChannels > 0;
 }
 
-//==============================================================================
+// ==============================================================================
 // Transport Controls
 
 void BufferAudioPlayer::play() {
@@ -148,7 +148,7 @@ void BufferAudioPlayer::seekToNormalizedPosition(double normalizedPosition) {
     seekToPosition(normalizedPosition * duration);
 }
 
-//==============================================================================
+// ==============================================================================
 // State Queries
 
 double BufferAudioPlayer::getPositionSeconds() const {
@@ -173,7 +173,7 @@ double BufferAudioPlayer::getPlaybackProgress() const {
   return getPositionSeconds() / duration;
 }
 
-//==============================================================================
+// ==============================================================================
 // Volume Control
 
 void BufferAudioPlayer::setVolume(float newVolume) {
@@ -184,7 +184,7 @@ void BufferAudioPlayer::setMuted(bool shouldMute) {
   muted = shouldMute;
 }
 
-//==============================================================================
+// ==============================================================================
 // Audio Processing
 
 void BufferAudioPlayer::processBlock(juce::AudioBuffer<float> &buffer, int numSamples) {
@@ -279,7 +279,7 @@ void BufferAudioPlayer::releaseResources() {
   interpolator.reset();
 }
 
-//==============================================================================
+// ==============================================================================
 // Helper Methods
 
 double BufferAudioPlayer::samplePositionToSeconds(juce::int64 samplePos) const {
@@ -300,7 +300,7 @@ juce::int64 BufferAudioPlayer::secondsToSamplePosition(double seconds) const {
   return static_cast<juce::int64>(seconds * bufferSampleRate);
 }
 
-//==============================================================================
+// ==============================================================================
 // Progress Timer
 
 void BufferAudioPlayer::ProgressTimer::timerCallback() {

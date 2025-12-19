@@ -2,9 +2,9 @@
 #include "../../util/Colors.h"
 #include "../../util/Log.h"
 
-//==============================================================================
+// ==============================================================================
 // EmojiReactionsPanel Implementation
-//==============================================================================
+// ==============================================================================
 
 EmojiReactionsPanel::EmojiReactionsPanel() {
   Log::debug("EmojiReactionsPanel: Initializing");
@@ -15,7 +15,7 @@ EmojiReactionsPanel::~EmojiReactionsPanel() {
   Log::debug("EmojiReactionsPanel: Destroying");
 }
 
-//==============================================================================
+// ==============================================================================
 void EmojiReactionsPanel::paint(juce::Graphics &g) {
   auto bounds = getLocalBounds().toFloat();
 
@@ -90,7 +90,7 @@ void EmojiReactionsPanel::mouseExit(const juce::MouseEvent & /*event*/) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void EmojiReactionsPanel::setSelectedEmoji(const juce::String &emoji) {
   selectedEmoji = emoji;
   Log::debug("EmojiReactionsPanel: Selected emoji - " + emoji);
@@ -103,7 +103,7 @@ juce::Rectangle<int> EmojiReactionsPanel::getPreferredSize() {
   return juce::Rectangle<int>(0, 0, width, PANEL_HEIGHT);
 }
 
-//==============================================================================
+// ==============================================================================
 juce::Rectangle<int> EmojiReactionsPanel::getEmojiBounds(int index) const {
   if (index < 0 || index >= FeedPost::REACTION_EMOJIS.size())
     return {};
@@ -122,9 +122,9 @@ int EmojiReactionsPanel::getEmojiIndexAtPosition(juce::Point<int> pos) const {
   return -1;
 }
 
-//==============================================================================
+// ==============================================================================
 // EmojiReactionsBubble Implementation
-//==============================================================================
+// ==============================================================================
 
 EmojiReactionsBubble::EmojiReactionsBubble(juce::Component *targetComponent) : target(targetComponent) {
   panel = std::make_unique<EmojiReactionsPanel>();
@@ -147,7 +147,7 @@ EmojiReactionsBubble::EmojiReactionsBubble(juce::Component *targetComponent) : t
 
 EmojiReactionsBubble::~EmojiReactionsBubble() {}
 
-//==============================================================================
+// ==============================================================================
 void EmojiReactionsBubble::show() {
   if (target == nullptr)
     return;
@@ -189,7 +189,7 @@ void EmojiReactionsBubble::dismiss() {
   });
 }
 
-//==============================================================================
+// ==============================================================================
 void EmojiReactionsBubble::paint(juce::Graphics &g) {
   // Draw the bubble background with arrow pointing down
   juce::Path bubblePath;
@@ -239,7 +239,7 @@ void EmojiReactionsBubble::inputAttemptWhenModal() {
   dismiss();
 }
 
-//==============================================================================
+// ==============================================================================
 void EmojiReactionsBubble::setSelectedEmoji(const juce::String &emoji) {
   if (panel)
     panel->setSelectedEmoji(emoji);

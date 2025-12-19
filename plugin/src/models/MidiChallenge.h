@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 
-//==============================================================================
+// ==============================================================================
 /**
  * MIDIChallengeConstraints represents the constraints for a MIDI challenge
  */
@@ -20,7 +20,7 @@ struct MIDIChallengeConstraints {
   static MIDIChallengeConstraints fromJSON(const juce::var &json);
 };
 
-//==============================================================================
+// ==============================================================================
 /**
  * MIDIChallenge represents a MIDI challenge (R.2.2.1.1)
  */
@@ -58,7 +58,7 @@ struct MIDIChallenge {
   }
 };
 
-//==============================================================================
+// ==============================================================================
 /**
  * MIDIChallengeEntry represents a user's submission to a MIDI challenge
  */

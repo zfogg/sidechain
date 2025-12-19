@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 
-//==============================================================================
+// ==============================================================================
 /**
  * Log - Simple logging utility for the Sidechain plugin
  *
@@ -22,11 +22,11 @@
  * Thread-safe and gracefully handles missing directories or inaccessible files.
  */
 namespace Log {
-//==========================================================================
+// ==========================================================================
 // Log levels
 enum class Level { Debug, Info, Warn, Error };
 
-//==========================================================================
+// ==========================================================================
 // Core logging functions
 void debug(const juce::String &message);
 void info(const juce::String &message);
@@ -36,7 +36,7 @@ void error(const juce::String &message);
 // Log with explicit level
 void log(Level level, const juce::String &message);
 
-//==========================================================================
+// ==========================================================================
 // Formatted logging (printf-style via juce::String::formatted)
 template <typename... Args> void debugf(const char *format, Args... args) {
   debug(juce::String::formatted(format, args...));
@@ -54,7 +54,7 @@ template <typename... Args> void errorf(const char *format, Args... args) {
   error(juce::String::formatted(format, args...));
 }
 
-//==========================================================================
+// ==========================================================================
 // Configuration
 
 // Set minimum log level (messages below this level are ignored)
@@ -78,7 +78,7 @@ void flush();
 // Shutdown logging - call before application exit to prevent leak warnings
 void shutdown();
 
-//==========================================================================
+// ==========================================================================
 // Utility
 
 // Get string representation of log level

@@ -7,7 +7,7 @@
 
 class NetworkClient;
 
-//==============================================================================
+// ==============================================================================
 /**
  * HttpAudioPlayer - Handles HTTP/URL-based audio playback for the feed
  *
@@ -29,7 +29,7 @@ public:
   HttpAudioPlayer();
   ~HttpAudioPlayer() override;
 
-  //==============================================================================
+  // ==============================================================================
   // Transport Controls
 
   /**
@@ -71,7 +71,7 @@ public:
    */
   void seekToNormalizedPosition(double normalizedPosition);
 
-  //==============================================================================
+  // ==============================================================================
   // State Queries
 
   bool isPlaying() const {
@@ -98,7 +98,7 @@ public:
   /** Check if a specific post is currently playing */
   bool isPostPlaying(const juce::String &postId) const;
 
-  //==============================================================================
+  // ==============================================================================
   // Volume Control
 
   /** Set volume (0.0 to 1.0) */
@@ -115,7 +115,7 @@ public:
     return muted;
   }
 
-  //==============================================================================
+  // ==============================================================================
   // Auto-play and Queue Management
 
   /** Enable/disable auto-play next post when current finishes */
@@ -138,7 +138,7 @@ public:
   /** Skip to previous post in playlist */
   void playPrevious();
 
-  //==============================================================================
+  // ==============================================================================
   // Audio Focus (DAW awareness)
 
   /**
@@ -161,7 +161,7 @@ public:
     return audioFocusEnabled;
   }
 
-  //==============================================================================
+  // ==============================================================================
   // Audio Processing (called from PluginProcessor::processBlock)
 
   /**
@@ -186,7 +186,7 @@ public:
    */
   void releaseResources();
 
-  //==============================================================================
+  // ==============================================================================
   // Callbacks
 
   /** Called when playback starts */
@@ -213,7 +213,7 @@ public:
   /** Called when auto-play moves to next post */
   std::function<void(const juce::String &postId)> onAutoPlayNext;
 
-  //==============================================================================
+  // ==============================================================================
   // Cache Management
 
   /** Clear the audio cache */
@@ -233,12 +233,12 @@ public:
     networkClient = client;
   }
 
-  //==============================================================================
+  // ==============================================================================
   // ChangeListener
   void changeListenerCallback(juce::ChangeBroadcaster *source) override;
 
 private:
-  //==============================================================================
+  // ==============================================================================
   // Audio playback
   juce::AudioFormatManager formatManager;
   std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
@@ -274,7 +274,7 @@ private:
   // Thread safety
   juce::CriticalSection audioLock;
 
-  //==============================================================================
+  // ==============================================================================
   // Audio Cache
   struct CachedAudio {
     std::unique_ptr<juce::MemoryBlock> audioData;
@@ -295,12 +295,12 @@ private:
   void addToCache(const juce::String &postId, std::unique_ptr<juce::MemoryBlock> data);
   juce::MemoryBlock *getFromCache(const juce::String &postId);
 
-  //==============================================================================
+  // ==============================================================================
   // Loading
   void downloadAudio(const juce::String &postId, const juce::String &url);
   void loadFromMemory(const juce::String &postId, juce::MemoryBlock &audioData);
 
-  //==============================================================================
+  // ==============================================================================
   // Progress timer
   class ProgressTimer : public juce::Timer {
   public:

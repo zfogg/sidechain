@@ -4,7 +4,7 @@
 #include <JuceHeader.h>
 #include <optional>
 
-//==============================================================================
+// ==============================================================================
 /**
  * DraftKey - Simple key type for draft caching
  *
@@ -17,7 +17,7 @@ struct DraftKey {
   explicit DraftKey(const juce::var &draft) : id(draft.getProperty("id", "").toString()) {}
 };
 
-//==============================================================================
+// ==============================================================================
 /**
  * Trait specialization for DraftKey
  *
@@ -29,7 +29,7 @@ template <> struct CacheKeyTraits<DraftKey> {
   }
 };
 
-//==============================================================================
+// ==============================================================================
 /**
  * SidechainDraftCache caches draft metadata files with automatic LRU eviction.
  *

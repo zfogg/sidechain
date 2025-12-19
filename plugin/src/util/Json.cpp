@@ -2,7 +2,7 @@
 
 namespace Json {
 
-//==============================================================================
+// ==============================================================================
 // Primitive type accessors
 
 juce::String getString(const juce::var &json, const char *key, const juce::String &defaultVal) {
@@ -71,7 +71,7 @@ bool getBool(const juce::var &json, const char *key, bool defaultVal) {
   return static_cast<bool>(value);
 }
 
-//==============================================================================
+// ==============================================================================
 // Complex type accessors
 
 juce::var getObject(const juce::var &json, const char *key) {
@@ -96,7 +96,7 @@ juce::var getArray(const juce::var &json, const char *key) {
   return value;
 }
 
-//==============================================================================
+// ==============================================================================
 // Array element accessors
 
 juce::String getStringAt(const juce::var &array, int index, const juce::String &defaultVal) {
@@ -136,7 +136,7 @@ juce::var getObjectAt(const juce::var &array, int index) {
   return value;
 }
 
-//==============================================================================
+// ==============================================================================
 // Utility functions
 
 bool hasKey(const juce::var &json, const char *key) {

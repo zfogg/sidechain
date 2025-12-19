@@ -8,7 +8,7 @@
 #include "../social/UserCard.h"
 #include <fstream>
 
-//==============================================================================
+// ==============================================================================
 Search::Search(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   Log::info("Search: Initializing");
 
@@ -32,7 +32,7 @@ Search::Search(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
 
   // Load recent searches
   loadRecentSearches();
-  loadTrendingSearches(); // Load trending searches (7.3.6)
+  loadTrendingSearches(); // Load trending searches
   loadAvailableGenres();
 
   // Start timer for debouncing search
@@ -53,7 +53,7 @@ Search::Search(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   Log::debug("Search: Error state component created");
 
   // Set size after all components are initialized to avoid calling
-  // layoutComponents() before scrollBar exists
+  // layoutComponents before scrollBar exists
   setSize(1000, 700);
 
   // TODO: Phase 7 - Advanced Search - Search by BPM, key, genre
@@ -67,7 +67,7 @@ Search::~Search() {
   // AppStoreComponent destructor will handle unsubscribe
 }
 
-//==============================================================================
+// ==============================================================================
 // AppStoreComponent virtual methods
 
 void Search::onAppStateChanged(const Sidechain::Stores::SearchState &state) {
@@ -138,7 +138,7 @@ void Search::subscribeToAppStore() {
   });
 }
 
-//==============================================================================
+// ==============================================================================
 void Search::setNetworkClient(NetworkClient *client) {
   networkClient = client;
   Log::debug("Search: NetworkClient set " + juce::String(client != nullptr ? "(valid)" : "(null)"));
@@ -199,7 +199,7 @@ void Search::updateUserPresence(const juce::String &userId, bool isOnline, const
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void Search::paint(juce::Graphics &g) {
   auto bounds = getLocalBounds();
 
@@ -260,7 +260,7 @@ void Search::mouseUp(const juce::MouseEvent &event) {
     clearSearch();
   }
 
-  // Handle filter clicks (genre, BPM, key) (7.3.4)
+  // Handle filter clicks (genre, BPM, key)
   if (genreFilterBounds.contains(pos)) {
     showGenrePicker();
     return;
@@ -288,7 +288,7 @@ void Search::mouseUp(const juce::MouseEvent &event) {
       }
     }
 
-    // Check if clicked on trending search item (7.3.6)
+    // Check if clicked on trending search item
     yOffset = HEADER_HEIGHT + FILTER_HEIGHT + 40 +
               (static_cast<int>(recentSearches.size()) > 0 ? (static_cast<int>(recentSearches.size()) * 40 + 40) : 0);
     for (int i = 0; i < static_cast<int>(trendingSearches.size()) && i < 5; ++i) {
@@ -315,7 +315,7 @@ void Search::mouseWheelMove(const juce::MouseEvent &event, const juce::MouseWhee
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void Search::textEditorTextChanged(juce::TextEditor &editor) {
   if (&editor == searchInput.get()) {
     juce::String newQuery = editor.getText().trim();
@@ -327,7 +327,7 @@ void Search::textEditorTextChanged(juce::TextEditor &editor) {
         searchState = SearchState::Empty;
         userResults.clear();
         postResults.clear();
-        selectedResultIndex = -1; // Reset keyboard navigation (7.3.8)
+        selectedResultIndex = -1; // Reset keyboard navigation
         repaint();
       } else {
         // Restart timer for debouncing
@@ -351,7 +351,7 @@ void Search::textEditorEscapeKeyPressed(juce::TextEditor &editor) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void Search::scrollBarMoved(juce::ScrollBar *movedScrollBar, double newRangeStart) {
   if (movedScrollBar == this->scrollBar.get()) {
     scrollPosition = newRangeStart;
@@ -359,7 +359,7 @@ void Search::scrollBarMoved(juce::ScrollBar *movedScrollBar, double newRangeStar
   }
 }
 
-//==============================================================================
+// ==============================================================================
 bool Search::keyPressed(const juce::KeyPress &key, juce::Component *originatingComponent) {
   // Only handle keyboard if search component has focus or originated from here
   if (originatingComponent != nullptr && originatingComponent != this &&
@@ -373,7 +373,7 @@ bool Search::keyPressed(const juce::KeyPress &key, juce::Component *originatingC
     return true;
   }
 
-  // Up/Down arrows for navigation (7.3.8)
+  // Up/Down arrows for navigation
   if (searchState == SearchState::Results) {
     int maxResults =
         (currentTab == ResultTab::Users) ? static_cast<int>(userResults.size()) : static_cast<int>(postResults.size());
@@ -422,7 +422,7 @@ bool Search::keyPressed(const juce::KeyPress &key, juce::Component *originatingC
   return false;
 }
 
-//==============================================================================
+// ==============================================================================
 void Search::timerCallback() {
   stopTimer();
 
@@ -431,7 +431,7 @@ void Search::timerCallback() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void Search::focusSearchInput() {
   searchInput->grabKeyboardFocus();
   searchInput->selectAll();
@@ -443,11 +443,11 @@ void Search::clearSearch() {
   searchState = SearchState::Empty;
   userResults.clear();
   postResults.clear();
-  selectedResultIndex = -1; // Reset keyboard navigation (7.3.8)
+  selectedResultIndex = -1; // Reset keyboard navigation
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void Search::performSearch() {
   if (currentQuery.isEmpty()) {
     Log::warn("Search: Cannot perform search - query empty");
@@ -464,7 +464,7 @@ void Search::performSearch() {
 
   isSearching = true;
   searchState = SearchState::Searching;
-  selectedResultIndex = -1; // Reset keyboard navigation (7.3.8)
+  selectedResultIndex = -1; // Reset keyboard navigation
   repaint();
 
   // Add to recent searches
@@ -650,7 +650,7 @@ void Search::applyFilters() {
 
 void Search::switchTab(ResultTab tab) {
   currentTab = tab;
-  selectedResultIndex = -1; // Reset keyboard navigation when switching tabs (7.3.8)
+  selectedResultIndex = -1; // Reset keyboard navigation when switching tabs
 
   // If we have a query, search in the new tab
   if (!currentQuery.isEmpty()) {
@@ -660,7 +660,7 @@ void Search::switchTab(ResultTab tab) {
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void Search::drawHeader(juce::Graphics &g) {
   auto bounds = getHeaderBounds();
 
@@ -835,7 +835,7 @@ void Search::drawResults(juce::Graphics &g) {
         userCards[i]->setUser(userResults[i]);
         userCards[i]->setBounds(cardBounds);
 
-        // Highlight if keyboard-selected (7.3.8)
+        // Highlight if keyboard-selected
         if (i == selectedResultIndex) {
           g.setColour(SidechainColors::accent().withAlpha(0.3f));
           g.fillRoundedRectangle(cardBounds.toFloat(), 4.0f);
@@ -861,7 +861,7 @@ void Search::drawResults(juce::Graphics &g) {
         postCards[i]->setPost(postResults[i]);
         postCards[i]->setBounds(cardBounds);
 
-        // Highlight if keyboard-selected (7.3.8)
+        // Highlight if keyboard-selected
         if (i == selectedResultIndex) {
           g.setColour(SidechainColors::accent().withAlpha(0.3f));
           g.fillRoundedRectangle(cardBounds.toFloat(), 4.0f);
@@ -975,7 +975,7 @@ void Search::drawTrendingSearches(juce::Graphics &g) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void Search::layoutComponents() {
   auto bounds = getLocalBounds();
 
@@ -989,7 +989,7 @@ void Search::layoutComponents() {
     errorStateComponent->setBounds(getResultsBounds());
   }
 
-  // Header, filters, tabs, and results are drawn in paint()
+  // Header, filters, tabs, and results are drawn in paint
 }
 
 juce::Rectangle<int> Search::getHeaderBounds() const {
@@ -1010,9 +1010,9 @@ juce::Rectangle<int> Search::getResultsBounds() const {
   return juce::Rectangle<int>(0, top, getWidth() - scrollBarWidth, getHeight() - top);
 }
 
-//==============================================================================
-// Filter picker implementations (7.3.4)
-//==============================================================================
+// ==============================================================================
+// Filter picker implementations
+// ==============================================================================
 
 const std::array<juce::String, 12> &Search::getAvailableGenres() {
   static const std::array<juce::String, 12> genres = {{"Electronic", "Hip-Hop / Trap", "House", "Techno", "Drum & Bass",

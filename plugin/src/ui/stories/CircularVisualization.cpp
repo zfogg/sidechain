@@ -25,7 +25,7 @@ const juce::Colour channelColors[] = {
 };
 } // namespace CircularColors
 
-//==============================================================================
+// ==============================================================================
 CircularVisualization::CircularVisualization() {
   // Start animation timer
   startTimerHz(60);
@@ -37,7 +37,7 @@ CircularVisualization::~CircularVisualization() {
   stopTimer();
 }
 
-//==============================================================================
+// ==============================================================================
 void CircularVisualization::paint(juce::Graphics &g) {
   // Background
   drawBackground(g);
@@ -69,7 +69,7 @@ void CircularVisualization::resized() {
   innerRadius = outerRadius * 0.2f;
 }
 
-//==============================================================================
+// ==============================================================================
 void CircularVisualization::timerCallback() {
   // Animate pulse for active notes
   pulsePhase += 0.15f;
@@ -79,7 +79,7 @@ void CircularVisualization::timerCallback() {
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void CircularVisualization::setMIDIData(const juce::var &midiData) {
   notes.clear();
 
@@ -135,7 +135,7 @@ void CircularVisualization::setPlaybackPosition(double positionSeconds) {
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void CircularVisualization::drawBackground(juce::Graphics &g) {
   // Radial gradient background
   juce::ColourGradient gradient(CircularColors::background.brighter(0.1f), center,
@@ -326,7 +326,7 @@ void CircularVisualization::drawCenterInfo(juce::Graphics &g) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 float CircularVisualization::timeToAngle(double time) const {
   if (totalDuration <= 0)
     return -juce::MathConstants<float>::halfPi; // Start at top (12 o'clock)

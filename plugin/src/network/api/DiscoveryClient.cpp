@@ -1,7 +1,7 @@
-//==============================================================================
+// ==============================================================================
 // DiscoveryClient.cpp - User discovery operations
 // Part of NetworkClient implementation split
-//==============================================================================
+// ==============================================================================
 
 #include "../../util/Async.h"
 #include "../../util/Log.h"
@@ -10,7 +10,7 @@
 
 using namespace Sidechain::Network::Api;
 
-//==============================================================================
+// ==============================================================================
 void NetworkClient::searchUsers(const juce::String &query, int limit, int offset, ResponseCallback callback) {
   if (callback == nullptr)
     return;

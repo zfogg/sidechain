@@ -15,7 +15,7 @@ struct UserState;
 using namespace Sidechain::UI;
 using namespace Sidechain::Stores;
 
-//==============================================================================
+// ==============================================================================
 /**
  * ActivityStatusSettings provides a UI for managing activity status privacy
  * settings
@@ -31,36 +31,36 @@ public:
   ActivityStatusSettings(AppStore *store = nullptr);
   ~ActivityStatusSettings() override;
 
-  //==============================================================================
+  // ==============================================================================
   // Data binding
   void setNetworkClient(NetworkClient *client) {
     networkClient = client;
   }
   void loadSettings();
 
-  //==============================================================================
+  // ==============================================================================
   // Modal dialog methods
   void showModal(juce::Component *parentComponent);
   void closeDialog();
 
-  //==============================================================================
+  // ==============================================================================
   // Callbacks
   std::function<void()> onClose;
 
-  //==============================================================================
+  // ==============================================================================
   // Component overrides
   void paint(juce::Graphics &g) override;
   void resized() override;
   void buttonClicked(juce::Button *button) override;
 
 protected:
-  //==============================================================================
+  // ==============================================================================
   // AppStoreComponent overrides
   void onAppStateChanged(const UserState &state) override;
   void subscribeToAppStore() override;
 
 private:
-  //==============================================================================
+  // ==============================================================================
   NetworkClient *networkClient = nullptr;
 
   // State
@@ -72,7 +72,7 @@ private:
   bool showActivityStatus = true;
   bool showLastActive = true;
 
-  //==============================================================================
+  // ==============================================================================
   // UI Components
   std::unique_ptr<juce::TextButton> closeButton;
 
@@ -80,26 +80,26 @@ private:
   std::unique_ptr<juce::ToggleButton> showActivityStatusToggle;
   std::unique_ptr<juce::ToggleButton> showLastActiveToggle;
 
-  //==============================================================================
+  // ==============================================================================
   // Drawing methods
   void drawHeader(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawDescription(juce::Graphics &g, juce::Rectangle<int> bounds, const juce::String &text);
 
-  //==============================================================================
+  // ==============================================================================
   // Helpers
   void setupToggles();
   void populateFromSettings();
   void handleToggleChange(juce::ToggleButton *toggle);
   void saveSettings();
 
-  //==============================================================================
+  // ==============================================================================
   // Layout constants
   static constexpr int HEADER_HEIGHT = 60;
   static constexpr int TOGGLE_HEIGHT = 50;
   static constexpr int DESCRIPTION_HEIGHT = 40;
   static constexpr int PADDING = 25;
 
-  //==============================================================================
+  // ==============================================================================
   // Colors (matching NotificationSettings style)
   struct Colors {
     static inline juce::Colour background{0xff1a1a1e};

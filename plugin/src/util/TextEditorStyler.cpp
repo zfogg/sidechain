@@ -3,7 +3,7 @@
 
 namespace TextEditorStyler {
 
-//==============================================================================
+// ==============================================================================
 // Internal helpers
 
 namespace {
@@ -41,7 +41,7 @@ void applyMultiLineStyle(juce::TextEditor &editor) {
 }
 } // namespace
 
-//==============================================================================
+// ==============================================================================
 // Standard Styling
 
 void style(juce::TextEditor &editor, const juce::String &placeholder) {
@@ -65,7 +65,7 @@ void styleMultiline(juce::TextEditor &editor, const juce::String &placeholder) {
     setPlaceholder(editor, placeholder);
 }
 
-//==============================================================================
+// ==============================================================================
 // Specialized Styling
 
 void styleEmail(juce::TextEditor &editor, const juce::String &placeholder) {
@@ -92,7 +92,7 @@ void styleUrl(juce::TextEditor &editor, const juce::String &placeholder) {
   editor.setInputRestrictions(2048);
 }
 
-//==============================================================================
+// ==============================================================================
 // Configuration
 
 void setInputRestrictions(juce::TextEditor &editor, int maxLength, const juce::String &allowedChars) {

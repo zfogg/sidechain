@@ -27,7 +27,7 @@ namespace UI {
  *   class MyComponent : public AppStoreComponent<ChallengeState> {
  *   public:
  *     explicit MyComponent(AppStore *store = nullptr) : AppStoreComponent(store) {
- *       // All initialization here before calling initialize()
+ *       // All initialization here before calling initialize
  *       initialize();  // Safe to call virtual methods now
  *     }
  *

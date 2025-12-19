@@ -7,7 +7,7 @@
 
 using namespace Sidechain::UI::Animations;
 
-//==============================================================================
+// ==============================================================================
 Recording::Recording(SidechainAudioProcessor &processor) : audioProcessor(processor) {
   Log::info("Recording: Initializing recording component");
 
@@ -15,7 +15,7 @@ Recording::Recording(SidechainAudioProcessor &processor) : audioProcessor(proces
   startTimerHz(30);
   Log::debug("Recording: Timer started at 30Hz for UI updates");
 
-  // TODO: Phase 2.1.10 - Test with mono/stereo/surround bus configurations
+  // TODO: - Test with mono/stereo/surround bus configurations
   // Upload cancellation is already implemented - Upload component has onCancel
   // callback wired up in PluginEditor.cpp (line 163-166)
 
@@ -27,7 +27,7 @@ Recording::~Recording() {
   stopTimer();
 }
 
-//==============================================================================
+// ==============================================================================
 void Recording::startRecordingDotAnimation() {
   // Helper lambda to create the ping-pong animation
   auto createPingPongAnimation = [this]() {
@@ -70,7 +70,7 @@ void Recording::stopRecordingDotAnimation() {
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void Recording::timerCallback() {
   // Check if recording stopped externally (e.g., max length reached)
   if (currentState == State::Recording && !audioProcessor.isRecording()) {
@@ -82,7 +82,7 @@ void Recording::timerCallback() {
 
   // Update progressive key detection periodically during recording
   // Only update if detector is active and has processed some audio
-  // Calling getCurrentKey() before any audio is processed can cause crashes
+  // Calling getCurrentKey before any audio is processed can cause crashes
   if (currentState == State::Recording && ProgressiveKeyDetector::isAvailable() && progressiveKeyDetector.isActive() &&
       progressiveKeyDetector.getSamplesProcessed() > 0) {
     updateKeyDetection();
@@ -94,7 +94,7 @@ void Recording::timerCallback() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void Recording::paint(juce::Graphics &g) {
   // Dark background
   g.fillAll(SidechainColors::background());
@@ -213,7 +213,7 @@ void Recording::mouseUp(const juce::MouseEvent &event) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void Recording::drawIdleState(juce::Graphics &g) {
   // Draw record button (red circle)
   drawRecordButton(g);
@@ -228,7 +228,7 @@ void Recording::drawIdleState(juce::Graphics &g) {
   g.setColour(SidechainColors::textMuted());
   g.drawText("Maximum recording length: 60 seconds", progressBarArea, juce::Justification::centred);
 
-  // Draw import MIDI button (R.3.3.6.3)
+  // Draw import MIDI button
   drawImportMidiButton(g);
 
   // Draw View Drafts button
@@ -270,7 +270,7 @@ void Recording::drawPreviewState(juce::Graphics &g) {
   drawActionButtons(g);
 }
 
-//==============================================================================
+// ==============================================================================
 void Recording::drawRecordButton(juce::Graphics &g) {
   bool isRecording = (currentState == State::Recording);
 
@@ -479,7 +479,7 @@ void Recording::drawActionButtons(juce::Graphics &g) {
   g.drawText("Share Loop", uploadButton, juce::Justification::centred);
 }
 
-//==============================================================================
+// ==============================================================================
 juce::String Recording::formatTime(double seconds) {
   return StringFormatter::formatDurationMMSS(seconds);
 }
@@ -522,7 +522,7 @@ juce::Path Recording::generateWaveformPath(const juce::AudioBuffer<float> &buffe
   return path;
 }
 
-//==============================================================================
+// ==============================================================================
 void Recording::startRecording() {
   Log::info("Recording::startRecording: Starting recording");
 
@@ -643,7 +643,7 @@ void Recording::confirmRecording() {
     juce::AudioBuffer<float> audioCopy(recordedAudio);
     Log::debug("Recording::confirmRecording: Created audio copy for callback");
 
-    // Get MIDI data - either from capture or from import (R.3.3.6.3)
+    // Get MIDI data - either from capture or from import
     juce::var midiData;
     if (hasImportedMidi && !importedMidiData.isVoid()) {
       // Use imported MIDI data
@@ -682,10 +682,10 @@ void Recording::confirmRecording() {
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void Recording::updateKeyDetection() {
   // Update key detection display from progressive detector
-  // Only call getCurrentKey() if detector is active and has processed samples
+  // Only call getCurrentKey if detector is active and has processed samples
   // Calling it before any audio chunks are added can cause crashes
   if (progressiveKeyDetector.isActive() && progressiveKeyDetector.getSamplesProcessed() > 0) {
     auto result = progressiveKeyDetector.getCurrentKey();
@@ -702,8 +702,8 @@ void Recording::processKeyDetectionChunk(const juce::AudioBuffer<float> &buffer)
   }
 }
 
-//==============================================================================
-// MIDI Import (R.3.3.6.3)
+// ==============================================================================
+// MIDI Import
 
 void Recording::drawImportMidiButton(juce::Graphics &g) {
   bool isHovered = importMidiButtonArea.contains(getMouseXYRelative());
@@ -858,8 +858,8 @@ void Recording::importMidiFile(const juce::File &file) {
   repaint();
 }
 
-//==============================================================================
-// Challenge context management (R.2.2.4 - MIDI Challenges)
+// ==============================================================================
+// Challenge context management
 
 void Recording::setChallengeId(const juce::String &id) {
   activeChallengeId = id;

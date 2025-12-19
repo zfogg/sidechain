@@ -5,7 +5,7 @@
 
 class NetworkClient;
 
-//==============================================================================
+// ==============================================================================
 /**
  * SelectHighlightDialog - Modal for selecting a highlight to add a story to
  *

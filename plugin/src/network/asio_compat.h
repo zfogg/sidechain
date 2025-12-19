@@ -1,6 +1,6 @@
 #pragma once
 
-//==============================================================================
+// ==============================================================================
 /**
  * ASIO Compatibility Layer
  *
@@ -37,7 +37,7 @@ namespace io_context_work {
 using work = executor_work_guard<io_context::executor_type>;
 }
 
-// Add post() method to io_context for compatibility
+// Add post method to io_context for compatibility
 template <typename CompletionHandler> void post(io_context &ctx, CompletionHandler &&handler) {
   asio::post(ctx.get_executor(), std::forward<CompletionHandler>(handler));
 }

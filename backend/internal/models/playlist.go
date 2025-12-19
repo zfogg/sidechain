@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// Playlist represents a collection of audio posts (R.3.1 Collaborative Playlists)
+// Playlist represents a collection of audio posts
 type Playlist struct {
 	ID              string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
 	Name            string `gorm:"not null" json:"name"`
@@ -31,7 +31,7 @@ func (Playlist) TableName() string {
 	return "playlists"
 }
 
-// PlaylistEntry represents a post in a playlist (R.3.1.1.2)
+// PlaylistEntry represents a post in a playlist
 type PlaylistEntry struct {
 	ID            string    `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
 	PlaylistID    string    `gorm:"not null;index" json:"playlist_id"`
@@ -63,7 +63,7 @@ const (
 	PlaylistRoleViewer PlaylistCollaboratorRole = "viewer"
 )
 
-// PlaylistCollaborator represents a user who can collaborate on a playlist (R.3.1.1.3)
+// PlaylistCollaborator represents a user who can collaborate on a playlist
 type PlaylistCollaborator struct {
 	ID         string                   `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
 	PlaylistID string                   `gorm:"not null;index" json:"playlist_id"`

@@ -91,7 +91,7 @@ func Migrate() error {
 		&models.OAuthProvider{}, // OAuth account linking for email-based unification
 		&models.MIDIPattern{},   // Must come before AudioPost and Story (foreign key dependency)
 		&models.AudioPost{},
-		&models.ProjectFile{}, // R.3.4 Project File Exchange
+		&models.ProjectFile{}, // Project File Exchange
 		&models.PasswordReset{},
 		&models.Comment{},
 		&models.CommentMention{},
@@ -107,19 +107,19 @@ func Migrate() error {
 		&models.StoryView{},
 		&models.StoryHighlight{},
 		&models.HighlightedStory{},
-		&models.Playlist{},                 // R.3.1 Collaborative Playlists
-		&models.PlaylistEntry{},            // R.3.1 Collaborative Playlists
-		&models.PlaylistCollaborator{},     // R.3.1 Collaborative Playlists
-		&models.MIDIChallenge{},            // R.2.2 MIDI Battle Royale
-		&models.MIDIChallengeEntry{},       // R.2.2 MIDI Battle Royale (references AudioPost and MIDIPattern)
-		&models.MIDIChallengeVote{},        // R.2.2 MIDI Battle Royale
+		&models.Playlist{},                 // Collaborative Playlists
+		&models.PlaylistEntry{},            // Collaborative Playlists
+		&models.PlaylistCollaborator{},     // Collaborative Playlists
+		&models.MIDIChallenge{},            // MIDI Battle Royale
+		&models.MIDIChallengeEntry{},       // MIDI Battle Royale (references AudioPost and MIDIPattern)
+		&models.MIDIChallengeVote{},        // MIDI Battle Royale
 		&models.SavedPost{},                // Save/Bookmark posts feature
 		&models.Repost{},                   // Repost/Share to feed feature
 		&models.NotificationPreferences{},  // Notification preferences per user
 		&models.MutedUser{},                // Mute users without unfollowing
-		&models.Sound{},                    // Feature #15: Sound/Sample Pages
-		&models.AudioFingerprint{},         // Feature #15: Audio fingerprinting for sound detection
-		&models.SoundUsage{},               // Feature #15: Track sound usage across posts
+		&models.Sound{},                    // Sound/Sample Pages
+		&models.AudioFingerprint{},         // Audio fingerprinting for sound detection
+		&models.SoundUsage{},               // Track sound usage across posts
 		&models.ErrorLog{},                 // Error tracking and reporting
 		&models.RecommendationImpression{}, // CTR tracking - impressions
 		&models.RecommendationClick{},      // CTR tracking - clicks
@@ -170,7 +170,7 @@ func createIndexes() error {
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_comments_parent ON comments (parent_id) WHERE parent_id IS NOT NULL")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_comments_post_not_deleted ON comments (post_id, created_at DESC) WHERE is_deleted = false")
 
-	// Full-text search index for comment content (6.1.10)
+	// Full-text search index for comment content
 	// Using PostgreSQL GIN index with tsvector for fast full-text search
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_comments_content_search ON comments USING gin(to_tsvector('english', content)) WHERE is_deleted = false")
 
@@ -190,12 +190,12 @@ func createIndexes() error {
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_user_blocks_blocked ON user_blocks (blocked_id)")
 	DB.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_user_blocks_unique ON user_blocks (blocker_id, blocked_id) WHERE deleted_at IS NULL")
 
-	// Search query analytics indexes (7.1.9)
+	// Search query analytics indexes
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_search_queries_user ON search_queries (user_id) WHERE user_id IS NOT NULL")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_search_queries_result_type ON search_queries (result_type)")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_search_queries_created ON search_queries (created_at DESC)")
 
-	// User preference indexes (7.2.4)
+	// User preference indexes
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_user_preferences_user ON user_preferences (user_id)")
 
 	// Play history indexes (7.2.1.3, 7.2.4)
@@ -217,27 +217,27 @@ func createIndexes() error {
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_story_views_viewer ON story_views (viewer_id)")
 	DB.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_story_views_unique ON story_views (story_id, viewer_id)")
 
-	// Story highlight indexes (7.5.6)
+	// Story highlight indexes
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_story_highlights_user ON story_highlights (user_id)")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_story_highlights_user_sort ON story_highlights (user_id, sort_order)")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_highlighted_stories_highlight ON highlighted_stories (highlight_id)")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_highlighted_stories_story ON highlighted_stories (story_id)")
 	DB.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_highlighted_stories_unique ON highlighted_stories (highlight_id, story_id)")
 
-	// MIDI pattern indexes (R.3.3)
+	// MIDI pattern indexes
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_midi_patterns_user ON midi_patterns (user_id)")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_midi_patterns_public ON midi_patterns (is_public) WHERE is_public = true")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_midi_patterns_user_created ON midi_patterns (user_id, created_at DESC)")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_midi_patterns_downloads ON midi_patterns (download_count DESC) WHERE is_public = true")
 
-	// Project file indexes (R.3.4)
+	// Project file indexes
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_project_files_user ON project_files (user_id)")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_project_files_user_created ON project_files (user_id, created_at DESC)")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_project_files_daw_type ON project_files (daw_type)")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_project_files_post ON project_files (audio_post_id) WHERE audio_post_id IS NOT NULL")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_project_files_public ON project_files (is_public) WHERE is_public = true")
 
-	// Playlist indexes (R.3.1)
+	// Playlist indexes
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_playlists_owner ON playlists (owner_id)")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_playlists_public ON playlists (is_public) WHERE is_public = true")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_playlists_owner_created ON playlists (owner_id, created_at DESC)")
@@ -248,7 +248,7 @@ func createIndexes() error {
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_playlist_collaborators_user ON playlist_collaborators (user_id)")
 	DB.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_playlist_collaborators_unique ON playlist_collaborators (playlist_id, user_id) WHERE deleted_at IS NULL")
 
-	// MIDI challenge indexes (R.2.2)
+	// MIDI challenge indexes
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_midi_challenges_start_date ON midi_challenges (start_date)")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_midi_challenges_end_date ON midi_challenges (end_date)")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_midi_challenges_voting_end_date ON midi_challenges (voting_end_date)")
@@ -284,7 +284,7 @@ func createIndexes() error {
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_muted_users_muted ON muted_users (muted_user_id)")
 	DB.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_muted_users_unique ON muted_users (user_id, muted_user_id)")
 
-	// Sound/Sample Pages indexes (Feature #15)
+	// Sound/Sample Pages indexes
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_sounds_fingerprint_hash ON sounds (fingerprint_hash)")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_sounds_creator ON sounds (creator_id)")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_sounds_trending ON sounds (is_trending, trending_rank DESC) WHERE is_trending = true")

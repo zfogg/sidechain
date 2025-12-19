@@ -7,7 +7,7 @@
 
 class NetworkClient;
 
-//==============================================================================
+// ==============================================================================
 /**
  * ShareToMessageDialog - Modal dialog for sharing posts to conversations
  *
@@ -64,7 +64,7 @@ public:
   void loadRecentConversations();
 
 private:
-  //==============================================================================
+  // ==============================================================================
   enum class DialogState { Loading, Ready, Sending, Success, Error };
 
   enum class ShareType { None, Post, Story };

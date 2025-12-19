@@ -24,20 +24,19 @@ import (
 	"gorm.io/gorm"
 )
 
-// TODO: Phase 4.5.1.1 - Test GetTimeline - authenticated user, pagination, empty feed
-// TODO: Phase 4.5.1.2 - Test GetGlobalFeed - pagination, ordering
-// TODO: Phase 4.5.1.3 - Test CreatePost - valid post, missing fields, audio URL validation
-// TODO: Phase 4.5.1.28 - Test GetAggregatedTimeline - grouping
-// TODO: Phase 4.5.1.29 - Test GetTrendingFeed - trending algorithm
+// TODO: - Test GetTimeline - authenticated user, pagination, empty feed
+// TODO: - Test GetGlobalFeed - pagination, ordering
+// TODO: - Test CreatePost - valid post, missing fields, audio URL validation
+// TODO: - Test GetAggregatedTimeline - grouping
+// TODO: - Test GetTrendingFeed - trending algorithm
 
 // ============================================================================
 // POSTS & FEEDS - PROFESSIONAL ENHANCEMENTS
 // ============================================================================
-//
+
 // NOTE: Common enhancements (caching, analytics, rate limiting, moderation,
 // search, webhooks, export, performance, anti-abuse) are documented in
 // common_todos.go. See that file for shared TODO items.
-//
 
 // TODO: PROFESSIONAL-1.1 - Implement post-specific analytics tracking
 // - Track view counts (increment on feed load)
@@ -203,7 +202,7 @@ func (h *Handlers) GetTimeline(c *gin.Context) {
 
 // GetGlobalFeed gets the global feed
 func (h *Handlers) GetGlobalFeed(c *gin.Context) {
-	// Record feed generation timing metric (ENG-2)
+	// Record feed generation timing metric
 	startTime := time.Now()
 	defer func() {
 		duration := time.Since(startTime).Seconds()
@@ -262,10 +261,10 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 		DAW          string   `json:"daw"`
 		DurationBars int      `json:"duration_bars"`
 		Genre        []string `json:"genre"`
-		// MIDI data (R.3.3 Cross-DAW MIDI Collaboration)
+		// MIDI data
 		MIDIData *models.MIDIData `json:"midi_data,omitempty"` // Optional inline MIDI data
 		MIDIID   string           `json:"midi_id,omitempty"`   // Optional existing MIDI pattern ID
-		// Remix support (R.3.2 Remix Chains) - alternative to /posts/:id/remix endpoint
+		// Remix support - alternative to /posts/:id/remix endpoint
 		RemixOfPostID  string `json:"remix_of_post_id,omitempty"`  // Post being remixed
 		RemixOfStoryID string `json:"remix_of_story_id,omitempty"` // Story being remixed
 		RemixType      string `json:"remix_type,omitempty"`        // "audio", "midi", or "both"
@@ -358,7 +357,7 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 		// Don't fail the request - the Stream activity was created successfully
 	}
 
-	// Broadcast feed invalidation for real-time updates (Phase 2.1) + Activity broadcast (Phase 5)
+	// Broadcast feed invalidation for real-time updates + Activity broadcast
 	if h.wsHandler != nil {
 		go func() {
 			// Fetch user details for activity broadcast
@@ -394,7 +393,7 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 		}()
 	}
 
-	// Phase 0.4: Index post to Elasticsearch
+	// Index post to Elasticsearch
 	if h.search != nil {
 		go func() {
 			// Fetch user for indexing
@@ -751,7 +750,7 @@ func (h *Handlers) GetUnifiedTimeline(c *gin.Context) {
 // GetEnrichedGlobalFeed gets the global feed with reaction counts
 // GET /api/feed/global/enriched
 func (h *Handlers) GetEnrichedGlobalFeed(c *gin.Context) {
-	// Record feed generation timing metric (ENG-2)
+	// Record feed generation timing metric
 	startTime := time.Now()
 	defer func() {
 		duration := time.Since(startTime).Seconds()
@@ -870,7 +869,7 @@ func (h *Handlers) GetAggregatedTimeline(c *gin.Context) {
 // Activities are extracted from aggregated groups and sorted by engagement score
 // GET /api/feed/trending
 func (h *Handlers) GetTrendingFeed(c *gin.Context) {
-	// Record feed generation timing metric (ENG-2)
+	// Record feed generation timing metric
 	startTime := time.Now()
 	defer func() {
 		duration := time.Since(startTime).Seconds()
@@ -1046,7 +1045,7 @@ func (h *Handlers) DeletePost(c *gin.Context) {
 		}
 	}
 
-	// Phase 0.7: Delete post from Elasticsearch index
+	// Delete post from Elasticsearch index
 	if h.search != nil {
 		if err := h.search.DeletePost(c.Request.Context(), post.ID); err != nil {
 			// Log but don't fail - post is already deleted in database

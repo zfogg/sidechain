@@ -997,9 +997,9 @@ func (c *Client) CreateToken(userID string, expiration time.Time) (string, error
 // =============================================================================
 
 // NotificationGroup represents a grouped notification from getstream.io
-//
-//	getstream.io notification feeds automatically group activities based on the
-//
+
+// getstream.io notification feeds automatically group activities based on the
+
 // aggregation_format configured in the dashboard (e.g., "{{ verb }}_{{ time.strftime('%Y-%m-%d') }}")
 type NotificationGroup struct {
 	ID            string      `json:"id"`
@@ -1084,8 +1084,8 @@ func (c *Client) GetNotifications(userID string, limit, offset int) (*Notificati
 
 // MarkNotificationsRead marks all notifications as read for a user
 // Call this when the user opens the notifications panel
-//
-//	getstream.io marks notifications via query options when fetching
+
+// getstream.io marks notifications via query options when fetching
 func (c *Client) MarkNotificationsRead(userID string) error {
 	ctx := context.Background()
 
@@ -1110,8 +1110,8 @@ func (c *Client) MarkNotificationsRead(userID string) error {
 
 // MarkNotificationsSeen marks all notifications as seen for a user
 // Call this when the user views the notification icon (clears badge count)
-//
-//	getstream.io marks notifications via query options when fetching
+
+// getstream.io marks notifications via query options when fetching
 func (c *Client) MarkNotificationsSeen(userID string) error {
 	ctx := context.Background()
 
@@ -1294,7 +1294,7 @@ func (c *Client) NotifyMention(actorUserID, targetUserID, loopID, commentID stri
 	return c.AddToNotificationFeed(targetUserID, activity)
 }
 
-// NotifyChallengeCreated sends a notification when a new MIDI challenge is created (R.2.2.4.4)
+// NotifyChallengeCreated sends a notification when a new MIDI challenge is created
 // Note: For "notify all users", call this for each user or use a broadcast mechanism
 func (c *Client) NotifyChallengeCreated(targetUserID, challengeID, challengeTitle string) error {
 	// Check if target user has challenge notifications enabled
@@ -1315,7 +1315,7 @@ func (c *Client) NotifyChallengeCreated(targetUserID, challengeID, challengeTitl
 	return c.AddToNotificationFeed(targetUserID, activity)
 }
 
-// NotifyChallengeDeadline sends a notification when challenge deadline is approaching (R.2.2.4.4)
+// NotifyChallengeDeadline sends a notification when challenge deadline is approaching
 func (c *Client) NotifyChallengeDeadline(targetUserID, challengeID, challengeTitle string, hoursRemaining int) error {
 	// Check if target user has challenge notifications enabled
 	if !c.isNotificationEnabled(targetUserID, NotifVerbChallengeDeadline) {
@@ -1336,7 +1336,7 @@ func (c *Client) NotifyChallengeDeadline(targetUserID, challengeID, challengeTit
 	return c.AddToNotificationFeed(targetUserID, activity)
 }
 
-// NotifyChallengeVotingOpen sends a notification when voting period starts (R.2.2.4.4)
+// NotifyChallengeVotingOpen sends a notification when voting period starts
 func (c *Client) NotifyChallengeVotingOpen(targetUserID, challengeID, challengeTitle string) error {
 	// Check if target user has challenge notifications enabled
 	if !c.isNotificationEnabled(targetUserID, NotifVerbChallengeVotingOpen) {
@@ -1356,7 +1356,7 @@ func (c *Client) NotifyChallengeVotingOpen(targetUserID, challengeID, challengeT
 	return c.AddToNotificationFeed(targetUserID, activity)
 }
 
-// NotifyChallengeEnded sends a notification when challenge ends with winner info (R.2.2.4.4)
+// NotifyChallengeEnded sends a notification when challenge ends with winner info
 func (c *Client) NotifyChallengeEnded(targetUserID, challengeID, challengeTitle string, winnerUserID, winnerUsername string, userEntryRank int) error {
 	// Check if target user has challenge notifications enabled
 	if !c.isNotificationEnabled(targetUserID, NotifVerbChallengeEnded) {
@@ -1669,7 +1669,7 @@ func convertStreamActivity(act *stream.Activity) *Activity {
 			}
 			activity.Extra["comment_count"] = int(commentCount)
 		}
-		// Extract MIDI info if present (R.3.3 Cross-DAW MIDI Collaboration)
+		// Extract MIDI info if present
 		if hasMidi, ok := act.Extra["has_midi"].(bool); ok && hasMidi {
 			if activity.Extra == nil {
 				activity.Extra = make(map[string]interface{})
@@ -1679,7 +1679,7 @@ func convertStreamActivity(act *stream.Activity) *Activity {
 				activity.Extra["midi_pattern_id"] = midiPatternID
 			}
 		}
-		// Extract project file info if present (R.3.4 Project File Exchange)
+		// Extract project file info if present
 		if hasProjectFile, ok := act.Extra["has_project_file"].(bool); ok && hasProjectFile {
 			if activity.Extra == nil {
 				activity.Extra = make(map[string]interface{})

@@ -1,7 +1,7 @@
-//==============================================================================
+// ==============================================================================
 // NetworkClient.cpp - Core HTTP functionality
 // Domain-specific API methods are split into separate files in api/ folder
-//==============================================================================
+// ==============================================================================
 
 #include "NetworkClient.h"
 #include "../util/Async.h"
@@ -11,10 +11,10 @@
 #include "../util/error/ErrorTracking.h"
 #include "../util/profiling/PerformanceMonitor.h"
 
-//==============================================================================
+// ==============================================================================
 // Helper to create JSON POST body from juce::var without null terminator issues
 // See: https://forum.juce.com/t/posting-json-in-url-body/25240
-// JSON::toString() can add a null terminator that breaks backend parsers.
+// JSON::toString can add a null terminator that breaks backend parsers.
 // This function ensures clean JSON string for POST bodies.
 static juce::MemoryBlock createJsonPostBody(const juce::var &data) {
   juce::String jsonString = juce::JSON::toString(data, true); // compact format
@@ -22,7 +22,7 @@ static juce::MemoryBlock createJsonPostBody(const juce::var &data) {
   return juce::MemoryBlock(jsonString.toRawUTF8(), jsonString.getNumBytesAsUTF8());
 }
 
-//==============================================================================
+// ==============================================================================
 // Helper to convert RequestResult to Outcome<juce::var> for type-safe error
 // handling
 static Outcome<juce::var> requestResultToOutcome(const NetworkClient::RequestResult &result) {
@@ -52,7 +52,7 @@ static Outcome<juce::var> requestResultToOutcome(const NetworkClient::RequestRes
   }
 }
 
-//==============================================================================
+// ==============================================================================
 // RequestResult helper methods
 juce::String NetworkClient::RequestResult::getUserFriendlyError() const {
   // Try to extract error message from JSON response
@@ -128,7 +128,7 @@ int NetworkClient::parseStatusCode(const juce::StringPairArray &headers) {
   return 0;
 }
 
-//==============================================================================
+// ==============================================================================
 NetworkClient::NetworkClient(const Config &cfg) : config(cfg) {
   Log::info("NetworkClient initialized with base URL: " + config.baseUrl);
   Log::debug("  Timeout: " + juce::String(config.timeoutMs) + "ms, Max retries: " + juce::String(config.maxRetries));
@@ -152,7 +152,7 @@ NetworkClient::~NetworkClient() {
   cancelAllRequests();
 }
 
-//==============================================================================
+// ==============================================================================
 void NetworkClient::setConnectionStatusCallback(ConnectionStatusCallback callback) {
   connectionStatusCallback = callback;
 }
@@ -208,7 +208,7 @@ void NetworkClient::setAuthToken(const juce::String &token) {
   authToken = token;
 }
 
-//==============================================================================
+// ==============================================================================
 // Core request method with retry logic
 NetworkClient::RequestResult NetworkClient::makeRequestWithRetry(const juce::String &endpoint,
                                                                  const juce::String &method, const juce::var &data,
@@ -650,7 +650,7 @@ juce::String NetworkClient::getAuthHeader() const {
   return "Bearer " + authToken;
 }
 
-//==============================================================================
+// ==============================================================================
 // Helper to build API endpoint paths consistently
 juce::String NetworkClient::buildApiPath(const char *path) {
   juce::String pathStr(path);
@@ -687,7 +687,7 @@ void NetworkClient::handleAuthResponse(const juce::var &response) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 // Audio encoding
 juce::MemoryBlock NetworkClient::encodeAudioToMP3(const juce::AudioBuffer<float> &buffer, double sampleRate) {
   // NOT YET IMPLEMENTED - This function currently falls back to WAV encoding.
@@ -759,7 +759,7 @@ juce::MemoryBlock NetworkClient::encodeAudioToWAV(const juce::AudioBuffer<float>
   return resultBlock;
 }
 
-//==============================================================================
+// ==============================================================================
 juce::String NetworkClient::detectDAWName() {
   // Try to detect DAW from process name or environment
   // This is platform-specific and may not always work
@@ -828,7 +828,7 @@ juce::String NetworkClient::detectDAWName() {
   return "Unknown";
 }
 
-//==============================================================================
+// ==============================================================================
 // Multipart form data upload helper
 NetworkClient::RequestResult
 NetworkClient::uploadMultipartData(const juce::String &endpoint, const juce::String &fieldName,
@@ -898,7 +898,7 @@ NetworkClient::uploadMultipartData(const juce::String &endpoint, const juce::Str
   Log::debug("uploadMultipartData: File size = " + juce::String(fileData.getSize()) + " bytes");
 
   // Write file data to a temporary file (required for JUCE's withFileToUpload)
-  // Use abs() to avoid negative numbers which can cause JUCE String assertion
+  // Use abs to avoid negative numbers which can cause JUCE String assertion
   // failures
   juce::File tempFile =
       juce::File::getSpecialLocation(juce::File::tempDirectory)
@@ -1011,7 +1011,7 @@ NetworkClient::RequestResult NetworkClient::uploadMultipartDataAbsolute(
   Log::debug("uploadMultipartDataAbsolute: File size = " + juce::String(fileData.getSize()) + " bytes");
 
   // Write file data to a temporary file (required for JUCE's withFileToUpload)
-  // Use abs() to avoid negative numbers which can cause JUCE String assertion
+  // Use abs to avoid negative numbers which can cause JUCE String assertion
   // failures
   juce::File tempFile =
       juce::File::getSpecialLocation(juce::File::tempDirectory)
@@ -1089,9 +1089,9 @@ NetworkClient::RequestResult NetworkClient::uploadMultipartDataAbsolute(
   return result;
 }
 
-//==============================================================================
+// ==============================================================================
 // Generic HTTP methods
-//==============================================================================
+// ==============================================================================
 void NetworkClient::get(const juce::String &endpoint, ResponseCallback callback) {
   if (callback == nullptr)
     return;
@@ -1140,9 +1140,9 @@ void NetworkClient::del(const juce::String &endpoint, ResponseCallback callback)
   });
 }
 
-//==============================================================================
+// ==============================================================================
 // Absolute URL methods (for CDN, external APIs, etc.)
-//==============================================================================
+// ==============================================================================
 void NetworkClient::getAbsolute(const juce::String &absoluteUrl, ResponseCallback callback,
                                 const juce::StringPairArray &customHeaders) {
   if (callback == nullptr)
@@ -1211,7 +1211,7 @@ void NetworkClient::getBinaryAbsolute(const juce::String &absoluteUrl, BinaryDat
   });
 }
 
-//==============================================================================
+// ==============================================================================
 // User profile operations (for UserStore)
 
 void NetworkClient::getCurrentUser(ResponseCallback callback) {
@@ -1247,5 +1247,5 @@ void NetworkClient::updateUserProfile(const juce::String &username, const juce::
   });
 }
 
-//==============================================================================
+// ==============================================================================
 // Toggle convenience methods (for FeedStore optimistic updates)

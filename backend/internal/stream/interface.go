@@ -4,7 +4,7 @@ import "time"
 
 // StreamClientInterface defines the interface for Stream.io client operations.
 // This enables mocking for unit tests without requiring a real getstream.io connection.
-//
+
 // The interface covers all methods used by handlers for:
 // - Feed operations (create, read, timeline, global)
 // - Social operations (follow, unfollow, reactions)
@@ -66,7 +66,7 @@ type StreamClientInterface interface {
 	NotifyComment(actorUserID, targetUserID, loopID, commentText string) error
 	NotifyMention(actorUserID, targetUserID, loopID, commentID string) error
 
-	// MIDI Challenge notifications (R.2.2.4.4)
+	// MIDI Challenge notifications
 	NotifyChallengeCreated(targetUserID, challengeID, challengeTitle string) error
 	NotifyChallengeDeadline(targetUserID, challengeID, challengeTitle string, hoursRemaining int) error
 	NotifyChallengeVotingOpen(targetUserID, challengeID, challengeTitle string) error

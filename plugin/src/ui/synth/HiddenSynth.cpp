@@ -1,6 +1,6 @@
 #include "HiddenSynth.h"
 
-//==============================================================================
+// ==============================================================================
 HiddenSynth::HiddenSynth(SynthEngine &engine) : synthEngine(engine) {
   // Setup waveform buttons
   addAndMakeVisible(sineButton);
@@ -92,7 +92,7 @@ HiddenSynth::~HiddenSynth() {
   stopTimer();
 }
 
-//==============================================================================
+// ==============================================================================
 void HiddenSynth::setupSlider(juce::Slider &slider, double min, double max, double default_, double step) {
   slider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
   slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 15);
@@ -136,7 +136,7 @@ void HiddenSynth::updateWaveformButtons() {
                            waveform == SynthEngine::Waveform::Triangle ? selectedColour : normalColour);
 }
 
-//==============================================================================
+// ==============================================================================
 void HiddenSynth::paint(juce::Graphics &g) {
   // Dark background
   g.fillAll(juce::Colour(0xff1a1a2e));
@@ -330,7 +330,7 @@ bool HiddenSynth::isBlackKey(int keyIndex) {
   return noteInOctave == 1 || noteInOctave == 3 || noteInOctave == 6 || noteInOctave == 8 || noteInOctave == 10;
 }
 
-//==============================================================================
+// ==============================================================================
 void HiddenSynth::resized() {
   auto bounds = getLocalBounds();
 
@@ -375,7 +375,7 @@ void HiddenSynth::resized() {
   keyboardArea = juce::Rectangle<int>(10, 250, static_cast<int>(bounds.getWidth()) - 20, 80);
 }
 
-//==============================================================================
+// ==============================================================================
 void HiddenSynth::timerCallback() {
   if (showingUnlockAnimation) {
     unlockAnimationProgress += 1.0f / (30.0f * unlockAnimationDuration);
@@ -403,14 +403,14 @@ void HiddenSynth::sliderValueChanged(juce::Slider *slider) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void HiddenSynth::playUnlockAnimation() {
   showingUnlockAnimation = true;
   unlockAnimationProgress = 0.0f;
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void HiddenSynth::mouseDown(const juce::MouseEvent &event) {
   int key = getKeyAtPosition(event.getPosition());
   if (key >= 0) {

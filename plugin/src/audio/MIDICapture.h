@@ -4,7 +4,7 @@
 #include <atomic>
 #include <vector>
 
-//==============================================================================
+// ==============================================================================
 /**
  * MIDICapture handles capturing MIDI events from the DAW during recording
  *
@@ -21,27 +21,27 @@
  */
 class MIDICapture {
 public:
-  //==============================================================================
+  // ==============================================================================
   // MIDI Event structure (matches backend MIDIEvent)
 
   /** MIDI event structure for captured MIDI data */
   struct MIDIEvent {
-    double time;       ///< Relative time in seconds from recording start
-    juce::String type; ///< Event type ("note_on" or "note_off")
-    int note;          ///< MIDI note number (0-127)
-    int velocity;      ///< Note velocity (0-127)
-    int channel;       ///< MIDI channel (0-15)
+    double time;       // /< Relative time in seconds from recording start
+    juce::String type; // /< Event type ("note_on" or "note_off")
+    int note;          // /< MIDI note number (0-127)
+    int velocity;      // /< Note velocity (0-127)
+    int channel;       // /< MIDI channel (0-15)
   };
 
-  //==============================================================================
+  // ==============================================================================
   /** Constructor */
   MIDICapture();
 
   /** Destructor */
   ~MIDICapture();
 
-  //==============================================================================
-  // Configuration - call from prepareToPlay() or message thread
+  // ==============================================================================
+  // Configuration - call from prepareToPlay or message thread
 
   /** Prepare MIDI capture for recording
    *  @param sampleRate The sample rate of the audio system
@@ -52,7 +52,7 @@ public:
   /** Reset all capture state and clear recorded events */
   void reset();
 
-  //==============================================================================
+  // ==============================================================================
   // Recording control - call from MESSAGE THREAD only
 
   /** Start capturing MIDI events
@@ -72,7 +72,7 @@ public:
     return capturing.load();
   }
 
-  //==============================================================================
+  // ==============================================================================
   // MIDI capture - call from AUDIO THREAD (processBlock) only
   // MUST be lock-free and allocation-free
 
@@ -106,7 +106,7 @@ public:
    */
   void captureMIDI(const juce::MidiBuffer &midiMessages, int numSamples, double sampleRate);
 
-  //==============================================================================
+  // ==============================================================================
   // MIDI data export - thread-safe
 
   /** Get all captured MIDI events as JSON
@@ -121,9 +121,9 @@ public:
     return totalTimeSeconds.load();
   }
 
-  //==============================================================================
-  // MIDI data processing (7.5.2.2)
-  // Call after stopCapture() to clean up the data before upload
+  // ==============================================================================
+  // MIDI data processing
+  // Call after stopCapture to clean up the data before upload
 
   /** Normalize MIDI timing to relative time from recording start
    *  Converts timestamps to relative time (0.0 = start of recording),
@@ -173,7 +173,7 @@ public:
   std::pair<int, int> getTimeSignature() const;
 
 private:
-  //==============================================================================
+  // ==============================================================================
   // Thread-safe state
   std::atomic<bool> capturing{false};
   std::atomic<double> totalTimeSeconds{0.0};

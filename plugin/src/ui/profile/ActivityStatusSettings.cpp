@@ -4,11 +4,11 @@
 #include "../../util/Log.h"
 #include "../../util/Result.h"
 
-//==============================================================================
+// ==============================================================================
 ActivityStatusSettings::ActivityStatusSettings(AppStore *store) : AppStoreComponent(store) {
   Log::info("ActivityStatusSettings: Initializing");
   setupToggles();
-  // Set size last to avoid resized() being called before components are created
+  // Set size last to avoid resized being called before components are created
   setSize(400, 320);
   initialize();
 }
@@ -17,7 +17,7 @@ ActivityStatusSettings::~ActivityStatusSettings() {
   Log::debug("ActivityStatusSettings: Destroying");
 }
 
-//==============================================================================
+// ==============================================================================
 void ActivityStatusSettings::onAppStateChanged(const UserState &state) {
   // Update activity status settings from user state if available
   // Note: Activity status settings might need to be loaded separately via NetworkClient
@@ -39,7 +39,7 @@ void ActivityStatusSettings::subscribeToAppStore() {
   });
 }
 
-//==============================================================================
+// ==============================================================================
 void ActivityStatusSettings::setupToggles() {
   auto styleToggle = [this](juce::ToggleButton &toggle, const juce::String &label) {
     toggle.setButtonText(label);
@@ -144,7 +144,7 @@ void ActivityStatusSettings::saveSettings() {
   });
 }
 
-//==============================================================================
+// ==============================================================================
 void ActivityStatusSettings::paint(juce::Graphics &g) {
   // Background
   g.fillAll(Colors::background);
@@ -198,7 +198,7 @@ void ActivityStatusSettings::drawDescription(juce::Graphics &g, juce::Rectangle<
   g.drawText(text, bounds, juce::Justification::centredLeft);
 }
 
-//==============================================================================
+// ==============================================================================
 void ActivityStatusSettings::resized() {
   // Close button in header
   closeButton->setBounds(getWidth() - PADDING - 60, 15, 60, 30);
@@ -214,14 +214,14 @@ void ActivityStatusSettings::resized() {
   showLastActiveToggle->setBounds(PADDING, y, toggleWidth, TOGGLE_HEIGHT);
 }
 
-//==============================================================================
+// ==============================================================================
 void ActivityStatusSettings::buttonClicked(juce::Button *button) {
   if (button == closeButton.get()) {
     closeDialog();
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void ActivityStatusSettings::showModal(juce::Component *parentComponent) {
   if (parentComponent == nullptr)
     return;

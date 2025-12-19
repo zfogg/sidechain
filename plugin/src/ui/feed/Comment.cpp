@@ -15,7 +15,7 @@
 
 using namespace Sidechain::Stores;
 
-//==============================================================================
+// ==============================================================================
 CommentRow::CommentRow() {
   Log::debug("CommentRow: Initializing comment row");
   setSize(400, ROW_HEIGHT);
@@ -33,7 +33,7 @@ CommentRow::CommentRow() {
   };
 }
 
-//==============================================================================
+// ==============================================================================
 void CommentRow::setComment(const Comment &newComment) {
   comment = newComment;
 
@@ -66,7 +66,7 @@ void CommentRow::updateLikeCount(int count, bool liked) {
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void CommentRow::paint(juce::Graphics &g) {
   // Background - use UIHelpers::drawCardWithHover for consistent styling
   UIHelpers::drawCardWithHover(g, getLocalBounds(), SidechainColors::backgroundLight(),
@@ -184,9 +184,9 @@ void CommentRow::drawActions(juce::Graphics &g, juce::Rectangle<int> bounds) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void CommentRow::resized() {
-  // Layout is handled in paint() using bounds calculations
+  // Layout is handled in paint using bounds calculations
 }
 
 void CommentRow::mouseUp(const juce::MouseEvent &event) {
@@ -257,7 +257,7 @@ void CommentRow::mouseExit(const juce::MouseEvent & /*event*/) {
   hoverState.setHovered(false);
 }
 
-//==============================================================================
+// ==============================================================================
 juce::Rectangle<int> CommentRow::getAvatarBounds() const {
   int indent = isReply ? REPLY_INDENT : 0;
   int avatarSize = isReply ? AVATAR_SIZE - 4 : AVATAR_SIZE;
@@ -291,11 +291,11 @@ juce::Rectangle<int> CommentRow::getMoreButtonBounds() const {
   return juce::Rectangle<int>(getWidth() - 30, rowHeight - 22, 20, 18);
 }
 
-//==============================================================================
-//==============================================================================
+// ==============================================================================
+// ==============================================================================
 // CommentsPanel Implementation
-//==============================================================================
-//==============================================================================
+// ==============================================================================
+// ==============================================================================
 
 CommentsPanel::CommentsPanel() {
   setupUI();
@@ -529,11 +529,11 @@ void CommentsPanel::setupRowCallbacks(CommentRow *row) {
   };
 
   // Comment operations are fully implemented:
-  // - Comment editing: wired up in submitComment() (line 775-806)
+  // - Comment editing: wired up in submitComment (line 775-806)
   // - Comment deletion: wired up in onDeleteClicked (line 552)
   // - Comment likes: wired up in handleCommentLikeToggled (line 640-683)
   // - Comment reporting: wired up in onReportClicked (line 561-604) - uses
-  // NetworkClient::reportComment()
+  // NetworkClient::reportComment
 
   row->onDeleteClicked = [this](const Comment &comment) {
     if (networkClient == nullptr)
@@ -907,7 +907,7 @@ void CommentsPanel::resized() {
   updateCommentsList();
 }
 
-//==============================================================================
+// ==============================================================================
 // Mouse and Keyboard Handling
 
 void CommentsPanel::mouseUp(const juce::MouseEvent &event) {
@@ -956,7 +956,7 @@ bool CommentsPanel::keyPressed(const juce::KeyPress &key) {
   return false;
 }
 
-//==============================================================================
+// ==============================================================================
 // Mention Autocomplete Implementation
 
 void CommentsPanel::MentionListener::textEditorTextChanged(juce::TextEditor &editor) {
@@ -1161,7 +1161,7 @@ void CommentsPanel::insertMention(const juce::String &username) {
   inputField->setCaretPosition(caretPos + username.length() + 2);
 }
 
-//==============================================================================
+// ==============================================================================
 // Emoji Picker Implementation
 
 void CommentsPanel::showEmojiPicker() {
@@ -1191,7 +1191,7 @@ void CommentsPanel::insertEmoji(const juce::String &emoji) {
   inputField->grabKeyboardFocus();
 }
 
-//==============================================================================
+// ==============================================================================
 // Helper functions for image loading and avatar rendering
 
 static juce::Image loadImageFromURL(const juce::String &urlStr) {

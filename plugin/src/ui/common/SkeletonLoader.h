@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 
-//==============================================================================
+// ==============================================================================
 /**
  * SkeletonLoader - Base class for skeleton loading placeholders
  *
@@ -20,15 +20,15 @@
  */
 class SkeletonLoader : public juce::Component, private juce::Timer {
 public:
-  //==========================================================================
+  // ==========================================================================
   SkeletonLoader();
   ~SkeletonLoader() override;
 
-  //==========================================================================
+  // ==========================================================================
   void paint(juce::Graphics &g) override;
   void visibilityChanged() override;
 
-  //==========================================================================
+  // ==========================================================================
   // Configuration
 
   /** Set the base color for skeleton shapes (default: gray) */
@@ -55,7 +55,7 @@ public:
   }
 
 protected:
-  //==========================================================================
+  // ==========================================================================
   // Drawing helpers for subclasses
 
   /** Draw a rectangle placeholder (for images, cards) */
@@ -74,7 +74,7 @@ protected:
   void drawLines(juce::Graphics &g, juce::Rectangle<int> bounds, int lineCount, int lineHeight = 14,
                  int lineSpacing = 8);
 
-  //==========================================================================
+  // ==========================================================================
   // Override in subclass to define skeleton shapes
   virtual void drawSkeletonShapes(juce::Graphics &g) = 0;
 
@@ -98,7 +98,7 @@ private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SkeletonLoader)
 };
 
-//==============================================================================
+// ==============================================================================
 /**
  * PostCardSkeleton - Skeleton placeholder for PostCard
  *
@@ -116,7 +116,7 @@ private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PostCardSkeleton)
 };
 
-//==============================================================================
+// ==============================================================================
 /**
  * ProfileSkeleton - Skeleton placeholder for Profile view
  *
@@ -133,7 +133,7 @@ private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ProfileSkeleton)
 };
 
-//==============================================================================
+// ==============================================================================
 /**
  * StoryCircleSkeleton - Skeleton for story circle (avatar ring)
  */
@@ -148,7 +148,7 @@ private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StoryCircleSkeleton)
 };
 
-//==============================================================================
+// ==============================================================================
 /**
  * CommentSkeleton - Skeleton for comment rows
  */
@@ -163,7 +163,7 @@ private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CommentSkeleton)
 };
 
-//==============================================================================
+// ==============================================================================
 /**
  * FeedSkeleton - Container that shows multiple PostCardSkeletons
  */

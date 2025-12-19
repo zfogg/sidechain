@@ -16,11 +16,11 @@ type OAuthConfig struct {
 
 // LoadOAuthConfig loads OAuth configuration from environment variables
 // REQUIRED environment variables:
-//   - OAUTH_REDIRECT_URL: Base URL for OAuth callbacks (e.g., https://api.example.com)
-//   - GOOGLE_CLIENT_ID: Google OAuth client ID
-//   - GOOGLE_CLIENT_SECRET: Google OAuth client secret
-//   - DISCORD_CLIENT_ID: Discord OAuth client ID
-//   - DISCORD_CLIENT_SECRET: Discord OAuth client secret
+// - OAUTH_REDIRECT_URL: Base URL for OAuth callbacks (e.g., https://api.example.com)
+// - GOOGLE_CLIENT_ID: Google OAuth client ID
+// - GOOGLE_CLIENT_SECRET: Google OAuth client secret
+// - DISCORD_CLIENT_ID: Discord OAuth client ID
+// - DISCORD_CLIENT_SECRET: Discord OAuth client secret
 func LoadOAuthConfig() (*OAuthConfig, error) {
 	// These must be set - fail fast if missing
 	redirectURL := os.Getenv("OAUTH_REDIRECT_URL")

@@ -4,11 +4,11 @@
 #include "../../util/Log.h"
 #include "../../util/Result.h"
 
-//==============================================================================
+// ==============================================================================
 NotificationSettings::NotificationSettings(AppStore *store) : AppStoreComponent(store) {
   Log::info("NotificationSettings: Initializing");
   setupToggles();
-  // Set size last to avoid resized() being called before components are created
+  // Set size last to avoid resized being called before components are created
   setSize(400, 550);
   initialize();
 }
@@ -17,7 +17,7 @@ NotificationSettings::~NotificationSettings() {
   Log::debug("NotificationSettings: Destroying");
 }
 
-//==============================================================================
+// ==============================================================================
 void NotificationSettings::onAppStateChanged(const UserState &state) {
   // Update notification preferences from user state
   osNotificationsEnabled = state.osNotificationsEnabled;
@@ -43,7 +43,7 @@ void NotificationSettings::subscribeToAppStore() {
   });
 }
 
-//==============================================================================
+// ==============================================================================
 void NotificationSettings::setupToggles() {
   auto styleToggle = [this](juce::ToggleButton &toggle, const juce::String &label) {
     toggle.setButtonText(label);
@@ -212,7 +212,7 @@ void NotificationSettings::savePreferences() {
   });
 }
 
-//==============================================================================
+// ==============================================================================
 void NotificationSettings::paint(juce::Graphics &g) {
   // Background
   g.fillAll(Colors::background);
@@ -275,7 +275,7 @@ void NotificationSettings::drawSection(juce::Graphics &g, const juce::String &ti
   g.drawText(title, bounds, juce::Justification::centredLeft);
 }
 
-//==============================================================================
+// ==============================================================================
 void NotificationSettings::resized() {
   // Close button in header
   closeButton->setBounds(getWidth() - PADDING - 60, 15, 60, 30);
@@ -315,7 +315,7 @@ void NotificationSettings::resized() {
     osNotificationsToggle->setBounds(PADDING, y, toggleWidth, TOGGLE_HEIGHT);
 }
 
-//==============================================================================
+// ==============================================================================
 void NotificationSettings::buttonClicked(juce::Button *button) {
   if (button == closeButton.get()) {
     if (onClose)
@@ -324,7 +324,7 @@ void NotificationSettings::buttonClicked(juce::Button *button) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void NotificationSettings::showModal(juce::Component *parentComponent) {
   if (parentComponent == nullptr)
     return;

@@ -19,7 +19,7 @@
 class NetworkClient;
 class StreamChatClient;
 
-//==============================================================================
+// ==============================================================================
 /**
  * PostsFeed displays the main social feed of audio posts
  *
@@ -70,7 +70,7 @@ public:
   // Callback for starting recording
   std::function<void()> onStartRecording;
 
-  // Callback for starting remix recording (R.3.2 Remix Chains)
+  // Callback for starting remix recording
   // Parameters: sourcePostId, sourceStoryId, remixType ("audio", "midi", or
   // "both")
   std::function<void(const juce::String &sourcePostId, const juce::String &sourceStoryId,
@@ -83,7 +83,7 @@ public:
   // Callback for sharing a post to DMs
   std::function<void(const FeedPost &post)> onSendPostToMessage;
 
-  // Callback for navigating to a sound page (Feature #15)
+  // Callback for navigating to a sound page
   std::function<void(const juce::String &soundId)> onSoundClicked;
 
   // Set user info
@@ -109,7 +109,7 @@ public:
   void handleFollowerCountUpdate(const juce::String &userId, int followerCount);
   void showNewPostsToast(int count);
 
-  // Presence updates (6.5.2.7)
+  // Presence updates
   void updateUserPresence(const juce::String &userId, bool isOnline, const juce::String &status);
 
 protected:
@@ -119,7 +119,7 @@ protected:
   virtual juce::String getComponentName() const override;
 
 private:
-  //==============================================================================
+  // ==============================================================================
   // Real-time update state (5.5)
   int pendingNewPostsCount = 0; // Count of new posts received while user is viewing feed
   juce::Time lastNewPostTime;   // Track when last new post notification arrived
@@ -137,17 +137,17 @@ private:
   static constexpr int POST_CARD_SPACING = 10;
   static constexpr int POSTS_TOP_PADDING = 16; // Top padding for posts container
 
-  //==============================================================================
+  // ==============================================================================
   // User info (profile picture now displayed in central HeaderComponent)
   juce::String username;
   juce::String email;
   juce::String profilePicUrl;
 
-  //==============================================================================
+  // ==============================================================================
   // Audio playback
   HttpAudioPlayer *audioPlayer = nullptr;
 
-  //==============================================================================
+  // ==============================================================================
   // Network client for play tracking
   NetworkClient *networkClient = nullptr;
 
@@ -157,11 +157,11 @@ private:
   // Posts slice for direct state management
   std::shared_ptr<Sidechain::Stores::Slices::PostsSlice> postsSlice;
 
-  //==============================================================================
+  // ==============================================================================
   // Listen duration tracking (postId -> start time)
   std::map<juce::String, juce::Time> playbackStartTimes;
 
-  //==============================================================================
+  // ==============================================================================
   // UI Components
   juce::ScrollBar scrollBar{true}; // vertical
   juce::OwnedArray<PostCard> postCards;
@@ -183,12 +183,12 @@ private:
   void showCommentsForPost(const FeedPost &post);
   void hideCommentsPanel();
 
-  //==============================================================================
+  // ==============================================================================
   // UI layout constants (TOP_BAR removed - now handled by central
   // HeaderComponent)
   static constexpr int FEED_TABS_HEIGHT = 50;
 
-  //==============================================================================
+  // ==============================================================================
   // UI helper methods
   void drawFeedTabs(juce::Graphics &g);
   void drawLoadingState(juce::Graphics &g);
@@ -214,7 +214,7 @@ private:
   // Presence querying
   void queryPresenceForPosts();
 
-  // Remix flow (R.3.2)
+  // Remix flow
   void startRemixFlow(const FeedPost &post, const juce::String &remixType);
 
   // Infinite scroll

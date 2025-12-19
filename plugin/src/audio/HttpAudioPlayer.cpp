@@ -5,7 +5,7 @@
 #include "../util/Log.h"
 #include <memory>
 
-//==============================================================================
+// ==============================================================================
 HttpAudioPlayer::HttpAudioPlayer() {
   // Register common audio formats (WAV, AIFF, FLAC, Ogg)
   formatManager.registerBasicFormats();
@@ -42,7 +42,7 @@ HttpAudioPlayer::~HttpAudioPlayer() {
   progressTimer.reset();
 }
 
-//==============================================================================
+// ==============================================================================
 // Transport Controls
 
 void HttpAudioPlayer::loadAndPlay(const juce::String &postId, const juce::String &audioUrl) {
@@ -160,7 +160,7 @@ void HttpAudioPlayer::seekToNormalizedPosition(double normalizedPosition) {
     seekToPosition(normalizedPosition * duration);
 }
 
-//==============================================================================
+// ==============================================================================
 // State Queries
 
 double HttpAudioPlayer::getPositionSeconds() const {
@@ -201,7 +201,7 @@ bool HttpAudioPlayer::isPostPlaying(const juce::String &postId) const {
   return playing && currentPostId == postId;
 }
 
-//==============================================================================
+// ==============================================================================
 // Volume Control
 
 void HttpAudioPlayer::setVolume(float newVolume) {
@@ -212,7 +212,7 @@ void HttpAudioPlayer::setMuted(bool shouldMute) {
   muted = shouldMute;
 }
 
-//==============================================================================
+// ==============================================================================
 // Audio Processing
 
 void HttpAudioPlayer::processBlock(juce::AudioBuffer<float> &buffer, int numSamples) {
@@ -333,7 +333,7 @@ void HttpAudioPlayer::releaseResources() {
     resamplingSource->releaseResources();
 }
 
-//==============================================================================
+// ==============================================================================
 // Cache Management
 
 void HttpAudioPlayer::clearCache() {
@@ -437,7 +437,7 @@ juce::MemoryBlock *HttpAudioPlayer::getFromCache(const juce::String &postId) {
   return nullptr;
 }
 
-//==============================================================================
+// ==============================================================================
 // Loading
 
 void HttpAudioPlayer::downloadAudio(const juce::String &postId, const juce::String &url) {
@@ -565,7 +565,7 @@ void HttpAudioPlayer::loadFromMemory(const juce::String &postId, juce::MemoryBlo
             "channels: " + juce::String(reader->numChannels));
 }
 
-//==============================================================================
+// ==============================================================================
 // Playlist and Auto-play
 
 void HttpAudioPlayer::setPlaylist(const juce::StringArray &postIds, const juce::StringArray &audioUrls) {
@@ -620,7 +620,7 @@ void HttpAudioPlayer::playPrevious() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 // Audio Focus (DAW awareness)
 
 void HttpAudioPlayer::onDAWTransportStarted() {
@@ -647,14 +647,14 @@ void HttpAudioPlayer::onDAWTransportStopped() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 // ChangeListener
 
 void HttpAudioPlayer::changeListenerCallback(juce::ChangeBroadcaster * /*source*/) {
   // Not currently used, but available for future extensions
 }
 
-//==============================================================================
+// ==============================================================================
 // Progress Timer
 
 void HttpAudioPlayer::ProgressTimer::timerCallback() {

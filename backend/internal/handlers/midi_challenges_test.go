@@ -20,7 +20,7 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-// MIDIChallengeTestSuite tests MIDI challenge handlers (R.2.2.2.7)
+// MIDIChallengeTestSuite tests MIDI challenge handlers
 type MIDIChallengeTestSuite struct {
 	suite.Suite
 	db        *gorm.DB

@@ -11,7 +11,7 @@ import (
 )
 
 // GinLoggerMiddleware is a Gin middleware that logs HTTP requests with structured fields
-// This replaces gin.Logger() with structured logging
+// This replaces gin.Logger with structured logging
 func GinLoggerMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Start time

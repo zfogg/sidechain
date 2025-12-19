@@ -38,7 +38,7 @@ void ProfileSetup::setUserInfo(const juce::String &user, const juce::String &use
 
   // Note: We no longer download images directly here due to JUCE SSL issues on
   // Linux. Instead, UserDataStore downloads via the HTTP proxy and passes the
-  // cached image via setProfileImage(). This method just stores the URL for
+  // cached image via setProfileImage. This method just stores the URL for
   // reference.
 
   repaint();
@@ -261,7 +261,7 @@ void ProfileSetup::mouseUp(const juce::MouseEvent &event) {
   auto pos = event.getPosition();
   Log::debug("ProfileSetup::mouseUp: Mouse clicked at (" + juce::String(pos.x) + ", " + juce::String(pos.y) + ")");
 
-  // Use cached bounds from last paint() call for responsive hit testing
+  // Use cached bounds from last paint call for responsive hit testing
   if (cachedUploadBtn.contains(pos) || cachedPicBounds.contains(pos)) {
     // Don't allow clicking during upload
     if (isUploading) {
@@ -338,9 +338,9 @@ juce::Rectangle<int> ProfileSetup::getButtonArea(int index, int totalButtons) {
   return juce::Rectangle<int>(startX + index * (buttonWidth + spacing), 0, buttonWidth, buttonHeight);
 }
 
-//==============================================================================
+// ==============================================================================
 // AppStoreComponent overrides
-//==============================================================================
+// ==============================================================================
 void ProfileSetup::onAppStateChanged(const Sidechain::Stores::UserState &state) {
   // Update UI from UserState
   username = state.username;

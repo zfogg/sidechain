@@ -86,7 +86,7 @@ func main() {
 	database.DB.Table("hashtags").Order("post_count DESC").Limit(5).Find(&hashtags)
 	fmt.Println("  Top Hashtags:")
 	for _, h := range hashtags {
-		fmt.Printf("    - #%s (%d posts)\n", h.Name, h.PostCount)
+		fmt.Printf("    - # %s (%d posts)\n", h.Name, h.PostCount)
 	}
 	fmt.Println()
 

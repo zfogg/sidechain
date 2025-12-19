@@ -3,9 +3,9 @@
 #include "../../util/Log.h"
 #include "../../util/StringFormatter.h"
 
-//==============================================================================
+// ==============================================================================
 // Constants
-//==============================================================================
+// ==============================================================================
 namespace {
 static constexpr int DIALOG_WIDTH = 500;
 static constexpr int DIALOG_HEIGHT = 600;
@@ -13,7 +13,7 @@ static constexpr int PADDING = 10;
 static constexpr int PREVIEW_HEIGHT = 100;
 } // namespace
 
-//==============================================================================
+// ==============================================================================
 ShareToMessageDialog::ShareToMessageDialog()
     : scrollBar(true) // Initialize scrollbar as vertical
 {
@@ -54,7 +54,7 @@ ShareToMessageDialog::~ShareToMessageDialog() {
   scrollBar.removeListener(this);
 }
 
-//==============================================================================
+// ==============================================================================
 void ShareToMessageDialog::paint(juce::Graphics &g) {
   // Semi-transparent backdrop
   g.fillAll(juce::Colours::black.withAlpha(0.6f));

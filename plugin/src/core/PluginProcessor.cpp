@@ -6,7 +6,7 @@
 #include "util/Log.h"
 #include "util/profiling/PerformanceMonitor.h"
 
-//==============================================================================
+// ==============================================================================
 SidechainAudioProcessor::SidechainAudioProcessor()
     : AudioProcessor(BusesProperties()
 #if !JucePlugin_IsMidiEffect
@@ -16,7 +16,7 @@ SidechainAudioProcessor::SidechainAudioProcessor()
                          .withOutput("Output", juce::AudioChannelSet::stereo(), true)
 #endif
       ) {
-  // Setup chord sequence detector unlock callbacks (R.2.1)
+  // Setup chord sequence detector unlock callbacks
   chordDetector.addUnlockSequence(ChordSequenceDetector::createBasicSynthSequence([this]() {
     Log::info("SidechainAudioProcessor: Basic synth unlocked!");
     synthUnlocked.store(true);
@@ -53,7 +53,7 @@ SidechainAudioProcessor::~SidechainAudioProcessor() {
   Log::shutdown();
 }
 
-//==============================================================================
+// ==============================================================================
 /** Get the plugin name
  * @return The plugin name as defined by JucePlugin_Name
  */
@@ -149,7 +149,7 @@ void SidechainAudioProcessor::changeProgramName(int index, const juce::String &n
              "' (not supported)");
 }
 
-//==============================================================================
+// ==============================================================================
 /** Prepare the plugin for audio processing
  * Called by the host before playback starts. Initializes all audio subsystems.
  * @param sampleRate The sample rate of the audio system
@@ -169,7 +169,7 @@ void SidechainAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlo
   // Prepare audio player for feed playback
   audioPlayer.prepareToPlay(sampleRate, samplesPerBlock);
 
-  // Prepare synth engine (R.2.1)
+  // Prepare synth engine
   synthEngine.prepare(sampleRate, samplesPerBlock);
 
   Log::info("SidechainAudioProcessor: Prepared - " + juce::String(sampleRate) + "Hz, " + juce::String(samplesPerBlock) +
@@ -274,11 +274,11 @@ void SidechainAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer, juc
   // Capture MIDI events for stories (lock-free, called on audio thread)
   midiCapture.captureMIDI(midiMessages, buffer.getNumSamples(), currentSampleRate);
 
-  // Process chord detection for hidden synth easter egg (R.2.1)
+  // Process chord detection for hidden synth easter egg
   // This runs on every audio block to detect unlock sequences
   chordDetector.processMIDI(midiMessages, currentSampleRate);
 
-  // Process hidden synth if enabled (R.2.1)
+  // Process hidden synth if enabled
   if (synthEnabled.load()) {
     synthEngine.process(buffer, midiMessages);
   }
@@ -308,7 +308,7 @@ void SidechainAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer, juc
   }
 }
 
-//==============================================================================
+// ==============================================================================
 /** Check if the plugin has an editor
  * @return true (this plugin always has a UI for the social feed)
  */
@@ -324,7 +324,7 @@ juce::AudioProcessorEditor *SidechainAudioProcessor::createEditor() {
   return new SidechainAudioProcessorEditor(*this);
 }
 
-//==============================================================================
+// ==============================================================================
 /** Save plugin state to memory
  * Serializes the plugin's state (authentication, settings) for persistence.
  * @param destData Memory block to write state data to
@@ -361,9 +361,9 @@ void SidechainAudioProcessor::setStateInformation(const void *data, int sizeInBy
   }
 }
 
-//==============================================================================
+// ==============================================================================
 // Audio Recording API
-//==============================================================================
+// ==============================================================================
 /** Start recording audio and MIDI from the DAW
  * Begins capturing both audio and MIDI data simultaneously.
  * Must be called from the message thread.
@@ -402,7 +402,7 @@ juce::AudioBuffer<float> SidechainAudioProcessor::getRecordedAudio() {
   return lastRecordedAudio;
 }
 
-//==============================================================================
+// ==============================================================================
 /** Get the name of the DAW hosting this plugin
  * Uses NetworkClient's detection method
  * @return DAW name (e.g., "Ableton Live", "FL Studio", "Logic Pro")
@@ -413,7 +413,7 @@ juce::String SidechainAudioProcessor::getHostDAWName() const {
   return NetworkClient::detectDAWName();
 }
 
-//==============================================================================
+// ==============================================================================
 /** Factory function to create new plugin instances
  * Called by the JUCE framework to instantiate the plugin.
  * @return A new instance of SidechainAudioProcessor

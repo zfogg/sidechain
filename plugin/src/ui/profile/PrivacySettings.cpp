@@ -4,11 +4,11 @@
 #include "../../util/Log.h"
 #include "../../util/Result.h"
 
-//==============================================================================
+// ==============================================================================
 PrivacySettings::PrivacySettings(AppStore *store) : AppStoreComponent(store) {
   Log::info("PrivacySettings: Initializing");
   setupToggle();
-  // Set size last to avoid resized() being called before components are created
+  // Set size last to avoid resized being called before components are created
   setSize(400, 280);
   initialize();
 }
@@ -17,7 +17,7 @@ PrivacySettings::~PrivacySettings() {
   Log::debug("PrivacySettings: Destroying");
 }
 
-//==============================================================================
+// ==============================================================================
 void PrivacySettings::onAppStateChanged(const UserState &state) {
   // Update privacy settings from user state if available
   // Note: Privacy settings might need to be loaded separately via NetworkClient
@@ -39,7 +39,7 @@ void PrivacySettings::subscribeToAppStore() {
   });
 }
 
-//==============================================================================
+// ==============================================================================
 void PrivacySettings::setupToggle() {
   auto styleToggle = [this](juce::ToggleButton &toggle, const juce::String &label) {
     toggle.setButtonText(label);
@@ -140,7 +140,7 @@ void PrivacySettings::saveSettings() {
   });
 }
 
-//==============================================================================
+// ==============================================================================
 void PrivacySettings::paint(juce::Graphics &g) {
   // Background
   g.fillAll(Colors::background);
@@ -190,7 +190,7 @@ void PrivacySettings::drawDescription(juce::Graphics &g, juce::Rectangle<int> bo
   g.drawText(text, bounds, juce::Justification::centredLeft);
 }
 
-//==============================================================================
+// ==============================================================================
 void PrivacySettings::resized() {
   // Close button in header
   closeButton->setBounds(getWidth() - PADDING - 60, 15, 60, 30);
@@ -202,14 +202,14 @@ void PrivacySettings::resized() {
   privateAccountToggle->setBounds(PADDING, y, toggleWidth, TOGGLE_HEIGHT);
 }
 
-//==============================================================================
+// ==============================================================================
 void PrivacySettings::buttonClicked(juce::Button *button) {
   if (button == closeButton.get()) {
     closeDialog();
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void PrivacySettings::showModal(juce::Component *parentComponent) {
   if (parentComponent == nullptr)
     return;

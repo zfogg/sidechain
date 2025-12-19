@@ -9,7 +9,7 @@
 
 class NetworkClient;
 
-//==============================================================================
+// ==============================================================================
 /**
  * PlaylistDetail displays a single playlist with entries (R.3.1.3.2)
  *
@@ -27,7 +27,7 @@ public:
   PlaylistDetail(Sidechain::Stores::AppStore *store = nullptr);
   ~PlaylistDetail() override;
 
-  //==============================================================================
+  // ==============================================================================
   void paint(juce::Graphics &) override;
   void resized() override;
   void mouseUp(const juce::MouseEvent &event) override;
@@ -36,7 +36,7 @@ public:
   // ScrollBar::Listener
   void scrollBarMoved(juce::ScrollBar *scrollBar, double newRangeStart) override;
 
-  //==============================================================================
+  // ==============================================================================
   // Network client integration
   void setNetworkClient(NetworkClient *client);
   void setCurrentUserId(const juce::String &userId) {
@@ -47,7 +47,7 @@ public:
   void loadPlaylist(const juce::String &playlistId);
   void refresh();
 
-  //==============================================================================
+  // ==============================================================================
   // Callbacks
   std::function<void()> onBackPressed;
   std::function<void(const juce::String &postId)> onPostSelected;      // Navigate to post
@@ -60,7 +60,7 @@ protected:
   void subscribeToAppStore() override;
 
 private:
-  //==============================================================================
+  // ==============================================================================
   // Data
   NetworkClient *networkClient = nullptr;
   juce::String currentUserId;
@@ -71,14 +71,14 @@ private:
   bool isLoading = false;
   juce::String errorMessage;
 
-  //==============================================================================
+  // ==============================================================================
   // UI Components
   juce::ScrollBar scrollBar{true}; // vertical
 
   // Scroll state
   int scrollOffset = 0;
 
-  //==============================================================================
+  // ==============================================================================
   // Layout constants
   static constexpr int HEADER_HEIGHT = 60;
   static constexpr int INFO_HEIGHT = 120;
@@ -86,7 +86,7 @@ private:
   static constexpr int BUTTON_HEIGHT = 44;
   static constexpr int PADDING = 16;
 
-  //==============================================================================
+  // ==============================================================================
   // Drawing methods
   void drawHeader(juce::Graphics &g);
   void drawPlaylistInfo(juce::Graphics &g, juce::Rectangle<int> &bounds);
@@ -96,7 +96,7 @@ private:
   void drawErrorState(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawEmptyState(juce::Graphics &g, juce::Rectangle<int> bounds);
 
-  //==============================================================================
+  // ==============================================================================
   // Hit testing helpers
   juce::Rectangle<int> getBackButtonBounds() const;
   juce::Rectangle<int> getPlayButtonBounds() const;
@@ -106,12 +106,12 @@ private:
   juce::Rectangle<int> getEntryCardBounds(int index) const;
   juce::Rectangle<int> getRemoveEntryButtonBounds(int index) const;
 
-  //==============================================================================
+  // ==============================================================================
   // Network operations
   void fetchPlaylist();
   void removeEntry(const juce::String &entryId);
 
-  //==============================================================================
+  // ==============================================================================
   // Helper methods
   int calculateContentHeight() const;
   void updateScrollBounds();

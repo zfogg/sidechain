@@ -18,7 +18,7 @@ const juce::Colour waveformColor(0xff7c4dff);
 const juce::Colour playOverlay(0x80000000);
 } // namespace StoryViewerColors
 
-//==============================================================================
+// ==============================================================================
 StoryViewer::StoryViewer(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   pianoRoll = std::make_unique<PianoRoll>();
   addChildComponent(pianoRoll.get());
@@ -39,7 +39,7 @@ StoryViewer::~StoryViewer() {
   Log::info("StoryViewer destroyed");
 }
 
-//==============================================================================
+// ==============================================================================
 void StoryViewer::onAppStateChanged(const Sidechain::Stores::StoriesState & /*state*/) {
   repaint();
 }
@@ -59,7 +59,7 @@ void StoryViewer::subscribeToAppStore() {
   });
 }
 
-//==============================================================================
+// ==============================================================================
 void StoryViewer::paint(juce::Graphics &g) {
   // Background
   g.fillAll(StoryViewerColors::background);
@@ -79,7 +79,7 @@ void StoryViewer::paint(juce::Graphics &g) {
   drawHighlightButton(g); // Add to highlight button (own stories only)
   drawMIDIButton(g);
   drawAudioDownloadButton(g); // 19.1 Audio download
-  drawRemixButton(g);         // R.3.2 Remix Chains
+  drawRemixButton(g);         // Remix Chains
 
   // Play/pause overlay if paused
   if (!playing) {
@@ -115,7 +115,7 @@ void StoryViewer::resized() {
   highlightButtonArea = bottomArea.removeFromRight(90).reduced(10, 5); // Add to highlight (own stories only)
   midiButtonArea = bottomArea.removeFromRight(80).reduced(10, 5);
   audioDownloadButtonArea = bottomArea.removeFromRight(80).reduced(10, 5); // 19.1 Audio download
-  remixButtonArea = bottomArea.removeFromRight(80).reduced(10, 5);         // R.3.2 Remix Chains
+  remixButtonArea = bottomArea.removeFromRight(80).reduced(10, 5);         // Remix Chains
 
   // Piano roll positioning
   if (pianoRoll) {
@@ -227,7 +227,7 @@ void StoryViewer::mouseUp(const juce::MouseEvent &event) {
     return;
   }
 
-  // Remix button (R.3.2 Remix Chains) - available for non-expired stories
+  // Remix button - available for non-expired stories
   if (story && !story->isExpired() && remixButtonArea.contains(pos)) {
     if (onRemixClicked) {
       // Determine remix type based on what's available
@@ -272,7 +272,7 @@ void StoryViewer::mouseDrag(const juce::MouseEvent & /*event*/) {
   // Visual feedback during drag could be added here
 }
 
-//==============================================================================
+// ==============================================================================
 void StoryViewer::timerCallback() {
   if (playing && audioPlayer) {
     playbackPosition = audioPlayer->getPositionSeconds();
@@ -287,7 +287,7 @@ void StoryViewer::timerCallback() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void StoryViewer::setStories(const std::vector<StoryData> &newStories, int startIndex) {
   stories = newStories;
   currentStoryIndex = juce::jlimit(0, static_cast<int>(stories.size()) - 1, startIndex);
@@ -363,7 +363,7 @@ void StoryViewer::togglePlayPause() {
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void StoryViewer::drawHeader(juce::Graphics &g) {
   // Semi-transparent header background
   g.setColour(StoryViewerColors::headerBg);
@@ -732,7 +732,7 @@ void StoryViewer::drawRemixButton(juce::Graphics &g) {
   g.drawText(buttonText, remixButtonArea, juce::Justification::centred);
 }
 
-//==============================================================================
+// ==============================================================================
 // Share functionality - copy story link to clipboard
 void StoryViewer::handleShareStory(const juce::String &storyId) {
   // Generate shareable link (expires in 24h)
@@ -741,8 +741,8 @@ void StoryViewer::handleShareStory(const juce::String &storyId) {
   Log::info("StoryViewer: Copied story link to clipboard: " + shareUrl);
 }
 
-//==============================================================================
-// MIDI download functionality (R.3.3.5.5)
+// ==============================================================================
+// MIDI download functionality
 void StoryViewer::handleDeleteStory(const juce::String &storyId) {
   Log::debug("StoryViewer: Delete story clicked for story: " + storyId);
 
@@ -828,7 +828,7 @@ void StoryViewer::handleDownloadMIDI(const StoryData &story) {
     return;
   }
 
-  // Determine target location for MIDI files (R.3.3.7.2)
+  // Determine target location for MIDI files
   // Try DAW project folder first, fallback to default location
   juce::File targetDir = DAWProjectFolder::getMIDIFileLocation();
 
@@ -935,7 +935,7 @@ void StoryViewer::handleDownloadAudio(const StoryData &story) {
       });
 }
 
-//==============================================================================
+// ==============================================================================
 void StoryViewer::loadCurrentStory() {
   const auto *story = getCurrentStory();
   if (!story)

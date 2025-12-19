@@ -20,47 +20,47 @@ import (
 // ============================================================================
 // SEARCH & DISCOVERY - ELASTICSEARCH INTEGRATION
 // ============================================================================
-//
+
 // Phase 1: Search Endpoints with Elasticsearch Backend
-//
+
 // Architecture:
 // 1. Primary Search (Elasticsearch):
-//    - SearchUsers() - Full-text user search with ranking
-//    - SearchPosts() - Post search with genre/BPM/key filters
-//    - SearchStories() - Story search by creator
-//    - AdvancedSearch() - Unified cross-entity search
-//
+// - SearchUsers - Full-text user search with ranking
+// - SearchPosts - Post search with genre/BPM/key filters
+// - SearchStories - Story search by creator
+// - AdvancedSearch - Unified cross-entity search
+
 // 2. Autocomplete (Elasticsearch + PostgreSQL):
-//    - AutocompleteUsers() - Username suggestions with completion suggester
-//    - AutocompleteGenres() - Genre suggestions from post metadata
-//
-// 3. Error Recovery (Phase 1.8):
-//    Each search endpoint implements graceful degradation:
-//    - Try Elasticsearch first (if available)
-//    - If ES unavailable or returns error, fall back to PostgreSQL
-//    - Return "fallback": true in response metadata for client awareness
-//    - Ensures system remains functional even if Elasticsearch is down
-//
-// 4. Analytics (Phase 1.7):
-//    - trackSearchQuery() logs all searches to audit trail
-//    - Records: user, entity type, query, result count, filters
-//    - Non-blocking: analytics in background goroutine
-//    - Delegates to search.Client for Elasticsearch indexing
-//
+// - AutocompleteUsers - Username suggestions with completion suggester
+// - AutocompleteGenres - Genre suggestions from post metadata
+
+// 3. Error Recovery :
+// Each search endpoint implements graceful degradation:
+// - Try Elasticsearch first (if available)
+// - If ES unavailable or returns error, fall back to PostgreSQL
+// - Return "fallback": true in response metadata for client awareness
+// - Ensures system remains functional even if Elasticsearch is down
+
+// 4. Analytics :
+// - trackSearchQuery logs all searches to audit trail
+// - Records: user, entity type, query, result count, filters
+// - Non-blocking: analytics in background goroutine
+// - Delegates to search.Client for Elasticsearch indexing
+
 // Response Format:
 // All search endpoints return consistent structure:
 // {
-//   "users/posts/stories": [...],
-//   "meta": {
-//     "query": "search term",
-//     "limit": 20,
-//     "offset": 0,
-//     "count": 5,
-//     "fallback": false
-//   }
+// "users/posts/stories": [...],
+// "meta": {
+// "query": "search term",
+// "limit": 20,
+// "offset": 0,
+// "count": 5,
+// "fallback": false
+// }
 // }
 
-// trackSearchQuery logs search analytics (Phase 1.7)
+// trackSearchQuery logs search analytics
 // Note: In production, this would be indexed to an analytics service
 func (h *Handlers) trackSearchQuery(c *gin.Context, entityType string, query string, resultCount int, filters map[string]interface{}) {
 	// Non-blocking analytics tracking
@@ -138,7 +138,7 @@ func (h *Handlers) SearchUsers(c *gin.Context) {
 	var users []models.User
 	usingFallback := false
 
-	// Phase 1.1: Try Elasticsearch first
+	// Try Elasticsearch first
 	if h.search != nil {
 		searchResult, err := h.search.SearchUsers(c.Request.Context(), query, limit, offset)
 		if err == nil && searchResult != nil {
@@ -151,7 +151,7 @@ func (h *Handlers) SearchUsers(c *gin.Context) {
 				}
 			}
 		} else {
-			// Log warning and fall back to PostgreSQL (Phase 1.8)
+			// Log warning and fall back to PostgreSQL
 			if err != nil {
 				fmt.Printf("Warning: Elasticsearch search failed, falling back to PostgreSQL: %v\n", err)
 			}
@@ -161,7 +161,7 @@ func (h *Handlers) SearchUsers(c *gin.Context) {
 		usingFallback = true
 	}
 
-	// PostgreSQL fallback (Phase 1.8)
+	// PostgreSQL fallback
 	if usingFallback {
 		searchPattern := "%" + query + "%"
 		result := database.DB.Where(
@@ -175,7 +175,7 @@ func (h *Handlers) SearchUsers(c *gin.Context) {
 		}
 	}
 
-	// Phase 5.2: Filter private users from results
+	// Filter private users from results
 	filteredUsers := make([]models.User, 0, len(users))
 	for _, user := range users {
 		// Always show the current user if searching for themselves
@@ -212,14 +212,14 @@ func (h *Handlers) SearchUsers(c *gin.Context) {
 	// Enrich with is_following state
 	userResults := h.enrichUsersWithFollowState(currentUserID, users)
 
-	// Phase 1.7: Track search analytics
+	// Track search analytics
 	h.trackSearchQuery(c, "users", query, len(userResults), map[string]interface{}{
 		"limit":    limit,
 		"offset":   offset,
 		"fallback": usingFallback,
 	})
 
-	// Record metrics (Phase 7.1)
+	// Record metrics
 	metrics.GetManager().Search.RecordQuery(metrics.QueryMetric{
 		Type:        "users",
 		Query:       query,
@@ -242,7 +242,7 @@ func (h *Handlers) SearchUsers(c *gin.Context) {
 	})
 }
 
-// SearchPosts searches for audio posts with Elasticsearch (Phase 1.2)
+// SearchPosts searches for audio posts with Elasticsearch
 // GET /api/search/posts?q=query&genre=electronic&bpm_min=90&bpm_max=120&key=C&limit=20&offset=0
 func (h *Handlers) SearchPosts(c *gin.Context) {
 	startTime := time.Now()
@@ -277,7 +277,7 @@ func (h *Handlers) SearchPosts(c *gin.Context) {
 	var posts []models.AudioPost
 	usingFallback := false
 
-	// Phase 1.2: Try Elasticsearch first
+	// Try Elasticsearch first
 	if h.search != nil {
 		searchParams := search.SearchPostsParams{
 			Query:  query,
@@ -300,7 +300,7 @@ func (h *Handlers) SearchPosts(c *gin.Context) {
 				}
 			}
 		} else {
-			// Log warning and fall back to PostgreSQL (Phase 1.8)
+			// Log warning and fall back to PostgreSQL
 			if err != nil {
 				fmt.Printf("Warning: Elasticsearch search failed, falling back to PostgreSQL: %v\n", err)
 			}
@@ -310,7 +310,7 @@ func (h *Handlers) SearchPosts(c *gin.Context) {
 		usingFallback = true
 	}
 
-	// PostgreSQL fallback (Phase 1.8)
+	// PostgreSQL fallback
 	if usingFallback {
 		query_pattern := "%" + query + "%"
 		db := database.DB.Preload("User")
@@ -348,7 +348,7 @@ func (h *Handlers) SearchPosts(c *gin.Context) {
 		}
 	}
 
-	// Phase 5.2: Filter private content from results
+	// Filter private content from results
 	currentUserID := c.GetString("user_id")
 	filteredPosts := make([]models.AudioPost, 0, len(posts))
 	for _, post := range posts {
@@ -468,7 +468,7 @@ func (h *Handlers) SearchPosts(c *gin.Context) {
 	}
 	h.trackSearchQuery(c, "posts", query, len(postResponses), filters)
 
-	// Record metrics (Phase 7.1)
+	// Record metrics
 	metrics.GetManager().Search.RecordQuery(metrics.QueryMetric{
 		Type:        "posts",
 		Query:       query,
@@ -506,7 +506,7 @@ func (h *Handlers) SearchStories(c *gin.Context) {
 	var stories []models.Story
 	usingFallback := false
 
-	// Phase 1.3: Try Elasticsearch first (search by username since stories don't have direct text fields)
+	// Try Elasticsearch first (search by username since stories don't have direct text fields)
 	if h.search != nil {
 		// Note: Current search.SearchStories would need implementation
 		// For now, use fallback approach - stories are typically found via user search
@@ -534,7 +534,7 @@ func (h *Handlers) SearchStories(c *gin.Context) {
 		}
 	}
 
-	// Phase 5.2: Filter private creator stories from results
+	// Filter private creator stories from results
 	currentUserID := c.GetString("user_id")
 	filteredStories := make([]models.Story, 0, len(stories))
 	for _, story := range stories {
@@ -644,7 +644,7 @@ func (h *Handlers) AutocompleteUsers(c *gin.Context) {
 
 	var suggestions []string
 
-	// Phase 1.4: Try Elasticsearch completion suggester first
+	// Try Elasticsearch completion suggester first
 	if h.search != nil {
 		suggestions, _ = h.search.SuggestUsers(c.Request.Context(), query, limit)
 	}
@@ -670,7 +670,7 @@ func (h *Handlers) AutocompleteUsers(c *gin.Context) {
 	})
 }
 
-// AutocompleteGenres provides genre autocomplete suggestions (Phase 1.5)
+// AutocompleteGenres provides genre autocomplete suggestions
 // GET /api/search/autocomplete/genres?q=prefix&limit=10
 func (h *Handlers) AutocompleteGenres(c *gin.Context) {
 	query := c.Query("q")
@@ -720,7 +720,7 @@ func (h *Handlers) AutocompleteGenres(c *gin.Context) {
 	})
 }
 
-// AdvancedSearch performs unified search across users, posts, and stories (Phase 1.6)
+// AdvancedSearch performs unified search across users, posts, and stories
 // GET /api/search/advanced?q=query&type=all|users|posts|stories&limit=10&offset=0
 func (h *Handlers) AdvancedSearch(c *gin.Context) {
 	query := c.Query("q")

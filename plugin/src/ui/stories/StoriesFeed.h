@@ -8,7 +8,7 @@
 
 class NetworkClient;
 
-//==============================================================================
+// ==============================================================================
 /**
  * Story data structure for displaying in the stories feed
  */
@@ -52,7 +52,7 @@ struct StoryData {
   }
 };
 
-//==============================================================================
+// ==============================================================================
 /**
  * StoriesFeed displays a horizontal scrollable list of story circles
  * (7.5.4.1.1)
@@ -69,17 +69,17 @@ public:
   StoriesFeed(Sidechain::Stores::AppStore *store = nullptr);
   ~StoriesFeed() override;
 
-  //==============================================================================
+  // ==============================================================================
   void paint(juce::Graphics &) override;
   void resized() override;
   void mouseUp(const juce::MouseEvent &event) override;
   void mouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel) override;
 
-  //==============================================================================
+  // ==============================================================================
   // Timer callback for scroll animation
   void timerCallback() override;
 
-  //==============================================================================
+  // ==============================================================================
   // Data management
   void setNetworkClient(NetworkClient *client) {
     networkClient = client;
@@ -100,7 +100,7 @@ public:
   // Check if user has active story
   bool hasOwnStory() const;
 
-  //==============================================================================
+  // ==============================================================================
   // Callbacks
   std::function<void()> onCreateStory;
   std::function<void(const juce::String &userId, int storyIndex)> onStoryTapped;
@@ -110,7 +110,7 @@ protected:
   void subscribeToAppStore() override;
 
 private:
-  //==============================================================================
+  // ==============================================================================
   NetworkClient *networkClient = nullptr;
   juce::String currentUserId;
   juce::String currentUserAvatarUrl;

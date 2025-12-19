@@ -1,7 +1,7 @@
-//==============================================================================
+// ==============================================================================
 // AudioClient.cpp - Audio upload operations
 // Part of NetworkClient implementation split
-//==============================================================================
+// ==============================================================================
 
 #include "../../audio/KeyDetector.h"
 #include "../../util/Async.h"
@@ -12,7 +12,7 @@
 
 using namespace Sidechain::Network::Api;
 
-//==============================================================================
+// ==============================================================================
 void NetworkClient::uploadAudio(const juce::String &recordingId, const juce::AudioBuffer<float> &audioBuffer,
                                 double sampleRate, UploadCallback callback) {
   if (!isAuthenticated()) {
@@ -94,7 +94,7 @@ void NetworkClient::uploadAudio(const juce::String &recordingId, const juce::Aud
     metadata["daw"] = dawName;
 
     // BPM: Default to 120 if not available (should be passed from processor)
-    // In practice, BPM should come from PluginProcessor::getCurrentBPM()
+    // In practice, BPM should come from PluginProcessor::getCurrentBPM
     // For now, use default but log that it should be provided
     double bpm = 120.0;
     metadata["bpm"] = juce::String(bpm, 1);
@@ -141,7 +141,7 @@ void NetworkClient::uploadAudio(const juce::String &recordingId, const juce::Aud
   });
 }
 
-//==============================================================================
+// ==============================================================================
 void NetworkClient::uploadAudioWithMetadata(const juce::AudioBuffer<float> &audioBuffer, double sampleRate,
                                             const AudioUploadMetadata &metadata, UploadCallback callback) {
   if (!isAuthenticated()) {
@@ -237,7 +237,7 @@ void NetworkClient::uploadAudioWithMetadata(const juce::AudioBuffer<float> &audi
       fields["duration_bars"] = juce::String(juce::jmax(1, bars));
     }
 
-    // Include MIDI data if available (R.3.3 Cross-DAW MIDI Collaboration)
+    // Include MIDI data if available
     if (metadataCopy.includeMidi && !metadataCopy.midiData.isVoid()) {
       // Serialize MIDI data as JSON string for multipart field
       juce::String midiJson = juce::JSON::toString(metadataCopy.midiData, true);

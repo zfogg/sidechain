@@ -11,7 +11,7 @@
 class NetworkClient;
 class SidechainAudioProcessor;
 
-//==============================================================================
+// ==============================================================================
 /**
  * MessageThread displays a single conversation/chat thread
  *
@@ -72,7 +72,7 @@ public:
   void timerCallback() override;
 
 protected:
-  //==============================================================================
+  // ==============================================================================
   // SmoothScrollable implementation
   void onScrollUpdate(double newScrollPosition) override {
     scrollBar.setCurrentRangeStart(newScrollPosition, juce::dontSendNotification);
@@ -87,18 +87,18 @@ protected:
     return getWidth() - scrollBarWidth;
   }
 
-  //==============================================================================
+  // ==============================================================================
   // AppStoreComponent overrides
   void onAppStateChanged(const Sidechain::Stores::ChatState &state) override;
   void subscribeToAppStore() override;
 
 private:
-  //==============================================================================
+  // ==============================================================================
   // All state now comes from ChatStore - no duplicate state!
-  // - Messages: chatStore->getState().getCurrentChannel()->messages
-  // - Loading: chatStore->getState().getCurrentChannel()->isLoadingMessages
-  // - Error: chatStore->getState().error
-  // - Typing: chatStore->getState().getCurrentChannel()->usersTyping
+  // - Messages: chatStore->getState.getCurrentChannel->messages
+  // - Loading: chatStore->getState.getCurrentChannel->isLoadingMessages
+  // - Error: chatStore->getState.error
+  // - Typing: chatStore->getState.getCurrentChannel->usersTyping
 
   StreamChatClient *streamChatClient = nullptr;
   NetworkClient *networkClient = nullptr;

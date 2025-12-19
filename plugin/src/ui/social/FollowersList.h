@@ -45,7 +45,7 @@ struct FollowListUser {
   }
 };
 
-//==============================================================================
+// ==============================================================================
 /**
  * FollowUserRow displays a single user in the followers/following list
  */
@@ -92,7 +92,7 @@ private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FollowUserRow)
 };
 
-//==============================================================================
+// ==============================================================================
 /**
  * FollowersList displays a list of followers or following users
  *
@@ -109,7 +109,7 @@ public:
   FollowersList();
   ~FollowersList() override;
 
-  //==============================================================================
+  // ==============================================================================
   // Setup
   void setNetworkClient(NetworkClient *client) {
     networkClient = client;
@@ -122,26 +122,26 @@ public:
   void loadList(const juce::String &userId, ListType type);
   void refresh();
 
-  //==============================================================================
+  // ==============================================================================
   // Callbacks
   std::function<void()> onClose;
   std::function<void(const juce::String &userId)> onUserClicked;
 
-  //==============================================================================
+  // ==============================================================================
   // Component overrides
   void paint(juce::Graphics &g) override;
   void resized() override;
 
-  //==============================================================================
+  // ==============================================================================
   // Layout constants
   static constexpr int HEADER_HEIGHT = 50;
 
 private:
-  //==============================================================================
+  // ==============================================================================
   // Timer for auto-refresh
   void timerCallback() override;
 
-  //==============================================================================
+  // ==============================================================================
   // Data
   NetworkClient *networkClient = nullptr;
   juce::String targetUserId;  // User whose followers/following we're viewing
@@ -154,14 +154,14 @@ private:
   int currentOffset = 0;
   juce::String errorMessage;
 
-  //==============================================================================
+  // ==============================================================================
   // UI Components
   std::unique_ptr<juce::Viewport> viewport;
   std::unique_ptr<juce::Component> contentContainer;
   juce::OwnedArray<FollowUserRow> userRows;
   std::unique_ptr<juce::TextButton> closeButton;
 
-  //==============================================================================
+  // ==============================================================================
   // Methods
   void setupUI();
   void updateUsersList();

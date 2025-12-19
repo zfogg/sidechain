@@ -140,7 +140,7 @@ public:
 
   ~TaskScheduler();
 
-  // Public constructor for make_unique - use getInstance() instead
+  // Public constructor for make_unique - use getInstance instead
   TaskScheduler();
 
 private:

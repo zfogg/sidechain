@@ -13,7 +13,7 @@
 
 using namespace Sidechain::UI::Animations;
 
-//==============================================================================
+// ==============================================================================
 PostCard::PostCard(Sidechain::Stores::AppStore *store) : AppStoreComponent(nullptr) {
   setSize(600, CARD_HEIGHT);
 
@@ -32,7 +32,7 @@ PostCard::PostCard(Sidechain::Stores::AppStore *store) : AppStoreComponent(nullp
   // Set up long-press detector for emoji reactions
   longPressDetector.onLongPress = [this]() { showEmojiReactionsPanel(); };
 
-  // Fade-in animation will be created when setPost() is called
+  // Fade-in animation will be created when setPost is called
   // No setup needed here anymore
 
   // Add waveform image view as child component
@@ -47,7 +47,7 @@ PostCard::~PostCard() {
   // Base class AppStoreComponent handles store unsubscription in destructor
 }
 
-//==============================================================================
+// ==============================================================================
 void PostCard::setNetworkClient(NetworkClient *client) {
   waveformView.setNetworkClient(client);
 }
@@ -116,7 +116,7 @@ void PostCard::setPost(const FeedPost &newPost) {
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 // UI State Updates (not persisted to PostsStore)
 // Post data updates now come automatically via PostsStore subscription
 
@@ -143,7 +143,7 @@ void PostCard::setDownloadProgress(float progress) {
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void PostCard::paint(juce::Graphics &g) {
   SCOPED_TIMER_THRESHOLD("ui::render_post", 16.0);
   // Apply fade-in opacity
@@ -648,7 +648,7 @@ void PostCard::drawSocialButtons(juce::Graphics &g, juce::Rectangle<int> bounds)
     g.drawText("MIDI", midiBounds, juce::Justification::centred);
   }
 
-  // Add to Playlist button (shown on hover) - R.3.1.3.3
+  // Add to Playlist button (shown on hover) -
   if (hoverState.isHovered()) {
     auto playlistBounds = getAddToPlaylistButtonBounds();
 
@@ -681,7 +681,7 @@ void PostCard::drawSocialButtons(juce::Graphics &g, juce::Rectangle<int> bounds)
     g.drawText(dawLabel, projectBounds, juce::Justification::centred);
   }
 
-  // Remix button (R.3.2 Remix Chains) - always visible
+  // Remix button - always visible
   {
     auto remixBounds = getRemixButtonBounds();
 
@@ -1001,7 +1001,7 @@ void PostCard::drawRepostAttribution(juce::Graphics &g) {
   g.drawText(repostText, headerBounds, juce::Justification::centredLeft);
 }
 
-//==============================================================================
+// ==============================================================================
 void PostCard::resized() {
   // Position waveform image view
   waveformView.setBounds(getWaveformBounds());
@@ -1207,14 +1207,14 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
     return;
   }
 
-  // Check Add to Playlist button (R.3.1.3.3)
+  // Check Add to Playlist button
   if (hoverState.isHovered() && getAddToPlaylistButtonBounds().contains(pos)) {
     if (onAddToPlaylistClicked)
       onAddToPlaylistClicked(post);
     return;
   }
 
-  // Check Remix button (R.3.2 Remix Chains) - always clickable
+  // Check Remix button - always clickable
   if (getRemixButtonBounds().contains(pos)) {
     if (onRemixClicked) {
       // Determine default remix type based on what's available
@@ -1287,7 +1287,7 @@ void PostCard::mouseExit(const juce::MouseEvent & /*event*/) {
   longPressDetector.cancel();
 }
 
-//==============================================================================
+// ==============================================================================
 juce::Rectangle<int> PostCard::getAvatarBounds() const {
   return juce::Rectangle<int>(15, (CARD_HEIGHT - AVATAR_SIZE) / 2, AVATAR_SIZE, AVATAR_SIZE);
 }
@@ -1396,7 +1396,7 @@ juce::Rectangle<int> PostCard::getSoundBadgeBounds() const {
   return juce::Rectangle<int>(waveform.getX(), waveform.getBottom() + 2, 120, 16);
 }
 
-//==============================================================================
+// ==============================================================================
 // Like Animation
 
 void PostCard::startLikeAnimation() {
@@ -1465,7 +1465,7 @@ void PostCard::drawLikeAnimation(juce::Graphics &g) {
   g.drawEllipse(cx - ringRadius, cy - ringRadius, ringRadius * 2.0f, ringRadius * 2.0f, 2.0f);
 }
 
-//==============================================================================
+// ==============================================================================
 // Emoji Reactions
 
 void PostCard::showEmojiReactionsPanel() {
@@ -1515,7 +1515,7 @@ void PostCard::handleEmojiSelected(const juce::String &emoji) {
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 // AppStore Subscription (Type-Safe Lazy Pattern)
 
 void PostCard::subscribeToAppStore() {
@@ -1556,7 +1556,7 @@ void PostCard::onAppStateChanged(const Sidechain::Stores::PostsState & /*state*/
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 // Tooltips
 
 juce::String PostCard::getTooltip() {

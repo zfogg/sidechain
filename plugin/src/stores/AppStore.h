@@ -69,7 +69,7 @@ public:
   void setNetworkClient(NetworkClient *client);
   void setStreamChatClient(StreamChatClient *client);
 
-  //==============================================================================
+  // ==============================================================================
   // Auth Methods (AppStore_Auth.cpp)
 
   void login(const juce::String &email, const juce::String &password);
@@ -83,7 +83,7 @@ public:
   void setAuthToken(const juce::String &token);
   void refreshAuthToken();
 
-  //==============================================================================
+  // ==============================================================================
   // Feed/Posts Methods (AppStore_Feed.cpp)
 
   void loadFeed(FeedType feedType, bool forceRefresh = false);
@@ -104,7 +104,7 @@ public:
   void loadMoreArchivedPosts();
   void restorePost(const juce::String &postId);
 
-  //==============================================================================
+  // ==============================================================================
   // Drafts Methods (Draft.cpp)
 
   void loadDrafts();
@@ -112,7 +112,7 @@ public:
   void clearAutoRecoveryDraft();
   void saveDrafts();
 
-  //==============================================================================
+  // ==============================================================================
   // User/Profile Methods (User.cpp)
 
   void fetchUserProfile(bool forceRefresh = false);
@@ -148,7 +148,7 @@ public:
    */
   void unfollowUser(const juce::String &userId);
 
-  //==============================================================================
+  // ==============================================================================
   // Chat Methods (Chat.cpp)
 
   void loadChannels();
@@ -185,7 +185,7 @@ public:
   void addMessageToChannel(const juce::String &channelId, const juce::String &messageId, const juce::String &text,
                            const juce::String &userId, const juce::String &userName, const juce::String &createdAt);
 
-  //==============================================================================
+  // ==============================================================================
   // Search Methods (Search.cpp)
 
   void searchPosts(const juce::String &query);
@@ -199,7 +199,7 @@ public:
   void autocompleteGenres(const juce::String &query,
                           std::function<void(const juce::Array<juce::String> &suggestions)> callback);
 
-  //==============================================================================
+  // ==============================================================================
   // Notification Methods (Notifications.cpp)
 
   void loadNotifications();
@@ -207,7 +207,7 @@ public:
   void markNotificationsAsRead();
   void markNotificationsAsSeen();
 
-  //==============================================================================
+  // ==============================================================================
   // Presence Methods (Presence.cpp)
 
   void setPresenceStatus(PresenceStatus status);
@@ -217,7 +217,7 @@ public:
   void disconnectPresence();
   void handlePresenceUpdate(const juce::String &userId, const juce::var &presenceData);
 
-  //==============================================================================
+  // ==============================================================================
   // Stories Methods (Stories.cpp)
 
   void loadStoriesFeed();
@@ -226,13 +226,13 @@ public:
   void deleteStory(const juce::String &storyId);
   void createHighlight(const juce::String &name, const juce::Array<juce::String> &storyIds);
 
-  //==============================================================================
+  // ==============================================================================
   // Upload Methods (Upload.cpp)
 
   void uploadPost(const juce::var &postData, const juce::File &audioFile);
   void cancelUpload();
 
-  //==============================================================================
+  // ==============================================================================
   // Playlist Methods (Playlists.cpp)
 
   /**
@@ -248,13 +248,13 @@ public:
   void deletePlaylist(const juce::String &playlistId);
   void addPostToPlaylist(const juce::String &postId, const juce::String &playlistId);
 
-  //==============================================================================
+  // ==============================================================================
   // Challenge Methods (Challenges.cpp)
 
   void loadChallenges();
   void submitChallenge(const juce::String &challengeId, const juce::File &midiFile);
 
-  //==============================================================================
+  // ==============================================================================
   // Sound Methods (Sounds.cpp)
 
   void loadFeaturedSounds();
@@ -262,7 +262,7 @@ public:
   void loadMoreSounds();
   void refreshSounds();
 
-  //==============================================================================
+  // ==============================================================================
   // Comment Methods (Comments.cpp)
 
   /**
@@ -323,7 +323,7 @@ public:
    */
   void reportComment(const juce::String &commentId, const juce::String &reason, const juce::String &description);
 
-  //==============================================================================
+  // ==============================================================================
   // Cache accessors
 
   /**
@@ -350,15 +350,15 @@ public:
     draftCache.flush();
   }
 
-  //==============================================================================
+  // ==============================================================================
   // Image fetching with multi-level caching
-  //
+
   // Single unified interface for all image loading:
   // 1. Memory cache (fast, in-process, lost on app close)
   // 2. File cache (persistent, survives app restarts, on disk)
   // 3. HTTP download (network fetch if not cached)
-  //
-  // getImage() handles all three levels automatically:
+
+  // getImage handles all three levels automatically:
   // - Returns immediately from memory cache
   // - Falls back to file cache, loads to memory
   // - Falls back to HTTP download if not in any cache
@@ -391,7 +391,7 @@ public:
    */
   void getImage(const juce::String &url, std::function<void(const juce::Image &)> callback);
 
-  //==============================================================================
+  // ==============================================================================
   // Image Service Operations (File Cache: memory → file → network)
 
   /**
@@ -408,7 +408,7 @@ public:
    */
   juce::Image getCachedImage(const juce::String &url);
 
-  //==============================================================================
+  // ==============================================================================
   // Audio Service Operations (File Cache: file → network)
 
   /**
@@ -425,7 +425,7 @@ public:
    */
   juce::File getCachedAudio(const juce::String &url);
 
-  //==============================================================================
+  // ==============================================================================
   // UI Component Subscription Helpers (Thin delegates to slices)
   // TODO: Phase 5 - Remove these and update UI components to subscribe directly to slices
 
@@ -524,7 +524,7 @@ public:
     return sliceManager.getNotificationSlice()->getState();
   }
 
-  //==============================================================================
+  // ==============================================================================
   // User Service Operations (File Cache: memory only with 5-min TTL)
 
   /**
@@ -540,7 +540,7 @@ public:
    */
   rxcpp::observable<juce::Array<juce::var>> searchUsersObservable(const juce::String &query);
 
-  //==============================================================================
+  // ==============================================================================
   // Feed Service Operations (Memory Cache: 30-second TTL for frequent updates)
 
   /**
@@ -630,9 +630,9 @@ public:
    */
   rxcpp::observable<int> unfollowUserObservable(const juce::String &userId);
 
-  //==============================================================================
+  // ==============================================================================
   // WebSocket Event Handlers for Real-Time Cache Invalidation (Phase 5)
-  //
+
   // Called by PluginEditor when WebSocket messages arrive from backend.
   // Each handler invalidates relevant cache entries to keep data fresh in real-time.
 
@@ -699,7 +699,7 @@ private:
   NetworkClient *networkClient = nullptr;
   StreamChatClient *streamChatClient = nullptr;
 
-  //==============================================================================
+  // ==============================================================================
   // Slice Architecture (Phase 3 refactoring)
   // AppStore is now a pure orchestration/service layer
   // All state is managed by independent slices via AppSliceManager

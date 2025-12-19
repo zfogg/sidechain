@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 
-//==============================================================================
+// ==============================================================================
 /**
  * KeyDetector provides musical key detection for audio data.
  *
@@ -21,7 +21,7 @@
  */
 class KeyDetector {
 public:
-  //==========================================================================
+  // ==========================================================================
   // Key representation
   struct Key {
     juce::String name;      // Standard name: "A minor", "F# major"
@@ -43,11 +43,11 @@ public:
     static juce::StringArray getAllCamelotKeys();
   };
 
-  //==========================================================================
+  // ==========================================================================
   KeyDetector();
   ~KeyDetector();
 
-  //==========================================================================
+  // ==========================================================================
   /**
    * Analyze audio buffer and detect the musical key
    *
@@ -66,14 +66,14 @@ public:
    */
   Key detectKeyFromFile(const juce::File &audioFile);
 
-  //==========================================================================
+  // ==========================================================================
   /**
    * Check if key detection is available
    * (libkeyfinder compiled in and initialized)
    */
   static bool isAvailable();
 
-  //==========================================================================
+  // ==========================================================================
   // Key name utilities
 
   /**
@@ -88,7 +88,7 @@ public:
   static juce::String keyToCamelot(int keyValue);
 
   /**
-   * Get the root note name (C, C#, D, etc.)
+   * Get the root note name (C, C# , D, etc.)
    */
   static juce::String getRootNoteName(int keyValue);
 

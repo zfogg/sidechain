@@ -45,7 +45,7 @@ namespace Util {
  *   };
  *
  *   // Later, when properties change:
- *   component->username.set("Alice");  // Automatically calls repaint()!
+ *   component->username.set("Alice");  // Automatically calls repaint!
  *
  * Implementation notes:
  * - BIND_PROPERTY should be called in constructor

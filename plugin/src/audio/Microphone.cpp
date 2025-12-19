@@ -2,7 +2,7 @@
 #include "../util/Constants.h"
 #include "../util/Log.h"
 
-//==============================================================================
+// ==============================================================================
 Microphone::Microphone() {
   audioDeviceManager = std::make_unique<juce::AudioDeviceManager>();
 }
@@ -20,7 +20,7 @@ Microphone::~Microphone() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void Microphone::prepare(double sampleRate, int numChannels) {
   currentSampleRate = sampleRate;
   currentNumChannels = juce::jmin(numChannels, MaxChannels);
@@ -44,7 +44,7 @@ void Microphone::reset() {
   resetLevels();
 }
 
-//==============================================================================
+// ==============================================================================
 void Microphone::startRecording(const juce::String &recordingId) {
   if (recording.load()) {
     Log::warn("Microphone: Already recording, ignoring start request");
@@ -115,7 +115,7 @@ juce::AudioBuffer<float> Microphone::stopRecording() {
   return result;
 }
 
-//==============================================================================
+// ==============================================================================
 void Microphone::audioDeviceIOCallback(const float **inputChannelData, int numInputChannels,
                                        float ** /* outputChannelData */, int /* numOutputChannels */, int numSamples) {
   // Fast exit if not recording (atomic read)
@@ -170,7 +170,7 @@ void Microphone::audioDeviceError(const juce::String &errorMessage) {
   Log::error("Microphone: Audio device error: " + errorMessage);
 }
 
-//==============================================================================
+// ==============================================================================
 double Microphone::getRecordingLengthSeconds() const {
   if (currentSampleRate <= 0)
     return 0.0;
@@ -196,7 +196,7 @@ bool Microphone::isBufferFull() const {
   return recordingPosition.load() >= maxRecordingSamples;
 }
 
-//==============================================================================
+// ==============================================================================
 float Microphone::getPeakLevel(int channel) const {
   if (channel < 0 || channel >= MaxChannels)
     return 0.0f;
@@ -218,7 +218,7 @@ void Microphone::resetLevels() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 juce::StringArray Microphone::getAvailableInputDevices() const {
   juce::StringArray devices;
 
@@ -271,7 +271,7 @@ bool Microphone::isDeviceAvailable() const {
   return audioDeviceManager != nullptr && !getAvailableInputDevices().isEmpty();
 }
 
-//==============================================================================
+// ==============================================================================
 void Microphone::initializeBuffers() {
   if (maxRecordingSamples > 0 && currentNumChannels > 0) {
     recordingBuffer.setSize(currentNumChannels, maxRecordingSamples, false, false, true);

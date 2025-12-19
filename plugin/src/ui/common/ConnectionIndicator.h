@@ -3,7 +3,7 @@
 #include "../../network/NetworkClient.h"
 #include <JuceHeader.h>
 
-//==============================================================================
+// ==============================================================================
 /**
  * ConnectionIndicator displays the current connection status as a colored dot
  *

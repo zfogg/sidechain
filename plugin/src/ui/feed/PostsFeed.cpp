@@ -18,7 +18,7 @@
 using namespace Sidechain::UI::Animations;
 using namespace Sidechain::Stores;
 
-//==============================================================================
+// ==============================================================================
 // Helper function to convert FeedType to string
 static juce::String feedTypeToString(const Sidechain::Stores::FeedType &feedType) {
   using namespace Sidechain::Stores;
@@ -50,7 +50,7 @@ static juce::String feedTypeToString(const Sidechain::Stores::FeedType &feedType
   }
 }
 
-//==============================================================================
+// ==============================================================================
 // Helper function to check if feed type is aggregated
 static inline bool isAggregatedFeedType(const Sidechain::Stores::FeedType &feedType) {
   using namespace Sidechain::Stores;
@@ -58,20 +58,20 @@ static inline bool isAggregatedFeedType(const Sidechain::Stores::FeedType &feedT
          feedType == FeedType::NotificationAggregated || feedType == FeedType::UserActivityAggregated;
 }
 
-//==============================================================================
+// ==============================================================================
 // Local state enum for feed display (UI state, not data state)
 enum class PostsFeedDisplayState { Loading, Loaded, Empty, Error };
 
 static PostsFeedDisplayState feedDisplayState = PostsFeedDisplayState::Loading;
 
-//==============================================================================
+// ==============================================================================
 PostsFeed::PostsFeed(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   using namespace Sidechain::Stores;
 
   Log::info("PostsFeed: Initializing feed component");
   setSize(1000, 800);
 
-  // AppStoreComponent will call subscribeToAppStore() if store is provided
+  // AppStoreComponent will call subscribeToAppStore if store is provided
 
   // Add scroll bar
   addAndMakeVisible(scrollBar);
@@ -136,7 +136,7 @@ PostsFeed::~PostsFeed() {
   removeKeyListener(this);
 }
 
-//==============================================================================
+// ==============================================================================
 void PostsFeed::setUserInfo(const juce::String &user, const juce::String &userEmail, const juce::String &picUrl) {
   // Store user info (profile picture now displayed in central HeaderComponent)
   username = user;
@@ -361,7 +361,7 @@ void PostsFeed::setAudioPlayer(HttpAudioPlayer *player) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void PostsFeed::loadFeed() {
   using namespace Sidechain::Stores;
 
@@ -417,7 +417,7 @@ void PostsFeed::switchFeedType(Sidechain::Stores::FeedType type) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void PostsFeed::handleFeedStateChanged() {
   using namespace Sidechain::Stores;
 
@@ -512,7 +512,7 @@ void PostsFeed::subscribeToAppStore() {
   // See constructor for PostsSlice subscription
 }
 
-//==============================================================================
+// ==============================================================================
 void PostsFeed::queryPresenceForPosts() {
   using namespace Sidechain::Stores;
 
@@ -594,7 +594,7 @@ void PostsFeed::updateUserPresence(const juce::String &userId, bool isOnline, co
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void PostsFeed::paint(juce::Graphics &g) {
   // Background
   g.fillAll(SidechainColors::background());
@@ -615,7 +615,7 @@ void PostsFeed::paint(juce::Graphics &g) {
       break;
     case PostsFeedDisplayState::Loaded:
       drawFeedPosts(g);
-      // Draw toast on top of feed if showing (5.5.2)
+      // Draw toast on top of feed if showing
       if (showingNewPostsToast && pendingNewPostsCount > 0) {
         drawNewPostsToast(g);
       }
@@ -834,7 +834,7 @@ void PostsFeed::drawNewPostsToast(juce::Graphics &g) {
   if (!showingNewPostsToast)
     return;
 
-  // Draw toast at top of feed content area with fade animation (5.5.2)
+  // Draw toast at top of feed content area with fade animation
   auto contentBounds = getFeedContentBounds();
   auto toastBounds = contentBounds.withHeight(40).withY(contentBounds.getY() + 10);
 
@@ -868,7 +868,7 @@ void PostsFeed::drawNewPostsToast(juce::Graphics &g) {
   g.drawText("↻", toastBounds.removeFromRight(30), juce::Justification::centred);
 }
 
-//==============================================================================
+// ==============================================================================
 void PostsFeed::rebuildPostCards() {
   using namespace Sidechain::Stores;
 
@@ -1055,10 +1055,10 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
     showCommentsForPost(post);
   };
 
-  // Like/unlike handled by FeedStore.toggleLike() (reactive refactoring)
+  // Like/unlike handled by FeedStore.toggleLike (reactive refactoring)
   // The callback is no longer needed as PostCard now uses FeedStore directly
 
-  // Emoji reactions handled by FeedStore.addReaction() (reactive refactoring)
+  // Emoji reactions handled by FeedStore.addReaction (reactive refactoring)
   // The callback is no longer needed as PostCard now uses FeedStore directly
 
   card->onUserClicked = [this](const FeedPost &post) {
@@ -1363,7 +1363,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
       return;
     }
 
-    // Determine target location for MIDI files (R.3.3.7.2)
+    // Determine target location for MIDI files
     // Try DAW project folder first, fallback to default location
     juce::File targetDir = DAWProjectFolder::getMIDIFileLocation();
 
@@ -1538,7 +1538,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
         });
   };
 
-  // R.3.2 Remix Chains - Remix button clicked
+  // Remix Chains - Remix button clicked
   card->onRemixClicked = [this](const FeedPost &post, const juce::String &remixType) {
     Log::info("PostsFeed: Remix clicked for post: " + post.id + " type: " + remixType);
 
@@ -1569,7 +1569,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
     }
   };
 
-  // R.3.2 Remix Chains - Remix chain badge clicked (view lineage)
+  // Remix Chains - Remix chain badge clicked (view lineage)
   card->onRemixChainClicked = [this](const FeedPost &post) {
     Log::info("PostsFeed: Remix chain clicked for post: " + post.id);
 
@@ -1625,13 +1625,13 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
     });
   };
 
-  // Follow/Unfollow handled by FeedStore.toggleFollow() (reactive refactoring)
+  // Follow/Unfollow handled by FeedStore.toggleFollow (reactive refactoring)
   // The callback is no longer needed as PostCard now uses FeedStore directly
 
-  // Save/Bookmark handled by FeedStore.toggleSave() (reactive refactoring)
+  // Save/Bookmark handled by FeedStore.toggleSave (reactive refactoring)
   // The callback is no longer needed as PostCard now uses FeedStore directly
 
-  // Repost handled by FeedStore.toggleRepost() (reactive refactoring)
+  // Repost handled by FeedStore.toggleRepost (reactive refactoring)
   // The callback is no longer needed as PostCard now uses FeedStore directly Note: Confirmation dialogs moved to a
   // future enhancement in PostCard or a dialog service
 
@@ -1652,7 +1652,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
     }
   };
 
-  // Feature #15 - Sound/Sample Pages
+  // - Sound/Sample Pages
   card->onSoundClicked = [this](const juce::String &soundId) {
     Log::debug("Sound clicked: " + soundId);
     if (onSoundClicked)
@@ -1660,7 +1660,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
   };
 }
 
-//==============================================================================
+// ==============================================================================
 void PostsFeed::resized() {
   Log::debug("PostsFeed::resized: Component resized to " + juce::String(getWidth()) + "x" + juce::String(getHeight()));
   auto bounds = getLocalBounds();
@@ -1780,12 +1780,12 @@ void PostsFeed::checkLoadMore() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void PostsFeed::mouseUp(const juce::MouseEvent &event) {
   auto pos = event.getPosition();
   Log::debug("PostsFeed::mouseUp: Mouse clicked at (" + juce::String(pos.x) + ", " + juce::String(pos.y) + ")");
 
-  // Check if clicked on toast to refresh (5.5.2)
+  // Check if clicked on toast to refresh
   if (showingNewPostsToast && pendingNewPostsCount > 0) {
     auto contentBounds = getFeedContentBounds();
     auto toastBounds = contentBounds.withHeight(40).withY(contentBounds.getY() + 10);
@@ -1859,7 +1859,7 @@ void PostsFeed::mouseUp(const juce::MouseEvent &event) {
   // HeaderComponent
 }
 
-//==============================================================================
+// ==============================================================================
 juce::Rectangle<int> PostsFeed::getTimelineTabBounds() const {
   // Tabs now start at y=0 (header handled by central HeaderComponent)
   // Three tabs: Following, Trending, Discover - each 80px wide with 10px gaps
@@ -1899,7 +1899,7 @@ juce::Rectangle<int> PostsFeed::getFeedContentBounds() const {
   return getLocalBounds().withTrimmedTop(FEED_TABS_HEIGHT);
 }
 
-//==============================================================================
+// ==============================================================================
 // Keyboard shortcuts
 
 bool PostsFeed::keyPressed(const juce::KeyPress &key, juce::Component * /*originatingComponent*/) {
@@ -1933,7 +1933,7 @@ bool PostsFeed::keyPressed(const juce::KeyPress &key, juce::Component * /*origin
   // (line 699-703) Note: Post author online status is implemented - queries
   // getstream.io Chat presence and shows green dot on avatar if online Note:
   // Pre-buffering next post is already implemented (line 668-687) - uses
-  // preloadAudio() method
+  // preloadAudio method
 
   // Up arrow - volume up
   if (key == juce::KeyPress::upKey) {
@@ -1973,7 +1973,7 @@ bool PostsFeed::keyPressed(const juce::KeyPress &key, juce::Component * /*origin
   return false;
 }
 
-//==============================================================================
+// ==============================================================================
 // Comments panel
 
 void PostsFeed::showCommentsForPost(const FeedPost &post) {
@@ -2032,7 +2032,7 @@ void PostsFeed::hideCommentsPanel() {
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 // Playlist management for auto-play
 
 void PostsFeed::updateAudioPlayerPlaylist() {
@@ -2064,9 +2064,9 @@ void PostsFeed::updateAudioPlayerPlaylist() {
   audioPlayer->setPlaylist(postIds, audioUrls);
 }
 
-//==============================================================================
+// ==============================================================================
 // Real-time Feed Updates (5.5)
-//==============================================================================
+// ==============================================================================
 
 void PostsFeed::handleNewPostNotification(const juce::var &postData) {
   Log::info("PostsFeed::handleNewPostNotification: New post notification received");
@@ -2077,7 +2077,7 @@ void PostsFeed::handleNewPostNotification(const juce::var &postData) {
       postData.hasProperty("author") ? postData.getProperty("author", juce::var()).toString() : "Someone";
   Log::debug("PostsFeed: New post from " + authorName + " (ID: " + postId + ")");
 
-  // Increment pending new posts count (5.5.2)
+  // Increment pending new posts count
   pendingNewPostsCount++;
   lastNewPostTime = juce::Time::getCurrentTime();
   Log::debug("PostsFeed::handleNewPostNotification: Pending count: " + juce::String(pendingNewPostsCount));
@@ -2088,7 +2088,7 @@ void PostsFeed::handleNewPostNotification(const juce::var &postData) {
     showNewPostsToast(pendingNewPostsCount);
   }
 
-  // If user is at the top of the feed, refresh immediately (5.5.1)
+  // If user is at the top of the feed, refresh immediately
   if (isVisible() && scrollPosition < 0.1) {
     Log::info("PostsFeed::handleNewPostNotification: User at top, refreshing "
               "feed immediately");
@@ -2109,7 +2109,7 @@ void PostsFeed::handleLikeCountUpdate(const juce::String &postId, int likeCount)
 }
 
 void PostsFeed::handleFollowerCountUpdate(const juce::String &userId, int followerCount) {
-  // Update follower count in user profile if visible (5.5.4)
+  // Update follower count in user profile if visible
   // This would typically update a profile component, but for now we just log
   Log::debug("Follower count update for user " + userId + ": " + juce::String(followerCount));
   // In a full implementation, this would update the profile component
@@ -2151,8 +2151,8 @@ void PostsFeed::showNewPostsToast(int count) {
   });
 }
 
-//==============================================================================
-// R.3.2 Remix Chains - Start remix flow
+// ==============================================================================
+// Remix Chains - Start remix flow
 
 void PostsFeed::startRemixFlow(const FeedPost &post, const juce::String &remixType) {
   Log::info("PostsFeed::startRemixFlow: Starting remix - post: " + post.id + ", type: " + remixType);

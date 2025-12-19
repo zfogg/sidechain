@@ -23,7 +23,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	require.NoError(t, err)
 
 	// Create tables manually with SQLite-compatible syntax
-	// (GORM AutoMigrate tries to use PostgreSQL-specific features like gen_random_uuid())
+	// (GORM AutoMigrate tries to use PostgreSQL-specific features like gen_random_uuid)
 	err = db.Exec(`
 		CREATE TABLE users (
 			id TEXT PRIMARY KEY,

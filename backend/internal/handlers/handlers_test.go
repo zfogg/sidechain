@@ -60,7 +60,7 @@ func (suite *HandlersTestSuite) SetupSuite() {
 		&models.CommentMention{},
 		&models.Story{},
 		&models.StoryView{},
-		&models.ProjectFile{}, // R.3.4 Project File Exchange
+		&models.ProjectFile{}, // Project File Exchange
 	)
 	require.NoError(suite.T(), err)
 
@@ -146,7 +146,7 @@ func (suite *HandlersTestSuite) setupRoutes() {
 	api.GET("/audio/status/:job_id", suite.handlers.GetAudioProcessingStatus)
 	api.GET("/audio/:id", suite.handlers.GetAudio)
 
-	// Story routes (Phase 7.5)
+	// Story routes
 	api.POST("/stories", suite.handlers.CreateStory)
 	api.GET("/stories", suite.handlers.GetStories)
 	api.GET("/stories/:id", suite.handlers.GetStory)
@@ -155,7 +155,7 @@ func (suite *HandlersTestSuite) setupRoutes() {
 	api.POST("/stories/:id/download", suite.handlers.DownloadStory)
 	api.GET("/users/:id/stories", suite.handlers.GetUserStories)
 
-	// MIDI routes (R.3.3)
+	// MIDI routes
 	api.POST("/midi", suite.handlers.CreateMIDIPattern)
 	api.GET("/midi", suite.handlers.ListMIDIPatterns)
 	api.GET("/midi/:id", suite.handlers.GetMIDIPattern)
@@ -163,7 +163,7 @@ func (suite *HandlersTestSuite) setupRoutes() {
 	api.PATCH("/midi/:id", suite.handlers.UpdateMIDIPattern)
 	api.DELETE("/midi/:id", suite.handlers.DeleteMIDIPattern)
 
-	// Project file routes (R.3.4)
+	// Project file routes
 	api.POST("/v1/project-files", suite.handlers.CreateProjectFile)
 	api.GET("/v1/project-files", suite.handlers.ListProjectFiles)
 	api.GET("/v1/project-files/:id", suite.handlers.GetProjectFile)

@@ -46,7 +46,7 @@
 // Using declarations for animations
 using Sidechain::UI::Animations::ViewTransitionManager;
 
-//==============================================================================
+// ==============================================================================
 /**
  * Sidechain Audio Plugin Editor
  *
@@ -62,7 +62,7 @@ public:
   SidechainAudioProcessorEditor(SidechainAudioProcessor &);
   ~SidechainAudioProcessorEditor() override;
 
-  //==============================================================================
+  // ==============================================================================
   /** Paint the editor component
    * @param g Graphics context for drawing
    */
@@ -73,7 +73,7 @@ public:
    */
   void resized() override;
 
-  //==============================================================================
+  // ==============================================================================
   // ChangeListener - for UserDataStore updates
 
   /** Handle change notifications from UserDataStore
@@ -84,7 +84,7 @@ public:
 private:
   SidechainAudioProcessor &audioProcessor;
 
-  //==============================================================================
+  // ==============================================================================
   // View management
   enum class AppView {
     Authentication,
@@ -248,7 +248,7 @@ private:
    */
   void handleLogout();
 
-  //==============================================================================
+  // ==============================================================================
   // Unified AppStore (single source of truth for all application state)
   Sidechain::Stores::AppStore &appStore = Sidechain::Stores::AppStore::getInstance();
 
@@ -258,7 +258,7 @@ private:
   juce::String profilePicUrl;
   juce::String authToken;
 
-  //==============================================================================
+  // ==============================================================================
   // Components
   std::unique_ptr<Auth> authComponent;
   std::unique_ptr<ProfileSetup> profileSetupComponent;
@@ -325,7 +325,7 @@ private:
   // Tooltip window for displaying tooltips throughout the app
   std::unique_ptr<juce::TooltipWindow> tooltipWindow;
 
-  //==============================================================================
+  // ==============================================================================
   // Notification handling
 
   /** Initialize notification system and components
@@ -362,7 +362,7 @@ private:
 
   std::unique_ptr<juce::Timer> notificationPollTimer;
 
-  //==============================================================================
+  // ==============================================================================
   // Persistent state
 
   /** Save login state to persistent storage
@@ -377,7 +377,7 @@ private:
    */
   void sendTestMessageOnStartup();
 
-  //==============================================================================
+  // ==============================================================================
   // Crash detection
 
   /** Check if the plugin crashed on previous launch
@@ -388,7 +388,7 @@ private:
    */
   void markCleanShutdown();
 
-  //==============================================================================
+  // ==============================================================================
   // OAuth polling for plugin-based OAuth flow
 
   /** Start polling for OAuth authentication completion
@@ -411,7 +411,7 @@ private:
   int oauthPollCount = 0;
   static constexpr int MAX_OAUTH_POLLS = 300; // 5 minutes at 1 second intervals
 
-  //==============================================================================
+  // ==============================================================================
   // WebSocket handling
 
   /** Connect to the WebSocket server for real-time updates
@@ -436,7 +436,7 @@ private:
    */
   void checkForActiveStories();
 
-  //==============================================================================
+  // ==============================================================================
   // DPI Scaling
 
   /** Apply system DPI scaling for HiDPI displays
@@ -444,7 +444,7 @@ private:
    */
   void applySystemDpiScaling();
 
-  //==============================================================================
+  // ==============================================================================
   // Plugin dimensions optimized for MacBook Pro displays (~75% of screen)
   static constexpr int PLUGIN_WIDTH = 1400;
   static constexpr int PLUGIN_HEIGHT = 900;

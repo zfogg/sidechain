@@ -5,7 +5,7 @@
 // Forward declaration
 class SidechainAudioProcessor;
 
-//==============================================================================
+// ==============================================================================
 /**
  * AudioSnippetRecorder provides UI for recording short audio snippets (max 30
  * seconds) to send in messages.
@@ -23,7 +23,7 @@ public:
   AudioSnippetRecorder(SidechainAudioProcessor &processor);
   ~AudioSnippetRecorder() override;
 
-  //==============================================================================
+  // ==============================================================================
   void paint(juce::Graphics &) override;
   void resized() override;
   void mouseDown(const juce::MouseEvent &event) override;
@@ -32,7 +32,7 @@ public:
   // Timer callback for UI updates
   void timerCallback() override;
 
-  //==============================================================================
+  // ==============================================================================
   // Callback when recording is complete and ready to send
   std::function<void(const juce::AudioBuffer<float> &, double sampleRate)> onRecordingComplete;
 
@@ -48,7 +48,7 @@ public:
   double getRecordingDuration() const;
 
 private:
-  //==============================================================================
+  // ==============================================================================
   SidechainAudioProcessor &audioProcessor;
 
   // Recording state
@@ -74,7 +74,7 @@ private:
   juce::Rectangle<int> cancelButtonArea;
   juce::Rectangle<int> sendButtonArea;
 
-  //==============================================================================
+  // ==============================================================================
   // Drawing helpers
   void drawIdleState(juce::Graphics &g);
   void drawRecordingState(juce::Graphics &g);
@@ -91,7 +91,7 @@ private:
   // Helper to format time as MM:SS
   juce::String formatTime(double seconds);
 
-  //==============================================================================
+  // ==============================================================================
   // Button actions
   void startRecording();
   void stopRecording();

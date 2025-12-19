@@ -9,7 +9,7 @@ NavigationStack::NavigationStack(juce::Component *parent, size_t initialCapacity
     : parent_(parent), defaultPushTransition_(TransitionType::SlideInFromRight),
       defaultPopTransition_(TransitionType::SlideOutToRight), defaultPushDurationMs_(300), defaultPopDurationMs_(300),
       transitionsEnabled_(true), activeTransitionCount_(0) {
-  // Note: std::deque doesn't support reserve(), allocation is dynamic
+  // Note: std::deque doesn't support reserve, allocation is dynamic
 
   // Add this component to parent
   if (parent_) {

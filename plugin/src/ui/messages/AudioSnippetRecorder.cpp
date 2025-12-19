@@ -3,7 +3,7 @@
 #include "../../util/Log.h"
 #include "core/PluginProcessor.h"
 
-//==============================================================================
+// ==============================================================================
 AudioSnippetRecorder::AudioSnippetRecorder(SidechainAudioProcessor &processor) : audioProcessor(processor) {
   Log::info("AudioSnippetRecorder: Initializing");
 
@@ -22,7 +22,7 @@ AudioSnippetRecorder::~AudioSnippetRecorder() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void AudioSnippetRecorder::timerCallback() {
   // Check if recording stopped externally (e.g., max length reached)
   if (currentState == State::Recording && !audioProcessor.isRecording()) {
@@ -44,7 +44,7 @@ void AudioSnippetRecorder::timerCallback() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void AudioSnippetRecorder::paint(juce::Graphics &g) {
   // Dark background
   g.fillAll(juce::Colour(0xff1a1a1a));
@@ -88,7 +88,7 @@ void AudioSnippetRecorder::resized() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void AudioSnippetRecorder::mouseDown(const juce::MouseEvent &event) {
   if (recordButtonArea.contains(event.getPosition())) {
     if (currentState == State::Idle) {
@@ -120,7 +120,7 @@ void AudioSnippetRecorder::mouseUp(const juce::MouseEvent &event) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void AudioSnippetRecorder::drawIdleState(juce::Graphics &g) {
   drawRecordButton(g, false);
 }
@@ -232,7 +232,7 @@ void AudioSnippetRecorder::drawSendButton(juce::Graphics &g) {
   g.drawText(juce::String(juce::CharPointer_UTF8("\xE2\x9E\xA1")), sendButtonArea, juce::Justification::centred);
 }
 
-//==============================================================================
+// ==============================================================================
 juce::Path AudioSnippetRecorder::generateWaveformPath(const juce::AudioBuffer<float> &buffer,
                                                       juce::Rectangle<int> bounds) {
   juce::Path path;
@@ -276,7 +276,7 @@ juce::String AudioSnippetRecorder::formatTime(double seconds) {
   return juce::String::formatted("%d:%02d", minutes, secs);
 }
 
-//==============================================================================
+// ==============================================================================
 void AudioSnippetRecorder::startRecording() {
   // Start recording an audio snippet for message sending.
   // IMPORTANT GOTCHAS:

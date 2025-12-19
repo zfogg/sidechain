@@ -214,7 +214,7 @@ void NotificationSound::scheduleCleanup() {
   juce::Timer::callAfterDelay(150, []() {
     if (audioSourcePlayer)
       audioSourcePlayer->setSource(nullptr);
-    // beepSource will be cleaned up when playBeep() is called again or on
+    // beepSource will be cleaned up when playBeep is called again or on
     // shutdown
   });
 }

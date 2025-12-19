@@ -1,7 +1,7 @@
-//==============================================================================
+// ==============================================================================
 // NotificationClient.cpp - Notification operations
 // Part of NetworkClient implementation split
-//==============================================================================
+// ==============================================================================
 
 #include "../../util/Async.h"
 #include "../../util/Log.h"
@@ -10,7 +10,7 @@
 
 using namespace Sidechain::Network::Api;
 
-//==============================================================================
+// ==============================================================================
 void NetworkClient::getNotifications(int limit, int offset, NotificationCallback callback) {
   if (callback == nullptr)
     return;

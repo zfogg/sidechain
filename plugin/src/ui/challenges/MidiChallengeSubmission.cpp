@@ -7,7 +7,7 @@
 #include "../recording/Upload.h"
 #include "core/PluginProcessor.h"
 
-//==============================================================================
+// ==============================================================================
 MidiChallengeSubmission::MidiChallengeSubmission(SidechainAudioProcessor &processor, NetworkClient &network,
                                                  Sidechain::Stores::AppStore *store)
     : AppStoreComponent(store), audioProcessor(processor), networkClient(network) {
@@ -35,7 +35,7 @@ MidiChallengeSubmission::~MidiChallengeSubmission() {
   Log::debug("MidiChallengeSubmission: Destroying");
 }
 
-//==============================================================================
+// ==============================================================================
 void MidiChallengeSubmission::setChallenge(const MIDIChallenge &ch) {
   challenge = ch;
   reset();
@@ -71,7 +71,7 @@ void MidiChallengeSubmission::reset() {
   durationCheck = ConstraintCheck();
 }
 
-//==============================================================================
+// ==============================================================================
 // AppStoreComponent virtual methods
 
 void MidiChallengeSubmission::subscribeToAppStore() {
@@ -120,7 +120,7 @@ void MidiChallengeSubmission::onAppStateChanged(const Sidechain::Stores::Challen
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void MidiChallengeSubmission::paint(juce::Graphics &g) {
   // Background
   g.fillAll(SidechainColors::background());
@@ -138,7 +138,7 @@ void MidiChallengeSubmission::paint(juce::Graphics &g) {
   drawConstraintChecklist(g, contentBounds);
 
   // Upload component (will draw itself)
-  // We'll position it in resized()
+  // We'll position it in resized
 
   // Submit button
   if (submissionState == SubmissionState::Editing || submissionState == SubmissionState::Validating) {
@@ -203,7 +203,7 @@ void MidiChallengeSubmission::mouseUp(const juce::MouseEvent &event) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void MidiChallengeSubmission::drawHeader(juce::Graphics &g) {
   auto bounds = juce::Rectangle<int>(0, 0, getWidth(), 60);
 
@@ -393,7 +393,7 @@ void MidiChallengeSubmission::drawErrorState(juce::Graphics &g, juce::Rectangle<
   g.drawText(errorMessage, bounds, juce::Justification::centred);
 }
 
-//==============================================================================
+// ==============================================================================
 juce::Rectangle<int> MidiChallengeSubmission::getBackButtonBounds() const {
   return juce::Rectangle<int>(16, 0, 50, 60);
 }
@@ -411,7 +411,7 @@ juce::Rectangle<int> MidiChallengeSubmission::getUploadComponentBounds() const {
   return getContentBounds();
 }
 
-//==============================================================================
+// ==============================================================================
 void MidiChallengeSubmission::validateConstraints(double bpm, const juce::String &key, const juce::var &midi,
                                                   double durationSeconds) {
   // Reset all checks

@@ -80,7 +80,7 @@ func createMigration() {
 	os.Exit(1)
 }
 
-// indexElasticsearch backfills Elasticsearch indices with existing database data (Phase 0.8)
+// indexElasticsearch backfills Elasticsearch indices with existing database data
 func indexElasticsearch() {
 	log.Println("🔄 Phase 0.8: Backfilling Elasticsearch indices...")
 

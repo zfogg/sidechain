@@ -9,7 +9,7 @@
 
 class NetworkClient;
 
-//==============================================================================
+// ==============================================================================
 /**
  * StoryViewer displays stories in a full-screen viewer (7.5.4.2.1)
  *
@@ -26,18 +26,18 @@ public:
   StoryViewer(Sidechain::Stores::AppStore *store = nullptr);
   ~StoryViewer() override;
 
-  //==============================================================================
+  // ==============================================================================
   void paint(juce::Graphics &) override;
   void resized() override;
   void mouseUp(const juce::MouseEvent &event) override;
   void mouseDown(const juce::MouseEvent &event) override;
   void mouseDrag(const juce::MouseEvent &event) override;
 
-  //==============================================================================
+  // ==============================================================================
   // Timer callback for playback progress
   void timerCallback() override;
 
-  //==============================================================================
+  // ==============================================================================
   // Network client for marking stories as viewed
   void setNetworkClient(NetworkClient *client) {
     networkClient = client;
@@ -60,7 +60,7 @@ public:
     return playing;
   }
 
-  //==============================================================================
+  // ==============================================================================
   // Callbacks
 
   // Called when viewer should close
@@ -84,7 +84,7 @@ public:
   // Called when user wants to download audio from story (19.1)
   std::function<void(const StoryData &story)> onDownloadAudioClicked;
 
-  // Called when user wants to remix the story (R.3.2 Remix Chains)
+  // Called when user wants to remix the story
   // Parameters: storyId, remixType ("audio", "midi", or "both")
   std::function<void(const juce::String &storyId, const juce::String &remixType)> onRemixClicked;
 
@@ -99,7 +99,7 @@ protected:
   void subscribeToAppStore() override;
 
 private:
-  //==============================================================================
+  // ==============================================================================
   NetworkClient *networkClient = nullptr;
   juce::String currentUserId;
 
@@ -144,10 +144,10 @@ private:
   juce::Rectangle<int> deleteButtonArea; // Delete button for own stories
   juce::Rectangle<int> midiButtonArea;
   juce::Rectangle<int> audioDownloadButtonArea; // 19.1 Audio download
-  juce::Rectangle<int> remixButtonArea;         // R.3.2 Remix Chains
+  juce::Rectangle<int> remixButtonArea;         // Remix Chains
   juce::Rectangle<int> highlightButtonArea;     // Add to highlight button (own stories only)
 
-  //==============================================================================
+  // ==============================================================================
   // Drawing helpers
   void drawHeader(juce::Graphics &g);
   void drawProgressBar(juce::Graphics &g);
@@ -162,7 +162,7 @@ private:
   void drawDeleteButton(juce::Graphics &g); // Delete button for own stories
   void drawMIDIButton(juce::Graphics &g);
   void drawAudioDownloadButton(juce::Graphics &g); // 19.1 Audio download
-  void drawRemixButton(juce::Graphics &g);         // R.3.2 Remix Chains
+  void drawRemixButton(juce::Graphics &g);         // Remix Chains
   void drawHighlightButton(juce::Graphics &g);     // Add to highlight button (own stories only)
 
   // Story management
@@ -177,7 +177,7 @@ private:
   // Share story (copy link to clipboard)
   void handleShareStory(const juce::String &storyId);
 
-  // Download MIDI from story (R.3.3.5.5)
+  // Download MIDI from story
   void handleDownloadMIDI(const StoryData &story);
 
   // Download audio from story (19.1)

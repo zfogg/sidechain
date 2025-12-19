@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 
-//==============================================================================
+// ==============================================================================
 /**
  * Playlist represents a collection of audio posts (R.3.1 Collaborative
  * Playlists)
@@ -39,7 +39,7 @@ struct Playlist {
   }
 };
 
-//==============================================================================
+// ==============================================================================
 /**
  * PlaylistEntry represents a post in a playlist
  */
@@ -63,7 +63,7 @@ struct PlaylistEntry {
   static PlaylistEntry fromJSON(const juce::var &json);
 };
 
-//==============================================================================
+// ==============================================================================
 /**
  * PlaylistCollaborator represents a user who can collaborate on a playlist
  */

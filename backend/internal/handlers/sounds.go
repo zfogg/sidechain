@@ -8,7 +8,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/models"
 )
 
-// SoundHandlers handles Sound-related API endpoints (Feature #15)
+// SoundHandlers handles Sound-related API endpoints
 type SoundHandlers struct{}
 
 // NewSoundHandlers creates a new SoundHandlers instance

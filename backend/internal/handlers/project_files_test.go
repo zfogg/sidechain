@@ -12,7 +12,7 @@ import (
 )
 
 // =============================================================================
-// PROJECT FILE ENDPOINT TESTS (R.3.4)
+// PROJECT FILE ENDPOINT TESTS
 // =============================================================================
 
 func (suite *HandlersTestSuite) TestCreateProjectFileSuccess() {

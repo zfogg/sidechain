@@ -28,7 +28,7 @@ inline juce::Colour error() {
 } // namespace Colors
 } // namespace
 
-//==============================================================================
+// ==============================================================================
 ArchivedPosts::ArchivedPosts(AppStore *store) : AppStoreComponent(store) {
   addAndMakeVisible(scrollBar);
   scrollBar.addListener(this);
@@ -40,7 +40,7 @@ ArchivedPosts::~ArchivedPosts() {
   scrollBar.removeListener(this);
 }
 
-//==============================================================================
+// ==============================================================================
 void ArchivedPosts::onAppStateChanged(const PostsState &state) {
   // Update archived posts from state
   archivedPosts.clear();
@@ -71,7 +71,7 @@ void ArchivedPosts::subscribeToAppStore() {
   });
 }
 
-//==============================================================================
+// ==============================================================================
 void ArchivedPosts::paint(juce::Graphics &g) {
   // Background
   g.fillAll(Colors::background());
@@ -104,7 +104,7 @@ void ArchivedPosts::resized() {
   updateScrollBounds();
 }
 
-//==============================================================================
+// ==============================================================================
 void ArchivedPosts::mouseUp(const juce::MouseEvent &event) {
   auto pos = event.getPosition();
 
@@ -147,7 +147,7 @@ void ArchivedPosts::scrollBarMoved(juce::ScrollBar * /*scrollBar*/, double newRa
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void ArchivedPosts::setNetworkClient(NetworkClient *client) {
   networkClient = client;
 }
@@ -164,7 +164,7 @@ void ArchivedPosts::refresh() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void ArchivedPosts::setCurrentlyPlayingPost(const juce::String &postId) {
   currentlyPlayingPostId = postId;
 
@@ -195,7 +195,7 @@ void ArchivedPosts::clearPlayingState() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void ArchivedPosts::drawHeader(juce::Graphics &g) {
   auto bounds = getLocalBounds().removeFromTop(HEADER_HEIGHT);
 
@@ -242,7 +242,7 @@ void ArchivedPosts::drawErrorState(juce::Graphics &g, juce::Rectangle<int> bound
   g.drawText(errorMessage, bounds, juce::Justification::centred);
 }
 
-//==============================================================================
+// ==============================================================================
 juce::Rectangle<int> ArchivedPosts::getBackButtonBounds() const {
   return juce::Rectangle<int>(PADDING, 0, 40, HEADER_HEIGHT);
 }
@@ -254,7 +254,7 @@ juce::Rectangle<int> ArchivedPosts::getContentBounds() const {
   return bounds;
 }
 
-//==============================================================================
+// ==============================================================================
 void ArchivedPosts::fetchArchivedPosts() {
   if (networkClient == nullptr) {
     errorMessage = "Not connected";
@@ -316,7 +316,7 @@ void ArchivedPosts::loadMoreIfNeeded() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void ArchivedPosts::rebuildPostCards() {
   postCards.clear();
 

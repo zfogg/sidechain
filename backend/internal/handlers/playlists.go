@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// CreatePlaylist creates a new playlist (R.3.1.2.1)
+// CreatePlaylist creates a new playlist
 // POST /api/v1/playlists
 func (h *Handlers) CreatePlaylist(c *gin.Context) {
 	currentUser, ok := util.GetUserFromContext(c)
@@ -52,7 +52,7 @@ func (h *Handlers) CreatePlaylist(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"playlist": playlist})
 }
 
-// GetPlaylists returns user's playlists (R.3.1.2.2)
+// GetPlaylists returns user's playlists
 // GET /api/v1/playlists
 func (h *Handlers) GetPlaylists(c *gin.Context) {
 	currentUser, ok := util.GetUserFromContext(c)
@@ -98,7 +98,7 @@ func (h *Handlers) GetPlaylists(c *gin.Context) {
 	})
 }
 
-// GetPlaylist returns a single playlist with entries (R.3.1.2.3)
+// GetPlaylist returns a single playlist with entries
 // GET /api/v1/playlists/:id
 func (h *Handlers) GetPlaylist(c *gin.Context) {
 	playlistID := c.Param("id")
@@ -137,7 +137,7 @@ func (h *Handlers) GetPlaylist(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"playlist": playlist})
 }
 
-// UpdatePlaylist updates playlist metadata (R.3.1.2.3b)
+// UpdatePlaylist updates playlist metadata
 // PUT /api/v1/playlists/:id
 func (h *Handlers) UpdatePlaylist(c *gin.Context) {
 	playlistID := c.Param("id")
@@ -206,7 +206,7 @@ func (h *Handlers) UpdatePlaylist(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"playlist": playlist})
 }
 
-// AddPlaylistEntry adds a post to a playlist (R.3.1.2.4)
+// AddPlaylistEntry adds a post to a playlist
 // POST /api/v1/playlists/:id/entries
 func (h *Handlers) AddPlaylistEntry(c *gin.Context) {
 	playlistID := c.Param("id")
@@ -302,7 +302,7 @@ func (h *Handlers) AddPlaylistEntry(c *gin.Context) {
 	c.JSON(http.StatusCreated, entry)
 }
 
-// DeletePlaylistEntry removes a post from a playlist (R.3.1.2.5)
+// DeletePlaylistEntry removes a post from a playlist
 // DELETE /api/v1/playlists/:id/entries/:entry_id
 func (h *Handlers) DeletePlaylistEntry(c *gin.Context) {
 	playlistID := c.Param("id")
@@ -357,7 +357,7 @@ func (h *Handlers) DeletePlaylistEntry(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Entry removed from playlist"})
 }
 
-// AddPlaylistCollaborator adds a collaborator to a playlist (R.3.1.2.6)
+// AddPlaylistCollaborator adds a collaborator to a playlist
 // POST /api/v1/playlists/:id/collaborators
 func (h *Handlers) AddPlaylistCollaborator(c *gin.Context) {
 	playlistID := c.Param("id")
@@ -447,7 +447,7 @@ func (h *Handlers) AddPlaylistCollaborator(c *gin.Context) {
 	c.JSON(http.StatusCreated, collaborator)
 }
 
-// DeletePlaylistCollaborator removes a collaborator from a playlist (R.3.1.2.7)
+// DeletePlaylistCollaborator removes a collaborator from a playlist
 // DELETE /api/v1/playlists/:id/collaborators/:user_id
 func (h *Handlers) DeletePlaylistCollaborator(c *gin.Context) {
 	playlistID := c.Param("id")

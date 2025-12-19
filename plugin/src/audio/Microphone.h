@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 
-//==============================================================================
+// ==============================================================================
 /**
  * Microphone handles recording audio from the system microphone
  *
@@ -22,12 +22,12 @@ public:
   Microphone();
   ~Microphone() override;
 
-  //==============================================================================
+  // ==============================================================================
   // Configuration - call from message thread
   void prepare(double sampleRate = 44100.0, int numChannels = 1);
   void reset();
 
-  //==============================================================================
+  // ==============================================================================
   // Recording control - call from MESSAGE THREAD only
   void startRecording(const juce::String &recordingId = "");
   juce::AudioBuffer<float> stopRecording();
@@ -35,7 +35,7 @@ public:
     return recording.load();
   }
 
-  //==============================================================================
+  // ==============================================================================
   // AudioIODeviceCallback - called from AUDIO THREAD
   // Note: In JUCE 8, audioDeviceIOCallback is deprecated in favor of
   // audioDeviceIOCallbackWithContext This method is kept for compatibility but
@@ -47,7 +47,7 @@ public:
   void audioDeviceStopped() override;
   void audioDeviceError(const juce::String &errorMessage) override;
 
-  //==============================================================================
+  // ==============================================================================
   // Recording info - thread-safe reads
   double getRecordingLengthSeconds() const;
   int getRecordingLengthSamples() const {
@@ -60,13 +60,13 @@ public:
   float getRecordingProgress() const; // 0.0 - 1.0
   bool isBufferFull() const;
 
-  //==============================================================================
-  // Level metering - thread-safe, updated during audioDeviceIOCallback()
+  // ==============================================================================
+  // Level metering - thread-safe, updated during audioDeviceIOCallback
   float getPeakLevel(int channel) const;
   float getRMSLevel(int channel) const;
   void resetLevels();
 
-  //==============================================================================
+  // ==============================================================================
   // Device management
   juce::StringArray getAvailableInputDevices() const;
   bool setInputDevice(const juce::String &deviceName);
@@ -81,7 +81,7 @@ public:
     return currentNumChannels;
   }
 
-  //==============================================================================
+  // ==============================================================================
   // Check if there is recorded audio available
   bool hasRecordedAudio() const {
     return hasRecordedData && recordedAudio.getNumSamples() > 0;
@@ -93,7 +93,7 @@ public:
   }
 
 private:
-  //==============================================================================
+  // ==============================================================================
   // Thread-safe state (accessed from both threads)
   std::atomic<bool> recording{false};
   std::atomic<int> recordingPosition{0};
@@ -108,14 +108,14 @@ private:
   int rmsSampleCount = 0;
   static constexpr int RMSWindowSamples = 2048; // ~46ms @ 44.1kHz
 
-  //==============================================================================
+  // ==============================================================================
   // Configuration (set on message thread before recording)
   juce::String currentRecordingId;
   double currentSampleRate = 44100.0;
   int currentNumChannels = 1;
   int maxRecordingSamples = 0; // 60 seconds max
 
-  //==============================================================================
+  // ==============================================================================
   // Recording buffer (allocated on message thread, written on audio thread)
   juce::AudioBuffer<float> recordingBuffer;
 
@@ -123,12 +123,12 @@ private:
   juce::AudioBuffer<float> recordedAudio;
   bool hasRecordedData = false;
 
-  //==============================================================================
+  // ==============================================================================
   // Audio device management
   std::unique_ptr<juce::AudioDeviceManager> audioDeviceManager;
   juce::String currentInputDeviceName;
 
-  //==============================================================================
+  // ==============================================================================
   void initializeBuffers();
   void updateLevels(const float *const *inputChannelData, int numChannels, int numSamples);
   bool initializeAudioDevice();

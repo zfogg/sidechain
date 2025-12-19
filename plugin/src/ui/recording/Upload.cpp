@@ -7,7 +7,7 @@
 #include "../../util/StringFormatter.h"
 #include "core/PluginProcessor.h"
 
-//==============================================================================
+// ==============================================================================
 // Static data: Musical keys (Camelot wheel order is producer-friendly)
 const std::array<Upload::MusicalKey, Upload::NUM_KEYS> &Upload::getMusicalKeys() {
   static const std::array<MusicalKey, NUM_KEYS> keys = {
@@ -36,7 +36,7 @@ const std::array<Upload::CommentAudienceOption, Upload::NUM_COMMENT_AUDIENCES> &
   return audiences;
 }
 
-//==============================================================================
+// ==============================================================================
 Upload::Upload(SidechainAudioProcessor &processor, NetworkClient &network, Sidechain::Stores::AppStore *store)
     : AppStoreComponent(store), audioProcessor(processor), networkClient(network) {
   Log::info("Upload: Initializing upload component");
@@ -51,7 +51,7 @@ Upload::~Upload() {
   stopTimer();
 }
 
-//==============================================================================
+// ==============================================================================
 void Upload::subscribeToAppStore() {
   if (!appStore)
     return;
@@ -98,7 +98,7 @@ void Upload::onAppStateChanged(const Sidechain::Stores::UploadState & /*state*/)
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void Upload::setAudioToUpload(const juce::AudioBuffer<float> &audio, double sampleRate) {
   // Call overloaded version with empty MIDI data
   setAudioToUpload(audio, sampleRate, juce::var());
@@ -107,7 +107,7 @@ void Upload::setAudioToUpload(const juce::AudioBuffer<float> &audio, double samp
 void Upload::setAudioToUpload(const juce::AudioBuffer<float> &audio, double sampleRate, const juce::var &midi) {
   audioBuffer = audio;
   audioSampleRate = sampleRate;
-  midiData = midi; // Store MIDI data for upload (R.3.3)
+  midiData = midi; // Store MIDI data for upload
 
   // Get BPM from DAW
   if (audioProcessor.isBPMAvailable()) {
@@ -166,16 +166,16 @@ void Upload::reset() {
   errorMessage = "";
   activeField = -1;
   tapTimes.clear();
-  midiData = juce::var(); // Clear MIDI data (R.3.3)
+  midiData = juce::var(); // Clear MIDI data
   includeMidi = true;
-  projectFile = juce::File(); // Clear project file (R.3.4)
+  projectFile = juce::File(); // Clear project file
   includeProjectFile = false;
   Log::debug("Upload::reset: All state cleared");
 
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void Upload::timerCallback() {
   // Update BPM from DAW if we're still editing and it changes
   if (uploadState == UploadState::Editing && bpmFromDAW && audioProcessor.isBPMAvailable()) {
@@ -195,7 +195,7 @@ void Upload::timerCallback() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void Upload::paint(juce::Graphics &g) {
   // Dark background with subtle gradient
   auto bounds = getLocalBounds();
@@ -263,7 +263,7 @@ void Upload::resized() {
   commentAudienceArea = commentRow.removeFromLeft(commentRow.getWidth() / 2 - 8);
   bounds.removeFromTop(fieldSpacing);
 
-  // Project file button (R.3.4 Project File Exchange)
+  // Project file button
   projectFileArea = bounds.removeFromTop(rowHeight);
   bounds.removeFromTop(fieldSpacing);
 
@@ -285,7 +285,7 @@ void Upload::resized() {
   shareButtonArea = buttonRow;
 }
 
-//==============================================================================
+// ==============================================================================
 void Upload::mouseUp(const juce::MouseEvent &event) {
   auto pos = event.getPosition();
   Log::debug("Upload::mouseUp: Mouse clicked at (" + juce::String(pos.x) + ", " + juce::String(pos.y) + "), state: " +
@@ -350,7 +350,7 @@ void Upload::mouseUp(const juce::MouseEvent &event) {
       return;
     }
 
-    // Project file button (R.3.4)
+    // Project file button
     if (projectFileArea.contains(pos)) {
       Log::info("Upload::mouseUp: Project file button clicked");
       selectProjectFile();
@@ -396,7 +396,7 @@ void Upload::mouseUp(const juce::MouseEvent &event) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void Upload::drawHeader(juce::Graphics &g) {
   g.setColour(SidechainColors::textPrimary());
   g.setFont(juce::Font(juce::FontOptions().withHeight(24.0f).withStyle("Bold")));
@@ -626,7 +626,7 @@ void Upload::drawStatus(juce::Graphics &g) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void Upload::drawTextField(juce::Graphics &g, juce::Rectangle<int> bounds, const juce::String &label,
                            const juce::String &value, bool isActive, bool isEditable) {
   // Draw state based on isEditable (read-only vs editable mode)
@@ -748,7 +748,7 @@ juce::String Upload::formatDuration() const {
   return StringFormatter::formatDuration(seconds);
 }
 
-//==============================================================================
+// ==============================================================================
 void Upload::handleTapTempo() {
   double now = juce::Time::getMillisecondCounterHiRes();
 
@@ -834,7 +834,7 @@ void Upload::detectKey() {
           break;
         }
         // Also try matching by standard name prefix
-        if (detectedKey.name.containsIgnoreCase(keys[i].shortName.replace("m", " Minor").replace("#", "# /"))) {
+        if (detectedKey.name.containsIgnoreCase(keys[i].shortName.replace("m", " Minor").replace("# ", "# /"))) {
           keyIndex = static_cast<int>(i);
           Log::debug("Upload::detectKey: Matched key by name prefix: " + keys[i].name);
           break;

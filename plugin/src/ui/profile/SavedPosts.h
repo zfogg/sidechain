@@ -19,7 +19,7 @@ struct PostsState;
 using namespace Sidechain::UI;
 using namespace Sidechain::Stores;
 
-//==============================================================================
+// ==============================================================================
 /**
  * SavedPosts displays the user's saved/bookmarked posts
  *
@@ -34,7 +34,7 @@ public:
   SavedPosts(AppStore *store = nullptr);
   ~SavedPosts() override;
 
-  //==============================================================================
+  // ==============================================================================
   void paint(juce::Graphics &) override;
   void resized() override;
   void mouseUp(const juce::MouseEvent &event) override;
@@ -43,7 +43,7 @@ public:
   // ScrollBar::Listener
   void scrollBarMoved(juce::ScrollBar *scrollBar, double newRangeStart) override;
 
-  //==============================================================================
+  // ==============================================================================
   // Store and network client integration
   void setNetworkClient(NetworkClient *client);
   void setCurrentUserId(const juce::String &userId) {
@@ -54,7 +54,7 @@ public:
   void loadSavedPosts();
   void refresh();
 
-  //==============================================================================
+  // ==============================================================================
   // Callbacks
   std::function<void()> onBackPressed;
   std::function<void(const FeedPost &)> onPostClicked;
@@ -62,20 +62,20 @@ public:
   std::function<void(const FeedPost &)> onPauseClicked;
   std::function<void(const juce::String &userId)> onUserClicked;
 
-  //==============================================================================
+  // ==============================================================================
   // Playback state
   void setCurrentlyPlayingPost(const juce::String &postId);
   void setPlaybackProgress(float progress);
   void clearPlayingState();
 
 protected:
-  //==============================================================================
+  // ==============================================================================
   // AppStoreComponent overrides
   void onAppStateChanged(const PostsState &state) override;
   void subscribeToAppStore() override;
 
 private:
-  //==============================================================================
+  // ==============================================================================
   // Data
   NetworkClient *networkClient = nullptr;
   juce::String currentUserId;
@@ -90,7 +90,7 @@ private:
   bool hasMore = true;
   static constexpr int PAGE_SIZE = 20;
 
-  //==============================================================================
+  // ==============================================================================
   // UI Components
   juce::ScrollBar scrollBar{true}; // vertical
 
@@ -104,30 +104,30 @@ private:
   // Scroll state
   int scrollOffset = 0;
 
-  //==============================================================================
+  // ==============================================================================
   // Layout constants
   static constexpr int HEADER_HEIGHT = 60;
   static constexpr int POST_CARD_HEIGHT = 120;
   static constexpr int POST_CARD_SPACING = 8;
   static constexpr int PADDING = 16;
 
-  //==============================================================================
+  // ==============================================================================
   // Drawing methods
   void drawHeader(juce::Graphics &g);
   void drawLoadingState(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawEmptyState(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawErrorState(juce::Graphics &g, juce::Rectangle<int> bounds);
 
-  //==============================================================================
+  // ==============================================================================
   // Hit testing helpers
   juce::Rectangle<int> getBackButtonBounds() const;
   juce::Rectangle<int> getContentBounds() const;
 
-  //==============================================================================
+  // ==============================================================================
   // Network operations
   void fetchSavedPosts();
 
-  //==============================================================================
+  // ==============================================================================
   // Helper methods
   void rebuildPostCards();
   void updatePostCardPositions();

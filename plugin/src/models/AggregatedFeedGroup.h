@@ -3,7 +3,7 @@
 #include "FeedPost.h"
 #include <JuceHeader.h>
 
-//==============================================================================
+// ==============================================================================
 /**
  * AggregatedFeedGroup represents a group of activities from an aggregated feed
  * Used for displaying grouped notifications like "X and 3 others posted today"

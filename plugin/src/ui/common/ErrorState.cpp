@@ -1,12 +1,12 @@
 #include "ErrorState.h"
 #include "../../util/Colors.h"
 
-//==============================================================================
+// ==============================================================================
 ErrorState::ErrorState() {
   setErrorType(ErrorType::Generic);
 }
 
-//==============================================================================
+// ==============================================================================
 void ErrorState::paint(juce::Graphics &g) {
   auto bounds = getLocalBounds();
 
@@ -111,7 +111,7 @@ void ErrorState::paint(juce::Graphics &g) {
 }
 
 void ErrorState::resized() {
-  // Layout is handled in paint()
+  // Layout is handled in paint
 }
 
 void ErrorState::mouseUp(const juce::MouseEvent &event) {
@@ -128,7 +128,7 @@ void ErrorState::mouseUp(const juce::MouseEvent &event) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void ErrorState::setErrorType(ErrorType type) {
   errorType = type;
   repaint();
@@ -162,7 +162,7 @@ void ErrorState::clearSecondaryAction() {
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 ErrorState::ErrorType ErrorState::detectErrorType(const juce::String &errorMessage) {
   // Check specific types first, then more general ones
 
@@ -257,7 +257,7 @@ void ErrorState::configureFromError(const juce::String &errorMessage) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void ErrorState::drawIcon(juce::Graphics &g, juce::Rectangle<int> bounds) {
   g.setColour(getIconColorForType());
   g.setFont(juce::Font(juce::FontOptions().withHeight(static_cast<float>(bounds.getHeight()))));
@@ -469,7 +469,7 @@ juce::Rectangle<int> ErrorState::getSecondaryButtonBounds() const {
   return primaryBounds.translated(0, 48);
 }
 
-//==============================================================================
+// ==============================================================================
 // Factory methods
 
 std::unique_ptr<ErrorState> ErrorState::networkError(std::function<void()> onRetry) {

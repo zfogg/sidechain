@@ -3,7 +3,7 @@
 #include <JuceHeader.h>
 #include <vector>
 
-//==============================================================================
+// ==============================================================================
 /**
  * PianoRoll visualizes MIDI data in a piano roll format (7.5.5.1.1)
  *
@@ -30,7 +30,7 @@ public:
   PianoRoll();
   ~PianoRoll() override;
 
-  //==============================================================================
+  // ==============================================================================
   void paint(juce::Graphics &) override;
   void resized() override;
   void mouseMove(const juce::MouseEvent &event) override;
@@ -38,11 +38,11 @@ public:
   void mouseUp(const juce::MouseEvent &event) override;
   void mouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel) override;
 
-  //==============================================================================
+  // ==============================================================================
   // Timer for animation
   void timerCallback() override;
 
-  //==============================================================================
+  // ==============================================================================
   // MIDI data management
 
   // Set MIDI data from JSON (from MIDICapture::getMIDIDataAsJSON)
@@ -57,7 +57,7 @@ public:
   // Callback for seeking to a time position
   std::function<void(double timeSeconds)> onSeekToTime;
 
-  //==============================================================================
+  // ==============================================================================
   // Display options
 
   // Set visible note range (default C1-C7 = 24-96)
@@ -82,7 +82,7 @@ public:
   }
 
 private:
-  //==============================================================================
+  // ==============================================================================
   // Internal note representation (derived from MIDI events)
   struct Note {
     double startTime;
@@ -122,7 +122,7 @@ private:
   double timelineScrollOffset = 0.0; // Horizontal scroll offset in seconds
   double zoomLevel = 1.0;            // Zoom level (1.0 = normal, >1.0 = zoomed in)
 
-  //==============================================================================
+  // ==============================================================================
   // Drawing helpers
   void drawPianoKeys(juce::Graphics &g);
   void drawNoteGrid(juce::Graphics &g);

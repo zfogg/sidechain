@@ -4,7 +4,7 @@
 #include <JuceHeader.h>
 #include <optional>
 
-//==============================================================================
+// ==============================================================================
 /**
  * SidechainAudioCache caches downloaded audio files with automatic LRU eviction.
  *

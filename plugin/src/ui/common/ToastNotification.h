@@ -4,7 +4,7 @@
 #include <memory>
 #include <vector>
 
-//==============================================================================
+// ==============================================================================
 /**
  * ToastNotification - A transient notification that auto-dismisses
  *
@@ -13,7 +13,7 @@
  */
 class ToastNotification : public juce::Component, public juce::Timer {
 public:
-  //==========================================================================
+  // ==========================================================================
   enum class ToastType {
     Info,    // Blue - General information
     Success, // Green - Operation succeeded
@@ -21,16 +21,16 @@ public:
     Error    // Red - Operation failed
   };
 
-  //==========================================================================
+  // ==========================================================================
   ToastNotification(const juce::String &message, ToastType type = ToastType::Info, int durationMs = 3000);
   ~ToastNotification() override;
 
-  //==========================================================================
+  // ==========================================================================
   void paint(juce::Graphics &g) override;
   void mouseUp(const juce::MouseEvent &event) override;
   void timerCallback() override;
 
-  //==========================================================================
+  // ==========================================================================
   /** Callback when toast should be removed */
   std::function<void(ToastNotification *)> onDismiss;
 
@@ -65,7 +65,7 @@ private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ToastNotification)
 };
 
-//==============================================================================
+// ==============================================================================
 /**
  * ToastManager - Manages a stack of toast notifications
  *
@@ -78,21 +78,21 @@ private:
  *   toasts.showSuccess("Post uploaded!");
  *   toasts.showInfo("New message received");
  *
- *   // In your main component's resized():
+ *   // In your main component's resized:
  *   toasts.setBounds(getLocalBounds());
  */
 class ToastManager : public juce::Component, public juce::Timer, public juce::DeletedAtShutdown {
 public:
-  //==========================================================================
+  // ==========================================================================
   /** Get the singleton instance */
   static ToastManager &getInstance();
 
-  //==========================================================================
+  // ==========================================================================
   void paint(juce::Graphics &g) override;
   void resized() override;
   void timerCallback() override;
 
-  //==========================================================================
+  // ==========================================================================
   // Show toast methods
 
   /** Show an info toast */
@@ -110,7 +110,7 @@ public:
   /** Show a custom toast */
   void showToast(const juce::String &message, ToastNotification::ToastType type, int durationMs);
 
-  //==========================================================================
+  // ==========================================================================
   /** Clear all toasts immediately */
   void clearAll();
 
@@ -119,7 +119,7 @@ public:
     return static_cast<int>(toasts.size());
   }
 
-  //==========================================================================
+  // ==========================================================================
   // Configuration
 
   /** Set maximum number of visible toasts (oldest dismissed first) */
@@ -140,7 +140,7 @@ public:
   }
 
 private:
-  //==========================================================================
+  // ==========================================================================
   ToastManager();
   ~ToastManager() override;
 

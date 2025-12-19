@@ -1,7 +1,7 @@
-//==============================================================================
+// ==============================================================================
 // FeedClient.cpp - Feed operations
 // Part of NetworkClient implementation split
-//==============================================================================
+// ==============================================================================
 
 #include "../../util/Async.h"
 #include "../../util/Constants.h"
@@ -11,7 +11,7 @@
 
 using namespace Sidechain::Network::Api;
 
-//==============================================================================
+// ==============================================================================
 void NetworkClient::getGlobalFeed(int limit, int offset, FeedCallback callback) {
   if (!isAuthenticated())
     return;
@@ -273,8 +273,8 @@ void NetworkClient::reportPost(const juce::String &postId, const juce::String &r
   });
 }
 
-//==============================================================================
-// R.3.2 Remix Chains
+// ==============================================================================
+// Remix Chains
 
 void NetworkClient::getRemixChain(const juce::String &postId, ResponseCallback callback) {
   if (!isAuthenticated()) {
@@ -368,7 +368,7 @@ void NetworkClient::createRemixPost(const juce::String &sourcePostId, const juce
   });
 }
 
-//==============================================================================
+// ==============================================================================
 // Aggregated Feeds - Activities grouped by user+day or genre+time
 
 void NetworkClient::getAggregatedTimeline(int limit, int offset, AggregatedFeedCallback callback) {
@@ -467,7 +467,7 @@ void NetworkClient::getUserActivityAggregated(const juce::String &userId, int li
   });
 }
 
-//==============================================================================
+// ==============================================================================
 // Gorse Recommendation Feeds
 
 void NetworkClient::getPopularFeed(int limit, int offset, FeedCallback callback) {

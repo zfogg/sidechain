@@ -8,12 +8,12 @@
 #include "../../util/TextEditorStyler.h"
 #include "../../util/Validate.h"
 
-//==============================================================================
+// ==============================================================================
 Auth::Auth(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   Log::info("Auth: Initializing authentication component");
 
-  // Create all UI components BEFORE calling setSize() because setSize()
-  // triggers resized()
+  // Create all UI components BEFORE calling setSize because setSize
+  // triggers resized
   Log::debug("Auth: Setting up welcome components");
   setupWelcomeComponents();
 
@@ -32,7 +32,7 @@ Auth::Auth(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   Log::debug("Auth: Showing welcome screen");
   showWelcome();
 
-  // Set size last - this triggers resized() which requires components to exist
+  // Set size last - this triggers resized which requires components to exist
   setSize(1000, 800);
   Log::info("Auth: Initialization complete");
   initialize();
@@ -42,13 +42,13 @@ Auth::~Auth() {
   Log::debug("Auth: Destroying authentication component");
 }
 
-//==============================================================================
+// ==============================================================================
 void Auth::setNetworkClient(NetworkClient *client) {
   networkClient = client;
   Log::info("Auth: NetworkClient set " + juce::String(client != nullptr ? "(valid)" : "(null)"));
 }
 
-//==============================================================================
+// ==============================================================================
 // AppStoreComponent virtual methods
 
 void Auth::subscribeToAppStore() {
@@ -93,7 +93,7 @@ void Auth::onAppStateChanged(const Sidechain::Stores::AuthState &authState) {
   Log::debug("Auth: Handling auth state change - isLoggedIn: " + juce::String(authState.isLoggedIn ? "true" : "false"));
 }
 
-//==============================================================================
+// ==============================================================================
 void Auth::setupWelcomeComponents() {
   loginButton = std::make_unique<juce::TextButton>("Sign In");
   stylePrimaryButton(*loginButton);
@@ -194,7 +194,7 @@ void Auth::setupSignupComponents() {
 }
 
 void Auth::setupOAuthWaitingComponents() {
-  // Cancel button for OAuth waiting screen (8.3.11.11)
+  // Cancel button for OAuth waiting screen
   oauthCancelButton = std::make_unique<juce::TextButton>("Cancel");
   styleSecondaryButton(*oauthCancelButton);
   oauthCancelButton->addListener(this);
@@ -222,7 +222,7 @@ void Auth::setupTwoFactorComponents() {
   addChildComponent(twoFactorBackButton.get());
 }
 
-//==============================================================================
+// ==============================================================================
 void Auth::styleTextEditor(juce::TextEditor &editor, const juce::String &placeholder, bool isPassword) {
   editor.setMultiLine(false);
   editor.setReturnKeyStartsNewLine(false);
@@ -269,7 +269,7 @@ void Auth::styleOAuthButton(juce::TextButton &button, const juce::String &text, 
   button.setMouseCursor(juce::MouseCursor::PointingHandCursor);
 }
 
-//==============================================================================
+// ==============================================================================
 void Auth::paint(juce::Graphics &g) {
   // Background gradient
   g.setGradientFill(juce::ColourGradient(Colors::background, 0.0f, 0.0f, Colors::background.darker(0.3f), 0.0f,
@@ -382,7 +382,7 @@ void Auth::paint(juce::Graphics &g) {
     auto contentArea = cardBounds.reduced(CARD_PADDING);
     contentArea.removeFromTop(100); // Skip logo/title area
 
-    // Draw animated spinner (8.3.11.9)
+    // Draw animated spinner
     auto spinnerArea = contentArea.removeFromTop(80).withSizeKeepingCentre(60, 60);
     g.setColour(Colors::primaryButton);
 
@@ -405,7 +405,7 @@ void Auth::paint(juce::Graphics &g) {
 
     contentArea.removeFromTop(10);
 
-    // Draw "A browser window has been opened" message (8.3.11.12)
+    // Draw "A browser window has been opened" message
     g.setColour(Colors::textSecondary);
     g.setFont(14.0f);
     auto browserMsgArea = contentArea.removeFromTop(25);
@@ -414,7 +414,7 @@ void Auth::paint(juce::Graphics &g) {
 
     contentArea.removeFromTop(15);
 
-    // Draw countdown timer (8.3.11.10)
+    // Draw countdown timer
     if (oauthSecondsRemaining > 0) {
       int minutes = oauthSecondsRemaining / 60;
       int seconds = oauthSecondsRemaining % 60;
@@ -563,7 +563,7 @@ void Auth::updatePasswordStrengthIndicator() {
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void Auth::resized() {
   Log::debug("Auth: Component resized to " + juce::String(getWidth()) + "x" + juce::String(getHeight()));
   auto cardBounds = getLocalBounds().withSizeKeepingCentre(CARD_WIDTH, 600);
@@ -634,7 +634,7 @@ void Auth::resized() {
     // Skip spinner and message area (drawn in paint)
     contentBounds.removeFromTop(150);
 
-    // Cancel button at bottom (8.3.11.11)
+    // Cancel button at bottom
     oauthCancelButton->setBounds(contentBounds.removeFromTop(BUTTON_HEIGHT));
     break;
   }
@@ -650,7 +650,7 @@ void Auth::resized() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void Auth::hideAllComponents() {
   // Welcome components
   loginButton->setVisible(false);
@@ -766,9 +766,9 @@ void Auth::showTwoFactorVerify() {
   Log::debug("Auth: Two-factor verification form displayed");
 }
 
-//==============================================================================
+// ==============================================================================
 // OAuth Waiting Mode (8.3.11.9-12)
-//==============================================================================
+// ==============================================================================
 
 void Auth::showOAuthWaiting(const juce::String &provider, int timeoutSeconds) {
   Log::info("Auth: Switching to OAuth waiting mode for " + provider);
@@ -830,7 +830,7 @@ void Auth::clearError() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void Auth::buttonClicked(juce::Button *button) {
   if (button == loginButton.get()) {
     Log::debug("Auth: Login button clicked");
@@ -929,7 +929,7 @@ void Auth::textEditorTextChanged(juce::TextEditor &editor) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void Auth::handleLogin() {
   using namespace Sidechain::Security;
 
@@ -1028,7 +1028,7 @@ void Auth::handleLogin() {
 
       // Handle "Remember me" - store credentials securely if checked
       if (rememberMeCheckbox && rememberMeCheckbox->getToggleState()) {
-        // TODO: Phase 8.3.11.13 - Implement secure credential storage using
+        // TODO: - Implement secure credential storage using
         // OS keychain
         Log::debug("Auth: Remember me checked - credentials should be "
                    "stored securely");

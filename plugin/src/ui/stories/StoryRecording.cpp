@@ -24,7 +24,7 @@ const juce::Colour buttonGreen(0xff4caf50);
 const juce::Colour buttonGray(0xff616161);
 } // namespace StoryColors
 
-//==============================================================================
+// ==============================================================================
 StoryRecording::StoryRecording(SidechainAudioProcessor &processor) : audioProcessor(processor) {
   // Prepare MIDI capture
   midiCapture.prepare(44100.0, 512);
@@ -64,10 +64,10 @@ StoryRecording::StoryRecording(SidechainAudioProcessor &processor) : audioProces
   // Note: Story expiration is handled in StoryViewer - shows expired message
   // and expiration time in UI Optional enhancement: Add proactive notification
   // before expiration (e.g., "Expires in 1 hour")
-  // TODO: Phase 7.5.5.2.1 - Create note waterfall visualization
-  // TODO: Phase 7.5.5.2.2 - Create circular visualization
-  // TODO: Phase 7.5.6.1 - Allow users to save stories to highlights
-  // TODO: Phase 7.5.6.2 - Display highlights on profile
+  // TODO: .1 - Create note waterfall visualization
+  // TODO: .2 - Create circular visualization
+  // TODO: - Allow users to save stories to highlights
+  // TODO: - Display highlights on profile
 
   Log::info("StoryRecording created");
 }
@@ -84,7 +84,7 @@ StoryRecording::~StoryRecording() {
   Log::info("StoryRecording destroyed");
 }
 
-//==============================================================================
+// ==============================================================================
 void StoryRecording::startRecordingDotAnimation() {
   // Fade in (0.0 to 1.0 over 1 second)
   recordingDotAnimation = TransitionAnimation<float>::create(0.0f, 1.0f, 1000)
@@ -146,7 +146,7 @@ void StoryRecording::triggerMIDIActivityAnimation() {
                               ->start();
 }
 
-//==============================================================================
+// ==============================================================================
 void StoryRecording::paint(juce::Graphics &g) {
   // Background
   g.fillAll(StoryColors::background);
@@ -285,7 +285,7 @@ void StoryRecording::mouseUp(const juce::MouseEvent &event) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void StoryRecording::timerCallback() {
   if (currentState == State::Recording) {
     // Update recording duration based on source
@@ -316,7 +316,7 @@ void StoryRecording::timerCallback() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void StoryRecording::drawIdleState(juce::Graphics &g) {
   drawHeader(g);
   drawCountdownRing(g);
@@ -383,7 +383,7 @@ void StoryRecording::drawPreviewState(juce::Graphics &g) {
   drawActionButtons(g);
 }
 
-//==============================================================================
+// ==============================================================================
 void StoryRecording::drawHeader(juce::Graphics &g) {
   // Title
   g.setColour(StoryColors::textPrimary);
@@ -713,14 +713,14 @@ void StoryRecording::drawSourceToggle(juce::Graphics &g) {
   g.drawText("Mic", micButton, juce::Justification::centred);
 }
 
-//==============================================================================
+// ==============================================================================
 juce::String StoryRecording::formatTime(double seconds) {
   int mins = static_cast<int>(seconds) / 60;
   int secs = static_cast<int>(seconds) % 60;
   return juce::String::formatted("%02d:%02d", mins, secs);
 }
 
-//==============================================================================
+// ==============================================================================
 void StoryRecording::startRecording() {
   Log::info("StoryRecording: Starting recording from " +
             juce::String(currentRecordingSource == RecordingSource::DAW ? "DAW" : "Microphone"));

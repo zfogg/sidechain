@@ -1,10 +1,10 @@
 #include "SynthEngine.h"
 #include <cmath>
 
-//==============================================================================
+// ==============================================================================
 SynthEngine::SynthEngine() {}
 
-//==============================================================================
+// ==============================================================================
 void SynthEngine::prepare(double newSampleRate, int samplesPerBlock) {
   sampleRate = newSampleRate;
   blockSize = samplesPerBlock;
@@ -79,7 +79,7 @@ void SynthEngine::reset() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void SynthEngine::noteOn(int noteNumber, int velocity) {
   juce::ScopedLock lock(voiceLock);
 
@@ -113,7 +113,7 @@ void SynthEngine::allNotesOff() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void SynthEngine::setADSR(float attack, float decay, float sustain, float release) {
   attackTime.store(std::max(0.001f, attack));
   decayTime.store(std::max(0.001f, decay));
@@ -121,7 +121,7 @@ void SynthEngine::setADSR(float attack, float decay, float sustain, float releas
   releaseTime.store(std::max(0.001f, release));
 }
 
-//==============================================================================
+// ==============================================================================
 void SynthEngine::loadPreset(const Preset &preset) {
   setWaveform(preset.waveform);
   setADSR(preset.attack, preset.decay, preset.sustain, preset.release);
@@ -272,7 +272,7 @@ std::vector<SynthEngine::Preset> SynthEngine::getDefaultPresets() {
   return presets;
 }
 
-//==============================================================================
+// ==============================================================================
 bool SynthEngine::isPlaying() const {
   juce::ScopedLock lock(voiceLock);
 
@@ -294,7 +294,7 @@ int SynthEngine::getActiveVoiceCount() const {
   return count;
 }
 
-//==============================================================================
+// ==============================================================================
 SynthEngine::Voice *SynthEngine::findFreeVoice() {
   // First, try to find a completely inactive voice
   for (auto &voice : voices) {
@@ -351,7 +351,7 @@ void SynthEngine::stopVoice(Voice &voice) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 float SynthEngine::generateSample(Voice &voice, Waveform waveform) {
   float sample = 0.0f;
 
@@ -387,7 +387,7 @@ float SynthEngine::midiNoteToFrequency(int noteNumber, float detuneCents) {
   return 440.0f * std::pow(2.0f, semitones / 12.0f);
 }
 
-//==============================================================================
+// ==============================================================================
 float SynthEngine::processFilter(Voice &voice, float input, float cutoff, float resonance) {
   // Simple 2-pole low-pass filter (SVF style)
   const float nyquist = static_cast<float>(sampleRate) * 0.5f;
@@ -407,7 +407,7 @@ float SynthEngine::processFilter(Voice &voice, float input, float cutoff, float 
   return lp;
 }
 
-//==============================================================================
+// ==============================================================================
 float SynthEngine::processEnvelope(Voice &voice) {
   const float attack = attackTime.load();
   const float decay = decayTime.load();

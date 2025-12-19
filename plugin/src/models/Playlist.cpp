@@ -1,7 +1,7 @@
 #include "Playlist.h"
 #include "../util/Json.h"
 
-//==============================================================================
+// ==============================================================================
 Playlist Playlist::fromJSON(const juce::var &json) {
   Playlist playlist;
 
@@ -49,7 +49,7 @@ juce::var Playlist::toJSON() const {
   return juce::var(obj);
 }
 
-//==============================================================================
+// ==============================================================================
 PlaylistEntry PlaylistEntry::fromJSON(const juce::var &json) {
   PlaylistEntry entry;
 
@@ -94,7 +94,7 @@ PlaylistEntry PlaylistEntry::fromJSON(const juce::var &json) {
   return entry;
 }
 
-//==============================================================================
+// ==============================================================================
 PlaylistCollaborator PlaylistCollaborator::fromJSON(const juce::var &json) {
   PlaylistCollaborator collab;
 

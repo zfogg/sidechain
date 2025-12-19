@@ -8,7 +8,7 @@
 namespace Sidechain {
 namespace Stores {
 
-//==============================================================================
+// ==============================================================================
 // Cache Getter Methods (sync access to existing file caches)
 
 juce::Image AppStore::getCachedImage(const juce::String &url) {
@@ -21,11 +21,11 @@ juce::File AppStore::getCachedAudio(const juce::String &url) {
   return cached ? *cached : juce::File();
 }
 
-//==============================================================================
+// ==============================================================================
 // Reactive Image Service Operations (rxcpp::observable pattern for Phase 2)
-//
-// These methods wrap the callback-based getImage() into reactive observables.
-// They leverage the multi-level caching (memory → file → network) that getImage() provides.
+
+// These methods wrap the callback-based getImage into reactive observables.
+// They leverage the multi-level caching (memory → file → network) that getImage provides.
 
 rxcpp::observable<juce::Image> AppStore::loadImageObservable(const juce::String &url) {
   return rxcpp::sources::create<juce::Image>([this, url](auto observer) {
@@ -40,9 +40,9 @@ rxcpp::observable<juce::Image> AppStore::loadImageObservable(const juce::String 
   });
 }
 
-//==============================================================================
+// ==============================================================================
 // Reactive Audio Service Operations (rxcpp::observable pattern for Phase 2)
-//
+
 // These methods wrap audio loading into reactive observables.
 // They leverage file caching for downloaded audio files.
 
@@ -114,7 +114,7 @@ rxcpp::observable<juce::File> AppStore::loadAudioObservable(const juce::String &
   });
 }
 
-//==============================================================================
+// ==============================================================================
 // Image Loading (Callback-based, called by loadImageObservable and other methods)
 
 void AppStore::getImage(const juce::String &url, std::function<void(const juce::Image &)> callback) {
@@ -165,7 +165,7 @@ void AppStore::getImage(const juce::String &url, std::function<void(const juce::
       [callback](const juce::Image &image) { callback(image); });
 }
 
-//==============================================================================
+// ==============================================================================
 // Search Operations
 
 rxcpp::observable<juce::Array<juce::var>> AppStore::searchUsersObservable(const juce::String &query) {
@@ -190,7 +190,7 @@ rxcpp::observable<juce::Array<juce::var>> AppStore::searchUsersObservable(const 
   });
 }
 
-//==============================================================================
+// ==============================================================================
 // Follow Operations
 
 rxcpp::observable<int> AppStore::followUserObservable(const juce::String &userId) {

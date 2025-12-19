@@ -14,7 +14,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// GetMIDIChallenges returns a list of MIDI challenges (R.2.2.2.1)
+// GetMIDIChallenges returns a list of MIDI challenges
 // GET /api/v1/midi-challenges?status=active|past|upcoming
 func (h *Handlers) GetMIDIChallenges(c *gin.Context) {
 	statusFilter := c.DefaultQuery("status", "") // active, past, upcoming, voting
@@ -58,7 +58,7 @@ func (h *Handlers) GetMIDIChallenges(c *gin.Context) {
 	c.JSON(http.StatusOK, challenges)
 }
 
-// GetMIDIChallenge returns a single MIDI challenge with entries (R.2.2.2.2)
+// GetMIDIChallenge returns a single MIDI challenge with entries
 // GET /api/v1/midi-challenges/:id
 func (h *Handlers) GetMIDIChallenge(c *gin.Context) {
 	challengeID := c.Param("id")
@@ -100,7 +100,7 @@ func (h *Handlers) GetMIDIChallenge(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// CreateMIDIChallengeEntry submits an entry to a MIDI challenge (R.2.2.2.3)
+// CreateMIDIChallengeEntry submits an entry to a MIDI challenge
 // POST /api/v1/midi-challenges/:id/entries
 func (h *Handlers) CreateMIDIChallengeEntry(c *gin.Context) {
 	challengeID := c.Param("id")
@@ -193,7 +193,7 @@ func (h *Handlers) CreateMIDIChallengeEntry(c *gin.Context) {
 		}
 	}
 
-	// Validate constraints (R.2.2.3)
+	// Validate constraints
 	if err := h.validateChallengeConstraints(&challenge, req.PostID, req.MIDIPatternID, req.MIDIData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":   "constraint_violation",
@@ -252,7 +252,7 @@ func (h *Handlers) CreateMIDIChallengeEntry(c *gin.Context) {
 	c.JSON(http.StatusCreated, entry)
 }
 
-// GetMIDIChallengeEntries returns all entries for a challenge (R.2.2.2.4)
+// GetMIDIChallengeEntries returns all entries for a challenge
 // GET /api/v1/midi-challenges/:id/entries?sort=votes|date
 func (h *Handlers) GetMIDIChallengeEntries(c *gin.Context) {
 	challengeID := c.Param("id")
@@ -293,7 +293,7 @@ func (h *Handlers) GetMIDIChallengeEntries(c *gin.Context) {
 	c.JSON(http.StatusOK, entries)
 }
 
-// VoteMIDIChallengeEntry votes for a challenge entry (R.2.2.2.5)
+// VoteMIDIChallengeEntry votes for a challenge entry
 // POST /api/v1/midi-challenges/:id/entries/:entry_id/vote
 func (h *Handlers) VoteMIDIChallengeEntry(c *gin.Context) {
 	challengeID := c.Param("id")
@@ -380,7 +380,7 @@ func (h *Handlers) VoteMIDIChallengeEntry(c *gin.Context) {
 	})
 }
 
-// CreateMIDIChallenge creates a new MIDI challenge (admin only) (R.2.2.2.6)
+// CreateMIDIChallenge creates a new MIDI challenge (admin only)
 // POST /api/v1/midi-challenges
 func (h *Handlers) CreateMIDIChallenge(c *gin.Context) {
 	userInterface, exists := c.Get("user")
@@ -457,7 +457,7 @@ func (h *Handlers) CreateMIDIChallenge(c *gin.Context) {
 	// Calculate status
 	challenge.Status = challenge.CalculateStatus()
 
-	// Notify all users about new challenge (R.2.2.4.4)
+	// Notify all users about new challenge
 	// Run in goroutine to avoid blocking the response
 	go func() {
 		if err := challenges.NotifyAllUsersAboutNewChallenge(h.stream, challenge.ID, challenge.Title); err != nil {
@@ -469,7 +469,7 @@ func (h *Handlers) CreateMIDIChallenge(c *gin.Context) {
 	c.JSON(http.StatusCreated, challenge)
 }
 
-// validateChallengeConstraints validates that the MIDI entry meets the challenge constraints (R.2.2.3)
+// validateChallengeConstraints validates that the MIDI entry meets the challenge constraints
 func (h *Handlers) validateChallengeConstraints(
 	challenge *models.MIDIChallenge,
 	postID *string,
@@ -606,7 +606,7 @@ func detectKeyFromMIDI(events []models.MIDIEvent) string {
 	}
 
 	// Map note class to key name (simplified - assumes major)
-	keyNames := []string{"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"}
+	keyNames := []string{"C", "C# ", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"}
 	return keyNames[rootNoteClass]
 }
 
@@ -729,9 +729,9 @@ func parseKeyToRootNote(key string) int {
 	key = strings.TrimSuffix(key, "M")
 
 	keyMap := map[string]int{
-		"C": 0, "C#": 1, "DB": 1, "D": 2, "D#": 3, "EB": 3,
-		"E": 4, "F": 5, "F#": 6, "GB": 6, "G": 7, "G#": 8,
-		"AB": 8, "A": 9, "A#": 10, "BB": 10, "B": 11,
+		"C": 0, "C# ": 1, "DB": 1, "D": 2, "D#": 3, "EB": 3,
+		"E": 4, "F": 5, "F# ": 6, "GB": 6, "G": 7, "G#": 8,
+		"AB": 8, "A": 9, "A# ": 10, "BB": 10, "B": 11,
 	}
 
 	if note, exists := keyMap[key]; exists {
@@ -742,7 +742,7 @@ func parseKeyToRootNote(key string) int {
 }
 
 // =============================================================================
-// MIDI Challenge Notification Helpers (R.2.2.4.4)
+// MIDI Challenge Notification Helpers
 // =============================================================================
 
 // notifyChallengeParticipants sends notifications to all users who submitted entries to a challenge
@@ -767,7 +767,7 @@ func (h *Handlers) notifyChallengeParticipants(challengeID string, notifyFunc fu
 	return nil
 }
 
-// NotifyChallengeVotingOpenToParticipants notifies all participants when voting opens (R.2.2.4.4)
+// NotifyChallengeVotingOpenToParticipants notifies all participants when voting opens
 // This should be called from a scheduled job that checks challenges transitioning to voting status
 func (h *Handlers) NotifyChallengeVotingOpenToParticipants(challengeID string) error {
 	var challenge models.MIDIChallenge
@@ -787,7 +787,7 @@ func (h *Handlers) NotifyChallengeVotingOpenToParticipants(challengeID string) e
 	})
 }
 
-// NotifyChallengeEndedToParticipants notifies all participants when challenge ends (R.2.2.4.4)
+// NotifyChallengeEndedToParticipants notifies all participants when challenge ends
 // This should be called from a scheduled job that checks challenges transitioning to ended status
 func (h *Handlers) NotifyChallengeEndedToParticipants(challengeID string) error {
 	var challenge models.MIDIChallenge
@@ -847,13 +847,13 @@ func (h *Handlers) NotifyChallengeEndedToParticipants(challengeID string) error 
 
 // NOTE: The following notifications require scheduled jobs:
 // 1. NotifyChallengeCreated - Notify all users when new challenge is created
-//    This requires a batch notification or broadcast mechanism
+// This requires a batch notification or broadcast mechanism
 // 2. NotifyChallengeDeadlineApproaching - Notify participants X hours before deadline
-//    This requires a scheduled job that runs periodically to check approaching deadlines
+// This requires a scheduled job that runs periodically to check approaching deadlines
 // 3. NotifyChallengeVotingOpenToParticipants - Automatically notify when voting opens
-//    This requires a scheduled job that checks challenges transitioning to voting status
+// This requires a scheduled job that checks challenges transitioning to voting status
 // 4. NotifyChallengeEndedToParticipants - Automatically notify when challenge ends
-//    This requires a scheduled job that checks challenges transitioning to ended status
-//
+// This requires a scheduled job that checks challenges transitioning to ended status
+
 // See backend/internal/stories/cleanup.go for an example of a scheduled service pattern.
 // A similar service should be created for MIDI challenge notifications.

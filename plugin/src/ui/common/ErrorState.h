@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 
-//==============================================================================
+// ==============================================================================
 /**
  * ErrorState - A reusable component for displaying error states with retry
  *
@@ -15,7 +15,7 @@
  */
 class ErrorState : public juce::Component {
 public:
-  //==========================================================================
+  // ==========================================================================
   // Error types with different icons and default messages
   enum class ErrorType {
     // Network & Server errors
@@ -45,16 +45,16 @@ public:
     Generic // Generic/unknown errors
   };
 
-  //==========================================================================
+  // ==========================================================================
   ErrorState();
   ~ErrorState() override = default;
 
-  //==========================================================================
+  // ==========================================================================
   void paint(juce::Graphics &g) override;
   void resized() override;
   void mouseUp(const juce::MouseEvent &event) override;
 
-  //==========================================================================
+  // ==========================================================================
   // Configuration
 
   /** Set the error type (changes icon and default message) */
@@ -99,7 +99,7 @@ public:
     repaint();
   }
 
-  //==========================================================================
+  // ==========================================================================
   // Convenience factory methods
 
   /** Create a network error state with retry */
@@ -145,7 +145,7 @@ public:
   static std::unique_ptr<ErrorState> audioError(const juce::String &message, std::function<void()> onRetry = nullptr);
 
 private:
-  //==========================================================================
+  // ==========================================================================
   ErrorType errorType = ErrorType::Generic;
   juce::String title;
   juce::String message;
@@ -161,7 +161,7 @@ private:
   juce::String secondaryButtonText;
   std::function<void()> onSecondaryAction;
 
-  //==========================================================================
+  // ==========================================================================
   // Drawing helpers
   void drawIcon(juce::Graphics &g, juce::Rectangle<int> bounds);
   juce::String getIconForType() const;

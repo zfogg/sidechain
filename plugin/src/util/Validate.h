@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 
-//==============================================================================
+// ==============================================================================
 /**
  * Validate - Input validation and sanitization utilities
  *
@@ -14,7 +14,7 @@
  *   auto cleanUsername = Validate::sanitizeUsername(input);
  */
 namespace Validate {
-//==========================================================================
+// ==========================================================================
 // String Format Validation
 
 /**
@@ -25,7 +25,7 @@ namespace Validate {
 bool isEmail(const juce::String &str);
 
 /**
- * Check if string is a valid URL (http:// or https://).
+ * Check if string is a valid URL (http://or https://).
  */
 bool isUrl(const juce::String &str);
 
@@ -46,7 +46,7 @@ bool isDisplayName(const juce::String &str);
  */
 bool isUuid(const juce::String &str);
 
-//==========================================================================
+// ==========================================================================
 // Range Validation
 
 /**
@@ -64,7 +64,7 @@ bool inRange(float val, float min, float max);
  */
 bool lengthInRange(const juce::String &str, int minLen, int maxLen);
 
-//==========================================================================
+// ==========================================================================
 // Content Validation
 
 /**
@@ -92,7 +92,7 @@ bool isNumeric(const juce::String &str);
  */
 bool isValidJson(const juce::String &str);
 
-//==========================================================================
+// ==========================================================================
 // Audio/Music Validation
 
 /**
@@ -101,7 +101,7 @@ bool isValidJson(const juce::String &str);
 bool isValidBpm(float bpm);
 
 /**
- * Check if musical key is valid (e.g., "C", "Am", "F#m", "Bb").
+ * Check if musical key is valid (e.g., "C", "Am", "F# m", "Bb").
  */
 bool isValidKey(const juce::String &key);
 
@@ -110,7 +110,7 @@ bool isValidKey(const juce::String &key);
  */
 bool isValidDuration(float seconds);
 
-//==========================================================================
+// ==========================================================================
 // Sanitization
 
 /**

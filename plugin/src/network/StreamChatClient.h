@@ -17,7 +17,7 @@
 #include <websocketpp/client.hpp>
 #include <websocketpp/config/asio_client.hpp>
 
-//==============================================================================
+// ==============================================================================
 /**
  * StreamChatClient handles direct communication with getstream.io Chat API
  *
@@ -35,24 +35,24 @@
  */
 class StreamChatClient {
 public:
-  //==========================================================================
+  // ==========================================================================
   // Connection status
 
   /** Connection status for getstream.io WebSocket */
   enum class ConnectionStatus {
-    Disconnected, ///< Not connected to getstream.io
-    Connecting,   ///< Currently attempting to connect
-    Connected     ///< Successfully connected
+    Disconnected, // /< Not connected to getstream.io
+    Connecting,   // /< Currently attempting to connect
+    Connected     // /< Successfully connected
   };
 
-  //==========================================================================
+  // ==========================================================================
   // Configuration
 
   /** Configuration for StreamChatClient */
   struct Config {
-    juce::String backendBaseUrl; ///< Our backend URL for token fetching
-    int timeoutMs = 30000;       ///< Request timeout in milliseconds
-    int maxRetries = 3;          ///< Maximum number of retry attempts
+    juce::String backendBaseUrl; // /< Our backend URL for token fetching
+    int timeoutMs = 30000;       // /< Request timeout in milliseconds
+    int maxRetries = 3;          // /< Maximum number of retry attempts
 
     /** Create development configuration
      * @return Config with localhost backend URL
@@ -73,49 +73,49 @@ public:
     }
   };
 
-  //==========================================================================
+  // ==========================================================================
   // Data structures
 
   /** Chat channel information */
   struct Channel {
-    juce::String id;            ///< Unique channel identifier
-    juce::String type;          ///< Channel type ("messaging" or "team")
-    juce::String name;          ///< Channel display name
-    juce::var members;          ///< Array of member objects
-    juce::var lastMessage;      ///< Last message in the channel
-    int unreadCount = 0;        ///< Number of unread messages
-    juce::String lastMessageAt; ///< Timestamp of last message
-    juce::var extraData;        ///< Additional channel metadata
+    juce::String id;            // /< Unique channel identifier
+    juce::String type;          // /< Channel type ("messaging" or "team")
+    juce::String name;          // /< Channel display name
+    juce::var members;          // /< Array of member objects
+    juce::var lastMessage;      // /< Last message in the channel
+    int unreadCount = 0;        // /< Number of unread messages
+    juce::String lastMessageAt; // /< Timestamp of last message
+    juce::var extraData;        // /< Additional channel metadata
   };
 
   /** Chat message information */
   struct Message {
-    juce::String id;        ///< Unique message identifier
-    juce::String text;      ///< Message text content
-    juce::String userId;    ///< ID of the message author
-    juce::String userName;  ///< Display name of the message author
-    juce::String createdAt; ///< Message creation timestamp
-    juce::var reactions;    ///< Message reactions (emoji, etc.)
-    juce::var extraData;    ///< Additional data (audio_url, reply_to, etc.)
-    bool isDeleted = false; ///< Whether the message has been deleted
+    juce::String id;        // /< Unique message identifier
+    juce::String text;      // /< Message text content
+    juce::String userId;    // /< ID of the message author
+    juce::String userName;  // /< Display name of the message author
+    juce::String createdAt; // /< Message creation timestamp
+    juce::var reactions;    // /< Message reactions (emoji, etc.)
+    juce::var extraData;    // /< Additional data (audio_url, reply_to, etc.)
+    bool isDeleted = false; // /< Whether the message has been deleted
   };
 
   /** User presence information */
   struct UserPresence {
-    juce::String userId;     ///< User identifier
-    bool online = false;     ///< Whether the user is currently online
-    juce::String lastActive; ///< Last active timestamp
-    juce::String status;     ///< Custom status (e.g., "in studio")
+    juce::String userId;     // /< User identifier
+    bool online = false;     // /< Whether the user is currently online
+    juce::String lastActive; // /< Last active timestamp
+    juce::String status;     // /< Custom status (e.g., "in studio")
   };
 
-  //==========================================================================
+  // ==========================================================================
   // Callback types - using Outcome<T> for type-safe error handling
 
   /** Result structure for token fetch operations */
   struct TokenResult {
-    juce::String token;  ///< getstream.io chat token
-    juce::String apiKey; ///< getstream.io API key
-    juce::String userId; ///< Current user ID
+    juce::String token;  // /< getstream.io chat token
+    juce::String apiKey; // /< getstream.io API key
+    juce::String userId; // /< Current user ID
   };
   using TokenCallback = std::function<void(Outcome<TokenResult>)>;
   using ChannelsCallback = std::function<void(Outcome<std::vector<Channel>>)>;
@@ -138,7 +138,7 @@ public:
     networkClient = client;
   }
 
-  //==========================================================================
+  // ==========================================================================
   // Authentication
 
   /** Fetch a getstream.io chat token from the backend
@@ -161,7 +161,7 @@ public:
     return !chatToken.isEmpty() && !apiKey.isEmpty();
   }
 
-  //==========================================================================
+  // ==========================================================================
   // Channel Management (REST API)
 
   /** Create a direct messaging channel with another user
@@ -238,7 +238,7 @@ public:
   void updateChannel(const juce::String &channelType, const juce::String &channelId, const juce::String &name,
                      const juce::var &extraData, std::function<void(Outcome<Channel>)> callback);
 
-  //==========================================================================
+  // ==========================================================================
   // Message Operations (REST API)
 
   /** Send a text message to a channel
@@ -300,7 +300,7 @@ public:
   void removeReaction(const juce::String &channelType, const juce::String &channelId, const juce::String &messageId,
                       const juce::String &reactionType, std::function<void(Outcome<void>)> callback);
 
-  //==========================================================================
+  // ==========================================================================
   // Read Receipts
 
   /** Mark a channel as read
@@ -311,13 +311,13 @@ public:
   void markChannelRead(const juce::String &channelType, const juce::String &channelId,
                        std::function<void(Outcome<void>)> callback);
 
-  //==========================================================================
+  // ==========================================================================
   // Audio Snippet Sharing
 
   /** Result structure for audio snippet uploads */
   struct AudioSnippetResult {
-    juce::String audioUrl; ///< CDN URL of uploaded audio
-    double duration = 0.0; ///< Duration in seconds
+    juce::String audioUrl; // /< CDN URL of uploaded audio
+    double duration = 0.0; // /< Duration in seconds
   };
   using AudioSnippetCallback = std::function<void(Outcome<AudioSnippetResult>)>;
 
@@ -340,18 +340,18 @@ public:
   void sendMessageWithAudio(const juce::String &channelType, const juce::String &channelId, const juce::String &text,
                             const juce::AudioBuffer<float> &audioBuffer, double sampleRate, MessageCallback callback);
 
-  //==========================================================================
+  // ==========================================================================
   // Message Search
   void searchMessages(const juce::String &query, const juce::var &channelFilters, int limit, int offset,
                       MessagesCallback callback);
 
-  //==========================================================================
+  // ==========================================================================
   // Presence (App-Wide)
   void queryPresence(const std::vector<juce::String> &userIds, PresenceCallback callback);
   void updateStatus(const juce::String &status, const juce::var &extraData,
                     std::function<void(Outcome<void>)> callback);
 
-  //==========================================================================
+  // ==========================================================================
   // Real-time Updates (Polling-based until WebSocket is fixed)
   // Note: True WebSocket implementation blocked by ASIO/C++23 compatibility
   // issues
@@ -416,7 +416,7 @@ public:
     return wsConnected.load();
   }
 
-  //==========================================================================
+  // ==========================================================================
   // Connection Status
   void setConnectionStatusCallback(ConnectionStatusCallback callback) {
     connectionStatusCallback = callback;
@@ -426,7 +426,7 @@ public:
   }
 
 private:
-  //==========================================================================
+  // ==========================================================================
   NetworkClient *networkClient = nullptr;
   Config config;
   juce::String chatToken;
@@ -469,7 +469,7 @@ private:
   std::unique_ptr<juce::Timer> unreadPollTimer;
   void pollUnreadCount();
 
-  //==========================================================================
+  // ==========================================================================
   // Internal helpers
   juce::String getStreamBaseUrl() const {
     return "https://chat.stream-io-api.com";

@@ -1,7 +1,7 @@
 #include "Playlists.h"
 #include "../../util/Log.h"
 
-//==============================================================================
+// ==============================================================================
 Playlists::Playlists(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   Log::info("PlaylistsComponent: Initializing");
 
@@ -17,7 +17,7 @@ Playlists::~Playlists() {
   scrollBar.removeListener(this);
 }
 
-//==============================================================================
+// ==============================================================================
 void Playlists::onAppStateChanged(const Sidechain::Stores::PlaylistState &state) {
   // Update playlists from state
   playlists.clear();
@@ -47,7 +47,7 @@ void Playlists::subscribeToAppStore() {
   });
 }
 
-//==============================================================================
+// ==============================================================================
 void Playlists::paint(juce::Graphics &g) {
   // Background
   g.fillAll(SidechainColors::background());
@@ -145,7 +145,7 @@ void Playlists::scrollBarMoved(juce::ScrollBar * /*scrollBar*/, double newRangeS
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void Playlists::loadPlaylists() {
   if (!appStore) {
     Log::warn("Playlists: Cannot load playlists - no AppStore");
@@ -170,7 +170,7 @@ void Playlists::refresh() {
   appStore->loadPlaylists();
 }
 
-//==============================================================================
+// ==============================================================================
 void Playlists::drawHeader(juce::Graphics &g) {
   auto bounds = juce::Rectangle<int>(0, 0, getWidth(), HEADER_HEIGHT);
 
@@ -275,7 +275,7 @@ void Playlists::drawErrorState(juce::Graphics &g, juce::Rectangle<int> bounds) {
   g.drawText(errorMessage, bounds, juce::Justification::centred);
 }
 
-//==============================================================================
+// ==============================================================================
 juce::Rectangle<int> Playlists::getBackButtonBounds() const {
   return juce::Rectangle<int>(PADDING, 0, 50, HEADER_HEIGHT);
 }
@@ -302,7 +302,7 @@ juce::Rectangle<int> Playlists::getPlaylistCardBounds(int index) const {
   return contentBounds.removeFromTop(PLAYLIST_CARD_HEIGHT).translated(0, index * PLAYLIST_CARD_HEIGHT);
 }
 
-//==============================================================================
+// ==============================================================================
 void Playlists::fetchPlaylists(FilterType filter) {
   // First load all playlists from AppStore
   loadPlaylists();

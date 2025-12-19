@@ -3,7 +3,7 @@
 #include "../util/Log.h"
 #include "../util/Time.h"
 
-//==============================================================================
+// ==============================================================================
 /** Create a FeedPost from JSON data
  * Parses getstream.io activity JSON into a FeedPost object.
  * Missing fields will be left as default values.
@@ -60,7 +60,7 @@ FeedPost FeedPost::fromJson(const juce::var &json) {
   post.key = Json::getString(json, "key");
   post.daw = Json::getString(json, "daw");
 
-  // MIDI metadata (R.3.3 Cross-DAW MIDI Collaboration)
+  // MIDI metadata
   post.hasMidi = Json::getBool(json, "has_midi");
   post.midiId = Json::getString(json, "midi_pattern_id");
   post.midiFilename = Json::getString(json, "midi_filename");
@@ -71,7 +71,7 @@ FeedPost FeedPost::fromJson(const juce::var &json) {
   if (post.midiId.isNotEmpty())
     post.hasMidi = true;
 
-  // Project file metadata (R.3.4 Project File Exchange)
+  // Project file metadata
   post.hasProjectFile = Json::getBool(json, "has_project_file");
   post.projectFileId = Json::getString(json, "project_file_id");
   post.projectFileDaw = Json::getString(json, "project_file_daw");
@@ -79,7 +79,7 @@ FeedPost FeedPost::fromJson(const juce::var &json) {
   if (post.projectFileId.isNotEmpty())
     post.hasProjectFile = true;
 
-  // Remix metadata (R.3.2 Remix Chains)
+  // Remix metadata
   post.remixOfPostId = Json::getString(json, "remix_of_post_id");
   post.remixOfStoryId = Json::getString(json, "remix_of_story_id");
   post.remixType = Json::getString(json, "remix_type");
@@ -88,7 +88,7 @@ FeedPost FeedPost::fromJson(const juce::var &json) {
   // Post is a remix if it has a remix source
   post.isRemix = post.remixOfPostId.isNotEmpty() || post.remixOfStoryId.isNotEmpty();
 
-  // Sound/Sample metadata (Feature #15 - Sound Pages)
+  // Sound/Sample metadata ( - Sound Pages)
   post.soundId = Json::getString(json, "sound_id");
   post.soundName = Json::getString(json, "sound_name");
   post.soundUsageCount = Json::getInt(json, "sound_usage_count");
@@ -230,7 +230,7 @@ FeedPost FeedPost::fromJson(const juce::var &json) {
   return post;
 }
 
-//==============================================================================
+// ==============================================================================
 /** Convert FeedPost to JSON for caching
  * Serializes the post data to JSON format compatible with fromJson().
  * @return JSON var representation of this post
@@ -276,14 +276,14 @@ juce::var FeedPost::toJson() const {
   if (midiFilename.isNotEmpty())
     obj->setProperty("midi_filename", midiFilename);
 
-  // Project file metadata (R.3.4)
+  // Project file metadata
   obj->setProperty("has_project_file", hasProjectFile);
   if (projectFileId.isNotEmpty())
     obj->setProperty("project_file_id", projectFileId);
   if (projectFileDaw.isNotEmpty())
     obj->setProperty("project_file_daw", projectFileDaw);
 
-  // Remix metadata (R.3.2)
+  // Remix metadata
   if (isRemix || remixCount > 0) {
     obj->setProperty("is_remix", isRemix);
     if (remixOfPostId.isNotEmpty())
@@ -296,7 +296,7 @@ juce::var FeedPost::toJson() const {
     obj->setProperty("remix_count", remixCount);
   }
 
-  // Sound/Sample metadata (Feature #15)
+  // Sound/Sample metadata
   if (soundId.isNotEmpty()) {
     obj->setProperty("sound_id", soundId);
     if (soundName.isNotEmpty())
@@ -391,7 +391,7 @@ juce::var FeedPost::toJson() const {
   return juce::var(obj);
 }
 
-//==============================================================================
+// ==============================================================================
 /** Extract user ID from actor string
  * Parses getstream.io actor format (e.g., "user:12345" or "SU:user:12345")
  * @param actorString Actor string in format "user:ID" or "SU:user:ID"
@@ -418,7 +418,7 @@ juce::String FeedPost::extractUserId(const juce::String &actorString) {
   return actorString;
 }
 
-//==============================================================================
+// ==============================================================================
 /** Format timestamp as "time ago" string
  * @deprecated Use TimeUtils::formatTimeAgo() instead
  * @param time Timestamp to format
@@ -429,7 +429,7 @@ juce::String FeedPost::formatTimeAgo(const juce::Time &time) {
   return TimeUtils::formatTimeAgo(time);
 }
 
-//==============================================================================
+// ==============================================================================
 /** Type-safe parsing with validation
  * Parses JSON and validates required fields. Returns error if validation fails.
  * @param json JSON var containing post data
@@ -459,7 +459,7 @@ Outcome<FeedPost> FeedPost::tryFromJson(const juce::var &json) {
   return Outcome<FeedPost>::ok(std::move(post));
 }
 
-//==============================================================================
+// ==============================================================================
 /** Check if post is valid (has required fields)
  * A valid post must have at least an ID and audio URL to be playable.
  * @return true if post has all required fields, false otherwise

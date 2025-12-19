@@ -4,7 +4,7 @@
 #include "../../ui/common/AppStoreComponent.h"
 #include <JuceHeader.h>
 
-//==============================================================================
+// ==============================================================================
 /**
  * DraftsView - View for managing saved recording drafts
  *
@@ -23,20 +23,20 @@ public:
   DraftsView(Sidechain::Stores::AppStore *store = nullptr);
   ~DraftsView() override;
 
-  //==========================================================================
+  // ==========================================================================
   void paint(juce::Graphics &g) override;
   void resized() override;
   void mouseUp(const juce::MouseEvent &event) override;
 
-  //==========================================================================
+  // ==========================================================================
   // ScrollBar::Listener
   void scrollBarMoved(juce::ScrollBar *scrollBar, double newRangeStart) override;
 
-  //==========================================================================
+  // ==========================================================================
   // Reload drafts list
   void refresh();
 
-  //==========================================================================
+  // ==========================================================================
   // Callbacks
   std::function<void(const juce::var &)> onDraftSelected; // Resume editing
   std::function<void()> onClose;                          // Close view
@@ -60,7 +60,7 @@ private:
   std::unique_ptr<juce::ScrollBar> scrollBar;
   double scrollOffset = 0.0;
 
-  //==========================================================================
+  // ==========================================================================
   // Store state handler
   void handleStoreStateChanged(const Sidechain::Stores::DraftState &state);
 
@@ -76,7 +76,7 @@ private:
   static constexpr int PADDING = 16;
   static constexpr int BUTTON_HEIGHT = 36;
 
-  //==========================================================================
+  // ==========================================================================
   // Drawing
   void drawHeader(juce::Graphics &g);
   void drawRecoveryBanner(juce::Graphics &g);

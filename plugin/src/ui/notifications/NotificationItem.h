@@ -3,7 +3,7 @@
 #include "../../models/AggregatedFeedGroup.h"
 #include <JuceHeader.h>
 
-//==============================================================================
+// ==============================================================================
 /**
  * NotificationItem represents a single notification group from getstream.io
  *

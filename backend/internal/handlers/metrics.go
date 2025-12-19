@@ -98,7 +98,7 @@ func (h *Handlers) GetPostMetrics(c *gin.Context) {
 	})
 }
 
-// GetSearchMetrics returns search metrics (Phase 7.1)
+// GetSearchMetrics returns search metrics
 // GET /api/v1/metrics/search
 func (h *Handlers) GetSearchMetrics(c *gin.Context) {
 	stats := metrics.GetManager().GetSearchStats()
@@ -109,7 +109,7 @@ func (h *Handlers) GetSearchMetrics(c *gin.Context) {
 	})
 }
 
-// GetAllMetrics returns all application metrics (Phase 7.1)
+// GetAllMetrics returns all application metrics
 // GET /api/v1/metrics
 func (h *Handlers) GetAllMetrics(c *gin.Context) {
 	allMetrics := metrics.GetManager().GetAllMetrics()

@@ -13,7 +13,7 @@ class NetworkClient;
 class StreamChatClient;
 class PostCard;
 
-//==============================================================================
+// ==============================================================================
 /**
  * UserProfile represents the profile data fetched from the backend
  */
@@ -50,7 +50,7 @@ struct UserProfile {
   bool isOwnProfile(const juce::String &currentUserId) const;
 };
 
-//==============================================================================
+// ==============================================================================
 /**
  * Profile displays a user's profile with their posts
  *
@@ -72,7 +72,7 @@ public:
   Profile(Sidechain::Stores::AppStore *store = nullptr);
   ~Profile() override;
 
-  //==============================================================================
+  // ==============================================================================
   // Data binding
   void setNetworkClient(NetworkClient *client);
   void setStreamChatClient(StreamChatClient *client);
@@ -84,7 +84,7 @@ public:
     return profile;
   }
 
-  //==============================================================================
+  // ==============================================================================
   // Callbacks
   std::function<void()> onBackPressed;
   std::function<void(const juce::String &userId)> onFollowersClicked;
@@ -111,7 +111,7 @@ public:
   std::function<void()> onCreateHighlightClicked;                      // Opens create highlight flow
                                                                        // (own profile only)
 
-  //==============================================================================
+  // ==============================================================================
   // Component overrides
   void paint(juce::Graphics &g) override;
   void resized() override;
@@ -119,22 +119,22 @@ public:
   void mouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel) override;
   juce::String getTooltip() override;
 
-  //==============================================================================
+  // ==============================================================================
   // Post playback state
   void setCurrentlyPlayingPost(const juce::String &postId);
   void setPlaybackProgress(float progress);
   void clearPlayingState();
 
-  //==============================================================================
+  // ==============================================================================
   // Refresh
   void refresh();
 
-  //==============================================================================
-  // Presence updates (6.5.2.7)
+  // ==============================================================================
+  // Presence updates
   void updateUserPresence(const juce::String &userId, bool isOnline, const juce::String &status);
 
 private:
-  //==============================================================================
+  // ==============================================================================
   // Data
   UserProfile profile; // For other users OR populated from UserStore for own profile
   juce::String currentUserId;
@@ -161,7 +161,7 @@ private:
   juce::String currentlyPlayingPostId;
   float currentPlaybackProgress = 0.0f;
 
-  //==============================================================================
+  // ==============================================================================
   // Drawing methods
   void drawBackground(juce::Graphics &g);
   void drawHeader(juce::Graphics &g, juce::Rectangle<int> bounds);
@@ -178,7 +178,7 @@ private:
   void drawErrorState(juce::Graphics &g);
   void drawEmptyState(juce::Graphics &g, juce::Rectangle<int> bounds);
 
-  //==============================================================================
+  // ==============================================================================
   // Hit testing helpers
   juce::Rectangle<int> getBackButtonBounds() const;
   juce::Rectangle<int> getAvatarBounds() const;
@@ -198,7 +198,7 @@ private:
   juce::Rectangle<int> getSocialLinkBounds(int index) const;
   juce::Rectangle<int> getPostsAreaBounds() const;
 
-  //==============================================================================
+  // ==============================================================================
   // Network operations
   void fetchProfile(const juce::String &userId);
   void fetchUserPosts(const juce::String &userId);
@@ -215,13 +215,13 @@ private:
   // Sync follow state from PostsStore to local userPosts array
   void syncFollowStateFromPostsStore();
 
-  //==============================================================================
+  // ==============================================================================
   // AppStoreComponent overrides
 protected:
   void onAppStateChanged(const Sidechain::Stores::UserState &state) override;
   void subscribeToAppStore() override;
 
-  //==============================================================================
+  // ==============================================================================
   // SmoothScrollable overrides
   void onScrollUpdate(double newScrollPosition) override {
     updatePostCards();
@@ -237,13 +237,13 @@ protected:
   }
 
 private:
-  //==============================================================================
+  // ==============================================================================
   // Helpers
   void updatePostCards();
   int calculateContentHeight() const;
   bool isOwnProfile() const;
 
-  //==============================================================================
+  // ==============================================================================
   // Layout constants
   static constexpr int HEADER_HEIGHT = 280;
   static constexpr int AVATAR_SIZE = 100;
@@ -252,7 +252,7 @@ private:
   static constexpr int POST_CARD_HEIGHT = 120;
   static constexpr int PADDING = 20;
 
-  //==============================================================================
+  // ==============================================================================
   // Colors
   struct Colors {
     static inline juce::Colour background{0xff1a1a1e};
@@ -269,17 +269,17 @@ private:
     static inline juce::Colour errorRed{0xffff4757};
   };
 
-  //==============================================================================
+  // ==============================================================================
   // Story Highlights component
   std::unique_ptr<StoryHighlights> storyHighlights;
   static constexpr int HIGHLIGHTS_HEIGHT = 96; // Height of highlights row
 
-  //==============================================================================
+  // ==============================================================================
   // Followers/Following list panel
   std::unique_ptr<FollowersList> followersListPanel;
   bool followersListVisible = false;
 
-  //==============================================================================
+  // ==============================================================================
   // Error state component (shown when profile loading fails)
   std::unique_ptr<ErrorState> errorStateComponent;
 

@@ -6,23 +6,23 @@
 #include <keyfinder.h>
 #endif
 
-//==============================================================================
+// ==============================================================================
 // Key string lookup tables
-//==============================================================================
+// ==============================================================================
 
 namespace KeyNames {
 // Standard key names (index matches libkeyfinder's key_t enum)
 static const char *const standardNames[] = {
-    "A major",  // 0  - A_MAJOR
-    "A minor",  // 1  - A_MINOR
-    "Bb major", // 2  - B_FLAT_MAJOR
-    "Bb minor", // 3  - B_FLAT_MINOR
-    "B major",  // 4  - B_MAJOR
-    "B minor",  // 5  - B_MINOR
-    "C major",  // 6  - C_MAJOR
-    "C minor",  // 7  - C_MINOR
-    "Db major", // 8  - D_FLAT_MAJOR
-    "Db minor", // 9  - D_FLAT_MINOR
+    "A major",  // 0 - A_MAJOR
+    "A minor",  // 1 - A_MINOR
+    "Bb major", // 2 - B_FLAT_MAJOR
+    "Bb minor", // 3 - B_FLAT_MINOR
+    "B major",  // 4 - B_MAJOR
+    "B minor",  // 5 - B_MINOR
+    "C major",  // 6 - C_MAJOR
+    "C minor",  // 7 - C_MINOR
+    "Db major", // 8 - D_FLAT_MAJOR
+    "Db minor", // 9 - D_FLAT_MINOR
     "D major",  // 10 - D_MAJOR
     "D minor",  // 11 - D_MINOR
     "Eb major", // 12 - E_FLAT_MAJOR
@@ -42,8 +42,8 @@ static const char *const standardNames[] = {
 
 // Short names (Am, F#, etc.)
 static const char *const shortNames[] = {
-    "A",  "Am",  "Bb", "Bbm", "B", "Bm", "C",  "Cm",  "Db", "Dbm", "D",  "Dm",
-    "Eb", "Ebm", "E",  "Em",  "F", "Fm", "F#", "F#m", "G",  "Gm",  "Ab", "Abm",
+    "A",  "Am",  "Bb", "Bbm", "B", "Bm", "C",   "Cm",  "Db", "Dbm", "D",  "Dm",
+    "Eb", "Ebm", "E",  "Em",  "F", "Fm", "F# ", "F#m", "G",  "Gm",  "Ab", "Abm",
     "" // Silence
 };
 
@@ -83,9 +83,9 @@ static const int rootNotes[] = {
 };
 } // namespace KeyNames
 
-//==============================================================================
+// ==============================================================================
 // KeyDetector::Key implementation
-//==============================================================================
+// ==============================================================================
 
 KeyDetector::Key KeyDetector::Key::fromString(const juce::String &keyStr) {
   Key key;
@@ -123,9 +123,9 @@ juce::StringArray KeyDetector::Key::getAllCamelotKeys() {
   return keys;
 }
 
-//==============================================================================
+// ==============================================================================
 // KeyDetector Implementation (with libkeyfinder)
-//==============================================================================
+// ==============================================================================
 
 #if SIDECHAIN_HAS_KEYFINDER
 
@@ -203,9 +203,9 @@ bool KeyDetector::isAvailable() {
 
 #endif
 
-//==============================================================================
+// ==============================================================================
 // KeyDetector public methods
-//==============================================================================
+// ==============================================================================
 
 KeyDetector::KeyDetector() : impl(std::make_unique<Impl>()) {}
 
@@ -250,7 +250,7 @@ juce::String KeyDetector::keyToCamelot(int keyValue) {
 
 juce::String KeyDetector::getRootNoteName(int keyValue) {
   if (keyValue >= 0 && keyValue < 24) {
-    static const char *const noteNames[] = {"C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"};
+    static const char *const noteNames[] = {"C", "Db", "D", "Eb", "E", "F", "F# ", "G", "Ab", "A", "Bb", "B"};
     int rootNote = KeyNames::rootNotes[keyValue];
     if (rootNote >= 0 && rootNote < 12)
       return noteNames[rootNote];

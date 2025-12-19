@@ -16,7 +16,7 @@ struct UserState;
 using namespace Sidechain::UI;
 using namespace Sidechain::Stores;
 
-//==============================================================================
+// ==============================================================================
 /**
  * NotificationSettings provides a UI for managing notification preferences
  *
@@ -31,36 +31,36 @@ public:
   NotificationSettings(AppStore *store = nullptr);
   ~NotificationSettings() override;
 
-  //==============================================================================
+  // ==============================================================================
   // Data binding
   void setNetworkClient(NetworkClient *client) {
     networkClient = client;
   }
   void loadPreferences();
 
-  //==============================================================================
+  // ==============================================================================
   // Callbacks
   std::function<void()> onClose;
 
-  //==============================================================================
+  // ==============================================================================
   // Modal display
   void showModal(juce::Component *parentComponent);
   void closeDialog();
 
-  //==============================================================================
+  // ==============================================================================
   // Component overrides
   void paint(juce::Graphics &g) override;
   void resized() override;
   void buttonClicked(juce::Button *button) override;
 
 protected:
-  //==============================================================================
+  // ==============================================================================
   // AppStoreComponent overrides
   void onAppStateChanged(const UserState &state) override;
   void subscribeToAppStore() override;
 
 private:
-  //==============================================================================
+  // ==============================================================================
   NetworkClient *networkClient = nullptr;
 
   // State
@@ -81,7 +81,7 @@ private:
   // Plugin settings (local)
   bool osNotificationsEnabled = true;
 
-  //==============================================================================
+  // ==============================================================================
   // UI Components
   std::unique_ptr<juce::TextButton> closeButton;
 
@@ -98,12 +98,12 @@ private:
   // Plugin settings toggles
   std::unique_ptr<juce::ToggleButton> osNotificationsToggle;
 
-  //==============================================================================
+  // ==============================================================================
   // Drawing methods
   void drawHeader(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawSection(juce::Graphics &g, const juce::String &title, juce::Rectangle<int> bounds);
 
-  //==============================================================================
+  // ==============================================================================
   // Helpers
   void setupToggles();
   void populateFromPreferences();
@@ -111,14 +111,14 @@ private:
   void handleToggleChange(juce::ToggleButton *toggle);
   void savePreferences();
 
-  //==============================================================================
+  // ==============================================================================
   // Layout constants
   static constexpr int HEADER_HEIGHT = 60;
   static constexpr int TOGGLE_HEIGHT = 50;
   static constexpr int SECTION_SPACING = 20;
   static constexpr int PADDING = 25;
 
-  //==============================================================================
+  // ==============================================================================
   // Colors (matching EditProfile style)
   struct Colors {
     static inline juce::Colour background{0xff1a1a1e};

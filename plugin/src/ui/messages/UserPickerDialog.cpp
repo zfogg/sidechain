@@ -430,7 +430,7 @@ void UserPickerDialog::loadSuggestedUsers() {
   });
 }
 
-//==============================================================================
+// ==============================================================================
 // Drawing helpers
 
 void UserPickerDialog::drawHeader(juce::Graphics &g) {
@@ -674,7 +674,7 @@ void UserPickerDialog::drawEmptyState(juce::Graphics &g) {
              juce::Justification::centred, true);
 }
 
-//==============================================================================
+// ==============================================================================
 // Helper methods
 
 int UserPickerDialog::calculateContentHeight() {
@@ -823,7 +823,7 @@ void UserPickerDialog::cancel() {
     onCancelled();
 }
 
-//==============================================================================
+// ==============================================================================
 // Hit test bounds
 
 juce::Rectangle<int> UserPickerDialog::getUserItemBounds(int index, int yOffset) const {
@@ -847,7 +847,7 @@ juce::Rectangle<int> UserPickerDialog::getCloseButtonBounds() const {
   return juce::Rectangle<int>(getWidth() - 50, 0, 50, HEADER_HEIGHT);
 }
 
-//==============================================================================
+// ==============================================================================
 // API helpers
 
 void UserPickerDialog::handleSearchResults(const std::vector<UserItem> &results) {

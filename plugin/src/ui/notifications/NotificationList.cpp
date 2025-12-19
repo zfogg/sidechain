@@ -6,9 +6,9 @@
 #include "../../util/Time.h"
 #include "../../util/UIHelpers.h"
 
-//==============================================================================
+// ==============================================================================
 // NotificationItem implementation
-//==============================================================================
+// ==============================================================================
 
 NotificationItem NotificationItem::fromJson(const juce::var &json) {
   NotificationItem item;
@@ -78,9 +78,9 @@ NotificationItem NotificationItem::fromAggregatedGroup(const AggregatedFeedGroup
   return item;
 }
 
-// TODO: Phase 5.4.4.1 - Implement notification sound option (user preference)
-// TODO: Phase 5.4.4.2 - Add notification preferences (mute specific types)
-// TODO: Phase 5.4.4.3 - Consider WebSocket push for real-time updates (polling
+// TODO: - Implement notification sound option (user preference)
+// TODO: - Add notification preferences (mute specific types)
+// TODO: - Consider WebSocket push for real-time updates (polling
 // is sufficient for MVP)
 
 juce::String NotificationItem::getDisplayText() const {
@@ -137,9 +137,9 @@ juce::String NotificationItem::getVerbIcon() const {
   return "bell";
 }
 
-//==============================================================================
+// ==============================================================================
 // NotificationRow implementation
-//==============================================================================
+// ==============================================================================
 
 NotificationRow::NotificationRow() {
   setSize(NotificationList::PREFERRED_WIDTH, ROW_HEIGHT);
@@ -305,9 +305,9 @@ void NotificationRow::mouseDown(const juce::MouseEvent &) {
     onClicked(notification);
 }
 
-//==============================================================================
+// ==============================================================================
 // NotificationList implementation
-//==============================================================================
+// ==============================================================================
 
 NotificationList::NotificationList(Sidechain::Stores::AppStore *store)
     : Sidechain::UI::AppStoreComponent<Sidechain::Stores::NotificationState>(store) {
@@ -325,7 +325,7 @@ NotificationList::~NotificationList() {
   viewport.getVerticalScrollBar().removeListener(this);
 }
 
-//==============================================================================
+// ==============================================================================
 // AppStoreComponent implementation
 
 void NotificationList::onAppStateChanged(const Sidechain::Stores::NotificationState &state) {
@@ -359,7 +359,7 @@ void NotificationList::subscribeToAppStore() {
   });
 }
 
-//==============================================================================
+// ==============================================================================
 void NotificationList::setNotifications(const juce::Array<NotificationItem> &newNotifications) {
   notifications = newNotifications;
   isLoading = false;

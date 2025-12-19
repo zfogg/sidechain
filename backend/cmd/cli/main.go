@@ -22,7 +22,7 @@ Manage your profile privacy settings, follow requests, and more.`,
 		if authToken == "" {
 			authToken = os.Getenv("SIDECHAIN_TOKEN")
 		}
-		// Search commands don't require auth (Phase 5.1)
+		// Search commands don't require auth
 		isSearchCmd := cmd.Name() == "search" || (cmd.Parent() != nil && cmd.Parent().Name() == "search")
 		if authToken == "" && !isSearchCmd && cmd.Name() != "help" && cmd.Parent() != nil {
 			fmt.Fprintf(os.Stderr, "Error: SIDECHAIN_TOKEN environment variable not set\n")

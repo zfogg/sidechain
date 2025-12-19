@@ -2,9 +2,9 @@
 
 #include <JuceHeader.h>
 
-//==============================================================================
+// ==============================================================================
 /**
- * Sound represents a unique audio signature detected across posts (Feature #15)
+ * Sound represents a unique audio signature detected across posts (Feature # 15)
  *
  * When the same sample/sound is used in multiple posts, they are linked
  * to the same Sound, enabling "See X other posts with this sound" discovery.
@@ -32,7 +32,7 @@ struct Sound {
   bool isPublic = true;
   juce::Time createdAt;
 
-  //==========================================================================
+  // ==========================================================================
   // Parsing from JSON
 
   static Sound fromJson(const juce::var &json) {
@@ -67,7 +67,7 @@ struct Sound {
     return sound;
   }
 
-  //==========================================================================
+  // ==========================================================================
   // Display helpers
 
   /** Get formatted usage count string (e.g., "1.2K posts") */
@@ -97,7 +97,7 @@ struct Sound {
   }
 };
 
-//==============================================================================
+// ==============================================================================
 /**
  * SoundPost represents a post that uses a specific sound
  */

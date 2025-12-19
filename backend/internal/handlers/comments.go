@@ -97,7 +97,7 @@ func (h *Handlers) CreateComment(c *gin.Context) {
 		logger.WarnWithFields("Failed to increment comment count for post "+postID, err)
 	}
 
-	// Phase 0.6: Re-index post in Elasticsearch with updated engagement metrics
+	// Re-index post in Elasticsearch with updated engagement metrics
 	if h.search != nil {
 		go func() {
 			// Fetch the updated post with new comment count
@@ -371,7 +371,7 @@ func (h *Handlers) DeleteComment(c *gin.Context) {
 	// Decrement post comment count
 	database.DB.Model(&models.AudioPost{}).Where("id = ?", comment.PostID).UpdateColumn("comment_count", gorm.Expr("GREATEST(comment_count - 1, 0)"))
 
-	// Phase 0.6: Re-index post in Elasticsearch with updated engagement metrics
+	// Re-index post in Elasticsearch with updated engagement metrics
 	if h.search != nil {
 		go func() {
 			// Fetch the updated post with new comment count
@@ -615,12 +615,12 @@ func (h *Handlers) ReportComment(c *gin.Context) {
 // ============================================================================
 // COMMENTS - PROFESSIONAL ENHANCEMENTS
 // ============================================================================
-//
+
 // NOTE: Common enhancements (caching, analytics, rate limiting, moderation,
 // search, webhooks, export, performance, anti-abuse, notifications,
 // accessibility, localization) are documented in common_todos.go.
 // See that file for shared TODO items.
-//
+
 
 // TODO: PROFESSIONAL-5.1 - Implement comment threading improvements
 // - Support unlimited nesting levels (currently only 1 level)

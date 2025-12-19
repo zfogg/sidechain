@@ -7,7 +7,7 @@
 #include <mutex>
 #include <thread>
 
-//==============================================================================
+// ==============================================================================
 /**
  * Async - Threading utilities for background work and UI callbacks
  *
@@ -37,7 +37,7 @@
  *   Async::debounce("search", 300, [this, query]() { performSearch(query); });
  */
 namespace Async {
-//==========================================================================
+// ==========================================================================
 // Background Work with Result
 
 // Internal - check if shutdown is in progress (implemented in Async.cpp)
@@ -79,7 +79,7 @@ template <typename T> void run(std::function<T()> work, std::function<void(T)> o
  */
 void runVoid(std::function<void()> work, std::function<void()> onComplete = nullptr);
 
-//==========================================================================
+// ==========================================================================
 // Delayed Execution
 
 /**
@@ -99,7 +99,7 @@ int delay(int delayMs, std::function<void()> callback);
  */
 void cancelDelay(int timerId);
 
-//==========================================================================
+// ==========================================================================
 // Debouncing
 
 /**
@@ -127,7 +127,7 @@ void cancelDebounce(const juce::String &key);
  */
 void cancelAllDebounces();
 
-//==========================================================================
+// ==========================================================================
 // Throttling
 
 /**
@@ -148,7 +148,7 @@ void throttle(const juce::String &key, int periodMs, std::function<void()> callb
  */
 void cancelThrottle(const juce::String &key);
 
-//==========================================================================
+// ==========================================================================
 // Shutdown
 
 /**

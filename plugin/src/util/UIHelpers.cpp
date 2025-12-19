@@ -2,7 +2,7 @@
 
 namespace UIHelpers {
 
-//==============================================================================
+// ==============================================================================
 // Card/Panel Drawing
 
 void drawCard(juce::Graphics &g, juce::Rectangle<float> bounds, juce::Colour fillColor, juce::Colour borderColor,
@@ -28,7 +28,7 @@ void drawCardWithHover(juce::Graphics &g, juce::Rectangle<int> bounds, juce::Col
   drawCard(g, bounds, isHovered ? hoverColor : normalColor, borderColor, cornerRadius);
 }
 
-//==============================================================================
+// ==============================================================================
 // Badge/Tag Drawing
 
 void drawBadge(juce::Graphics &g, juce::Rectangle<int> bounds, const juce::String &text, juce::Colour bgColor,
@@ -70,7 +70,7 @@ juce::Rectangle<int> drawPillBadge(juce::Graphics &g, int x, int y, const juce::
   return bounds;
 }
 
-//==============================================================================
+// ==============================================================================
 // Button Drawing
 
 void drawButton(juce::Graphics &g, juce::Rectangle<int> bounds, const juce::String &text, juce::Colour bgColor,
@@ -104,7 +104,7 @@ void drawOutlineButton(juce::Graphics &g, juce::Rectangle<int> bounds, const juc
   g.drawText(text, bounds, juce::Justification::centred);
 }
 
-//==============================================================================
+// ==============================================================================
 // Icon Drawing
 
 void drawIconButton(juce::Graphics &g, juce::Rectangle<int> bounds, juce::Colour bgColor, bool isHovered) {
@@ -120,7 +120,7 @@ void drawIcon(juce::Graphics &g, juce::Rectangle<int> bounds, const juce::String
   g.drawText(icon, bounds, juce::Justification::centred);
 }
 
-//==============================================================================
+// ==============================================================================
 // Progress/Status Drawing
 
 void drawProgressBar(juce::Graphics &g, juce::Rectangle<int> bounds, float progress, juce::Colour bgColor,
@@ -153,7 +153,7 @@ void drawLoadingSpinner(juce::Graphics &g, juce::Rectangle<int> bounds, juce::Co
   g.strokePath(arc, juce::PathStrokeType(2.5f));
 }
 
-//==============================================================================
+// ==============================================================================
 // Separator Drawing
 
 void drawDivider(juce::Graphics &g, int x, int y, int width, juce::Colour color, float thickness) {
@@ -166,7 +166,7 @@ void drawVerticalDivider(juce::Graphics &g, int x, int y, int height, juce::Colo
   g.fillRect(static_cast<float>(x), static_cast<float>(y), thickness, static_cast<float>(height));
 }
 
-//==============================================================================
+// ==============================================================================
 // Text Utilities
 
 juce::String truncateWithEllipsis(const juce::String &text, const juce::Font &font, int maxWidth) {
@@ -236,7 +236,7 @@ int getTextWidth(const juce::Font &font, const juce::String &text) {
   return static_cast<int>(layout.getWidth());
 }
 
-//==============================================================================
+// ==============================================================================
 // Shadow/Effects
 
 void drawDropShadow(juce::Graphics &g, juce::Rectangle<int> bounds, juce::Colour shadowColor, int radius,
@@ -251,7 +251,7 @@ void drawDropShadow(juce::Graphics &g, juce::Rectangle<int> bounds, juce::Colour
   }
 }
 
-//==============================================================================
+// ==============================================================================
 // Tooltip
 
 void drawTooltip(juce::Graphics &g, juce::Rectangle<int> bounds, const juce::String &text, juce::Colour bgColor,

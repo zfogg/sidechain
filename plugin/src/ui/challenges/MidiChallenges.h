@@ -7,7 +7,7 @@
 #include <JuceHeader.h>
 #include <memory>
 
-//==============================================================================
+// ==============================================================================
 /**
  * MidiChallenges displays active MIDI challenges (R.2.2.4.1)
  *
@@ -25,7 +25,7 @@ public:
   explicit MidiChallenges(Sidechain::Stores::AppStore *store = nullptr);
   ~MidiChallenges() override;
 
-  //==============================================================================
+  // ==============================================================================
   void paint(juce::Graphics &) override;
   void resized() override;
   void mouseUp(const juce::MouseEvent &event) override;
@@ -34,7 +34,7 @@ public:
   // ScrollBar::Listener
   void scrollBarMoved(juce::ScrollBar *scrollBar, double newRangeStart) override;
 
-  //==============================================================================
+  // ==============================================================================
   void setCurrentUserId(const juce::String &userId) {
     currentUserId = userId;
   }
@@ -43,46 +43,46 @@ public:
   void loadChallenges();
   void refresh();
 
-  //==============================================================================
+  // ==============================================================================
   // Callbacks
   std::function<void()> onBackPressed;
   std::function<void(const juce::String &challengeId)> onChallengeSelected; // Navigate to challenge detail
 
 protected:
-  //==============================================================================
+  // ==============================================================================
   // AppStoreComponent virtual methods
   void onAppStateChanged(const Sidechain::Stores::ChallengeState &state) override;
   void subscribeToAppStore() override;
 
 private:
-  //==============================================================================
+  // ==============================================================================
   // Filter types
   enum class FilterType { All, Active, Voting, Past, Upcoming };
 
   FilterType currentFilter = FilterType::Active;
 
-  //==============================================================================
+  // ==============================================================================
   // Data
   juce::String currentUserId;
   juce::Array<MIDIChallenge> challenges;
   bool isLoading = false;
   juce::String errorMessage;
 
-  //==============================================================================
+  // ==============================================================================
   // UI Components
   juce::ScrollBar scrollBar{true}; // vertical
 
   // Scroll state
   int scrollOffset = 0;
 
-  //==============================================================================
+  // ==============================================================================
   // Layout constants
   static constexpr int HEADER_HEIGHT = 60;
   static constexpr int FILTER_TAB_HEIGHT = 40;
   static constexpr int CHALLENGE_CARD_HEIGHT = 140;
   static constexpr int PADDING = 16;
 
-  //==============================================================================
+  // ==============================================================================
   // Drawing methods
   void drawHeader(juce::Graphics &g);
   void drawFilterTabs(juce::Graphics &g, juce::Rectangle<int> &bounds);
@@ -91,18 +91,18 @@ private:
   void drawEmptyState(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawErrorState(juce::Graphics &g, juce::Rectangle<int> bounds);
 
-  //==============================================================================
+  // ==============================================================================
   // Hit testing helpers
   juce::Rectangle<int> getBackButtonBounds() const;
   juce::Rectangle<int> getFilterTabBounds(FilterType filter) const;
   juce::Rectangle<int> getContentBounds() const;
   juce::Rectangle<int> getChallengeCardBounds(int index) const;
 
-  //==============================================================================
+  // ==============================================================================
   // Network operations
   void fetchChallenges(FilterType filter);
 
-  //==============================================================================
+  // ==============================================================================
   // Helper methods
   int calculateContentHeight() const;
   void updateScrollBounds();

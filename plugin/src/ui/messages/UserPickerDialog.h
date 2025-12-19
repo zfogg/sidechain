@@ -6,7 +6,7 @@
 
 class NetworkClient;
 
-//==============================================================================
+// ==============================================================================
 /**
  * UserPickerDialog - Modal dialog for selecting users to start a conversation
  *
@@ -65,7 +65,7 @@ public:
   void loadSuggestedUsers();
 
 private:
-  //==============================================================================
+  // ==============================================================================
   enum class DialogState { Loading, Showing, Error };
 
   DialogState dialogState = DialogState::Loading;

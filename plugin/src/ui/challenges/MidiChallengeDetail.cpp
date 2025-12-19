@@ -6,7 +6,7 @@
 #include "../../util/Log.h"
 #include "../../util/Result.h"
 
-//==============================================================================
+// ==============================================================================
 MidiChallengeDetail::MidiChallengeDetail(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   Log::info("MidiChallengeDetail: Initializing");
 
@@ -22,7 +22,7 @@ MidiChallengeDetail::~MidiChallengeDetail() {
   scrollBar.removeListener(this);
 }
 
-//==============================================================================
+// ==============================================================================
 void MidiChallengeDetail::setNetworkClient(NetworkClient *client) {
   networkClient = client;
   Log::debug("MidiChallengeDetail: NetworkClient set " + juce::String(client != nullptr ? "(valid)" : "(null)"));
@@ -32,7 +32,7 @@ void MidiChallengeDetail::setAudioPlayer(HttpAudioPlayer *player) {
   audioPlayer = player;
 }
 
-//==============================================================================
+// ==============================================================================
 // AppStoreComponent virtual methods
 
 void MidiChallengeDetail::subscribeToAppStore() {
@@ -82,7 +82,7 @@ void MidiChallengeDetail::onAppStateChanged(const Sidechain::Stores::ChallengeSt
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void MidiChallengeDetail::paint(juce::Graphics &g) {
   // Background
   g.fillAll(SidechainColors::background());
@@ -191,7 +191,7 @@ void MidiChallengeDetail::scrollBarMoved(juce::ScrollBar * /*scrollBar*/, double
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void MidiChallengeDetail::loadChallenge(const juce::String &id) {
   challengeId = id;
   fetchChallenge();
@@ -201,7 +201,7 @@ void MidiChallengeDetail::refresh() {
   fetchChallenge();
 }
 
-//==============================================================================
+// ==============================================================================
 void MidiChallengeDetail::fetchChallenge() {
   if (!networkClient || challengeId.isEmpty()) {
     Log::warn("MidiChallengeDetail: No network client or challenge ID");
@@ -277,7 +277,7 @@ void MidiChallengeDetail::voteForEntry(const juce::String &entryId) {
   });
 }
 
-//==============================================================================
+// ==============================================================================
 void MidiChallengeDetail::drawHeader(juce::Graphics &g) {
   auto bounds = juce::Rectangle<int>(0, 0, getWidth(), HEADER_HEIGHT);
 
@@ -380,7 +380,7 @@ void MidiChallengeDetail::drawEntryCard(juce::Graphics &g, juce::Rectangle<int> 
     g.fillRoundedRectangle(badgeBounds.toFloat(), 4.0f);
     g.setColour(SidechainColors::textPrimary());
     g.setFont(16.0f);
-    g.drawText("#" + juce::String(index + 1), badgeBounds, juce::Justification::centred);
+    g.drawText("# " + juce::String(index + 1), badgeBounds, juce::Justification::centred);
   } else {
     bounds.removeFromLeft(8);
   }
@@ -446,7 +446,7 @@ void MidiChallengeDetail::drawEmptyState(juce::Graphics &g, juce::Rectangle<int>
   g.drawText(text, bounds, juce::Justification::centred);
 }
 
-//==============================================================================
+// ==============================================================================
 juce::Rectangle<int> MidiChallengeDetail::getBackButtonBounds() const {
   return juce::Rectangle<int>(PADDING, 0, 50, HEADER_HEIGHT);
 }
@@ -481,7 +481,7 @@ juce::Rectangle<int> MidiChallengeDetail::getPlayButtonBounds(int index) const {
   return bottomBounds.removeFromRight(40);
 }
 
-//==============================================================================
+// ==============================================================================
 int MidiChallengeDetail::calculateContentHeight() const {
   int height = INFO_HEIGHT + BUTTON_HEIGHT + 16; // Info and buttons
   height += entries.size() * ENTRY_CARD_HEIGHT;

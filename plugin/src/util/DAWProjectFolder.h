@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 
-//==============================================================================
+// ==============================================================================
 /**
  * DAWProjectFolder utility for detecting and accessing DAW project folders
  * (R.3.3.7.1)
@@ -15,11 +15,11 @@
 namespace DAWProjectFolder {
 /** Structure representing a DAW project folder path */
 struct DAWProjectInfo {
-  juce::String dawName;      ///< DAW name (e.g., "Ableton Live")
-  juce::File projectFolder;  ///< Main project folder (may be invalid if not accessible)
-  juce::File midiFolder;     ///< MIDI-specific folder within project (may be invalid)
-  bool isAccessible = false; ///< Whether the project folder is accessible
-  juce::String errorMessage; ///< Error message if detection failed
+  juce::String dawName;      // /< DAW name (e.g., "Ableton Live")
+  juce::File projectFolder;  // /< Main project folder (may be invalid if not accessible)
+  juce::File midiFolder;     // /< MIDI-specific folder within project (may be invalid)
+  bool isAccessible = false; // /< Whether the project folder is accessible
+  juce::String errorMessage; // /< Error message if detection failed
 };
 
 /**

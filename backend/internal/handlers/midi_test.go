@@ -12,7 +12,7 @@ import (
 )
 
 // =============================================================================
-// MIDI PATTERN ENDPOINT TESTS (R.3.3)
+// MIDI PATTERN ENDPOINT TESTS
 // =============================================================================
 
 func (suite *HandlersTestSuite) TestCreateMIDIPatternSuccess() {

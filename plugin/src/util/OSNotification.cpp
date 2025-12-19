@@ -1,15 +1,15 @@
 #include "util/OSNotification.h"
 
-//==============================================================================
+// ==============================================================================
 // macOS stubs - real implementation is in OSNotification_mac.mm
-//==============================================================================
+// ==============================================================================
 #if JUCE_MAC
 // Implementations provided in OSNotification_mac.mm
 #endif
 
-//==============================================================================
+// ==============================================================================
 // Windows Implementation (Windows Runtime Toast Notifications)
-//==============================================================================
+// ==============================================================================
 #if JUCE_WINDOWS
 
 // Disable warning about WinRT being deprecated in favor of C++/WinRT
@@ -57,7 +57,7 @@ bool OSNotification::showWindows(const juce::String &title, const juce::String &
   // 1. The host application owns the COM apartment
   // 2. We don't have control over the application manifest
   // 3. Toast notifications require AUMID registration
-  //
+
   // Instead, we'll use a non-blocking approach via JUCE's native alert
   juce::MessageManager::callAsync([title, bodyText]() {
     juce::NativeMessageBox::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon, title, bodyText, nullptr, nullptr);
@@ -83,9 +83,9 @@ void OSNotification::requestPermissionWindows(std::function<void(bool)> callback
 
 #endif // JUCE_WINDOWS
 
-//==============================================================================
+// ==============================================================================
 // Linux Implementation (libnotify or D-Bus notifications)
-//==============================================================================
+// ==============================================================================
 #if JUCE_LINUX
 
 #ifndef SIDECHAIN_HAS_LIBNOTIFY
@@ -351,9 +351,9 @@ void OSNotification::requestPermissionLinux(std::function<void(bool)> callback) 
 
 #endif // JUCE_LINUX
 
-//==============================================================================
+// ==============================================================================
 // Public API Implementation
-//==============================================================================
+// ==============================================================================
 
 bool OSNotification::isSupported() {
 #if JUCE_MAC || JUCE_WINDOWS || JUCE_LINUX

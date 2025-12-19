@@ -3,7 +3,7 @@
 #include <JuceHeader.h>
 #include <vector>
 
-//==============================================================================
+// ==============================================================================
 /**
  * CircularVisualization displays MIDI data in a radial/circular style
  * (7.5.5.2.2)
@@ -31,15 +31,15 @@ public:
   CircularVisualization();
   ~CircularVisualization() override;
 
-  //==============================================================================
+  // ==============================================================================
   void paint(juce::Graphics &) override;
   void resized() override;
 
-  //==============================================================================
+  // ==============================================================================
   // Timer for animation
   void timerCallback() override;
 
-  //==============================================================================
+  // ==============================================================================
   // MIDI data management
 
   // Set MIDI data from JSON (from MIDICapture::getMIDIDataAsJSON)
@@ -54,7 +54,7 @@ public:
   // Callback for seeking to a time position
   std::function<void(double timeSeconds)> onSeekToTime;
 
-  //==============================================================================
+  // ==============================================================================
   // Display options
 
   // Enable/disable velocity-based sizing
@@ -77,7 +77,7 @@ public:
   }
 
 private:
-  //==============================================================================
+  // ==============================================================================
   // Internal note representation (derived from MIDI events)
   struct Note {
     double startTime;
@@ -112,7 +112,7 @@ private:
   float innerRadius = 0.0f;
   float outerRadius = 0.0f;
 
-  //==============================================================================
+  // ==============================================================================
   // Drawing helpers
   void drawBackground(juce::Graphics &g);
   void drawRings(juce::Graphics &g);

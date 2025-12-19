@@ -26,7 +26,7 @@ const juce::Colour channelColors[] = {
 };
 } // namespace WaterfallColors
 
-//==============================================================================
+// ==============================================================================
 NoteWaterfall::NoteWaterfall() {
   // Start animation timer (60fps for smooth falling)
   startTimerHz(60);
@@ -38,7 +38,7 @@ NoteWaterfall::~NoteWaterfall() {
   stopTimer();
 }
 
-//==============================================================================
+// ==============================================================================
 void NoteWaterfall::paint(juce::Graphics &g) {
   // Background
   drawBackground(g);
@@ -57,7 +57,7 @@ void NoteWaterfall::resized() {
   // No sub-components to layout
 }
 
-//==============================================================================
+// ==============================================================================
 void NoteWaterfall::timerCallback() {
   // Animate pulse for active notes
   pulsePhase += 0.15f;
@@ -67,7 +67,7 @@ void NoteWaterfall::timerCallback() {
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void NoteWaterfall::setMIDIData(const juce::var &midiData) {
   notes.clear();
 
@@ -129,7 +129,7 @@ void NoteWaterfall::setNoteRange(int lowNote, int highNote) {
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void NoteWaterfall::drawBackground(juce::Graphics &g) {
   auto bounds = getLocalBounds();
 
@@ -296,14 +296,14 @@ void NoteWaterfall::drawActiveNotesGlow(juce::Graphics &g) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 bool NoteWaterfall::isBlackKey(int noteNumber) const {
   int noteInOctave = noteNumber % 12;
   return noteInOctave == 1 || noteInOctave == 3 || noteInOctave == 6 || noteInOctave == 8 || noteInOctave == 10;
 }
 
 juce::String NoteWaterfall::getNoteName(int noteNumber) const {
-  static const char *noteNames[] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
+  static const char *noteNames[] = {"C", "C# ", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
   int octave = (noteNumber / 12) - 1;
   int noteIndex = noteNumber % 12;
   return juce::String(noteNames[noteIndex]) + juce::String(octave);

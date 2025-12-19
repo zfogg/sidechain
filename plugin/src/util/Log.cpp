@@ -4,7 +4,7 @@
 
 namespace Log {
 
-//==============================================================================
+// ==============================================================================
 // Internal state
 namespace {
 std::mutex logMutex;
@@ -22,7 +22,7 @@ Level minLevel = Level::Info; // Release: Info and above
 Level minLevel = Level::Debug; // Debug: All levels
 #endif
 
-//==========================================================================
+// ==========================================================================
 // Get log directory based on NDEBUG macro
 // - When NDEBUG is defined (Release builds): Use platform-specific standard log
 // directories
@@ -55,7 +55,7 @@ juce::File getLogDirectory() {
 #endif
 }
 
-//==========================================================================
+// ==========================================================================
 // Initialize file logging (lazy, thread-safe)
 void initializeFileLogging() {
   if (initializationAttempted || shutdownCalled)
@@ -112,20 +112,20 @@ void initializeFileLogging() {
   }
 }
 
-//==========================================================================
+// ==========================================================================
 // Format timestamp
 juce::String getTimestamp() {
   auto now = juce::Time::getCurrentTime();
   return now.formatted("%Y-%m-%d %H:%M:%S");
 }
 
-//==========================================================================
+// ==========================================================================
 // Format log entry
 juce::String formatLogEntry(Level level, const juce::String &message) {
   return "[" + getTimestamp() + "] [" + levelToString(level) + "] " + message;
 }
 
-//==========================================================================
+// ==========================================================================
 // Write to console
 void writeToConsole(Level level, const juce::String &formattedMessage) {
   if (!consoleLoggingEnabled)
@@ -139,7 +139,7 @@ void writeToConsole(Level level, const juce::String &formattedMessage) {
   }
 }
 
-//==========================================================================
+// ==========================================================================
 // Write to file
 void writeToFile(const juce::String &formattedMessage) {
   if (!fileLoggingEnabled)
@@ -165,7 +165,7 @@ void writeToFile(const juce::String &formattedMessage) {
 
 } // anonymous namespace
 
-//==============================================================================
+// ==============================================================================
 // Public API implementation
 
 const char *levelToString(Level level) {

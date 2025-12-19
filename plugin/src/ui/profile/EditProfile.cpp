@@ -6,11 +6,11 @@
 #include "../../util/Result.h"
 #include "../../util/Validate.h"
 
-//==============================================================================
+// ==============================================================================
 EditProfile::EditProfile(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   Log::info("EditProfile: Initializing");
   setupEditors();
-  // Set size last to avoid resized() being called before components are created
+  // Set size last to avoid resized being called before components are created
   setSize(500, 1050); // Height for profile editing + settings section
   initialize();
 }
@@ -19,7 +19,7 @@ EditProfile::~EditProfile() {
   Log::debug("EditProfile: Destroying");
 }
 
-//==============================================================================
+// ==============================================================================
 void EditProfile::setupEditors() {
   auto styleEditor = [this](juce::TextEditor &editor, const juce::String &placeholder, bool multiLine = false) {
     editor.setMultiLine(multiLine, true);
@@ -294,7 +294,7 @@ void EditProfile::updateHasChanges() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void EditProfile::paint(juce::Graphics &g) {
   // Background
   g.fillAll(Colors::background);
@@ -409,7 +409,7 @@ void EditProfile::drawFormSection(juce::Graphics &g, const juce::String &title, 
   g.drawText(title.toUpperCase(), bounds, juce::Justification::centredLeft);
 }
 
-//==============================================================================
+// ==============================================================================
 void EditProfile::resized() {
   // Header buttons
   cancelButton->setBounds(PADDING, 15, 70, 30);
@@ -473,7 +473,7 @@ juce::Rectangle<int> EditProfile::getAvatarBounds() const {
   return juce::Rectangle<int>((getWidth() - AVATAR_SIZE) / 2, HEADER_HEIGHT + 15, AVATAR_SIZE, AVATAR_SIZE);
 }
 
-//==============================================================================
+// ==============================================================================
 void EditProfile::buttonClicked(juce::Button *button) {
   if (button == cancelButton.get()) {
     // Close dialog directly without callback
@@ -510,7 +510,7 @@ void EditProfile::textEditorTextChanged(juce::TextEditor &editor) {
   updateHasChanges();
 }
 
-//==============================================================================
+// ==============================================================================
 // Save editor values to UserStore
 void EditProfile::handleSave() {
   if (!appStore || !hasUnsavedChanges) {
@@ -615,7 +615,7 @@ void EditProfile::handlePhotoSelect() {
                        });
 }
 
-//==============================================================================
+// ==============================================================================
 void EditProfile::showModal(juce::Component *parentComponent) {
   if (parentComponent == nullptr)
     return;
@@ -634,9 +634,9 @@ void EditProfile::closeDialog() {
   });
 }
 
-//==============================================================================
+// ==============================================================================
 // AppStoreComponent overrides
-//==============================================================================
+// ==============================================================================
 void EditProfile::onAppStateChanged(const Sidechain::Stores::UserState &state) {
   // Update form if there are saved changes (e.g., username change completed)
   if (!hasUnsavedChanges && isVisible()) {

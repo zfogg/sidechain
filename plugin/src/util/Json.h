@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 
-//==============================================================================
+// ==============================================================================
 /**
  * Json - Type-safe JSON property access utilities
  *
@@ -18,7 +18,7 @@
  * - Type mismatches (returns default value)
  */
 namespace Json {
-//==========================================================================
+// ==========================================================================
 // Primitive type accessors
 
 /** Get string value, returns defaultVal if key missing or not a string
@@ -69,7 +69,7 @@ double getDouble(const juce::var &json, const char *key, double defaultVal = 0.0
  */
 bool getBool(const juce::var &json, const char *key, bool defaultVal = false);
 
-//==========================================================================
+// ==========================================================================
 // Complex type accessors
 
 /** Get nested object, returns void var if key missing or not an object
@@ -86,7 +86,7 @@ juce::var getObject(const juce::var &json, const char *key);
  */
 juce::var getArray(const juce::var &json, const char *key);
 
-//==========================================================================
+// ==========================================================================
 // Array element accessors
 
 /** Get string from array at index
@@ -112,7 +112,7 @@ int getIntAt(const juce::var &array, int index, int defaultVal = 0);
  */
 juce::var getObjectAt(const juce::var &array, int index);
 
-//==========================================================================
+// ==========================================================================
 // Utility functions
 
 /** Check if json has a key (and it's not void/undefined)

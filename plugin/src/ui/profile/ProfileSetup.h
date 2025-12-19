@@ -4,7 +4,7 @@
 #include "../common/AppStoreComponent.h"
 #include <JuceHeader.h>
 
-//==============================================================================
+// ==============================================================================
 /**
  * ProfileSetup - First-time user profile setup wizard
  *
@@ -63,7 +63,7 @@ public:
   void resetUploadState();
 
 protected:
-  //==============================================================================
+  // ==============================================================================
   // AppStoreComponent overrides
   void onAppStateChanged(const Sidechain::Stores::UserState &state) override;
   void subscribeToAppStore() override;

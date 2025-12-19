@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 
-//==============================================================================
+// ==============================================================================
 /**
  * StringFormatter - Number, duration, and display string formatting utilities
  *
@@ -15,7 +15,7 @@
  *   auto percent = StringFormatter::formatPercentage(0.75);  // "75%"
  */
 namespace StringFormatter {
-//==========================================================================
+// ==========================================================================
 // Count Formatting (K, M, B suffixes)
 
 /**
@@ -34,7 +34,7 @@ juce::String formatCount(int value, int decimals);
  */
 juce::String formatLargeNumber(int64_t value);
 
-//==========================================================================
+// ==========================================================================
 // Duration Formatting
 
 /**
@@ -61,7 +61,7 @@ juce::String formatDurationHMS(double seconds);
  */
 juce::String formatMilliseconds(int ms);
 
-//==========================================================================
+// ==========================================================================
 // Percentage Formatting
 
 /**
@@ -76,7 +76,7 @@ juce::String formatPercentage(float value);
  */
 juce::String formatPercentage(float value, int decimals);
 
-//==========================================================================
+// ==========================================================================
 // Music-specific Formatting
 
 /**
@@ -99,11 +99,11 @@ juce::String formatConfidence(float confidence);
 
 /**
  * Format a musical key.
- * Examples: "Cm" → "C minor", "F#" → "F# major"
+ * Examples: "Cm" → "C minor", "F# " → "F# major"
  */
 juce::String formatKeyLong(const juce::String &key);
 
-//==========================================================================
+// ==========================================================================
 // Social/Engagement Formatting
 
 /**
@@ -129,7 +129,7 @@ juce::String formatComments(int count);
  */
 juce::String formatPlays(int count);
 
-//==========================================================================
+// ==========================================================================
 // Time Ago Formatting
 
 /**

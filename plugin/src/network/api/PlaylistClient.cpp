@@ -1,7 +1,7 @@
-//==============================================================================
+// ==============================================================================
 // PlaylistClient.cpp - Playlist operations
 // Part of NetworkClient implementation split
-//==============================================================================
+// ==============================================================================
 
 #include "../../util/Async.h"
 #include "../../util/Log.h"
@@ -10,7 +10,7 @@
 
 using namespace Sidechain::Network::Api;
 
-//==============================================================================
+// ==============================================================================
 void NetworkClient::createPlaylist(const juce::String &name, const juce::String &description, bool isCollaborative,
                                    bool isPublic, ResponseCallback callback) {
   if (callback == nullptr)

@@ -9,7 +9,7 @@
 #include <websocketpp/common/memory.hpp>
 #include <websocketpp/common/thread.hpp>
 
-//==============================================================================
+// ==============================================================================
 StreamChatClient::StreamChatClient(NetworkClient *client, const Config &cfg) : networkClient(client), config(cfg) {
   Log::info("StreamChatClient initialized");
 }
@@ -18,7 +18,7 @@ StreamChatClient::~StreamChatClient() {
   disconnectWebSocket();
 }
 
-//==============================================================================
+// ==============================================================================
 void StreamChatClient::fetchToken(const juce::String &backendAuthTokenParam, TokenCallback callback) {
   this->backendAuthToken = backendAuthTokenParam;
 
@@ -70,12 +70,12 @@ void StreamChatClient::setToken(const juce::String &token, const juce::String &k
 
   // Build WebSocket URL:
   // wss://chat.stream-io-api.com/?api_key={key}&authorization={token}&user_id={userId}
-  wsUrl = "wss://chat.stream-io-api.com/?api_key=" + apiKey + "&authorization=" + token + "&user_id=" + userId;
+  wsUrl = "wss:// chat.stream-io-api.com/?api_key=" + apiKey + "&authorization=" + token + "&user_id=" + userId;
 
   Log::info("StreamChatClient token set for user: " + userId + ", API key configured");
 }
 
-//==============================================================================
+// ==============================================================================
 juce::String StreamChatClient::buildAuthHeaders() const {
   juce::String headers = "Stream-Auth-Type: jwt\r\n";
   headers += "Authorization: " + chatToken + "\r\n";
@@ -138,7 +138,7 @@ juce::var StreamChatClient::makeStreamRequest(const juce::String &endpoint, cons
   return juce::JSON::parse(response);
 }
 
-//==============================================================================
+// ==============================================================================
 void StreamChatClient::createDirectChannel(const juce::String &targetUserId,
                                            std::function<void(Outcome<Channel>)> callback) {
   if (!isAuthenticated()) {
@@ -346,7 +346,7 @@ void StreamChatClient::queryChannels(ChannelsCallback callback, int limit, int o
       });
 }
 
-//==============================================================================
+// ==============================================================================
 void StreamChatClient::sendMessage(const juce::String &channelType, const juce::String &channelId,
                                    const juce::String &text, const juce::var &extraData, MessageCallback callback) {
   if (!isAuthenticated()) {
@@ -487,7 +487,7 @@ void StreamChatClient::queryMessages(const juce::String &channelType, const juce
       });
 }
 
-//==============================================================================
+// ==============================================================================
 void StreamChatClient::searchMessages(const juce::String &query, const juce::var &channelFilters, int limit, int offset,
                                       MessagesCallback callback) {
   if (!isAuthenticated() || query.isEmpty()) {
@@ -532,7 +532,7 @@ void StreamChatClient::searchMessages(const juce::String &query, const juce::var
       });
 }
 
-//==============================================================================
+// ==============================================================================
 void StreamChatClient::queryPresence(const std::vector<juce::String> &userIds, PresenceCallback callback) {
   if (!isAuthenticated() || userIds.empty()) {
     if (callback)
@@ -581,7 +581,7 @@ void StreamChatClient::queryPresence(const std::vector<juce::String> &userIds, P
       });
 }
 
-//==============================================================================
+// ==============================================================================
 void StreamChatClient::connectWebSocket() {
   if (!isAuthenticated() || wsUrl.isEmpty()) {
     Log::warn("StreamChatClient: Cannot connect WebSocket - not authenticated");
@@ -696,7 +696,7 @@ void StreamChatClient::cleanupWebSocket() {
 
     // Wait for ASIO thread to finish (with timeout, then detach)
     if (wsAsioThread && wsAsioThread->joinable()) {
-      // Give the thread time to respond to stop()
+      // Give the thread time to respond to stop
       std::this_thread::sleep_for(std::chrono::milliseconds(200));
       if (wsAsioThread->joinable()) {
         // Detach instead of blocking forever - the thread will exit
@@ -710,7 +710,7 @@ void StreamChatClient::cleanupWebSocket() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 // WebSocket event handlers
 void StreamChatClient::onWsOpen(connection_hdl /* hdl */) {
   wsConnected.store(true);
@@ -757,7 +757,7 @@ void StreamChatClient::onWsFail(connection_hdl hdl) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 juce::String StreamChatClient::generateDirectChannelId(const juce::String &userId1, const juce::String &userId2) {
   // Sort user IDs to ensure consistent channel ID
   juce::StringArray ids;
@@ -777,7 +777,7 @@ juce::String StreamChatClient::generateDirectChannelId(const juce::String &userI
   return channelId;
 }
 
-//==============================================================================
+// ==============================================================================
 StreamChatClient::Channel StreamChatClient::parseChannel(const juce::var &channelData) {
   Channel channel;
 
@@ -834,7 +834,7 @@ StreamChatClient::UserPresence StreamChatClient::parsePresence(const juce::var &
   return presence;
 }
 
-//==============================================================================
+// ==============================================================================
 void StreamChatClient::updateConnectionStatus(ConnectionStatus status) {
   auto previousStatus = connectionStatus.exchange(status);
   if (previousStatus != status && connectionStatusCallback) {
@@ -845,7 +845,7 @@ void StreamChatClient::updateConnectionStatus(ConnectionStatus status) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void StreamChatClient::getChannel(const juce::String &channelType, const juce::String &channelId,
                                   std::function<void(Outcome<Channel>)> callback) {
   if (!isAuthenticated()) {
@@ -1232,7 +1232,7 @@ void StreamChatClient::updateStatus(const juce::String &status, const juce::var 
       });
 }
 
-//==============================================================================
+// ==============================================================================
 // Channel Watching (Polling-based Real-time)
 
 // Helper class for channel polling timer
@@ -1468,7 +1468,7 @@ void StreamChatClient::parseWebSocketEvent(const juce::var &event) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void StreamChatClient::uploadAudioSnippet(const juce::AudioBuffer<float> &audioBuffer, double sampleRate,
                                           AudioSnippetCallback callback) {
   if (!isAuthenticated() || backendAuthToken.isEmpty()) {

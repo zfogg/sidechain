@@ -558,7 +558,7 @@ func (c *Client) SearchPosts(ctx context.Context, params SearchPostsParams) (*Se
 	mustClauses := []map[string]interface{}{}
 	shouldClauses := []map[string]interface{}{}
 
-	// Text search on filename, username, genre, DAW (7.1.4)
+	// Text search on filename, username, genre, DAW
 	if params.Query != "" {
 		shouldClauses = append(shouldClauses,
 			map[string]interface{}{
@@ -666,7 +666,7 @@ func (c *Client) SearchPosts(ctx context.Context, params SearchPostsParams) (*Se
 		}
 	}
 
-	// Ranking: Score by relevance + engagement + recency (7.1.8)
+	// Ranking: Score by relevance + engagement + recency
 	// Use function_score query to combine relevance with engagement and recency
 	scoredQuery := map[string]interface{}{
 		"function_score": map[string]interface{}{
@@ -710,7 +710,7 @@ func (c *Client) SearchPosts(ctx context.Context, params SearchPostsParams) (*Se
 	}
 
 	// Build final query with pagination and sorting
-	// Phase 6.2: Optimize queries for better performance
+	// Optimize queries for better performance
 	query := map[string]interface{}{
 		"query": scoredQuery,
 		"from":  params.Offset,
@@ -719,13 +719,13 @@ func (c *Client) SearchPosts(ctx context.Context, params SearchPostsParams) (*Se
 			{"_score": map[string]interface{}{"order": "desc"}},
 			{"created_at": map[string]interface{}{"order": "desc"}},
 		},
-		// Early termination: stop after finding enough results (Phase 6.2)
+		// Early termination: stop after finding enough results
 		"terminate_after": params.Limit * 2,
-		// Don't track exact hit count for performance - we only need "at least this many" (Phase 6.2)
+		// Don't track exact hit count for performance - we only need "at least this many"
 		"track_total_hits": false,
-		// Set minimum score to filter out very low relevance results (Phase 6.2)
+		// Set minimum score to filter out very low relevance results
 		"min_score": 0.1,
-		// Timeout for long-running queries (Phase 6.2)
+		// Timeout for long-running queries
 		"timeout": "5s",
 	}
 
@@ -887,7 +887,7 @@ func (c *Client) SuggestUsers(ctx context.Context, query string, limit int) ([]s
 	return suggestions, nil
 }
 
-// TrackSearchQuery tracks a search query for analytics (7.1.9)
+// TrackSearchQuery tracks a search query for analytics
 func (c *Client) TrackSearchQuery(ctx context.Context, query string, resultCount int, filters map[string]interface{}) error {
 	// In a production system, you'd index this to a separate "search_analytics" index
 	// For now, we'll just log it - can be expanded later

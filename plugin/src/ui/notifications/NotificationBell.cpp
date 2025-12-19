@@ -1,7 +1,7 @@
 #include "NotificationBell.h"
 #include "../../util/Log.h"
 
-//==============================================================================
+// ==============================================================================
 NotificationBell::NotificationBell(Sidechain::Stores::AppStore *store)
     : Sidechain::UI::AppStoreComponent<Sidechain::Stores::NotificationState>(store) {
   setSize(PREFERRED_SIZE, PREFERRED_SIZE);
@@ -21,7 +21,7 @@ NotificationBell::NotificationBell(Sidechain::Stores::AppStore *store)
 
 NotificationBell::~NotificationBell() = default;
 
-//==============================================================================
+// ==============================================================================
 // AppStoreComponent implementation
 
 void NotificationBell::onAppStateChanged(const Sidechain::Stores::NotificationState &state) {
@@ -44,7 +44,7 @@ void NotificationBell::subscribeToAppStore() {
   });
 }
 
-//==============================================================================
+// ==============================================================================
 void NotificationBell::setUnseenCount(int count) {
   if (unseenCount != count) {
     unseenCount = juce::jmax(0, count);
@@ -76,7 +76,7 @@ void NotificationBell::clearBadge() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void NotificationBell::paint(juce::Graphics &g) {
   auto bounds = getLocalBounds().toFloat();
 
@@ -190,7 +190,7 @@ juce::String NotificationBell::getBadgeText() const {
   return juce::String(total);
 }
 
-//==============================================================================
+// ==============================================================================
 void NotificationBell::resized() {
   // No child components to layout
 }

@@ -5,7 +5,7 @@
 #include "../../util/Json.h"
 #include "../../util/Log.h"
 
-//==============================================================================
+// ==============================================================================
 SelectHighlightDialog::SelectHighlightDialog() {
   // Scroll bar
   scrollBar = std::make_unique<juce::ScrollBar>(true);
@@ -21,7 +21,7 @@ SelectHighlightDialog::SelectHighlightDialog() {
   cancelButton->setColour(juce::TextButton::textColourOffId, SidechainColors::textPrimary());
   addAndMakeVisible(cancelButton.get());
 
-  // Set size last to avoid resized() being called before components are created
+  // Set size last to avoid resized being called before components are created
   setSize(DIALOG_WIDTH, DIALOG_HEIGHT);
 }
 
@@ -29,7 +29,7 @@ SelectHighlightDialog::~SelectHighlightDialog() {
   scrollBar->removeListener(this);
 }
 
-//==============================================================================
+// ==============================================================================
 void SelectHighlightDialog::paint(juce::Graphics &g) {
   // Semi-transparent backdrop
   g.fillAll(juce::Colours::black.withAlpha(0.6f));
@@ -215,7 +215,7 @@ void SelectHighlightDialog::drawError(juce::Graphics &g) {
   g.drawText(errorMessage, contentBounds, juce::Justification::centred);
 }
 
-//==============================================================================
+// ==============================================================================
 void SelectHighlightDialog::resized() {
   auto dialogBounds = getLocalBounds().withSizeKeepingCentre(DIALOG_WIDTH, DIALOG_HEIGHT);
 
@@ -271,7 +271,7 @@ void SelectHighlightDialog::scrollBarMoved(juce::ScrollBar * /*scrollBar*/, doub
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 juce::Rectangle<int> SelectHighlightDialog::getContentBounds() const {
   auto dialogBounds = getLocalBounds().withSizeKeepingCentre(DIALOG_WIDTH, DIALOG_HEIGHT);
   dialogBounds.removeFromTop(HEADER_HEIGHT);
@@ -307,7 +307,7 @@ bool SelectHighlightDialog::isCreateNewAt(juce::Point<int> pos) const {
   return getCreateNewBounds().contains(pos);
 }
 
-//==============================================================================
+// ==============================================================================
 void SelectHighlightDialog::showModal(juce::Component *parentComponent) {
   if (parentComponent == nullptr)
     return;

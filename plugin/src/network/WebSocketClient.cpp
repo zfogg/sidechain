@@ -5,7 +5,7 @@
 #include <websocketpp/common/memory.hpp>
 #include <websocketpp/common/thread.hpp>
 
-//==============================================================================
+// ==============================================================================
 WebSocketClient::WebSocketClient(const Config &cfg) : Thread("WebSocketClient"), config(cfg) {
   Log::info("WebSocketClient initialized - host: " + config.host + ":" + juce::String(config.port));
 }
@@ -15,7 +15,7 @@ WebSocketClient::~WebSocketClient() {
   stopThread(5000);
 }
 
-//==============================================================================
+// ==============================================================================
 void WebSocketClient::connect() {
   if (state.load() == ConnectionState::Connected || state.load() == ConnectionState::Connecting) {
     Log::debug("WebSocket: Already connected or connecting");
@@ -59,7 +59,7 @@ void WebSocketClient::disconnect() {
   notify();
 }
 
-//==============================================================================
+// ==============================================================================
 void WebSocketClient::setAuthToken(const juce::String &token) {
   authToken = token;
   Log::debug("WebSocket: Auth token set");
@@ -73,7 +73,7 @@ void WebSocketClient::setConfig(const Config &newConfig) {
   config = newConfig;
 }
 
-//==============================================================================
+// ==============================================================================
 bool WebSocketClient::send(const juce::var &message) {
   juce::String json = juce::JSON::toString(message);
 
@@ -117,13 +117,13 @@ bool WebSocketClient::send(const juce::String &type, const juce::var &data) {
   return send(message);
 }
 
-//==============================================================================
+// ==============================================================================
 WebSocketClient::Stats WebSocketClient::getStats() const {
   std::lock_guard<std::mutex> lock(statsMutex);
   return stats;
 }
 
-//==============================================================================
+// ==============================================================================
 // Thread implementation
 void WebSocketClient::run() {
   while (!threadShouldExit()) {
@@ -148,7 +148,7 @@ void WebSocketClient::run() {
   cleanupClient();
 }
 
-//==============================================================================
+// ==============================================================================
 void WebSocketClient::cleanupClient() {
   if (client) {
     try {
@@ -189,7 +189,7 @@ void WebSocketClient::cleanupClient() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void WebSocketClient::attemptConnection() {
   setState(ConnectionState::Connecting);
 
@@ -248,7 +248,7 @@ void WebSocketClient::attemptConnection() {
     // Connect (non-blocking)
     client->connect(con);
 
-    // Run ASIO event loop in a separate thread context (blocks until stop() is
+    // Run ASIO event loop in a separate thread context (blocks until stop is
     // called)
     asioThread = std::make_unique<std::thread>([this]() {
       try {
@@ -315,7 +315,7 @@ void WebSocketClient::connectionLoop() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 // websocketpp event handlers
 void WebSocketClient::onWsOpen(connection_hdl /* hdl */) {
   Log::info("WebSocket: Connected");
@@ -440,7 +440,7 @@ void WebSocketClient::onWsPong(connection_hdl /* hdl */, std::string /* appData 
   lastPongReceivedTime.store(juce::Time::currentTimeMillis());
 }
 
-//==============================================================================
+// ==============================================================================
 void WebSocketClient::handleDisconnect(const juce::String &reason) {
   Log::info("WebSocket: Disconnected - " + reason);
 
@@ -449,7 +449,7 @@ void WebSocketClient::handleDisconnect(const juce::String &reason) {
 
   // Note: We don't cleanupClient here because we want to preserve the client
   // for potential immediate reconnection. cleanupClient will be called in
-  // attemptConnection() before creating a new client, or in destructor.
+  // attemptConnection before creating a new client, or in destructor.
 
   if (shouldReconnect.load()) {
     scheduleReconnect();
@@ -488,7 +488,7 @@ void WebSocketClient::scheduleReconnect() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void WebSocketClient::processTextMessage(const juce::String &text) {
   Log::debug("WebSocket received: " + text);
 
@@ -569,7 +569,7 @@ WebSocketClient::MessageType WebSocketClient::parseMessageType(const juce::Strin
   return MessageType::Unknown;
 }
 
-//==============================================================================
+// ==============================================================================
 void WebSocketClient::sendHeartbeat() {
   // Send application-level heartbeat
   send("heartbeat", juce::var(new juce::DynamicObject()));
@@ -598,7 +598,7 @@ bool WebSocketClient::isHeartbeatTimedOut() const {
   return (now - lastPong) > (config.heartbeatIntervalMs * 2);
 }
 
-//==============================================================================
+// ==============================================================================
 void WebSocketClient::queueMessage(const juce::var &message) {
   std::lock_guard<std::mutex> lock(queueMutex);
 
@@ -629,7 +629,7 @@ void WebSocketClient::clearMessageQueue() {
     messageQueue.pop();
 }
 
-//==============================================================================
+// ==============================================================================
 void WebSocketClient::setState(ConnectionState newState) {
   auto previous = state.exchange(newState);
   if (previous != newState) {
@@ -645,9 +645,9 @@ void WebSocketClient::setState(ConnectionState newState) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 juce::String WebSocketClient::buildUri() const {
-  juce::String scheme = config.useTLS ? "wss://" : "ws://";
+  juce::String scheme = config.useTLS ? "wss:// " : "ws://";
   juce::String uri = scheme + config.host;
 
   if ((config.useTLS && config.port != 443) || (!config.useTLS && config.port != 80)) {

@@ -8,7 +8,7 @@
 // Forward declaration to avoid circular includes
 class SidechainAudioProcessor;
 
-//==============================================================================
+// ==============================================================================
 /**
  * Recording provides the UI for audio recording from the DAW.
  *
@@ -28,16 +28,16 @@ public:
   Recording(SidechainAudioProcessor &processor);
   ~Recording() override;
 
-  //==============================================================================
+  // ==============================================================================
   void paint(juce::Graphics &) override;
   void resized() override;
   void mouseUp(const juce::MouseEvent &event) override;
 
-  //==============================================================================
+  // ==============================================================================
   // Timer callback for UI updates
   void timerCallback() override;
 
-  //==============================================================================
+  // ==============================================================================
   // Callback when recording is complete and ready for upload
   // Includes MIDI data (captured during recording or imported from file)
   std::function<void(const juce::AudioBuffer<float> &, const juce::var &midiData)> onRecordingComplete;
@@ -48,8 +48,8 @@ public:
   // Callback when user wants to view drafts
   std::function<void()> onViewDrafts;
 
-  //==============================================================================
-  // Challenge context (R.2.2.4 - MIDI Challenges)
+  // ==============================================================================
+  // Challenge context
   /** Set the challenge ID for recording a challenge submission
    * @param id The challenge ID, empty string if not recording for a challenge
    */
@@ -61,10 +61,10 @@ public:
   juce::String getChallengeId() const;
 
 private:
-  //==============================================================================
+  // ==============================================================================
   SidechainAudioProcessor &audioProcessor;
 
-  // Challenge context (R.2.2.4 - MIDI Challenges)
+  // Challenge context
   juce::String activeChallengeId; // Empty if not recording for a challenge
 
   // Recording state
@@ -95,21 +95,21 @@ private:
   int keyDetectionSamplesAccumulated = 0;
   static constexpr int KEY_DETECTION_INTERVAL_SAMPLES = 88200; // ~2 seconds @ 44.1kHz
 
-  // UI areas (calculated in resized())
+  // UI areas (calculated in resized)
   juce::Rectangle<int> recordButtonArea;
   juce::Rectangle<int> timeDisplayArea;
   juce::Rectangle<int> levelMeterArea;
   juce::Rectangle<int> progressBarArea;
   juce::Rectangle<int> waveformArea;
   juce::Rectangle<int> actionButtonsArea;
-  juce::Rectangle<int> importMidiButtonArea; // R.3.3.6.3 MIDI import button
+  juce::Rectangle<int> importMidiButtonArea; // MIDI import button
   juce::Rectangle<int> viewDraftsButtonArea; // View drafts button
 
-  // Imported MIDI data (R.3.3.6.3)
+  // Imported MIDI data
   juce::var importedMidiData;
   bool hasImportedMidi = false;
 
-  //==============================================================================
+  // ==============================================================================
   // Drawing helpers
   void drawRecordButton(juce::Graphics &g);
   void drawTimeDisplay(juce::Graphics &g);
@@ -130,20 +130,20 @@ private:
   // Generate waveform path from audio buffer
   juce::Path generateWaveformPath(const juce::AudioBuffer<float> &buffer, juce::Rectangle<int> bounds);
 
-  //==============================================================================
+  // ==============================================================================
   // Button actions
   void startRecording();
   void stopRecording();
   void discardRecording();
   void confirmRecording();
 
-  // MIDI import (R.3.3.6.3)
+  // MIDI import
   void showMidiImportDialog();
   void importMidiFile(const juce::File &file);
   void drawImportMidiButton(juce::Graphics &g);
   void drawViewDraftsButton(juce::Graphics &g);
 
-  //==============================================================================
+  // ==============================================================================
   // Progressive key detection
   void processKeyDetectionChunk(const juce::AudioBuffer<float> &buffer);
   void updateKeyDetection();

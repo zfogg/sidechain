@@ -7,7 +7,7 @@
 
 class NetworkClient;
 
-//==============================================================================
+// ==============================================================================
 /**
  * EditProfile provides a modal for editing user profile
  *
@@ -27,7 +27,7 @@ public:
   EditProfile(Sidechain::Stores::AppStore *store = nullptr);
   ~EditProfile() override;
 
-  //==============================================================================
+  // ==============================================================================
   // Data binding
   void setNetworkClient(NetworkClient *client) {
     networkClient = client;
@@ -41,12 +41,12 @@ public:
     return pendingAvatarPath;
   }
 
-  //==============================================================================
+  // ==============================================================================
   // Modal dialog methods
   void showModal(juce::Component *parentComponent);
   void closeDialog();
 
-  //==============================================================================
+  // ==============================================================================
   // Navigation callbacks
   // Note: Profile save is now handled via UserStore subscription
   std::function<void()> onActivityStatusClicked;
@@ -55,7 +55,7 @@ public:
   std::function<void()> onProfileSetupClicked;
   std::function<void()> onLogoutClicked; // Logout button in settings header
 
-  //==============================================================================
+  // ==============================================================================
   // Component overrides
   void paint(juce::Graphics &g) override;
   void resized() override;
@@ -63,13 +63,13 @@ public:
   void textEditorTextChanged(juce::TextEditor &editor) override;
 
 protected:
-  //==============================================================================
+  // ==============================================================================
   // AppStoreComponent overrides
   void onAppStateChanged(const Sidechain::Stores::UserState &state) override;
   void subscribeToAppStore() override;
 
 private:
-  //==============================================================================
+  // ==============================================================================
   NetworkClient *networkClient = nullptr;
 
   // Local form state (tracks what user is editing, not saved state)
@@ -77,7 +77,7 @@ private:
   juce::String originalUsername;  // Username when form opened (to detect changes)
   bool hasUnsavedChanges = false; // Computed from comparing editors to UserStore
 
-  //==============================================================================
+  // ==============================================================================
   // UI Components
   std::unique_ptr<juce::TextEditor> usernameEditor;
   std::unique_ptr<juce::TextEditor> displayNameEditor;
@@ -113,13 +113,13 @@ private:
   juce::Image avatarImage;
   juce::String pendingAvatarPath;
 
-  //==============================================================================
+  // ==============================================================================
   // Drawing methods
   void drawHeader(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawFormSection(juce::Graphics &g, const juce::String &title, juce::Rectangle<int> bounds);
 
-  //==============================================================================
+  // ==============================================================================
   // Helpers
   void setupEditors();
   void populateFromUserStore(); // Populate form from UserStore
@@ -131,11 +131,11 @@ private:
   // Helper to build social links JSON from editors
   juce::var getSocialLinksFromEditors() const;
 
-  //==============================================================================
+  // ==============================================================================
   // Hit testing
   juce::Rectangle<int> getAvatarBounds() const;
 
-  //==============================================================================
+  // ==============================================================================
   // Layout constants
   static constexpr int HEADER_HEIGHT = 60;
   static constexpr int AVATAR_SIZE = 80;
@@ -144,7 +144,7 @@ private:
   static constexpr int SECTION_SPACING = 25;
   static constexpr int PADDING = 25;
 
-  //==============================================================================
+  // ==============================================================================
   // Colors
   struct Colors {
     static inline juce::Colour background{0xff1a1a1e};

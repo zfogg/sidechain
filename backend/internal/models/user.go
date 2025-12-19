@@ -99,7 +99,7 @@ type User struct {
 	SocialLinks       *SocialLinks `gorm:"type:jsonb;serializer:json" json:"social_links"`
 
 	// Social stats (fetched from getstream.io - these are cached values, not source of truth)
-	// Use stream.Client.GetFollowStats() for real-time counts
+	// Use stream.Client.GetFollowStats for real-time counts
 	FollowerCount  int `gorm:"default:0" json:"follower_count"`
 	FollowingCount int `gorm:"default:0" json:"following_count"`
 	PostCount      int `gorm:"default:0" json:"post_count"`
@@ -152,7 +152,7 @@ type AudioPost struct {
 	MIDIPatternID *string      `gorm:"index" json:"midi_pattern_id,omitempty"`
 	MIDIPattern   *MIDIPattern `gorm:"foreignKey:MIDIPatternID" json:"midi_pattern,omitempty"`
 
-	// Remix relationship (R.3.2 Remix Chains)
+	// Remix relationship
 	// A post can be a remix of another post OR a story
 	RemixOfPostID  *string    `gorm:"index" json:"remix_of_post_id,omitempty"`
 	RemixOfPost    *AudioPost `gorm:"foreignKey:RemixOfPostID" json:"remix_of_post,omitempty"`
@@ -403,7 +403,7 @@ func (fr *FollowRequest) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
-// SearchQuery represents a tracked search query for analytics (7.1.9)
+// SearchQuery represents a tracked search query for analytics
 type SearchQuery struct {
 	ID          string  `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
 	UserID      *string `gorm:"index" json:"user_id"` // Nullable for anonymous searches
@@ -417,7 +417,7 @@ type SearchQuery struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-// UserPreference tracks user listening preferences for recommendations (7.2.4)
+// UserPreference tracks user listening preferences for recommendations
 type UserPreference struct {
 	ID     string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
 	UserID string `gorm:"not null;index" json:"user_id"`
@@ -449,7 +449,7 @@ type PlayHistory struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-// Hashtag represents a hashtag used in posts (7.2.5)
+// Hashtag represents a hashtag used in posts
 type Hashtag struct {
 	ID         string    `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
 	Name       string    `gorm:"uniqueIndex;not null" json:"name"` // e.g., "house", "techno"
@@ -459,7 +459,7 @@ type Hashtag struct {
 	UpdatedAt  time.Time `json:"updated_at"`
 }
 
-// PostHashtag links posts to hashtags (many-to-many) (7.2.5)
+// PostHashtag links posts to hashtags (many-to-many)
 type PostHashtag struct {
 	ID        string    `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
 	PostID    string    `gorm:"not null;index" json:"post_id"`
@@ -536,7 +536,7 @@ func (StoryView) TableName() string {
 	return "story_views"
 }
 
-// StoryHighlight represents a collection of saved stories (7.5.6)
+// StoryHighlight represents a collection of saved stories
 // Highlights are permanent - they don't expire like regular stories
 type StoryHighlight struct {
 	ID          string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
@@ -672,10 +672,10 @@ func (p *AudioPost) BeforeCreate(tx *gorm.DB) error {
 
 // TODO: Device type is not defined - remove this hook or define Device struct
 // func (d *Device) BeforeCreate(tx *gorm.DB) error {
-// 	if d.ID == "" {
-// 		d.ID = generateUUID()
-// 	}
-// 	return nil
+// if d.ID == "" {
+// d.ID = generateUUID
+// }
+// return nil
 // }
 
 func (c *Comment) BeforeCreate(tx *gorm.DB) error {
@@ -837,10 +837,10 @@ func (u *User) GetAvatarURL() string {
 	return u.OAuthProfilePictureURL
 }
 
-//==============================================================================
-// Sound/Sample Pages (Feature #15)
+// ==============================================================================
+// Sound/Sample Pages
 // Audio fingerprinting to detect same audio used across posts
-//==============================================================================
+// ==============================================================================
 
 // Sound represents a unique audio signature that can appear in multiple posts
 // Similar to TikTok/Instagram sounds - when a sample is used by multiple users

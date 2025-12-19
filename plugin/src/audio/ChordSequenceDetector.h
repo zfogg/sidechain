@@ -6,7 +6,7 @@
 #include <set>
 #include <vector>
 
-//==============================================================================
+// ==============================================================================
 /**
  * ChordSequenceDetector detects chord sequences for unlocking easter eggs
  *
@@ -18,7 +18,7 @@
  */
 class ChordSequenceDetector {
 public:
-  //==============================================================================
+  // ==============================================================================
   /** Chord types */
   enum class ChordType { Unknown, Major, Minor, Diminished, Augmented, Sus2, Sus4, Major7, Minor7, Dominant7 };
 
@@ -34,7 +34,7 @@ public:
     }
 
     juce::String toString() const {
-      static const char *noteNames[] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
+      static const char *noteNames[] = {"C", "C# ", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
       juce::String name = noteNames[rootNote % 12];
 
       switch (type) {
@@ -80,14 +80,14 @@ public:
     bool unlocked = false;          // Whether already unlocked
   };
 
-  //==============================================================================
+  // ==============================================================================
   /** Constructor */
   ChordSequenceDetector();
 
   /** Destructor */
   ~ChordSequenceDetector() = default;
 
-  //==============================================================================
+  // ==============================================================================
   // MIDI Processing - call from AUDIO THREAD
 
   /** Process MIDI messages to detect chords
@@ -96,7 +96,7 @@ public:
    */
   void processMIDI(const juce::MidiBuffer &midiMessages, double sampleRate);
 
-  //==============================================================================
+  // ==============================================================================
   // Configuration - call from MESSAGE THREAD
 
   /** Add an unlock sequence to detect
@@ -122,7 +122,7 @@ public:
     return detecting.load();
   }
 
-  //==============================================================================
+  // ==============================================================================
   // State queries - thread-safe
 
   /** Get the currently detected chord (or empty if none) */
@@ -140,7 +140,7 @@ public:
   /** Get all unlocked sequence names */
   std::vector<juce::String> getUnlockedSequences() const;
 
-  //==============================================================================
+  // ==============================================================================
   // Predefined unlock sequences
 
   /** Create the basic synth unlock sequence (C-E-G-C arpeggio played as chord)
@@ -154,7 +154,7 @@ public:
   static UnlockSequence createSecretSequence(std::function<void()> onUnlock);
 
 private:
-  //==============================================================================
+  // ==============================================================================
   // Chord detection helpers
 
   /** Identify chord from currently held notes */
@@ -174,7 +174,7 @@ private:
   /** Trigger unlock callback on message thread */
   void triggerUnlock(UnlockSequence &sequence);
 
-  //==============================================================================
+  // ==============================================================================
   // State
   std::atomic<bool> detecting{true};
 

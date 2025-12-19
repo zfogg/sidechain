@@ -79,7 +79,7 @@ TwoFactorSettings::TwoFactorSettings(AppStore *store) : AppStoreComponent(store)
 
 TwoFactorSettings::~TwoFactorSettings() = default;
 
-//==============================================================================
+// ==============================================================================
 void TwoFactorSettings::onAppStateChanged(const AuthState &state) {
   // Update 2FA status from auth state if available
   // Note: 2FA status might need to be loaded separately via NetworkClient
@@ -102,7 +102,7 @@ void TwoFactorSettings::subscribeToAppStore() {
   });
 }
 
-//==============================================================================
+// ==============================================================================
 void TwoFactorSettings::loadStatus() {
   if (!networkClient) {
     showError("Network client not available");

@@ -3,7 +3,7 @@
 
 namespace Validate {
 
-//==============================================================================
+// ==============================================================================
 // String Format Validation
 
 bool isEmail(const juce::String &str) {
@@ -22,12 +22,12 @@ bool isUrl(const juce::String &str) {
   if (str.isEmpty())
     return false;
 
-  // Check for http:// or https:// prefix
+  // Check for http://or https://prefix
   if (!str.startsWithIgnoreCase("http://") && !str.startsWithIgnoreCase("https://"))
     return false;
 
   // Basic URL structure validation
-  static const std::regex urlRegex(R"(https?://[a-zA-Z0-9][-a-zA-Z0-9]*(\.[a-zA-Z0-9][-a-zA-Z0-9]*)+(:[0-9]+)?(/.*)?)",
+  static const std::regex urlRegex(R"(https?:// [a-zA-Z0-9][-a-zA-Z0-9]*(\.[a-zA-Z0-9][-a-zA-Z0-9]*)+(:[0-9]+)?(/.*)?)",
                                    std::regex::optimize);
 
   return std::regex_match(str.toStdString(), urlRegex);
@@ -84,7 +84,7 @@ bool isUuid(const juce::String &str) {
   return std::regex_match(str.toStdString(), uuidRegex);
 }
 
-//==============================================================================
+// ==============================================================================
 // Range Validation
 
 bool inRange(int val, int min, int max) {
@@ -100,7 +100,7 @@ bool lengthInRange(const juce::String &str, int minLen, int maxLen) {
   return len >= minLen && len <= maxLen;
 }
 
-//==============================================================================
+// ==============================================================================
 // Content Validation
 
 bool isBlank(const juce::String &str) {
@@ -144,7 +144,7 @@ bool isValidJson(const juce::String &str) {
   return !result.isUndefined();
 }
 
-//==============================================================================
+// ==============================================================================
 // Audio/Music Validation
 
 bool isValidBpm(float bpm) {
@@ -168,7 +168,7 @@ bool isValidDuration(float seconds) {
   return seconds >= 0.1f && seconds <= 300.0f;
 }
 
-//==============================================================================
+// ==============================================================================
 // Sanitization
 
 juce::String sanitizeUsername(const juce::String &input) {
@@ -250,7 +250,7 @@ juce::String escapeHtml(const juce::String &input) {
       result += "&quot;";
       break;
     case '\'':
-      result += "&#39;";
+      result += "&# 39;";
       break;
     default:
       result += c;

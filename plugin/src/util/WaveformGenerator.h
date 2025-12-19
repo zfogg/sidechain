@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 
-//==============================================================================
+// ==============================================================================
 /**
  * WaveformGenerator provides utilities for generating waveform visualizations
  * from audio buffers.
@@ -12,7 +12,7 @@
  */
 class WaveformGenerator {
 public:
-  //==============================================================================
+  // ==============================================================================
   /**
    * Generate a Path representing a waveform from an audio buffer.
    *

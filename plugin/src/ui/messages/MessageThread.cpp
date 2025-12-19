@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <map>
 
-//==============================================================================
+// ==============================================================================
 MessageThread::MessageThread(Sidechain::Stores::AppStore *store)
     : Sidechain::UI::AppStoreComponent<Sidechain::Stores::ChatState>(store), scrollBar(true) {
   Log::info("MessageThread: Initializing");
@@ -48,7 +48,7 @@ MessageThread::MessageThread(Sidechain::Stores::AppStore *store)
   startTimer(5000); // Refresh every 5 seconds
 }
 
-//==============================================================================
+// ==============================================================================
 // AppStoreComponent implementation
 
 void MessageThread::onAppStateChanged(const Sidechain::Stores::ChatState &state) {
@@ -237,8 +237,8 @@ void MessageThread::mouseUp(const juce::MouseEvent &event) {
 
   Log::debug("MessageThread::mouseUp - Click at (" + juce::String(pos.x) + ", " + juce::String(pos.y) + ")");
 
-  // TODO: Re-implement hit testing once messages are drawn via paint()
-  // Currently migration in progress - paint() shows placeholder text
+  // TODO: Re-implement hit testing once messages are drawn via paint
+  // Currently migration in progress - paint shows placeholder text
 
   if (getBackButtonBounds().contains(pos)) {
     Log::debug("MessageThread::mouseUp - Back button clicked");
@@ -336,7 +336,7 @@ void MessageThread::textEditorTextChanged(juce::TextEditor &editor) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void MessageThread::setStreamChatClient(StreamChatClient *client) {
   // streamChatClient only kept for backward compatibility, not used
   // for message updates
@@ -443,7 +443,7 @@ void MessageThread::sendMessage() {
 
 void MessageThread::timerCallback() {}
 
-//==============================================================================
+// ==============================================================================
 void MessageThread::drawHeader(juce::Graphics &g) {
   auto headerBounds = juce::Rectangle<int>(0, 0, getWidth(), HEADER_HEIGHT);
 
@@ -505,8 +505,8 @@ void MessageThread::drawInputArea(juce::Graphics &g) {
 }
 
 void MessageThread::drawMessages(juce::Graphics &g, const std::vector<StreamChatClient::Message> &messages) {
-  // Note: messages is passed in from paint() to avoid state changes between
-  // paint() and drawMessages() This ensures we're always working with the same
+  // Note: messages is passed in from paint to avoid state changes between
+  // paint and drawMessages This ensures we're always working with the same
   // snapshot of the message list
 
   int y = HEADER_HEIGHT + MESSAGE_TOP_PADDING - static_cast<int>(getScrollPosition());
@@ -730,7 +730,7 @@ void MessageThread::drawErrorState(juce::Graphics &g) {
   g.drawText("No messages", bounds, juce::Justification::centred);
 }
 
-//==============================================================================
+// ==============================================================================
 juce::String MessageThread::formatTimestamp(const juce::String &timestamp) {
   if (timestamp.isEmpty())
     return "";
@@ -1226,7 +1226,7 @@ void MessageThread::sendAudioSnippet(const juce::AudioBuffer<float> &audioBuffer
       });
 }
 
-//==============================================================================
+// ==============================================================================
 // Shared content detection
 bool MessageThread::hasSharedPost(const StreamChatClient::Message &message) const {
   if (!message.extraData.isObject())
@@ -1393,9 +1393,9 @@ void MessageThread::drawSharedStoryPreview(juce::Graphics &g, const StreamChatCl
   g.drawText("Tap to view", contentBounds, juce::Justification::centredLeft);
 }
 
-//==============================================================================
+// ==============================================================================
 // Reaction Methods
-//==============================================================================
+// ==============================================================================
 
 std::vector<juce::String> MessageThread::getReactionTypes(const StreamChatClient::Message &message) const {
   std::vector<juce::String> types;
@@ -1638,7 +1638,7 @@ void MessageThread::showQuickReactionPicker(const StreamChatClient::Message &mes
       });
 }
 
-//==============================================================================
+// ==============================================================================
 // Scroll Bar Listener
 
 void MessageThread::scrollBarMoved(juce::ScrollBar *scrollBarPtr, double newScrollPosition) {
@@ -1646,7 +1646,7 @@ void MessageThread::scrollBarMoved(juce::ScrollBar *scrollBarPtr, double newScro
   onScrollUpdate(newScrollPosition);
 }
 
-//==============================================================================
+// ==============================================================================
 // Message persistence (save/load from disk)
 
 // Message persistence is now managed by AppStore - no local storage needed

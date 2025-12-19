@@ -17,7 +17,7 @@
 #endif
 #include "util/error/ErrorTracking.h"
 
-//==============================================================================
+// ==============================================================================
 SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProcessor &p)
     : AudioProcessorEditor(&p), audioProcessor(p) {
   setSize(PLUGIN_WIDTH, PLUGIN_HEIGHT);
@@ -63,7 +63,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   // Check connection on startup
   networkClient->checkConnection();
 
-  //==========================================================================
+  // ==========================================================================
   // Create tooltip window for the entire plugin
   // This automatically displays tooltips for any child component that provides
   // one
@@ -89,7 +89,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     });
   });
 
-  //==========================================================================
+  // ==========================================================================
   // Create AuthComponent
   authComponent = std::make_unique<Auth>();
   authComponent->setNetworkClient(networkClient.get());
@@ -99,7 +99,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     // Generate a unique session ID for this OAuth attempt
     juce::String sessionId = juce::Uuid().toString().removeCharacters("-");
 
-    // Open OAuth URL in system browser with session_id (8.3.11.12)
+    // Open OAuth URL in system browser with session_id
     juce::String oauthUrl = juce::String(Constants::Endpoints::DEV_BASE_URL) + Constants::Endpoints::API_VERSION +
                             "/auth/" + provider + "?session_id=" + sessionId;
     juce::URL(oauthUrl).launchInDefaultBrowser();
@@ -108,14 +108,14 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     startOAuthPolling(sessionId, provider);
   };
 
-  // Handle OAuth cancellation (8.3.11.11)
+  // Handle OAuth cancellation
   authComponent->onOAuthCancelled = [this]() {
     Log::info("OAuth flow cancelled by user");
     stopOAuthPolling();
   };
   addChildComponent(authComponent.get());
 
-  //==========================================================================
+  // ==========================================================================
   // Create ProfileSetup
   profileSetupComponent = std::make_unique<ProfileSetup>();
   profileSetupComponent->onSkipSetup = [this]() { showView(AppView::PostsFeed); };
@@ -129,7 +129,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
       // Also set local preview in AppStore
       appStore.setLocalPreviewImage(imageFile);
 
-      // Show uploading state (8.3.11.6)
+      // Show uploading state
       if (profileSetupComponent)
         profileSetupComponent->setUploadProgress(0.1f); // Start at 10%
 
@@ -147,7 +147,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
             // Update profile setup component with the S3 URL
             if (profileSetupComponent) {
               profileSetupComponent->setProfilePictureUrl(s3Url);
-              profileSetupComponent->setUploadComplete(true); // Show success (8.3.11.7)
+              profileSetupComponent->setUploadComplete(true); // Show success
             }
 
             Log::info("Profile picture uploaded successfully: " + s3Url);
@@ -164,7 +164,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   profileSetupComponent->onLogout = [this]() { confirmAndLogout(); };
   addChildComponent(profileSetupComponent.get());
 
-  //==========================================================================
+  // ==========================================================================
   // Create PostsFeed
   postsFeedComponent = std::make_unique<PostsFeed>(&appStore);
   postsFeedComponent->setNetworkClient(networkClient.get());
@@ -191,14 +191,14 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   postsFeedComponent->onSoundClicked = [this](const juce::String &soundId) { showSoundPage(soundId); };
   addChildComponent(postsFeedComponent.get());
 
-  //==========================================================================
+  // ==========================================================================
   // Create RecordingComponent
   recordingComponent = std::make_unique<Recording>(audioProcessor);
   recordingComponent->onRecordingComplete = [this](const juce::AudioBuffer<float> &recordedAudio,
                                                    const juce::var &midiData) {
     if (uploadComponent) {
       // Use MIDI data passed from Recording (either captured or imported)
-      // (R.3.3)
+
       uploadComponent->setAudioToUpload(recordedAudio, audioProcessor.getCurrentSampleRate(), midiData);
       showView(AppView::Upload);
     }
@@ -207,7 +207,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   recordingComponent->onViewDrafts = [this]() { showDrafts(); };
   addChildComponent(recordingComponent.get());
 
-  //==========================================================================
+  // ==========================================================================
   // Create Upload
   uploadComponent = std::make_unique<Upload>(audioProcessor, *networkClient, &appStore);
   uploadComponent->onUploadComplete = [this]() {
@@ -221,7 +221,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   uploadComponent->onSaveAsDraft = [this]() { saveCurrentUploadAsDraft(); };
   addChildComponent(uploadComponent.get());
 
-  //==========================================================================
+  // ==========================================================================
   // Create DraftsView
   draftsViewComponent = std::make_unique<DraftsView>(&appStore);
   draftsViewComponent->onClose = [this]() { navigateBack(); };
@@ -247,7 +247,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   };
   addChildComponent(draftsViewComponent.get());
 
-  //==========================================================================
+  // ==========================================================================
   // Create UserDiscoveryComponent
   userDiscoveryComponent = std::make_unique<UserDiscovery>();
   userDiscoveryComponent->setNetworkClient(networkClient.get());
@@ -259,7 +259,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   };
   addChildComponent(userDiscoveryComponent.get());
 
-  //==========================================================================
+  // ==========================================================================
   // Create Search
   searchComponent = std::make_unique<Search>();
   searchComponent->setNetworkClient(networkClient.get());
@@ -275,7 +275,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   };
   addChildComponent(searchComponent.get());
 
-  //==========================================================================
+  // ==========================================================================
   // Create StoryRecording
   storyRecordingComponent = std::make_unique<StoryRecording>(audioProcessor);
   storyRecordingComponent->onRecordingComplete = [this](const juce::AudioBuffer<float> &recordedAudio,
@@ -306,7 +306,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   storyRecordingComponent->onCancel = [this]() { showView(AppView::PostsFeed); };
   addChildComponent(storyRecordingComponent.get());
 
-  //==========================================================================
+  // ==========================================================================
   // Create StoryViewer
   storyViewerComponent = std::make_unique<StoryViewer>(&appStore);
   storyViewerComponent->setNetworkClient(networkClient.get());
@@ -331,8 +331,8 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   storyViewerComponent->onSendStoryToMessage = [this](const StoryData &story) { showShareStoryToMessage(story); };
   addChildComponent(storyViewerComponent.get());
 
-  //==========================================================================
-  // Create HiddenSynth easter egg (R.2.1)
+  // ==========================================================================
+  // Create HiddenSynth easter egg
   hiddenSynthComponent = std::make_unique<HiddenSynth>(audioProcessor.getSynthEngine());
   hiddenSynthComponent->onBackPressed = [this]() {
     audioProcessor.setSynthEnabled(false);
@@ -340,7 +340,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   };
   addChildComponent(hiddenSynthComponent.get());
 
-  //==========================================================================
+  // ==========================================================================
   // Create Playlists
   playlistsComponent = std::make_unique<Playlists>();
   playlistsComponent->setCurrentUserId(appStore.getUserState().userId);
@@ -385,7 +385,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   };
   addChildComponent(playlistsComponent.get());
 
-  //==========================================================================
+  // ==========================================================================
   // Create PlaylistDetail
   playlistDetailComponent = std::make_unique<PlaylistDetail>();
   playlistDetailComponent->setNetworkClient(networkClient.get());
@@ -419,7 +419,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     // For now, use a simple format: sidechain://playlist/{id}
     // In production, this would be a web URL like
     // https://sidechain.app/playlist/{id}
-    juce::String shareLink = "sidechain://playlist/" + playlistId;
+    juce::String shareLink = "sidechain:// playlist/" + playlistId;
 
     // Copy to clipboard
     juce::SystemClipboard::copyTextToClipboard(shareLink);
@@ -429,8 +429,8 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   };
   addChildComponent(playlistDetailComponent.get());
 
-  //==========================================================================
-  // Create SoundPage component (Feature #15 - Sound/Sample Pages)
+  // ==========================================================================
+  // Create SoundPage component ( - Sound/Sample Pages)
   soundPageComponent = std::make_unique<SoundPage>();
   soundPageComponent->setNetworkClient(networkClient.get());
   soundPageComponent->onBackPressed = [this]() { navigateBack(); };
@@ -443,8 +443,8 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   soundPageComponent->onUserSelected = [this](const juce::String &userId) { showProfile(userId); };
   addChildComponent(soundPageComponent.get());
 
-  //==========================================================================
-  // Create MidiChallenges component (R.2.2.4.1)
+  // ==========================================================================
+  // Create MidiChallenges component
   midiChallengesComponent = std::make_unique<MidiChallenges>();
   midiChallengesComponent->bindToStore(&appStore);
   midiChallengesComponent->setCurrentUserId(appStore.getUserState().userId);
@@ -455,8 +455,8 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   };
   addChildComponent(midiChallengesComponent.get());
 
-  //==========================================================================
-  // Create MidiChallengeDetail component (R.2.2.4.2)
+  // ==========================================================================
+  // Create MidiChallengeDetail component
   midiChallengeDetailComponent = std::make_unique<MidiChallengeDetail>();
   midiChallengeDetailComponent->setNetworkClient(networkClient.get());
   midiChallengeDetailComponent->setAudioPlayer(&audioProcessor.getAudioPlayer());
@@ -475,7 +475,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   };
   addChildComponent(midiChallengeDetailComponent.get());
 
-  //==========================================================================
+  // ==========================================================================
   // Create SavedPosts component (P0 Social Feature)
   savedPostsComponent = std::make_unique<SavedPosts>(&appStore);
   savedPostsComponent->setNetworkClient(networkClient.get());
@@ -498,7 +498,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   savedPostsComponent->onUserClicked = [this](const juce::String &userId) { showProfile(userId); };
   addChildComponent(savedPostsComponent.get());
 
-  //==========================================================================
+  // ==========================================================================
   // Create ArchivedPosts component (Post Archive)
   archivedPostsComponent = std::make_unique<ArchivedPosts>(&appStore);
   archivedPostsComponent->setNetworkClient(networkClient.get());
@@ -521,7 +521,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   archivedPostsComponent->onUserClicked = [this](const juce::String &userId) { showProfile(userId); };
   addChildComponent(archivedPostsComponent.get());
 
-  //==========================================================================
+  // ==========================================================================
   // Create Story Highlight dialogs
   createHighlightDialog = std::make_unique<CreateHighlightDialog>();
   createHighlightDialog->setNetworkClient(networkClient.get());
@@ -547,7 +547,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   };
   // Not added as child - shown as modal overlay when needed
 
-  //==========================================================================
+  // ==========================================================================
   // Create ShareToMessageDialog for sharing posts/stories to DMs
   shareToMessageDialog = std::make_unique<ShareToMessageDialog>();
   shareToMessageDialog->onShared = [](int conversationCount) {
@@ -557,7 +557,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   shareToMessageDialog->onClosed = []() { Log::debug("PluginEditor: Share to DM closed"); };
   // Not added as child - shown as modal overlay when needed
 
-  //==========================================================================
+  // ==========================================================================
   // Create UserPickerDialog for creating new conversations
   userPickerDialog = std::make_unique<UserPickerDialog>();
   userPickerDialog->setNetworkClient(networkClient.get());
@@ -619,7 +619,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   };
   // Not added as child - shown as modal overlay when needed
 
-  //==========================================================================
+  // ==========================================================================
   // Create NotificationSettings dialog
   notificationSettingsDialog = std::make_unique<NotificationSettings>(&appStore);
   notificationSettingsDialog->setNetworkClient(networkClient.get());
@@ -629,25 +629,25 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   };
   // Not added as child - shown as modal overlay when needed
 
-  //==========================================================================
+  // ==========================================================================
   // Create TwoFactorSettings dialog
   twoFactorSettingsDialog = std::make_unique<TwoFactorSettings>(&appStore);
   twoFactorSettingsDialog->setNetworkClient(networkClient.get());
   twoFactorSettingsDialog->onClose = []() {
     // Dialog handles its own cleanup - callback is just a notification
-    // DO NOT call closeDialog() here - it causes recursive crash!
+    // DO NOT call closeDialog here - it causes recursive crash!
     Log::debug("TwoFactorSettings dialog closed");
   };
   // Not added as child - shown as modal overlay when needed
 
-  //==========================================================================
+  // ==========================================================================
   // Create ActivityStatusSettings dialog
   activityStatusDialog = std::make_unique<ActivityStatusSettings>(&appStore);
   activityStatusDialog->setNetworkClient(networkClient.get());
   activityStatusDialog->onClose = []() { Log::debug("ActivityStatusSettings dialog closed"); };
   // Not added as child - shown as modal overlay when needed
 
-  //==========================================================================
+  // ==========================================================================
   // Create EditProfile dialog (Settings page)
   editProfileDialog = std::make_unique<EditProfile>(&appStore);
   editProfileDialog->setNetworkClient(networkClient.get());
@@ -680,7 +680,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     });
   };
 
-  //==========================================================================
+  // ==========================================================================
   // Create StreamChatClient for getstream.io messaging
   streamChatClient = std::make_unique<StreamChatClient>(networkClient.get(), StreamChatClient::Config::development());
 
@@ -730,7 +730,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   if (searchComponent)
     searchComponent->setStreamChatClient(streamChatClient.get());
 
-  //==========================================================================
+  // ==========================================================================
   // Create MessagesList
   messagesListComponent = std::make_unique<MessagesList>();
   messagesListComponent->setStreamChatClient(streamChatClient.get());
@@ -772,7 +772,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   };
   addChildComponent(messagesListComponent.get());
 
-  //==========================================================================
+  // ==========================================================================
   // Create MessageThread
   messageThreadComponent = std::make_unique<MessageThread>(&appStore);
   messageThreadComponent->setStreamChatClient(streamChatClient.get());
@@ -795,7 +795,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   };
   addChildComponent(messageThreadComponent.get());
 
-  //==========================================================================
+  // ==========================================================================
   // Create Profile
   profileComponent = std::make_unique<Profile>(&appStore);
   profileComponent->setNetworkClient(networkClient.get());
@@ -842,11 +842,11 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   profileComponent->onTwoFactorSettingsClicked = [this]() { showTwoFactorSettings(); };
   addChildComponent(profileComponent.get());
 
-  //==========================================================================
+  // ==========================================================================
   // Setup notifications
   setupNotifications();
 
-  //==========================================================================
+  // ==========================================================================
   // Create central header component (shown on all post-login pages)
   headerComponent = std::make_unique<Header>();
   headerComponent->setAppStore(&appStore);
@@ -886,15 +886,15 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   };
   addChildComponent(headerComponent.get()); // Initially hidden until logged in
 
-  //==========================================================================
+  // ==========================================================================
   // Check for previous crash before loading state
   checkForPreviousCrash();
 
-  //==========================================================================
+  // ==========================================================================
   // Load persistent state and show appropriate view
   loadLoginState();
 
-  //==========================================================================
+  // ==========================================================================
   // Trigger initial layout now that all components are created
   resized();
 }
@@ -929,7 +929,7 @@ SidechainAudioProcessorEditor::~SidechainAudioProcessorEditor() {
     streamChatClient->disconnectWebSocket();
 }
 
-//==============================================================================
+// ==============================================================================
 void SidechainAudioProcessorEditor::paint(juce::Graphics &g) {
   // Dark background - each component handles its own painting
   g.fillAll(SidechainColors::background());
@@ -1036,7 +1036,7 @@ void SidechainAudioProcessorEditor::resized() {
   toastManager.setBounds(getLocalBounds());
 }
 
-//==============================================================================
+// ==============================================================================
 juce::Component *SidechainAudioProcessorEditor::getComponentForView(AppView view) {
   switch (view) {
   case AppView::Authentication:
@@ -1119,7 +1119,7 @@ void SidechainAudioProcessorEditor::showView(AppView view, NavigationDirection d
   // Determine if we should animate the transition
   // Don't animate: auth transitions, same view, missing components, or
   // explicitly no animation
-  //
+
   // TODO: Fix ViewTransitionManager.slideLeft animation for
   // PostsFeed ISSUE: When navigating TO PostsFeed, the slideLeft animation
   // starts but the completion callback never fires, causing the component to
@@ -1470,8 +1470,8 @@ void SidechainAudioProcessorEditor::showView(AppView view, NavigationDirection d
     break;
 
   case AppView::StoryViewer:
-    // StoryViewer is set up separately via showUserStory() or
-    // showHighlightStories()
+    // StoryViewer is set up separately via showUserStory or
+    // showHighlightStories
     break;
   }
 
@@ -1596,13 +1596,13 @@ void SidechainAudioProcessorEditor::checkForActiveStories() {
   });
 }
 
-//==============================================================================
+// ==============================================================================
 // DPI Scaling
 
 void SidechainAudioProcessorEditor::applySystemDpiScaling() {
   // IMPORTANT: Only apply manual DPI scaling on Linux.
   // On macOS and Windows, JUCE handles DPI/Retina scaling automatically.
-  // Manually calling setScaleFactor() on these platforms causes double-scaling.
+  // Manually calling setScaleFactor on these platforms causes double-scaling.
 #if JUCE_LINUX
   double systemScale = 1.0;
   juce::String scaleSource = "default";
@@ -2059,7 +2059,7 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String &user, con
           Log::info("onLoginSuccess: Profile fetch complete - userId: " + userState.userId +
                     ", profilePictureUrl: " + (userState.profilePictureUrl.isEmpty() ? "empty" : "set"));
 
-          // Sync user state to member variables for use by showView()
+          // Sync user state to member variables for use by showView
           username = userState.username;
           email = userState.email;
           profilePicUrl = userState.profilePictureUrl;
@@ -2148,7 +2148,7 @@ void SidechainAudioProcessorEditor::confirmAndLogout() {
                                      }));
 }
 
-//==============================================================================
+// ==============================================================================
 void SidechainAudioProcessorEditor::saveLoginState() {
   auto appProperties =
       std::make_unique<juce::PropertiesFile>(Sidechain::Util::PropertiesFileUtils::getStandardOptions());
@@ -2357,7 +2357,7 @@ void SidechainAudioProcessorEditor::loadLoginState() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 // Auto-open conversation with test message on startup
 void SidechainAudioProcessorEditor::sendTestMessageOnStartup() {
   if (!streamChatClient) {
@@ -2426,7 +2426,7 @@ void SidechainAudioProcessorEditor::sendTestMessageOnStartup() {
       });
 }
 
-//==============================================================================
+// ==============================================================================
 // Crash detection
 void SidechainAudioProcessorEditor::checkForPreviousCrash() {
   auto appProperties =
@@ -2475,7 +2475,7 @@ void SidechainAudioProcessorEditor::markCleanShutdown() {
   Log::debug("Marked clean shutdown");
 }
 
-//==============================================================================
+// ==============================================================================
 // WebSocket handling
 void SidechainAudioProcessorEditor::connectWebSocket() {
   if (!webSocketClient)
@@ -2540,7 +2540,7 @@ void SidechainAudioProcessorEditor::handleWebSocketMessage(const WebSocketClient
 
   case WebSocketClient::MessageType::Like:
   case WebSocketClient::MessageType::LikeCountUpdate: {
-    // Update like count on the affected post (5.5.3)
+    // Update like count on the affected post
     auto payload = message.getProperty("payload");
     auto postId = payload.getProperty("post_id", juce::var()).toString();
     auto likeCount = static_cast<int>(payload.getProperty("like_count", juce::var(0)));
@@ -2584,7 +2584,7 @@ void SidechainAudioProcessorEditor::handleWebSocketMessage(const WebSocketClient
 
   case WebSocketClient::MessageType::Follow:
   case WebSocketClient::MessageType::FollowerCountUpdate: {
-    // Follower count updated (5.5.4)
+    // Follower count updated
     auto payload = message.getProperty("payload");
     auto userId = payload.getProperty("followee_id", juce::var()).toString();
     auto followerCount = static_cast<int>(payload.getProperty("follower_count", juce::var(0)));
@@ -2692,7 +2692,7 @@ void SidechainAudioProcessorEditor::handleWebSocketStateChange(WebSocketClient::
   }
 }
 
-//==============================================================================
+// ==============================================================================
 // ChangeListener - for UserDataStore updates
 void SidechainAudioProcessorEditor::changeListenerCallback(juce::ChangeBroadcaster *source) {
   // Update UI only if this change is from a relevant broadcaster
@@ -2727,9 +2727,9 @@ void SidechainAudioProcessorEditor::changeListenerCallback(juce::ChangeBroadcast
   profilePicUrl = appStore.getUserState().profilePictureUrl;
 }
 
-//==============================================================================
+// ==============================================================================
 // Notification handling
-//==============================================================================
+// ==============================================================================
 
 /**
  * NotificationPollTimer - Helper timer for polling notifications
@@ -2980,9 +2980,9 @@ void SidechainAudioProcessorEditor::stopNotificationPolling() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 // OAuth Polling for plugin-based OAuth flow
-//==============================================================================
+// ==============================================================================
 
 /**
  * OAuthPollTimer - Helper timer for OAuth authentication polling
@@ -3044,7 +3044,7 @@ void SidechainAudioProcessorEditor::pollOAuthStatus() {
 
   oauthPollCount++;
 
-  // Update countdown timer in Auth component (8.3.11.10)
+  // Update countdown timer in Auth component
   int secondsRemaining = MAX_OAUTH_POLLS - oauthPollCount;
   if (authComponent) {
     authComponent->updateOAuthCountdown(secondsRemaining);

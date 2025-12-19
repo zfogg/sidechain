@@ -14,7 +14,7 @@ import (
 )
 
 // =============================================================================
-// STORY ENDPOINT TESTS (Phase 7.5)
+// STORY ENDPOINT TESTS
 // =============================================================================
 
 func (suite *HandlersTestSuite) TestCreateStorySuccess() {

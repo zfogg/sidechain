@@ -109,7 +109,7 @@ func (h *Handlers) UploadAudio(c *gin.Context) {
 		return
 	}
 
-	// Parse MIDI data if provided (R.3.3 Cross-DAW MIDI Collaboration)
+	// Parse MIDI data if provided
 	var midiPatternID *string
 	midiDataStr := c.PostForm("midi_data")
 	if midiDataStr != "" {

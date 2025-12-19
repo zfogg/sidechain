@@ -9,7 +9,7 @@
 #include <map>
 #include <memory>
 
-//==============================================================================
+// ==============================================================================
 /**
  * NetworkClient handles all HTTP communication with the Sidechain backend
  *
@@ -24,26 +24,26 @@
  */
 class NetworkClient {
 public:
-  //==========================================================================
+  // ==========================================================================
   // Connection status enum for UI indicator
 
   /** Connection status for network operations */
   enum class ConnectionStatus {
-    Disconnected, ///< No connection (red indicator)
-    Connecting,   ///< Attempting connection (yellow indicator)
-    Connected     ///< Successfully connected (green indicator)
+    Disconnected, // /< No connection (red indicator)
+    Connecting,   // /< Attempting connection (yellow indicator)
+    Connected     // /< Successfully connected (green indicator)
   };
 
-  //==========================================================================
+  // ==========================================================================
   // Configuration for different environments
 
   /** Configuration structure for NetworkClient */
   struct Config {
-    juce::String baseUrl;                                   ///< Base URL for API requests
-    int timeoutMs = Constants::Api::DEFAULT_TIMEOUT_MS;     ///< Request timeout in milliseconds
-    int maxRetries = Constants::Api::MAX_RETRIES;           ///< Maximum retry attempts
-    int retryDelayMs = Constants::Api::RETRY_DELAY_BASE_MS; ///< Base delay between retries in
-                                                            ///< milliseconds
+    juce::String baseUrl;                                   // /< Base URL for API requests
+    int timeoutMs = Constants::Api::DEFAULT_TIMEOUT_MS;     // /< Request timeout in milliseconds
+    int maxRetries = Constants::Api::MAX_RETRIES;           // /< Maximum retry attempts
+    int retryDelayMs = Constants::Api::RETRY_DELAY_BASE_MS; // /< Base delay between retries in
+                                                            // /< milliseconds
 
     /** Create development configuration
      * @return Config with development backend URL
@@ -81,69 +81,69 @@ public:
   using ConnectionStatusCallback = std::function<void(ConnectionStatus status)>;
   using ResponseCallback = std::function<void(Outcome<juce::var> response)>;
 
-  //==========================================================================
+  // ==========================================================================
   // Two-Factor Authentication types
 
   /** Result of login attempt - may require 2FA */
   struct LoginResult {
-    bool success = false;       ///< True if login completed (no 2FA or 2FA already verified)
-    bool requires2FA = false;   ///< True if 2FA verification is needed
-    juce::String token;         ///< Auth token (only if success)
-    juce::String userId;        ///< User ID (always set on valid credentials)
-    juce::String username;      ///< Username (only if success)
-    juce::String twoFactorType; ///< "totp" or "hotp" (only if requires2FA)
-    juce::String errorMessage;  ///< Error message if failed
+    bool success = false;       // /< True if login completed (no 2FA or 2FA already verified)
+    bool requires2FA = false;   // /< True if 2FA verification is needed
+    juce::String token;         // /< Auth token (only if success)
+    juce::String userId;        // /< User ID (always set on valid credentials)
+    juce::String username;      // /< Username (only if success)
+    juce::String twoFactorType; // /< "totp" or "hotp" (only if requires2FA)
+    juce::String errorMessage;  // /< Error message if failed
   };
   using LoginCallback = std::function<void(LoginResult)>;
 
   /** 2FA status response */
   struct TwoFactorStatus {
-    bool enabled = false;         ///< Whether 2FA is enabled
-    juce::String type;            ///< "totp" or "hotp" (only if enabled)
-    int backupCodesRemaining = 0; ///< Number of unused backup codes
+    bool enabled = false;         // /< Whether 2FA is enabled
+    juce::String type;            // /< "totp" or "hotp" (only if enabled)
+    int backupCodesRemaining = 0; // /< Number of unused backup codes
   };
   using TwoFactorStatusCallback = std::function<void(Outcome<TwoFactorStatus>)>;
 
   /** 2FA setup response (from enable2FA) */
   struct TwoFactorSetup {
-    juce::String type;             ///< "totp" or "hotp"
-    juce::String secret;           ///< Base32 secret for manual entry
-    juce::String qrCodeUrl;        ///< otpauth:// URL for QR code
-    juce::StringArray backupCodes; ///< 10 backup codes
-    uint64_t counter = 0;          ///< Initial counter (HOTP only)
+    juce::String type;             // /< "totp" or "hotp"
+    juce::String secret;           // /< Base32 secret for manual entry
+    juce::String qrCodeUrl;        // /< otpauth:// URL for QR code
+    juce::StringArray backupCodes; // /< 10 backup codes
+    uint64_t counter = 0;          // /< Initial counter (HOTP only)
   };
   using TwoFactorSetupCallback = std::function<void(Outcome<TwoFactorSetup>)>;
 
-  //==========================================================================
+  // ==========================================================================
   // Metadata for audio uploads
 
   /** Metadata structure for audio uploads */
   struct AudioUploadMetadata {
-    juce::String filename; ///< Display filename for the audio file (e.g., "my_loop.wav")
-    double bpm = 0.0;      ///< Beats per minute (0.0 if unknown)
-    juce::String key;      ///< Musical key (e.g., "C", "Am", "F#m" or empty)
-    juce::String genre;    ///< Genre (e.g., "Electronic", "Hip-Hop")
-    juce::String daw;      ///< DAW name (e.g., "Ableton Live", "Logic Pro", "FL
-                           ///< Studio") - auto-detected if empty
+    juce::String filename; // /< Display filename for the audio file (e.g., "my_loop.wav")
+    double bpm = 0.0;      // /< Beats per minute (0.0 if unknown)
+    juce::String key;      // /< Musical key (e.g., "C", "Am", "F#m" or empty)
+    juce::String genre;    // /< Genre (e.g., "Electronic", "Hip-Hop")
+    juce::String daw;      // /< DAW name (e.g., "Ableton Live", "Logic Pro", "FL
+                           // /< Studio") - auto-detected if empty
 
     // Auto-populated fields
-    double durationSeconds = 0.0; ///< Audio duration in seconds
-    int sampleRate = 44100;       ///< Audio sample rate in Hz
-    int numChannels = 2;          ///< Number of audio channels
+    double durationSeconds = 0.0; // /< Audio duration in seconds
+    int sampleRate = 44100;       // /< Audio sample rate in Hz
+    int numChannels = 2;          // /< Number of audio channels
 
-    // MIDI data (R.3.3 Cross-DAW MIDI Collaboration)
-    juce::var midiData;      ///< MIDI events captured during recording (optional)
-    bool includeMidi = true; ///< Whether to upload MIDI with the post
+    // MIDI data
+    juce::var midiData;      // /< MIDI events captured during recording (optional)
+    bool includeMidi = true; // /< Whether to upload MIDI with the post
 
-    // Project file data (R.3.4 Project File Exchange)
-    juce::File projectFile;          ///< DAW project file to upload (optional)
-    bool includeProjectFile = false; ///< Whether to upload project file with the post
+    // Project file data
+    juce::File projectFile;          // /< DAW project file to upload (optional)
+    bool includeProjectFile = false; // /< Whether to upload project file with the post
 
     // Comment controls
-    juce::String commentAudience = "everyone"; ///< Who can comment: "everyone", "followers", "off"
+    juce::String commentAudience = "everyone"; // /< Who can comment: "everyone", "followers", "off"
   };
 
-  //==========================================================================
+  // ==========================================================================
   // Authentication (simplified - no device claiming)
 
   /** Register a new user account
@@ -181,7 +181,7 @@ public:
    */
   void setAuthenticationCallback(AuthenticationCallback callback);
 
-  //==========================================================================
+  // ==========================================================================
   // Two-Factor Authentication
 
   /** Login with 2FA support
@@ -228,7 +228,7 @@ public:
    */
   void regenerateBackupCodes(const juce::String &code, ResponseCallback callback);
 
-  //==========================================================================
+  // ==========================================================================
   // Audio operations
 
   /**
@@ -270,7 +270,7 @@ public:
   void uploadAudioWithMetadata(const juce::AudioBuffer<float> &audioBuffer, double sampleRate,
                                const AudioUploadMetadata &metadata, UploadCallback callback = nullptr);
 
-  //==========================================================================
+  // ==========================================================================
   // Social feed operations (all use enriched endpoints with reaction data from
   // getstream.io)
 
@@ -406,8 +406,8 @@ public:
   void reportPost(const juce::String &postId, const juce::String &reason, const juce::String &description = "",
                   ResponseCallback callback = nullptr);
 
-  //==========================================================================
-  // R.3.2 Remix Chains operations
+  // ==========================================================================
+  // Remix Chains operations
 
   /** Get the remix chain for a post (shows original -> remix -> remix lineage)
    * @param postId The post ID to get the chain for
@@ -439,7 +439,7 @@ public:
   void createRemixPost(const juce::String &sourcePostId, const juce::String &remixType,
                        ResponseCallback callback = nullptr);
 
-  //==========================================================================
+  // ==========================================================================
   // Download operations
 
   /** Download info structure for post downloads */
@@ -469,8 +469,8 @@ public:
   void downloadFile(const juce::String &url, const juce::File &targetFile,
                     DownloadProgressCallback progressCallback = nullptr, ResponseCallback callback = nullptr);
 
-  //==========================================================================
-  // MIDI operations (R.3.3 Cross-DAW MIDI Collaboration)
+  // ==========================================================================
+  // MIDI operations
 
   /** Download MIDI file for a pattern
    * @param midiId The MIDI pattern ID
@@ -489,8 +489,8 @@ public:
   void uploadMIDI(const juce::var &midiData, const juce::String &name = "", const juce::String &description = "",
                   bool isPublic = true, ResponseCallback callback = nullptr);
 
-  //==========================================================================
-  // Playlist operations (R.3.1 Collaborative Playlists)
+  // ==========================================================================
+  // Playlist operations
 
   /** Create a new playlist
    * @param name Playlist name
@@ -548,8 +548,8 @@ public:
   void removePlaylistCollaborator(const juce::String &playlistId, const juce::String &userId,
                                   ResponseCallback callback = nullptr);
 
-  //==========================================================================
-  // MIDI Challenge operations (R.2.2 MIDI Battle Royale)
+  // ==========================================================================
+  // MIDI Challenge operations
 
   /** Get list of MIDI challenges
    * @param status Filter by status: "active", "voting", "past", "upcoming", or
@@ -590,8 +590,8 @@ public:
   void voteMIDIChallengeEntry(const juce::String &challengeId, const juce::String &entryId,
                               ResponseCallback callback = nullptr);
 
-  //==========================================================================
-  // Project file operations (R.3.4 Project File Exchange)
+  // ==========================================================================
+  // Project file operations
 
   /** Download a project file (DAW project: .als, .flp, .logic, etc.)
    * @param projectFileId The project file ID
@@ -639,7 +639,7 @@ public:
    */
   void unblockUser(const juce::String &userId, ResponseCallback callback = nullptr);
 
-  //==========================================================================
+  // ==========================================================================
   // Mute operations
 
   /** Mute a user (hide their posts from feeds without unfollowing)
@@ -667,7 +667,7 @@ public:
    */
   void isUserMuted(const juce::String &userId, ResponseCallback callback = nullptr);
 
-  //==========================================================================
+  // ==========================================================================
   // Save/Bookmark operations (P0 Social Feature)
 
   /** Save (bookmark) a post for later
@@ -689,7 +689,7 @@ public:
    */
   void getSavedPosts(int limit = 20, int offset = 0, FeedCallback callback = nullptr);
 
-  //==========================================================================
+  // ==========================================================================
   // Repost operations (P0 Social Feature)
 
   /** Repost a post to the current user's feed (like a retweet)
@@ -705,7 +705,7 @@ public:
    */
   void undoRepost(const juce::String &postId, ResponseCallback callback = nullptr);
 
-  //==========================================================================
+  // ==========================================================================
   // Archive operations (hide posts without deleting)
 
   /** Archive a post (hide from feeds without deleting)
@@ -727,7 +727,7 @@ public:
    */
   void getArchivedPosts(int limit = 20, int offset = 0, FeedCallback callback = nullptr);
 
-  //==========================================================================
+  // ==========================================================================
   // Pin posts to profile operations
 
   /** Pin a post to user's profile (max 3 posts)
@@ -755,8 +755,8 @@ public:
    */
   void isPostPinned(const juce::String &postId, ResponseCallback callback = nullptr);
 
-  //==========================================================================
-  // Sound/Sample Pages operations (Feature #15)
+  // ==========================================================================
+  // Sound/Sample Pages operations
 
   /** Get a sound by ID
    * @param soundId The sound ID
@@ -801,7 +801,7 @@ public:
   void updateSound(const juce::String &soundId, const juce::String &name = "", const juce::String &description = "",
                    bool isPublic = true, ResponseCallback callback = nullptr);
 
-  //==========================================================================
+  // ==========================================================================
   // Profile operations
 
   /** Upload a profile picture
@@ -832,7 +832,7 @@ public:
    */
   void getFollowing(const juce::String &userId, int limit = 20, int offset = 0, ResponseCallback callback = nullptr);
 
-  //==========================================================================
+  // ==========================================================================
   // Comment operations
   using CommentCallback = std::function<void(Outcome<juce::var> comment)>;
   // CommentsListCallback: returns Outcome with pair<comments, totalCount> or
@@ -900,7 +900,7 @@ public:
   void reportComment(const juce::String &commentId, const juce::String &reason, const juce::String &description = "",
                      ResponseCallback callback = nullptr);
 
-  //==========================================================================
+  // ==========================================================================
   // Generic HTTP methods for custom API calls
 
   /** Make a GET request to an endpoint
@@ -929,7 +929,7 @@ public:
    */
   void del(const juce::String &endpoint, ResponseCallback callback);
 
-  //==========================================================================
+  // ==========================================================================
   // Absolute URL methods (for CDN, external APIs, etc.)
   // These methods accept full URLs instead of relative endpoints
   using BinaryDataCallback = std::function<void(Outcome<juce::MemoryBlock> data)>;
@@ -968,7 +968,7 @@ public:
                                MultipartUploadCallback callback,
                                const juce::StringPairArray &customHeaders = juce::StringPairArray());
 
-  //==========================================================================
+  // ==========================================================================
   // Play tracking
 
   /** Track that a post was played
@@ -984,14 +984,14 @@ public:
    */
   void trackListenDuration(const juce::String &activityId, double durationSeconds, ResponseCallback callback = nullptr);
 
-  //==========================================================================
+  // ==========================================================================
   // Notification operations
 
   /** Result structure for notification queries */
   struct NotificationResult {
-    juce::var notifications; ///< Array of notification objects
-    int unseen = 0;          ///< Count of unseen notifications
-    int unread = 0;          ///< Count of unread notifications
+    juce::var notifications; // /< Array of notification objects
+    int unseen = 0;          // /< Count of unseen notifications
+    int unread = 0;          // /< Count of unread notifications
   };
   using NotificationCallback = std::function<void(Outcome<NotificationResult>)>;
 
@@ -1017,7 +1017,7 @@ public:
    */
   void markNotificationsSeen(ResponseCallback callback = nullptr);
 
-  //==========================================================================
+  // ==========================================================================
   // Follow Request operations
 
   /** Get pending follow request count (for private account feature)
@@ -1025,7 +1025,7 @@ public:
    */
   void getFollowRequestCount(std::function<void(int count)> callback);
 
-  //==========================================================================
+  // ==========================================================================
   // User Discovery operations
 
   /** Search users by username or display name
@@ -1076,7 +1076,7 @@ public:
    */
   void getRecommendedUsersToFollow(int limit = 20, int offset = 0, ResponseCallback callback = nullptr);
 
-  //==========================================================================
+  // ==========================================================================
   // Search operations
   // Search posts with optional filters (genre, BPM range, key)
   void searchPosts(const juce::String &query, const juce::String &genre = "", int bpmMin = 0, int bpmMax = 200,
@@ -1091,7 +1091,7 @@ public:
   // Autocomplete for genres
   void autocompleteGenres(const juce::String &query, int limit = 10, ResponseCallback callback = nullptr);
 
-  //==========================================================================
+  // ==========================================================================
   // Stories operations
   // Get stories feed (ephemeral music clips from followed users)
   void getStoriesFeed(ResponseCallback callback = nullptr);
@@ -1114,7 +1114,7 @@ public:
                    int bpm = 0, const juce::String &key = "", const juce::StringArray &genres = juce::StringArray(),
                    ResponseCallback callback = nullptr);
 
-  //==========================================================================
+  // ==========================================================================
   // Story Highlights operations (permanent story collections)
 
   /** Get all highlights for a user
@@ -1168,7 +1168,7 @@ public:
   void removeStoryFromHighlight(const juce::String &highlightId, const juce::String &storyId,
                                 ResponseCallback callback = nullptr);
 
-  //==========================================================================
+  // ==========================================================================
   // Authentication state
 
   /** Set the authentication token
@@ -1218,7 +1218,7 @@ public:
     return currentUserEmailVerified;
   }
 
-  //==========================================================================
+  // ==========================================================================
   // User profile operations (for UserStore)
 
   /** Get the current user's profile data
@@ -1235,7 +1235,7 @@ public:
   void updateUserProfile(const juce::String &username, const juce::String &displayName, const juce::String &bio,
                          ResponseCallback callback = nullptr);
 
-  //==========================================================================
+  // ==========================================================================
   // Toggle convenience methods (for FeedStore optimistic updates)
 
   /** Toggle like on a post (convenience wrapper around likePost/unlikePost)
@@ -1266,7 +1266,7 @@ public:
    */
   void addEmojiReaction(const juce::String &postId, const juce::String &emoji, ResponseCallback callback = nullptr);
 
-  //==========================================================================
+  // ==========================================================================
   // Connection status and management
   ConnectionStatus getConnectionStatus() const {
     return connectionStatus.load();
@@ -1274,14 +1274,14 @@ public:
   void setConnectionStatusCallback(ConnectionStatusCallback callback);
   void checkConnection(); // Performs a health check request
 
-  //==========================================================================
+  // ==========================================================================
   // Request cancellation
   void cancelAllRequests();
   bool isShuttingDown() const {
     return shuttingDown.load();
   }
 
-  //==========================================================================
+  // ==========================================================================
   // Configuration
   void setConfig(const Config &newConfig);
   const Config &getConfig() const {
@@ -1305,7 +1305,7 @@ public:
     juce::String getUserFriendlyError() const;
   };
 
-  //==========================================================================
+  // ==========================================================================
   // Synchronous request method for use from background threads
   // (Use sparingly - prefer async methods for UI code)
   RequestResult makeAbsoluteRequestSync(const juce::String &absoluteUrl, const juce::String &method = "GET",
@@ -1313,7 +1313,7 @@ public:
                                         const juce::StringPairArray &customHeaders = juce::StringPairArray(),
                                         juce::MemoryBlock *binaryData = nullptr);
 
-  //==========================================================================
+  // ==========================================================================
   // DAW Detection
 
   /**
@@ -1343,7 +1343,7 @@ private:
   std::shared_ptr<Sidechain::Security::RateLimiter> apiRateLimiter;    // 100 requests per 60 seconds
   std::shared_ptr<Sidechain::Security::RateLimiter> uploadRateLimiter; // 10 uploads per hour
 
-  //==========================================================================
+  // ==========================================================================
   RequestResult makeRequestWithRetry(const juce::String &endpoint, const juce::String &method = "GET",
                                      const juce::var &data = juce::var(), bool requireAuth = false);
 
@@ -1381,7 +1381,7 @@ private:
   // Parse HTTP status code from response headers
   static int parseStatusCode(const juce::StringPairArray &headers);
 
-  //==========================================================================
+  // ==========================================================================
   // Audio encoding
 
   /**

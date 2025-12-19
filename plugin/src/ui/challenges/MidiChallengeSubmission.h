@@ -9,7 +9,7 @@ class NetworkClient;
 class Upload;
 class SidechainAudioProcessor;
 
-//==============================================================================
+// ==============================================================================
 /**
  * MidiChallengeSubmission wraps the Upload component with constraint validation
  * (R.2.2.4.3)
@@ -27,12 +27,12 @@ public:
                           Sidechain::Stores::AppStore *store = nullptr);
   ~MidiChallengeSubmission() override;
 
-  //==============================================================================
+  // ==============================================================================
   void paint(juce::Graphics &) override;
   void resized() override;
   void mouseUp(const juce::MouseEvent &event) override;
 
-  //==============================================================================
+  // ==============================================================================
   // Set the challenge to submit to
   void setChallenge(const MIDIChallenge &challenge);
 
@@ -42,19 +42,19 @@ public:
   // Reset state
   void reset();
 
-  //==============================================================================
+  // ==============================================================================
   // Callbacks
   std::function<void()> onBackPressed;
   std::function<void()> onSubmissionComplete; // Called after successful submission
 
 protected:
-  //==============================================================================
+  // ==============================================================================
   // AppStoreComponent virtual methods
   void onAppStateChanged(const Sidechain::Stores::ChallengeState &state) override;
   void subscribeToAppStore() override;
 
 private:
-  //==============================================================================
+  // ==============================================================================
   SidechainAudioProcessor &audioProcessor;
   NetworkClient &networkClient;
   MIDIChallenge challenge;
@@ -89,7 +89,7 @@ private:
   ConstraintCheck noteCountCheck;
   ConstraintCheck durationCheck;
 
-  //==============================================================================
+  // ==============================================================================
   // Drawing methods
   void drawHeader(juce::Graphics &g);
   void drawChallengeInfo(juce::Graphics &g, juce::Rectangle<int> &bounds);
@@ -100,21 +100,21 @@ private:
   void drawSuccessState(juce::Graphics &g, juce::Rectangle<int> &bounds);
   void drawErrorState(juce::Graphics &g, juce::Rectangle<int> &bounds);
 
-  //==============================================================================
+  // ==============================================================================
   // Hit testing helpers
   juce::Rectangle<int> getBackButtonBounds() const;
   juce::Rectangle<int> getSubmitButtonBounds() const;
   juce::Rectangle<int> getContentBounds() const;
   juce::Rectangle<int> getUploadComponentBounds() const;
 
-  //==============================================================================
+  // ==============================================================================
   // Constraint validation
   void validateConstraints(double bpm, const juce::String &key, const juce::var &midiData, double durationSeconds);
   bool allConstraintsPassed() const;
   int countMIDINotes(const juce::var &midiData) const;
   bool checkMIDIScale(const juce::var &midiData, const juce::String &requiredScale) const;
 
-  //==============================================================================
+  // ==============================================================================
   // Network operations
   void submitEntry(const juce::String &postId, const juce::String &audioUrl);
 

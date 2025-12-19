@@ -15,7 +15,7 @@ struct AuthState;
 using namespace Sidechain::UI;
 using namespace Sidechain::Stores;
 
-//==============================================================================
+// ==============================================================================
 /**
  * TwoFactorSettings provides a UI for managing two-factor authentication
  *
@@ -32,36 +32,36 @@ public:
   TwoFactorSettings(AppStore *store = nullptr);
   ~TwoFactorSettings() override;
 
-  //==============================================================================
+  // ==============================================================================
   // Data binding
   void setNetworkClient(NetworkClient *client) {
     networkClient = client;
   }
   void loadStatus();
 
-  //==============================================================================
+  // ==============================================================================
   // Callbacks
   std::function<void()> onClose;
 
-  //==============================================================================
+  // ==============================================================================
   // Modal display
   void showModal(juce::Component *parentComponent);
   void closeDialog();
 
-  //==============================================================================
+  // ==============================================================================
   // Component overrides
   void paint(juce::Graphics &g) override;
   void resized() override;
   void buttonClicked(juce::Button *button) override;
 
 protected:
-  //==============================================================================
+  // ==============================================================================
   // AppStoreComponent overrides
   void onAppStateChanged(const AuthState &state) override;
   void subscribeToAppStore() override;
 
 private:
-  //==============================================================================
+  // ==============================================================================
   // State enum
   enum class State {
     Loading,
@@ -78,7 +78,7 @@ private:
   State currentState = State::Loading;
   NetworkClient *networkClient = nullptr;
 
-  //==============================================================================
+  // ==============================================================================
   // Status data
   bool twoFactorEnabled = false;
   juce::String twoFactorType;
@@ -95,7 +95,7 @@ private:
   juce::String statusMessage;
   bool isProcessing = false;
 
-  //==============================================================================
+  // ==============================================================================
   // UI Components
   std::unique_ptr<juce::TextButton> closeButton;
   std::unique_ptr<juce::TextButton> enableButton;
@@ -112,7 +112,7 @@ private:
   std::unique_ptr<juce::TextEditor> passwordInput;
   std::unique_ptr<juce::TextEditor> codeInput;
 
-  //==============================================================================
+  // ==============================================================================
   // State handlers
   void showDisabledState();
   void showTypeSelection();
@@ -123,7 +123,7 @@ private:
   void showDisablingEntry();
   void showError(const juce::String &message);
 
-  //==============================================================================
+  // ==============================================================================
   // Actions
   void startEnable(const juce::String &type);
   void submitPassword();
@@ -132,19 +132,19 @@ private:
   void submitDisableCode();
   void doRegenerateBackupCodes();
 
-  //==============================================================================
+  // ==============================================================================
   // Drawing methods
   void drawHeader(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawStatus(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawSetupInfo(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawBackupCodes(juce::Graphics &g, juce::Rectangle<int> bounds);
 
-  //==============================================================================
+  // ==============================================================================
   // Helpers
   void copyToClipboard(const juce::String &text);
   void hideAllInputs();
 
-  //==============================================================================
+  // ==============================================================================
   // Layout constants
   static constexpr int HEADER_HEIGHT = 60;
   static constexpr int BUTTON_HEIGHT = 45;
@@ -152,7 +152,7 @@ private:
   static constexpr int PADDING = 25;
   static constexpr int SPACING = 15;
 
-  //==============================================================================
+  // ==============================================================================
   // Colors
   struct Colors {
     static inline juce::Colour background{0xff1a1a1e};

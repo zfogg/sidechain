@@ -1,9 +1,9 @@
 #include "ToastNotification.h"
 #include "../../util/Colors.h"
 
-//==============================================================================
+// ==============================================================================
 // ToastNotification Implementation
-//==============================================================================
+// ==============================================================================
 
 ToastNotification::ToastNotification(const juce::String &msg, ToastType type, int durationMs)
     : message(msg), toastType(type), duration(durationMs) {
@@ -135,9 +135,9 @@ juce::String ToastNotification::getIcon() const {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 // ToastManager Implementation
-//==============================================================================
+// ==============================================================================
 
 ToastManager &ToastManager::getInstance() {
   static ToastManager *instance = new ToastManager();

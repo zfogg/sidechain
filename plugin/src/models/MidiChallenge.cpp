@@ -1,7 +1,7 @@
 #include "MidiChallenge.h"
 #include "../util/Json.h"
 
-//==============================================================================
+// ==============================================================================
 MIDIChallengeConstraints MIDIChallengeConstraints::fromJSON(const juce::var &json) {
   MIDIChallengeConstraints constraints;
 
@@ -23,7 +23,7 @@ MIDIChallengeConstraints MIDIChallengeConstraints::fromJSON(const juce::var &jso
   return constraints;
 }
 
-//==============================================================================
+// ==============================================================================
 MIDIChallenge MIDIChallenge::fromJSON(const juce::var &json) {
   MIDIChallenge challenge;
 
@@ -68,7 +68,7 @@ MIDIChallenge MIDIChallenge::fromJSON(const juce::var &json) {
   return challenge;
 }
 
-//==============================================================================
+// ==============================================================================
 MIDIChallengeEntry MIDIChallengeEntry::fromJSON(const juce::var &json) {
   MIDIChallengeEntry entry;
 

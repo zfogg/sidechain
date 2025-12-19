@@ -41,7 +41,7 @@ type StorySearchDoc struct {
 	ExpiresAt string `json:"expires_at"`
 }
 
-// UserToSearchDoc converts a User model to a search document (Phase 0.3)
+// UserToSearchDoc converts a User model to a search document
 func UserToSearchDoc(user models.User) map[string]interface{} {
 	return map[string]interface{}{
 		"id":              user.ID,
@@ -54,7 +54,7 @@ func UserToSearchDoc(user models.User) map[string]interface{} {
 	}
 }
 
-// AudioPostToSearchDoc converts an AudioPost model to a search document (Phase 0.6)
+// AudioPostToSearchDoc converts an AudioPost model to a search document
 // Includes current engagement counts from the cached fields
 func AudioPostToSearchDoc(post models.AudioPost, username string) map[string]interface{} {
 	return map[string]interface{}{

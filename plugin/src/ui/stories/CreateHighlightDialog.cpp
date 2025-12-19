@@ -3,7 +3,7 @@
 #include "../../util/Colors.h"
 #include "../../util/Log.h"
 
-//==============================================================================
+// ==============================================================================
 CreateHighlightDialog::CreateHighlightDialog() {
   // Name input
   nameInput = std::make_unique<juce::TextEditor>();
@@ -51,13 +51,13 @@ CreateHighlightDialog::CreateHighlightDialog() {
   cancelButton->setColour(juce::TextButton::textColourOffId, SidechainColors::textPrimary());
   addAndMakeVisible(cancelButton.get());
 
-  // Set size last to avoid resized() being called before components are created
+  // Set size last to avoid resized being called before components are created
   setSize(DIALOG_WIDTH, DIALOG_HEIGHT);
 }
 
 CreateHighlightDialog::~CreateHighlightDialog() {}
 
-//==============================================================================
+// ==============================================================================
 void CreateHighlightDialog::paint(juce::Graphics &g) {
   // Semi-transparent backdrop
   g.fillAll(juce::Colours::black.withAlpha(0.6f));
@@ -108,7 +108,7 @@ void CreateHighlightDialog::drawError(juce::Graphics &g) {
   g.drawText(errorMessage, errorBounds.reduced(PADDING, 0), juce::Justification::centred);
 }
 
-//==============================================================================
+// ==============================================================================
 void CreateHighlightDialog::resized() {
   auto dialogBounds = getLocalBounds().withSizeKeepingCentre(DIALOG_WIDTH, DIALOG_HEIGHT);
 
@@ -135,7 +135,7 @@ void CreateHighlightDialog::resized() {
   createButton->setBounds(buttonBounds.removeFromLeft(100));
 }
 
-//==============================================================================
+// ==============================================================================
 void CreateHighlightDialog::buttonClicked(juce::Button *button) {
   if (button == createButton.get()) {
     createHighlight();
@@ -146,7 +146,7 @@ void CreateHighlightDialog::buttonClicked(juce::Button *button) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void CreateHighlightDialog::showModal(juce::Component *parentComponent) {
   if (parentComponent == nullptr)
     return;
@@ -173,7 +173,7 @@ void CreateHighlightDialog::closeDialog() {
   });
 }
 
-//==============================================================================
+// ==============================================================================
 void CreateHighlightDialog::createHighlight() {
   if (networkClient == nullptr) {
     errorMessage = "Not connected";

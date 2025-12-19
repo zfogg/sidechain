@@ -4,7 +4,7 @@
 
 class NetworkClient;
 
-//==============================================================================
+// ==============================================================================
 /**
  * CreateHighlightDialog - Modal dialog for creating a new story highlight
  *

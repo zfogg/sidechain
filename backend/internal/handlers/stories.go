@@ -17,18 +17,18 @@ import (
 	"gorm.io/gorm"
 )
 
-// TODO: Phase 7.5.7.1 - Write backend tests for story endpoints
-// TODO: Phase 7.5.8.1 - Optimize MIDI data storage
-// TODO: Phase 7.5.8.2 - Optimize story feed loading
+// TODO: - Write backend tests for story endpoints
+// TODO: - Optimize MIDI data storage
+// TODO: - Optimize story feed loading
 
 // ============================================================================
 // STORIES - PROFESSIONAL ENHANCEMENTS
 // ============================================================================
-//
+
 // NOTE: Common enhancements (caching, analytics, rate limiting, moderation,
 // search, webhooks, export, performance, anti-abuse) are documented in
 // common_todos.go. See that file for shared TODO items.
-//
+
 
 // TODO: PROFESSIONAL-2.1 - Implement story-specific analytics
 // - Track unique viewers (not just view count)
@@ -299,7 +299,7 @@ func (h *Handlers) CreateStory(c *gin.Context) {
 	if midiDataStr := c.PostForm("midi_data"); midiDataStr != "" {
 		var md models.MIDIData
 		if err := json.Unmarshal([]byte(midiDataStr), &md); err == nil && len(md.Events) > 0 {
-			// Create standalone MIDI pattern with filename (R.3.3)
+			// Create standalone MIDI pattern with filename
 			pattern := &models.MIDIPattern{
 				UserID:        currentUser.ID,
 				Name:          "MIDI from story",
@@ -339,7 +339,7 @@ func (h *Handlers) CreateStory(c *gin.Context) {
 		return
 	}
 
-	// Phase 0.5: Index story to Elasticsearch
+	// Index story to Elasticsearch
 	if h.search != nil {
 		go func() {
 			storyDoc := map[string]interface{}{
@@ -498,7 +498,7 @@ func (h *Handlers) DeleteStory(c *gin.Context) {
 		return
 	}
 
-	// Phase 0.7: Delete story from Elasticsearch index
+	// Delete story from Elasticsearch index
 	if h.search != nil {
 		if err := h.search.DeleteStory(c.Request.Context(), story.ID); err != nil {
 			// Log but don't fail - story is already deleted in database
@@ -812,7 +812,7 @@ func (h *Handlers) GetStoryViews(c *gin.Context) {
 }
 
 // =============================================================================
-// STORY HIGHLIGHTS (7.5.6)
+// STORY HIGHLIGHTS
 // =============================================================================
 
 // CreateHighlight creates a new story highlight collection

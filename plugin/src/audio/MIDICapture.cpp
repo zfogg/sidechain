@@ -4,12 +4,12 @@
 #include <limits>
 #include <set>
 
-//==============================================================================
+// ==============================================================================
 MIDICapture::MIDICapture() {}
 
 MIDICapture::~MIDICapture() {}
 
-//==============================================================================
+// ==============================================================================
 void MIDICapture::prepare(double sampleRate, int samplesPerBlock) {
   currentSampleRate = sampleRate;
   currentBlockSize = samplesPerBlock;
@@ -29,7 +29,7 @@ void MIDICapture::reset() {
   midiEvents.clear();
 }
 
-//==============================================================================
+// ==============================================================================
 void MIDICapture::startCapture() {
   if (capturing.load()) {
     Log::warn("MIDI capture already in progress, ignoring start request");
@@ -71,7 +71,7 @@ std::vector<MIDICapture::MIDIEvent> MIDICapture::stopCapture() {
   return result;
 }
 
-//==============================================================================
+// ==============================================================================
 void MIDICapture::captureMIDI(const juce::MidiBuffer &midiMessages, int numSamples, double /* sampleRate */) {
   // Fast exit if not capturing (atomic read)
   if (!capturing.load(std::memory_order_relaxed))
@@ -116,7 +116,7 @@ void MIDICapture::captureMIDI(const juce::MidiBuffer &midiMessages, int numSampl
   currentSamplePosition.store(currentPos + numSamples, std::memory_order_relaxed);
 }
 
-//==============================================================================
+// ==============================================================================
 juce::var MIDICapture::getMIDIDataAsJSON() const {
   juce::ScopedLock lock(eventsLock);
 
@@ -152,9 +152,9 @@ juce::var MIDICapture::getMIDIDataAsJSON() const {
   return midiData;
 }
 
-//==============================================================================
-// MIDI Data Processing (7.5.2.2)
-//==============================================================================
+// ==============================================================================
+// MIDI Data Processing
+// ==============================================================================
 
 std::vector<MIDICapture::MIDIEvent> MIDICapture::normalizeTiming(const std::vector<MIDIEvent> &events) {
   if (events.empty())
@@ -318,7 +318,7 @@ std::pair<int, int> MIDICapture::getTimeSignature() const {
   return {timeSignatureNumerator.load(), timeSignatureDenominator.load()};
 }
 
-//==============================================================================
+// ==============================================================================
 void MIDICapture::addEvent(const MIDIEvent &event) {
   juce::ScopedLock lock(eventsLock);
   midiEvents.push_back(event);

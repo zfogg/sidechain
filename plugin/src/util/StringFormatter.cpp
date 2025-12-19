@@ -3,7 +3,7 @@
 
 namespace StringFormatter {
 
-//==============================================================================
+// ==============================================================================
 // Count Formatting
 
 juce::String formatCount(int value) {
@@ -51,7 +51,7 @@ juce::String formatLargeNumber(int64_t value) {
   return juce::String(static_cast<double>(value) / 1000000000.0, 1) + "B";
 }
 
-//==============================================================================
+// ==============================================================================
 // Duration Formatting
 
 juce::String formatDuration(double seconds) {
@@ -102,7 +102,7 @@ juce::String formatMilliseconds(int ms) {
   return juce::String(ms / 1000.0, 1) + "s";
 }
 
-//==============================================================================
+// ==============================================================================
 // Percentage Formatting
 
 juce::String formatPercentage(float value) {
@@ -118,7 +118,7 @@ juce::String formatPercentage(float value, int decimals) {
   return juce::String(percentage, decimals) + "%";
 }
 
-//==============================================================================
+// ==============================================================================
 // Music-specific Formatting
 
 juce::String formatBPM(double bpm) {
@@ -148,7 +148,7 @@ juce::String formatKeyLong(const juce::String &key) {
   return root + (isMinor ? " minor" : " major");
 }
 
-//==============================================================================
+// ==============================================================================
 // Social/Engagement Formatting
 
 juce::String formatFollowers(int count) {
@@ -179,7 +179,7 @@ juce::String formatPlays(int count) {
   return formatCount(count) + " plays";
 }
 
-//==============================================================================
+// ==============================================================================
 // Time Ago Formatting
 
 juce::String formatTimeAgo(const juce::Time &timestamp) {

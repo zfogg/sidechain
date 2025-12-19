@@ -1,6 +1,6 @@
 #include "Story.h"
 
-//==============================================================================
+// ==============================================================================
 /** Check if story is expired (past expiration time)
  * Stories expire 24 hours after creation.
  * @return true if story has expired, false otherwise
@@ -145,7 +145,7 @@ juce::var Story::toJSON() const {
   return json;
 }
 
-//==============================================================================
+// ==============================================================================
 // StoryHighlight implementation
 
 /** Get the cover image URL, or first story's waveform as fallback

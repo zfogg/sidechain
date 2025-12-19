@@ -25,7 +25,7 @@ type Processor struct {
 	tempDir    string
 }
 
-// SetPostCompleteCallback sets a callback for when post processing completes (7.1.4)
+// SetPostCompleteCallback sets a callback for when post processing completes
 func (p *Processor) SetPostCompleteCallback(callback func(postID string)) {
 	p.audioQueue.SetPostCompleteCallback(callback)
 }

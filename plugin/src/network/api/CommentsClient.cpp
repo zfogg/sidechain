@@ -1,7 +1,7 @@
-//==============================================================================
+// ==============================================================================
 // CommentsClient.cpp - Comment operations
 // Part of NetworkClient implementation split
-//==============================================================================
+// ==============================================================================
 
 #include "../../util/Async.h"
 #include "../../util/Constants.h"
@@ -11,7 +11,7 @@
 
 using namespace Sidechain::Network::Api;
 
-//==============================================================================
+// ==============================================================================
 void NetworkClient::getComments(const juce::String &postId, int limit, int offset, CommentsListCallback callback) {
   if (callback == nullptr)
     return;

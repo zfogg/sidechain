@@ -6,7 +6,7 @@
 namespace Sidechain {
 namespace Stores {
 
-//==============================================================================
+// ==============================================================================
 // Profile Management
 
 void AppStore::fetchUserProfile(bool forceRefresh) {
@@ -133,7 +133,7 @@ void AppStore::refreshProfileImage() {
   downloadProfileImage(currentState.profilePictureUrl);
 }
 
-//==============================================================================
+// ==============================================================================
 // User Preferences
 
 void AppStore::setNotificationSoundEnabled(bool enabled) {
@@ -150,7 +150,7 @@ void AppStore::setOSNotificationsEnabled(bool enabled) {
   userSlice->dispatch([enabled](UserState &state) { state.osNotificationsEnabled = enabled; });
 }
 
-//==============================================================================
+// ==============================================================================
 // Social Metrics
 
 void AppStore::updateFollowerCount(int count) {
@@ -174,7 +174,7 @@ void AppStore::updatePostCount(int count) {
   userSlice->dispatch([count](UserState &state) { state.postCount = count; });
 }
 
-//==============================================================================
+// ==============================================================================
 // Username & Profile Picture Management
 
 void AppStore::changeUsername(const juce::String &newUsername) {
@@ -204,7 +204,7 @@ void AppStore::changeUsername(const juce::String &newUsername) {
   });
 }
 
-//==============================================================================
+// ==============================================================================
 // Helper Methods
 
 void AppStore::downloadProfileImage(const juce::String &url) {

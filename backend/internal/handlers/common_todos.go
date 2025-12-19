@@ -3,10 +3,10 @@ package handlers
 // ============================================================================
 // COMMON PROFESSIONAL ENHANCEMENTS
 // ============================================================================
-//
+
 // These TODOs apply to multiple handler files (posts, stories, reactions,
 // comments, messages). See individual handler files for feature-specific TODOs.
-//
+
 
 // TODO: COMMON-1 - Implement caching layer (Redis)
 // - Cache frequently accessed data (posts, comments, reactions, stories)

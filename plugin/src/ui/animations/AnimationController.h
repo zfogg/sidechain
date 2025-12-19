@@ -270,7 +270,7 @@ public:
   float getProgress(AnimationHandle handle) const;
 
   // ========== Singleton Management ==========
-  // Public constructor for make_unique compatibility - use getInstance() instead
+  // Public constructor for make_unique compatibility - use getInstance instead
   AnimationController();
 
 private:

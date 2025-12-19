@@ -8,7 +8,7 @@
 #include <JuceHeader.h>
 #include <memory>
 
-//==============================================================================
+// ==============================================================================
 /**
  * Playlists displays user's playlists and allows creating new ones (R.3.1.3.1)
  *
@@ -24,7 +24,7 @@ public:
   Playlists(Sidechain::Stores::AppStore *store = nullptr);
   ~Playlists() override;
 
-  //==============================================================================
+  // ==============================================================================
   void paint(juce::Graphics &) override;
   void resized() override;
   void mouseUp(const juce::MouseEvent &event) override;
@@ -33,7 +33,7 @@ public:
   // ScrollBar::Listener
   void scrollBarMoved(juce::ScrollBar *scrollBar, double newRangeStart) override;
 
-  //==============================================================================
+  // ==============================================================================
   void setCurrentUserId(const juce::String &userId) {
     currentUserId = userId;
   }
@@ -42,7 +42,7 @@ public:
   void loadPlaylists();
   void refresh();
 
-  //==============================================================================
+  // ==============================================================================
   // Callbacks
   std::function<void()> onBackPressed;
   std::function<void(const juce::String &playlistId)> onPlaylistSelected; // Navigate to playlist detail
@@ -53,27 +53,27 @@ protected:
   void subscribeToAppStore() override;
 
 private:
-  //==============================================================================
+  // ==============================================================================
   // Filter types
   enum class FilterType { All, Owned, Collaborated, Public };
 
   FilterType currentFilter = FilterType::All;
 
-  //==============================================================================
+  // ==============================================================================
   // Data
   juce::String currentUserId;
   juce::Array<Playlist> playlists;
   bool isLoading = false;
   juce::String errorMessage;
 
-  //==============================================================================
+  // ==============================================================================
   // UI Components
   juce::ScrollBar scrollBar{true}; // vertical
 
   // Scroll state
   int scrollOffset = 0;
 
-  //==============================================================================
+  // ==============================================================================
   // Layout constants
   static constexpr int HEADER_HEIGHT = 60;
   static constexpr int FILTER_TAB_HEIGHT = 40;
@@ -81,7 +81,7 @@ private:
   static constexpr int CREATE_BUTTON_HEIGHT = 60;
   static constexpr int PADDING = 16;
 
-  //==============================================================================
+  // ==============================================================================
   // Drawing methods
   void drawHeader(juce::Graphics &g);
   void drawFilterTabs(juce::Graphics &g, juce::Rectangle<int> &bounds);
@@ -91,7 +91,7 @@ private:
   void drawEmptyState(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawErrorState(juce::Graphics &g, juce::Rectangle<int> bounds);
 
-  //==============================================================================
+  // ==============================================================================
   // Hit testing helpers
   juce::Rectangle<int> getBackButtonBounds() const;
   juce::Rectangle<int> getFilterTabBounds(FilterType filter) const;
@@ -99,11 +99,11 @@ private:
   juce::Rectangle<int> getContentBounds() const;
   juce::Rectangle<int> getPlaylistCardBounds(int index) const;
 
-  //==============================================================================
+  // ==============================================================================
   // Network operations
   void fetchPlaylists(FilterType filter);
 
-  //==============================================================================
+  // ==============================================================================
   // Helper methods
   int calculateContentHeight() const;
   void updateScrollBounds();

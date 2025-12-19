@@ -1,13 +1,13 @@
 #include "Async.h"
 
 namespace Async {
-//==========================================================================
+// ==========================================================================
 // Internal Timer Management
-//
+
 // We use a custom timer class to manage delayed execution. Each timer
 // has a unique ID and stores its callback. This pattern avoids the need
 // for users to manage timer lifecycle manually.
-//==========================================================================
+// ==========================================================================
 
 namespace {
 // Thread-safe counter for generating unique timer IDs
@@ -46,8 +46,8 @@ public:
   }
 
 private:
-  int timerId;                    ///< Unique identifier for this timer
-  std::function<void()> callback; ///< Callback to execute
+  int timerId;                    // /< Unique identifier for this timer
+  std::function<void()> callback; // /< Callback to execute
 };
 
 // Active delay timers (protected by mutex)
@@ -68,8 +68,8 @@ std::mutex throttleMutex;
  * a throttled callback key.
  */
 struct ThrottleState {
-  juce::int64 lastExecutionTime = 0;         ///< Timestamp of last execution
-  std::unique_ptr<juce::Timer> pendingTimer; ///< Timer for pending execution
+  juce::int64 lastExecutionTime = 0;         // /< Timestamp of last execution
+  std::unique_ptr<juce::Timer> pendingTimer; // /< Timer for pending execution
 };
 std::map<juce::String, ThrottleState> throttleStates;
 
@@ -102,22 +102,22 @@ public:
   }
 
 private:
-  std::function<void()> callback; ///< Callback to execute when timer fires
+  std::function<void()> callback; // /< Callback to execute when timer fires
 };
 
 } // anonymous namespace
 
-//==========================================================================
+// ==========================================================================
 // Shutdown Check
-//==========================================================================
+// ==========================================================================
 
 bool isShutdownInProgress() {
   return isShuttingDown.load();
 }
 
-//==========================================================================
+// ==========================================================================
 // Background Work (void version)
-//==========================================================================
+// ==========================================================================
 
 /** Execute work on background thread with optional completion callback
  * @param work Function to execute on background thread
@@ -146,9 +146,9 @@ void runVoid(std::function<void()> work, std::function<void()> onComplete) {
   }).detach();
 }
 
-//==========================================================================
+// ==========================================================================
 // Delayed Execution
-//==========================================================================
+// ==========================================================================
 
 /** Schedule a callback to execute after a delay on the message thread
  * @param delayMs Delay in milliseconds before executing callback
@@ -194,9 +194,9 @@ void cancelDelay(int timerId) {
   });
 }
 
-//==========================================================================
+// ==========================================================================
 // Debouncing
-//==========================================================================
+// ==========================================================================
 
 /** Debounce function calls - only executes after period of inactivity
  * @param key Unique identifier for this debounce group
@@ -255,9 +255,9 @@ void cancelAllDebounces() {
   });
 }
 
-//==========================================================================
+// ==========================================================================
 // Throttling
-//==========================================================================
+// ==========================================================================
 
 /** Throttle function calls - executes at most once per period
  * @param key Unique identifier for this throttle group
@@ -323,9 +323,9 @@ void cancelThrottle(const juce::String &key) {
   });
 }
 
-//==========================================================================
+// ==========================================================================
 // Shutdown
-//==========================================================================
+// ==========================================================================
 
 /** Shutdown the async system - call before app exit to prevent hangs
  * This should be called early in the destruction sequence.

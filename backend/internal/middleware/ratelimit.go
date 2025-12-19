@@ -41,7 +41,7 @@ func UploadRateLimitConfig() RateLimitConfig {
 	}
 }
 
-// SearchRateLimitConfig returns limits for search endpoints (Phase 6.3)
+// SearchRateLimitConfig returns limits for search endpoints
 func SearchRateLimitConfig() RateLimitConfig {
 	return RateLimitConfig{
 		Limit:  100,         // 100 search requests per minute
@@ -195,7 +195,7 @@ func RateLimitUpload() gin.HandlerFunc {
 	return NewRateLimiter(UploadRateLimitConfig())
 }
 
-// RateLimitSearch returns a middleware for search endpoints (Phase 6.3)
+// RateLimitSearch returns a middleware for search endpoints
 func RateLimitSearch() gin.HandlerFunc {
 	return NewRateLimiter(SearchRateLimitConfig())
 }

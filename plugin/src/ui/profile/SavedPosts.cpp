@@ -28,7 +28,7 @@ inline juce::Colour error() {
 } // namespace Colors
 } // namespace
 
-//==============================================================================
+// ==============================================================================
 SavedPosts::SavedPosts(AppStore *store) : AppStoreComponent(store) {
   addAndMakeVisible(scrollBar);
   scrollBar.addListener(this);
@@ -40,7 +40,7 @@ SavedPosts::~SavedPosts() {
   scrollBar.removeListener(this);
 }
 
-//==============================================================================
+// ==============================================================================
 void SavedPosts::onAppStateChanged(const PostsState &state) {
   // Update saved posts from state
   savedPosts.clear();
@@ -71,7 +71,7 @@ void SavedPosts::subscribeToAppStore() {
   });
 }
 
-//==============================================================================
+// ==============================================================================
 void SavedPosts::paint(juce::Graphics &g) {
   // Background
   g.fillAll(Colors::background());
@@ -104,7 +104,7 @@ void SavedPosts::resized() {
   updateScrollBounds();
 }
 
-//==============================================================================
+// ==============================================================================
 void SavedPosts::mouseUp(const juce::MouseEvent &event) {
   auto pos = event.getPosition();
 
@@ -147,7 +147,7 @@ void SavedPosts::scrollBarMoved(juce::ScrollBar * /*scrollBar*/, double newRange
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void SavedPosts::setNetworkClient(NetworkClient *client) {
   networkClient = client;
 }
@@ -164,7 +164,7 @@ void SavedPosts::refresh() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void SavedPosts::setCurrentlyPlayingPost(const juce::String &postId) {
   currentlyPlayingPostId = postId;
 
@@ -195,7 +195,7 @@ void SavedPosts::clearPlayingState() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void SavedPosts::drawHeader(juce::Graphics &g) {
   auto bounds = getLocalBounds().removeFromTop(HEADER_HEIGHT);
 
@@ -242,7 +242,7 @@ void SavedPosts::drawErrorState(juce::Graphics &g, juce::Rectangle<int> bounds) 
   g.drawText(errorMessage, bounds, juce::Justification::centred);
 }
 
-//==============================================================================
+// ==============================================================================
 juce::Rectangle<int> SavedPosts::getBackButtonBounds() const {
   return juce::Rectangle<int>(PADDING, 0, 40, HEADER_HEIGHT);
 }
@@ -254,7 +254,7 @@ juce::Rectangle<int> SavedPosts::getContentBounds() const {
   return bounds;
 }
 
-//==============================================================================
+// ==============================================================================
 void SavedPosts::fetchSavedPosts() {
   if (networkClient == nullptr) {
     errorMessage = "Not connected";
@@ -316,7 +316,7 @@ void SavedPosts::loadMoreIfNeeded() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void SavedPosts::rebuildPostCards() {
   postCards.clear();
 

@@ -28,7 +28,7 @@ const juce::Colour channelColors[] = {
 };
 } // namespace PianoRollColors
 
-//==============================================================================
+// ==============================================================================
 PianoRoll::PianoRoll() {
   // Start animation timer
   startTimerHz(30);
@@ -40,7 +40,7 @@ PianoRoll::~PianoRoll() {
   stopTimer();
 }
 
-//==============================================================================
+// ==============================================================================
 void PianoRoll::paint(juce::Graphics &g) {
   // Background
   g.fillAll(PianoRollColors::background);
@@ -68,7 +68,7 @@ void PianoRoll::resized() {
   noteGridArea = bounds;
 }
 
-//==============================================================================
+// ==============================================================================
 void PianoRoll::timerCallback() {
   // Animate pulse for active notes
   pulsePhase += 0.1f;
@@ -78,7 +78,7 @@ void PianoRoll::timerCallback() {
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void PianoRoll::setMIDIData(const juce::var &midiData) {
   notes.clear();
 
@@ -140,7 +140,7 @@ void PianoRoll::setNoteRange(int lowNote, int highNote) {
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void PianoRoll::drawPianoKeys(juce::Graphics &g) {
   int numNotes = highNoteNumber - lowNoteNumber + 1;
   float keyHeight = static_cast<float>(pianoKeyArea.getHeight()) / static_cast<float>(numNotes);
@@ -310,14 +310,14 @@ void PianoRoll::drawPlayhead(juce::Graphics &g) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 bool PianoRoll::isBlackKey(int noteNumber) const {
   int noteInOctave = noteNumber % 12;
   return noteInOctave == 1 || noteInOctave == 3 || noteInOctave == 6 || noteInOctave == 8 || noteInOctave == 10;
 }
 
 juce::String PianoRoll::getNoteName(int noteNumber) const {
-  static const char *noteNames[] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
+  static const char *noteNames[] = {"C", "C# ", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
   int octave = (noteNumber / 12) - 1;
   int noteIndex = noteNumber % 12;
   return juce::String(noteNames[noteIndex]) + juce::String(octave);
@@ -448,7 +448,7 @@ void PianoRoll::parseMIDIEvents(const juce::var &events) {
   std::sort(notes.begin(), notes.end(), [](const Note &a, const Note &b) { return a.startTime < b.startTime; });
 }
 
-//==============================================================================
+// ==============================================================================
 void PianoRoll::mouseMove(const juce::MouseEvent &event) {
   int noteIndex = findNoteAt(event.getPosition());
   if (noteIndex != hoveredNoteIndex) {

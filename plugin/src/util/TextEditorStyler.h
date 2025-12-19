@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 
-//==============================================================================
+// ==============================================================================
 /**
  * TextEditorStyler - Consistent TextEditor configuration and styling
  *
@@ -15,7 +15,7 @@
  *   TextEditorStyler::styleMultiline(bioEditor, "Tell us about yourself...");
  */
 namespace TextEditorStyler {
-//==========================================================================
+// ==========================================================================
 // Standard Styling
 
 /**
@@ -35,7 +35,7 @@ void stylePassword(juce::TextEditor &editor, const juce::String &placeholder = "
  */
 void styleMultiline(juce::TextEditor &editor, const juce::String &placeholder = "");
 
-//==========================================================================
+// ==========================================================================
 // Specialized Styling
 
 /**
@@ -58,7 +58,7 @@ void styleNumeric(juce::TextEditor &editor, const juce::String &placeholder = ""
  */
 void styleUrl(juce::TextEditor &editor, const juce::String &placeholder = "https://");
 
-//==========================================================================
+// ==========================================================================
 // Configuration
 
 /**

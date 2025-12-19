@@ -4,12 +4,12 @@
 #include "../../util/Json.h"
 #include "../../util/Log.h"
 
-//==============================================================================
+// ==============================================================================
 StoryHighlights::StoryHighlights(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {}
 
 StoryHighlights::~StoryHighlights() {}
 
-//==============================================================================
+// ==============================================================================
 void StoryHighlights::onAppStateChanged(const Sidechain::Stores::StoriesState &state) {
   // Update highlights from state
   auto stateHighlights = state.highlights;
@@ -41,7 +41,7 @@ void StoryHighlights::subscribeToAppStore() {
   });
 }
 
-//==============================================================================
+// ==============================================================================
 void StoryHighlights::setUserId(const juce::String &id) {
   if (userId != id) {
     userId = id;
@@ -100,7 +100,7 @@ void StoryHighlights::setHighlights(const juce::Array<StoryHighlight> &newHighli
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void StoryHighlights::paint(juce::Graphics &g) {
   if (isLoading) {
     drawLoadingState(g);
@@ -137,7 +137,7 @@ void StoryHighlights::drawHighlight(juce::Graphics &g, const StoryHighlight &hig
   // Draw cover image or placeholder
   auto imageBounds = circleBounds.reduced(4);
 
-  // Use unified getImage() - handles all three cache levels automatically (memory -> file -> HTTP)
+  // Use unified getImage - handles all three cache levels automatically (memory -> file -> HTTP)
   // - Returns immediately from memory cache
   // - Loads from file cache on background thread
   // - Downloads from HTTP if not cached
@@ -204,7 +204,7 @@ void StoryHighlights::drawLoadingState(juce::Graphics &g) {
   g.drawText("Loading highlights...", getLocalBounds(), juce::Justification::centred);
 }
 
-//==============================================================================
+// ==============================================================================
 void StoryHighlights::resized() {
   // No child components to layout
 }
@@ -227,7 +227,7 @@ void StoryHighlights::mouseUp(const juce::MouseEvent &event) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 int StoryHighlights::getHighlightIndexAt(juce::Point<int> pos) const {
   for (int i = 0; i < highlights.size(); ++i) {
     if (getHighlightBounds(i).contains(pos))
@@ -258,7 +258,7 @@ juce::Rectangle<int> StoryHighlights::getAddButtonBounds() const {
   return juce::Rectangle<int>(PADDING - scrollOffset, PADDING, ADD_BUTTON_SIZE, HIGHLIGHT_SIZE + NAME_HEIGHT);
 }
 
-//==============================================================================
+// ==============================================================================
 void StoryHighlights::loadCoverImage(const StoryHighlight &highlight) {
   // TODO: Load highlight cover image from URL
   // Image loading to be implemented

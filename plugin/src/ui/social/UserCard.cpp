@@ -6,7 +6,7 @@
 #include "../../util/StringFormatter.h"
 #include "../../util/UIHelpers.h"
 
-//==============================================================================
+// ==============================================================================
 UserCard::UserCard() {
   setInterceptsMouseClicks(true, true);
 
@@ -25,7 +25,7 @@ UserCard::UserCard() {
 
 UserCard::~UserCard() {}
 
-//==============================================================================
+// ==============================================================================
 void UserCard::setUser(const DiscoveredUser &newUser) {
   user = newUser;
   Log::debug("UserCard: Setting user - ID: " + user.id + ", username: " + user.username);
@@ -60,7 +60,7 @@ void UserCard::setIsFollowing(bool following) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void UserCard::paint(juce::Graphics &g) {
   drawBackground(g);
 
@@ -80,7 +80,7 @@ void UserCard::paint(juce::Graphics &g) {
 
 void UserCard::resized() {}
 
-//==============================================================================
+// ==============================================================================
 void UserCard::drawBackground(juce::Graphics &g) {
   UIHelpers::drawCardWithHover(g, getLocalBounds().reduced(4, 2), Colors::background, Colors::backgroundHover,
                                juce::Colours::transparentBlack, hoverState.isHovered());
@@ -171,7 +171,7 @@ void UserCard::drawFollowButton(juce::Graphics &g, juce::Rectangle<int> bounds) 
   }
 }
 
-//==============================================================================
+// ==============================================================================
 juce::Rectangle<int> UserCard::getAvatarBounds() const {
   return getLocalBounds().reduced(8, 4).removeFromLeft(AVATAR_SIZE);
 }
@@ -188,7 +188,7 @@ juce::Rectangle<int> UserCard::getFollowButtonBounds() const {
   return bounds.removeFromRight(80).withSizeKeepingCentre(72, 28);
 }
 
-//==============================================================================
+// ==============================================================================
 void UserCard::mouseUp(const juce::MouseEvent &event) {
   auto point = event.getPosition();
 

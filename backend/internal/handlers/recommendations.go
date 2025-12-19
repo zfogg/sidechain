@@ -111,7 +111,7 @@ func (h *Handlers) GetForYouFeed(c *gin.Context) {
 	}
 
 	if err != nil {
-		// Record Gorse error metric (ENG-3)
+		// Record Gorse error metric
 		metrics.Get().GorseErrors.WithLabelValues("recommendation_fetch").Inc()
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   "failed_to_get_recommendations",
@@ -120,7 +120,7 @@ func (h *Handlers) GetForYouFeed(c *gin.Context) {
 		return
 	}
 
-	// Record Gorse recommendations fetched (ENG-3)
+	// Record Gorse recommendations fetched
 	metrics.Get().GorseRecommendations.WithLabelValues(recommendationType).Add(float64(len(scores)))
 
 	// Convert to activities format with user enrichment
@@ -212,7 +212,7 @@ func (h *Handlers) GetSimilarPosts(c *gin.Context) {
 	}
 
 	if err != nil {
-		// Record Gorse error metric (ENG-3)
+		// Record Gorse error metric
 		metrics.Get().GorseErrors.WithLabelValues("similar_posts").Inc()
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   "failed_to_get_similar_posts",
@@ -221,7 +221,7 @@ func (h *Handlers) GetSimilarPosts(c *gin.Context) {
 		return
 	}
 
-	// Record Gorse recommendations fetched (ENG-3)
+	// Record Gorse recommendations fetched
 	metrics.Get().GorseRecommendations.WithLabelValues(recommendationType).Add(float64(len(posts)))
 
 	// Convert to activities format
@@ -356,7 +356,7 @@ func (h *Handlers) GetRecommendedUsers(c *gin.Context) {
 	// Get similar users (using current user's preferences to find similar users)
 	users, err := recService.GetSimilarUsers(currentUserID, limit)
 	if err != nil {
-		// Record Gorse error metric (ENG-3)
+		// Record Gorse error metric
 		metrics.Get().GorseErrors.WithLabelValues("user_recommendation").Inc()
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   "failed_to_get_similar_users",
@@ -365,7 +365,7 @@ func (h *Handlers) GetRecommendedUsers(c *gin.Context) {
 		return
 	}
 
-	// Record Gorse recommendations fetched (ENG-3)
+	// Record Gorse recommendations fetched
 	metrics.Get().GorseRecommendations.WithLabelValues("similar-users").Add(float64(len(users)))
 
 	// Convert to user format

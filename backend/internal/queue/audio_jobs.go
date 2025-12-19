@@ -52,7 +52,7 @@ type AudioQueue struct {
 	s3Uploader *storage.S3Uploader
 	tempDir    string
 
-	// Callback for post indexing (7.1.4)
+	// Callback for post indexing
 	onPostComplete func(postID string)
 
 	// For testing: channels to signal job completion
@@ -84,7 +84,7 @@ func NewAudioQueue(s3Uploader *storage.S3Uploader) *AudioQueue {
 	}
 }
 
-// SetPostCompleteCallback sets a callback function to be called when a post processing completes (7.1.4)
+// SetPostCompleteCallback sets a callback function to be called when a post processing completes
 func (q *AudioQueue) SetPostCompleteCallback(callback func(postID string)) {
 	q.onPostComplete = callback
 }
@@ -252,7 +252,7 @@ func (q *AudioQueue) processJob(workerID int, job *AudioJob) {
 		return
 	}
 
-	// 5. Generate audio fingerprint for Sound detection (Feature #15)
+	// 5. Generate audio fingerprint for Sound detection
 	// Note: Fingerprinting is done in processAudioWithFFmpeg while the processed file is still available
 
 	// Success!
@@ -262,7 +262,7 @@ func (q *AudioQueue) processJob(workerID int, job *AudioJob) {
 	log.Printf("✅ Worker %d completed job %s in %v (duration: %.1fs, size: %d bytes)",
 		workerID, job.ID, elapsed, processedAudio.Duration, audioResult.Size)
 
-	// Trigger post indexing callback (7.1.4)
+	// Trigger post indexing callback
 	if q.onPostComplete != nil {
 		go q.onPostComplete(job.PostID)
 	}
@@ -309,7 +309,7 @@ func (q *AudioQueue) processAudioWithFFmpeg(ctx context.Context, job *AudioJob) 
 		duration = 0
 	}
 
-	// Step 4: Generate audio fingerprint for Sound detection (Feature #15)
+	// Step 4: Generate audio fingerprint for Sound detection
 	// This must happen while the processed file is still available
 	fingerprintCtx, fingerprintCancel := context.WithTimeout(ctx, 30*time.Second)
 	err = fingerprint.ProcessPostFingerprint(fingerprintCtx, outputPath, job.PostID, job.UserID)

@@ -5,7 +5,7 @@
 #include "../../util/Result.h"
 #include "../../util/StringFormatter.h"
 
-//==============================================================================
+// ==============================================================================
 MessagesList::MessagesList(Sidechain::Stores::AppStore *store)
     : Sidechain::UI::AppStoreComponent<Sidechain::Stores::ChatState>(store), scrollBar(true) {
   Log::info("MessagesList: Initializing");
@@ -25,10 +25,10 @@ MessagesList::MessagesList(Sidechain::Stores::AppStore *store)
 
   startTimer(10000); // Refresh every 10 seconds
 
-  // TODO: Phase 6.2.10 - Show "typing" indicator (future) - Deferred to future
+  // TODO: - Show "typing" indicator (future) - Deferred to future
   // phase
-  // TODO: Phase 6.5.3.4.2 - Implement audio snippet playback in messages
-  // TODO: Phase 6.5.3.4.3 - Upload audio snippet when sending
+  // TODO: .2 - Implement audio snippet playback in messages
+  // TODO: .3 - Upload audio snippet when sending
 }
 
 MessagesList::~MessagesList() {
@@ -36,7 +36,7 @@ MessagesList::~MessagesList() {
   stopTimer();
 }
 
-//==============================================================================
+// ==============================================================================
 // AppStoreComponent implementation
 
 void MessagesList::onAppStateChanged(const Sidechain::Stores::ChatState &state) {
@@ -206,7 +206,7 @@ void MessagesList::mouseWheelMove(const juce::MouseEvent &event, const juce::Mou
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void MessagesList::setStreamChatClient(StreamChatClient *client) {
   streamChatClient = client;
   loadChannels();
@@ -371,7 +371,7 @@ void MessagesList::timerCallback() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void MessagesList::drawHeader(juce::Graphics &g) {
   // Header background - slightly lighter than content area
   g.setColour(juce::Colour(0xff2a2a2a));
@@ -642,7 +642,7 @@ void MessagesList::drawErrorState(juce::Graphics &g) {
   g.drawText("Error: " + errorMessage, getLocalBounds(), juce::Justification::centred);
 }
 
-//==============================================================================
+// ==============================================================================
 juce::String MessagesList::formatTimestamp(const juce::String &timestamp) {
   if (timestamp.isEmpty())
     return "";

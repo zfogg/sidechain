@@ -19,7 +19,7 @@
 #include <websocketpp/client.hpp>
 #include <websocketpp/config/asio_no_tls_client.hpp>
 
-//==============================================================================
+// ==============================================================================
 /**
  * WebSocketClient provides real-time communication with the Sidechain backend.
  *
@@ -38,11 +38,11 @@
  */
 class WebSocketClient : private juce::Thread {
 public:
-  //==========================================================================
+  // ==========================================================================
   // Connection state
   enum class ConnectionState { Disconnected, Connecting, Connected, Reconnecting };
 
-  //==========================================================================
+  // ==========================================================================
   // Message types for routing
   enum class MessageType {
     Unknown,
@@ -51,26 +51,26 @@ public:
     Unlike,                  // Someone unliked a post
     Follow,                  // Someone followed a user
     Comment,                 // New comment on a post (legacy)
-    NewComment,              // New comment notification (5.5.5)
-    CommentLiked,            // Someone liked a comment (5.5.6)
-    CommentUnliked,          // Someone unliked a comment (5.5.7)
+    NewComment,              // New comment notification
+    CommentLiked,            // Someone liked a comment
+    CommentUnliked,          // Someone unliked a comment
     Notification,            // Generic notification
     PresenceUpdate,          // User online/offline status
     PlayCount,               // Play count update
-    LikeCountUpdate,         // Like count updated (5.5.3)
-    CommentCountUpdate,      // Comment count updated (5.5.8)
-    FollowerCountUpdate,     // Follower count updated (5.5.4)
-    EngagementMetrics,       // Combined engagement metrics (5.5.9)
-    FeedInvalidate,          // Refresh feed cache (5.5.10 - Phase 2.1)
-    TimelineUpdate,          // Activity timeline changed (5.5.11 - Phase 2.2)
-    NotificationCountUpdate, // Notification count updated (5.5.12 - Phase 2.3)
+    LikeCountUpdate,         // Like count updated
+    CommentCountUpdate,      // Comment count updated
+    FollowerCountUpdate,     // Follower count updated
+    EngagementMetrics,       // Combined engagement metrics
+    FeedInvalidate,          // Refresh feed cache (5.5.10 - )
+    TimelineUpdate,          // Activity timeline changed (5.5.11 - )
+    NotificationCountUpdate, // Notification count updated (5.5.12 - )
     UserTyping,              // User is typing a comment (5.5.13 - Phase 3)
     UserStopTyping,          // User stopped typing (5.5.14 - Phase 3)
     Heartbeat,               // Server heartbeat response
     Error                    // Server error message
   };
 
-  //==========================================================================
+  // ==========================================================================
   // Parsed WebSocket message
   struct Message {
     MessageType type = MessageType::Unknown;
@@ -86,7 +86,7 @@ public:
     }
   };
 
-  //==========================================================================
+  // ==========================================================================
   // Configuration
   struct Config {
     juce::String host = Constants::Endpoints::DEV_WS_HOST;
@@ -128,11 +128,11 @@ public:
     }
   };
 
-  //==========================================================================
+  // ==========================================================================
   WebSocketClient(const Config &config = Config::development());
   ~WebSocketClient() override;
 
-  //==========================================================================
+  // ==========================================================================
   // Connection management
 
   /** Connect to the WebSocket server */
@@ -155,7 +155,7 @@ public:
     return state.load();
   }
 
-  //==========================================================================
+  // ==========================================================================
   // Authentication
 
   /** Set authentication token for WebSocket connection
@@ -173,7 +173,7 @@ public:
     return !authToken.isEmpty();
   }
 
-  //==========================================================================
+  // ==========================================================================
   // Messaging
 
   /** Send a message to the server
@@ -189,13 +189,13 @@ public:
    */
   bool send(const juce::String &type, const juce::var &data);
 
-  //==========================================================================
+  // ==========================================================================
   // Callbacks (called on message thread)
   std::function<void(const Message &)> onMessage;
   std::function<void(ConnectionState)> onStateChanged;
   std::function<void(const juce::String &error)> onError;
 
-  //==========================================================================
+  // ==========================================================================
   // Configuration
 
   /** Update WebSocket configuration
@@ -210,16 +210,16 @@ public:
     return config;
   }
 
-  //==========================================================================
+  // ==========================================================================
   // Statistics
 
   /** Statistics structure for connection metrics */
   struct Stats {
-    int messagesReceived = 0;    ///< Total messages received
-    int messagesSent = 0;        ///< Total messages sent
-    int reconnectAttempts = 0;   ///< Number of reconnection attempts
-    int64_t lastMessageTime = 0; ///< Timestamp of last message (milliseconds)
-    int64_t connectedTime = 0;   ///< Timestamp when connected (milliseconds)
+    int messagesReceived = 0;    // /< Total messages received
+    int messagesSent = 0;        // /< Total messages sent
+    int reconnectAttempts = 0;   // /< Number of reconnection attempts
+    int64_t lastMessageTime = 0; // /< Timestamp of last message (milliseconds)
+    int64_t connectedTime = 0;   // /< Timestamp when connected (milliseconds)
   };
 
   /** Get connection statistics
@@ -228,18 +228,18 @@ public:
   Stats getStats() const;
 
 private:
-  //==========================================================================
+  // ==========================================================================
   // websocketpp types
   typedef websocketpp::client<websocketpp::config::asio_client> wspp_client;
   typedef websocketpp::connection_hdl connection_hdl;
   typedef typename wspp_client::message_ptr message_ptr;
   typedef typename wspp_client::connection_ptr connection_ptr;
 
-  //==========================================================================
+  // ==========================================================================
   // Thread implementation
   void run() override;
 
-  //==========================================================================
+  // ==========================================================================
   // Connection helpers
   void attemptConnection();
   void handleDisconnect(const juce::String &reason);
@@ -247,7 +247,7 @@ private:
   void cleanupClient();
   void connectionLoop();
 
-  //==========================================================================
+  // ==========================================================================
   // websocketpp event handlers
   void onWsOpen(connection_hdl hdl);
   void onWsClose(connection_hdl hdl);
@@ -255,32 +255,32 @@ private:
   void onWsFail(connection_hdl hdl);
   void onWsPong(connection_hdl hdl, std::string appData);
 
-  //==========================================================================
+  // ==========================================================================
   // Message handling
   void processTextMessage(const juce::String &text);
   void dispatchMessage(const Message &message);
   MessageType parseMessageType(const juce::String &typeStr);
 
-  //==========================================================================
+  // ==========================================================================
   // Heartbeat
   void sendHeartbeat();
   bool isHeartbeatTimedOut() const;
 
-  //==========================================================================
+  // ==========================================================================
   // Message queue (for offline messages)
   void queueMessage(const juce::var &message);
   void flushMessageQueue();
   void clearMessageQueue();
 
-  //==========================================================================
+  // ==========================================================================
   // State management
   void setState(ConnectionState newState);
 
-  //==========================================================================
+  // ==========================================================================
   // Build WebSocket URI
   juce::String buildUri() const;
 
-  //==========================================================================
+  // ==========================================================================
   Config config;
   juce::String authToken;
 

@@ -5,7 +5,7 @@
 
 class NetworkClient;
 
-//==============================================================================
+// ==============================================================================
 /**
  * Auth provides a professional login/signup interface
  *
@@ -24,7 +24,7 @@ public:
   Auth(Sidechain::Stores::AppStore *store = nullptr);
   ~Auth() override;
 
-  //==============================================================================
+  // ==============================================================================
   // Callbacks
 
   /** Called when login/signup succeeds
@@ -42,7 +42,7 @@ public:
    */
   std::function<void()> onOAuthCancelled;
 
-  //==============================================================================
+  // ==============================================================================
   // Network client for API calls
 
   /** Set the network client for API calls
@@ -50,7 +50,7 @@ public:
    */
   void setNetworkClient(NetworkClient *client);
 
-  //==============================================================================
+  // ==============================================================================
   // Component overrides
 
   /** Paint the component
@@ -78,7 +78,7 @@ public:
    */
   void textEditorTextChanged(juce::TextEditor &editor) override;
 
-  //==============================================================================
+  // ==============================================================================
   // State management
 
   /** Reset the component to initial state
@@ -95,13 +95,13 @@ public:
   void clearError();
 
 protected:
-  //==============================================================================
+  // ==============================================================================
   // AppStoreComponent virtual methods
   void onAppStateChanged(const Sidechain::Stores::AuthState &state) override;
   void subscribeToAppStore() override;
 
 public:
-  //==============================================================================
+  // ==============================================================================
   // OAuth waiting mode (8.3.11.9-12)
 
   /** Show OAuth waiting screen with provider name and countdown
@@ -120,7 +120,7 @@ public:
   void hideOAuthWaiting();
 
 private:
-  //==============================================================================
+  // ==============================================================================
   // Auth modes
   enum class AuthMode {
     Welcome,        // Initial state with login/signup options
@@ -143,18 +143,18 @@ private:
   int oauthSecondsRemaining = 0;     // Countdown seconds
   int oauthAnimationFrame = 0;       // For animated spinner
 
-  //==============================================================================
+  // ==============================================================================
   // Network client
   NetworkClient *networkClient = nullptr;
 
-  //==============================================================================
+  // ==============================================================================
   // Welcome screen components
   std::unique_ptr<juce::TextButton> loginButton;
   std::unique_ptr<juce::TextButton> signupButton;
   std::unique_ptr<juce::TextButton> googleButton;
   std::unique_ptr<juce::TextButton> discordButton;
 
-  //==============================================================================
+  // ==============================================================================
   // Login form components
   std::unique_ptr<juce::TextEditor> loginEmailEditor;
   std::unique_ptr<juce::TextEditor> loginPasswordEditor;
@@ -163,7 +163,7 @@ private:
   std::unique_ptr<juce::TextButton> loginSubmitButton;
   std::unique_ptr<juce::TextButton> loginBackButton;
 
-  //==============================================================================
+  // ==============================================================================
   // Signup form components
   std::unique_ptr<juce::TextEditor> signupEmailEditor;
   std::unique_ptr<juce::TextEditor> signupUsernameEditor;
@@ -173,17 +173,17 @@ private:
   std::unique_ptr<juce::TextButton> signupSubmitButton;
   std::unique_ptr<juce::TextButton> signupBackButton;
 
-  //==============================================================================
+  // ==============================================================================
   // OAuth waiting components (8.3.11.9-12)
   std::unique_ptr<juce::TextButton> oauthCancelButton;
 
-  //==============================================================================
+  // ==============================================================================
   // Two-factor authentication components
   std::unique_ptr<juce::TextEditor> twoFactorCodeEditor;
   std::unique_ptr<juce::TextButton> twoFactorVerifyButton;
   std::unique_ptr<juce::TextButton> twoFactorBackButton;
 
-  //==============================================================================
+  // ==============================================================================
   // Layout helpers
   void setupWelcomeComponents();
   void setupLoginComponents();
@@ -226,7 +226,7 @@ private:
   static constexpr int FIELD_SPACING = 16;
   static constexpr int BUTTON_HEIGHT = 48;
 
-  //==============================================================================
+  // ==============================================================================
   // Colors
   struct Colors {
     static inline juce::Colour background{0xff1a1a1e};

@@ -138,7 +138,7 @@ func main() {
 		}
 	}
 
-	// Initialize alert system (Phase 7.2)
+	// Initialize alert system
 	alertManager := alerts.NewAlertManager()
 	alertEvaluator := alerts.NewEvaluator(alertManager)
 	alertEvaluator.InitializeDefaultRules()
@@ -254,7 +254,7 @@ func main() {
 	storyCleanup.Start()
 	defer storyCleanup.Stop()
 
-	// Initialize MIDI challenge notification service (runs every 15 minutes) (R.2.2.4.4)
+	// Initialize MIDI challenge notification service (runs every 15 minutes)
 	challengeNotifications := challenges.NewNotificationService(streamClient, 15*time.Minute)
 	challengeNotifications.Start()
 	defer challengeNotifications.Stop()
@@ -439,7 +439,7 @@ func main() {
 	metrics.Initialize()
 	logger.Log.Info("Prometheus metrics initialized")
 
-	// Setup Gin router - use gin.New() instead of gin.Default() to control middleware
+	// Setup Gin router - use gin.New instead of gin.Default to control middleware
 	r := gin.New()
 
 	// NOTE: WebSocket routes (/api/v1/ws, /api/v1/ws/connect) are handled OUTSIDE of Gin
@@ -475,7 +475,7 @@ func main() {
 				continue
 			}
 			if !strings.HasPrefix(origin, "http://") && !strings.HasPrefix(origin, "https://") {
-				logger.Log.Warn("⚠️ CORS misconfiguration: origin must use http:// or https://",
+				logger.Log.Warn("⚠️ CORS misconfiguration: origin must use http://or https://",
 					zap.String("rejected_origin", origin),
 				)
 				continue
@@ -719,31 +719,31 @@ func main() {
 			followRequests.DELETE("/:id", h.CancelFollowRequest)
 		}
 
-		// Search routes (public, optional auth for privacy filtering - Phase 5.1)
+		// Search routes (public, optional auth for privacy filtering - )
 		search := api.Group("/search")
 		{
 			search.Use(authHandlers.AuthMiddlewareOptional())
-			search.Use(middleware.RateLimitSearch()) // Phase 6.3: Rate limit search requests
+			search.Use(middleware.RateLimitSearch()) // Rate limit search requests
 			// Cache search results for 2 minutes (Elasticsearch results are cached)
 			search.Use(middleware.ResponseCacheMiddleware(2 * time.Minute))
 			search.GET("/users", h.SearchUsers)
-			search.GET("/posts", h.SearchPosts)       // Phase 1.2: Search posts with Elasticsearch
-			search.GET("/stories", h.SearchStories)   // Phase 1.3: Search stories by creator username
-			search.GET("/advanced", h.AdvancedSearch) // Phase 1.6: Unified search across all types
+			search.GET("/posts", h.SearchPosts)       // Search posts with Elasticsearch
+			search.GET("/stories", h.SearchStories)   // Search stories by creator username
+			search.GET("/advanced", h.AdvancedSearch) // Unified search across all types
 			search.GET("/genres", h.GetAvailableGenres)
 			search.GET("/keys", h.GetAvailableKeys)
 
-			// Autocomplete endpoints (Phase 1.4, 1.5)
+			// Autocomplete endpoints
 			autocomplete := search.Group("/autocomplete")
 			{
-				autocomplete.GET("/users", h.AutocompleteUsers)   // Phase 1.4: Username suggestions
-				autocomplete.GET("/genres", h.AutocompleteGenres) // Phase 1.5: Genre suggestions
+				autocomplete.GET("/users", h.AutocompleteUsers)   // Username suggestions
+				autocomplete.GET("/genres", h.AutocompleteGenres) // Genre suggestions
 			}
 		}
 
-		// Metrics routes (Phase 7.1)
+		// Metrics routes
 
-		// Alert routes (Phase 7.2)
+		// Alert routes
 		alert := api.Group("/alerts")
 		{
 			alert.GET("", h.GetAlerts)                  // Get all alerts
@@ -872,7 +872,7 @@ func main() {
 			stories.GET("/:id/views", h.GetStoryViews)
 			stories.POST("/:id/download", h.DownloadStory) // 19.1 - Story download
 			stories.DELETE("/:id", h.DeleteStory)
-			// Remix routes for stories (R.3.2)
+			// Remix routes for stories
 			stories.POST("/:id/remix", h.CreateRemixPost)
 			stories.GET("/:id/remixes", h.GetStoryRemixes)
 			stories.GET("/:id/remix-source", h.GetRemixSource)
@@ -881,7 +881,7 @@ func main() {
 		// User stories route (7.5.1.3.3)
 		users.GET("/:id/stories", h.GetUserStories)
 
-		// Story highlight routes (7.5.6)
+		// Story highlight routes
 		highlights := api.Group("/highlights")
 		{
 			highlights.Use(authHandlers.AuthMiddleware())
@@ -893,10 +893,10 @@ func main() {
 			highlights.DELETE("/:id/stories/:story_id", h.RemoveStoryFromHighlight)
 		}
 
-		// User highlights route (7.5.6.2)
+		// User highlights route
 		users.GET("/:id/highlights", h.GetHighlights)
 
-		// MIDI pattern routes (R.3.3)
+		// MIDI pattern routes
 		midi := api.Group("/midi")
 		{
 			midi.Use(authHandlers.AuthMiddleware())
@@ -908,7 +908,7 @@ func main() {
 			midi.DELETE("/:id", h.DeleteMIDIPattern)
 		}
 
-		// Project file routes (R.3.4)
+		// Project file routes
 		projectFiles := api.Group("/project-files")
 		{
 			projectFiles.Use(authHandlers.AuthMiddleware())
@@ -919,16 +919,16 @@ func main() {
 			projectFiles.DELETE("/:id", h.DeleteProjectFile)
 		}
 
-		// Post project file route (R.3.4)
+		// Post project file route
 		posts.GET("/:id/project-file", h.GetPostProjectFile)
 
-		// Remix routes (R.3.2 Remix Chains)
+		// Remix routes
 		posts.POST("/:id/remix", h.CreateRemixPost)
 		posts.GET("/:id/remix-chain", h.GetRemixChain)
 		posts.GET("/:id/remixes", h.GetPostRemixes)
 		posts.GET("/:id/remix-source", h.GetRemixSource)
 
-		// Playlist routes (R.3.1 Collaborative Playlists)
+		// Playlist routes
 		playlists := api.Group("/playlists")
 		{
 			playlists.Use(authHandlers.AuthMiddleware())
@@ -942,7 +942,7 @@ func main() {
 			playlists.DELETE("/:id/collaborators/:user_id", h.DeletePlaylistCollaborator)
 		}
 
-		// MIDI Challenge routes (R.2.2 MIDI Battle Royale)
+		// MIDI Challenge routes
 		midiChallenges := api.Group("/midi-challenges")
 		{
 			// Public routes (no auth required for viewing)
@@ -957,7 +957,7 @@ func main() {
 			midiChallenges.POST("/:id/entries/:entry_id/vote", h.VoteMIDIChallengeEntry)
 		}
 
-		// Sound routes (Feature #15 - Sound/Sample Pages)
+		// Sound routes ( - Sound/Sample Pages)
 		soundHandlers := handlers.NewSoundHandlers()
 		sounds := api.Group("/sounds")
 		{
@@ -972,14 +972,14 @@ func main() {
 			sounds.PATCH("/:id", soundHandlers.UpdateSound)
 		}
 
-		// Post sound route (Feature #15)
+		// Post sound route
 		posts.GET("/:id/sound", soundHandlers.GetPostSound)
 
 		// WebSocket auxiliary routes (the main ws routes are registered before middleware)
 		ws := api.Group("/ws")
 		{
 			// Note: Main WebSocket connection endpoints (GET "" and GET "/connect") are registered
-			// at the top of main() BEFORE middleware to avoid connection hijacking issues
+			// at the top of main BEFORE middleware to avoid connection hijacking issues
 
 			// Metrics endpoint (protected)
 			ws.GET("/metrics", authHandlers.AuthMiddleware(), wsHandler.HandleMetrics)

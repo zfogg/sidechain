@@ -1,7 +1,7 @@
-//==============================================================================
+// ==============================================================================
 // SocialClient.cpp - Social operations (follow, unfollow, play tracking)
 // Part of NetworkClient implementation split
-//==============================================================================
+// ==============================================================================
 
 #include "../../util/Async.h"
 #include "../../util/Constants.h"
@@ -11,7 +11,7 @@
 
 using namespace Sidechain::Network::Api;
 
-//==============================================================================
+// ==============================================================================
 void NetworkClient::followUser(const juce::String &userId, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
@@ -159,9 +159,9 @@ void NetworkClient::trackListenDuration(const juce::String &activityId, double d
   });
 }
 
-//==============================================================================
+// ==============================================================================
 // Save/Bookmark operations (P0 Social Feature)
-//==============================================================================
+// ==============================================================================
 
 void NetworkClient::savePost(const juce::String &postId, ResponseCallback callback) {
   if (!isAuthenticated()) {
@@ -228,9 +228,9 @@ void NetworkClient::getSavedPosts(int limit, int offset, FeedCallback callback) 
   });
 }
 
-//==============================================================================
+// ==============================================================================
 // Repost operations (P0 Social Feature)
-//==============================================================================
+// ==============================================================================
 
 void NetworkClient::repostPost(const juce::String &postId, const juce::String &quote, ResponseCallback callback) {
   if (!isAuthenticated()) {
@@ -279,9 +279,9 @@ void NetworkClient::undoRepost(const juce::String &postId, ResponseCallback call
   });
 }
 
-//==============================================================================
+// ==============================================================================
 // Archive operations (hide posts without deleting)
-//==============================================================================
+// ==============================================================================
 
 void NetworkClient::archivePost(const juce::String &postId, ResponseCallback callback) {
   if (!isAuthenticated()) {
@@ -348,9 +348,9 @@ void NetworkClient::getArchivedPosts(int limit, int offset, FeedCallback callbac
   });
 }
 
-//==============================================================================
+// ==============================================================================
 // Mute operations
-//==============================================================================
+// ==============================================================================
 
 void NetworkClient::muteUser(const juce::String &userId, ResponseCallback callback) {
   if (!isAuthenticated()) {
@@ -438,9 +438,9 @@ void NetworkClient::isUserMuted(const juce::String &userId, ResponseCallback cal
   });
 }
 
-//==============================================================================
+// ==============================================================================
 // Pin posts to profile operations
-//==============================================================================
+// ==============================================================================
 
 void NetworkClient::pinPost(const juce::String &postId, ResponseCallback callback) {
   if (!isAuthenticated()) {

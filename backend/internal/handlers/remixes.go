@@ -14,12 +14,12 @@ import (
 )
 
 // ============================================================================
-// R.3.2 REMIX CHAINS
+// REMIX CHAINS
 // ============================================================================
-//
+
 // Allows users to remix MIDI and/or audio from posts and stories.
 // Creates a chain of remixes showing the creative lineage.
-//
+
 
 // CreateRemixPost creates a new post that remixes content from another post or story
 // POST /api/v1/posts/:id/remix (remix a post)

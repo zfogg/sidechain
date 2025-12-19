@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 
-//==============================================================================
+// ==============================================================================
 /**
  * Story represents a short music clip with MIDI visualization (Phase 7.5)
  *
@@ -33,7 +33,7 @@ struct Story {
   juce::String userDisplayName;
   juce::String userAvatarUrl;
 
-  //==============================================================================
+  // ==============================================================================
   // Helper methods
 
   /** Check if story is expired (past expiration time)
@@ -70,7 +70,7 @@ struct Story {
   juce::var toJSON() const;
 };
 
-//==============================================================================
+// ==============================================================================
 /**
  * StoryHighlight represents a collection of saved stories that persist beyond
  * 24 hours
@@ -92,7 +92,7 @@ struct StoryHighlight {
   // Stories in this highlight (populated when fetching single highlight)
   juce::Array<Story> stories;
 
-  //==============================================================================
+  // ==============================================================================
   // Helper methods
 
   /** Check if highlight has a custom cover image

@@ -9,7 +9,7 @@ class AppStore;
 }
 } // namespace Sidechain
 
-//==============================================================================
+// ==============================================================================
 /**
  * DiscoveredUser represents a user result from search or discovery endpoints
  */
@@ -62,7 +62,7 @@ struct DiscoveredUser {
   }
 };
 
-//==============================================================================
+// ==============================================================================
 /**
  * UserCard displays a user in a compact card format for discovery/search
  *
@@ -78,7 +78,7 @@ public:
   UserCard();
   ~UserCard() override;
 
-  //==============================================================================
+  // ==============================================================================
   // Data binding
   void setUser(const DiscoveredUser &user);
   const DiscoveredUser &getUser() const {
@@ -96,12 +96,12 @@ public:
     appStore = store;
   }
 
-  //==============================================================================
+  // ==============================================================================
   // Callbacks
   std::function<void(const DiscoveredUser &)> onUserClicked;
   std::function<void(const DiscoveredUser &, bool willFollow)> onFollowToggled;
 
-  //==============================================================================
+  // ==============================================================================
   // Component overrides
   void paint(juce::Graphics &g) override;
   void resized() override;
@@ -109,7 +109,7 @@ public:
   void mouseEnter(const juce::MouseEvent &event) override;
   void mouseExit(const juce::MouseEvent &event) override;
 
-  //==============================================================================
+  // ==============================================================================
   // Layout constants
   static constexpr int CARD_HEIGHT = 72;
   static constexpr int AVATAR_SIZE = 48;
@@ -119,7 +119,7 @@ private:
   HoverState hoverState;
   Sidechain::Stores::AppStore *appStore = nullptr;
 
-  //==============================================================================
+  // ==============================================================================
   // Drawing methods
   void drawBackground(juce::Graphics &g);
   void drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds);
@@ -127,13 +127,13 @@ private:
   void drawFollowButton(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawGenreBadge(juce::Graphics &g, juce::Rectangle<int> bounds);
 
-  //==============================================================================
+  // ==============================================================================
   // Hit testing helpers
   juce::Rectangle<int> getAvatarBounds() const;
   juce::Rectangle<int> getUserInfoBounds() const;
   juce::Rectangle<int> getFollowButtonBounds() const;
 
-  //==============================================================================
+  // ==============================================================================
   // Colors (matching app theme)
   struct Colors {
     static inline juce::Colour background{0xff2d2d32};

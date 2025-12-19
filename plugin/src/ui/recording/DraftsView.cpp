@@ -3,7 +3,7 @@
 #include "../../util/Log.h"
 #include "Upload.h" // For key/genre names
 
-//==============================================================================
+// ==============================================================================
 DraftsView::DraftsView(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   scrollBar = std::make_unique<juce::ScrollBar>(true);
   scrollBar->addListener(this);
@@ -17,7 +17,7 @@ DraftsView::~DraftsView() {
     scrollBar->removeListener(this);
 }
 
-//==============================================================================
+// ==============================================================================
 void DraftsView::subscribeToAppStore() {
   if (!appStore)
     return;
@@ -50,7 +50,7 @@ void DraftsView::onAppStateChanged(const Sidechain::Stores::DraftState & /*state
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void DraftsView::refresh() {
   isLoading = true;
   repaint();
@@ -62,7 +62,7 @@ void DraftsView::loadDrafts() {
   refresh();
 }
 
-//==============================================================================
+// ==============================================================================
 void DraftsView::paint(juce::Graphics &g) {
   g.fillAll(SidechainColors::background());
 
@@ -306,7 +306,7 @@ void DraftsView::drawDeleteConfirmation(juce::Graphics &g) {
   g.drawText("Cancel", cancelBounds, juce::Justification::centred);
 }
 
-//==============================================================================
+// ==============================================================================
 void DraftsView::resized() {
   auto bounds = getLocalBounds();
 
@@ -325,7 +325,7 @@ void DraftsView::scrollBarMoved(juce::ScrollBar *, double newRangeStart) {
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void DraftsView::mouseUp(const juce::MouseEvent &event) {
   auto pos = event.getPosition();
 
@@ -390,7 +390,7 @@ void DraftsView::mouseUp(const juce::MouseEvent &event) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 juce::Rectangle<int> DraftsView::getBackButtonBounds() const {
   return juce::Rectangle<int>(PADDING, (HEADER_HEIGHT - 30) / 2, 30, 30);
 }
@@ -467,7 +467,7 @@ int DraftsView::calculateContentHeight() const {
   return height;
 }
 
-//==============================================================================
+// ==============================================================================
 void DraftsView::resumeDraft(int index) {
   if (index < 0 || index >= drafts.size())
     return;

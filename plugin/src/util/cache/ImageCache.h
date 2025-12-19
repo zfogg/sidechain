@@ -4,7 +4,7 @@
 #include <JuceHeader.h>
 #include <optional>
 
-//==============================================================================
+// ==============================================================================
 /**
  * SidechainImageCache caches downloaded images with automatic LRU eviction.
  *

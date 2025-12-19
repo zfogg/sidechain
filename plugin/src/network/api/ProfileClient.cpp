@@ -1,7 +1,7 @@
-//==============================================================================
+// ==============================================================================
 // ProfileClient.cpp - Profile operations
 // Part of NetworkClient implementation split
-//==============================================================================
+// ==============================================================================
 
 #include "../../util/Async.h"
 #include "../../util/Constants.h"
@@ -11,7 +11,7 @@
 
 using namespace Sidechain::Network::Api;
 
-//==============================================================================
+// ==============================================================================
 void NetworkClient::uploadProfilePicture(const juce::File &imageFile, ProfilePictureCallback callback) {
   if (!isAuthenticated()) {
     Log::warn("Cannot upload profile picture: " + juce::String(Constants::Errors::NOT_AUTHENTICATED));

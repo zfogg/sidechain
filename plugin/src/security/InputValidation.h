@@ -275,7 +275,7 @@ public:
    */
   static std::shared_ptr<StringRule> url() {
     auto rule = std::make_shared<StringRule>();
-    rule->pattern("^https?://[a-zA-Z0-9.-]+(\\.[a-zA-Z]{2,})?.*$");
+    rule->pattern("^https?:// [a-zA-Z0-9.-]+(\\.[a-zA-Z]{2,})?.*$");
     return rule;
   }
 
@@ -345,7 +345,7 @@ public:
     sanitized = sanitized.replace("<", "&lt;");
     sanitized = sanitized.replace(">", "&gt;");
     sanitized = sanitized.replace("\"", "&quot;");
-    sanitized = sanitized.replace("'", "&#39;");
+    sanitized = sanitized.replace("'", "&# 39;");
 
     // Remove dangerous control characters
     sanitized = sanitized.removeCharacters("\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f");

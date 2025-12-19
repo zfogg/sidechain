@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// NotificationService handles periodic notifications for MIDI challenges (R.2.2.4.4)
+// NotificationService handles periodic notifications for MIDI challenges
 type NotificationService struct {
 	streamClient stream.StreamClientInterface
 	ctx          context.Context
@@ -294,7 +294,7 @@ func (s *NotificationService) notifyParticipantsWithRanking(challenge *models.MI
 }
 
 // NotifyAllUsersAboutNewChallenge sends notification to all users about a new challenge
-// This should be called immediately when a challenge is created (R.2.2.4.4)
+// This should be called immediately when a challenge is created
 func NotifyAllUsersAboutNewChallenge(streamClient stream.StreamClientInterface, challengeID, challengeTitle string) error {
 	log.Printf("🔔 Notifying all users about new challenge: %s", challengeTitle)
 

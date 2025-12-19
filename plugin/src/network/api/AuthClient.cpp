@@ -1,7 +1,7 @@
-//==============================================================================
+// ==============================================================================
 // AuthClient.cpp - Authentication operations
 // Part of NetworkClient implementation split
-//==============================================================================
+// ==============================================================================
 
 #include "../../util/Async.h"
 #include "../../util/Log.h"
@@ -10,7 +10,7 @@
 
 using namespace Sidechain::Network::Api;
 
-//==============================================================================
+// ==============================================================================
 void NetworkClient::registerAccount(const juce::String &email, const juce::String &username,
                                     const juce::String &password, const juce::String &displayName,
                                     AuthenticationCallback callback) {
@@ -158,7 +158,7 @@ void NetworkClient::resetPassword(const juce::String &token, const juce::String 
   });
 }
 
-//==============================================================================
+// ==============================================================================
 // Two-Factor Authentication
 
 void NetworkClient::loginWithTwoFactor(const juce::String &email, const juce::String &password,

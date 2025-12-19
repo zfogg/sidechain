@@ -1,7 +1,7 @@
-//==============================================================================
+// ==============================================================================
 // ChallengesClient.cpp - MIDI Challenge operations
 // Part of NetworkClient implementation split
-//==============================================================================
+// ==============================================================================
 
 #include "../../util/Async.h"
 #include "../../util/Constants.h"
@@ -11,7 +11,7 @@
 
 using namespace Sidechain::Network::Api;
 
-//==============================================================================
+// ==============================================================================
 void NetworkClient::getMIDIChallenges(const juce::String &status, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)

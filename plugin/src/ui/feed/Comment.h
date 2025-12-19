@@ -13,7 +13,7 @@ class AppStore;
 }
 } // namespace Sidechain
 
-//==============================================================================
+// ==============================================================================
 /**
  * Comment represents a single comment on a post
  *
@@ -67,7 +67,7 @@ struct Comment {
   }
 };
 
-//==============================================================================
+// ==============================================================================
 /**
  * CommentRow displays a single comment
  *
@@ -85,7 +85,7 @@ public:
   CommentRow();
   ~CommentRow() override = default;
 
-  //==============================================================================
+  // ==============================================================================
   // Data binding
   void setComment(const Comment &comment);
   const Comment &getComment() const {
@@ -109,7 +109,7 @@ public:
     appStore = store;
   }
 
-  //==============================================================================
+  // ==============================================================================
   // Callbacks
   std::function<void(const Comment &)> onUserClicked;
   std::function<void(const Comment &, bool liked)> onLikeToggled;
@@ -118,7 +118,7 @@ public:
   std::function<void(const Comment &)> onDeleteClicked;
   std::function<void(const Comment &)> onReportClicked;
 
-  //==============================================================================
+  // ==============================================================================
   // Component overrides
   void paint(juce::Graphics &g) override;
   void resized() override;
@@ -126,7 +126,7 @@ public:
   void mouseEnter(const juce::MouseEvent &event) override;
   void mouseExit(const juce::MouseEvent &event) override;
 
-  //==============================================================================
+  // ==============================================================================
   // Layout constants
   static constexpr int ROW_HEIGHT = 80;
   static constexpr int REPLY_ROW_HEIGHT = 70;
@@ -139,14 +139,14 @@ private:
   bool isReply = false;
   Sidechain::Stores::AppStore *appStore = nullptr;
 
-  //==============================================================================
+  // ==============================================================================
   // Drawing methods
   void drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawUserInfo(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawContent(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawActions(juce::Graphics &g, juce::Rectangle<int> bounds);
 
-  //==============================================================================
+  // ==============================================================================
   // Hit testing helpers
   juce::Rectangle<int> getAvatarBounds() const;
   juce::Rectangle<int> getUserInfoBounds() const;
@@ -158,11 +158,11 @@ private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CommentRow)
 };
 
-//==============================================================================
+// ==============================================================================
 // Forward declarations
 class NetworkClient;
 
-//==============================================================================
+// ==============================================================================
 /**
  * CommentsPanel displays a full comments section for a post
  *
@@ -179,7 +179,7 @@ public:
   CommentsPanel();
   ~CommentsPanel() override;
 
-  //==============================================================================
+  // ==============================================================================
   // Setup
   void setNetworkClient(NetworkClient *client) {
     networkClient = client;
@@ -200,33 +200,33 @@ public:
     return currentPostId;
   }
 
-  //==============================================================================
+  // ==============================================================================
   // Callbacks
   std::function<void()> onClose;
   std::function<void(const juce::String &userId)> onUserClicked;
 
-  //==============================================================================
+  // ==============================================================================
   // Component overrides
   void paint(juce::Graphics &g) override;
   void resized() override;
   void mouseUp(const juce::MouseEvent &event) override;
   bool keyPressed(const juce::KeyPress &key) override;
 
-  //==============================================================================
+  // ==============================================================================
   // Layout constants
   static constexpr int HEADER_HEIGHT = 50;
   static constexpr int INPUT_HEIGHT = 60;
 
 private:
-  //==============================================================================
+  // ==============================================================================
   // Timer callback for auto-refresh
   void timerCallback() override;
 
-  //==============================================================================
+  // ==============================================================================
   // Store subscription callback
   void onCommentStoreChanged();
 
-  //==============================================================================
+  // ==============================================================================
   // Data
   NetworkClient *networkClient = nullptr;
   Sidechain::Stores::AppStore *appStore = nullptr;
@@ -246,7 +246,7 @@ private:
   // Edit state
   juce::String editCommentId; // ID of comment being edited (empty if creating new)
 
-  //==============================================================================
+  // ==============================================================================
   // UI Components
   std::unique_ptr<juce::Viewport> viewport;
   std::unique_ptr<juce::Component> contentContainer;
@@ -264,7 +264,7 @@ private:
   bool isShowingMentions = false;
   int mentionQueryStart = -1; // Position in text where @mention starts
 
-  //==============================================================================
+  // ==============================================================================
   // Methods
   void setupUI();
   void updateCommentsList();

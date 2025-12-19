@@ -3,7 +3,7 @@
 #include <JuceHeader.h>
 #include <vector>
 
-//==============================================================================
+// ==============================================================================
 /**
  * NoteWaterfall visualizes MIDI data in a waterfall/falling notes style
  * (7.5.5.2.1)
@@ -31,15 +31,15 @@ public:
   NoteWaterfall();
   ~NoteWaterfall() override;
 
-  //==============================================================================
+  // ==============================================================================
   void paint(juce::Graphics &) override;
   void resized() override;
 
-  //==============================================================================
+  // ==============================================================================
   // Timer for animation
   void timerCallback() override;
 
-  //==============================================================================
+  // ==============================================================================
   // MIDI data management
 
   // Set MIDI data from JSON (from MIDICapture::getMIDIDataAsJSON)
@@ -54,7 +54,7 @@ public:
   // Callback for seeking to a time position
   std::function<void(double timeSeconds)> onSeekToTime;
 
-  //==============================================================================
+  // ==============================================================================
   // Display options
 
   // Set visible note range (default C1-C7 = 24-96)
@@ -79,7 +79,7 @@ public:
   }
 
 private:
-  //==============================================================================
+  // ==============================================================================
   // Internal note representation (derived from MIDI events)
   struct Note {
     double startTime;
@@ -114,7 +114,7 @@ private:
   // Animation state
   float pulsePhase = 0.0f;
 
-  //==============================================================================
+  // ==============================================================================
   // Drawing helpers
   void drawBackground(juce::Graphics &g);
   void drawNotes(juce::Graphics &g);

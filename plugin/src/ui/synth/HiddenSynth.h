@@ -3,7 +3,7 @@
 #include "../../audio/SynthEngine.h"
 #include <JuceHeader.h>
 
-//==============================================================================
+// ==============================================================================
 /**
  * HiddenSynth provides the UI for the hidden synthesizer easter egg
  *
@@ -20,15 +20,15 @@ public:
   HiddenSynth(SynthEngine &engine);
   ~HiddenSynth() override;
 
-  //==============================================================================
+  // ==============================================================================
   void paint(juce::Graphics &) override;
   void resized() override;
 
-  //==============================================================================
+  // ==============================================================================
   void timerCallback() override;
   void sliderValueChanged(juce::Slider *slider) override;
 
-  //==============================================================================
+  // ==============================================================================
   /** Play unlock animation */
   void playUnlockAnimation();
 
@@ -41,7 +41,7 @@ public:
   std::function<void()> onBackPressed;
 
 private:
-  //==============================================================================
+  // ==============================================================================
   SynthEngine &synthEngine;
 
   // Animation state
@@ -49,7 +49,7 @@ private:
   float unlockAnimationProgress = 0.0f;
   static constexpr float unlockAnimationDuration = 2.0f; // seconds
 
-  //==============================================================================
+  // ==============================================================================
   // Waveform buttons
   juce::TextButton sineButton{"Sine"};
   juce::TextButton sawButton{"Saw"};
@@ -88,7 +88,7 @@ private:
   // Title
   juce::Label titleLabel{{}, "SECRET SYNTH"};
 
-  //==============================================================================
+  // ==============================================================================
   // Virtual keyboard
   static constexpr int numKeys = 25;   // 2 octaves + 1
   static constexpr int startNote = 48; // C3
@@ -105,14 +105,14 @@ private:
 
   int lastKeyPressed = -1;
 
-  //==============================================================================
+  // ==============================================================================
   // Drawing helpers
   void drawUnlockAnimation(juce::Graphics &g);
   void drawSynthUI(juce::Graphics &g);
   void drawHeader(juce::Graphics &g);
   void drawVoiceIndicator(juce::Graphics &g);
 
-  //==============================================================================
+  // ==============================================================================
   // Setup helpers
   void setupSlider(juce::Slider &slider, double min, double max, double default_, double step = 0.01);
   void setupLabel(juce::Label &label);

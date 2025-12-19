@@ -8,7 +8,7 @@
 #include "audio/SynthEngine.h"
 #include <JuceHeader.h>
 
-//==============================================================================
+// ==============================================================================
 /**
  * Sidechain Audio Plugin Processor
  *
@@ -17,11 +17,11 @@
  */
 class SidechainAudioProcessor : public juce::AudioProcessor {
 public:
-  //==============================================================================
+  // ==============================================================================
   SidechainAudioProcessor();
   ~SidechainAudioProcessor() override;
 
-  //==============================================================================
+  // ==============================================================================
   /** Prepare the processor for audio playback
    *  @param sampleRate Sample rate in Hz
    *  @param samplesPerBlock Maximum block size
@@ -45,7 +45,7 @@ public:
    */
   void processBlock(juce::AudioBuffer<float> &, juce::MidiBuffer &) override;
 
-  //==============================================================================
+  // ==============================================================================
   /** Create the plugin editor
    *  @return Pointer to the editor component
    */
@@ -56,7 +56,7 @@ public:
    */
   bool hasEditor() const override;
 
-  //==============================================================================
+  // ==============================================================================
   /** Get plugin name
    *  @return Plugin name string
    */
@@ -82,7 +82,7 @@ public:
    */
   double getTailLengthSeconds() const override;
 
-  //==============================================================================
+  // ==============================================================================
   /** Get number of programs
    *  @return Number of programs (0 for this plugin)
    */
@@ -110,7 +110,7 @@ public:
    */
   void changeProgramName(int index, const juce::String &newName) override;
 
-  //==============================================================================
+  // ==============================================================================
   /** Save plugin state
    *  @param destData Memory block to write state to
    */
@@ -122,7 +122,7 @@ public:
    */
   void setStateInformation(const void *data, int sizeInBytes) override;
 
-  //==============================================================================
+  // ==============================================================================
   // Authentication state
 
   /** Check if the user is authenticated
@@ -139,7 +139,7 @@ public:
     authenticated = auth;
   }
 
-  //==============================================================================
+  // ==============================================================================
   // Audio Recording API (called from Editor/UI thread)
 
   /** Start recording audio from the DAW
@@ -179,7 +179,7 @@ public:
     return midiCapture.isCapturing() || midiCapture.getTotalTime() > 0.0;
   }
 
-  //==============================================================================
+  // ==============================================================================
   // Recording info
 
   /** Get the current recording length in seconds
@@ -210,7 +210,7 @@ public:
     return audioCapture.isBufferFull();
   }
 
-  //==============================================================================
+  // ==============================================================================
   // Level metering (for UI display)
 
   /** Get peak level for a channel
@@ -229,7 +229,7 @@ public:
     return audioCapture.getRMSLevel(channel);
   }
 
-  //==============================================================================
+  // ==============================================================================
   // Sample rate (for UI calculations)
 
   /** Get the current sample rate
@@ -239,7 +239,7 @@ public:
     return currentSampleRate;
   }
 
-  //==============================================================================
+  // ==============================================================================
   // DAW Transport Info (BPM detection via AudioPlayHead)
 
   /** Get the current BPM from the DAW transport
@@ -262,7 +262,7 @@ public:
    */
   juce::String getHostDAWName() const;
 
-  //==============================================================================
+  // ==============================================================================
   // Audio Playback (for feed audio)
 
   /** Get the HTTP audio player for feed playback
@@ -288,8 +288,8 @@ public:
     bufferAudioPlayer = player;
   }
 
-  //==============================================================================
-  // Hidden Synth Easter Egg (R.2.1)
+  // ==============================================================================
+  // Hidden Synth Easter Egg
 
   /** Get the chord sequence detector for unlock sequences
    * @return Reference to the chord detector
@@ -337,7 +337,7 @@ public:
   std::function<void()> onSynthUnlocked;
 
 private:
-  //==============================================================================
+  // ==============================================================================
   // Audio capture system
   AudioCapture audioCapture;
   juce::AudioBuffer<float> lastRecordedAudio;
@@ -366,7 +366,7 @@ private:
   std::atomic<bool> bpmAvailable{false};
   std::atomic<bool> dawTransportPlaying{false};
 
-  // Hidden synth easter egg (R.2.1)
+  // Hidden synth easter egg
   ChordSequenceDetector chordDetector;
   SynthEngine synthEngine;
   std::atomic<bool> synthUnlocked{false};

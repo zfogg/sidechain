@@ -8,7 +8,7 @@
 class NetworkClient;
 class HttpAudioPlayer;
 
-//==============================================================================
+// ==============================================================================
 /**
  * MidiChallengeDetail displays a single MIDI challenge with entries (R.2.2.4.2)
  *
@@ -26,7 +26,7 @@ public:
   MidiChallengeDetail(Sidechain::Stores::AppStore *store = nullptr);
   ~MidiChallengeDetail() override;
 
-  //==============================================================================
+  // ==============================================================================
   void paint(juce::Graphics &) override;
   void resized() override;
   void mouseUp(const juce::MouseEvent &event) override;
@@ -35,7 +35,7 @@ public:
   // ScrollBar::Listener
   void scrollBarMoved(juce::ScrollBar *scrollBar, double newRangeStart) override;
 
-  //==============================================================================
+  // ==============================================================================
   // Network client integration
   void setNetworkClient(NetworkClient *client);
   void setAudioPlayer(HttpAudioPlayer *player);
@@ -47,20 +47,20 @@ public:
   void loadChallenge(const juce::String &challengeId);
   void refresh();
 
-  //==============================================================================
+  // ==============================================================================
   // Callbacks
   std::function<void()> onBackPressed;
   std::function<void()> onSubmitEntry;                              // Navigate to submission view
   std::function<void(const juce::String &entryId)> onEntrySelected; // Navigate to entry/post
 
 protected:
-  //==============================================================================
+  // ==============================================================================
   // AppStoreComponent virtual methods
   void onAppStateChanged(const Sidechain::Stores::ChallengeState &state) override;
   void subscribeToAppStore() override;
 
 private:
-  //==============================================================================
+  // ==============================================================================
   // Data
   NetworkClient *networkClient = nullptr;
   HttpAudioPlayer *audioPlayer = nullptr;
@@ -72,14 +72,14 @@ private:
   bool isLoading = false;
   juce::String errorMessage;
 
-  //==============================================================================
+  // ==============================================================================
   // UI Components
   juce::ScrollBar scrollBar{true}; // vertical
 
   // Scroll state
   int scrollOffset = 0;
 
-  //==============================================================================
+  // ==============================================================================
   // Layout constants
   static constexpr int HEADER_HEIGHT = 60;
   static constexpr int INFO_HEIGHT = 180;
@@ -87,7 +87,7 @@ private:
   static constexpr int BUTTON_HEIGHT = 44;
   static constexpr int PADDING = 16;
 
-  //==============================================================================
+  // ==============================================================================
   // Drawing methods
   void drawHeader(juce::Graphics &g);
   void drawChallengeInfo(juce::Graphics &g, juce::Rectangle<int> &bounds);
@@ -97,7 +97,7 @@ private:
   void drawErrorState(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawEmptyState(juce::Graphics &g, juce::Rectangle<int> bounds);
 
-  //==============================================================================
+  // ==============================================================================
   // Hit testing helpers
   juce::Rectangle<int> getBackButtonBounds() const;
   juce::Rectangle<int> getSubmitButtonBounds() const;
@@ -106,12 +106,12 @@ private:
   juce::Rectangle<int> getVoteButtonBounds(int index) const;
   juce::Rectangle<int> getPlayButtonBounds(int index) const;
 
-  //==============================================================================
+  // ==============================================================================
   // Network operations
   void fetchChallenge();
   void voteForEntry(const juce::String &entryId);
 
-  //==============================================================================
+  // ==============================================================================
   // Helper methods
   int calculateContentHeight() const;
   void updateScrollBounds();

@@ -132,7 +132,7 @@ func (h *AuthHandlers) Register(c *gin.Context) {
 		return
 	}
 
-	// Index new user in Elasticsearch (Phase 0.3)
+	// Index new user in Elasticsearch
 	if h.search != nil {
 		go func() {
 			userDoc := search.UserToSearchDoc(authResp.User)
@@ -871,7 +871,7 @@ func (h *AuthHandlers) AuthMiddleware() gin.HandlerFunc {
 	}
 }
 
-// AuthMiddlewareOptional validates token if provided, but allows requests without auth (Phase 5.1)
+// AuthMiddlewareOptional validates token if provided, but allows requests without auth
 func (h *AuthHandlers) AuthMiddlewareOptional() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Extract token from Authorization header (Bearer token)

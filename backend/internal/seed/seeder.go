@@ -81,7 +81,7 @@ func (s *Seeder) SeedDev() error {
 	// Device seeding disabled - Device model not defined
 	// log("Creating devices...")
 	// if err := s.seedDevices(users, 150); err != nil { // 10x: 15 → 150 devices
-	// 	return fmt.Errorf("failed to seed devices: %w", err)
+	// return fmt.Errorf("failed to seed devices: %w", err)
 	// }
 
 	// Create conversations between users in getstream.io
@@ -277,8 +277,8 @@ func (s *Seeder) seedAudioPosts(users []models.User, count int) ([]models.AudioP
 	}
 
 	genres := []string{"house", "techno", "dubstep", "trance", "drum & bass", "hip-hop", "trap", "future bass"}
-	keys := []string{"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"}
-	keys = append(keys, "Cm", "C#m", "Dm", "D#m", "Em", "Fm", "F#m", "Gm", "G#m", "Am", "A#m", "Bm")
+	keys := []string{"C", "C# ", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"}
+	keys = append(keys, "Cm", "C# m", "Dm", "D#m", "Em", "Fm", "F#m", "Gm", "G#m", "Am", "A#m", "Bm")
 	daws := []string{"Ableton Live", "FL Studio", "Logic Pro", "Pro Tools", "Cubase"}
 
 	// Helper to create a post for a user
@@ -395,8 +395,8 @@ func (s *Seeder) seedAudioPostsWithVariedDistribution(users []models.User, total
 	}
 
 	genres := []string{"house", "techno", "dubstep", "trance", "drum & bass", "hip-hop", "trap", "future bass"}
-	keys := []string{"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"}
-	keys = append(keys, "Cm", "C#m", "Dm", "D#m", "Em", "Fm", "F#m", "Gm", "G#m", "Am", "A#m", "Bm")
+	keys := []string{"C", "C# ", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"}
+	keys = append(keys, "Cm", "C# m", "Dm", "D#m", "Em", "Fm", "F#m", "Gm", "G#m", "Am", "A#m", "Bm")
 	daws := []string{"Ableton Live", "FL Studio", "Logic Pro", "Pro Tools", "Cubase"}
 	testAudioURLs := []string{
 		"https://www.kozco.com/tech/piano2.wav",
@@ -757,7 +757,7 @@ func (s *Seeder) seedUserPreferences(users []models.User) error {
 		minBPM := 100 + rand.Intn(30)
 		maxBPM := minBPM + 20 + rand.Intn(40)
 
-		keys := []string{"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"}
+		keys := []string{"C", "C# ", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"}
 		keyCount := rand.Intn(3) + 1
 		keyPreferences := make([]string, 0, keyCount)
 		keyMap := make(map[string]bool)

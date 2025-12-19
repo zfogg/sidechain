@@ -1,7 +1,7 @@
-//==============================================================================
+// ==============================================================================
 // UploadDownloadClient.cpp - Upload and download operations (MIDI, project
 // files) Part of NetworkClient implementation split
-//==============================================================================
+// ==============================================================================
 
 #include "../../util/Async.h"
 #include "../../util/Constants.h"
@@ -11,7 +11,7 @@
 
 using namespace Sidechain::Network::Api;
 
-//==============================================================================
+// ==============================================================================
 void NetworkClient::getPostDownloadInfo(const juce::String &postId, DownloadInfoCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
@@ -123,7 +123,7 @@ void NetworkClient::downloadFile(const juce::String &url, const juce::File &targ
   });
 }
 
-//==============================================================================
+// ==============================================================================
 void NetworkClient::downloadMIDI(const juce::String &midiId, const juce::File &targetFile, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
@@ -179,7 +179,7 @@ void NetworkClient::downloadMIDI(const juce::String &midiId, const juce::File &t
   });
 }
 
-//==============================================================================
+// ==============================================================================
 void NetworkClient::uploadMIDI(const juce::var &midiData, const juce::String &name, const juce::String &description,
                                bool isPublic, ResponseCallback callback) {
   if (!isAuthenticated()) {
@@ -242,8 +242,8 @@ void NetworkClient::uploadMIDI(const juce::var &midiData, const juce::String &na
   });
 }
 
-//==============================================================================
-// Project file operations (R.3.4)
+// ==============================================================================
+// Project file operations
 
 void NetworkClient::downloadProjectFile(const juce::String &projectFileId, const juce::File &targetFile,
                                         DownloadProgressCallback progressCallback, ResponseCallback callback) {

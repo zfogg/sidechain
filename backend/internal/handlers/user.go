@@ -88,7 +88,7 @@ func (h *Handlers) FollowUser(c *gin.Context) {
 			FollowerCount:  followerCount,
 		})
 
-		// Invalidate the follower's timeline - they can now see followed user's posts (Phase 2.2)
+		// Invalidate the follower's timeline - they can now see followed user's posts
 		h.wsHandler.BroadcastFeedInvalidation("timeline", "follow")
 	}
 
@@ -184,7 +184,7 @@ func (h *Handlers) LikePost(c *gin.Context) {
 		}()
 	}
 
-	// Phase 0.6: Re-index post in Elasticsearch with updated engagement metrics
+	// Re-index post in Elasticsearch with updated engagement metrics
 	if h.search != nil {
 		go func() {
 			var post models.AudioPost
@@ -263,7 +263,7 @@ func (h *Handlers) UnlikePost(c *gin.Context) {
 		return
 	}
 
-	// Phase 0.6: Re-index post in Elasticsearch with updated engagement metrics
+	// Re-index post in Elasticsearch with updated engagement metrics
 	if h.search != nil {
 		go func() {
 			var post models.AudioPost
@@ -362,7 +362,7 @@ func (h *Handlers) GetUserProfile(c *gin.Context) {
 	var postCount int64
 	database.DB.Model(&models.AudioPost{}).Where("user_id = ? AND is_public = true AND is_archived = false", user.ID).Count(&postCount)
 
-	// Fetch story highlights (7.5.6.2)
+	// Fetch story highlights
 	var highlights []models.StoryHighlight
 	database.DB.Where("user_id = ?", user.ID).Order("sort_order ASC, created_at DESC").Find(&highlights)
 
@@ -444,7 +444,7 @@ func (h *Handlers) GetMyProfile(c *gin.Context) {
 	var postCount int64
 	database.DB.Model(&models.AudioPost{}).Where("user_id = ? AND is_archived = false", currentUser.ID).Count(&postCount)
 
-	// Fetch story highlights (7.5.6.2)
+	// Fetch story highlights
 	var highlights []models.StoryHighlight
 	database.DB.Where("user_id = ?", currentUser.ID).Order("sort_order ASC, created_at DESC").Find(&highlights)
 
@@ -763,7 +763,7 @@ func (h *Handlers) ChangeUsername(c *gin.Context) {
 	})
 }
 
-// TODO: Phase 4.5.1.16 - Test GetUserFollowers / GetUserFollowing - pagination
+// TODO: - Test GetUserFollowers / GetUserFollowing - pagination
 // Note: Followers/Following lists backend endpoints exist (GET /api/users/:id/followers, GET /api/users/:id/following)
 // Note: Plugin UI shows counts but clicking them opens FollowersList panel - this is already implemented
 

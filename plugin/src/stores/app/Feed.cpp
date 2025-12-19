@@ -4,7 +4,7 @@
 namespace Sidechain {
 namespace Stores {
 
-//==============================================================================
+// ==============================================================================
 // Helper Functions
 
 static inline bool isAggregatedFeedType(FeedType feedType) {
@@ -41,7 +41,7 @@ static inline juce::String feedTypeToString(FeedType feedType) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 // Feed Loading
 
 void AppStore::loadFeed(FeedType feedType, bool forceRefresh) {
@@ -110,7 +110,7 @@ void AppStore::switchFeedType(FeedType feedType) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 // Saved Posts
 
 void AppStore::loadSavedPosts() {
@@ -175,7 +175,7 @@ void AppStore::unsavePost(const juce::String &postId) {
   });
 }
 
-//==============================================================================
+// ==============================================================================
 // Archived Posts
 
 void AppStore::loadArchivedPosts() {
@@ -209,7 +209,7 @@ void AppStore::loadMoreArchivedPosts() {
 
   // TODO: Implement archived posts loading via AppStore
   // networkClient->getArchivedPosts(20, currentState.archivedPosts.offset,
-  //                                 [this](Outcome<juce::var> result) { handleArchivedPostsLoaded(result); });
+  // [this](Outcome<juce::var> result) { handleArchivedPostsLoaded(result); });
 }
 
 void AppStore::restorePost(const juce::String &postId) {
@@ -241,7 +241,7 @@ void AppStore::restorePost(const juce::String &postId) {
   });
 }
 
-//==============================================================================
+// ==============================================================================
 // Post Interactions
 
 void AppStore::toggleLike(const juce::String &postId) {
@@ -571,7 +571,7 @@ void AppStore::togglePin(const juce::String &postId, bool pinned) {
   Util::logInfo("AppStore", pinned ? "Pin post: " + postId : "Unpin post: " + postId);
 }
 
-//==============================================================================
+// ==============================================================================
 // Helper Methods
 
 void AppStore::performFetch(FeedType feedType, int limit, int offset) {
@@ -707,7 +707,7 @@ void AppStore::handleFetchSuccess(FeedType feedType, const juce::var &data, int 
       feedState.isSynced = true;
     });
     Log::debug("========== updateFeedState COMPLETE ==========");
-    //}
+    // }
 
     Log::info("========== handleFetchSuccess COMPLETE ==========");
     Log::debug("Loaded feed for feedType=" + feedTypeToString(feedType));
@@ -915,10 +915,10 @@ AggregatedFeedResponse AppStore::parseAggregatedJsonResponse(const juce::var &js
   return response;
 }
 
-//==============================================================================
+// ==============================================================================
 // Phase 4: Reactive Feed Service Operations with Memory Caching
-//
-// These methods implement loadFeedObservable() and likePostObservable()
+
+// These methods implement loadFeedObservable and likePostObservable
 // using RxCpp observables with automatic cache invalidation strategies.
 
 rxcpp::observable<juce::var> AppStore::loadFeedObservable(FeedType feedType) {
@@ -1069,7 +1069,7 @@ rxcpp::observable<int> AppStore::likePostObservable(const juce::String &postId) 
   });
 }
 
-//==============================================================================
+// ==============================================================================
 // Additional Reactive Observable Methods
 
 rxcpp::observable<int> AppStore::toggleSaveObservable(const juce::String &postId) {

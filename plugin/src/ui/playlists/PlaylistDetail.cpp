@@ -3,7 +3,7 @@
 #include "../../util/Log.h"
 #include "../../util/Result.h"
 
-//==============================================================================
+// ==============================================================================
 PlaylistDetail::PlaylistDetail(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   Log::info("PlaylistDetailComponent: Initializing");
 
@@ -19,7 +19,7 @@ PlaylistDetail::~PlaylistDetail() {
   scrollBar.removeListener(this);
 }
 
-//==============================================================================
+// ==============================================================================
 void PlaylistDetail::onAppStateChanged(const Sidechain::Stores::PlaylistState &state) {
   // Find the current playlist in the state
   for (int i = 0; i < state.playlists.size(); ++i) {
@@ -54,13 +54,13 @@ void PlaylistDetail::subscribeToAppStore() {
   });
 }
 
-//==============================================================================
+// ==============================================================================
 void PlaylistDetail::setNetworkClient(NetworkClient *client) {
   networkClient = client;
   Log::debug("PlaylistDetailComponent: NetworkClient set " + juce::String(client != nullptr ? "(valid)" : "(null)"));
 }
 
-//==============================================================================
+// ==============================================================================
 void PlaylistDetail::paint(juce::Graphics &g) {
   // Background
   g.fillAll(SidechainColors::background());
@@ -173,7 +173,7 @@ void PlaylistDetail::scrollBarMoved(juce::ScrollBar * /*scrollBar*/, double newR
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void PlaylistDetail::loadPlaylist(const juce::String &id) {
   playlistId = id;
   fetchPlaylist();
@@ -184,7 +184,7 @@ void PlaylistDetail::refresh() {
     fetchPlaylist();
 }
 
-//==============================================================================
+// ==============================================================================
 void PlaylistDetail::fetchPlaylist() {
   if (!networkClient || playlistId.isEmpty()) {
     Log::warn("PlaylistDetailComponent: No network client or playlist ID");
@@ -266,7 +266,7 @@ void PlaylistDetail::removeEntry(const juce::String &entryId) {
   });
 }
 
-//==============================================================================
+// ==============================================================================
 void PlaylistDetail::drawHeader(juce::Graphics &g) {
   auto bounds = juce::Rectangle<int>(0, 0, getWidth(), HEADER_HEIGHT);
 
@@ -431,7 +431,7 @@ void PlaylistDetail::drawEmptyState(juce::Graphics &g, juce::Rectangle<int> boun
   g.drawText("This playlist is empty.\nAdd tracks to get started!", bounds, juce::Justification::centred);
 }
 
-//==============================================================================
+// ==============================================================================
 juce::Rectangle<int> PlaylistDetail::getBackButtonBounds() const {
   return juce::Rectangle<int>(PADDING, 0, 50, HEADER_HEIGHT);
 }
@@ -478,7 +478,7 @@ juce::Rectangle<int> PlaylistDetail::getRemoveEntryButtonBounds(int index) const
   return cardBounds.removeFromRight(30).removeFromTop(30).reduced(5);
 }
 
-//==============================================================================
+// ==============================================================================
 int PlaylistDetail::calculateContentHeight() const {
   int height = INFO_HEIGHT + BUTTON_HEIGHT + 16;
   height += entries.size() * ENTRY_CARD_HEIGHT;

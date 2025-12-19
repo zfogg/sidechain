@@ -1,7 +1,7 @@
 #include "MidiChallenges.h"
 #include "../../util/Log.h"
 
-//==============================================================================
+// ==============================================================================
 MidiChallenges::MidiChallenges(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   Log::info("MidiChallenges: Initializing");
 
@@ -18,7 +18,7 @@ MidiChallenges::~MidiChallenges() {
   // AppStoreComponent destructor will handle unsubscribe
 }
 
-//==============================================================================
+// ==============================================================================
 // AppStoreComponent virtual methods
 
 void MidiChallenges::onAppStateChanged(const Sidechain::Stores::ChallengeState &state) {
@@ -66,7 +66,7 @@ void MidiChallenges::subscribeToAppStore() {
   loadChallenges();
 }
 
-//==============================================================================
+// ==============================================================================
 void MidiChallenges::paint(juce::Graphics &g) {
   // Background
   g.fillAll(SidechainColors::background());
@@ -154,7 +154,7 @@ void MidiChallenges::scrollBarMoved(juce::ScrollBar * /*scrollBar*/, double newR
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void MidiChallenges::loadChallenges() {
   Log::debug("MidiChallenges: Loading challenges from AppStore");
   Sidechain::Stores::AppStore::getInstance().loadChallenges();
@@ -165,7 +165,7 @@ void MidiChallenges::refresh() {
   Sidechain::Stores::AppStore::getInstance().loadChallenges();
 }
 
-//==============================================================================
+// ==============================================================================
 void MidiChallenges::drawHeader(juce::Graphics &g) {
   auto bounds = juce::Rectangle<int>(0, 0, getWidth(), HEADER_HEIGHT);
 
@@ -258,7 +258,7 @@ void MidiChallenges::drawErrorState(juce::Graphics &g, juce::Rectangle<int> boun
   g.drawText(errorMessage, bounds, juce::Justification::centred);
 }
 
-//==============================================================================
+// ==============================================================================
 juce::Rectangle<int> MidiChallenges::getBackButtonBounds() const {
   return juce::Rectangle<int>(PADDING, 0, 50, HEADER_HEIGHT);
 }
@@ -279,7 +279,7 @@ juce::Rectangle<int> MidiChallenges::getChallengeCardBounds(int index) const {
   return contentBounds.removeFromTop(CHALLENGE_CARD_HEIGHT).translated(0, index * CHALLENGE_CARD_HEIGHT);
 }
 
-//==============================================================================
+// ==============================================================================
 void MidiChallenges::fetchChallenges(FilterType filter) {
   // First load all challenges from AppStore
   loadChallenges();

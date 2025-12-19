@@ -2,7 +2,7 @@
 
 #include <cstddef>
 
-//==============================================================================
+// ==============================================================================
 /**
  * Constants - Centralized magic numbers for the Sidechain plugin
  *
@@ -27,9 +27,9 @@
  *   setSize(width, Constants::Ui::HEADER_HEIGHT)
  */
 namespace Constants {
-//==========================================================================
+// ==========================================================================
 // API Endpoints
-//==========================================================================
+// ==========================================================================
 namespace Endpoints {
 // Development server (local)
 constexpr const char *DEV_BASE_URL = "http://localhost:8787";
@@ -56,9 +56,9 @@ constexpr const char *AUTH_OAUTH_POLL = "/api/v1/auth/oauth/poll";
 constexpr const char *USERS_PROFILE_PICTURE = "/api/v1/users/upload-profile-picture";
 } // namespace Endpoints
 
-//==========================================================================
+// ==========================================================================
 // Error Messages
-//==========================================================================
+// ==========================================================================
 namespace Errors {
 // Authentication errors
 constexpr const char *NOT_AUTHENTICATED = "Not authenticated";
@@ -73,9 +73,9 @@ constexpr const char *TIMEOUT = "Request timed out";
 constexpr const char *INVALID_INPUT = "\xe2\x9d\x8c Invalid input";
 constexpr const char *MISSING_REQUIRED_FIELD = "\xe2\x9b\x94 Missing required field";
 } // namespace Errors
-//==========================================================================
+// ==========================================================================
 // API Configuration
-//==========================================================================
+// ==========================================================================
 namespace Api {
 // Default HTTP request timeout (30 seconds)
 constexpr int DEFAULT_TIMEOUT_MS = 30000;
@@ -105,9 +105,9 @@ constexpr int WEBSOCKET_TIMEOUT_MS = 10000;
 constexpr int MAX_REDIRECTS = 5;
 } // namespace Api
 
-//==========================================================================
+// ==========================================================================
 // Audio Configuration
-//==========================================================================
+// ==========================================================================
 namespace Audio {
 // Maximum recording duration in seconds
 constexpr double MAX_RECORDING_SECONDS = 60.0;
@@ -132,9 +132,9 @@ constexpr double DEFAULT_SAMPLE_RATE = 44100.0;
 constexpr int RECORDING_CHANNELS = 2;
 } // namespace Audio
 
-//==========================================================================
+// ==========================================================================
 // UI Dimensions
-//==========================================================================
+// ==========================================================================
 namespace Ui {
 // Header component height
 constexpr int HEADER_HEIGHT = 60;
@@ -183,9 +183,9 @@ constexpr float FONT_SIZE_XL = 20.0f;
 constexpr float FONT_SIZE_TITLE = 24.0f;
 } // namespace Ui
 
-//==========================================================================
+// ==========================================================================
 // Cache Configuration
-//==========================================================================
+// ==========================================================================
 namespace Cache {
 // Maximum images to keep in LRU cache
 constexpr size_t IMAGE_CACHE_MAX_ITEMS = 100;
@@ -200,9 +200,9 @@ constexpr int FEED_CACHE_DURATION_MS = 60000; // 1 minute
 constexpr int PROFILE_CACHE_DURATION_MS = 300000; // 5 minutes
 } // namespace Cache
 
-//==========================================================================
+// ==========================================================================
 // Pagination
-//==========================================================================
+// ==========================================================================
 namespace Pagination {
 // Default page size for feed
 constexpr int FEED_PAGE_SIZE = 20;
@@ -217,9 +217,9 @@ constexpr int FOLLOW_LIST_PAGE_SIZE = 20;
 constexpr int SEARCH_PAGE_SIZE = 10;
 } // namespace Pagination
 
-//==========================================================================
+// ==========================================================================
 // Animation & Timing
-//==========================================================================
+// ==========================================================================
 namespace Timing {
 // Debounce delay for search input
 constexpr int SEARCH_DEBOUNCE_MS = 300;
@@ -237,9 +237,9 @@ constexpr int TOOLTIP_DELAY_MS = 500;
 constexpr int ANIMATION_DURATION_MS = 200;
 } // namespace Timing
 
-//==========================================================================
+// ==========================================================================
 // Validation Limits
-//==========================================================================
+// ==========================================================================
 namespace Limits {
 // Username limits
 constexpr int USERNAME_MIN_LENGTH = 3;

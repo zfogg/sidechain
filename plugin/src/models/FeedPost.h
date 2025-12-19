@@ -5,7 +5,7 @@
 #include <JuceHeader.h>
 #include <map>
 
-//==============================================================================
+// ==============================================================================
 /**
  * FeedPost represents a single post/activity in the feed
  *
@@ -18,7 +18,7 @@ public:
   FeedPost(const FeedPost &) = default;
   FeedPost &operator=(const FeedPost &) = default;
 
-  //==============================================================================
+  // ==============================================================================
   // Core identifiers
   juce::String id;        // getstream.io activity ID
   juce::String foreignId; // Our internal ID (e.g., "loop:uuid")
@@ -26,18 +26,18 @@ public:
   juce::String verb;      // Action type (e.g., "posted")
   juce::String object;    // Object reference (e.g., "loop:uuid")
 
-  //==============================================================================
+  // ==============================================================================
   // Timestamps
   juce::Time timestamp; // When the post was created
   juce::String timeAgo; // Human-readable time (e.g., "2h ago")
 
-  //==============================================================================
+  // ==============================================================================
   // User info (extracted from actor)
   juce::String userId;
   juce::String username;
   juce::String userAvatarUrl;
 
-  //==============================================================================
+  // ==============================================================================
   // Audio metadata
   juce::String audioUrl;    // URL to the audio file (MP3)
   juce::String waveformSvg; // SVG waveform data or URL (legacy, deprecated)
@@ -49,20 +49,20 @@ public:
   juce::String key; // Musical key (e.g., "F minor")
   juce::String daw; // DAW used (e.g., "Ableton Live")
 
-  //==============================================================================
-  // MIDI metadata (R.3.3 Cross-DAW MIDI Collaboration)
+  // ==============================================================================
+  // MIDI metadata
   bool hasMidi = false;      // Whether this post has associated MIDI data
   juce::String midiId;       // UUID of the MIDI pattern (for download)
   juce::String midiFilename; // Display filename for MIDI (e.g., "melody.mid")
 
-  //==============================================================================
-  // Project file metadata (R.3.4 Project File Exchange)
+  // ==============================================================================
+  // Project file metadata
   bool hasProjectFile = false; // Whether this post has an associated project file
   juce::String projectFileId;  // UUID of the project file (for download)
   juce::String projectFileDaw; // DAW type (e.g., "ableton", "fl_studio")
 
-  //==============================================================================
-  // Remix metadata (R.3.2 Remix Chains)
+  // ==============================================================================
+  // Remix metadata
   bool isRemix = false;        // Whether this post is a remix of another post/story
   juce::String remixOfPostId;  // ID of the original post (if remix of post)
   juce::String remixOfStoryId; // ID of the original story (if remix of story)
@@ -70,17 +70,17 @@ public:
   int remixChainDepth = 0;     // 0=original, 1=remix, 2=remix of remix, etc.
   int remixCount = 0;          // Number of remixes this post has
 
-  //==============================================================================
-  // Sound/Sample metadata (Feature #15 - Sound Pages)
+  // ==============================================================================
+  // Sound/Sample metadata ( - Sound Pages)
   juce::String soundId;    // ID of the detected sound/sample (if any)
   juce::String soundName;  // Name of the sound (e.g., "808 Bass Hit")
   int soundUsageCount = 0; // Number of posts using this same sound
 
-  //==============================================================================
+  // ==============================================================================
   // Genres/tags
   juce::StringArray genres;
 
-  //==============================================================================
+  // ==============================================================================
   // Social metrics
   int likeCount = 0;
   int playCount = 0;
@@ -94,12 +94,12 @@ public:
   bool isFollowing = false; // Whether current user is following this post's author
   bool isOwnPost = false;   // Whether this is the current user's own post
 
-  //==============================================================================
+  // ==============================================================================
   // Pinned post metadata
   bool isPinned = false; // Whether this post is pinned to user's profile
   int pinOrder = 0;      // Order among pinned posts (1-3), 0 if not pinned
 
-  //==============================================================================
+  // ==============================================================================
   // Comment controls
   juce::String commentAudience = "everyone"; // "everyone", "followers", "off"
   bool commentsDisabled() const {
@@ -109,7 +109,7 @@ public:
     return commentAudience == "followers";
   }
 
-  //==============================================================================
+  // ==============================================================================
   // Repost metadata (when this post is a repost of another post)
   bool isARepost = false;         // Whether this post is actually a repost
   juce::String originalPostId;    // ID of the original post (if this is a repost)
@@ -119,12 +119,12 @@ public:
   juce::String originalFilename;  // Filename of original post (for display)
   juce::String repostQuote;       // Optional quote/comment from reposter
 
-  //==============================================================================
+  // ==============================================================================
   // Online status (presence)
   bool isOnline = false;   // Whether post author is currently online
   bool isInStudio = false; // Whether post author is "in studio" (custom status)
 
-  //==============================================================================
+  // ==============================================================================
   // Emoji reactions - music-themed emojis
   // Stores counts for each emoji type
   std::map<juce::String, int> reactionCounts; // emoji -> count
@@ -140,7 +140,7 @@ public:
       juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x80"))          // rocket - rocket/hype
   };
 
-  //==============================================================================
+  // ==============================================================================
   // Recommendation metadata (for unified timeline feed)
   juce::String recommendationReason; // Why this post was recommended (e.g.,
                                      // "matches your genre preferences")
@@ -149,7 +149,7 @@ public:
   float score = 0.0f;                // Ranking score from timeline service
   bool isRecommended = false;        // Whether this is a recommendation (vs from followed users)
 
-  //==============================================================================
+  // ==============================================================================
   // Processing status
   enum class Status {
     Ready,      // Fully processed, playable
@@ -159,7 +159,7 @@ public:
   };
   Status status = Status::Unknown;
 
-  //==============================================================================
+  // ==============================================================================
   // Factory methods to create from JSON
 
   /** Create a FeedPost from JSON data
@@ -199,6 +199,6 @@ public:
    */
   bool isValid() const;
 
-  //==============================================================================
+  // ==============================================================================
   JUCE_LEAK_DETECTOR(FeedPost)
 };

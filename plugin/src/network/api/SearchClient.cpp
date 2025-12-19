@@ -1,7 +1,7 @@
-//==============================================================================
+// ==============================================================================
 // SearchClient.cpp - Search operations
 // Part of NetworkClient implementation split
-//==============================================================================
+// ==============================================================================
 
 #include "../../util/Async.h"
 #include "../../util/Log.h"
@@ -10,7 +10,7 @@
 
 using namespace Sidechain::Network::Api;
 
-//==============================================================================
+// ==============================================================================
 void NetworkClient::searchPosts(const juce::String &query, const juce::String &genre, int bpmMin, int bpmMax,
                                 const juce::String &key, int limit, int offset, ResponseCallback callback) {
   if (callback == nullptr)

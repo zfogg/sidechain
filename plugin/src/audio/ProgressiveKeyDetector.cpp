@@ -6,23 +6,23 @@
 #include <workspace.h>
 #endif
 
-//==============================================================================
+// ==============================================================================
 // Key string lookup tables (shared with KeyDetector)
-//==============================================================================
+// ==============================================================================
 
 namespace KeyNames {
 // Standard key names (index matches libkeyfinder's key_t enum)
 static const char *const standardNames[] = {
-    "A major",  // 0  - A_MAJOR
-    "A minor",  // 1  - A_MINOR
-    "Bb major", // 2  - B_FLAT_MAJOR
-    "Bb minor", // 3  - B_FLAT_MINOR
-    "B major",  // 4  - B_MAJOR
-    "B minor",  // 5  - B_MINOR
-    "C major",  // 6  - C_MAJOR
-    "C minor",  // 7  - C_MINOR
-    "Db major", // 8  - D_FLAT_MAJOR
-    "Db minor", // 9  - D_FLAT_MINOR
+    "A major",  // 0 - A_MAJOR
+    "A minor",  // 1 - A_MINOR
+    "Bb major", // 2 - B_FLAT_MAJOR
+    "Bb minor", // 3 - B_FLAT_MINOR
+    "B major",  // 4 - B_MAJOR
+    "B minor",  // 5 - B_MINOR
+    "C major",  // 6 - C_MAJOR
+    "C minor",  // 7 - C_MINOR
+    "Db major", // 8 - D_FLAT_MAJOR
+    "Db minor", // 9 - D_FLAT_MINOR
     "D major",  // 10 - D_MAJOR
     "D minor",  // 11 - D_MINOR
     "Eb major", // 12 - E_FLAT_MAJOR
@@ -42,8 +42,8 @@ static const char *const standardNames[] = {
 
 // Short names (Am, F#, etc.)
 static const char *const shortNames[] = {
-    "A",  "Am",  "Bb", "Bbm", "B", "Bm", "C",  "Cm",  "Db", "Dbm", "D",  "Dm",
-    "Eb", "Ebm", "E",  "Em",  "F", "Fm", "F#", "F#m", "G",  "Gm",  "Ab", "Abm",
+    "A",  "Am",  "Bb", "Bbm", "B", "Bm", "C",   "Cm",  "Db", "Dbm", "D",  "Dm",
+    "Eb", "Ebm", "E",  "Em",  "F", "Fm", "F# ", "F#m", "G",  "Gm",  "Ab", "Abm",
     "" // Silence
 };
 
@@ -82,9 +82,9 @@ static const int rootNotes[] = {
 };
 } // namespace KeyNames
 
-//==============================================================================
+// ==============================================================================
 // Helper function to convert libkeyfinder key_t to KeyDetector::Key
-//==============================================================================
+// ==============================================================================
 
 #if SIDECHAIN_HAS_KEYFINDER
 static KeyDetector::Key convertKey(KeyFinder::key_t detectedKey) {
@@ -104,9 +104,9 @@ static KeyDetector::Key convertKey(KeyFinder::key_t detectedKey) {
 }
 #endif
 
-//==============================================================================
+// ==============================================================================
 // ProgressiveKeyDetector Implementation (with libkeyfinder)
-//==============================================================================
+// ==============================================================================
 
 #if SIDECHAIN_HAS_KEYFINDER
 
@@ -194,7 +194,7 @@ public:
   }
 
   KeyDetector::Key getFinalKey() const {
-    return getCurrentKey(); // After finalize(), getCurrentKey() returns final
+    return getCurrentKey(); // After finalize, getCurrentKey returns final
                             // result
   }
 
@@ -242,16 +242,16 @@ bool ProgressiveKeyDetector::isAvailable() {
 
 #endif
 
-//==============================================================================
+// ==============================================================================
 // ProgressiveKeyDetector public methods (outside conditional compilation)
-//==============================================================================
+// ==============================================================================
 
 // Note: Constructor and destructor are defined above in the conditional blocks
 // but we need to ensure they're always available
 
-//==============================================================================
+// ==============================================================================
 // ProgressiveKeyDetector public methods
-//==============================================================================
+// ==============================================================================
 
 ProgressiveKeyDetector::ProgressiveKeyDetector() : impl(std::make_unique<Impl>()) {}
 

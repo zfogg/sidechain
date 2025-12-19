@@ -3,7 +3,7 @@
 #include "../../util/Result.h"
 #include "../../util/Log.h"
 
-//==============================================================================
+// ==============================================================================
 SoundPage::SoundPage(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   Log::info("SoundPage: Initializing");
 
@@ -19,7 +19,7 @@ SoundPage::~SoundPage() {
   // AppStoreComponent destructor will handle unsubscribe
 }
 
-//==============================================================================
+// ==============================================================================
 // AppStoreComponent virtual methods
 
 void SoundPage::onAppStateChanged(const Sidechain::Stores::SoundState &state) {
@@ -61,7 +61,7 @@ void SoundPage::subscribeToAppStore() {
   });
 }
 
-//==============================================================================
+// ==============================================================================
 void SoundPage::paint(juce::Graphics &g) {
   g.fillAll(Colors::background);
 
@@ -218,7 +218,7 @@ void SoundPage::scrollBarMoved(juce::ScrollBar *bar, double newRangeStart) {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void SoundPage::setNetworkClient(NetworkClient *client) {
   networkClient = client;
 }
@@ -268,7 +268,7 @@ void SoundPage::refresh() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void SoundPage::setCurrentlyPlayingPost(const juce::String &postId) {
   currentlyPlayingPostId = postId;
   repaint();
@@ -285,7 +285,7 @@ void SoundPage::clearPlayingState() {
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void SoundPage::fetchSound() {
   if (networkClient == nullptr || soundId.isEmpty()) {
     errorMessage = "Cannot fetch sound";
@@ -351,7 +351,7 @@ void SoundPage::loadCreatorAvatar() {
   // For now, we'll skip this - would need image loading infrastructure
 }
 
-//==============================================================================
+// ==============================================================================
 void SoundPage::drawHeader(juce::Graphics &g) {
   auto bounds = getLocalBounds().removeFromTop(HEADER_HEIGHT);
 
@@ -537,7 +537,7 @@ void SoundPage::drawEmptyState(juce::Graphics &g, juce::Rectangle<int> bounds) {
   g.drawText("No posts found with this sound", bounds, juce::Justification::centred);
 }
 
-//==============================================================================
+// ==============================================================================
 juce::Rectangle<int> SoundPage::getBackButtonBounds() const {
   return juce::Rectangle<int>(8, 8, 44, 44);
 }
@@ -571,7 +571,7 @@ juce::Rectangle<int> SoundPage::getPostUserBounds(int index) const {
   return juce::Rectangle<int>(cardBounds.getX() + 74, cardBounds.getY(), 200, cardBounds.getHeight() / 2);
 }
 
-//==============================================================================
+// ==============================================================================
 int SoundPage::calculateContentHeight() const {
   int height = SOUND_INFO_HEIGHT + 1 + PADDING + 24 + 8; // Info + separator + header
   height += posts.size() * (POST_CARD_HEIGHT + 8);

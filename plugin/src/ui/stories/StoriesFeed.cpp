@@ -16,7 +16,7 @@ const juce::Colour textSecondary(0xffb0b0b0);
 const juce::Colour badgeRed(0xffe53935);
 } // namespace StoryFeedColors
 
-//==============================================================================
+// ==============================================================================
 StoriesFeed::StoriesFeed(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   startTimerHz(60);
 
@@ -29,7 +29,7 @@ StoriesFeed::~StoriesFeed() {
   Log::info("StoriesFeed destroyed");
 }
 
-//==============================================================================
+// ==============================================================================
 // Store integration methods
 void StoriesFeed::subscribeToAppStore() {
   if (!appStore)
@@ -90,7 +90,7 @@ void StoriesFeed::onAppStateChanged(const Sidechain::Stores::StoriesState & /*st
   repaint();
 }
 
-//==============================================================================
+// ==============================================================================
 void StoriesFeed::paint(juce::Graphics &g) {
   // Background
   g.fillAll(StoryFeedColors::background);
@@ -161,7 +161,7 @@ void StoriesFeed::mouseWheelMove(const juce::MouseEvent & /*event*/, const juce:
   targetScrollOffset = juce::jlimit(0.0f, maxScrollOffset, targetScrollOffset - delta * 50.0f);
 }
 
-//==============================================================================
+// ==============================================================================
 void StoriesFeed::timerCallback() {
   // Smooth scroll animation
   if (std::abs(scrollOffset - targetScrollOffset) > 0.5f) {
@@ -173,7 +173,7 @@ void StoriesFeed::timerCallback() {
   }
 }
 
-//==============================================================================
+// ==============================================================================
 void StoriesFeed::loadStories() {
   if (!networkClient) {
     Log::warn("StoriesFeed: No network client set");
@@ -203,7 +203,7 @@ void StoriesFeed::loadStories() {
             story.midiFilename = storyVar["midi_filename"].toString();
             story.audioDuration = static_cast<float>(storyVar["audio_duration"]);
             story.midiData = storyVar["midi_data"];
-            story.midiPatternId = storyVar["midi_pattern_id"].toString(); // R.3.3.5.5 - MIDI download support
+            story.midiPatternId = storyVar["midi_pattern_id"].toString(); // - MIDI download support
             story.viewCount = static_cast<int>(storyVar["view_count"]);
             story.viewed = static_cast<bool>(storyVar["viewed"]);
 
@@ -274,7 +274,7 @@ bool StoriesFeed::hasOwnStory() const {
   return false;
 }
 
-//==============================================================================
+// ==============================================================================
 void StoriesFeed::drawCreateStoryCircle(juce::Graphics &g, juce::Rectangle<int> bounds) {
   auto circleBounds = bounds.removeFromTop(CIRCLE_SIZE + RING_THICKNESS * 2);
 

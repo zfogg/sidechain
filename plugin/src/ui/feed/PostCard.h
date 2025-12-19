@@ -16,7 +16,7 @@
 // Forward declarations
 class NetworkClient;
 
-//==============================================================================
+// ==============================================================================
 /**
  * PostCard displays a single post in the feed
  *
@@ -38,7 +38,7 @@ public:
   PostCard(Sidechain::Stores::AppStore *store = nullptr);
   ~PostCard() override;
 
-  //==============================================================================
+  // ==============================================================================
   // Data binding
 
   /** Set the post data to display
@@ -65,7 +65,7 @@ public:
    */
   void setNetworkClient(NetworkClient *client);
 
-  //==============================================================================
+  // ==============================================================================
   // Update UI state (not persisted to PostsStore)
   // Note: Post data updates now come automatically via PostsStore subscription
 
@@ -96,7 +96,7 @@ public:
    */
   void setDownloadProgress(float progress);
 
-  //==============================================================================
+  // ==============================================================================
   // Callbacks for user actions
 
   /** Called when play button is clicked */
@@ -238,7 +238,7 @@ public:
    */
   std::function<void(const FeedPost &, bool pinned)> onPinToggled;
 
-  //==============================================================================
+  // ==============================================================================
   // Component overrides
 
   /** Paint the component
@@ -270,7 +270,7 @@ public:
    */
   void mouseExit(const juce::MouseEvent &event) override;
 
-  //==============================================================================
+  // ==============================================================================
   // Tooltip support
 
   /** Get tooltip text based on current mouse position
@@ -278,7 +278,7 @@ public:
    */
   juce::String getTooltip() override;
 
-  //==============================================================================
+  // ==============================================================================
   // Layout constants
   static constexpr int CARD_HEIGHT = 160;
   static constexpr int AVATAR_SIZE = 56;
@@ -291,7 +291,7 @@ protected:
   void subscribeToAppStore() override;
 
 private:
-  //==============================================================================
+  // ==============================================================================
   FeedPost post;
 
   // UI state
@@ -319,7 +319,7 @@ private:
   // User avatar image (loads from URL)
   juce::Image avatarImage;
 
-  //==============================================================================
+  // ==============================================================================
   // Drawing methods
   void drawBackground(juce::Graphics &g);
   void drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds);
@@ -339,7 +339,7 @@ private:
   void showEmojiReactionsPanel();
   void handleEmojiSelected(const juce::String &emoji);
 
-  //==============================================================================
+  // ==============================================================================
   // Hit testing helpers
   juce::Rectangle<int> getAvatarBounds() const;
   juce::Rectangle<int> getUserInfoBounds() const;
@@ -370,6 +370,6 @@ private:
   void drawPinnedBadge(juce::Graphics &g);       // Shows pin badge for pinned posts
   void drawSoundBadge(juce::Graphics &g);        // Shows sound usage indicator
 
-  //==============================================================================
+  // ==============================================================================
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PostCard)
 };

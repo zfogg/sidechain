@@ -11,7 +11,7 @@
 
 class NetworkClient;
 
-//==============================================================================
+// ==============================================================================
 /**
  * MessagesList displays a list of chat conversations/channels
  *
@@ -57,13 +57,13 @@ public:
   void timerCallback() override;
 
 protected:
-  //==============================================================================
+  // ==============================================================================
   // AppStoreComponent overrides
   void onAppStateChanged(const Sidechain::Stores::ChatState &state) override;
   void subscribeToAppStore() override;
 
 private:
-  //==============================================================================
+  // ==============================================================================
   enum class ListState { Loading, Loaded, Empty, Error };
 
   ListState listState = ListState::Loading;

@@ -4,9 +4,9 @@
 namespace Sidechain {
 namespace Stores {
 
-//==============================================================================
+// ==============================================================================
 // WebSocket Event Handlers for Real-Time Cache Invalidation
-//
+
 // When WebSocket events arrive from the backend, these methods ensure
 // the in-memory cache stays fresh by invalidating affected entries.
 
@@ -80,7 +80,7 @@ void AppStore::onWebSocketPresenceUpdate(const juce::String &userId, bool isOnli
 // TODO: Implement Phase 3+ comment handlers when comment system is added
 // void AppStore::onWebSocketCommentCountUpdate(const juce::String &postId, int commentCount) { }
 // void AppStore::onWebSocketNewComment(const juce::String &postId, const juce::String &commentId,
-//                                      const juce::String &username) { }
+// const juce::String &username) { }
 
 } // namespace Stores
 } // namespace Sidechain
