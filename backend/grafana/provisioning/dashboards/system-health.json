@@ -110,7 +110,7 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "(rate(http_requests_total{status=~\"5..\"}[5m]) / rate(http_requests_total[5m])) * 100",
+          "expr": "sum(rate(http_requests_total{status=~\"5..\"}[5m])) / sum(rate(http_requests_total[5m])) * 100",
           "legendFormat": "Error Rate",
           "refId": "A"
         }
@@ -280,7 +280,7 @@
       },
       "targets": [
         {
-          "expr": "rate(http_requests_total[5m])",
+          "expr": "sum by (method) (rate(http_requests_total[5m]))",
           "legendFormat": "{{ method }}",
           "refId": "A"
         }
@@ -356,7 +356,7 @@
       },
       "targets": [
         {
-          "expr": "increase(http_requests_total[1h])",
+          "expr": "sum by (path) (increase(http_requests_total[1h]))",
           "legendFormat": "{{ path }}",
           "refId": "A"
         }

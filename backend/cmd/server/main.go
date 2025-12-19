@@ -540,6 +540,14 @@ func main() {
 		})
 	})
 
+	// Test endpoint to trigger 500 error for Grafana dashboard testing
+	r.GET("/test-error", func(c *gin.Context) {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "test_error",
+			"message": "This is a test error for Grafana dashboard verification",
+		})
+	})
+
 	// Prometheus metrics endpoint (admin only - requires authentication)
 	r.GET("/metrics",
 		authHandlers.AuthMiddleware(),

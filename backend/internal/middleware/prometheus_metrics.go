@@ -3,6 +3,7 @@ package middleware
 import (
 	"bytes"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -45,7 +46,9 @@ func MetricsMiddleware() gin.HandlerFunc {
 		// Record metrics
 		duration := time.Since(startTime).Seconds()
 		status := c.Writer.Status()
-		statusStr := http.StatusText(status)
+		// Use numeric status code as string (e.g., "200", "500") for Prometheus label
+		// This allows Grafana queries like status=~"5.." to match 5xx errors
+		statusStr := strconv.Itoa(status)
 
 		// Record request count and latency
 		m.HTTPRequestsTotal.WithLabelValues(method, path, statusStr).Inc()
