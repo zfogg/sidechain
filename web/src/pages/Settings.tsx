@@ -19,6 +19,8 @@ export function Settings() {
   const [username, setUsername] = useState(user?.username || '')
   const [displayName, setDisplayName] = useState(user?.displayName || '')
   const [bio, setBio] = useState(user?.bio || '')
+  const [profileError, setProfileError] = useState('')
+  const [profileSuccess, setProfileSuccess] = useState('')
   const [socialLinks, setSocialLinks] = useState({
     twitter: user?.socialLinks?.twitter || '',
     instagram: user?.socialLinks?.instagram || '',
@@ -51,8 +53,9 @@ export function Settings() {
 
   const handleSaveProfile = async () => {
     setIsSaving(true)
+    setProfileError('')
+    setProfileSuccess('')
     try {
-      // TODO: Call API to update profile
       const { UserProfileClient } = await import('@/api/UserProfileClient')
       const result = await UserProfileClient.updateProfile({
         username: username.trim(),
@@ -60,10 +63,27 @@ export function Settings() {
         bio: bio.trim(),
       })
       if (result.isOk()) {
-        console.log('Profile saved successfully')
+        // Update user store with new values
+        if (user) {
+          const { useUserStore } = await import('@/stores/useUserStore')
+          useUserStore.setState({
+            user: {
+              ...user,
+              username: username.trim(),
+              displayName: displayName.trim(),
+              bio: bio.trim(),
+            },
+          })
+        }
+        setProfileSuccess('Profile updated successfully!')
+        // Clear success message after 3 seconds
+        setTimeout(() => setProfileSuccess(''), 3000)
       } else {
-        console.error('Failed to save profile:', result.getError())
+        const error = result.getError()
+        setProfileError(error || 'Failed to save profile')
       }
+    } catch (error) {
+      setProfileError(error instanceof Error ? error.message : 'An error occurred')
     } finally {
       setIsSaving(false)
     }
@@ -140,6 +160,18 @@ export function Settings() {
                 <h2 className="text-2xl font-bold text-foreground mb-6">Profile Settings</h2>
 
                 <div className="space-y-6">
+                  {/* Messages */}
+                  {profileError && (
+                    <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+                      {profileError}
+                    </div>
+                  )}
+                  {profileSuccess && (
+                    <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/30 text-green-400 text-sm">
+                      {profileSuccess}
+                    </div>
+                  )}
+
                   {/* Username */}
                   <div className="space-y-3">
                     <Label htmlFor="username" className="text-sm font-semibold text-foreground">
