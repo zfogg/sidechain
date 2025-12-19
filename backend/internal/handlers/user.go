@@ -374,29 +374,29 @@ func (h *Handlers) GetUserProfile(c *gin.Context) {
 
 	// Build response with base fields
 	response := gin.H{
-		"id":                         user.ID,
-		"username":                   user.Username,
-		"display_name":               user.DisplayName,
-		"bio":                        user.Bio,
-		"location":                   user.Location,
-		"avatar_url":                 avatarURL, // Effective avatar for display
-		"profile_picture_url":        user.ProfilePictureURL,
-		"oauth_profile_picture_url":  user.OAuthProfilePictureURL,
-		"daw_preference":             user.DAWPreference,
-		"genre":                      user.Genre,
-		"social_links":               user.SocialLinks,
-		"follower_count":             followerCount,
-		"following_count":            followingCount,
-		"post_count":                 postCount,
-		"is_following":               isFollowing,
-		"is_followed_by":             isFollowedBy,
-		"is_own_profile":             currentUserID == user.ID,
-		"is_private":                 user.IsPrivate,
-		"is_muted":                   isMuted,
-		"follow_request_status":      followRequestStatus,
-		"follow_request_id":          followRequestID,
-		"highlights":                 highlights,
-		"created_at":                 user.CreatedAt,
+		"id":                        user.ID,
+		"username":                  user.Username,
+		"display_name":              user.DisplayName,
+		"bio":                       user.Bio,
+		"location":                  user.Location,
+		"avatar_url":                avatarURL, // Effective avatar for display
+		"profile_picture_url":       user.ProfilePictureURL,
+		"oauth_profile_picture_url": user.OAuthProfilePictureURL,
+		"daw_preference":            user.DAWPreference,
+		"genre":                     user.Genre,
+		"social_links":              user.SocialLinks,
+		"follower_count":            followerCount,
+		"following_count":           followingCount,
+		"post_count":                postCount,
+		"is_following":              isFollowing,
+		"is_followed_by":            isFollowedBy,
+		"is_own_profile":            currentUserID == user.ID,
+		"is_private":                user.IsPrivate,
+		"is_muted":                  isMuted,
+		"follow_request_status":     followRequestStatus,
+		"follow_request_id":         followRequestID,
+		"highlights":                highlights,
+		"created_at":                user.CreatedAt,
 	}
 
 	// Add activity status info only if the user allows it
@@ -455,25 +455,25 @@ func (h *Handlers) GetMyProfile(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"id":                         currentUser.ID,
-		"email":                      currentUser.Email,
-		"username":                   currentUser.Username,
-		"display_name":               currentUser.DisplayName,
-		"bio":                        currentUser.Bio,
-		"location":                   currentUser.Location,
-		"avatar_url":                 avatarURL, // Effective avatar for display
-		"profile_picture_url":        currentUser.ProfilePictureURL,
-		"oauth_profile_picture_url":  currentUser.OAuthProfilePictureURL,
-		"daw_preference":             currentUser.DAWPreference,
-		"genre":                      currentUser.Genre,
-		"social_links":               currentUser.SocialLinks,
-		"follower_count":             followerCount,
-		"following_count":            followingCount,
-		"post_count":                 postCount,
-		"email_verified":             currentUser.EmailVerified,
-		"is_private":                 currentUser.IsPrivate,
-		"highlights":                 highlights,
-		"created_at":                 currentUser.CreatedAt,
+		"id":                        currentUser.ID,
+		"email":                     currentUser.Email,
+		"username":                  currentUser.Username,
+		"display_name":              currentUser.DisplayName,
+		"bio":                       currentUser.Bio,
+		"location":                  currentUser.Location,
+		"avatar_url":                avatarURL, // Effective avatar for display
+		"profile_picture_url":       currentUser.ProfilePictureURL,
+		"oauth_profile_picture_url": currentUser.OAuthProfilePictureURL,
+		"daw_preference":            currentUser.DAWPreference,
+		"genre":                     currentUser.Genre,
+		"social_links":              currentUser.SocialLinks,
+		"follower_count":            followerCount,
+		"following_count":           followingCount,
+		"post_count":                postCount,
+		"email_verified":            currentUser.EmailVerified,
+		"is_private":                currentUser.IsPrivate,
+		"highlights":                highlights,
+		"created_at":                currentUser.CreatedAt,
 	})
 }
 
@@ -513,8 +513,9 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 			return
 		}
 
-		// Check if new username is already taken (only if different from current username)
+		// Only update if username has actually changed
 		if newUsername != currentUser.Username {
+			// Check if new username is already taken
 			var existingUser models.User
 			if err := database.DB.Where("LOWER(username) = LOWER(?)", newUsername).First(&existingUser).Error; err == nil {
 				// Username already exists
@@ -525,34 +526,82 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 				util.RespondInternalError(c, "username_check_failed", err.Error())
 				return
 			}
-		}
 
-		updates["username"] = newUsername
+			updates["username"] = newUsername
+		}
+		// If username is the same, don't add it to updates
 	}
 
 	if req.DisplayName != nil {
-		updates["display_name"] = *req.DisplayName
+		displayName := strings.TrimSpace(*req.DisplayName)
+		// Only update if display name has actually changed
+		if displayName != currentUser.DisplayName {
+			updates["display_name"] = displayName
+		}
 	}
 	if req.Bio != nil {
-		updates["bio"] = *req.Bio
+		bio := strings.TrimSpace(*req.Bio)
+		// Only update if bio has actually changed
+		if bio != currentUser.Bio {
+			updates["bio"] = bio
+		}
 	}
 	if req.Location != nil {
-		updates["location"] = *req.Location
+		location := strings.TrimSpace(*req.Location)
+		// Only update if location has actually changed
+		if location != currentUser.Location {
+			updates["location"] = location
+		}
 	}
 	if req.DAWPreference != nil {
-		updates["daw_preference"] = *req.DAWPreference
+		dawPref := strings.TrimSpace(*req.DAWPreference)
+		// Only update if DAW preference has actually changed
+		if dawPref != currentUser.DAWPreference {
+			updates["daw_preference"] = dawPref
+		}
 	}
 	if req.Genre != nil {
-		updates["genre"] = req.Genre
+		// Only update if genre has actually changed (compare slices)
+		genreChanged := len(req.Genre) != len(currentUser.Genre)
+		if !genreChanged {
+			for i, g := range req.Genre {
+				if i >= len(currentUser.Genre) || g != currentUser.Genre[i] {
+					genreChanged = true
+					break
+				}
+			}
+		}
+		if genreChanged {
+			updates["genre"] = req.Genre
+		}
 	}
 	if req.SocialLinks != nil {
-		updates["social_links"] = req.SocialLinks
+		// Only update if social links have actually changed
+		// Compare social links (handle nil cases)
+		socialLinksChanged := false
+		if currentUser.SocialLinks == nil {
+			socialLinksChanged = req.SocialLinks.Twitter != "" || req.SocialLinks.Instagram != "" || req.SocialLinks.Website != ""
+		} else {
+			socialLinksChanged = req.SocialLinks.Twitter != currentUser.SocialLinks.Twitter ||
+				req.SocialLinks.Instagram != currentUser.SocialLinks.Instagram ||
+				req.SocialLinks.Website != currentUser.SocialLinks.Website
+		}
+		if socialLinksChanged {
+			updates["social_links"] = req.SocialLinks
+		}
 	}
 	if req.ProfilePictureURL != nil {
-		updates["profile_picture_url"] = *req.ProfilePictureURL
+		profilePicURL := strings.TrimSpace(*req.ProfilePictureURL)
+		// Only update if profile picture URL has actually changed
+		if profilePicURL != currentUser.ProfilePictureURL {
+			updates["profile_picture_url"] = profilePicURL
+		}
 	}
 	if req.IsPrivate != nil {
-		updates["is_private"] = *req.IsPrivate
+		// Only update if privacy setting has actually changed
+		if *req.IsPrivate != currentUser.IsPrivate {
+			updates["is_private"] = *req.IsPrivate
+		}
 	}
 
 	if len(updates) == 0 {
@@ -919,15 +968,15 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 		dbPosts := make([]gin.H, len(audioPosts))
 		for i, post := range audioPosts {
 			dbPosts[i] = gin.H{
-				"id":               post.ID,
-				"actor":            "user:" + post.UserID,
-				"verb":             "post",
-				"object":           "audio:" + post.ID,
-				"time":             post.CreatedAt.Format(time.RFC3339),
+				"id":     post.ID,
+				"actor":  "user:" + post.UserID,
+				"verb":   "post",
+				"object": "audio:" + post.ID,
+				"time":   post.CreatedAt.Format(time.RFC3339),
 				// User info (required by frontend)
-				"user_id":          post.UserID,
-				"username":         user.Username,
-				"display_name":     user.DisplayName,
+				"user_id":             post.UserID,
+				"username":            user.Username,
+				"display_name":        user.DisplayName,
 				"profile_picture_url": userAvatarURL,
 				// Audio metadata
 				"audio_url":        post.AudioURL,
@@ -940,22 +989,22 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 				"daw":              post.DAW,
 				"genre":            post.Genre,
 				// Engagement metrics
-				"like_count":       post.LikeCount,
-				"play_count":       post.PlayCount,
-				"comment_count":    post.CommentCount,
-				"has_midi":         post.MIDIPatternID != nil,
-				"midi_pattern_id":  post.MIDIPatternID,
-				"is_remix":         post.RemixOfPostID != nil || post.RemixOfStoryID != nil,
-				"remix_of_post_id": post.RemixOfPostID,
+				"like_count":        post.LikeCount,
+				"play_count":        post.PlayCount,
+				"comment_count":     post.CommentCount,
+				"has_midi":          post.MIDIPatternID != nil,
+				"midi_pattern_id":   post.MIDIPatternID,
+				"is_remix":          post.RemixOfPostID != nil || post.RemixOfStoryID != nil,
+				"remix_of_post_id":  post.RemixOfPostID,
 				"remix_of_story_id": post.RemixOfStoryID,
-				"remix_type":       post.RemixType,
+				"remix_type":        post.RemixType,
 				"remix_chain_depth": post.RemixChainDepth,
-				"remix_count":      post.RemixCount,
-				"status":           post.ProcessingStatus,
-				"is_pinned":        post.IsPinned,
-				"pin_order":        post.PinOrder,
-				"is_following":     isFollowingUser,
-				"is_own_post":      currentUserID == post.UserID,
+				"remix_count":       post.RemixCount,
+				"status":            post.ProcessingStatus,
+				"is_pinned":         post.IsPinned,
+				"pin_order":         post.PinOrder,
+				"is_following":      isFollowingUser,
+				"is_own_post":       currentUserID == post.UserID,
 				"actor_data": gin.H{
 					"id":         user.ID,
 					"username":   user.Username,
@@ -1173,4 +1222,3 @@ func (h *Handlers) UnfollowUserByID(c *gin.Context) {
 		"target_user": targetUser.ID,
 	})
 }
-
