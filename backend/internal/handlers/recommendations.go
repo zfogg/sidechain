@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/metrics"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/recommendations"
 	"github.com/zfogg/sidechain/backend/internal/util"
@@ -96,25 +97,34 @@ func (h *Handlers) GetForYouFeed(c *gin.Context) {
 	// Get recommendations with optional filters
 	var scores []recommendations.PostScore
 	var err error
+	var recommendationType string
 
 	if genre != "" {
 		// Filter by genre (Task 6.1, 6.2)
+		recommendationType = "for-you-by-genre"
 		scores, err = recService.GetForYouFeedByGenre(userID, genre, limit, offset)
 	} else if minBPM > 0 || maxBPM > 0 {
 		// Filter by BPM range (Task 6.3)
+		recommendationType = "for-you-by-bpm"
 		scores, err = recService.GetForYouFeedByBPMRange(userID, minBPM, maxBPM, limit, offset)
 	} else {
 		// No filters, get general recommendations
+		recommendationType = "for-you"
 		scores, err = recService.GetForYouFeed(userID, limit, offset)
 	}
 
 	if err != nil {
+		// Record Gorse error metric (ENG-3)
+		metrics.Get().GorseErrors.WithLabelValues("recommendation_fetch").Inc()
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   "failed_to_get_recommendations",
 			"message": err.Error(),
 		})
 		return
 	}
+
+	// Record Gorse recommendations fetched (ENG-3)
+	metrics.Get().GorseRecommendations.WithLabelValues(recommendationType).Add(float64(len(scores)))
 
 	// Convert to activities format with user enrichment
 	activities := make([]map[string]interface{}, 0, len(scores))
@@ -194,20 +204,28 @@ func (h *Handlers) GetSimilarPosts(c *gin.Context) {
 	// Get similar posts with optional genre filter (Task 6.4)
 	var posts []models.AudioPost
 	var err error
+	var recommendationType string
 
 	if genre != "" {
+		recommendationType = "similar-posts-by-genre"
 		posts, err = recService.GetSimilarPostsByGenre(postID, genre, limit)
 	} else {
+		recommendationType = "similar-posts"
 		posts, err = recService.GetSimilarPosts(postID, limit)
 	}
 
 	if err != nil {
+		// Record Gorse error metric (ENG-3)
+		metrics.Get().GorseErrors.WithLabelValues("similar_posts").Inc()
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   "failed_to_get_similar_posts",
 			"message": err.Error(),
 		})
 		return
 	}
+
+	// Record Gorse recommendations fetched (ENG-3)
+	metrics.Get().GorseRecommendations.WithLabelValues(recommendationType).Add(float64(len(posts)))
 
 	// Convert to activities format
 	activities := make([]map[string]interface{}, 0, len(posts))
@@ -341,12 +359,17 @@ func (h *Handlers) GetRecommendedUsers(c *gin.Context) {
 	// Get similar users (using current user's preferences to find similar users)
 	users, err := recService.GetSimilarUsers(currentUserID, limit)
 	if err != nil {
+		// Record Gorse error metric (ENG-3)
+		metrics.Get().GorseErrors.WithLabelValues("user_recommendation").Inc()
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   "failed_to_get_similar_users",
 			"message": err.Error(),
 		})
 		return
 	}
+
+	// Record Gorse recommendations fetched (ENG-3)
+	metrics.Get().GorseRecommendations.WithLabelValues("similar-users").Add(float64(len(users)))
 
 	// Convert to user format
 	userList := make([]map[string]interface{}, 0, len(users))
