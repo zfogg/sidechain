@@ -14,7 +14,6 @@ import { KeyboardShortcutsDialog } from '@/components/shortcuts/KeyboardShortcut
 // Auth Routes (eager load - required before auth check)
 import { Login } from '@/pages/Login'
 import { AuthCallback } from '@/pages/AuthCallback'
-import { DeviceClaim } from '@/pages/DeviceClaim'
 import { Privacy } from '@/pages/Privacy'
 import { Terms } from '@/pages/Terms'
 
@@ -85,7 +84,6 @@ function AppContent() {
         {/* Public Routes - No Chat Provider */}
         <Route path="/login" element={<Login />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
-        <Route path="/claim/:deviceId" element={<DeviceClaim />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
 

@@ -1,9 +1,10 @@
 # Gorse configuration for Sidechain
+# NOTE: This is a template - environment variables will be substituted at runtime
 
 [database]
-# Database credentials - will be substituted at runtime by entrypoint script
-data_store = "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/gorse?sslmode=disable"
-cache_store = "redis://redis:6379"
+# Database credentials - substituted from environment variables
+data_store = "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_GORSE_DB}?sslmode=disable"
+cache_store = "${REDIS_URL}"
 
 [master]
 port = 8086
@@ -14,7 +15,7 @@ meta_timeout = "10s"
 [server]
 port = 8087
 host = "0.0.0.0"
-api_key = "sidechain_gorse_api_key"
+api_key = "${GORSE_API_KEY}"
 default_n = 10
 
 [recommend]

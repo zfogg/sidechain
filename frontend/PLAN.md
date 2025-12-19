@@ -115,52 +115,6 @@ export class SidechainStreamClient {
 }
 ```
 
-### Phase 2: Device Claiming Flow 🔐
-**Week 1 Day 3-4**
-
-**Goals:**
-- Complete OAuth integration (Google + Discord)
-- Seamless device claiming experience
-- Mobile-optimized UI
-
-**Key Components:**
-```typescript
-// pages/claim/[deviceId].tsx
-export default function ClaimDevice({ deviceId }: { deviceId: string }) {
-  const [claimStatus, setClaimStatus] = useState<'pending' | 'claiming' | 'success' | 'error'>('pending');
-  
-  const handleGoogleAuth = async () => {
-    // OAuth flow with backend integration
-    const authUrl = `/api/auth/google?device_id=${deviceId}`;
-    window.location.href = authUrl;
-  };
-  
-  return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-      <ClaimingCard deviceId={deviceId} onAuth={handleGoogleAuth} />
-    </div>
-  );
-}
-
-// components/DeviceClaiming/ClaimingCard.tsx
-export function ClaimingCard({ deviceId, onAuth }: ClaimingProps) {
-  return (
-    <div className="bg-gray-800 p-8 rounded-lg max-w-md">
-      <h1 className="text-2xl font-bold text-white mb-4">
-        🎵 Claim Your Sidechain Device
-      </h1>
-      <p className="text-gray-300 mb-6">
-        Connect this VST instance to your producer account
-      </p>
-      <div className="space-y-4">
-        <OAuthButton provider="google" onClick={() => onAuth('google')} />
-        <OAuthButton provider="discord" onClick={() => onAuth('discord')} />
-      </div>
-    </div>
-  );
-}
-```
-
 ### Phase 3: Audio-First UI Components 🎵
 **Week 1 Day 5-7**
 
@@ -673,7 +627,7 @@ const AudioStudio = lazy(() => import('./pages/AudioStudio'));
 export function App() {
   useEffect(() => {
     // Preload device claiming assets
-    import('./components/DeviceClaiming');
+    import('./components/Component');
   }, []);
   
   return (

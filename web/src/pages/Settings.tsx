@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useUserStore } from '@/stores/useUserStore'
 import { Button } from '@/components/ui/button'
@@ -26,6 +26,20 @@ export function Settings() {
     instagram: user?.socialLinks?.instagram || '',
     website: user?.socialLinks?.website || '',
   })
+
+  // Sync form state with user store when it updates (handles async session restore)
+  useEffect(() => {
+    if (user) {
+      setUsername(user.username || '')
+      setDisplayName(user.displayName || '')
+      setBio(user.bio || '')
+      setSocialLinks({
+        twitter: user.socialLinks?.twitter || '',
+        instagram: user.socialLinks?.instagram || '',
+        website: user.socialLinks?.website || '',
+      })
+    }
+  }, [user?.id])
 
   // Privacy state
   const [isPublic, setIsPublic] = useState(user?.isPublic !== false)
@@ -63,21 +77,22 @@ export function Settings() {
         bio: bio.trim(),
       })
       if (result.isOk()) {
-        // Update user store with new values
-        if (user) {
+        // Fetch fresh user data from server to ensure everything is in sync
+        const { apiClient } = await import('@/api/client')
+        const userResult = await apiClient.get('/users/me')
+        if (userResult.isOk()) {
+          const { UserModel } = await import('@/models/User')
+          const freshUser = UserModel.fromJson(userResult.getValue())
           const { useUserStore } = await import('@/stores/useUserStore')
-          useUserStore.setState({
-            user: {
-              ...user,
-              username: username.trim(),
-              displayName: displayName.trim(),
-              bio: bio.trim(),
-            },
-          })
+          useUserStore.setState({ user: freshUser })
+          setProfileSuccess('Profile updated successfully!')
+          // Clear success message after 3 seconds
+          setTimeout(() => setProfileSuccess(''), 3000)
+        } else {
+          // API call succeeded but we can't verify, still show success
+          setProfileSuccess('Profile updated successfully!')
+          setTimeout(() => setProfileSuccess(''), 3000)
         }
-        setProfileSuccess('Profile updated successfully!')
-        // Clear success message after 3 seconds
-        setTimeout(() => setProfileSuccess(''), 3000)
       } else {
         const error = result.getError()
         setProfileError(error || 'Failed to save profile')
