@@ -87,12 +87,21 @@ export const useUserStore = create<UserStoreState & UserStoreActions>()(
           set({ isLoading: true });
           try {
             apiClient.setToken(storedToken);
-            // Could validate token by fetching current user here
-            set({
-              token: storedToken,
-              isAuthenticated: true,
-              isLoading: false,
-            });
+
+            // Fetch current user to validate token and get fresh user data
+            const response = await apiClient.get<{ user: User }>('/users/me');
+            if (response.isOk()) {
+              const { user } = response.getValue();
+              set({
+                user,
+                token: storedToken,
+                isAuthenticated: true,
+                isLoading: false,
+              });
+            } else {
+              // Token is invalid or user couldn't be fetched
+              throw new Error('Failed to fetch user');
+            }
           } catch (error) {
             apiClient.clearToken();
             localStorage.removeItem('auth_token');
@@ -101,6 +110,7 @@ export const useUserStore = create<UserStoreState & UserStoreActions>()(
               isAuthenticated: false,
               isLoading: false,
               error: 'Session expired',
+              user: null,
             });
           }
         }

@@ -585,6 +585,7 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 		"message": "profile_updated",
 		"user": gin.H{
 			"id":                  currentUser.ID,
+			"username":            currentUser.Username,
 			"display_name":        currentUser.DisplayName,
 			"bio":                 currentUser.Bio,
 			"location":            currentUser.Location,
