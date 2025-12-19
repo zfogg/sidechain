@@ -8,7 +8,7 @@ import { apiClient } from '../api/client';
  * Mirrors C++ UserStore pattern
  */
 
-interface UserStoreState {
+export interface UserStoreState {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
@@ -16,7 +16,7 @@ interface UserStoreState {
   error: string;
 }
 
-interface UserStoreActions {
+export interface UserStoreActions {
   login: (token: string, user: User) => void;
   logout: () => void;
   setUser: (user: User) => void;

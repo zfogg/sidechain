@@ -91,8 +91,8 @@ export function EditProfileDialog({ isOpen, onOpenChange }: EditProfileDialogPro
                 ...state.user,
                 username: freshProfile.username,
                 displayName: freshProfile.displayName,
-                bio: freshProfile.bio,
-                profilePictureUrl: freshProfile.profilePictureUrl,
+                bio: freshProfile.bio || '',
+                profilePictureUrl: freshProfile.profilePictureUrl || '',
               }
             : null,
         }))
