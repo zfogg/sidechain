@@ -513,11 +513,11 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 			return
 		}
 
-		// Only update if username has actually changed
-		if newUsername != currentUser.Username {
-			// Check if new username is already taken
+		// Only update if username has actually changed (case-insensitive comparison)
+		if !strings.EqualFold(newUsername, currentUser.Username) {
+			// Check if new username is already taken (exclude current user)
 			var existingUser models.User
-			if err := database.DB.Where("LOWER(username) = LOWER(?)", newUsername).First(&existingUser).Error; err == nil {
+			if err := database.DB.Where("LOWER(username) = LOWER(?) AND id != ?", newUsername, currentUser.ID).First(&existingUser).Error; err == nil {
 				// Username already exists
 				util.RespondBadRequest(c, "username_taken", "This username is already taken")
 				return
@@ -529,7 +529,7 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 
 			updates["username"] = newUsername
 		}
-		// If username is the same, don't add it to updates
+		// If username is the same (case-insensitive), don't add it to updates
 	}
 
 	if req.DisplayName != nil {
