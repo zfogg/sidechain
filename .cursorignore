@@ -1,6 +1,0 @@
-plugin/build*/
-.cache/
-deps/
-docs/build-docs/
-.cache/
-.clangd/

@@ -54,6 +54,8 @@ backend/server
 # IDE
 .vscode/
 .idea/
+.cursor/
+.cursorignore
 *.swp
 *.swo
 
@@ -98,3 +100,15 @@ build-docs
 _build
 
 /plugin/bin/
+
+# Development notes (not for version control)
+/notes/
+*/notes/
+PLAN.md
+!README.md
+*_STATUS.md
+*_SUMMARY.md
+*_TODO.md
+*_ANALYSIS.md
+*_COMPLETE.md
+*_FIXES*.md
