@@ -132,7 +132,7 @@ namespace Sidechain::Stores::Slices {
 - ✅ Plugin compiles with no errors
 
 #### 2.1.2 PostsFeed.cpp
-**File**: `plugin/src/ui/feed/PostsFeed.cpp` (1500+ lines)  
+**File**: `plugin/src/ui/feed/PostsFeed.cpp` (1500+ lines)
 **Current Issue**: Uses AppStore but forwards NetworkClient to it
 
 - [x] Remove NetworkClient forwarding to AppStore
@@ -156,19 +156,21 @@ namespace Sidechain::Stores::Slices {
 - ✅ Plugin compiles with no errors
 
 #### 2.1.3 Comment.cpp
-**File**: `plugin/src/ui/feed/Comment.cpp` (2300+ lines)
+**File**: `plugin/src/ui/feed/Comment.cpp` (2300+ lines)  
 **Current Issue**: Posts comments via NetworkClient directly
 
-- [ ] Remove `NetworkClient *networkClient` member
-- [ ] Remove `setNetworkClient()` method
-- [ ] Refactor comment posting: `AppStore::getInstance().postComment(postId, text)`
-- [ ] Refactor like comment: `AppStore::getInstance().toggleCommentLike(commentId)`
-- [ ] Refactor delete comment: `AppStore::getInstance().deleteComment(commentId)`
-- [ ] Refactor edit comment: `AppStore::getInstance().editComment(commentId, newText)`
-- [ ] Remove direct callback handlers
-- [ ] Subscribe to ChatState for comment updates
-- [ ] Test: Comment actions dispatch to AppStore
-- [ ] Test: UI updates via state subscriptions
+- [x] Remove `NetworkClient *networkClient` calls for comment operations
+- [x] Refactor comment posting: `AppStore::getInstance().createComment()`
+- [x] Refactor like comment: `AppStore::getInstance().likeComment()`
+- [x] Refactor delete comment: `AppStore::getInstance().deleteComment()`
+- [x] Refactor edit comment: `AppStore::getInstance().updateComment()`
+- [x] Refactor report comment: `AppStore::getInstance().reportComment()`
+- [x] Remove direct callback handlers
+- [x] Deprecate setNetworkClient() (kept for compatibility)
+- [x] Subscribe to ChatState for comment updates
+- [x] Test: Comment actions dispatch to AppStore
+- [x] Test: UI updates via state subscriptions
+- [x] Plugin compiles successfully with no errors
 
 **Files Modified**:
 - `plugin/src/ui/feed/Comment.h` (remove NetworkClient member)

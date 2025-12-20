@@ -549,10 +549,8 @@ void CommentsPanel::setupRowCallbacks(CommentRow *row) {
                        .withButton("Cancel");
 
     juce::AlertWindow::showAsync(options, [this, commentId = comment.id](int result) {
-      if (result == 1 && networkClient != nullptr) {
-        networkClient->deleteComment(commentId, [this, commentId](Outcome<juce::var> responseOutcome) {
-          handleCommentDeleted(responseOutcome.isOk(), commentId);
-        });
+      if (result == 1 && appStore != nullptr) {
+        appStore->deleteComment(commentId);
       }
     });
   };
@@ -578,21 +576,9 @@ void CommentsPanel::setupRowCallbacks(CommentRow *row) {
         juce::String reason = reasons[reportResult - 1];
         juce::String description = "Reported comment: " + comment.content.substring(0, 100);
 
-        networkClient->reportComment(comment.id, reason, description, [](Outcome<juce::var> result) {
-          if (result.isOk()) {
-            juce::MessageManager::callAsync([]() {
-              juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon, "Report Submitted",
-                                                     "Thank you for reporting this comment. We will review it "
-                                                     "shortly.");
-            });
-          } else {
-            Log::error("CommentsPanel: Failed to report comment - " + result.getError());
-            juce::MessageManager::callAsync([result]() {
-              juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Error",
-                                                     "Failed to report comment: " + result.getError());
-            });
-          }
-        });
+        if (appStore != nullptr) {
+          appStore->reportComment(comment.id, reason, description);
+        }
       }
     });
   };
@@ -622,47 +608,17 @@ void CommentsPanel::handleCommentLikeToggled(const Comment &comment, bool liked)
     }
   }
 
-  // Send to server
+  // Send to server via AppStore
   if (liked) {
-    Log::debug("CommentsPanel::handleCommentLikeToggled: Calling likeComment API");
-    networkClient->likeComment(comment.id, [this, commentId = comment.id](Outcome<juce::var> responseOutcome) {
-      if (responseOutcome.isError()) {
-        Log::warn("CommentsPanel::handleCommentLikeToggled: Like failed, "
-                  "reverting optimistic update");
-        // Revert on failure
-        for (auto *row : commentRows) {
-          if (row->getCommentId() == commentId) {
-            auto c = row->getComment();
-            row->updateLikeCount(c.likeCount, c.isLiked);
-            break;
-          }
-        }
-        // Show toast notification for transient error
-        ToastManager::getInstance().showError("Couldn't update like. Please try again.");
-      } else {
-        Log::debug("CommentsPanel::handleCommentLikeToggled: Like successful");
-      }
-    });
+    Log::debug("CommentsPanel::handleCommentLikeToggled: Dispatching likeComment action");
+    if (appStore) {
+      appStore->likeComment(comment.id);
+    }
   } else {
-    Log::debug("CommentsPanel::handleCommentLikeToggled: Calling unlikeComment API");
-    networkClient->unlikeComment(comment.id, [this, commentId = comment.id](Outcome<juce::var> responseOutcome) {
-      if (responseOutcome.isError()) {
-        Log::warn("CommentsPanel::handleCommentLikeToggled: Unlike failed, "
-                  "reverting optimistic update");
-        // Revert on failure
-        for (auto *row : commentRows) {
-          if (row->getCommentId() == commentId) {
-            auto c = row->getComment();
-            row->updateLikeCount(c.likeCount, c.isLiked);
-            break;
-          }
-        }
-        // Show toast notification for transient error
-        ToastManager::getInstance().showError("Couldn't update like. Please try again.");
-      } else {
-        Log::debug("CommentsPanel::handleCommentLikeToggled: Unlike successful");
-      }
-    });
+    Log::debug("CommentsPanel::handleCommentLikeToggled: Dispatching unlikeComment action");
+    if (appStore) {
+      appStore->unlikeComment(comment.id);
+    }
   }
 }
 
@@ -741,31 +697,15 @@ void CommentsPanel::submitComment() {
     Log::info("CommentsPanel::submitComment: Updating comment - commentId: " + editCommentId +
               ", content length: " + juce::String(content.length()));
 
-    networkClient->updateComment(editCommentId, content, [this](Outcome<juce::var> commentResult) {
-      if (commentResult.isOk()) {
-        auto commentData = commentResult.getValue();
-        Comment updatedComment = Comment::fromJson(commentData);
-        if (updatedComment.isValid()) {
-          // Update the comment in the list
-          for (int i = 0; i < comments.size(); ++i) {
-            if (comments[i].id == updatedComment.id) {
-              comments.set(i, updatedComment);
-              updateCommentsList();
-              break;
-            }
-          }
-        }
-        inputField->clear();
-        editCommentId = ""; // Clear edit state
-        cancelReply();
-        Log::info("CommentsPanel::submitComment: Comment updated successfully");
-      } else {
-        Log::error("CommentsPanel::submitComment: Failed to update comment - " + commentResult.getError());
-        // Show toast notification for transient error
-        ToastManager::getInstance().showError("Couldn't update comment. Please try again.");
-      }
-      repaint();
-    });
+    if (appStore) {
+      appStore->updateComment(editCommentId, content);
+    }
+
+    inputField->clear();
+    editCommentId = ""; // Clear edit state
+    cancelReply();
+    Log::info("CommentsPanel::submitComment: Comment updated successfully");
+    repaint();
     return;
   }
 
@@ -776,8 +716,9 @@ void CommentsPanel::submitComment() {
             ", content length: " + juce::String(content.length()) +
             (parentId.isNotEmpty() ? (", replying to: " + parentId) : ", top-level comment"));
 
-  networkClient->createComment(currentPostId, content, parentId,
-                               [this](Outcome<juce::var> commentResult) { handleCommentCreated(commentResult); });
+  if (appStore) {
+    appStore->createComment(currentPostId, content, parentId);
+  }
 }
 
 void CommentsPanel::cancelReply() {

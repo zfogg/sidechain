@@ -180,9 +180,9 @@ public:
   ~CommentsPanel() override;
 
   // ==============================================================================
-  // Setup
+  // Setup (deprecated - use setAppStore instead)
   void setNetworkClient(NetworkClient *client) {
-    networkClient = client;
+    networkClient = client; // Kept for compatibility only
   }
   void setAppStore(Sidechain::Stores::AppStore *store) {
     appStore = store;
