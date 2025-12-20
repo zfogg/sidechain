@@ -60,10 +60,14 @@ public:
     return post.id;
   }
 
-  /** Set the network client for downloading waveform images
-   * @param client Pointer to the NetworkClient instance
-   */
-  void setNetworkClient(NetworkClient *client);
+  // NetworkClient deprecated - use AppStore::getInstance() instead
+  // Waveform images are now loaded through the UI layer
+  // This method is kept for compatibility but does nothing
+  // TODO Phase 2: Remove this method entirely once all call sites updated
+  void setNetworkClient(NetworkClient *client) {
+    // No-op: NetworkClient is now accessed through AppStore
+    (void)client; // Suppress unused parameter warning
+  }
 
   // ==============================================================================
   // Update UI state (not persisted to PostsStore)

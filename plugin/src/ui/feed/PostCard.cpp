@@ -48,9 +48,7 @@ PostCard::~PostCard() {
 }
 
 // ==============================================================================
-void PostCard::setNetworkClient(NetworkClient *client) {
-  waveformView.setNetworkClient(client);
-}
+// setNetworkClient is now deprecated and defined inline in PostCard.h as no-op
 
 void PostCard::setPost(const Sidechain::FeedPost &newPost) {
   post = newPost;
@@ -1578,7 +1576,7 @@ void PostCard::subscribeToAppStore() {
           if (safeThis == nullptr)
             return;
           if (!feedPost->id.isEmpty()) {
-            safeThis->post = *feedPost;  // Dereference shared_ptr to get FeedPost
+            safeThis->post = *feedPost; // Dereference shared_ptr to get FeedPost
             safeThis->repaint();
           }
           return;
