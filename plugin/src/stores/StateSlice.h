@@ -120,37 +120,6 @@ public:
   }
 
   /**
-   * Dispatch an action (compatibility wrapper for setState)
-   *
-   * This maintains backward compatibility with the dispatch pattern while
-   * preserving immutability. The action receives a COPY of current state,
-   * modifies it, and setState() replaces the entire state object.
-   *
-   * Pattern:
-   * ```cpp
-   * slice->dispatch([](StateType& state) {
-   *   state.field = newValue;  // Modify the copy
-   * });
-   * // The copy becomes the new state; old state is not touched
-   * ```
-   *
-   * @param action Function that modifies a copy of the current state
-   */
-  void dispatch(const std::function<void(StateType &)> &action) {
-    StateType newState;
-    {
-      std::shared_lock<std::shared_mutex> readLock(stateMutex_);
-      newState = currentState_; // Copy current state
-    }
-
-    // Apply action to the copy (not the original)
-    action(newState);
-
-    // Replace state with the modified copy
-    setState(newState);
-  }
-
-  /**
    * Subscribe to state changes
    *
    * Callback receives new immutable state snapshot whenever setState() is called.

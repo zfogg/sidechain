@@ -48,14 +48,52 @@ void AppStore::createComment(const juce::String &postId, const juce::String &con
     return;
   }
 
+  auto commentsSlice = sliceManager.getCommentsSlice();
+  if (!commentsSlice) {
+    Util::logError("AppStore", "Cannot create comment - comments slice not available");
+    return;
+  }
+
   Util::logInfo("AppStore", "Creating comment on post: " + postId);
 
-  networkClient->createComment(postId, content, parentId, [postId](Outcome<juce::var> result) {
+  networkClient->createComment(postId, content, parentId, [this, postId](Outcome<juce::var> result) {
+    auto slice = sliceManager.getCommentsSlice();
+    if (!slice)
+      return;
+
     if (result.isOk()) {
-      Util::logInfo("AppStore", "Comment created successfully");
-      // Invalidate comments cache for this post so next load gets fresh data
+      try {
+        auto json = nlohmann::json::parse(result.getValue().toString().toStdString());
+
+        // Normalize comment to model
+        auto normalizedComment = EntityStore::getInstance().normalizeComment(json);
+
+        if (normalizedComment) {
+          Util::logInfo("AppStore", "Comment created successfully with ID: " + juce::String(normalizedComment->id));
+
+          // Update CommentsState - add new comment to the post's comments list
+          CommentsState newState = slice->getState();
+          auto commentsIt = newState.commentsByPostId.find(postId.toStdString());
+          if (commentsIt != newState.commentsByPostId.end()) {
+            commentsIt->second.insert(commentsIt->second.begin(), normalizedComment);
+            newState.totalCountByPostId[postId.toStdString()]++;
+          }
+          newState.commentsError.clear();
+          slice->setState(newState);
+        }
+      } catch (const std::exception &e) {
+        Util::logError("AppStore", "Failed to parse created comment: " + juce::String(e.what()));
+
+        CommentsState errorState = slice->getState();
+        errorState.commentsError = juce::String(e.what());
+        slice->setState(errorState);
+      }
     } else {
       Util::logError("AppStore", "Failed to create comment: " + result.getError());
+
+      CommentsState errorState = slice->getState();
+      errorState.commentsError = result.getError();
+      slice->setState(errorState);
     }
   });
 }
@@ -66,14 +104,60 @@ void AppStore::deleteComment(const juce::String &commentId) {
     return;
   }
 
+  auto commentsSlice = sliceManager.getCommentsSlice();
+  if (!commentsSlice) {
+    Util::logError("AppStore", "Cannot delete comment - comments slice not available");
+    return;
+  }
+
   Util::logInfo("AppStore", "Deleting comment: " + commentId);
 
-  networkClient->deleteComment(commentId, [](Outcome<juce::var> result) {
+  // Find which post this comment belongs to
+  auto currentState = commentsSlice->getState();
+  juce::String postId;
+  for (const auto &[pId, comments] : currentState.commentsByPostId) {
+    for (const auto &comment : comments) {
+      if (comment->id == commentId) {
+        postId = juce::String(pId);
+        break;
+      }
+    }
+    if (postId.isNotEmpty())
+      break;
+  }
+
+  networkClient->deleteComment(commentId, [this, commentId, postId](Outcome<juce::var> result) {
+    auto slice = sliceManager.getCommentsSlice();
+    if (!slice)
+      return;
+
     if (result.isOk()) {
-      Util::logInfo("AppStore", "Comment deleted successfully");
-      // Invalidate all comments caches since we don't know which post this came from
+      Util::logInfo("AppStore", "Comment deleted successfully: " + commentId);
+
+      // Update CommentsState - remove comment from the post's comments list
+      if (postId.isNotEmpty()) {
+        CommentsState deleteState = slice->getState();
+        auto commentsIt = deleteState.commentsByPostId.find(postId.toStdString());
+        if (commentsIt != deleteState.commentsByPostId.end()) {
+          auto &comments = commentsIt->second;
+          comments.erase(std::remove_if(comments.begin(), comments.end(),
+                                        [commentId](const std::shared_ptr<Comment> &c) { return c->id == commentId; }),
+                         comments.end());
+
+          deleteState.totalCountByPostId[postId.toStdString()]--;
+        }
+        deleteState.commentsError.clear();
+        slice->setState(deleteState);
+      }
+
+      // Remove from EntityStore
+      EntityStore::getInstance().comments().remove(commentId);
     } else {
       Util::logError("AppStore", "Failed to delete comment: " + result.getError());
+
+      CommentsState errorState = slice->getState();
+      errorState.commentsError = result.getError();
+      slice->setState(errorState);
     }
   });
 }
@@ -86,12 +170,38 @@ void AppStore::likeComment(const juce::String &commentId) {
 
   Util::logInfo("AppStore", "Liking comment: " + commentId);
 
-  networkClient->likeComment(commentId, [](Outcome<juce::var> result) {
-    if (result.isOk()) {
-      Util::logInfo("AppStore", "Comment liked successfully");
-      // Invalidate all comments caches to refresh like counts
-    } else {
+  // Optimistic update in EntityStore
+  bool updated = EntityStore::getInstance().comments().update(commentId, [](Comment &comment) {
+    comment.isLiked = true;
+    comment.likeCount++;
+  });
+
+  if (!updated) {
+    Util::logWarning("AppStore", "Cannot like comment - comment not found in cache: " + commentId);
+  }
+
+  // Make network request
+  networkClient->likeComment(commentId, [commentId](Outcome<juce::var> result) {
+    if (!result.isOk()) {
       Util::logError("AppStore", "Failed to like comment: " + result.getError());
+
+      // Rollback optimistic update
+      EntityStore::getInstance().comments().update(commentId, [](Comment &comment) {
+        comment.isLiked = false;
+        comment.likeCount--;
+      });
+    } else {
+      Util::logInfo("AppStore", "Comment liked successfully: " + commentId);
+
+      // Try to parse and normalize the response if needed
+      try {
+        if (result.getValue().isObject()) {
+          auto json = nlohmann::json::parse(result.getValue().toString().toStdString());
+          EntityStore::getInstance().normalizeComment(json);
+        }
+      } catch (const std::exception &e) {
+        Util::logWarning("AppStore", "Failed to parse like response: " + juce::String(e.what()));
+      }
     }
   });
 }
@@ -104,12 +214,38 @@ void AppStore::unlikeComment(const juce::String &commentId) {
 
   Util::logInfo("AppStore", "Unliking comment: " + commentId);
 
-  networkClient->unlikeComment(commentId, [](Outcome<juce::var> result) {
-    if (result.isOk()) {
-      Util::logInfo("AppStore", "Comment unliked successfully");
-      // Invalidate all comments caches to refresh like counts
-    } else {
+  // Optimistic update in EntityStore
+  bool updated = EntityStore::getInstance().comments().update(commentId, [](Comment &comment) {
+    comment.isLiked = false;
+    comment.likeCount--;
+  });
+
+  if (!updated) {
+    Util::logWarning("AppStore", "Cannot unlike comment - comment not found in cache: " + commentId);
+  }
+
+  // Make network request
+  networkClient->unlikeComment(commentId, [commentId](Outcome<juce::var> result) {
+    if (!result.isOk()) {
       Util::logError("AppStore", "Failed to unlike comment: " + result.getError());
+
+      // Rollback optimistic update
+      EntityStore::getInstance().comments().update(commentId, [](Comment &comment) {
+        comment.isLiked = true;
+        comment.likeCount++;
+      });
+    } else {
+      Util::logInfo("AppStore", "Comment unliked successfully: " + commentId);
+
+      // Try to parse and normalize the response if needed
+      try {
+        if (result.getValue().isObject()) {
+          auto json = nlohmann::json::parse(result.getValue().toString().toStdString());
+          EntityStore::getInstance().normalizeComment(json);
+        }
+      } catch (const std::exception &e) {
+        Util::logWarning("AppStore", "Failed to parse unlike response: " + juce::String(e.what()));
+      }
     }
   });
 }
@@ -122,12 +258,42 @@ void AppStore::updateComment(const juce::String &commentId, const juce::String &
 
   Util::logInfo("AppStore", "Updating comment: " + commentId);
 
-  networkClient->updateComment(commentId, content, [](Outcome<juce::var> result) {
-    if (result.isOk()) {
-      Util::logInfo("AppStore", "Comment updated successfully");
-      // Invalidate all comments caches to refresh content
-    } else {
+  // Store original content for rollback
+  juce::String originalContent;
+  auto &entityStore = EntityStore::getInstance();
+  auto currentComment = entityStore.comments().get(commentId);
+  if (currentComment) {
+    originalContent = juce::String(currentComment->content);
+  }
+
+  // Optimistic update in EntityStore
+  bool updated = entityStore.comments().update(
+      commentId, [&content](Comment &comment) { comment.content = content.toStdString(); });
+
+  if (!updated) {
+    Util::logWarning("AppStore", "Cannot update comment - comment not found in cache: " + commentId);
+  }
+
+  // Make network request
+  networkClient->updateComment(commentId, content, [commentId, originalContent](Outcome<juce::var> result) {
+    if (!result.isOk()) {
       Util::logError("AppStore", "Failed to update comment: " + result.getError());
+
+      // Rollback optimistic update
+      EntityStore::getInstance().comments().update(
+          commentId, [&originalContent](Comment &comment) { comment.content = originalContent.toStdString(); });
+    } else {
+      Util::logInfo("AppStore", "Comment updated successfully: " + commentId);
+
+      // Try to parse and normalize the response if needed
+      try {
+        if (result.getValue().isObject()) {
+          auto json = nlohmann::json::parse(result.getValue().toString().toStdString());
+          EntityStore::getInstance().normalizeComment(json);
+        }
+      } catch (const std::exception &e) {
+        Util::logWarning("AppStore", "Failed to parse update response: " + juce::String(e.what()));
+      }
     }
   });
 }
@@ -141,9 +307,9 @@ void AppStore::reportComment(const juce::String &commentId, const juce::String &
 
   Util::logInfo("AppStore", "Reporting comment: " + commentId);
 
-  networkClient->reportComment(commentId, reason, description, [](Outcome<juce::var> result) {
+  networkClient->reportComment(commentId, reason, description, [commentId](Outcome<juce::var> result) {
     if (result.isOk()) {
-      Util::logInfo("AppStore", "Comment reported successfully");
+      Util::logInfo("AppStore", "Comment reported successfully: " + commentId);
     } else {
       Util::logError("AppStore", "Failed to report comment: " + result.getError());
     }
@@ -166,10 +332,10 @@ void AppStore::loadPostComments(const juce::String &postId, int limit, int offse
   }
 
   // Update loading state
-  commentsSlice->dispatch([postId](CommentsState &state) {
-    state.isLoadingByPostId[postId.toStdString()] = true;
-    state.currentLoadingPostId = postId;
-  });
+  CommentsState loadingState = commentsSlice->getState();
+  loadingState.isLoadingByPostId[postId.toStdString()] = true;
+  loadingState.currentLoadingPostId = postId;
+  commentsSlice->setState(loadingState);
 
   Util::logInfo("AppStore", "Loading comments for post: " + postId + " (limit=" + juce::String(limit) +
                                 ", offset=" + juce::String(offset) + ")");
@@ -202,23 +368,23 @@ void AppStore::loadPostComments(const juce::String &postId, int limit, int offse
       Util::logInfo("AppStore", "Loaded " + juce::String(normalizedComments.size()) + " comments for post: " + postId);
 
       // Update CommentsState with models
-      slice->dispatch([postId, normalizedComments, totalCount, limit](CommentsState &state) {
-        state.commentsByPostId[postId.toStdString()] = normalizedComments;
-        state.totalCountByPostId[postId.toStdString()] = totalCount;
-        state.limitByPostId[postId.toStdString()] = limit;
-        state.isLoadingByPostId[postId.toStdString()] = false;
-        state.lastUpdatedByPostId[postId.toStdString()] = juce::Time::getCurrentTime().toMilliseconds();
-        state.hasMoreByPostId[postId.toStdString()] = (int)normalizedComments.size() >= limit;
-        state.commentsError.clear();
-      });
+      CommentsState successState = slice->getState();
+      successState.commentsByPostId[postId.toStdString()] = normalizedComments;
+      successState.totalCountByPostId[postId.toStdString()] = totalCount;
+      successState.limitByPostId[postId.toStdString()] = limit;
+      successState.isLoadingByPostId[postId.toStdString()] = false;
+      successState.lastUpdatedByPostId[postId.toStdString()] = juce::Time::getCurrentTime().toMilliseconds();
+      successState.hasMoreByPostId[postId.toStdString()] = (int)normalizedComments.size() >= limit;
+      successState.commentsError.clear();
+      slice->setState(successState);
     } else {
       Util::logError("AppStore", "Failed to load comments: " + result.getError());
 
       // Update state with error
-      slice->dispatch([postId, error = result.getError()](CommentsState &state) {
-        state.isLoadingByPostId[postId.toStdString()] = false;
-        state.commentsError = error;
-      });
+      CommentsState errorState = slice->getState();
+      errorState.isLoadingByPostId[postId.toStdString()] = false;
+      errorState.commentsError = result.getError();
+      slice->setState(errorState);
     }
   });
 }
