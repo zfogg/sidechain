@@ -287,4 +287,33 @@ export class AuthClient {
 
     return Outcome.error(result.getError());
   }
+
+  /**
+   * Exchange OAuth session ID for authentication token
+   * Used in OAuth callback flow (session-based token exchange - SEC-5)
+   */
+  static async exchangeOAuthSession(sessionId: string): Promise<Outcome<AuthResponse>> {
+    const result = await apiClient.post<any>('/auth/oauth-token', {
+      session_id: sessionId,
+    });
+
+    if (result.isOk()) {
+      try {
+        const data = result.getValue();
+        const token = data.token || '';
+        if (token) {
+          apiClient.setToken(token);
+        }
+        return Outcome.ok({
+          token,
+          user: UserModel.fromJson(data.user || {}),
+          expiresAt: data.expires_at || '',
+        });
+      } catch (error) {
+        return Outcome.error((error as Error).message);
+      }
+    }
+
+    return Outcome.error(result.getError());
+  }
 }

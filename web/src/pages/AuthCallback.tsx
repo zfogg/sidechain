@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useUserStore } from '@/stores/useUserStore'
 import { UserModel } from '@/models/User'
 import { UserClient } from '@/api/UserClient'
+import { AuthClient } from '@/api/AuthClient'
 import { Spinner } from '@/components/ui/spinner'
 
 /**
@@ -23,6 +24,7 @@ export function AuthCallback() {
     const handleAuth = async () => {
       const token = searchParams.get('token')
       const userJson = searchParams.get('user')
+      const sessionId = searchParams.get('session_id')
       const errorParam = searchParams.get('error')
 
       if (errorParam) {
@@ -34,6 +36,52 @@ export function AuthCallback() {
         return
       }
 
+      // Check for session-based flow (new backend)
+      if (sessionId) {
+        try {
+          // Exchange session_id for token and user data via AuthClient
+          const result = await AuthClient.exchangeOAuthSession(sessionId)
+
+          if (!result.isOk()) {
+            throw new Error(result.getError())
+          }
+
+          const authResponse = result.getValue()
+          login(authResponse.token, authResponse.user)
+
+          // Fetch complete profile
+          if (authResponse.user.username) {
+            try {
+              const profileResult = await UserClient.getProfile(authResponse.user.username)
+              if (profileResult.isOk()) {
+                const profile = profileResult.getValue()
+                useUserStore.setState((state) => ({
+                  user: state.user
+                    ? {
+                        ...state.user,
+                        profilePictureUrl: profile.profilePictureUrl || '',
+                      }
+                    : null,
+                }))
+              }
+            } catch (e) {
+              console.debug('Failed to fetch complete profile after auth:', e)
+            }
+          }
+
+          navigate('/feed')
+          return
+        } catch (err) {
+          console.error('Failed to exchange session:', err)
+          setError('Failed to complete authentication')
+          setTimeout(() => {
+            navigate('/login?error=session_exchange_failed')
+          }, 2000)
+          return
+        }
+      }
+
+      // Fallback: old token/user flow (for backward compatibility)
       if (!token || !userJson) {
         setError('Missing authentication data')
         setTimeout(() => {
