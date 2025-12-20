@@ -41,12 +41,13 @@ public:
   // Static factory from HTTP headers
   static std::unique_ptr<TraceContext> fromHttpHeaders(const std::map<std::string, std::string> &headers);
 
+  // Generate UUID - public so SpanRecorder can use it
+  static std::string generateUUID();
+
 private:
   std::string traceId_;
   std::vector<std::string> spanStack_; // Stack of span IDs for nesting
   std::chrono::high_resolution_clock::time_point createdAt_;
-
-  static std::string generateUUID();
 };
 
 /**

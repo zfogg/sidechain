@@ -18,7 +18,7 @@ TraceContext::TraceContext(const std::string &traceId)
 
 std::string TraceContext::generateUUID() {
   uuid_t uuid;
-  uuid_generate_v4(uuid);
+  uuid_generate(uuid); // Generates random UUID (equivalent to v4)
 
   char buffer[37];
   uuid_unparse_lower(uuid, buffer);
@@ -115,8 +115,8 @@ json Span::toJson() const {
     j["attributes"][k] = v;
   }
   j["events"] = json::array();
-  for (const auto &[ts, name] : events) {
-    j["events"].push_back({{"timestamp", ts}, {"name", name}});
+  for (const auto &[ts, eventName] : events) {
+    j["events"].push_back({{"timestamp", ts}, {"name", eventName}});
   }
   j["clientType"] = clientType;
   j["clientVersion"] = clientVersion;
@@ -223,7 +223,8 @@ void SpanRecorder::clear() {
   completedSpans_.clear();
 }
 
-bool SpanRecorder::sendToServer(const std::string &serverUrl, const std::string &authToken) {
+bool SpanRecorder::sendToServer([[maybe_unused]] const std::string &serverUrl,
+                                [[maybe_unused]] const std::string &authToken) {
   std::lock_guard<std::mutex> lock(mutex_);
 
   if (completedSpans_.empty()) {
@@ -231,8 +232,8 @@ bool SpanRecorder::sendToServer(const std::string &serverUrl, const std::string 
   }
 
   // This will use your existing HTTP client (JUCE or custom)
-  // For now, we'll return success - actual HTTP call is in HttpClient.cpp
-  // which uses curl or libcurl that you already have
+  // For now, we'll return success - actual HTTP call is in NetworkClient
+  // which uses the async infrastructure that's already in place
 
   return true;
 }

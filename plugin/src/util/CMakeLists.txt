@@ -41,6 +41,9 @@ add_library(SidechainCore STATIC
     $<$<PLATFORM_ID:Darwin>:${CMAKE_CURRENT_SOURCE_DIR}/OSNotification_mac.mm>
     ${CMAKE_CURRENT_SOURCE_DIR}/WaveformGenerator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/WaveformGenerator.h
+    # Distributed Tracing
+    ${CMAKE_CURRENT_SOURCE_DIR}/../tracing/TraceContext.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../tracing/TraceContext.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/cache/FileCache.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/cache/FileCache.h
     ${CMAKE_CURRENT_SOURCE_DIR}/cache/ImageCache.cpp
@@ -101,6 +104,25 @@ target_link_libraries(SidechainCore PUBLIC
 # Link nlohmann_json for typed JSON support
 if(TARGET nlohmann_json::nlohmann_json)
     target_link_libraries(SidechainCore PUBLIC nlohmann_json::nlohmann_json)
+endif()
+
+# Link libuuid for distributed tracing (UUID generation)
+find_package(PkgConfig QUIET)
+if(PkgConfig_FOUND)
+    pkg_check_modules(UUID QUIET uuid)
+    if(UUID_FOUND)
+        target_include_directories(SidechainCore PRIVATE ${UUID_INCLUDE_DIRS})
+        target_link_libraries(SidechainCore PRIVATE ${UUID_LIBRARIES})
+    else()
+        # Fallback: try direct linking
+        target_link_libraries(SidechainCore PRIVATE uuid)
+    endif()
+elseif(APPLE)
+    # macOS: UUID is part of System framework
+    target_link_libraries(SidechainCore PRIVATE "-framework System")
+elseif(UNIX AND NOT APPLE)
+    # Linux: Try direct linking
+    target_link_libraries(SidechainCore PRIVATE uuid)
 endif()
 
 # Set visibility to hidden by default (faster linking, smaller binaries)
