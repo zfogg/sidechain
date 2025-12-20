@@ -436,20 +436,22 @@ void AppStore::handleTrendingUsersSuccess(const juce::var &data) {
   if (!data.isArray())
     return;
 
+  auto &entityStore = EntityStore::getInstance();
   std::vector<std::shared_ptr<Sidechain::User>> users;
 
   for (int i = 0; i < data.size(); ++i) {
-    auto user = std::make_shared<Sidechain::User>();
-    auto userVar = data[i];
+    try {
+      // Convert juce::var to nlohmann::json
+      auto jsonStr = data[i].toString().toStdString();
+      auto json = nlohmann::json::parse(jsonStr);
 
-    if (userVar.isObject()) {
-      user->id = userVar.getProperty("id", "").toString();
-      user->username = userVar.getProperty("name", "").toString();
-      user->bio = userVar.getProperty("bio", "").toString();
-      user->avatarUrl = userVar.getProperty("image", "").toString();
-      user->followerCount = userVar.getProperty("followers", 0);
-
-      users.push_back(user);
+      // Normalize user (creates/updates shared_ptr in EntityStore)
+      auto normalized = entityStore.normalizeUser(json);
+      if (normalized) {
+        users.push_back(normalized);
+      }
+    } catch (const std::exception &e) {
+      Util::logError("AppStore", "Failed to parse trending user JSON: " + juce::String(e.what()));
     }
   }
 
@@ -468,20 +470,22 @@ void AppStore::handleFeaturedProducersSuccess(const juce::var &data) {
   if (!data.isArray())
     return;
 
+  auto &entityStore = EntityStore::getInstance();
   std::vector<std::shared_ptr<Sidechain::User>> users;
 
   for (int i = 0; i < data.size(); ++i) {
-    auto user = std::make_shared<Sidechain::User>();
-    auto userVar = data[i];
+    try {
+      // Convert juce::var to nlohmann::json
+      auto jsonStr = data[i].toString().toStdString();
+      auto json = nlohmann::json::parse(jsonStr);
 
-    if (userVar.isObject()) {
-      user->id = userVar.getProperty("id", "").toString();
-      user->username = userVar.getProperty("name", "").toString();
-      user->bio = userVar.getProperty("bio", "").toString();
-      user->avatarUrl = userVar.getProperty("image", "").toString();
-      user->followerCount = userVar.getProperty("followers", 0);
-
-      users.push_back(user);
+      // Normalize user (creates/updates shared_ptr in EntityStore)
+      auto normalized = entityStore.normalizeUser(json);
+      if (normalized) {
+        users.push_back(normalized);
+      }
+    } catch (const std::exception &e) {
+      Util::logError("AppStore", "Failed to parse featured producer JSON: " + juce::String(e.what()));
     }
   }
 
@@ -500,20 +504,22 @@ void AppStore::handleSuggestedUsersSuccess(const juce::var &data) {
   if (!data.isArray())
     return;
 
+  auto &entityStore = EntityStore::getInstance();
   std::vector<std::shared_ptr<Sidechain::User>> users;
 
   for (int i = 0; i < data.size(); ++i) {
-    auto user = std::make_shared<Sidechain::User>();
-    auto userVar = data[i];
+    try {
+      // Convert juce::var to nlohmann::json
+      auto jsonStr = data[i].toString().toStdString();
+      auto json = nlohmann::json::parse(jsonStr);
 
-    if (userVar.isObject()) {
-      user->id = userVar.getProperty("id", "").toString();
-      user->username = userVar.getProperty("name", "").toString();
-      user->bio = userVar.getProperty("bio", "").toString();
-      user->avatarUrl = userVar.getProperty("image", "").toString();
-      user->followerCount = userVar.getProperty("followers", 0);
-
-      users.push_back(user);
+      // Normalize user (creates/updates shared_ptr in EntityStore)
+      auto normalized = entityStore.normalizeUser(json);
+      if (normalized) {
+        users.push_back(normalized);
+      }
+    } catch (const std::exception &e) {
+      Util::logError("AppStore", "Failed to parse suggested user JSON: " + juce::String(e.what()));
     }
   }
 
@@ -661,6 +667,38 @@ void AppStore::loadUserPosts(const juce::String &userId, int limit, int offset) 
       Util::logError("AppStore", "Failed to load posts for user " + userId + ": " + result.getError());
     }
   });
+}
+
+void AppStore::loadFollowers(const juce::String &userId, int limit, int offset) {
+  if (userId.isEmpty()) {
+    Util::logError("AppStore", "Cannot load followers - userId is empty");
+    return;
+  }
+
+  if (!networkClient) {
+    Util::logError("AppStore", "Cannot load followers - network client not configured");
+    return;
+  }
+
+  Util::logInfo("AppStore", "Loading followers for user: " + userId);
+  // TODO: Phase 3d - Implement follower loading via networkClient
+  // Expected: networkClient->getFollowers(userId, limit, offset, callback)
+}
+
+void AppStore::loadFollowing(const juce::String &userId, int limit, int offset) {
+  if (userId.isEmpty()) {
+    Util::logError("AppStore", "Cannot load following - userId is empty");
+    return;
+  }
+
+  if (!networkClient) {
+    Util::logError("AppStore", "Cannot load following - network client not configured");
+    return;
+  }
+
+  Util::logInfo("AppStore", "Loading following for user: " + userId);
+  // TODO: Phase 3d - Implement following loading via networkClient
+  // Expected: networkClient->getFollowing(userId, limit, offset, callback)
 }
 
 } // namespace Stores
