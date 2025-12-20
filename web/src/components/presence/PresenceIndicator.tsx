@@ -3,23 +3,23 @@ import { usePresence, getPresenceStatus, getPresenceIcon } from '@/hooks/usePres
 interface PresenceIndicatorProps {
   userId: string
   showLabel?: boolean
-  showDaw?: boolean
   size?: 'sm' | 'md' | 'lg'
 }
 
 /**
- * PresenceIndicator - Shows online/offline status with DAW information
+ * PresenceIndicator - Shows online/offline status with custom status from GetStream.io
  *
  * Features:
- * - Displays status icon (green dot, DAW emoji, etc.)
- * - Shows status text ("Online", "In Logic Pro", etc.)
- * - Auto-updates every minute
+ * - Displays status icon (green dot for online, gray for offline, custom for status)
+ * - Shows status text ("Online", custom status, or "Last active X ago")
+ * - Real-time updates via GetStream.io events
+ * - Respects invisible mode
  * - Graceful fallback if offline
  *
  * Usage:
  * ```tsx
- * <PresenceIndicator userId="user-123" showLabel showDaw size="md" />
- * // Shows: 🎚️ In Ableton Live
+ * <PresenceIndicator userId="user-123" showLabel size="md" />
+ * // Shows: 🟢 Online or 🎵 jamming (if custom status set)
  * ```
  */
 export function PresenceIndicator({
@@ -54,8 +54,8 @@ export function PresenceIndicator({
     lg: 'text-base',
   }[size]
 
-  // If offline and not showing label, just show the gray dot
-  if (userPresence?.status === 'offline' && !showLabel) {
+  // If offline/invisible and not showing label, just show the gray dot
+  if (!userPresence?.online && !showLabel) {
     return (
       <div className={`${dotSizeClass} rounded-full bg-gray-300`} title="Offline" />
     )
@@ -75,18 +75,22 @@ interface PresenceBadgeProps {
 }
 
 /**
- * PresenceBadge - Inline badge showing presence with styling
+ * PresenceBadge - Inline badge showing online presence with styling
+ *
+ * Only shows badge if user is actually online (not offline or invisible)
  *
  * Usage:
  * ```tsx
  * <PresenceBadge userId="user-123" variant="default" />
+ * // Shows: 🟢 Online or 🎵 jamming
  * ```
  */
 export function PresenceBadge({ userId, variant = 'default' }: PresenceBadgeProps) {
   const { data: presence } = usePresence(userId)
   const userPresence = presence?.[userId]
 
-  if (!userPresence || userPresence.status === 'offline') {
+  // Only show badge if user is online and not invisible
+  if (!userPresence || !userPresence.online || userPresence.invisible) {
     return null
   }
 
@@ -108,19 +112,24 @@ interface PresenceListProps {
 }
 
 /**
- * PresenceList - Shows presence for multiple users
+ * PresenceList - Shows presence for multiple users from GetStream.io
+ *
+ * Features:
+ * - Lists all online users (excluding invisible)
+ * - Shows custom status if available
+ * - Real-time updates
  *
  * Usage:
  * ```tsx
  * <PresenceList userIds={followingIds} />
- * // Shows all online users with their DAWs
+ * // Shows all online users with their current status
  * ```
  */
 export function PresenceList({ userIds }: PresenceListProps) {
   const { data: presence } = usePresence(userIds)
 
   const onlineUsers = userIds
-    .filter((id) => presence?.[id]?.status !== 'offline')
+    .filter((id) => presence?.[id]?.online && !presence?.[id]?.invisible)
     .map((id) => ({
       id,
       status: getPresenceStatus(presence?.[id]),

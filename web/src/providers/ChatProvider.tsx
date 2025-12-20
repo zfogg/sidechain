@@ -12,13 +12,21 @@ interface ChatProviderProps {
 }
 
 /**
- * ChatProvider - Stream Chat integration provider
+ * ChatProvider - Stream Chat integration provider with GetStream.io Presence
  *
  * Handles:
  * - Stream Chat client initialization
  * - Token acquisition from backend
- * - User connection
+ * - User connection (automatically marks user online in GetStream.io)
+ * - Presence tracking (online/offline, custom status, invisible mode)
+ * - Real-time presence events
  * - Error handling and reconnection
+ *
+ * Note: Presence is handled entirely by GetStream.io. When user connects,
+ * they are automatically marked online. Presence updates are real-time via
+ * GetStream.io events (user.online, user.offline, user.presence.changed, user.updated).
+ *
+ * The usePresence hook subscribes to these events for real-time UI updates.
  */
 export function ChatProvider({ children }: ChatProviderProps) {
   const { user, token } = useUserStore()
