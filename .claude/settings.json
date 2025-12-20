@@ -677,5 +677,10 @@
       "Bash(defaults write:*)",
       "Bash(defaults delete:*)"
     ]
+  },
+  "enabledPlugins": {
+    "gopls-lsp@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "clangd-lsp@claude-plugins-official": true
   }
 }
