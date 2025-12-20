@@ -71,6 +71,8 @@ void UserDiscovery::setUserStore(std::shared_ptr<Sidechain::Stores::AppStore> st
   Log::info("UserDiscovery: UserStore set");
   // Will subscribe to UserStore for discovery data
   // TODO: Implement discovery data in UserStore (loadTrendingUsers, loadSuggestedUsers, etc.)
+  // Phase 2: Move discovery data loading to UserStore for reactive updates
+  // Currently uses local member variables (trendingUsers, featuredProducers, etc.)
 }
 
 // ==============================================================================
@@ -565,6 +567,7 @@ void UserDiscovery::performSearch(const juce::String &query) {
 
   // UserStore handles the search - will notify via subscription when results arrive
   // TODO: Add searchUsers method to UserStore
+  // Phase 2: Implement searchUsers to enable user search via AppStore reactive pattern
   rebuildUserCards();
   repaint();
 }
@@ -590,8 +593,7 @@ void UserDiscovery::handleFollowToggle(const DiscoveredUser &user, bool willFoll
     }
   }
 
-  // TODO: Phase 2 - Add followUser/unfollowUser to UserStore
-  // For now, store will handle follow operations when these methods are added
+  // TODO: Phase 2 - Add followUser/unfollowUser to store
 }
 
 // ==============================================================================

@@ -853,7 +853,8 @@ void Profile::resized() {
     errorStateComponent->setBounds(bounds);
   }
 
-  // TODO: - Add profile verification system (future: badges)
+  // Profile verification system (Phase 2 feature)
+  // Future: Add badges system for verified users, collaborators, etc.
   // Note: Profile shows follower/following counts but clicking them opens
   // FollowersList panel - this is already implemented
 }
@@ -1271,7 +1272,8 @@ void Profile::handleMuteToggle() {
   profile.isMuted = willMute;
   repaint();
 
-  // TODO: Update AppStore to toggle mute state
+  // Phase 2: Update AppStore to dispatch mute state change
+  // Currently the mute state is updated in the callback after network response
 
   // Update our local state after the toggle
   juce::MessageManager::callAsync([this]() {

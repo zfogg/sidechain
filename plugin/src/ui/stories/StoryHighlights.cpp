@@ -20,8 +20,8 @@ void StoryHighlights::onAppStateChanged(const Sidechain::Stores::StoriesState &s
       Sidechain::StoryHighlight hl;
       hl.id = highlightPtr->id;
       hl.userId = highlightPtr->userId;
-      hl.name = "Stories";  // Default name
-      hl.coverImageUrl = highlightPtr->audioUrl;  // Use audio as cover reference
+      hl.name = "Stories";                       // Default name
+      hl.coverImageUrl = highlightPtr->audioUrl; // Use audio as cover reference
       hl.storyCount = 1;
       highlights.add(hl);
     }
@@ -135,7 +135,8 @@ void StoryHighlights::paint(juce::Graphics &g) {
   }
 }
 
-void StoryHighlights::drawHighlight(juce::Graphics &g, const Sidechain::StoryHighlight &highlight, juce::Rectangle<int> bounds) {
+void StoryHighlights::drawHighlight(juce::Graphics &g, const Sidechain::StoryHighlight &highlight,
+                                    juce::Rectangle<int> bounds) {
   auto circleBounds = bounds.removeFromTop(HIGHLIGHT_SIZE).toFloat();
   auto nameBounds = bounds;
 
@@ -271,5 +272,6 @@ juce::Rectangle<int> StoryHighlights::getAddButtonBounds() const {
 void StoryHighlights::loadCoverImage(const Sidechain::StoryHighlight &highlight) {
   (void)highlight; // Not implemented yet
   // TODO: Load highlight cover image from URL
+  // Phase 2: Implement image loading for highlight covers
   // Image loading to be implemented
 }

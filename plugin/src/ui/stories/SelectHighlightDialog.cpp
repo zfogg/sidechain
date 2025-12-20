@@ -416,5 +416,6 @@ void SelectHighlightDialog::addStoryToHighlight(const juce::String &highlightId)
 void SelectHighlightDialog::loadCoverImage(const Sidechain::StoryHighlight &highlight) {
   (void)highlight; // Not implemented yet
   // TODO: Load highlight cover image using ImageLoader
+  // Phase 2: Implement image loading for highlight cover display
   // Image loading to be implemented
 }

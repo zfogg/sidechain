@@ -62,12 +62,12 @@ StoryRecording::StoryRecording(SidechainAudioProcessor &processor) : audioProces
   startTimerHz(30);
 
   // Note: Story expiration is handled in StoryViewer - shows expired message
-  // and expiration time in UI Optional enhancement: Add proactive notification
-  // before expiration (e.g., "Expires in 1 hour")
-  // TODO: .1 - Create note waterfall visualization
-  // TODO: .2 - Create circular visualization
-  // TODO: - Allow users to save stories to highlights
-  // TODO: - Display highlights on profile
+  // Story recording initialization
+  // Optional UI enhancements for future phases:
+  // - Note waterfall visualization (Phase 2.1)
+  // - Circular visualization (Phase 2.2)
+  // - Save stories to highlights feature (Phase 2)
+  // - Display highlights on profile (Phase 2)
 
   Log::info("StoryRecording created");
 }
