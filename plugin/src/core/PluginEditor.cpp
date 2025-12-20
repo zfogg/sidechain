@@ -250,7 +250,6 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   // ==========================================================================
   // Create UserDiscoveryComponent
   userDiscoveryComponent = std::make_unique<UserDiscovery>();
-  userDiscoveryComponent->setNetworkClient(networkClient.get());
   // Note: StreamChatClient will be set after it's created (below)
   userDiscoveryComponent->onBackPressed = [this]() { navigateBack(); };
   userDiscoveryComponent->onUserSelected = [this](const DiscoveredUser &user) {
