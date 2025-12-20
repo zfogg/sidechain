@@ -40,56 +40,25 @@
       "type": "text"
     },
     {
-      "datasource": "Tempo",
+      "datasource": "-- Grafana --",
       "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "align": "auto",
-            "displayMode": "auto"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
+        "defaults": {},
         "overrides": []
       },
       "gridPos": {
-        "h": 12,
+        "h": 6,
         "w": 24,
         "x": 0,
         "y": 1
       },
       "id": 1,
       "options": {
-        "showHeader": true,
-        "sortBy": [
-          {
-            "displayName": "Start Time",
-            "desc": true
-          }
-        ]
+        "text": "## View Traces\n\nTraces are being collected in Tempo. To view them:\n\n**Option 1: Grafana Explore**\n1. Click the **Explore** button (compass icon) in the top-right\n2. Select **Tempo** datasource  \n3. Enter TraceQL query: `{ service.name = \"sidechain-backend\" }`\n4. Click **Run query**\n\n**Option 2: Tempo Web UI**\n- Direct URL: http://localhost:3200\n- Use the search interface to find traces\n\n**Option 3: Command Line**\n```\ncurl http://localhost:3200/api/search | python3 -m json.tool\n```\n\n**Generate Test Traces**\n```\nfor i in {1..10}; do curl http://localhost:8787/health; done\nsleep 3  # Wait for batch flush\n```\n\n**Common Endpoints Being Traced**\n- GET /health\n- GET /api/v1/feed/timeline/enriched\n- GET /internal/metrics"
       },
       "pluginVersion": "7.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "tempo",
-            "uid": "P214B5B846CF3925F"
-          },
-          "refId": "A",
-          "queryType": "traceql",
-          "expr": "{ service.name = \"sidechain-backend\" }"
-        }
-      ],
-      "title": "Recent Traces",
-      "type": "tempo-traces-list"
+      "targets": [],
+      "title": "📊 How to View Recent Traces",
+      "type": "text"
     },
     {
       "datasource": "Prometheus",
