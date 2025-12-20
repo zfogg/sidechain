@@ -351,5 +351,215 @@ void AppStore::uploadProfilePicture(const juce::File &file) {
   });
 }
 
+// ==============================================================================
+// Discovery Methods
+
+void AppStore::loadTrendingUsers() {
+  if (!networkClient) {
+    Util::logError("AppStore", "Cannot load trending users - network client not configured");
+    return;
+  }
+
+  Util::logInfo("AppStore", "Loading trending users");
+
+  auto searchSlice = sliceManager.getSearchSlice();
+  searchSlice->dispatch([](SearchState &state) {
+    state.results.isSearching = true;
+    state.results.searchError = "";
+  });
+
+  networkClient->getTrendingUsers(20, [this](Outcome<juce::var> result) {
+    juce::MessageManager::callAsync([this, result]() {
+      if (result.isOk()) {
+        handleTrendingUsersSuccess(result.getValue());
+      } else {
+        handleTrendingUsersError(result.getError());
+      }
+    });
+  });
+}
+
+void AppStore::loadFeaturedProducers() {
+  if (!networkClient) {
+    Util::logError("AppStore", "Cannot load featured producers - network client not configured");
+    return;
+  }
+
+  Util::logInfo("AppStore", "Loading featured producers");
+
+  auto searchSlice = sliceManager.getSearchSlice();
+  searchSlice->dispatch([](SearchState &state) {
+    state.results.isSearching = true;
+    state.results.searchError = "";
+  });
+
+  networkClient->getFeaturedProducers(20, [this](Outcome<juce::var> result) {
+    juce::MessageManager::callAsync([this, result]() {
+      if (result.isOk()) {
+        handleFeaturedProducersSuccess(result.getValue());
+      } else {
+        handleFeaturedProducersError(result.getError());
+      }
+    });
+  });
+}
+
+void AppStore::loadSuggestedUsers() {
+  if (!networkClient) {
+    Util::logError("AppStore", "Cannot load suggested users - network client not configured");
+    return;
+  }
+
+  Util::logInfo("AppStore", "Loading suggested users");
+
+  auto searchSlice = sliceManager.getSearchSlice();
+  searchSlice->dispatch([](SearchState &state) {
+    state.results.isSearching = true;
+    state.results.searchError = "";
+  });
+
+  networkClient->getSuggestedUsers(20, [this](Outcome<juce::var> result) {
+    juce::MessageManager::callAsync([this, result]() {
+      if (result.isOk()) {
+        handleSuggestedUsersSuccess(result.getValue());
+      } else {
+        handleSuggestedUsersError(result.getError());
+      }
+    });
+  });
+}
+
+// ==============================================================================
+// Discovery Success Handlers
+
+void AppStore::handleTrendingUsersSuccess(const juce::var &data) {
+  if (!data.isArray())
+    return;
+
+  std::vector<std::shared_ptr<Sidechain::User>> users;
+
+  for (int i = 0; i < data.size(); ++i) {
+    auto user = std::make_shared<Sidechain::User>();
+    auto userVar = data[i];
+
+    if (userVar.isObject()) {
+      user->id = userVar.getProperty("id", "").toString();
+      user->username = userVar.getProperty("name", "").toString();
+      user->bio = userVar.getProperty("bio", "").toString();
+      user->avatarUrl = userVar.getProperty("image", "").toString();
+      user->followerCount = userVar.getProperty("followers", 0);
+
+      users.push_back(user);
+    }
+  }
+
+  // Update search state with users
+  auto searchSlice = sliceManager.getSearchSlice();
+  searchSlice->dispatch([users](SearchState &state) {
+    state.results.users = users;
+    state.results.isSearching = false;
+    state.results.searchError = "";
+  });
+
+  Util::logInfo("AppStore", "Loaded " + juce::String(users.size()) + " trending users");
+}
+
+void AppStore::handleFeaturedProducersSuccess(const juce::var &data) {
+  if (!data.isArray())
+    return;
+
+  std::vector<std::shared_ptr<Sidechain::User>> users;
+
+  for (int i = 0; i < data.size(); ++i) {
+    auto user = std::make_shared<Sidechain::User>();
+    auto userVar = data[i];
+
+    if (userVar.isObject()) {
+      user->id = userVar.getProperty("id", "").toString();
+      user->username = userVar.getProperty("name", "").toString();
+      user->bio = userVar.getProperty("bio", "").toString();
+      user->avatarUrl = userVar.getProperty("image", "").toString();
+      user->followerCount = userVar.getProperty("followers", 0);
+
+      users.push_back(user);
+    }
+  }
+
+  // Update search state with users
+  auto searchSlice = sliceManager.getSearchSlice();
+  searchSlice->dispatch([users](SearchState &state) {
+    state.results.users = users;
+    state.results.isSearching = false;
+    state.results.searchError = "";
+  });
+
+  Util::logInfo("AppStore", "Loaded " + juce::String(users.size()) + " featured producers");
+}
+
+void AppStore::handleSuggestedUsersSuccess(const juce::var &data) {
+  if (!data.isArray())
+    return;
+
+  std::vector<std::shared_ptr<Sidechain::User>> users;
+
+  for (int i = 0; i < data.size(); ++i) {
+    auto user = std::make_shared<Sidechain::User>();
+    auto userVar = data[i];
+
+    if (userVar.isObject()) {
+      user->id = userVar.getProperty("id", "").toString();
+      user->username = userVar.getProperty("name", "").toString();
+      user->bio = userVar.getProperty("bio", "").toString();
+      user->avatarUrl = userVar.getProperty("image", "").toString();
+      user->followerCount = userVar.getProperty("followers", 0);
+
+      users.push_back(user);
+    }
+  }
+
+  // Update search state with users
+  auto searchSlice = sliceManager.getSearchSlice();
+  searchSlice->dispatch([users](SearchState &state) {
+    state.results.users = users;
+    state.results.isSearching = false;
+    state.results.searchError = "";
+  });
+
+  Util::logInfo("AppStore", "Loaded " + juce::String(users.size()) + " suggested users");
+}
+
+// ==============================================================================
+// Discovery Error Handlers
+
+void AppStore::handleTrendingUsersError(const juce::String &error) {
+  Util::logError("AppStore", "Failed to load trending users: " + error);
+
+  auto searchSlice = sliceManager.getSearchSlice();
+  searchSlice->dispatch([error](SearchState &state) {
+    state.results.isSearching = false;
+    state.results.searchError = error;
+  });
+}
+
+void AppStore::handleFeaturedProducersError(const juce::String &error) {
+  Util::logError("AppStore", "Failed to load featured producers: " + error);
+
+  auto searchSlice = sliceManager.getSearchSlice();
+  searchSlice->dispatch([error](SearchState &state) {
+    state.results.isSearching = false;
+    state.results.searchError = error;
+  });
+}
+
+void AppStore::handleSuggestedUsersError(const juce::String &error) {
+  Util::logError("AppStore", "Failed to load suggested users: " + error);
+
+  auto searchSlice = sliceManager.getSearchSlice();
+  searchSlice->dispatch([error](SearchState &state) {
+    state.results.isSearching = false;
+    state.results.searchError = error;
+  });
+}
+
 } // namespace Stores
 } // namespace Sidechain

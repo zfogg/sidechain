@@ -150,6 +150,27 @@ public:
   void unfollowUser(const juce::String &userId);
 
   // ==============================================================================
+  // Discovery Methods (for UserDiscovery component)
+
+  /**
+   * Load trending users from the discovery API.
+   * Updates SearchState.results.users with trending user list.
+   */
+  void loadTrendingUsers();
+
+  /**
+   * Load featured producers from the discovery API.
+   * Updates SearchState.results.users with featured producer list.
+   */
+  void loadFeaturedProducers();
+
+  /**
+   * Load suggested users from the discovery API.
+   * Updates SearchState.results.users with suggested user list.
+   */
+  void loadSuggestedUsers();
+
+  // ==============================================================================
   // Chat Methods (Chat.cpp)
 
   void loadChannels();
@@ -728,6 +749,14 @@ private:
   void downloadProfileImage(const juce::String &userId, const juce::String &url);
   void handleProfileFetchSuccess(const juce::var &data);
   void handleProfileFetchError(const juce::String &error);
+
+  // Discovery handlers
+  void handleTrendingUsersSuccess(const juce::var &data);
+  void handleTrendingUsersError(const juce::String &error);
+  void handleFeaturedProducersSuccess(const juce::var &data);
+  void handleFeaturedProducersError(const juce::String &error);
+  void handleSuggestedUsersSuccess(const juce::var &data);
+  void handleSuggestedUsersError(const juce::String &error);
 
   // Token refresh timer
   class TokenRefreshTimer : public juce::Timer {
