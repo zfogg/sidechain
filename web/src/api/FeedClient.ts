@@ -40,13 +40,13 @@ export class FeedClient {
     };
 
     const result = await apiClient.get<FeedActivitiesResponse>(
-      endpoints[feedType], 
+      endpoints[feedType],
       {
         limit,
         offset,
-      },
-      // Add cache-bypass header when retrying after corruption detection
-      !retryOnCorruption ? { 'X-Cache-Bypass': 'true' } : undefined
+        // Use cache_bypass query param instead of header to avoid CORS preflight issues
+        ...(retryOnCorruption ? {} : { cache_bypass: 'true' }),
+      }
     );
 
     if (result.isOk()) {

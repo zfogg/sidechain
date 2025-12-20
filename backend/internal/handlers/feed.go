@@ -508,10 +508,32 @@ func (h *Handlers) GetEnrichedTimeline(c *gin.Context) {
 	}
 
 	for i, activity := range activities {
-		// Convert EnrichedActivity to map using JSON marshal/unmarshal
-		var activityMap map[string]interface{}
-		activityBytes, _ := json.Marshal(activity)
-		json.Unmarshal(activityBytes, &activityMap)
+		// Build activity map directly from struct fields to avoid flattening Extra map
+		activityMap := gin.H{
+			"id":                activity.ID,
+			"stream_activity_id": activity.StreamActivityID,
+			"actor":              activity.Actor,
+			"verb":               activity.Verb,
+			"object":             activity.Object,
+			"audio_url":          activity.AudioURL,
+			"bpm":                activity.BPM,
+			"key":                activity.Key,
+			"daw":                activity.DAW,
+			"duration_bars":      activity.DurationBars,
+			"genre":              activity.Genre,
+			"waveform_url":       activity.WaveformURL,
+			"reaction_counts":    activity.ReactionCounts,
+			"own_reactions":      activity.OwnReactions,
+			"latest_reactions":   activity.LatestReactions,
+		}
+
+		// Only add optional fields if they have non-empty values
+		if activity.ForeignID != "" {
+			activityMap["foreign_id"] = activity.ForeignID
+		}
+		if activity.Time != "" {
+			activityMap["time"] = activity.Time
+		}
 
 		// Extract poster's database user ID from actor field (format: "user:USER_ID")
 		// Note: This should now be database ID after our fixes
@@ -968,12 +990,44 @@ func (h *Handlers) GetEnrichedGlobalFeed(c *gin.Context) {
 		return
 	}
 
+	// Build activity maps directly from struct fields to avoid flattening Extra map
+	enrichedActivities := make([]interface{}, len(activities))
+	for i, activity := range activities {
+		activityMap := gin.H{
+			"id":                activity.ID,
+			"stream_activity_id": activity.StreamActivityID,
+			"actor":              activity.Actor,
+			"verb":               activity.Verb,
+			"object":             activity.Object,
+			"audio_url":          activity.AudioURL,
+			"bpm":                activity.BPM,
+			"key":                activity.Key,
+			"daw":                activity.DAW,
+			"duration_bars":      activity.DurationBars,
+			"genre":              activity.Genre,
+			"waveform_url":       activity.WaveformURL,
+			"reaction_counts":    activity.ReactionCounts,
+			"own_reactions":      activity.OwnReactions,
+			"latest_reactions":   activity.LatestReactions,
+		}
+
+		// Only add optional fields if they have non-empty values
+		if activity.ForeignID != "" {
+			activityMap["foreign_id"] = activity.ForeignID
+		}
+		if activity.Time != "" {
+			activityMap["time"] = activity.Time
+		}
+
+		enrichedActivities[i] = activityMap
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"activities": activities,
+		"activities": enrichedActivities,
 		"meta": gin.H{
 			"limit":  limit,
 			"offset": offset,
-			"count":  len(activities),
+			"count":  len(enrichedActivities),
 		},
 	})
 }
