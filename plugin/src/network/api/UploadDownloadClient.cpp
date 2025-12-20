@@ -48,7 +48,14 @@ void NetworkClient::getPostDownloadInfo(const juce::String &postId, DownloadInfo
 void NetworkClient::downloadFile(const juce::String &url, const juce::File &targetFile,
                                  DownloadProgressCallback progressCallback, ResponseCallback callback) {
   // Create parent directory if it doesn't exist
-  targetFile.getParentDirectory().createDirectory();
+  if (!targetFile.getParentDirectory().createDirectory()) {
+    if (callback) {
+      juce::MessageManager::callAsync([callback, targetFile]() {
+        callback(Outcome<juce::var>::error("Failed to create directory: " + targetFile.getParentDirectory().getFullPathName()));
+      });
+    }
+    return;
+  }
 
   Async::runVoid([url, targetFile, progressCallback, callback]() {
     juce::URL downloadUrl(url);
@@ -77,9 +84,14 @@ void NetworkClient::downloadFile(const juce::String &url, const juce::File &targ
         const float minProgressDelta = 0.02f;
 
         // Read and write in chunks
+        bool writeError = false;
         int bytesReadThisChunk;
         while ((bytesReadThisChunk = stream->read(buffer.getData(), bufferSize)) > 0) {
-          output.write(buffer.getData(), static_cast<size_t>(bytesReadThisChunk));
+          if (!output.write(buffer.getData(), static_cast<size_t>(bytesReadThisChunk))) {
+            writeError = true;
+            errorMessage = "Failed to write to file: " + targetFile.getFullPathName();
+            break;
+          }
           bytesRead += bytesReadThisChunk;
 
           // Throttled progress reporting
@@ -97,11 +109,13 @@ void NetworkClient::downloadFile(const juce::String &url, const juce::File &targ
           }
         }
 
-        output.flush();
-        success = (bytesRead > 0);
-
-        if (!success)
-          errorMessage = "No data received from server";
+        if (!writeError && output.flush()) {
+          success = (bytesRead > 0);
+          if (!success)
+            errorMessage = "No data received from server";
+        } else if (!writeError) {
+          errorMessage = "Failed to flush file: " + targetFile.getFullPathName();
+        }
       } else {
         errorMessage = "Failed to create output file: " + targetFile.getFullPathName();
       }
@@ -157,9 +171,9 @@ void NetworkClient::downloadMIDI(const juce::String &midiId, const juce::File &t
         stream->readIntoMemoryBlock(data);
 
         if (data.getSize() > 0) {
-          output.write(data.getData(), data.getSize());
-          output.flush();
-          success = true;
+          if (output.write(data.getData(), data.getSize()) && output.flush()) {
+            success = true;
+          }
         }
       }
     }
@@ -260,7 +274,13 @@ void NetworkClient::downloadProjectFile(const juce::String &projectFileId, const
     juce::URL url(downloadUrl);
 
     // Create parent directory if needed
-    targetFile.getParentDirectory().createDirectory();
+    if (!targetFile.getParentDirectory().createDirectory()) {
+      if (callback) {
+        juce::MessageManager::callAsync(
+            [callback]() { callback(Outcome<juce::var>::error("Failed to create directory")); });
+      }
+      return;
+    }
 
     // Set up connection with auth
     juce::StringPairArray headers;
@@ -297,11 +317,15 @@ void NetworkClient::downloadProjectFile(const juce::String &projectFileId, const
     juce::HeapBlock<char> buffer(bufferSize);
     int64 totalBytes = stream->getTotalLength();
     int64 bytesRead = 0;
+    bool writeError = false;
 
     while (!stream->isExhausted()) {
       int numRead = stream->read(buffer, bufferSize);
       if (numRead > 0) {
-        output.write(buffer, static_cast<size_t>(numRead));
+        if (!output.write(buffer, static_cast<size_t>(numRead))) {
+          writeError = true;
+          break;
+        }
         bytesRead += numRead;
 
         // Report progress
@@ -312,7 +336,13 @@ void NetworkClient::downloadProjectFile(const juce::String &projectFileId, const
       }
     }
 
-    output.flush();
+    if (writeError || !output.flush()) {
+      if (callback) {
+        juce::MessageManager::callAsync(
+            [callback]() { callback(Outcome<juce::var>::error("Failed to write file")); });
+      }
+      return;
+    }
 
     if (callback) {
       juce::MessageManager::callAsync([callback]() { callback(Outcome<juce::var>::ok(juce::var())); });

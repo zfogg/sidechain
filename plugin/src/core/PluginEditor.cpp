@@ -373,6 +373,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     dialog->addTextEditor("name", "", "Playlist Name");
     dialog->addButton("Create", 1);
     dialog->addButton("Cancel", 0);
+    // Use deleteWhenDismissed=true to let JUCE handle cleanup safely
     dialog->enterModalState(
         true, juce::ModalCallbackFunction::create([this, dialog](int result) {
           if (result == 1) {
@@ -380,7 +381,6 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
             if (playlistName.isEmpty()) {
               juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Error",
                                                      "Playlist name cannot be empty.");
-              delete dialog;
               return;
             }
 
@@ -397,8 +397,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
               });
             }
           }
-          delete dialog;
-        }));
+        }), true);
   };
   addChildComponent(playlistsComponent.get());
 

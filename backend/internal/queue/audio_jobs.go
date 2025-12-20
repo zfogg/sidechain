@@ -70,7 +70,9 @@ func NewAudioQueue(s3Uploader *storage.S3Uploader) *AudioQueue {
 	}
 
 	tempDir := "/tmp/sidechain_audio"
-	os.MkdirAll(tempDir, 0755)
+	if err := os.MkdirAll(tempDir, 0755); err != nil {
+		log.Printf("Warning: Failed to create temp directory %s: %v", tempDir, err)
+	}
 
 	return &AudioQueue{
 		jobs:         make(chan *AudioJob, 100), // Buffer 100 jobs

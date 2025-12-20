@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"mime/multipart"
 	"os"
 	"path/filepath"
@@ -19,7 +20,9 @@ func SaveUploadedFile(file *multipart.FileHeader) (string, error) {
 
 	// Create temp file
 	tempDir := "/tmp/sidechain_uploads"
-	os.MkdirAll(tempDir, 0755)
+	if err := os.MkdirAll(tempDir, 0755); err != nil {
+		return "", fmt.Errorf("failed to create temp directory: %w", err)
+	}
 
 	tempFilePath := filepath.Join(tempDir, uuid.New().String()+filepath.Ext(file.Filename))
 

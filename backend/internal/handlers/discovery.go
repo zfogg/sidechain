@@ -646,7 +646,11 @@ func (h *Handlers) AutocompleteUsers(c *gin.Context) {
 
 	// Try Elasticsearch completion suggester first
 	if h.search != nil {
-		suggestions, _ = h.search.SuggestUsers(c.Request.Context(), query, limit)
+		var err error
+		suggestions, err = h.search.SuggestUsers(c.Request.Context(), query, limit)
+		if err != nil {
+			log.Printf("SuggestUsernames: Elasticsearch suggestion failed (using DB fallback): %v", err)
+		}
 	}
 
 	// PostgreSQL fallback if no ES results or ES unavailable

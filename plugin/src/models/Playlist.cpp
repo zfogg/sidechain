@@ -172,8 +172,10 @@ inline void from_json(const nlohmann::json &j, PlaylistEntry &entry) {
   if (j.contains("added_at") && !j["added_at"].is_null()) {
     try {
       entry.addedAt = juce::Time::fromISO8601(Json::toJuceString(j["added_at"].get<std::string>()));
+    } catch (const std::exception &e) {
+      Log::debug("Playlist: Failed to parse added_at timestamp - " + juce::String(e.what()));
     } catch (...) {
-      // Invalid timestamp format
+      Log::debug("Playlist: Unknown error parsing added_at timestamp");
     }
   }
 }

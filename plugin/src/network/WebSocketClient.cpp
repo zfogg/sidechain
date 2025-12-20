@@ -162,7 +162,10 @@ void WebSocketClient::cleanupClient() {
           if (con && con->get_state() == websocketpp::session::state::open) {
             client->close(currentConnection, websocketpp::close::status::going_away, "Client shutdown");
           }
+        } catch (const std::exception &e) {
+          Log::debug("WebSocket: Error closing connection - " + juce::String(e.what()));
         } catch (...) {
+          Log::debug("WebSocket: Unknown error closing connection");
         }
       }
 

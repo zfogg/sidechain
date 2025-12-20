@@ -68,12 +68,16 @@ void SidechainImageCache::cacheImage(const juce::String &url, const juce::Image 
 
   if (!format->writeImageToStream(image, out)) {
     Log::warn("SidechainImageCache: Failed to write image to temp file");
-    out.flush();
+    out.flush(); // Best effort flush before cleanup
     tempFile.deleteFile();
     return;
   }
 
-  out.flush();
+  if (!out.flush()) {
+    Log::warn("SidechainImageCache: Failed to flush image to temp file");
+    tempFile.deleteFile();
+    return;
+  }
 
   // Move to file cache
   auto cachedFile = fileCache.cacheFile(url, tempFile);

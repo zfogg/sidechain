@@ -33,7 +33,9 @@ func (p *Processor) SetPostCompleteCallback(callback func(postID string)) {
 // NewProcessor creates a new audio processor with queue integration
 func NewProcessor(s3Uploader *storage.S3Uploader) *Processor {
 	tempDir := "/tmp/sidechain_audio"
-	os.MkdirAll(tempDir, 0755)
+	if err := os.MkdirAll(tempDir, 0755); err != nil {
+		log.Printf("Warning: Failed to create temp directory %s: %v", tempDir, err)
+	}
 
 	// Create the audio queue with S3 uploader for background processing
 	audioQueue := queue.NewAudioQueue(s3Uploader)

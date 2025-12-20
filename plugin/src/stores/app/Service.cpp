@@ -86,7 +86,12 @@ rxcpp::observable<juce::File> AppStore::loadAudioObservable(const juce::String &
             // so safe to cast to int (INT_MAX = 2.1GB)
             int64_t bytesWritten = output.writeFromInputStream(*inputStream, -1);
             int numBytesWritten = static_cast<int>(bytesWritten);
-            output.flush();
+
+            if (!output.flush()) {
+              Util::logWarning("AppStore", "Failed to flush audio file");
+              tempFile.deleteFile();
+              return juce::File();
+            }
 
             if (numBytesWritten <= 0) {
               Util::logWarning("AppStore", "Failed to download audio file");

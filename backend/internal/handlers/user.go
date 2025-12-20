@@ -446,7 +446,11 @@ func (h *Handlers) GetMyProfile(c *gin.Context) {
 	// Fetch follow stats from Stream.io
 	var followStats *stream.FollowStats
 	if h.stream != nil {
-		followStats, _ = h.stream.GetFollowStats(currentUser.StreamUserID)
+		var err error
+		followStats, err = h.stream.GetFollowStats(currentUser.StreamUserID)
+		if err != nil {
+			log.Printf("GetMyProfile: Failed to get follow stats from Stream.io (using DB fallback): %v", err)
+		}
 	}
 
 	followerCount := currentUser.FollowerCount
@@ -947,7 +951,11 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 	// All posts on a user profile are by the same user, so we check once
 	isFollowingUser := false
 	if currentUserID != "" && currentUserID != user.ID && h.stream != nil {
-		isFollowingUser, _ = h.stream.CheckIsFollowing(currentUserID, user.StreamUserID)
+		var err error
+		isFollowingUser, err = h.stream.CheckIsFollowing(currentUserID, user.StreamUserID)
+		if err != nil {
+			log.Printf("GetUserPosts: Failed to check follow status from Stream.io: %v", err)
+		}
 		log.Printf("GetUserPosts: currentUserID=%s, targetUserID=%s, isFollowing=%v", currentUserID, user.ID, isFollowingUser)
 	} else {
 		log.Printf("GetUserPosts: Skipping follow check - currentUserID=%s, targetUserID=%s, ownProfile=%v", currentUserID, user.ID, currentUserID == user.ID)

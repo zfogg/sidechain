@@ -21,7 +21,9 @@ type FFmpegProcessor struct {
 // NewFFmpegProcessor creates a new FFmpeg processor
 func NewFFmpegProcessor() *FFmpegProcessor {
 	tempDir := "/tmp/sidechain_audio"
-	os.MkdirAll(tempDir, 0755)
+	if err := os.MkdirAll(tempDir, 0755); err != nil {
+		log.Printf("Warning: Failed to create temp directory %s: %v", tempDir, err)
+	}
 
 	return &FFmpegProcessor{
 		tempDir: tempDir,

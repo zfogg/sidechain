@@ -1071,14 +1071,9 @@ void CommentsPanel::checkForMention() {
 
   juce::String query = text.substring(queryStart, queryEnd);
 
-  // Only show autocomplete if query is at least 1 character or empty (show
-  // suggestions)
-  if (query.length() >= 0) {
-    mentionQueryStart = atPos;
-    showMentionAutocomplete(query);
-  } else {
-    hideMentionAutocomplete();
-  }
+  // Show autocomplete for any query (including empty to show suggestions)
+  mentionQueryStart = atPos;
+  showMentionAutocomplete(query);
 }
 
 void CommentsPanel::showMentionAutocomplete(const juce::String &query) {
