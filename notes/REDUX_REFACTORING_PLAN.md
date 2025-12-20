@@ -186,7 +186,16 @@ namespace Sidechain::Stores::Slices {
 
 ---
 
-### 2.2 Priority 2 - Search & Discovery (4 components)
+### 2.2 Priority 2 - Search & Discovery 🔄 IN PROGRESS (Infrastructure Ready)
+
+**Infrastructure Added to AppStore**:
+- [x] `loadTrendingUsers()` - Loads trending users, updates SearchState.results.users
+- [x] `loadFeaturedProducers()` - Loads featured producers, updates SearchState.results.users  
+- [x] `loadSuggestedUsers()` - Loads suggested users, updates SearchState.results.users
+- [x] Handler methods to parse responses and update state
+- ✅ Plugin compiles successfully with discovery methods available
+
+**Next Phase**: Refactor UI components to use these AppStore methods
 
 #### 2.2.1 UserDiscovery.cpp
 **File**: `plugin/src/ui/social/UserDiscovery.cpp` (1324 lines)
