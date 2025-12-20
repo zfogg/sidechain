@@ -15,4 +15,4 @@
 	url = https://github.com/mariusbancila/stduuid.git
 [submodule "deps/json"]
 	path = deps/json
-	url = https://github.com/nlohmann/json.git
+	url = git@github.com:nlohmann/json.git
