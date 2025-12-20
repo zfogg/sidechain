@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"log"
 	"mime/multipart"
 	"os"
 	"os/exec"

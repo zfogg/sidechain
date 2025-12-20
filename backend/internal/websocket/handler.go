@@ -18,9 +18,8 @@ import (
 
 // Handler handles WebSocket HTTP upgrade requests
 type Handler struct {
-	hub             *Hub
-	jwtSecret       []byte
-	presenceManager *PresenceManager
+	hub       *Hub
+	jwtSecret []byte
 }
 
 // NewHandler creates a new WebSocket handler
@@ -29,16 +28,6 @@ func NewHandler(hub *Hub, jwtSecret []byte) *Handler {
 		hub:       hub,
 		jwtSecret: jwtSecret,
 	}
-}
-
-// SetPresenceManager sets the presence manager for the handler
-func (h *Handler) SetPresenceManager(pm *PresenceManager) {
-	h.presenceManager = pm
-}
-
-// GetPresenceManager returns the presence manager
-func (h *Handler) GetPresenceManager() *PresenceManager {
-	return h.presenceManager
 }
 
 // HandleWebSocketHTTP is a raw http.Handler for WebSocket upgrades
@@ -79,11 +68,6 @@ func (h *Handler) HandleWebSocketHTTP(w http.ResponseWriter, r *http.Request) {
 	// Register client with hub
 	h.hub.Register(client)
 
-	// Notify presence manager of connection
-	if h.presenceManager != nil {
-		h.presenceManager.OnClientConnect(client)
-	}
-
 	// Send welcome message
 	client.Send(NewMessage(MessageTypeSystem, SystemPayload{
 		Event:   "connected",
@@ -100,10 +84,8 @@ func (h *Handler) HandleWebSocketHTTP(w http.ResponseWriter, r *http.Request) {
 	go client.WritePump()
 	client.ReadPump() // This blocks until client disconnects
 
-	// Cleanup after disconnect
-	if h.presenceManager != nil {
-		h.presenceManager.OnClientDisconnect(client)
-	}
+	// Note: Presence management is now handled entirely by GetStream.io
+	// on the client side, not through our WebSocket backend
 }
 
 // authenticateHTTPRequest extracts and validates JWT from raw HTTP request
@@ -271,124 +253,11 @@ func (h *Handler) HandleOnlineStatus(c *gin.Context) {
 	})
 }
 
-// HandlePresenceStatus returns detailed presence information for users
-func (h *Handler) HandlePresenceStatus(c *gin.Context) {
-	var req struct {
-		UserIDs []string `json:"user_ids" binding:"required"`
-	}
-
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	if h.presenceManager == nil {
-		// Fallback to basic online status
-		statuses := make(map[string]interface{})
-		for _, userID := range req.UserIDs {
-			if h.hub.IsUserOnline(userID) {
-				statuses[userID] = map[string]interface{}{
-					"status": "online",
-				}
-			}
-		}
-		c.JSON(http.StatusOK, gin.H{
-			"presence":  statuses,
-			"timestamp": time.Now().UTC(),
-		})
-		return
-	}
-
-	// Get detailed presence from manager
-	presence := h.presenceManager.GetOnlinePresence(req.UserIDs)
-
-	// Convert to JSON-friendly format
-	result := make(map[string]interface{})
-	for userID, p := range presence {
-		result[userID] = map[string]interface{}{
-			"status":        p.Status,
-			"daw":           p.DAW,
-			"last_activity": p.LastActivity.UnixMilli(),
-		}
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"presence":     result,
-		"online_count": len(presence),
-		"timestamp":    time.Now().UTC(),
-	})
-}
-
-// HandleFriendsInStudio returns count of followed users currently in studio
-func (h *Handler) HandleFriendsInStudio(c *gin.Context) {
-	// Get current user from context
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
-		return
-	}
-
-	if h.presenceManager == nil || h.presenceManager.streamClient == nil {
-		c.JSON(http.StatusOK, gin.H{
-			"count":     0,
-			"friends":   []interface{}{},
-			"timestamp": time.Now().UTC(),
-		})
-		return
-	}
-
-	// Get following list
-	following, err := h.presenceManager.streamClient.GetFollowing(userID.(string), 500, 0)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_following"})
-		return
-	}
-
-	// Extract user IDs
-	followingIDs := make([]string, len(following))
-	for i, f := range following {
-		followingIDs[i] = f.UserID
-	}
-
-	// Get their presence
-	onlinePresence := h.presenceManager.GetOnlinePresence(followingIDs)
-
-	// Filter to in_studio only
-	inStudio := make([]map[string]interface{}, 0)
-	for _, p := range onlinePresence {
-		if p.Status == StatusInStudio {
-			inStudio = append(inStudio, map[string]interface{}{
-				"user_id":  p.UserID,
-				"username": p.Username,
-				"daw":      p.DAW,
-			})
-		}
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"count":     len(inStudio),
-		"friends":   inStudio,
-		"timestamp": time.Now().UTC(),
-	})
-}
 
 // RegisterDefaultHandlers registers the default message handlers
 func (h *Handler) RegisterDefaultHandlers() {
-	// Presence update handler
-	h.hub.RegisterHandler(MessageTypePresence, func(client *Client, msg *Message) error {
-		var presence PresencePayload
-		if err := msg.ParsePayload(&presence); err != nil {
-			return err
-		}
-
-		// Update presence for user
-		presence.UserID = client.UserID
-		presence.Timestamp = time.Now().UnixMilli()
-
-		// Broadcast presence to followers (simplified - in production, get followers from getstream.io)
-		h.hub.Broadcast(NewMessage(MessageTypePresence, presence))
-		return nil
-	})
+	// Note: Presence handlers have been removed - presence is now managed entirely by GetStream.io
+	// The plugin connects directly to GetStream.io for presence tracking
 
 	// Playback started handler (for social listening feature)
 	h.hub.RegisterHandler(MessageTypePlaybackStarted, func(client *Client, msg *Message) error {

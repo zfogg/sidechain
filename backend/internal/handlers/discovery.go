@@ -649,7 +649,7 @@ func (h *Handlers) AutocompleteUsers(c *gin.Context) {
 		var err error
 		suggestions, err = h.search.SuggestUsers(c.Request.Context(), query, limit)
 		if err != nil {
-			log.Printf("SuggestUsernames: Elasticsearch suggestion failed (using DB fallback): %v", err)
+			logger.WarnWithFields("SuggestUsernames: Elasticsearch suggestion failed (using DB fallback): %v", err)
 		}
 	}
 

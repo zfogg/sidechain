@@ -243,11 +243,7 @@ func main() {
 	wsHandler := websocket.NewHandler(wsHub, jwtSecret)
 	wsHandler.RegisterDefaultHandlers()
 
-	// Initialize presence manager
-	presenceManager := websocket.NewPresenceManager(wsHub, streamClient, websocket.DefaultPresenceConfig())
-	wsHandler.SetPresenceManager(presenceManager)
-	presenceManager.Start()
-	defer presenceManager.Stop()
+	// Presence management is now handled entirely by GetStream.io
 
 	// Initialize story cleanup service (runs every hour)
 	storyCleanup := stories.NewCleanupService(s3Uploader, 1*time.Hour)
@@ -1017,10 +1013,6 @@ func main() {
 
 			// Online status check (protected)
 			ws.POST("/online", authHandlers.AuthMiddleware(), wsHandler.HandleOnlineStatus)
-
-			// Presence endpoints (protected)
-			ws.POST("/presence", authHandlers.AuthMiddleware(), wsHandler.HandlePresenceStatus)
-			ws.GET("/friends-in-studio", authHandlers.AuthMiddleware(), wsHandler.HandleFriendsInStudio)
 		}
 	}
 
