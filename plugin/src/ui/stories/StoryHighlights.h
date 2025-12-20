@@ -32,8 +32,8 @@ public:
   // ==============================================================================
   // Data
   void loadHighlights();
-  void setHighlights(const juce::Array<StoryHighlight> &highlights);
-  const juce::Array<StoryHighlight> &getHighlights() const {
+  void setHighlights(const juce::Array<Sidechain::StoryHighlight> &highlights);
+  const juce::Array<Sidechain::StoryHighlight> &getHighlights() const {
     return highlights;
   }
   bool hasHighlights() const {
@@ -42,7 +42,7 @@ public:
 
   // ==============================================================================
   // Callbacks
-  std::function<void(const StoryHighlight &)> onHighlightClicked;
+  std::function<void(const Sidechain::StoryHighlight &)> onHighlightClicked;
   std::function<void()> onCreateHighlightClicked; // For "New" button on own profile
 
   // ==============================================================================
@@ -67,7 +67,7 @@ private:
   NetworkClient *networkClient = nullptr;
   juce::String userId;
   bool isOwnProfile = false;
-  juce::Array<StoryHighlight> highlights;
+  juce::Array<Sidechain::StoryHighlight> highlights;
 
   // Loading state
   bool isLoading = false;
@@ -85,7 +85,7 @@ private:
 
   // ==============================================================================
   // Drawing methods
-  void drawHighlight(juce::Graphics &g, const StoryHighlight &highlight, juce::Rectangle<int> bounds);
+  void drawHighlight(juce::Graphics &g, const Sidechain::StoryHighlight &highlight, juce::Rectangle<int> bounds);
   void drawAddButton(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawLoadingState(juce::Graphics &g);
 
@@ -98,7 +98,7 @@ private:
 
   // ==============================================================================
   // Image loading
-  void loadCoverImage(const StoryHighlight &highlight);
+  void loadCoverImage(const Sidechain::StoryHighlight &highlight);
 
   // ==============================================================================
   // Colors

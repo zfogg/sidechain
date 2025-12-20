@@ -99,7 +99,7 @@ Profile::Profile(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) 
 
   // Create story highlights component
   storyHighlights = std::make_unique<StoryHighlights>();
-  storyHighlights->onHighlightClicked = [this](const StoryHighlight &highlight) {
+  storyHighlights->onHighlightClicked = [this](const Sidechain::StoryHighlight &highlight) {
     Log::info("Profile: Highlight clicked - id: " + highlight.id + ", name: " + highlight.name);
     if (onHighlightClicked)
       onHighlightClicked(highlight);
@@ -1187,7 +1187,7 @@ void Profile::fetchUserPosts(const juce::String &userId) {
         if (Json::isArray(postsArray)) {
           int validPosts = 0;
           for (int i = 0; i < postsArray.size(); ++i) {
-            FeedPost post = FeedPost::fromJson(postsArray[i]);
+            Sidechain::FeedPost post = Sidechain::FeedPost::fromJson(postsArray[i]);
             if (post.isValid()) {
               userPosts.add(post);
               validPosts++;
@@ -1298,21 +1298,21 @@ void Profile::updatePostCards() {
   // Create or update post cards
   while (postCards.size() < userPosts.size()) {
     auto *card = new PostCard();
-    card->onPlayClicked = [this](const FeedPost &post) {
+    card->onPlayClicked = [this](const Sidechain::FeedPost &post) {
       Log::debug("Profile::updatePostCards: Play clicked for post: " + post.id);
       if (onPlayClicked)
         onPlayClicked(post);
       else
         Log::warn("Profile::updatePostCards: Play clicked but callback not set");
     };
-    card->onPauseClicked = [this](const FeedPost &post) {
+    card->onPauseClicked = [this](const Sidechain::FeedPost &post) {
       Log::debug("Profile::updatePostCards: Pause clicked for post: " + post.id);
       if (onPauseClicked)
         onPauseClicked(post);
       else
         Log::warn("Profile::updatePostCards: Pause clicked but callback not set");
     };
-    card->onUserClicked = [this](const FeedPost &post) {
+    card->onUserClicked = [this](const Sidechain::FeedPost &post) {
       // If clicking on the same user whose profile we're viewing, do nothing
       // Otherwise, navigate to that user's profile
       if (post.userId == profile.id) {

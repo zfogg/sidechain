@@ -23,9 +23,9 @@ PlaylistDetail::~PlaylistDetail() {
 void PlaylistDetail::onAppStateChanged(const Sidechain::Stores::PlaylistState &state) {
   // Find the current playlist in the state
   for (int i = 0; i < state.playlists.size(); ++i) {
-    const auto &playlistVar = state.playlists[i];
-    if (playlistVar.getProperty("id", "").toString() == playlistId) {
-      playlist = Playlist::fromJSON(playlistVar);
+    const auto &playlistPtr = state.playlists[i];
+    if (playlistPtr && playlistPtr->id == playlistId) {
+      playlist = *playlistPtr;  // Dereference shared_ptr
       // Note: We still need to fetch full playlist details including entries
       // from NetworkClient, as state may only contain basic info
       break;
@@ -207,7 +207,7 @@ void PlaylistDetail::fetchPlaylist() {
       }
 
       auto response = result.getValue();
-      playlist = Playlist::fromJSON(response);
+      playlist = Sidechain::Playlist::fromJSON(response);
 
       // Parse entries
       entries.clear();
@@ -215,7 +215,7 @@ void PlaylistDetail::fetchPlaylist() {
         auto entriesArray = response["entries"];
         if (entriesArray.isArray()) {
           for (int i = 0; i < entriesArray.size(); ++i) {
-            entries.add(PlaylistEntry::fromJSON(entriesArray[i]));
+            entries.add(Sidechain::PlaylistEntry::fromJSON(entriesArray[i]));
           }
         }
       }
@@ -226,7 +226,7 @@ void PlaylistDetail::fetchPlaylist() {
         auto collabsArray = response["collaborators"];
         if (collabsArray.isArray()) {
           for (int i = 0; i < collabsArray.size(); ++i) {
-            collaborators.add(PlaylistCollaborator::fromJSON(collabsArray[i]));
+            collaborators.add(Sidechain::PlaylistCollaborator::fromJSON(collabsArray[i]));
           }
         }
       }
@@ -361,7 +361,7 @@ void PlaylistDetail::drawActionButtons(juce::Graphics &g, juce::Rectangle<int> &
   g.drawText("Share", shareBounds, juce::Justification::centred);
 }
 
-void PlaylistDetail::drawEntryCard(juce::Graphics &g, juce::Rectangle<int> bounds, const PlaylistEntry &entry,
+void PlaylistDetail::drawEntryCard(juce::Graphics &g, juce::Rectangle<int> bounds, const Sidechain::PlaylistEntry &entry,
                                    int index) {
   bounds = bounds.reduced(PADDING, 4);
 

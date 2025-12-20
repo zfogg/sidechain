@@ -31,7 +31,23 @@ void DraftsView::subscribeToAppStore() {
       if (safeThis == nullptr)
         return;
 
-      safeThis->drafts = state.drafts;
+      safeThis->drafts.clear();
+      for (const auto &draftPtr : state.drafts) {
+        if (draftPtr) {
+          // Serialize Draft to juce::var
+          const auto& draft = *draftPtr;
+          juce::DynamicObject::Ptr obj = new juce::DynamicObject();
+          obj->setProperty("id", draft.id);
+          obj->setProperty("type", draft.type);
+          obj->setProperty("text", draft.text);
+          obj->setProperty("audio_file_path", draft.audioFilePath);
+          obj->setProperty("midi_file_path", draft.midiFilePath);
+          obj->setProperty("image_file_path", draft.imageFilePath);
+          obj->setProperty("duration", draft.duration);
+          obj->setProperty("bpm", draft.bpm);
+          safeThis->drafts.add(juce::var(obj));
+        }
+      }
       safeThis->isLoading = false;
       safeThis->errorMessage = "";
       safeThis->hasRecoveryDraft = false;

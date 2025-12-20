@@ -45,7 +45,9 @@ void SavedPosts::onAppStateChanged(const PostsState &state) {
   // Update saved posts from state
   savedPosts.clear();
   for (const auto &post : state.savedPosts.posts) {
-    savedPosts.add(post);
+    if (post) {
+      savedPosts.add(*post);
+    }
   }
 
   isLoading = state.savedPosts.isLoading;
@@ -281,7 +283,7 @@ void SavedPosts::fetchSavedPosts() {
     if (postsArray.isArray()) {
       for (int i = 0; i < postsArray.size(); ++i) {
         auto postData = postsArray[i];
-        auto post = FeedPost::fromJson(postData);
+        auto post = Sidechain::FeedPost::fromJson(postData);
         if (post.isValid()) {
           savedPosts.add(post);
         }
@@ -369,28 +371,28 @@ void SavedPosts::updateScrollBounds() {
 }
 
 void SavedPosts::setupPostCardCallbacks(PostCard *card) {
-  card->onPlayClicked = [this](const FeedPost &post) {
+  card->onPlayClicked = [this](const Sidechain::FeedPost &post) {
     if (onPlayClicked)
       onPlayClicked(post);
   };
 
-  card->onPauseClicked = [this](const FeedPost &post) {
+  card->onPauseClicked = [this](const Sidechain::FeedPost &post) {
     if (onPauseClicked)
       onPauseClicked(post);
   };
 
-  card->onUserClicked = [this](const FeedPost &post) {
+  card->onUserClicked = [this](const Sidechain::FeedPost &post) {
     if (onUserClicked)
       onUserClicked(post.userId);
   };
 
-  card->onCardTapped = [this](const FeedPost &post) {
+  card->onCardTapped = [this](const Sidechain::FeedPost &post) {
     if (onPostClicked)
       onPostClicked(post);
   };
 
   // Handle unsave - remove from list (callback fallback)
-  card->onSaveToggled = [this](const FeedPost &post, bool saved) {
+  card->onSaveToggled = [this](const Sidechain::FeedPost &post, bool saved) {
     if (!saved && appStore != nullptr) {
       Log::info("SavedPosts: Unsaving post: " + post.id);
       juce::Component::SafePointer<SavedPosts> safeThis(this);
@@ -409,7 +411,7 @@ void SavedPosts::setupPostCardCallbacks(PostCard *card) {
   };
 
   // Like functionality (callback fallback)
-  card->onLikeToggled = [this](const FeedPost &post, [[maybe_unused]] bool liked) {
+  card->onLikeToggled = [this](const Sidechain::FeedPost &post, [[maybe_unused]] bool liked) {
     if (appStore != nullptr) {
       juce::Component::SafePointer<SavedPosts> safeThis(this);
       appStore->likePostObservable(post.id).subscribe(

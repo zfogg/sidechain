@@ -193,18 +193,18 @@ void ShareToMessageDialog::setNetworkClient(NetworkClient *client) {
   networkClient = client;
 }
 
-void ShareToMessageDialog::setPost(const FeedPost &postToShare) {
+void ShareToMessageDialog::setPost(const Sidechain::FeedPost &postToShare) {
   shareType = ShareType::Post;
   post = postToShare;
-  story = Story(); // Clear story data
+  story = Sidechain::Story(); // Clear story data
   dialogState = DialogState::Ready;
   repaint();
 }
 
-void ShareToMessageDialog::setStoryToShare(const Story &storyToShare) {
+void ShareToMessageDialog::setStoryToShare(const Sidechain::Story &storyToShare) {
   shareType = ShareType::Story;
   story = storyToShare;
-  post = FeedPost(); // Clear post data
+  post = Sidechain::FeedPost(); // Clear post data
   dialogState = DialogState::Ready;
   repaint();
 }

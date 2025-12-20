@@ -48,35 +48,32 @@ void StoriesFeed::subscribeToAppStore() {
 
       std::vector<UserStories> newUserStoriesGroups;
       for (int i = 0; i < groups.size(); ++i) {
-        const auto &groupVar = groups[i];
+        const auto &groupPtr = groups[i];
+        if (!groupPtr) continue;
         UserStories uiGroup;
-        uiGroup.userId = groupVar.getProperty("user_id", "").toString();
-        uiGroup.username = groupVar.getProperty("username", "").toString();
-        uiGroup.avatarUrl = groupVar.getProperty("avatar_url", "").toString();
-        uiGroup.hasUnviewed = static_cast<bool>(groupVar.getProperty("has_unviewed", false));
+        uiGroup.userId = groupPtr->id;
+        uiGroup.username = groupPtr->username;
+        uiGroup.avatarUrl = groupPtr->userAvatarUrl;
+        uiGroup.hasUnviewed = !groupPtr->viewed;
 
-        auto storiesArray = groupVar.getProperty("stories", juce::var());
-        if (storiesArray.isArray()) {
-          for (int j = 0; j < storiesArray.size(); ++j) {
-            const auto &storyVar = storiesArray[j];
-            StoryData uiStory;
-            uiStory.id = storyVar.getProperty("id", "").toString();
-            uiStory.userId = storyVar.getProperty("user_id", "").toString();
-            uiStory.username = storyVar.getProperty("username", "").toString();
-            uiStory.userAvatarUrl = storyVar.getProperty("user_avatar_url", "").toString();
-            uiStory.audioUrl = storyVar.getProperty("audio_url", "").toString();
-            uiStory.filename = storyVar.getProperty("filename", "").toString();
-            uiStory.midiFilename = storyVar.getProperty("midi_filename", "").toString();
-            uiStory.audioDuration = static_cast<float>(storyVar.getProperty("audio_duration", 0.0));
-            uiStory.midiData = storyVar.getProperty("midi_data", juce::var());
-            uiStory.midiPatternId = storyVar.getProperty("midi_pattern_id", "").toString();
-            uiStory.viewCount = static_cast<int>(storyVar.getProperty("view_count", 0));
-            uiStory.viewed = static_cast<bool>(storyVar.getProperty("viewed", false));
-            uiStory.expiresAt = juce::Time::fromISO8601(storyVar.getProperty("expires_at", "").toString());
-            uiStory.createdAt = juce::Time::fromISO8601(storyVar.getProperty("created_at", "").toString());
-            uiGroup.stories.push_back(uiStory);
-          }
-        }
+        // Add story to UI group
+        StoryData uiStory;
+        uiStory.id = groupPtr->id;
+        uiStory.userId = groupPtr->userId;
+        uiStory.username = groupPtr->username;
+        uiStory.userAvatarUrl = groupPtr->userAvatarUrl;
+        uiStory.audioUrl = groupPtr->audioUrl;
+        uiStory.filename = groupPtr->filename;
+        uiStory.midiFilename = groupPtr->midiFilename;
+        uiStory.audioDuration = groupPtr->audioDuration;
+        uiStory.midiData = groupPtr->midiData;
+        uiStory.midiPatternId = groupPtr->midiPatternId;
+        uiStory.viewCount = groupPtr->viewCount;
+        uiStory.viewed = groupPtr->viewed;
+        uiStory.expiresAt = groupPtr->expiresAt;
+        uiStory.createdAt = groupPtr->createdAt;
+        uiGroup.stories.push_back(uiStory);
+
         newUserStoriesGroups.push_back(uiGroup);
       }
 

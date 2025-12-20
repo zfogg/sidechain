@@ -79,6 +79,11 @@ protected:
     repaint();
   }
 
+  // ==============================================================================
+  // AppStoreComponent overrides
+  void subscribeToAppStore() override {}
+  void unsubscribeFromAppStore() override {}
+
   juce::String getComponentName() const override {
     return "MessageThread";
   }
@@ -90,7 +95,6 @@ protected:
   // ==============================================================================
   // AppStoreComponent overrides
   void onAppStateChanged(const Sidechain::Stores::ChatState &state) override;
-  void subscribeToAppStore() override;
 
 private:
   // ==============================================================================
@@ -137,7 +141,7 @@ private:
 
   // Drawing helpers
   void drawHeader(juce::Graphics &g);
-  void drawMessages(juce::Graphics &g, const std::vector<StreamChatClient::Message> &messages);
+  void drawMessages(juce::Graphics &g);
   void drawMessageBubble(juce::Graphics &g, const StreamChatClient::Message &message, int &y, int width);
   void drawMessageReactions(juce::Graphics &g, const StreamChatClient::Message &message, int &y, int x, int maxWidth);
   void drawEmptyState(juce::Graphics &g);
@@ -145,8 +149,6 @@ private:
   void drawInputArea(juce::Graphics &g);
 
   // ScrollBar::Listener
-  void scrollBarMoved(juce::ScrollBar *scrollBar, double newRangeStart) override;
-
   // Helper methods
   juce::String formatTimestamp(const juce::String &timestamp);
   int calculateMessageHeight(const StreamChatClient::Message &message, int maxWidth) const;
@@ -185,6 +187,8 @@ private:
   void deleteMessage(const StreamChatClient::Message &message);
   void replyToMessage(const StreamChatClient::Message &message);
   void cancelReply();
+
+private:
   void reportMessage(const StreamChatClient::Message &message);
   void blockUser(const StreamChatClient::Message &message);
 

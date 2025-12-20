@@ -21,8 +21,10 @@ Playlists::~Playlists() {
 void Playlists::onAppStateChanged(const Sidechain::Stores::PlaylistState &state) {
   // Update playlists from state
   playlists.clear();
-  for (int i = 0; i < state.playlists.size(); ++i) {
-    playlists.add(Playlist::fromJSON(state.playlists[i]));
+  for (const auto &playlist : state.playlists) {
+    if (playlist) {
+      playlists.add(*playlist);
+    }
   }
 
   isLoading = state.isLoading;
@@ -222,7 +224,7 @@ void Playlists::drawCreateButton(juce::Graphics &g, juce::Rectangle<int> &bounds
   g.drawText("+ Create Playlist", buttonBounds, juce::Justification::centred);
 }
 
-void Playlists::drawPlaylistCard(juce::Graphics &g, juce::Rectangle<int> bounds, const Playlist &playlist) {
+void Playlists::drawPlaylistCard(juce::Graphics &g, juce::Rectangle<int> bounds, const Sidechain::Playlist &playlist) {
   bounds = bounds.reduced(PADDING, 8);
 
   bool isHovered = bounds.contains(getMouseXYRelative());
@@ -309,7 +311,7 @@ void Playlists::fetchPlaylists(FilterType filter) {
 
   // Then filter by ownership and visibility based on filter type
   // This is client-side filtering - full implementation would request filtered results from API
-  juce::Array<Playlist> filteredPlaylists;
+  juce::Array<Sidechain::Playlist> filteredPlaylists;
 
   for (const auto &playlist : playlists) {
     bool includePlaylist = false;

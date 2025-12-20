@@ -56,9 +56,9 @@ public:
   // ==============================================================================
   // Callbacks
   std::function<void()> onBackPressed;
-  std::function<void(const FeedPost &)> onPostClicked;
-  std::function<void(const FeedPost &)> onPlayClicked;
-  std::function<void(const FeedPost &)> onPauseClicked;
+  std::function<void(const Sidechain::FeedPost &)> onPostClicked;
+  std::function<void(const Sidechain::FeedPost &)> onPlayClicked;
+  std::function<void(const Sidechain::FeedPost &)> onPauseClicked;
   std::function<void(const juce::String &userId)> onUserClicked;
 
   // ==============================================================================
@@ -80,7 +80,7 @@ private:
   juce::String currentUserId;
 
   // Cached state from store
-  juce::Array<FeedPost> archivedPosts;
+  juce::Array<Sidechain::FeedPost> archivedPosts;
   bool isLoading = false;
   juce::String errorMessage;
 

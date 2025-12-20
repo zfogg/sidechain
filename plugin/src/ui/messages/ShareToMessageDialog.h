@@ -72,8 +72,8 @@ private:
   DialogState dialogState = DialogState::Loading;
   juce::String errorMessage;
   ShareType shareType = ShareType::None;
-  FeedPost post; // The post being shared (when shareType == Post)
-  Story story;   // The story being shared (when shareType == Story)
+  Sidechain::FeedPost post; // The post being shared (when shareType == Post)
+  Sidechain::Story story;   // The story being shared (when shareType == Story)
 
   StreamChatClient *streamChatClient = nullptr;
   NetworkClient *networkClient = nullptr;

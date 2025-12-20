@@ -15,11 +15,12 @@ void AppStore::loadStoriesFeed() {
   networkClient->getStoriesFeed([this](Outcome<juce::var> result) {
     if (result.isOk()) {
       const auto data = result.getValue();
-      juce::Array<juce::var> storiesList;
+      std::vector<std::shared_ptr<Sidechain::Story>> storiesList;
 
       if (data.isArray()) {
         for (int i = 0; i < data.size(); ++i) {
-          storiesList.push_back(data[i]);
+          auto story = Sidechain::Story::fromJSON(data[i]);
+          storiesList.push_back(std::make_shared<Sidechain::Story>(story));
         }
       }
 
@@ -81,10 +82,10 @@ void AppStore::deleteStory(const juce::String &storyId) {
     if (result.isOk()) {
       sliceManager.getStoriesSlice()->dispatch([storyId](StoriesState &state) {
         // Remove from my stories
-        for (int i = state.myStories.size() - 1; i >= 0; --i) {
+        for (int i = static_cast<int>(state.myStories.size()) - 1; i >= 0; --i) {
           auto story = state.myStories[i];
-          if (story.hasProperty("id") && story.getProperty("id", juce::var()).toString() == storyId) {
-            state.myStories.erase(i);
+          if (story && story->id == storyId) {
+            state.myStories.erase(state.myStories.begin() + i);
             Util::logInfo("AppStore", "Story deleted: " + storyId);
             break;
           }
@@ -105,7 +106,7 @@ void AppStore::createHighlight(const juce::String &name, const juce::Array<juce:
     return;
   }
 
-  if (name.empty()) {
+  if (name.isEmpty()) {
     Util::logError("AppStore", "Cannot create highlight - name cannot be empty");
     return;
   }
@@ -121,7 +122,7 @@ void AppStore::createHighlight(const juce::String &name, const juce::Array<juce:
       Util::logInfo("AppStore", "Highlight created successfully: " + highlightId);
 
       // If we have stories to add, add them one by one
-      if (!storyIds.empty()) {
+      if (storyIds.size() > 0) {
         Util::logInfo("AppStore", "Adding " + juce::String(storyIds.size()) + " stories to highlight");
 
         // Add each story to the highlight

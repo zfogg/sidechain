@@ -62,7 +62,7 @@ private:
   // ==============================================================================
   // Data
   juce::String currentUserId;
-  juce::Array<Playlist> playlists;
+  juce::Array<Sidechain::Playlist> playlists;
   bool isLoading = false;
   juce::String errorMessage;
 
@@ -86,7 +86,7 @@ private:
   void drawHeader(juce::Graphics &g);
   void drawFilterTabs(juce::Graphics &g, juce::Rectangle<int> &bounds);
   void drawCreateButton(juce::Graphics &g, juce::Rectangle<int> &bounds);
-  void drawPlaylistCard(juce::Graphics &g, juce::Rectangle<int> bounds, const Playlist &playlist);
+  void drawPlaylistCard(juce::Graphics &g, juce::Rectangle<int> bounds, const Sidechain::Playlist &playlist);
   void drawLoadingState(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawEmptyState(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawErrorState(juce::Graphics &g, juce::Rectangle<int> bounds);

@@ -65,9 +65,9 @@ private:
   NetworkClient *networkClient = nullptr;
   juce::String currentUserId;
   juce::String playlistId;
-  Playlist playlist;
-  juce::Array<PlaylistEntry> entries;
-  juce::Array<PlaylistCollaborator> collaborators;
+  Sidechain::Playlist playlist;
+  juce::Array<Sidechain::PlaylistEntry> entries;
+  juce::Array<Sidechain::PlaylistCollaborator> collaborators;
   bool isLoading = false;
   juce::String errorMessage;
 
@@ -91,7 +91,7 @@ private:
   void drawHeader(juce::Graphics &g);
   void drawPlaylistInfo(juce::Graphics &g, juce::Rectangle<int> &bounds);
   void drawActionButtons(juce::Graphics &g, juce::Rectangle<int> &bounds);
-  void drawEntryCard(juce::Graphics &g, juce::Rectangle<int> bounds, const PlaylistEntry &entry, int index);
+  void drawEntryCard(juce::Graphics &g, juce::Rectangle<int> bounds, const Sidechain::PlaylistEntry &entry, int index);
   void drawLoadingState(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawErrorState(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawEmptyState(juce::Graphics &g, juce::Rectangle<int> bounds);

@@ -2,6 +2,7 @@
 #include "../../util/logging/Logger.h"
 #include "../../util/cache/DraftCache.h"
 #include <JuceHeader.h>
+#include <nlohmann/json.hpp>
 
 namespace Sidechain {
 namespace Stores {
@@ -11,7 +12,7 @@ void AppStore::loadDrafts() {
   draftSlice->dispatch([](DraftState &state) { state.isLoading = true; });
 
   // Load drafts from cache directory
-  juce::Array<juce::var> draftsList;
+  std::vector<std::shared_ptr<Sidechain::Draft>> draftsList;
 
   try {
     auto cacheDir = draftCache.getCacheDirectory();
@@ -22,9 +23,12 @@ void AppStore::loadDrafts() {
       for (const auto &file : cacheDir.findChildFiles(juce::File::findFiles, false, "*.cache")) {
         try {
           auto content = file.loadFileAsString();
-          auto draft = juce::JSON::parse(content);
-          if (draft.isObject()) {
-            draftsList.push_back(draft);
+          auto jsonObj = nlohmann::json::parse(content.toStdString());
+          if (jsonObj.is_object()) {
+            auto draftResult = Sidechain::Draft::createFromJson(jsonObj);
+            if (draftResult.isOk()) {
+              draftsList.push_back(draftResult.getValue());
+            }
           }
         } catch (...) {
           Util::logWarning("AppStore", "Failed to parse draft file: " + file.getFileName());
@@ -47,10 +51,10 @@ void AppStore::deleteDraft(const juce::String &draftId) {
   auto draftSlice = sliceManager.getDraftSlice();
   draftSlice->dispatch([draftId](DraftState &state) {
     // Remove draft from list
-    for (int i = state.drafts.size() - 1; i >= 0; --i) {
+    for (int i = static_cast<int>(state.drafts.size()) - 1; i >= 0; --i) {
       auto draft = state.drafts[i];
-      if (draft.hasProperty("id") && draft.getProperty("id", juce::var()).toString() == draftId) {
-        state.drafts.remove(i);
+      if (draft && draft->id == draftId) {
+        state.drafts.erase(state.drafts.begin() + i);
         Util::logInfo("AppStore", "Deleted draft: " + draftId);
         break;
       }
@@ -88,22 +92,30 @@ void AppStore::saveDrafts() {
     const auto &draftState = draftSlice->getState();
 
     for (const auto &draft : draftState.drafts) {
-      if (!draft.isObject() || !draft.hasProperty("id")) {
+      if (!draft) {
         continue;
       }
 
       try {
-        juce::String draftId = draft.getProperty("id", "").toString();
-        if (draftId.empty()) {
+        juce::String draftId = draft->id;
+        if (draftId.isEmpty()) {
           continue;
         }
 
         // Convert draft to JSON and write to temporary file
-        juce::String draftJson = juce::JSON::toString(draft);
+        juce::String draftJsonStr;
+        try {
+          nlohmann::json j;
+          to_json(j, *draft);
+          draftJsonStr = j.dump();
+        } catch (...) {
+          Util::logWarning("AppStore", "Failed to serialize draft: " + draftId);
+          continue;
+        }
         juce::File tempFile =
             juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile("draft_" + draftId + ".tmp");
 
-        if (!tempFile.replaceWithText(draftJson)) {
+        if (!tempFile.replaceWithText(draftJsonStr)) {
           Util::logWarning("AppStore", "Failed to write draft to temp file: " + draftId);
           continue;
         }

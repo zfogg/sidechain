@@ -1,5 +1,6 @@
 #include "../AppStore.h"
 #include "../../util/logging/Logger.h"
+#include <nlohmann/json.hpp>
 
 namespace Sidechain {
 namespace Stores {
@@ -16,11 +17,20 @@ void AppStore::loadNotifications() {
   networkClient->getNotifications(20, 0, [notificationSlice](Outcome<NetworkClient::NotificationResult> result) {
     if (result.isOk()) {
       const auto notifResult = result.getValue();
-      juce::Array<juce::var> notificationsList;
+      std::vector<std::shared_ptr<Sidechain::Notification>> notificationsList;
 
       if (notifResult.notifications.isArray()) {
         for (int i = 0; i < notifResult.notifications.size(); ++i) {
-          notificationsList.push_back(notifResult.notifications[i]);
+          try {
+            auto jsonStr = juce::JSON::toString(notifResult.notifications[i]);
+            auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+            auto parseResult = Sidechain::Notification::createFromJson(jsonObj);
+            if (parseResult.isOk()) {
+              notificationsList.push_back(parseResult.getValue());
+            }
+          } catch (...) {
+            // Skip invalid items
+          }
         }
       }
 
@@ -58,11 +68,20 @@ void AppStore::loadMoreNotifications() {
       20, currentState.notifications.size(), [notificationSlice](Outcome<NetworkClient::NotificationResult> result) {
         if (result.isOk()) {
           const auto notifResult = result.getValue();
-          juce::Array<juce::var> newNotifications;
+          std::vector<std::shared_ptr<Sidechain::Notification>> newNotifications;
 
           if (notifResult.notifications.isArray()) {
             for (int i = 0; i < notifResult.notifications.size(); ++i) {
-              newNotifications.push_back(notifResult.notifications[i]);
+              try {
+                auto jsonStr = juce::JSON::toString(notifResult.notifications[i]);
+                auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+                auto parseResult = Sidechain::Notification::createFromJson(jsonObj);
+                if (parseResult.isOk()) {
+                  newNotifications.push_back(parseResult.getValue());
+                }
+              } catch (...) {
+                // Skip invalid items
+              }
             }
           }
 
@@ -90,7 +109,9 @@ void AppStore::markNotificationsAsRead() {
       notificationSlice->dispatch([](NotificationState &state) {
         // Mark all notifications as read
         for (auto &notification : state.notifications) {
-          notification.getDynamicObject()->setProperty("is_read", true);
+          if (notification) {
+            notification->isRead = true;
+          }
         }
         state.unreadCount = 0;
         Util::logInfo("AppStore", "All notifications marked as read");

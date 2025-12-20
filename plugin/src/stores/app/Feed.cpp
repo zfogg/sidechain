@@ -468,7 +468,7 @@ void AppStore::toggleFollow(const juce::String &postId, bool willFollow) {
     }
   }
 
-  if (!userId.empty()) {
+  if (userId.isNotEmpty()) {
     // Apply optimistic update - toggle follow state immediately
     sliceManager.getPostsSlice()->dispatch([postId, willFollow](PostsState &state) {
       for (auto &[feedType, feedState] : state.feeds) {

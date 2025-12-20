@@ -14,8 +14,17 @@ void StoryHighlights::onAppStateChanged(const Sidechain::Stores::StoriesState &s
   // Update highlights from state
   auto stateHighlights = state.highlights;
   highlights.clear();
-  for (int i = 0; i < stateHighlights.size(); ++i) {
-    highlights.add(StoryHighlight::fromJSON(stateHighlights[i]));
+  for (const auto &highlightPtr : stateHighlights) {
+    if (highlightPtr) {
+      // Convert Story to StoryHighlight (treating story as a highlight)
+      Sidechain::StoryHighlight hl;
+      hl.id = highlightPtr->id;
+      hl.userId = highlightPtr->userId;
+      hl.name = "Stories";  // Default name
+      hl.coverImageUrl = highlightPtr->audioUrl;  // Use audio as cover reference
+      hl.storyCount = 1;
+      highlights.add(hl);
+    }
   }
 
   // Load cover images for new highlights via AppStore
@@ -72,7 +81,7 @@ void StoryHighlights::loadHighlights() {
         if (Json::isArray(highlightsArray)) {
           safeThis->highlights.clear();
           for (int i = 0; i < highlightsArray.size(); ++i) {
-            safeThis->highlights.add(StoryHighlight::fromJSON(highlightsArray[i]));
+            safeThis->highlights.add(Sidechain::StoryHighlight::fromJSON(highlightsArray[i]));
           }
           Log::info("StoryHighlights: Loaded " + juce::String(safeThis->highlights.size()) + " highlights");
 
@@ -90,7 +99,7 @@ void StoryHighlights::loadHighlights() {
   });
 }
 
-void StoryHighlights::setHighlights(const juce::Array<StoryHighlight> &newHighlights) {
+void StoryHighlights::setHighlights(const juce::Array<Sidechain::StoryHighlight> &newHighlights) {
   highlights = newHighlights;
 
   for (const auto &highlight : highlights) {
@@ -126,7 +135,7 @@ void StoryHighlights::paint(juce::Graphics &g) {
   }
 }
 
-void StoryHighlights::drawHighlight(juce::Graphics &g, const StoryHighlight &highlight, juce::Rectangle<int> bounds) {
+void StoryHighlights::drawHighlight(juce::Graphics &g, const Sidechain::StoryHighlight &highlight, juce::Rectangle<int> bounds) {
   auto circleBounds = bounds.removeFromTop(HIGHLIGHT_SIZE).toFloat();
   auto nameBounds = bounds;
 
@@ -259,7 +268,7 @@ juce::Rectangle<int> StoryHighlights::getAddButtonBounds() const {
 }
 
 // ==============================================================================
-void StoryHighlights::loadCoverImage(const StoryHighlight &highlight) {
+void StoryHighlights::loadCoverImage(const Sidechain::StoryHighlight &highlight) {
   (void)highlight; // Not implemented yet
   // TODO: Load highlight cover image from URL
   // Image loading to be implemented

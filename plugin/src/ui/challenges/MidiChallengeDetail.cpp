@@ -73,8 +73,7 @@ void MidiChallengeDetail::onAppStateChanged(const Sidechain::Stores::ChallengeSt
   if (!challengeId.isEmpty() && state.challenges.size() > 0) {
     // Check if our challenge was updated
     for (const auto &ch : state.challenges) {
-      juce::String chId = ch.getProperty("id", "").toString();
-      if (chId == challengeId) {
+      if (ch && ch->id == challengeId) {
         repaint();
         break;
       }
@@ -227,9 +226,9 @@ void MidiChallengeDetail::fetchChallenge() {
 
       // Parse challenge
       if (response.hasProperty("challenge")) {
-        challenge = MIDIChallenge::fromJSON(response["challenge"]);
+        challenge = Sidechain::MIDIChallenge::fromJSON(response["challenge"]);
       } else {
-        challenge = MIDIChallenge::fromJSON(response);
+        challenge = Sidechain::MIDIChallenge::fromJSON(response);
       }
 
       // Parse entries
@@ -245,7 +244,7 @@ void MidiChallengeDetail::fetchChallenge() {
 
       if (entriesVar.isArray()) {
         for (int i = 0; i < entriesVar.size(); ++i) {
-          auto entry = MIDIChallengeEntry::fromJSON(entriesVar[i]);
+          auto entry = Sidechain::MIDIChallengeEntry::fromJSON(entriesVar[i]);
           entries.add(entry);
 
           // Check if this is the user's entry
@@ -360,8 +359,8 @@ void MidiChallengeDetail::drawActionButtons(juce::Graphics &g, juce::Rectangle<i
   }
 }
 
-void MidiChallengeDetail::drawEntryCard(juce::Graphics &g, juce::Rectangle<int> bounds, const MIDIChallengeEntry &entry,
-                                        int index) {
+void MidiChallengeDetail::drawEntryCard(juce::Graphics &g, juce::Rectangle<int> bounds,
+                                        const Sidechain::MIDIChallengeEntry &entry, int index) {
   bounds = bounds.reduced(PADDING, 4);
 
   bool isHovered = bounds.contains(getMouseXYRelative());
@@ -501,7 +500,7 @@ bool MidiChallengeDetail::hasUserSubmitted() const {
   return userEntryId.isNotEmpty();
 }
 
-juce::String MidiChallengeDetail::formatConstraints(const MIDIChallengeConstraints &constraints) const {
+juce::String MidiChallengeDetail::formatConstraints(const Sidechain::MIDIChallengeConstraints &constraints) const {
   juce::StringArray parts;
 
   if (constraints.bpmMin > 0 || constraints.bpmMax > 0) {

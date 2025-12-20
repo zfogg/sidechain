@@ -98,16 +98,16 @@ public:
   std::function<void()> onActivityStatusClicked;       // Navigate to activity status
                                                        // settings (own profile only)
   std::function<void()> onTwoFactorSettingsClicked;    // Navigate to 2FA settings (own profile only)
-  std::function<void(const FeedPost &)> onPostClicked;
-  std::function<void(const FeedPost &)> onPlayClicked;
-  std::function<void(const FeedPost &)> onPauseClicked;
+  std::function<void(const Sidechain::FeedPost &)> onPostClicked;
+  std::function<void(const Sidechain::FeedPost &)> onPlayClicked;
+  std::function<void(const Sidechain::FeedPost &)> onPauseClicked;
   std::function<void(const juce::String &userId)> onFollowToggled;
   std::function<void(const juce::String &userId, bool isMuted)> onMuteToggled; // Mute/unmute user
   std::function<void()> onMutedUsersClicked;                          // Navigate to muted users list (own profile only)
   std::function<void(const juce::String &userId)> onMessageClicked;   // Opens DM with user
   std::function<void(const juce::String &userId)> onViewStoryClicked; // Opens story viewer for user's story
   std::function<void(const juce::String &userId)> onNavigateToProfile; // Navigates to another user's profile
-  std::function<void(const StoryHighlight &)> onHighlightClicked;      // Opens story viewer for a highlight
+  std::function<void(const Sidechain::StoryHighlight &)> onHighlightClicked;      // Opens story viewer for a highlight
   std::function<void()> onCreateHighlightClicked;                      // Opens create highlight flow
                                                                        // (own profile only)
 
@@ -138,7 +138,7 @@ private:
   // Data
   UserProfile profile; // For other users OR populated from UserStore for own profile
   juce::String currentUserId;
-  juce::Array<FeedPost> userPosts;
+  juce::Array<Sidechain::FeedPost> userPosts;
   NetworkClient *networkClient = nullptr;
   StreamChatClient *streamChatClient = nullptr;
 

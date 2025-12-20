@@ -36,7 +36,7 @@ MidiChallengeSubmission::~MidiChallengeSubmission() {
 }
 
 // ==============================================================================
-void MidiChallengeSubmission::setChallenge(const MIDIChallenge &ch) {
+void MidiChallengeSubmission::setChallenge(const Sidechain::MIDIChallenge &ch) {
   challenge = ch;
   reset();
   repaint();
@@ -108,11 +108,10 @@ void MidiChallengeSubmission::onAppStateChanged(const Sidechain::Stores::Challen
   Log::debug("MidiChallengeSubmission: Handling challenge state change");
 
   // If the current challenge was updated in the store, refresh its data
-  if (!challenge.id.isEmpty() && state.challenges.size() > 0) {
+  if (!challenge.id.isEmpty() && !state.challenges.empty()) {
     for (const auto &ch : state.challenges) {
-      juce::String chId = ch.getProperty("id", "").toString();
-      if (chId == challenge.id) {
-        challenge = MIDIChallenge::fromJSON(ch);
+      if (ch && ch->id == challenge.id) {
+        challenge = *ch; // Dereference shared_ptr
         repaint();
         break;
       }

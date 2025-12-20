@@ -64,7 +64,7 @@ private:
   // ==============================================================================
   // Data
   juce::String currentUserId;
-  juce::Array<MIDIChallenge> challenges;
+  juce::Array<Sidechain::MIDIChallenge> challenges;
   bool isLoading = false;
   juce::String errorMessage;
 
@@ -86,7 +86,7 @@ private:
   // Drawing methods
   void drawHeader(juce::Graphics &g);
   void drawFilterTabs(juce::Graphics &g, juce::Rectangle<int> &bounds);
-  void drawChallengeCard(juce::Graphics &g, juce::Rectangle<int> bounds, const MIDIChallenge &challenge);
+  void drawChallengeCard(juce::Graphics &g, juce::Rectangle<int> bounds, const Sidechain::MIDIChallenge &challenge);
   void drawLoadingState(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawEmptyState(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawErrorState(juce::Graphics &g, juce::Rectangle<int> bounds);
@@ -106,8 +106,8 @@ private:
   // Helper methods
   int calculateContentHeight() const;
   void updateScrollBounds();
-  juce::String getStatusDisplayText(const MIDIChallenge &challenge) const;
-  juce::String getTimeRemainingText(const MIDIChallenge &challenge) const;
+  juce::String getStatusDisplayText(const Sidechain::MIDIChallenge &challenge) const;
+  juce::String getTimeRemainingText(const Sidechain::MIDIChallenge &challenge) const;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MidiChallenges)
 };

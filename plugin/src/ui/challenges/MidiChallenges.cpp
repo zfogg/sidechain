@@ -27,14 +27,10 @@ void MidiChallenges::onAppStateChanged(const Sidechain::Stores::ChallengeState &
 
   // Rebuild challenges list from state
   challenges.clear();
-  for (const auto &challengeVar : state.challenges) {
-    // Convert from juce::var to MIDIChallenge
-    if (challengeVar.isObject()) {
-      MIDIChallenge challenge;
-      challenge.id = challengeVar.getProperty("id", "").toString();
-      challenge.title = challengeVar.getProperty("title", "").toString();
-      challenge.description = challengeVar.getProperty("description", "").toString();
-      challenges.add(challenge);
+  for (const auto &challenge : state.challenges) {
+    // Convert from shared_ptr<MIDIChallenge> to MIDIChallenge
+    if (challenge) {
+      challenges.add(*challenge);
     }
   }
 
@@ -205,7 +201,8 @@ void MidiChallenges::drawFilterTabs(juce::Graphics &g, juce::Rectangle<int> &bou
   }
 }
 
-void MidiChallenges::drawChallengeCard(juce::Graphics &g, juce::Rectangle<int> bounds, const Sidechain::MIDIChallenge &challenge) {
+void MidiChallenges::drawChallengeCard(juce::Graphics &g, juce::Rectangle<int> bounds,
+                                       const Sidechain::MIDIChallenge &challenge) {
   bounds = bounds.reduced(PADDING, 8);
 
   bool isHovered = bounds.contains(getMouseXYRelative());

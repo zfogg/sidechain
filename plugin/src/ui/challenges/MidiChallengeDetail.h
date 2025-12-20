@@ -66,8 +66,8 @@ private:
   HttpAudioPlayer *audioPlayer = nullptr;
   juce::String currentUserId;
   juce::String challengeId;
-  MIDIChallenge challenge;
-  juce::Array<MIDIChallengeEntry> entries;
+  Sidechain::MIDIChallenge challenge;
+  juce::Array<Sidechain::MIDIChallengeEntry> entries;
   juce::String userEntryId; // ID of current user's entry (if submitted)
   bool isLoading = false;
   juce::String errorMessage;
@@ -92,7 +92,8 @@ private:
   void drawHeader(juce::Graphics &g);
   void drawChallengeInfo(juce::Graphics &g, juce::Rectangle<int> &bounds);
   void drawActionButtons(juce::Graphics &g, juce::Rectangle<int> &bounds);
-  void drawEntryCard(juce::Graphics &g, juce::Rectangle<int> bounds, const MIDIChallengeEntry &entry, int index);
+  void drawEntryCard(juce::Graphics &g, juce::Rectangle<int> bounds, const Sidechain::MIDIChallengeEntry &entry,
+                     int index);
   void drawLoadingState(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawErrorState(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawEmptyState(juce::Graphics &g, juce::Rectangle<int> bounds);
@@ -116,7 +117,7 @@ private:
   int calculateContentHeight() const;
   void updateScrollBounds();
   bool hasUserSubmitted() const;
-  juce::String formatConstraints(const MIDIChallengeConstraints &constraints) const;
+  juce::String formatConstraints(const Sidechain::MIDIChallengeConstraints &constraints) const;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MidiChallengeDetail)
 };

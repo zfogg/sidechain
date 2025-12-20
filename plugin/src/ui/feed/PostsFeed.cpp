@@ -531,8 +531,8 @@ void PostsFeed::queryPresenceForPosts() {
   // Collect unique user IDs from posts
   std::set<juce::String> uniqueUserIds;
   for (const auto &post : currentFeed->posts) {
-    if (post.userId.isNotEmpty() && !post.isOwnPost) {
-      uniqueUserIds.insert(post.userId);
+    if (post && post->userId.isNotEmpty() && !post->isOwnPost) { // Dereference shared_ptr
+      uniqueUserIds.insert(post->userId);
     }
   }
 
@@ -950,10 +950,10 @@ void PostsFeed::rebuildPostCards() {
     for (const auto &post : posts) {
       auto *card = postCards.add(new PostCard(appStore));
       card->setNetworkClient(networkClient);
-      card->setPost(*post);  // Dereference shared_ptr
+      card->setPost(*post);         // Dereference shared_ptr
       setupPostCardCallbacks(card); // Pass card with dereferenced post
       addAndMakeVisible(card);
-      Log::debug("PostsFeed::rebuildPostCards: Created card for post: " + post.id);
+      Log::debug("PostsFeed::rebuildPostCards: Created card for post: " + post->id);
     }
 
     Log::debug("PostsFeed::rebuildPostCards: Rebuilt " + juce::String(postCards.size()) + " post cards");
@@ -1032,7 +1032,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
         }
 
         if (currentIndex >= 0 && currentIndex < posts.size() - 1) {
-          const Sidechain::FeedPost &nextPost = *posts[currentIndex + 1];  // Dereference shared_ptr
+          const Sidechain::FeedPost &nextPost = *posts[currentIndex + 1]; // Dereference shared_ptr
           if (nextPost.audioUrl.isNotEmpty()) {
             Log::debug("PostsFeed: Pre-buffering next post: " + nextPost.id);
             audioPlayer->preloadAudio(nextPost.id, nextPost.audioUrl);
@@ -1415,9 +1415,9 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
           if (safeThis == nullptr)
             return;
 
-          juce::Array<Playlist> playlists;
+          juce::Array<Sidechain::Playlist> playlists;
           for (const auto &item : playlistsArray) {
-            playlists.add(Playlist::fromJSON(item));
+            playlists.add(Sidechain::Playlist::fromJSON(item));
           }
 
           // Show playlist picker menu
@@ -1726,7 +1726,11 @@ void PostsFeed::updateScrollBounds() {
     const auto &state = appStore->getPostsState();
     const auto currentFeed = state.getCurrentFeed();
     if (currentFeed) {
-      posts = currentFeed->posts;
+      for (const auto &postPtr : currentFeed->posts) {
+        if (postPtr) {
+          posts.add(*postPtr); // Dereference shared_ptr
+        }
+      }
     }
   }
   int newTotalHeight = POSTS_TOP_PADDING + static_cast<int>(posts.size()) * (POST_CARD_HEIGHT + POST_CARD_SPACING);
@@ -2049,7 +2053,11 @@ void PostsFeed::updateAudioPlayerPlaylist() {
   if (appStore) {
     const auto currentFeed = postsSlice->getState().getCurrentFeed();
     if (currentFeed) {
-      posts = currentFeed->posts;
+      for (const auto &postPtr : currentFeed->posts) {
+        if (postPtr) {
+          posts.add(*postPtr); // Dereference shared_ptr
+        }
+      }
     }
   }
   for (const auto &post : posts) {

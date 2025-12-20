@@ -32,7 +32,7 @@ AggregatedFeedCard::AggregatedFeedCard() {
 
 AggregatedFeedCard::~AggregatedFeedCard() {}
 
-void AggregatedFeedCard::setGroup(const AggregatedFeedGroup &group) {
+void AggregatedFeedCard::setGroup(const Sidechain::AggregatedFeedGroup &group) {
   groupData = group;
   updateSummary();
   updateActivityCards();
@@ -80,12 +80,12 @@ void AggregatedFeedCard::updateActivityCards() {
     card->setPost(post);
 
     // Forward callbacks
-    card->onUserClicked = [this](const FeedPost &clickedPost) {
+    card->onUserClicked = [this](const Sidechain::FeedPost &clickedPost) {
       if (onUserClicked)
         onUserClicked(clickedPost.userId);
     };
 
-    card->onPlayClicked = [this](const FeedPost &clickedPost) {
+    card->onPlayClicked = [this](const Sidechain::FeedPost &clickedPost) {
       if (onPlayClicked)
         onPlayClicked(clickedPost.id);
     };

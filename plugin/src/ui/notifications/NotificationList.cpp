@@ -6,6 +6,7 @@
 #include "../../util/StringUtils.h"
 #include "../../util/Time.h"
 #include "../../util/UIHelpers.h"
+#include <nlohmann/json.hpp>
 
 // ==============================================================================
 // NotificationItem implementation
@@ -15,7 +16,7 @@ NotificationItem NotificationItem::fromJson(const juce::var &json) {
   NotificationItem item;
 
   // Parse as AggregatedFeedGroup first
-  item.group = AggregatedFeedGroup::fromJson(json);
+  item.group = Sidechain::AggregatedFeedGroup::fromJson(json);
   item.isRead = Json::getBool(json, "is_read");
   item.isSeen = Json::getBool(json, "is_seen");
 
@@ -46,7 +47,7 @@ NotificationItem NotificationItem::fromJson(const juce::var &json) {
   return item;
 }
 
-NotificationItem NotificationItem::fromAggregatedGroup(const AggregatedFeedGroup &group, bool read, bool seen) {
+NotificationItem NotificationItem::fromAggregatedGroup(const Sidechain::AggregatedFeedGroup &group, bool read, bool seen) {
   NotificationItem item;
   item.group = group;
   item.isRead = read;
@@ -323,10 +324,21 @@ NotificationList::~NotificationList() {
 // AppStoreComponent implementation
 
 void NotificationList::onAppStateChanged(const Sidechain::Stores::NotificationState &state) {
-  // Convert juce::Array<juce::var> to juce::Array<NotificationItem>
+  // Convert std::vector<shared_ptr<Notification>> to juce::Array<NotificationItem>
   juce::Array<NotificationItem> notificationItems;
-  for (const auto &notifVar : state.notifications) {
-    notificationItems.add(NotificationItem::fromJson(notifVar));
+  for (const auto &notif : state.notifications) {
+    if (notif) {
+      // Create NotificationItem from Notification by converting to JSON first
+      try {
+        nlohmann::json j;
+        to_json(j, *notif);
+        auto jsonStr = j.dump();
+        auto jVar = juce::JSON::parse(jsonStr);
+        notificationItems.add(NotificationItem::fromJson(jVar));
+      } catch (...) {
+        // Skip invalid items
+      }
+    }
   }
 
   setNotifications(notificationItems);

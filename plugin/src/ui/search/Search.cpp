@@ -76,9 +76,18 @@ void Search::onAppStateChanged(const Sidechain::Stores::SearchState &state) {
 
   // Update user results
   userResults.clear();
-  for (const auto &userVar : state.results.users) {
-    if (userVar.isObject()) {
-      userResults.add(DiscoveredUser::fromJson(userVar));
+  for (const auto &userPtr : state.results.users) {
+    if (userPtr) {
+      DiscoveredUser user;
+      user.id = userPtr->id;
+      user.username = userPtr->username;
+      user.displayName = userPtr->displayName;
+      user.bio = userPtr->bio;
+      user.avatarUrl = userPtr->avatarUrl;
+      user.genre = userPtr->genre;
+      user.followerCount = userPtr->followerCount;
+      user.isFollowing = userPtr->isFollowing;
+      userResults.add(user);
     }
   }
   totalUserResults = state.results.totalResults;
@@ -86,8 +95,8 @@ void Search::onAppStateChanged(const Sidechain::Stores::SearchState &state) {
   // Update post results
   postResults.clear();
   for (const auto &post : state.results.posts) {
-    if (post.isValid()) {
-      postResults.add(post);
+    if (post) {
+      postResults.add(*post);
     }
   }
   totalPostResults = state.results.totalResults;

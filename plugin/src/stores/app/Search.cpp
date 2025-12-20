@@ -34,16 +34,17 @@ void AppStore::searchPosts(const juce::String &query) {
       if (data.hasProperty("posts") && data.getProperty("posts", juce::var()).isArray()) {
         auto postsArray = data.getProperty("posts", juce::var());
         for (int i = 0; i < postsArray.size(); ++i) {
-          auto post = FeedPost::fromJson(postsArray[i]);
-          postsList.push_back(std::make_shared<FeedPost>(post));
+          auto post = Sidechain::FeedPost::fromJson(postsArray[i]);
+          postsList.push_back(std::make_shared<Sidechain::FeedPost>(post));
         }
       }
 
       sliceManager.getSearchSlice()->dispatch([postsList, data](SearchState &state) {
         state.results.posts = postsList;
         state.results.isSearching = false;
-        state.results.totalResults = data.getProperty("total_count", postsList.size());
-        state.results.hasMoreResults = postsList.size() < state.results.totalResults;
+        state.results.totalResults = static_cast<int>(
+            data.getProperty("total_count", static_cast<juce::var>(static_cast<int>(postsList.size()))));
+        state.results.hasMoreResults = postsList.size() < static_cast<size_t>(state.results.totalResults);
         state.results.offset = postsList.size();
         state.results.searchError = "";
         Util::logInfo("AppStore",
@@ -92,7 +93,8 @@ void AppStore::searchUsers(const juce::String &query) {
       sliceManager.getSearchSlice()->dispatch([usersList, data](SearchState &state) {
         state.results.users = usersList;
         state.results.isSearching = false;
-        state.results.totalResults = data.getProperty("total_count", usersList.size());
+        state.results.totalResults = static_cast<int>(
+            data.getProperty("total_count", static_cast<juce::var>(static_cast<int>(usersList.size()))));
         state.results.searchError = "";
         Util::logInfo("AppStore", "User search found " + juce::String(usersList.size()) + " users");
       });
@@ -108,7 +110,7 @@ void AppStore::searchUsers(const juce::String &query) {
 void AppStore::loadMoreSearchResults() {
   auto searchSlice = sliceManager.getSearchSlice();
   const auto &currentState = searchSlice->getState();
-  if (currentState.results.searchQuery.empty() || !currentState.results.hasMoreResults) {
+  if (currentState.results.searchQuery.isEmpty() || !currentState.results.hasMoreResults) {
     return;
   }
 
@@ -122,12 +124,13 @@ void AppStore::loadMoreSearchResults() {
                                currentState.results.offset, [this](Outcome<juce::var> result) {
                                  if (result.isOk()) {
                                    const auto data = result.getValue();
-                                   juce::Array<FeedPost> newPosts;
+                                   std::vector<std::shared_ptr<Sidechain::FeedPost>> newPosts;
 
                                    if (data.hasProperty("posts") && data.getProperty("posts", juce::var()).isArray()) {
                                      auto postsArray = data.getProperty("posts", juce::var());
                                      for (int i = 0; i < postsArray.size(); ++i) {
-                                       newPosts.push_back(FeedPost::fromJson(postsArray[i]));
+                                       auto post = Sidechain::FeedPost::fromJson(postsArray[i]);
+                                       newPosts.push_back(std::make_shared<Sidechain::FeedPost>(post));
                                      }
                                    }
 
@@ -171,7 +174,7 @@ void AppStore::loadGenres() {
 
       if (data.isArray()) {
         for (int i = 0; i < data.size(); ++i) {
-          genresList.push_back(data[i].toString());
+          genresList.add(data[i].toString());
         }
       }
 
@@ -197,7 +200,7 @@ void AppStore::filterByGenre(const juce::String &genre) {
   const auto &currentState = searchSlice->getState();
 
   // If no active search query, nothing to filter
-  if (currentState.results.searchQuery.empty()) {
+  if (currentState.results.searchQuery.isEmpty()) {
     Util::logWarning("AppStore", "No active search to filter by genre");
     return;
   }
@@ -238,7 +241,7 @@ void AppStore::autocompleteUsers(const juce::String &query,
       auto data = result.getValue();
       if (data.isArray()) {
         for (int i = 0; i < data.size(); ++i) {
-          suggestions.push_back(data[i].toString());
+          suggestions.add(data[i].toString());
         }
       }
       Util::logInfo("AppStore", "Autocomplete users returned " + juce::String(suggestions.size()) + " suggestions");
@@ -273,7 +276,7 @@ void AppStore::autocompleteGenres(const juce::String &query,
       auto data = result.getValue();
       if (data.isArray()) {
         for (int i = 0; i < data.size(); ++i) {
-          suggestions.push_back(data[i].toString());
+          suggestions.add(data[i].toString());
         }
       }
       Util::logInfo("AppStore", "Autocomplete genres returned " + juce::String(suggestions.size()) + " suggestions");

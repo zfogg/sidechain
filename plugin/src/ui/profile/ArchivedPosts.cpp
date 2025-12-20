@@ -45,7 +45,9 @@ void ArchivedPosts::onAppStateChanged(const PostsState &state) {
   // Update archived posts from state
   archivedPosts.clear();
   for (const auto &post : state.archivedPosts.posts) {
-    archivedPosts.add(post);
+    if (post) {
+      archivedPosts.add(*post);  // Dereference shared_ptr
+    }
   }
 
   isLoading = state.archivedPosts.isLoading;
@@ -281,7 +283,7 @@ void ArchivedPosts::fetchArchivedPosts() {
     if (postsArray.isArray()) {
       for (int i = 0; i < postsArray.size(); ++i) {
         auto postData = postsArray[i];
-        auto post = FeedPost::fromJson(postData);
+        auto post = Sidechain::FeedPost::fromJson(postData);
         if (post.isValid()) {
           archivedPosts.add(post);
         }
@@ -369,28 +371,28 @@ void ArchivedPosts::updateScrollBounds() {
 }
 
 void ArchivedPosts::setupPostCardCallbacks(PostCard *card) {
-  card->onPlayClicked = [this](const FeedPost &post) {
+  card->onPlayClicked = [this](const Sidechain::FeedPost &post) {
     if (onPlayClicked)
       onPlayClicked(post);
   };
 
-  card->onPauseClicked = [this](const FeedPost &post) {
+  card->onPauseClicked = [this](const Sidechain::FeedPost &post) {
     if (onPauseClicked)
       onPauseClicked(post);
   };
 
-  card->onUserClicked = [this](const FeedPost &post) {
+  card->onUserClicked = [this](const Sidechain::FeedPost &post) {
     if (onUserClicked)
       onUserClicked(post.userId);
   };
 
-  card->onCardTapped = [this](const FeedPost &post) {
+  card->onCardTapped = [this](const Sidechain::FeedPost &post) {
     if (onPostClicked)
       onPostClicked(post);
   };
 
   // Handle unarchive - restore post to visible (callback fallback)
-  card->onArchiveToggled = [this](const FeedPost &post, bool archived) {
+  card->onArchiveToggled = [this](const Sidechain::FeedPost &post, bool archived) {
     if (!archived && appStore != nullptr) {
       Log::info("ArchivedPosts: Unarchiving post: " + post.id);
       juce::Component::SafePointer<ArchivedPosts> safeThis(this);
@@ -401,7 +403,7 @@ void ArchivedPosts::setupPostCardCallbacks(PostCard *card) {
   };
 
   // Like functionality (callback fallback)
-  card->onLikeToggled = [this](const FeedPost &post, [[maybe_unused]] bool liked) {
+  card->onLikeToggled = [this](const Sidechain::FeedPost &post, [[maybe_unused]] bool liked) {
     if (appStore != nullptr) {
       juce::Component::SafePointer<ArchivedPosts> safeThis(this);
       appStore->likePostObservable(post.id).subscribe(

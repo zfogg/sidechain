@@ -14,7 +14,8 @@
 #include "ui/common/Header.h"
 #include "ui/common/ToastNotification.h"
 #include "ui/feed/PostsFeed.h"
-#include "ui/messages/MessageThread.h"
+#include "ui/messages/MessageThread.h" // TODO: Fix MessageThread compilation
+class MessageThread;                   // Forward declaration
 #include "ui/messages/MessagesList.h"
 #include "ui/messages/ShareToMessageDialog.h"
 #include "ui/messages/UserPickerDialog.h"
@@ -143,7 +144,7 @@ private:
    * @param channelType The type of channel (e.g., "messaging", "team")
    * @param channelId The unique channel identifier
    */
-  void showMessageThread(const juce::String &channelType, const juce::String &channelId);
+  // void showMessageThread(const juce::String &channelType, const juce::String &channelId);  // TODO: Fix
 
   /** Navigate to a user's profile view
    * @param userId The user ID to display
@@ -188,7 +189,7 @@ private:
   /** Show story viewer for a highlight's stories
    * @param highlight The highlight to display
    */
-  void showHighlightStories(const StoryHighlight &highlight);
+  void showHighlightStories(const Sidechain::StoryHighlight &highlight);
 
   /** Show the create highlight dialog
    */
@@ -202,7 +203,7 @@ private:
   /** Show share to message dialog for sharing a post to DMs
    * @param post The post to share
    */
-  void showSharePostToMessage(const FeedPost &post);
+  void showSharePostToMessage(const Sidechain::FeedPost &post);
 
   /** Show share to message dialog for sharing a story to DMs
    * @param story The story to share

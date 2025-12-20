@@ -48,7 +48,7 @@ public:
   // Callbacks
   std::function<void()> onBackPressed;
   std::function<void(const juce::String &userId)> onUserSelected; // Navigate to user profile
-  std::function<void(const FeedPost &post)> onPostSelected;       // Navigate to post details
+  std::function<void(const Sidechain::FeedPost &post)> onPostSelected;       // Navigate to post details
 
   // ==============================================================================
   // Component overrides
@@ -113,7 +113,7 @@ private:
   // Search query and results
   juce::String currentQuery;
   juce::Array<DiscoveredUser> userResults;
-  juce::Array<FeedPost> postResults;
+  juce::Array<Sidechain::FeedPost> postResults;
   bool isSearching = false;
   int totalUserResults = 0;
   int totalPostResults = 0;

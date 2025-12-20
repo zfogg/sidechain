@@ -56,12 +56,12 @@ namespace Stores {
  *   auto maybePost = entityStore.posts().get(postId);
  *
  *   // Subscribe to changes
- *   entityStore.posts().subscribe(postId, [](const FeedPost& post) {
+ *   entityStore.posts().subscribe(postId, [](const Sidechain::FeedPost& post) {
  *       updateUI(post);
  *   });
  *
  *   // Fetch from network (with automatic caching)
- *   entityStore.fetchPost(postId).subscribe([](const FeedPost& post) {
+ *   entityStore.fetchPost(postId).subscribe([](const Sidechain::FeedPost& post) {
  *       // Use post...
  *   });
  */

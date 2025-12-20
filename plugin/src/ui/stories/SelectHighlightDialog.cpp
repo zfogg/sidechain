@@ -104,7 +104,7 @@ void SelectHighlightDialog::drawHighlightsList(juce::Graphics &g) {
   g.restoreState();
 }
 
-void SelectHighlightDialog::drawHighlightItem(juce::Graphics &g, const StoryHighlight &highlight,
+void SelectHighlightDialog::drawHighlightItem(juce::Graphics &g, const Sidechain::StoryHighlight &highlight,
                                               juce::Rectangle<int> bounds) {
   // Background
   g.setColour(SidechainColors::surface());
@@ -369,7 +369,7 @@ void SelectHighlightDialog::loadHighlights() {
       if (Json::isArray(highlightsArray)) {
         safeThis->highlights.clear();
         for (int i = 0; i < highlightsArray.size(); ++i) {
-          safeThis->highlights.add(StoryHighlight::fromJSON(highlightsArray[i]));
+          safeThis->highlights.add(Sidechain::StoryHighlight::fromJSON(highlightsArray[i]));
         }
 
         // Load cover images
@@ -413,7 +413,7 @@ void SelectHighlightDialog::addStoryToHighlight(const juce::String &highlightId)
   });
 }
 
-void SelectHighlightDialog::loadCoverImage(const StoryHighlight &highlight) {
+void SelectHighlightDialog::loadCoverImage(const Sidechain::StoryHighlight &highlight) {
   (void)highlight; // Not implemented yet
   // TODO: Load highlight cover image using ImageLoader
   // Image loading to be implemented

@@ -56,8 +56,8 @@ public:
   std::function<void()> onBackPressed;
   std::function<void(const juce::String &postId)> onPostSelected;
   std::function<void(const juce::String &userId)> onUserSelected;
-  std::function<void(const FeedPost &post)> onPlayPost;
-  std::function<void(const FeedPost &post)> onPausePost;
+  std::function<void(const Sidechain::FeedPost &post)> onPlayPost;
+  std::function<void(const Sidechain::FeedPost &post)> onPausePost;
 
   // ==========================================================================
   // Playback state (for highlighting currently playing post)
@@ -77,8 +77,8 @@ private:
   NetworkClient *networkClient = nullptr;
   juce::String currentUserId;
   juce::String soundId;
-  Sound sound;
-  juce::Array<SoundPost> posts;
+  Sidechain::Sound sound;
+  juce::Array<Sidechain::SoundPost> posts;
   bool isLoading = false;
   juce::String errorMessage;
 
@@ -122,7 +122,7 @@ private:
   // Drawing methods
   void drawHeader(juce::Graphics &g);
   void drawSoundInfo(juce::Graphics &g, juce::Rectangle<int> &bounds);
-  void drawPostCard(juce::Graphics &g, juce::Rectangle<int> bounds, const SoundPost &post, int index);
+  void drawPostCard(juce::Graphics &g, juce::Rectangle<int> bounds, const Sidechain::SoundPost &post, int index);
   void drawLoadingState(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawErrorState(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawEmptyState(juce::Graphics &g, juce::Rectangle<int> bounds);

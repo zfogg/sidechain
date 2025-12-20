@@ -33,7 +33,7 @@ public:
 
   // ==============================================================================
   // Set the challenge to submit to
-  void setChallenge(const MIDIChallenge &challenge);
+  void setChallenge(const Sidechain::MIDIChallenge &challenge);
 
   // Set the audio and MIDI data (from Recording component)
   void setAudioToUpload(const juce::AudioBuffer<float> &audio, double sampleRate, const juce::var &midiData);
@@ -56,7 +56,7 @@ private:
   // ==============================================================================
   SidechainAudioProcessor &audioProcessor;
   NetworkClient &networkClient;
-  MIDIChallenge challenge;
+  Sidechain::MIDIChallenge challenge;
 
   // Wrapped Upload component
   std::unique_ptr<Upload> uploadComponent;

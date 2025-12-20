@@ -16,7 +16,7 @@
  * - "Bob started following you" (single follow notification)
  */
 struct NotificationItem {
-  AggregatedFeedGroup group; // The underlying aggregated group
+  Sidechain::AggregatedFeedGroup group; // The underlying aggregated group
   bool isRead = false;
   bool isSeen = false;
 
@@ -32,7 +32,7 @@ struct NotificationItem {
   static NotificationItem fromJson(const juce::var &json);
 
   // Create from AggregatedFeedGroup
-  static NotificationItem fromAggregatedGroup(const AggregatedFeedGroup &group, bool read = false, bool seen = false);
+  static NotificationItem fromAggregatedGroup(const Sidechain::AggregatedFeedGroup &group, bool read = false, bool seen = false);
 
   // Generate display text like "Alice and 3 others liked your loop"
   juce::String getDisplayText() const;

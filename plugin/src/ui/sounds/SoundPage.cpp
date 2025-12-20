@@ -27,11 +27,10 @@ void SoundPage::onAppStateChanged(const Sidechain::Stores::SoundState &state) {
   errorMessage = state.soundError;
 
   // Update sound data from state if available
-  if (state.soundData.isObject() && !soundId.isEmpty()) {
+  if (state.soundData && !soundId.isEmpty()) {
     // Check if this is the sound we're displaying
-    auto id = state.soundData.getProperty("id", "").toString();
-    if (id == soundId) {
-      sound = Sound::fromJson(state.soundData);
+    if (state.soundData->id == soundId) {
+      sound = *state.soundData;
       loadCreatorAvatar();
     }
   }
@@ -161,7 +160,7 @@ void SoundPage::mouseUp(const juce::MouseEvent &event) {
 
       if (playBounds.contains(pos)) {
         // Convert SoundPost to FeedPost for playback
-        FeedPost feedPost;
+        Sidechain::FeedPost feedPost;
         feedPost.id = posts[i].id;
         feedPost.audioUrl = posts[i].audioUrl;
         feedPost.durationSeconds = static_cast<float>(posts[i].duration);
@@ -225,7 +224,7 @@ void SoundPage::setNetworkClient(NetworkClient *client) {
 
 void SoundPage::loadSound(const juce::String &id) {
   soundId = id;
-  sound = Sound();
+  sound = Sidechain::Sound();
   posts.clear();
   errorMessage.clear();
   scrollOffset = 0;
@@ -248,7 +247,7 @@ void SoundPage::loadSoundForPost(const juce::String &postId) {
     juce::MessageManager::callAsync([this, result]() {
       if (result.isOk()) {
         auto response = result.getValue();
-        sound = Sound::fromJson(response);
+        sound = Sidechain::Sound();  // TODO: Convert juce::var to Sound using nlohmann::json
         soundId = sound.id;
 
         // Now fetch the posts using this sound
@@ -300,7 +299,7 @@ void SoundPage::fetchSound() {
     juce::MessageManager::callAsync([this, result]() {
       if (result.isOk()) {
         auto response = result.getValue();
-        sound = Sound::fromJson(response);
+        sound = Sidechain::Sound();  // TODO: Convert juce::var to Sound using nlohmann::json
         loadCreatorAvatar();
 
         // Now fetch the posts
@@ -329,7 +328,7 @@ void SoundPage::fetchSoundPosts() {
         posts.clear();
         if (postsArray.isArray()) {
           for (int i = 0; i < postsArray.size(); ++i) {
-            posts.add(SoundPost::fromJson(postsArray[i]));
+            posts.add(Sidechain::SoundPost());  // TODO: Convert juce::var to SoundPost
           }
         }
 
@@ -449,7 +448,7 @@ void SoundPage::drawSoundInfo(juce::Graphics &g, juce::Rectangle<int> &bounds) {
   }
 }
 
-void SoundPage::drawPostCard(juce::Graphics &g, juce::Rectangle<int> bounds, const SoundPost &post, int index) {
+void SoundPage::drawPostCard(juce::Graphics &g, juce::Rectangle<int> bounds, const Sidechain::SoundPost &post, int index) {
   // Use index parameter to identify which post in the list is being drawn
   Log::debug("SoundPage: Drawing post card at index " + juce::String(index) + " with ID: " + post.id);
   bool isPlaying = (post.id == currentlyPlayingPostId);

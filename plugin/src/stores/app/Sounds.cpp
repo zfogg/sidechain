@@ -1,5 +1,6 @@
 #include "../AppStore.h"
 #include "../../util/logging/Logger.h"
+#include <nlohmann/json.hpp>
 
 namespace Sidechain {
 namespace Stores {
@@ -15,11 +16,20 @@ void AppStore::loadFeaturedSounds() {
   networkClient->getTrendingSounds(20, [this](Outcome<juce::var> result) {
     if (result.isOk()) {
       const auto data = result.getValue();
-      juce::Array<juce::var> soundsList;
+      std::vector<std::shared_ptr<Sidechain::Sound>> soundsList;
 
       if (data.isArray()) {
         for (int i = 0; i < data.size(); ++i) {
-          soundsList.push_back(data[i]);
+          try {
+            auto jsonStr = juce::JSON::toString(data[i]);
+            auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+            auto soundResult = Sidechain::Sound::createFromJson(jsonObj);
+            if (soundResult.isOk()) {
+              soundsList.push_back(soundResult.getValue());
+            }
+          } catch (...) {
+            // Skip invalid items
+          }
         }
       }
 
@@ -51,11 +61,20 @@ void AppStore::loadRecentSounds() {
   networkClient->searchSounds("", 20, [this](Outcome<juce::var> result) {
     if (result.isOk()) {
       const auto data = result.getValue();
-      juce::Array<juce::var> soundsList;
+      std::vector<std::shared_ptr<Sidechain::Sound>> soundsList;
 
       if (data.isArray()) {
         for (int i = 0; i < data.size(); ++i) {
-          soundsList.push_back(data[i]);
+          try {
+            auto jsonStr = juce::JSON::toString(data[i]);
+            auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+            auto soundResult = Sidechain::Sound::createFromJson(jsonObj);
+            if (soundResult.isOk()) {
+              soundsList.push_back(soundResult.getValue());
+            }
+          } catch (...) {
+            // Skip invalid items
+          }
         }
       }
 
@@ -89,11 +108,20 @@ void AppStore::loadMoreSounds() {
   networkClient->searchSounds("", 20, [this](Outcome<juce::var> result) {
     if (result.isOk()) {
       const auto data = result.getValue();
-      juce::Array<juce::var> newSounds;
+      std::vector<std::shared_ptr<Sidechain::Sound>> newSounds;
 
       if (data.isArray()) {
         for (int i = 0; i < data.size(); ++i) {
-          newSounds.push_back(data[i]);
+          try {
+            auto jsonStr = juce::JSON::toString(data[i]);
+            auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+            auto soundResult = Sidechain::Sound::createFromJson(jsonObj);
+            if (soundResult.isOk()) {
+              newSounds.push_back(soundResult.getValue());
+            }
+          } catch (...) {
+            // Skip invalid items
+          }
         }
       }
 

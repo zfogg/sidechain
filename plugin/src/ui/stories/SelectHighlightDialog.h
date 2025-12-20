@@ -55,7 +55,7 @@ private:
   juce::String storyId;
 
   // Data
-  juce::Array<StoryHighlight> highlights;
+  juce::Array<Sidechain::StoryHighlight> highlights;
   bool isLoading = false;
   bool isAddingToHighlight = false;
   juce::String errorMessage;
@@ -82,7 +82,7 @@ private:
   // Drawing
   void drawHeader(juce::Graphics &g);
   void drawHighlightsList(juce::Graphics &g);
-  void drawHighlightItem(juce::Graphics &g, const StoryHighlight &highlight, juce::Rectangle<int> bounds);
+  void drawHighlightItem(juce::Graphics &g, const Sidechain::StoryHighlight &highlight, juce::Rectangle<int> bounds);
   void drawCreateNewItem(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawLoadingState(juce::Graphics &g);
   void drawEmptyState(juce::Graphics &g);
@@ -97,7 +97,7 @@ private:
 
   // Actions
   void addStoryToHighlight(const juce::String &highlightId);
-  void loadCoverImage(const StoryHighlight &highlight);
+  void loadCoverImage(const Sidechain::StoryHighlight &highlight);
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SelectHighlightDialog)
 };

@@ -16,11 +16,12 @@ void AppStore::loadChallenges() {
   networkClient->getMIDIChallenges("", [challengeSlice](Outcome<juce::var> result) {
     if (result.isOk()) {
       const auto data = result.getValue();
-      juce::Array<juce::var> challengesList;
+      std::vector<std::shared_ptr<Sidechain::MIDIChallenge>> challengesList;
 
       if (data.isArray()) {
         for (int i = 0; i < data.size(); ++i) {
-          challengesList.push_back(data[i]);
+          auto challenge = Sidechain::MIDIChallenge::fromJSON(data[i]);
+          challengesList.push_back(std::make_shared<Sidechain::MIDIChallenge>(challenge));
         }
       }
 
@@ -55,7 +56,7 @@ void AppStore::submitChallenge(const juce::String &challengeId, const juce::File
 
   // Read MIDI file content
   auto midiContent = midiFile.loadFileAsString();
-  if (midiContent.empty()) {
+  if (midiContent.isEmpty()) {
     Util::logError("AppStore", "Failed to read MIDI file content: " + midiFile.getFullPathName());
     return;
   }
