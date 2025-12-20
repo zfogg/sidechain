@@ -75,9 +75,9 @@ PlaylistEntry PlaylistEntry::fromJSON(const juce::var &json) {
     entry.postKey = ::Json::getString(post, "key");
 
     // Parse genres
-    auto genres = Json::getArray(post, "genre");
-    if (Json::isArray(genres)) {
-      for (int i = 0; i < Json::arraySize(genres); ++i)
+    auto genres = ::Json::getArray(post, "genre");
+    if (::Json::isArray(genres)) {
+      for (int i = 0; i < ::Json::arraySize(genres); ++i)
         entry.postGenres.add(::Json::getStringAt(genres, i));
     }
 
@@ -119,6 +119,137 @@ PlaylistCollaborator PlaylistCollaborator::fromJSON(const juce::var &json) {
   }
 
   return collab;
+}
+
+// ==============================================================================
+// nlohmann::json serialization for SerializableModel<Playlist>
+
+inline void to_json(nlohmann::json &j, const Playlist &playlist) {
+  j = nlohmann::json{
+      {"id", Json::fromJuceString(playlist.id)},
+      {"name", Json::fromJuceString(playlist.name)},
+      {"description", Json::fromJuceString(playlist.description)},
+      {"owner_id", Json::fromJuceString(playlist.ownerId)},
+      {"owner_username", Json::fromJuceString(playlist.ownerUsername)},
+      {"owner_avatar_url", Json::fromJuceString(playlist.ownerAvatarUrl)},
+      {"is_collaborative", playlist.isCollaborative},
+      {"is_public", playlist.isPublic},
+      {"entry_count", playlist.entryCount},
+      {"user_role", Json::fromJuceString(playlist.userRole)},
+      {"created_at", playlist.createdAt.toISO8601(true).toStdString()},
+  };
+}
+
+inline void from_json(const nlohmann::json &j, Playlist &playlist) {
+  JSON_OPTIONAL_STRING(j, "id", playlist.id, "");
+  JSON_OPTIONAL_STRING(j, "name", playlist.name, "");
+  JSON_OPTIONAL_STRING(j, "description", playlist.description, "");
+  JSON_OPTIONAL_STRING(j, "owner_id", playlist.ownerId, "");
+  JSON_OPTIONAL_STRING(j, "owner_username", playlist.ownerUsername, "");
+  JSON_OPTIONAL_STRING(j, "owner_avatar_url", playlist.ownerAvatarUrl, "");
+  JSON_OPTIONAL(j, "is_collaborative", playlist.isCollaborative, false);
+  JSON_OPTIONAL(j, "is_public", playlist.isPublic, true);
+  JSON_OPTIONAL(j, "entry_count", playlist.entryCount, 0);
+  JSON_OPTIONAL_STRING(j, "user_role", playlist.userRole, "");
+
+  // Parse timestamp
+  if (j.contains("created_at") && !j["created_at"].is_null()) {
+    try {
+      playlist.createdAt = juce::Time::fromISO8601(Json::toJuceString(j["created_at"].get<std::string>()));
+    } catch (...) {
+      // Invalid timestamp format
+    }
+  }
+}
+
+// ==============================================================================
+// nlohmann::json serialization for PlaylistEntry
+
+inline void to_json(nlohmann::json &j, const PlaylistEntry &entry) {
+  j = nlohmann::json{
+      {"id", Json::fromJuceString(entry.id)},
+      {"playlist_id", Json::fromJuceString(entry.playlistId)},
+      {"post_id", Json::fromJuceString(entry.postId)},
+      {"added_by_user_id", Json::fromJuceString(entry.addedByUserId)},
+      {"added_by_username", Json::fromJuceString(entry.addedByUsername)},
+      {"position", entry.position},
+      {"post_audio_url", Json::fromJuceString(entry.postAudioUrl)},
+      {"post_username", Json::fromJuceString(entry.postUsername)},
+      {"post_bpm", entry.postBpm},
+      {"post_key", Json::fromJuceString(entry.postKey)},
+      {"added_at", entry.addedAt.toISO8601(true).toStdString()},
+  };
+
+  // Add genres array
+  std::vector<std::string> genresVec;
+  for (const auto &genre : entry.postGenres) {
+    genresVec.push_back(Json::fromJuceString(genre));
+  }
+  j["post_genres"] = genresVec;
+}
+
+inline void from_json(const nlohmann::json &j, PlaylistEntry &entry) {
+  JSON_OPTIONAL_STRING(j, "id", entry.id, "");
+  JSON_OPTIONAL_STRING(j, "playlist_id", entry.playlistId, "");
+  JSON_OPTIONAL_STRING(j, "post_id", entry.postId, "");
+  JSON_OPTIONAL_STRING(j, "added_by_user_id", entry.addedByUserId, "");
+  JSON_OPTIONAL_STRING(j, "added_by_username", entry.addedByUsername, "");
+  JSON_OPTIONAL(j, "position", entry.position, 0);
+  JSON_OPTIONAL_STRING(j, "post_audio_url", entry.postAudioUrl, "");
+  JSON_OPTIONAL_STRING(j, "post_username", entry.postUsername, "");
+  JSON_OPTIONAL(j, "post_bpm", entry.postBpm, 0);
+  JSON_OPTIONAL_STRING(j, "post_key", entry.postKey, "");
+
+  // Parse genres array
+  if (j.contains("post_genres") && j["post_genres"].is_array()) {
+    for (const auto &genreJson : j["post_genres"]) {
+      if (genreJson.is_string()) {
+        entry.postGenres.add(Json::toJuceString(genreJson.get<std::string>()));
+      }
+    }
+  }
+
+  // Parse timestamp
+  if (j.contains("added_at") && !j["added_at"].is_null()) {
+    try {
+      entry.addedAt = juce::Time::fromISO8601(Json::toJuceString(j["added_at"].get<std::string>()));
+    } catch (...) {
+      // Invalid timestamp format
+    }
+  }
+}
+
+// ==============================================================================
+// nlohmann::json serialization for PlaylistCollaborator
+
+inline void to_json(nlohmann::json &j, const PlaylistCollaborator &collab) {
+  j = nlohmann::json{
+      {"id", Json::fromJuceString(collab.id)},
+      {"playlist_id", Json::fromJuceString(collab.playlistId)},
+      {"user_id", Json::fromJuceString(collab.userId)},
+      {"username", Json::fromJuceString(collab.username)},
+      {"user_avatar_url", Json::fromJuceString(collab.userAvatarUrl)},
+      {"role", Json::fromJuceString(collab.role)},
+      {"added_at", collab.addedAt.toISO8601(true).toStdString()},
+  };
+}
+
+inline void from_json(const nlohmann::json &j, PlaylistCollaborator &collab) {
+  JSON_OPTIONAL_STRING(j, "id", collab.id, "");
+  JSON_OPTIONAL_STRING(j, "playlist_id", collab.playlistId, "");
+  JSON_OPTIONAL_STRING(j, "user_id", collab.userId, "");
+  JSON_OPTIONAL_STRING(j, "username", collab.username, "");
+  JSON_OPTIONAL_STRING(j, "user_avatar_url", collab.userAvatarUrl, "");
+  JSON_OPTIONAL_STRING(j, "role", collab.role, "");
+
+  // Parse timestamp
+  if (j.contains("added_at") && !j["added_at"].is_null()) {
+    try {
+      collab.addedAt = juce::Time::fromISO8601(Json::toJuceString(j["added_at"].get<std::string>()));
+    } catch (...) {
+      // Invalid timestamp format
+    }
+  }
 }
 
 } // namespace Sidechain

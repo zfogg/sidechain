@@ -14,7 +14,7 @@ namespace Sidechain {
  * Represents a direct message conversation or group chat.
  * Contains metadata about the conversation and its participants.
  */
-struct Conversation {
+struct Conversation : public SerializableModel<Conversation> {
   // ==============================================================================
   // Core identity
   juce::String id;

@@ -1,6 +1,9 @@
 #pragma once
 
+#include "../util/SerializableModel.h"
+#include "../util/json/JsonValidation.h"
 #include <JuceHeader.h>
+#include <nlohmann/json.hpp>
 
 namespace Sidechain {
 
@@ -11,7 +14,7 @@ namespace Sidechain {
  * Stories are 5-60 second audio clips captured from the DAW, optionally
  * including MIDI data for piano roll visualization. They expire after 24 hours.
  */
-struct Story {
+struct Story : public SerializableModel<Story> {
   juce::String id;
   juce::String userId;
   juce::String audioUrl;
@@ -60,15 +63,26 @@ struct Story {
     return midiPatternId.isNotEmpty();
   }
 
+  /** Validation
+   *  @return true if story has required fields (id and audioUrl)
+   */
+  bool isValid() const {
+    return id.isNotEmpty() && audioUrl.isNotEmpty();
+  }
+
   /** Parse from JSON response
+   *  @deprecated Use SerializableModel<Story>::createFromJson() with nlohmann::json instead
    *  @param json JSON var containing story data
    *  @return Story instance parsed from JSON
    */
+  [[deprecated("Use SerializableModel<Story>::createFromJson() with nlohmann::json instead")]]
   static Story fromJSON(const juce::var &json);
 
   /** Convert to JSON for upload
+   *  @deprecated Use SerializableModel<Story>::toJson() with nlohmann::json instead
    *  @return JSON var representation of this story
    */
+  [[deprecated("Use SerializableModel<Story>::toJson() with nlohmann::json instead")]]
   juce::var toJSON() const;
 };
 

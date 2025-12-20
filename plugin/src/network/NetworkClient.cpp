@@ -1248,4 +1248,59 @@ void NetworkClient::updateUserProfile(const juce::String &username, const juce::
 }
 
 // ==============================================================================
+// Model parsing helpers (Phase 3 refactoring)
+
+Outcome<std::vector<std::shared_ptr<Sidechain::FeedPost>>>
+NetworkClient::parseFeedPostsResponse(const juce::var &response) {
+  // Response should be an array of FeedPost objects
+  if (!response.isArray()) {
+    return Outcome<std::vector<std::shared_ptr<Sidechain::FeedPost>>>::error(
+        "Expected array response, got " + response.getProperty("type", juce::var()).toString());
+  }
+
+  // Convert juce::var array to nlohmann::json array
+  juce::String jsonString = juce::JSON::toString(response, false);
+  try {
+    auto jsonArray = nlohmann::json::parse(jsonString.toStdString());
+    return Sidechain::FeedPost::createFromJsonArray(jsonArray);
+  } catch (const std::exception &e) {
+    return Outcome<std::vector<std::shared_ptr<Sidechain::FeedPost>>>::error("Failed to parse feed posts: " +
+                                                                             juce::String(e.what()));
+  }
+}
+
+Outcome<std::shared_ptr<Sidechain::User>> NetworkClient::parseUserResponse(const juce::var &response) {
+  // Response should be a User object
+  if (!response.isObject()) {
+    return Outcome<std::shared_ptr<Sidechain::User>>::error("Expected object response for user");
+  }
+
+  // Convert juce::var to nlohmann::json
+  juce::String jsonString = juce::JSON::toString(response, false);
+  try {
+    auto jsonObject = nlohmann::json::parse(jsonString.toStdString());
+    return Sidechain::User::createFromJson(jsonObject);
+  } catch (const std::exception &e) {
+    return Outcome<std::shared_ptr<Sidechain::User>>::error("Failed to parse user: " + juce::String(e.what()));
+  }
+}
+
+Outcome<std::vector<std::shared_ptr<Sidechain::User>>> NetworkClient::parseUsersResponse(const juce::var &response) {
+  // Response should be an array of User objects
+  if (!response.isArray()) {
+    return Outcome<std::vector<std::shared_ptr<Sidechain::User>>>::error("Expected array response for users");
+  }
+
+  // Convert juce::var array to nlohmann::json array
+  juce::String jsonString = juce::JSON::toString(response, false);
+  try {
+    auto jsonArray = nlohmann::json::parse(jsonString.toStdString());
+    return Sidechain::User::createFromJsonArray(jsonArray);
+  } catch (const std::exception &e) {
+    return Outcome<std::vector<std::shared_ptr<Sidechain::User>>>::error("Failed to parse users: " +
+                                                                         juce::String(e.what()));
+  }
+}
+
+// ==============================================================================
 // Toggle convenience methods (for FeedStore optimistic updates)

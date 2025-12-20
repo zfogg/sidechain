@@ -34,12 +34,12 @@ FeedPost FeedPost::fromJson(const juce::var &json) {
   }
 
   // User info (may be nested in actor_data or user object)
-  if (Json::hasKey(json, "actor_data")) {
-    auto actorData = Json::getObject(json, "actor_data");
+  if (::Json::hasKey(json, "actor_data")) {
+    auto actorData = ::Json::getObject(json, "actor_data");
     post.username = ::Json::getString(actorData, "username");
     post.userAvatarUrl = ::Json::getString(actorData, "avatar_url");
-  } else if (Json::hasKey(json, "user")) {
-    auto userData = Json::getObject(json, "user");
+  } else if (::Json::hasKey(json, "user")) {
+    auto userData = ::Json::getObject(json, "user");
     post.username = ::Json::getString(userData, "username");
     post.userAvatarUrl = ::Json::getString(userData, "avatar_url");
   }
@@ -56,7 +56,7 @@ FeedPost FeedPost::fromJson(const juce::var &json) {
     Log::debug("FeedPost: No waveform_url in JSON for post " + post.id);
 
   post.filename = ::Json::getString(json, "filename");
-  post.durationSeconds = Json::getFloat(json, "duration_seconds");
+  post.durationSeconds = ::Json::getFloat(json, "duration_seconds");
   post.durationBars = ::Json::getInt(json, "duration_bars");
   post.bpm = ::Json::getInt(json, "bpm");
   post.key = ::Json::getString(json, "key");
@@ -96,36 +96,36 @@ FeedPost FeedPost::fromJson(const juce::var &json) {
   post.soundUsageCount = ::Json::getInt(json, "sound_usage_count");
   // Also check extra data for remix info (from getstream.io activity extra
   // field)
-  if (!post.isRemix && Json::hasKey(json, "extra")) {
-    auto extra = Json::getObject(json, "extra");
-    if (Json::hasKey(extra, "remix_of_post_id")) {
+  if (!post.isRemix && ::Json::hasKey(json, "extra")) {
+    auto extra = ::Json::getObject(json, "extra");
+    if (::Json::hasKey(extra, "remix_of_post_id")) {
       post.remixOfPostId = ::Json::getString(extra, "remix_of_post_id");
       post.isRemix = true;
     }
-    if (Json::hasKey(extra, "remix_of_story_id")) {
+    if (::Json::hasKey(extra, "remix_of_story_id")) {
       post.remixOfStoryId = ::Json::getString(extra, "remix_of_story_id");
       post.isRemix = true;
     }
-    if (Json::hasKey(extra, "remix_type"))
+    if (::Json::hasKey(extra, "remix_type"))
       post.remixType = ::Json::getString(extra, "remix_type");
-    if (Json::hasKey(extra, "remix_chain_depth"))
+    if (::Json::hasKey(extra, "remix_chain_depth"))
       post.remixChainDepth = ::Json::getInt(extra, "remix_chain_depth");
   }
 
   // Parse genres array
-  auto genreVar = Json::getArray(json, "genre");
-  if (Json::isArray(genreVar)) {
-    for (int i = 0; i < Json::arraySize(genreVar); ++i)
+  auto genreVar = ::Json::getArray(json, "genre");
+  if (::Json::isArray(genreVar)) {
+    for (int i = 0; i < ::Json::arraySize(genreVar); ++i)
       post.genres.add(::Json::getStringAt(genreVar, i));
-  } else if (Json::hasKey(json, "genre")) {
+  } else if (::Json::hasKey(json, "genre")) {
     // Single genre as string
     post.genres.add(::Json::getString(json, "genre"));
   }
 
   // Social metrics - first try enriched data from getstream.io
   // Enriched endpoints return reaction_counts: {"like": 5, "🔥": 3, "❤️": 2}
-  auto reactionCounts = Json::getObject(json, "reaction_counts");
-  if (Json::isObject(reactionCounts)) {
+  auto reactionCounts = ::Json::getObject(json, "reaction_counts");
+  if (::Json::isObject(reactionCounts)) {
     auto *dynObj = reactionCounts.getDynamicObject();
     if (dynObj != nullptr) {
       for (const auto &prop : dynObj->getProperties()) {
@@ -145,8 +145,8 @@ FeedPost FeedPost::fromJson(const juce::var &json) {
 
   // Check own_reactions to determine if current user has liked/reacted
   // Format: {"like": ["reaction_id1"], "🔥": ["reaction_id2"]}
-  auto ownReactions = Json::getObject(json, "own_reactions");
-  if (Json::isObject(ownReactions)) {
+  auto ownReactions = ::Json::getObject(json, "own_reactions");
+  if (::Json::isObject(ownReactions)) {
     auto *dynObj = ownReactions.getDynamicObject();
     if (dynObj != nullptr) {
       for (const auto &prop : dynObj->getProperties()) {
@@ -186,8 +186,8 @@ FeedPost FeedPost::fromJson(const juce::var &json) {
 
   // Repost metadata (if this is a repost of another post)
   // Check extra data from getstream.io activity
-  if (Json::hasKey(json, "extra")) {
-    auto extra = Json::getObject(json, "extra");
+  if (::Json::hasKey(json, "extra")) {
+    auto extra = ::Json::getObject(json, "extra");
     if (::Json::getBool(extra, "is_repost")) {
       post.isARepost = true;
       post.originalPostId = ::Json::getString(extra, "original_post_id");
@@ -201,7 +201,7 @@ FeedPost FeedPost::fromJson(const juce::var &json) {
   // Also check top-level fields for repost info (alternative format)
   if (!post.isARepost) {
     post.isARepost = ::Json::getBool(json, "is_a_repost");
-    if (post.isARepost || Json::hasKey(json, "original_post_id")) {
+    if (post.isARepost || ::Json::hasKey(json, "original_post_id")) {
       post.isARepost = true;
       post.originalPostId = ::Json::getString(json, "original_post_id");
       post.originalUserId = ::Json::getString(json, "original_user_id");
@@ -215,7 +215,7 @@ FeedPost FeedPost::fromJson(const juce::var &json) {
   // Recommendation reason (for unified timeline feed)
   post.recommendationReason = ::Json::getString(json, "recommendation_reason");
   post.source = ::Json::getString(json, "source");
-  post.score = Json::getFloat(json, "score");
+  post.score = ::Json::getFloat(json, "score");
   post.isRecommended = ::Json::getBool(json, "is_recommended");
 
   // Processing status
@@ -439,7 +439,7 @@ juce::String FeedPost::formatTimeAgo(const juce::Time &time) {
  */
 Outcome<FeedPost> FeedPost::tryFromJson(const juce::var &json) {
   // Validate input
-  if (!Json::isObject(json))
+  if (!::Json::isObject(json))
     return Outcome<FeedPost>::error("Invalid JSON: expected object");
 
   // Parse using existing method
@@ -613,7 +613,7 @@ inline void from_json(const nlohmann::json &j, FeedPost &post) {
   // MIDI metadata
   JSON_OPTIONAL(j, "has_midi", post.hasMidi, false);
   JSON_OPTIONAL_STRING(j, "midi_pattern_id", post.midiId, "");
-  JSON_OPTIONAL_STRING(j, "midi_id", post.midiId, post.midiId);
+  JSON_OPTIONAL_STRING(j, "midi_id", post.midiId, "");
   JSON_OPTIONAL_STRING(j, "midi_filename", post.midiFilename, "");
   if (post.midiId.isNotEmpty())
     post.hasMidi = true;

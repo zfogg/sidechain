@@ -224,4 +224,86 @@ juce::var StoryHighlight::toJSON() const {
   return json;
 }
 
+// ==============================================================================
+// nlohmann::json serialization for SerializableModel<Story>
+
+inline void to_json(nlohmann::json &j, const Story &story) {
+  j = nlohmann::json{
+      {"id", Json::fromJuceString(story.id)},
+      {"user_id", Json::fromJuceString(story.userId)},
+      {"audio_url", Json::fromJuceString(story.audioUrl)},
+      {"audio_duration", story.audioDuration},
+      {"filename", Json::fromJuceString(story.filename)},
+      {"midi_filename", Json::fromJuceString(story.midiFilename)},
+      {"midi_pattern_id", Json::fromJuceString(story.midiPatternId)},
+      {"waveform_data", Json::fromJuceString(story.waveformData)},
+      {"waveform_url", Json::fromJuceString(story.waveformUrl)},
+      {"bpm", story.bpm},
+      {"key", Json::fromJuceString(story.key)},
+      {"view_count", story.viewCount},
+      {"viewed", story.viewed},
+      {"created_at", story.createdAt.toISO8601(true).toStdString()},
+      {"expires_at", story.expiresAt.toISO8601(true).toStdString()},
+      {"username", Json::fromJuceString(story.username)},
+      {"user_display_name", Json::fromJuceString(story.userDisplayName)},
+      {"user_avatar_url", Json::fromJuceString(story.userAvatarUrl)},
+  };
+
+  // Add genres array
+  std::vector<std::string> genresVec;
+  for (const auto &genre : story.genres) {
+    genresVec.push_back(Json::fromJuceString(genre));
+  }
+  j["genres"] = genresVec;
+}
+
+inline void from_json(const nlohmann::json &j, Story &story) {
+  JSON_OPTIONAL_STRING(j, "id", story.id, "");
+  JSON_OPTIONAL_STRING(j, "user_id", story.userId, "");
+  JSON_OPTIONAL_STRING(j, "audio_url", story.audioUrl, "");
+  JSON_OPTIONAL(j, "audio_duration", story.audioDuration, 0.0f);
+  JSON_OPTIONAL_STRING(j, "filename", story.filename, "");
+  JSON_OPTIONAL_STRING(j, "midi_filename", story.midiFilename, "");
+  JSON_OPTIONAL_STRING(j, "midi_pattern_id", story.midiPatternId, "");
+  JSON_OPTIONAL_STRING(j, "waveform_data", story.waveformData, "");
+  JSON_OPTIONAL_STRING(j, "waveform_url", story.waveformUrl, "");
+  JSON_OPTIONAL(j, "bpm", story.bpm, 0);
+  JSON_OPTIONAL_STRING(j, "key", story.key, "");
+  JSON_OPTIONAL(j, "view_count", story.viewCount, 0);
+  JSON_OPTIONAL(j, "viewed", story.viewed, false);
+
+  // Parse genres array
+  if (j.contains("genres") && j["genres"].is_array()) {
+    for (const auto &genreJson : j["genres"]) {
+      if (genreJson.is_string()) {
+        story.genres.add(Json::toJuceString(genreJson.get<std::string>()));
+      }
+    }
+  }
+
+  // Parse user info
+  JSON_OPTIONAL_STRING(j, "username", story.username, "");
+  JSON_OPTIONAL_STRING(j, "user_display_name", story.userDisplayName, "");
+  JSON_OPTIONAL_STRING(j, "user_avatar_url", story.userAvatarUrl, "");
+
+  // Parse timestamps
+  if (j.contains("created_at") && !j["created_at"].is_null()) {
+    try {
+      story.createdAt = juce::Time::fromISO8601(Json::toJuceString(j["created_at"].get<std::string>()));
+    } catch (...) {
+      story.createdAt = juce::Time::getCurrentTime();
+    }
+  }
+
+  if (j.contains("expires_at") && !j["expires_at"].is_null()) {
+    try {
+      story.expiresAt = juce::Time::fromISO8601(Json::toJuceString(j["expires_at"].get<std::string>()));
+    } catch (...) {
+      story.expiresAt = story.createdAt + juce::RelativeTime::hours(24);
+    }
+  } else {
+    story.expiresAt = story.createdAt + juce::RelativeTime::hours(24);
+  }
+}
+
 } // namespace Sidechain

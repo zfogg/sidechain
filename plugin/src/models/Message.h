@@ -62,7 +62,7 @@ inline void from_json(const nlohmann::json &j, MessageAttachment &att) {
  *
  * Represents a message in a conversation with text, attachments, and metadata.
  */
-struct Message {
+struct Message : public SerializableModel<Message> {
   // ==============================================================================
   // Core identity
   juce::String id;

@@ -90,7 +90,7 @@ struct FeedState {
 };
 
 struct SavedPostsState {
-  juce::Array<FeedPost> posts;
+  std::vector<std::shared_ptr<Sidechain::FeedPost>> posts;
   bool isLoading = false;
   juce::String error;
   int totalCount = 0;

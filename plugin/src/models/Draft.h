@@ -14,7 +14,7 @@ namespace Sidechain {
  * Represents a draft post or message that user is composing but hasn't sent yet.
  * Drafts are automatically saved locally and can be resumed later.
  */
-struct Draft {
+struct Draft : public SerializableModel<Draft> {
   // ==============================================================================
   // Core identity
   juce::String id;   // Local UUID for the draft

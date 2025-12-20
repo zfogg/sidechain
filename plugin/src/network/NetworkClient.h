@@ -3,6 +3,8 @@
 #include "../security/RateLimiter.h"
 #include "../util/Constants.h"
 #include "../util/Result.h"
+#include "../models/FeedPost.h"
+#include "../models/User.h"
 #include <JuceHeader.h>
 #include <atomic>
 #include <functional>
@@ -80,6 +82,13 @@ public:
   using ProfilePictureCallback = std::function<void(Outcome<juce::String> pictureUrl)>;
   using ConnectionStatusCallback = std::function<void(ConnectionStatus status)>;
   using ResponseCallback = std::function<void(Outcome<juce::var> response)>;
+
+  // =========================================================================
+  // Model-based callback types (new - Phase 3 refactoring)
+  // These callbacks return shared_ptr models instead of juce::var
+  using FeedPostsCallback = std::function<void(Outcome<std::vector<std::shared_ptr<Sidechain::FeedPost>>>)>;
+  using UserCallback = std::function<void(Outcome<std::shared_ptr<Sidechain::User>>)>;
+  using UsersCallback = std::function<void(Outcome<std::vector<std::shared_ptr<Sidechain::User>>>)>;
 
   // ==========================================================================
   // Two-Factor Authentication types
@@ -370,6 +379,38 @@ public:
    * @param callback Called with feed data or error
    */
   void getDiscoveryFeed(int limit = 20, int offset = 0, FeedCallback callback = nullptr);
+
+  // =========================================================================
+  // Model-based feed operations (Phase 3 refactoring)
+  // These methods return shared_ptr<FeedPost> models instead of juce::var
+
+  /** Get the global feed as shared_ptr models (all posts)
+   * @param limit Maximum number of posts to return
+   * @param offset Pagination offset
+   * @param callback Called with vector of shared_ptr<FeedPost> or error
+   */
+  void getGlobalFeedModels(int limit = 20, int offset = 0, FeedPostsCallback callback = nullptr);
+
+  /** Get the timeline feed as shared_ptr models (posts from followed users)
+   * @param limit Maximum number of posts to return
+   * @param offset Pagination offset
+   * @param callback Called with vector of shared_ptr<FeedPost> or error
+   */
+  void getTimelineFeedModels(int limit = 20, int offset = 0, FeedPostsCallback callback = nullptr);
+
+  /** Get the trending feed as shared_ptr models (popular posts)
+   * @param limit Maximum number of posts to return
+   * @param offset Pagination offset
+   * @param callback Called with vector of shared_ptr<FeedPost> or error
+   */
+  void getTrendingFeedModels(int limit = 20, int offset = 0, FeedPostsCallback callback = nullptr);
+
+  /** Get "For You" personalized recommendations feed as shared_ptr models
+   * @param limit Maximum number of posts to return
+   * @param offset Pagination offset
+   * @param callback Called with vector of shared_ptr<FeedPost> or error
+   */
+  void getForYouFeedModels(int limit = 20, int offset = 0, FeedPostsCallback callback = nullptr);
 
   /** Track a recommendation click for CTR analysis
    * @param postId The post ID that was clicked
@@ -1344,6 +1385,36 @@ public:
    * "Unknown"
    */
   static juce::String detectDAWName();
+
+  // ==========================================================================
+  // Model parsing helpers (Phase 3 refactoring - for new model-based callbacks)
+
+  /**
+   * Parse a juce::var response into a vector of FeedPost shared_ptrs
+   * Handles JSON array responses from feed endpoints.
+   *
+   * @param response The juce::var response from API
+   * @return Outcome with vector of shared_ptr<FeedPost> or error message
+   */
+  static Outcome<std::vector<std::shared_ptr<Sidechain::FeedPost>>> parseFeedPostsResponse(const juce::var &response);
+
+  /**
+   * Parse a juce::var response into a single User shared_ptr
+   * Handles JSON object responses from user endpoints.
+   *
+   * @param response The juce::var response from API
+   * @return Outcome with shared_ptr<User> or error message
+   */
+  static Outcome<std::shared_ptr<Sidechain::User>> parseUserResponse(const juce::var &response);
+
+  /**
+   * Parse a juce::var response into a vector of User shared_ptrs
+   * Handles JSON array responses from user list endpoints.
+   *
+   * @param response The juce::var response from API
+   * @return Outcome with vector of shared_ptr<User> or error message
+   */
+  static Outcome<std::vector<std::shared_ptr<Sidechain::User>>> parseUsersResponse(const juce::var &response);
 
 private:
   Config config;

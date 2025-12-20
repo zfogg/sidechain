@@ -14,7 +14,7 @@ namespace Sidechain {
  * Represents a notification about user activity (likes, follows, comments, etc.)
  * Can be aggregated (e.g., "Alice and 3 others liked your post")
  */
-struct Notification {
+struct Notification : public SerializableModel<Notification> {
   // ==============================================================================
   // Core identity
   juce::String id;

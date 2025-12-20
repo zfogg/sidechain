@@ -1,6 +1,7 @@
 #include "MidiChallenge.h"
 #include "../util/Json.h"
 
+namespace Sidechain {
 // ==============================================================================
 MIDIChallengeConstraints MIDIChallengeConstraints::fromJSON(const juce::var &json) {
   MIDIChallengeConstraints constraints;
@@ -16,9 +17,9 @@ MIDIChallengeConstraints MIDIChallengeConstraints::fromJSON(const juce::var &jso
   if (json.hasProperty("note_count_max"))
     constraints.noteCountMax = ::Json::getInt(json, "note_count_max");
   if (json.hasProperty("duration_min"))
-    constraints.durationMin = Json::getDouble(json, "duration_min");
+    constraints.durationMin = ::Json::getDouble(json, "duration_min");
   if (json.hasProperty("duration_max"))
-    constraints.durationMax = Json::getDouble(json, "duration_max");
+    constraints.durationMax = ::Json::getDouble(json, "duration_max");
 
   return constraints;
 }
@@ -96,3 +97,5 @@ MIDIChallengeEntry MIDIChallengeEntry::fromJSON(const juce::var &json) {
 
   return entry;
 }
+
+} // namespace Sidechain
