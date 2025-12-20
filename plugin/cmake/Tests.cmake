@@ -39,6 +39,12 @@ if(SIDECHAIN_BUILD_TESTS)
         ${CMAKE_CURRENT_SOURCE_DIR}/src/audio/KeyDetector.h
     )
 
+    # Disable LTO for test library to ensure symbols are preserved
+    # Static library symbols need to be available when linked with LTO
+    set_target_properties(SidechainTestLib PROPERTIES
+        INTERPROCEDURAL_OPTIMIZATION FALSE
+    )
+
     # SidechainTestLib needs access to Sidechain's generated JuceHeader.h
     # We need to build Sidechain first to generate the header
     add_dependencies(SidechainTestLib Sidechain)
@@ -110,6 +116,14 @@ if(SIDECHAIN_BUILD_TESTS)
 
     # Test executable
     add_executable(SidechainTests ${SIDECHAIN_TEST_SOURCES})
+
+    # Disable LTO for test executable when linking against non-LTO static library
+    # Mixing LTO and non-LTO can cause symbol resolution issues
+    set_target_properties(SidechainTests PROPERTIES
+        INTERPROCEDURAL_OPTIMIZATION FALSE
+    )
+    target_compile_options(SidechainTests PRIVATE -fno-lto)
+    target_link_options(SidechainTests PRIVATE -fno-lto)
 
     # SidechainNetwork depends on KeyDetector which is in SidechainTestLib
     # List SidechainTestLib last to resolve the circular dependency
