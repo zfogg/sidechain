@@ -8,7 +8,6 @@
 #include "../social/UserCard.h" // For DiscoveredUser struct and UserCard
 #include <JuceHeader.h>
 
-class NetworkClient;
 class StreamChatClient;
 
 // ==============================================================================
@@ -34,8 +33,7 @@ public:
   ~Search() override;
 
   // ==============================================================================
-  // Network client integration
-  void setNetworkClient(NetworkClient *client);
+  // Store integration
   void setCurrentUserId(const juce::String &userId) {
     currentUserId = userId;
   }
@@ -47,8 +45,8 @@ public:
   // ==============================================================================
   // Callbacks
   std::function<void()> onBackPressed;
-  std::function<void(const juce::String &userId)> onUserSelected; // Navigate to user profile
-  std::function<void(const Sidechain::FeedPost &post)> onPostSelected;       // Navigate to post details
+  std::function<void(const juce::String &userId)> onUserSelected;      // Navigate to user profile
+  std::function<void(const Sidechain::FeedPost &post)> onPostSelected; // Navigate to post details
 
   // ==============================================================================
   // Component overrides
@@ -106,7 +104,6 @@ private:
 
   // ==============================================================================
   // Data
-  NetworkClient *networkClient = nullptr;
   StreamChatClient *streamChatClient = nullptr;
   juce::String currentUserId;
 

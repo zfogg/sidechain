@@ -1,5 +1,4 @@
 #include "Search.h"
-#include "../../network/NetworkClient.h"
 #include "../../network/StreamChatClient.h"
 #include "../../util/Colors.h"
 #include "../../util/Constants.h"
@@ -149,11 +148,6 @@ void Search::subscribeToAppStore() {
 }
 
 // ==============================================================================
-void Search::setNetworkClient(NetworkClient *client) {
-  networkClient = client;
-  Log::debug("Search: NetworkClient set " + juce::String(client != nullptr ? "(valid)" : "(null)"));
-}
-
 void Search::setStreamChatClient(StreamChatClient *client) {
   streamChatClient = client;
   Log::info("Search::setStreamChatClient: StreamChatClient set " +
@@ -555,71 +549,10 @@ void Search::addToRecentSearches(const juce::String &query) {
 }
 
 void Search::loadTrendingSearches() {
-  // Load trending search terms from backend endpoint
-  if (networkClient == nullptr) {
-    // Fallback to placeholder if no network client
-    trendingSearches = {"electronic", "hip-hop", "techno", "house", "trap"};
-    return;
-  }
-
-  // Try to fetch trending search terms from backend
-  juce::String url = networkClient->getBaseUrl() + "/api/v1/search/trending";
-  networkClient->getAbsolute(url, [this](Outcome<juce::var> result) {
-    if (result.isOk()) {
-      auto data = result.getValue();
-      trendingSearches.clear();
-
-      // Check if response has a "terms" or "searches" array
-      if (data.isObject()) {
-        auto terms = data.getProperty("terms", juce::var());
-        if (terms.isArray()) {
-          auto *arr = terms.getArray();
-          if (arr != nullptr) {
-            for (int i = 0; i < static_cast<int>(arr->size()) && i < 10; ++i) {
-              juce::String term = (*arr)[i].toString().trim();
-              if (term.isNotEmpty())
-                trendingSearches.add(term);
-            }
-          }
-        } else {
-          // Try "searches" property
-          terms = data.getProperty("searches", juce::var());
-          if (terms.isArray()) {
-            auto *arr = terms.getArray();
-            if (arr != nullptr) {
-              for (int i = 0; i < static_cast<int>(arr->size()) && i < 10; ++i) {
-                juce::String term = (*arr)[i].toString().trim();
-                if (term.isNotEmpty())
-                  trendingSearches.add(term);
-              }
-            }
-          }
-        }
-      } else if (data.isArray()) {
-        // Response is directly an array
-        auto *arr = data.getArray();
-        if (arr != nullptr) {
-          for (int i = 0; i < static_cast<int>(arr->size()) && i < 10; ++i) {
-            juce::String term = (*arr)[i].toString().trim();
-            if (term.isNotEmpty())
-              trendingSearches.add(term);
-          }
-        }
-      }
-
-      // If we got results, update UI
-      if (static_cast<int>(trendingSearches.size()) > 0) {
-        juce::MessageManager::callAsync([this]() { repaint(); });
-      } else {
-        // Fallback to available genres if no trending terms
-        useGenresAsTrendingFallback();
-      }
-    } else {
-      // Endpoint doesn't exist or error - use fallback
-      Log::debug("Search: Trending endpoint not available, using fallback");
-      useGenresAsTrendingFallback();
-    }
-  });
+  // Load trending search terms (using placeholder data for now)
+  // TODO: Phase 4 - Implement trending searches via AppStore
+  trendingSearches = {"electronic", "hip-hop", "techno",    "house", "trap",
+                      "ambient",    "lofi",    "synthwave", "dnb",   "jungle"};
 }
 
 void Search::useGenresAsTrendingFallback() {
@@ -637,21 +570,9 @@ void Search::useGenresAsTrendingFallback() {
 }
 
 void Search::loadAvailableGenres() {
-  if (networkClient == nullptr)
-    return;
-
-  networkClient->getAvailableGenres([this](Outcome<juce::var> result) {
-    if (result.isOk() && result.getValue().isObject()) {
-      auto response = result.getValue();
-      availableGenres.clear();
-      auto genresArray = response.getProperty("genres", juce::var());
-      if (genresArray.isArray()) {
-        for (int i = 0; i < static_cast<int>(genresArray.size()); ++i) {
-          availableGenres.add(genresArray[i].toString());
-        }
-      }
-    }
-  });
+  // Load available genres via AppStore
+  // TODO: Phase 4 - Implement via appStore->loadGenres()
+  availableGenres = {"Electronic", "Hip-Hop", "House", "Techno", "Ambient", "Trap", "Dubstep", "DNB", "Jungle", "Lofi"};
 }
 
 void Search::applyFilters() {

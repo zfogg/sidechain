@@ -4,87 +4,91 @@
 namespace Sidechain {
 namespace Stores {
 
-void AppStore::setPresenceStatus(PresenceStatus status) {
-  sliceManager.getPresenceSlice()->dispatch([status](PresenceState &state) {
-    state.currentUserStatus = status;
-    state.currentUserLastActivity = juce::Time::getCurrentTime().toMilliseconds();
-    Util::logInfo("AppStore", "Presence status set to: " + juce::String((int)status));
-  });
-}
-
 void AppStore::setPresenceStatusMessage(const juce::String &message) {
-  Util::logInfo("AppStore", "Setting presence status message: " + message);
-  // TODO: Send status message to server via presence endpoint
-}
+  if (!streamChatClient) {
+    Util::logError("AppStore", "Cannot update presence status message - StreamChatClient not initialized");
+    return;
+  }
 
-void AppStore::recordUserActivity() {
-  sliceManager.getPresenceSlice()->dispatch([](PresenceState &state) {
-    state.currentUserLastActivity = juce::Time::getCurrentTime().toMilliseconds();
-    // Set to Online if was Away/Offline
-    if (state.currentUserStatus != PresenceStatus::Online) {
-      state.currentUserStatus = PresenceStatus::Online;
+  auto currentUser = sliceManager.getUserSlice()->getState();
+
+  // Build user data to upsert to GetStream.io
+  auto userData = std::make_shared<juce::DynamicObject>();
+  userData->setProperty("id", currentUser.userId);
+  userData->setProperty("name", currentUser.username);
+  userData->setProperty("status_message", message);
+
+  // Upsert user to GetStream.io
+  streamChatClient->upsertUser(userData, [this, message](Outcome<juce::var> result) {
+    if (result.isError()) {
+      Util::logError("AppStore", "Failed to update presence status message: " + result.getError());
+      return;
     }
+
+    Util::logInfo("AppStore", "Presence status message updated successfully");
   });
 }
 
 void AppStore::connectPresence() {
-  if (!networkClient) {
-    Util::logError("AppStore", "Cannot connect presence - network client not set");
+  if (!streamChatClient) {
+    Util::logError("AppStore", "Cannot connect presence - StreamChatClient not initialized");
     return;
   }
 
   sliceManager.getPresenceSlice()->dispatch([](PresenceState &state) { state.isUpdatingPresence = true; });
 
-  Util::logInfo("AppStore", "Connecting to presence service");
+  Util::logInfo("AppStore", "Connecting to GetStream.io presence");
 
-  // TODO: Establish WebSocket connection to presence service
-  // For now, just mark as connected
+  // GetStream.io automatically marks user as online when connected
+  // The streamChatClient should be connected as part of normal chat initialization
+  streamChatClient->subscribeToPresenceEvents([this](const juce::var &event) {
+    auto user = event.getProperty("user", juce::var());
+    auto userId = user.getProperty("id", juce::var()).toString();
+    if (userId.isNotEmpty()) {
+      handlePresenceUpdate(userId, event);
+    }
+  });
+
   sliceManager.getPresenceSlice()->dispatch([](PresenceState &state) {
     state.isUpdatingPresence = false;
     state.isConnected = true;
     state.currentUserStatus = PresenceStatus::Online;
     state.currentUserLastActivity = juce::Time::getCurrentTime().toMilliseconds();
-  });
-}
-
-void AppStore::disconnectPresence() {
-  sliceManager.getPresenceSlice()->dispatch([](PresenceState &state) {
-    state.isUpdatingPresence = false;
-    state.isConnected = false;
-    state.isReconnecting = false;
-    state.currentUserStatus = PresenceStatus::Offline;
-    Util::logInfo("AppStore", "Disconnected from presence service");
+    Util::logInfo("AppStore", "Connected to GetStream.io presence");
   });
 }
 
 void AppStore::handlePresenceUpdate(const juce::String &userId, const juce::var &presenceData) {
-  if (!presenceData.isObject()) {
-    return;
-  }
+  // Extract presence information from the data
+  bool isOnline = presenceData.getProperty("online", false);
 
-  sliceManager.getPresenceSlice()->dispatch([userId, presenceData](PresenceState &state) {
+  Util::logInfo("AppStore", "Presence update for " + userId + ": " + (isOnline ? "online" : "offline"));
+
+  // Update local state with user presence information
+  // This is how followers see when users come online/offline
+  sliceManager.getPresenceSlice()->dispatch([userId, isOnline](PresenceState &state) {
     PresenceInfo info;
     info.userId = userId;
-
-    // Parse presence status from data
-    juce::String status = presenceData.getProperty("status", "unknown").toString();
-    if (status == "online") {
-      info.status = PresenceStatus::Online;
-    } else if (status == "away") {
-      info.status = PresenceStatus::Away;
-    } else if (status == "offline") {
-      info.status = PresenceStatus::Offline;
-    } else if (status == "dnd") {
-      info.status = PresenceStatus::DoNotDisturb;
-    } else {
-      info.status = PresenceStatus::Unknown;
-    }
-
-    info.lastSeen = static_cast<int64_t>(static_cast<double>(presenceData.getProperty("last_seen", 0)));
-    info.statusMessage = presenceData.getProperty("status_message", "").toString();
-
+    info.status = isOnline ? PresenceStatus::Online : PresenceStatus::Offline;
+    info.lastSeen = juce::Time::getCurrentTime().toMilliseconds();
     state.userPresence[userId] = info;
   });
+}
+
+void AppStore::disconnectPresence() {
+  if (!streamChatClient)
+    return;
+
+  // Tell GetStream.io we're disconnecting
+  // User will be marked offline after ~30 seconds of no activity
+  streamChatClient->disconnect();
+
+  sliceManager.getPresenceSlice()->dispatch([](PresenceState &state) {
+    state.isConnected = false;
+    state.currentUserStatus = PresenceStatus::Offline;
+  });
+
+  Util::logInfo("AppStore", "Disconnected from GetStream.io presence");
 }
 
 } // namespace Stores

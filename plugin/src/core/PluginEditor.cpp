@@ -260,8 +260,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
 
   // ==========================================================================
   // Create Search
-  searchComponent = std::make_unique<Search>();
-  searchComponent->setNetworkClient(networkClient.get());
+  searchComponent = std::make_unique<Search>(&appStore);
   searchComponent->setCurrentUserId(appStore.getUserState().userId);
   searchComponent->onBackPressed = [this]() { navigateBack(); };
   searchComponent->onUserSelected = [this](const juce::String &userId) { showProfile(userId); };
