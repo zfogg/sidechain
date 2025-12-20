@@ -16,14 +16,8 @@ datasources:
         mappedTags:
           - key: 'trace_id'
             value: 'trace_id'
-        spanStartTimeShift: '0s'
-        spanEndTimeShift: '0s'
-        filterByTraceID: true
-        filterBySpanID: false
       search:
         hide: false
       nodeGraph:
         enabled: true
-      lokiSearch:
-        datasourceUid: loki
     editable: true

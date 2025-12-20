@@ -8,14 +8,9 @@ distributor:
       protocols:
         http:
           endpoint: 0.0.0.0:4318
-        grpc:
-          endpoint: 0.0.0.0:9095
 
 ingester:
   max_block_duration: 5m
-  lifecycle:
-    ring:
-      replication_factor: 1
 
 storage:
   trace:
@@ -24,34 +19,7 @@ storage:
       path: /tmp/tempo/traces
     wal:
       path: /tmp/tempo/wal
-      queue:
-        batch_size: 5000
-        enabled: true
 
 compactor:
   compaction:
-    compacted_block_retention: 10m
     block_retention: 168h
-    chunk_size_bytes: 5242880
-    max_compaction_objects: 6000000
-
-metrics_generator:
-  enabled: true
-  storage:
-    path: /tmp/tempo/metrics
-  processors:
-    batch:
-      timeout: 10s
-      send_batch_size: 1024
-    memory_limiter:
-      check_interval: 1s
-      limit_mib: 1024
-      spike_limit_mib: 256
-
-querier:
-  max_concurrent_queries: 10
-  search:
-    max_result_limit: 20
-
-overrides:
-  metrics_generator_processors: [batch, memory_limiter, span_metrics, service_graphs]
