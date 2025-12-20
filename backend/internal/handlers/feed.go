@@ -16,6 +16,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/metrics"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/stream"
+	"github.com/zfogg/sidechain/backend/internal/telemetry"
 	"github.com/zfogg/sidechain/backend/internal/timeline"
 	"github.com/zfogg/sidechain/backend/internal/util"
 	"github.com/zfogg/sidechain/backend/internal/websocket"
@@ -275,6 +276,10 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 	}
 
 	postID := uuid.New().String()
+
+	// Trace post creation with business event
+	_, span := telemetry.GetBusinessEvents().TraceCreatePost(c.Request.Context(), postID, "")
+	defer span.End()
 
 	// Handle MIDI data - either use existing pattern or create new one
 	var midiPatternID *string

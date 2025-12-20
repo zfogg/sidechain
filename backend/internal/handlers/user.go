@@ -16,6 +16,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/stream"
+	"github.com/zfogg/sidechain/backend/internal/telemetry"
 	"github.com/zfogg/sidechain/backend/internal/util"
 	"github.com/zfogg/sidechain/backend/internal/websocket"
 	"gorm.io/gorm"
@@ -36,6 +37,10 @@ func (h *Handlers) FollowUser(c *gin.Context) {
 		util.RespondBadRequest(c, "invalid_request", err.Error())
 		return
 	}
+
+	// Trace follow operation with business event
+	_, span := telemetry.GetBusinessEvents().TraceFollowUser(c.Request.Context(), userID, req.TargetUserID)
+	defer span.End()
 
 	if err := h.stream.FollowUser(userID, req.TargetUserID); err != nil {
 		util.RespondInternalError(c, "follow_failed", "Failed to follow user")

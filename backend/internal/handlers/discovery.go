@@ -14,6 +14,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/metrics"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/search"
+	"github.com/zfogg/sidechain/backend/internal/telemetry"
 	"github.com/zfogg/sidechain/backend/internal/util"
 )
 
@@ -127,6 +128,14 @@ func (h *Handlers) SearchUsers(c *gin.Context) {
 	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
 	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
+	// Trace search operation with business event
+	_, span := telemetry.GetBusinessEvents().TraceSearch(c.Request.Context(), telemetry.SearchEventAttrs{
+		Query:       query,
+		Index:       "users",
+		ResultCount: 0, // Will update after search
+	})
+	defer span.End()
+
 	// Get current user for follow state enrichment (optional - doesn't require auth)
 	currentUserID := ""
 	if userVal, exists := c.Get("user"); exists {
@@ -142,12 +151,27 @@ func (h *Handlers) SearchUsers(c *gin.Context) {
 	if h.search != nil {
 		searchResult, err := h.search.SearchUsers(c.Request.Context(), query, limit, offset)
 		if err == nil && searchResult != nil {
-			// Convert search results back to User models for enrichment
-			users = make([]models.User, len(searchResult.Users))
-			for i, userID := range searchResult.Users {
-				var user models.User
-				if err := database.DB.First(&user, "id = ?", userID).Error; err == nil {
-					users[i] = user
+			// Batch load user IDs from ES results (avoid N+1 queries)
+			userIDs := make([]string, 0, len(searchResult.Users))
+			for _, hit := range searchResult.Users {
+				userIDs = append(userIDs, hit.ID)
+			}
+
+			// Single batch query instead of individual queries per result
+			var dbUsers []models.User
+			if err := database.DB.Where("id IN ?", userIDs).Find(&dbUsers).Error; err == nil {
+				// Map users by ID for efficient lookup
+				userMap := make(map[string]models.User)
+				for _, user := range dbUsers {
+					userMap[user.ID] = user
+				}
+
+				// Rebuild users slice in search result order to preserve ranking
+				users = make([]models.User, 0, len(userIDs))
+				for _, id := range userIDs {
+					if user, ok := userMap[id]; ok {
+						users = append(users, user)
+					}
 				}
 			}
 		} else {
@@ -260,6 +284,26 @@ func (h *Handlers) SearchPosts(c *gin.Context) {
 	bpmMin := c.Query("bpm_min")
 	bpmMax := c.Query("bpm_max")
 	key := c.Query("key")
+
+	// Trace search operation with business event
+	var filtersList []string
+	if len(genres) > 0 {
+		filtersList = append(filtersList, "genre:"+strings.Join(genres, ","))
+	}
+	if bpmMin != "" || bpmMax != "" {
+		filtersList = append(filtersList, fmt.Sprintf("bpm:%s-%s", bpmMin, bpmMax))
+	}
+	if key != "" {
+		filtersList = append(filtersList, "key:"+key)
+	}
+
+	_, span := telemetry.GetBusinessEvents().TraceSearch(c.Request.Context(), telemetry.SearchEventAttrs{
+		Query:       query,
+		Index:       "posts",
+		ResultCount: 0, // Will update after search
+		FiltersUsed: filtersList,
+	})
+	defer span.End()
 
 	var bpmMinInt *int
 	var bpmMaxInt *int
