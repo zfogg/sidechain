@@ -7,6 +7,7 @@ MessageThread::MessageThread(Sidechain::Stores::AppStore *store)
     : Sidechain::UI::AppStoreComponent<Sidechain::Stores::ChatState>(store), scrollBar(true) {
   Log::info("MessageThread: Initializing");
   addAndMakeVisible(scrollBar);
+  initialize();
 }
 
 MessageThread::~MessageThread() {
@@ -56,41 +57,58 @@ void MessageThread::addReaction(const juce::String &, const juce::String &) {}
 void MessageThread::removeReaction(const juce::String &, const juce::String &) {}
 void MessageThread::toggleReaction(const juce::String &, const juce::String &) {}
 
-bool MessageThread::hasUserReacted(const StreamChatClient::Message &message, const juce::String &reactionType) const {
+bool MessageThread::hasUserReacted([[maybe_unused]] const StreamChatClient::Message &message,
+                                   [[maybe_unused]] const juce::String &reactionType) const {
+  // TODO: implement
   return false;
 }
-int MessageThread::getReactionCount(const StreamChatClient::Message &message, const juce::String &reactionType) const {
+int MessageThread::getReactionCount([[maybe_unused]] const StreamChatClient::Message &message,
+                                    [[maybe_unused]] const juce::String &reactionType) const {
+  // TODO: implement
   return 0;
 }
-std::vector<juce::String> MessageThread::getReactionTypes(const StreamChatClient::Message &message) const {
+std::vector<juce::String>
+MessageThread::getReactionTypes([[maybe_unused]] const StreamChatClient::Message &message) const {
+  // TODO: implement
   return {};
 }
 
 juce::Rectangle<int> MessageThread::getBackButtonBounds() const {
+  // TODO: implement
   return {};
 }
 juce::Rectangle<int> MessageThread::getSendButtonBounds() const {
+  // TODO: implement
   return {};
 }
 juce::Rectangle<int> MessageThread::getAudioButtonBounds() const {
+  // TODO: implement
   return {};
 }
-juce::Rectangle<int> MessageThread::getMessageBounds(const StreamChatClient::Message &message) const {
+juce::Rectangle<int> MessageThread::getMessageBounds([[maybe_unused]] const StreamChatClient::Message &message) const {
+  // TODO: implement
   return {};
 }
 juce::Rectangle<int> MessageThread::getHeaderMenuButtonBounds() const {
+  // TODO: implement
   return {};
 }
-juce::Rectangle<int> MessageThread::getSharedPostBounds(const StreamChatClient::Message &message) const {
+juce::Rectangle<int>
+MessageThread::getSharedPostBounds([[maybe_unused]] const StreamChatClient::Message &message) const {
+  // TODO: implement
   return {};
 }
-juce::Rectangle<int> MessageThread::getSharedStoryBounds(const StreamChatClient::Message &message) const {
+juce::Rectangle<int>
+MessageThread::getSharedStoryBounds([[maybe_unused]] const StreamChatClient::Message &message) const {
+  // TODO: implement
   return {};
 }
 juce::Rectangle<int> MessageThread::getReplyPreviewBounds() const {
+  // TODO: implement
   return {};
 }
 juce::Rectangle<int> MessageThread::getCancelReplyButtonBounds() const {
+  // TODO: implement
   return {};
 }
 
