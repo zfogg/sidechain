@@ -314,6 +314,9 @@ NotificationList::NotificationList(Sidechain::Stores::AppStore *store)
   viewport.getVerticalScrollBar().addListener(this);
 
   setSize(PREFERRED_WIDTH, MAX_HEIGHT);
+
+  // Subscribe to AppStore after UI setup
+  initialize();
 }
 
 NotificationList::~NotificationList() {
