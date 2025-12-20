@@ -1,4 +1,6 @@
 #include "Story.h"
+#include "../util/Log.h"
+#include "../util/Json.h"
 
 namespace Sidechain {
 
@@ -56,54 +58,24 @@ bool Story::hasMIDI() const {
  * @return Story instance parsed from JSON
  */
 Story Story::fromJSON(const juce::var &json) {
-  Story story;
+  try {
+    // Convert juce::var to nlohmann::json
+    auto jsonStr = juce::JSON::toString(json);
+    auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
 
-  story.id = json["id"].toString();
-  story.userId = json["user_id"].toString();
-  story.audioUrl = json["audio_url"].toString();
-  story.audioDuration = static_cast<float>(json["audio_duration"]);
-  story.filename = json["filename"].toString();
-  story.midiFilename = json["midi_filename"].toString();
-  story.midiData = json["midi_data"];
-  story.midiPatternId = json["midi_pattern_id"].toString();
-  story.waveformData = json["waveform_data"].toString();
-  story.waveformUrl = json["waveform_url"].toString();
-  story.bpm = static_cast<int>(json["bpm"]);
-  story.key = json["key"].toString();
-  story.viewCount = static_cast<int>(json["view_count"]);
-  story.viewed = static_cast<bool>(json["viewed"]);
-
-  // Parse genres array
-  if (json.hasProperty("genres")) {
-    auto *genresArray = json["genres"].getArray();
-    if (genresArray) {
-      for (const auto &genre : *genresArray) {
-        story.genres.add(genre.toString());
-      }
+    // Use new SerializableModel API
+    auto result = Sidechain::SerializableModel<Story>::createFromJson(jsonObj);
+    if (result.isOk()) {
+      return *result.getValue();
+    } else {
+      // Return empty story on error
+      Log::debug("Story::fromJSON: " + result.getError());
+      return Story();
     }
+  } catch (const std::exception &e) {
+    Log::debug("Story::fromJSON exception: " + juce::String(e.what()));
+    return Story();
   }
-
-  // Parse user info if present
-  if (json.hasProperty("user")) {
-    const auto &user = json["user"];
-    story.username = user["username"].toString();
-    story.userDisplayName = user["display_name"].toString();
-    story.userAvatarUrl = user["avatar_url"].toString();
-  }
-
-  // Parse timestamps (ISO 8601 format)
-  // Simplified parsing - in production would use proper date parser
-  if (json.hasProperty("created_at")) {
-    // For now, set to current time
-    story.createdAt = juce::Time::getCurrentTime();
-  }
-
-  if (json.hasProperty("expires_at")) {
-    // Default to 24 hours from creation
-    story.expiresAt = story.createdAt + juce::RelativeTime::hours(24);
-  }
-
-  return story;
 }
 
 /** Convert Story to JSON for upload
@@ -112,39 +84,21 @@ Story Story::fromJSON(const juce::var &json) {
  * @return JSON var representation of this story
  */
 juce::var Story::toJSON() const {
-  auto *obj = new juce::DynamicObject();
-  juce::var json(obj);
-
-  obj->setProperty("audio_url", audioUrl);
-  obj->setProperty("audio_duration", audioDuration);
-
-  if (filename.isNotEmpty())
-    obj->setProperty("filename", filename);
-
-  if (midiFilename.isNotEmpty())
-    obj->setProperty("midi_filename", midiFilename);
-
-  if (midiData.isObject()) {
-    obj->setProperty("midi_data", midiData);
-  }
-
-  if (bpm > 0) {
-    obj->setProperty("bpm", bpm);
-  }
-
-  if (key.isNotEmpty()) {
-    obj->setProperty("key", key);
-  }
-
-  if (!genres.isEmpty()) {
-    juce::var genresArray = juce::var(juce::Array<juce::var>());
-    for (const auto &genre : genres) {
-      genresArray.getArray()->add(genre);
+  try {
+    // Use new SerializableModel API
+    auto result = Sidechain::SerializableModel<Story>::toJson(std::make_shared<Story>(*this));
+    if (result.isOk()) {
+      // Convert nlohmann::json back to juce::var
+      auto jsonStr = result.getValue().dump();
+      return juce::JSON::parse(jsonStr);
+    } else {
+      Log::debug("Story::toJSON: " + result.getError());
+      return juce::var();
     }
-    obj->setProperty("genres", genresArray);
+  } catch (const std::exception &e) {
+    Log::debug("Story::toJSON exception: " + juce::String(e.what()));
+    return juce::var();
   }
-
-  return json;
 }
 
 // ==============================================================================
@@ -185,11 +139,20 @@ StoryHighlight StoryHighlight::fromJSON(const juce::var &json) {
     auto *storiesArray = json["stories"].getArray();
     if (storiesArray) {
       for (const auto &storyJson : *storiesArray) {
-        // Handle nested story structure from highlighted_stories join
-        if (storyJson.hasProperty("story")) {
-          highlight.stories.add(Story::fromJSON(storyJson["story"]));
-        } else {
-          highlight.stories.add(Story::fromJSON(storyJson));
+        try {
+          // Convert juce::var to nlohmann::json for new API
+          auto jsonStr = juce::JSON::toString(storyJson.hasProperty("story") ? storyJson["story"] : storyJson);
+          auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+
+          // Use new SerializableModel API
+          auto storyResult = Sidechain::SerializableModel<Sidechain::Story>::createFromJson(jsonObj);
+          if (storyResult.isOk()) {
+            highlight.stories.add(*storyResult.getValue());
+          } else {
+            Log::debug("Story: Failed to parse story in highlight: " + storyResult.getError());
+          }
+        } catch (const std::exception &e) {
+          Log::debug("Story: Exception parsing story in highlight: " + juce::String(e.what()));
         }
       }
     }
@@ -224,10 +187,14 @@ juce::var StoryHighlight::toJSON() const {
   return json;
 }
 
+} // namespace Sidechain
+
+namespace Sidechain {
+
 // ==============================================================================
 // nlohmann::json serialization for SerializableModel<Story>
 
-inline void to_json(nlohmann::json &j, const Story &story) {
+void to_json(nlohmann::json &j, const Story &story) {
   j = nlohmann::json{
       {"id", Json::fromJuceString(story.id)},
       {"user_id", Json::fromJuceString(story.userId)},
@@ -257,7 +224,7 @@ inline void to_json(nlohmann::json &j, const Story &story) {
   j["genres"] = genresVec;
 }
 
-inline void from_json(const nlohmann::json &j, Story &story) {
+void from_json(const nlohmann::json &j, Story &story) {
   JSON_OPTIONAL_STRING(j, "id", story.id, "");
   JSON_OPTIONAL_STRING(j, "user_id", story.userId, "");
   JSON_OPTIONAL_STRING(j, "audio_url", story.audioUrl, "");

@@ -218,7 +218,7 @@ public:
 // JSON Serialization (for nlohmann::json / SerializableModel<FeedPost>)
 // These are declared here for ADL to find them
 
-inline void to_json(nlohmann::json &j, const FeedPost &post);
-inline void from_json(const nlohmann::json &j, FeedPost &post);
+void to_json(nlohmann::json &j, const FeedPost &post);
+void from_json(const nlohmann::json &j, FeedPost &post);
 
 } // namespace Sidechain

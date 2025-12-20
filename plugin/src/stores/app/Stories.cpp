@@ -1,5 +1,6 @@
 #include "../AppStore.h"
 #include "../../util/logging/Logger.h"
+#include <nlohmann/json.hpp>
 
 namespace Sidechain {
 namespace Stores {
@@ -10,7 +11,9 @@ void AppStore::loadStoriesFeed() {
     return;
   }
 
-  sliceManager.getStoriesSlice()->dispatch([](StoriesState &state) { state.isFeedLoading = true; });
+  StoriesState newState = sliceManager.getStoriesSlice()->getState();
+  newState.isFeedLoading = true;
+  sliceManager.getStoriesSlice()->setState(newState);
 
   networkClient->getStoriesFeed([this](Outcome<juce::var> result) {
     if (result.isOk()) {
@@ -19,23 +22,36 @@ void AppStore::loadStoriesFeed() {
 
       if (data.isArray()) {
         for (int i = 0; i < data.size(); ++i) {
-          auto story = Sidechain::Story::fromJSON(data[i]);
-          storiesList.push_back(std::make_shared<Sidechain::Story>(story));
+          try {
+            // Convert juce::var to nlohmann::json for new API
+            auto jsonStr = juce::JSON::toString(data[i]);
+            auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+
+            // Use new SerializableModel API
+            auto storyResult = Sidechain::SerializableModel<Sidechain::Story>::createFromJson(jsonObj);
+            if (storyResult.isOk()) {
+              storiesList.push_back(storyResult.getValue());
+            } else {
+              Util::logError("AppStore", "Failed to parse story: " + storyResult.getError());
+            }
+          } catch (const std::exception &e) {
+            Util::logError("AppStore", "Exception parsing story: " + juce::String(e.what()));
+          }
         }
       }
 
-      sliceManager.getStoriesSlice()->dispatch([storiesList](StoriesState &state) {
-        state.feedUserStories = storiesList;
-        state.isFeedLoading = false;
-        state.storiesError = "";
-        Util::logInfo("AppStore", "Loaded " + juce::String(storiesList.size()) + " stories from feed");
-      });
+      StoriesState feedState = sliceManager.getStoriesSlice()->getState();
+      feedState.feedUserStories = storiesList;
+      feedState.isFeedLoading = false;
+      feedState.storiesError = "";
+      Util::logInfo("AppStore", "Loaded " + juce::String(storiesList.size()) + " stories from feed");
+      sliceManager.getStoriesSlice()->setState(feedState);
     } else {
-      sliceManager.getStoriesSlice()->dispatch([result](StoriesState &state) {
-        state.isFeedLoading = false;
-        state.storiesError = result.getError();
-        Util::logError("AppStore", "Failed to load stories feed: " + result.getError());
-      });
+      StoriesState feedErrorState = sliceManager.getStoriesSlice()->getState();
+      feedErrorState.isFeedLoading = false;
+      feedErrorState.storiesError = result.getError();
+      Util::logError("AppStore", "Failed to load stories feed: " + result.getError());
+      sliceManager.getStoriesSlice()->setState(feedErrorState);
     }
   });
 }
@@ -46,14 +62,16 @@ void AppStore::loadMyStories() {
     return;
   }
 
-  sliceManager.getStoriesSlice()->dispatch([](StoriesState &state) { state.isMyStoriesLoading = true; });
+  StoriesState myStoriesStartState = sliceManager.getStoriesSlice()->getState();
+  myStoriesStartState.isMyStoriesLoading = true;
+  sliceManager.getStoriesSlice()->setState(myStoriesStartState);
 
   // TODO: Implement loading user's own stories when NetworkClient provides an API
   // For now, just mark as not loading
-  sliceManager.getStoriesSlice()->dispatch([](StoriesState &state) {
-    state.isMyStoriesLoading = false;
-    Util::logInfo("AppStore", "My stories endpoint not yet available");
-  });
+  StoriesState myStoriesDoneState = sliceManager.getStoriesSlice()->getState();
+  myStoriesDoneState.isMyStoriesLoading = false;
+  Util::logInfo("AppStore", "My stories endpoint not yet available");
+  sliceManager.getStoriesSlice()->setState(myStoriesDoneState);
 }
 
 void AppStore::markStoryAsViewed(const juce::String &storyId) {
@@ -80,22 +98,22 @@ void AppStore::deleteStory(const juce::String &storyId) {
 
   networkClient->deleteStory(storyId, [this, storyId](Outcome<juce::var> result) {
     if (result.isOk()) {
-      sliceManager.getStoriesSlice()->dispatch([storyId](StoriesState &state) {
-        // Remove from my stories
-        for (int i = static_cast<int>(state.myStories.size()) - 1; i >= 0; --i) {
-          auto story = state.myStories[i];
-          if (story && story->id == storyId) {
-            state.myStories.erase(state.myStories.begin() + i);
-            Util::logInfo("AppStore", "Story deleted: " + storyId);
-            break;
-          }
+      StoriesState deleteState = sliceManager.getStoriesSlice()->getState();
+      // Remove from my stories
+      for (int i = static_cast<int>(deleteState.myStories.size()) - 1; i >= 0; --i) {
+        auto story = deleteState.myStories[static_cast<size_t>(i)];
+        if (story && story->id == storyId) {
+          deleteState.myStories.erase(deleteState.myStories.begin() + i);
+          Util::logInfo("AppStore", "Story deleted: " + storyId);
+          break;
         }
-      });
+      }
+      sliceManager.getStoriesSlice()->setState(deleteState);
     } else {
-      sliceManager.getStoriesSlice()->dispatch([result](StoriesState &state) {
-        state.storiesError = result.getError();
-        Util::logError("AppStore", "Failed to delete story: " + result.getError());
-      });
+      StoriesState deleteErrorState = sliceManager.getStoriesSlice()->getState();
+      deleteErrorState.storiesError = result.getError();
+      Util::logError("AppStore", "Failed to delete story: " + result.getError());
+      sliceManager.getStoriesSlice()->setState(deleteErrorState);
     }
   });
 }
@@ -138,12 +156,14 @@ void AppStore::createHighlight(const juce::String &name, const juce::Array<juce:
         }
       }
 
-      sliceManager.getStoriesSlice()->dispatch([](StoriesState &state) { state.storiesError = ""; });
+      StoriesState successState = sliceManager.getStoriesSlice()->getState();
+      successState.storiesError = "";
+      sliceManager.getStoriesSlice()->setState(successState);
     } else {
-      sliceManager.getStoriesSlice()->dispatch([result](StoriesState &state) {
-        state.storiesError = result.getError();
-        Util::logError("AppStore", "Failed to create highlight: " + result.getError());
-      });
+      StoriesState highlightErrorState = sliceManager.getStoriesSlice()->getState();
+      highlightErrorState.storiesError = result.getError();
+      Util::logError("AppStore", "Failed to create highlight: " + result.getError());
+      sliceManager.getStoriesSlice()->setState(highlightErrorState);
     }
   });
 }

@@ -1250,7 +1250,10 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
           // Write to file
           juce::FileOutputStream output(targetFile);
           if (output.openedOk()) {
-            bool writeSuccess = output.write(audioData.getData(), audioData.getSize()) && output.flush();
+            bool writeSuccess = output.write(audioData.getData(), audioData.getSize());
+            if (writeSuccess) {
+              output.flush(); // FileOutputStream::flush() returns void in modern JUCE
+            }
 
             if (writeSuccess) {
               juce::MessageManager::callAsync([targetFile]() {

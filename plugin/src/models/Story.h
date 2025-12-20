@@ -2,6 +2,7 @@
 
 #include "../util/SerializableModel.h"
 #include "../util/json/JsonValidation.h"
+#include "../util/Json.h"
 #include <JuceHeader.h>
 #include <nlohmann/json.hpp>
 
@@ -90,8 +91,8 @@ struct Story : public SerializableModel<Story> {
 // JSON Serialization (for nlohmann::json / SerializableModel<Story>)
 // These are declared here for ADL to find them
 
-inline void to_json(nlohmann::json &j, const Story &story);
-inline void from_json(const nlohmann::json &j, Story &story);
+void to_json(nlohmann::json &j, const Story &story);
+void from_json(const nlohmann::json &j, Story &story);
 
 // ==============================================================================
 /**

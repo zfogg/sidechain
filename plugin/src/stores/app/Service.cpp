@@ -87,8 +87,9 @@ rxcpp::observable<juce::File> AppStore::loadAudioObservable(const juce::String &
             int64_t bytesWritten = output.writeFromInputStream(*inputStream, -1);
             int numBytesWritten = static_cast<int>(bytesWritten);
 
-            if (!output.flush()) {
-              Util::logWarning("AppStore", "Failed to flush audio file");
+            output.flush(); // FileOutputStream::flush() returns void in modern JUCE
+            if (!output.openedOk()) {
+              Util::logWarning("AppStore", "Failed to write audio file");
               tempFile.deleteFile();
               return juce::File();
             }
