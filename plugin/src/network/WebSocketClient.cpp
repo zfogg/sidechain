@@ -53,6 +53,15 @@ void WebSocketClient::disconnect() {
     } catch (const std::exception &e) {
       Log::debug("WebSocket: Error stopping ASIO - " + juce::String(e.what()));
     }
+
+    // Wait briefly for ASIO thread to finish cleanly
+    // The thread should exit quickly after stop() is called
+    if (asioThread && asioThread->joinable()) {
+      auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(500);
+      while (asioThread->joinable() && std::chrono::steady_clock::now() < deadline) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      }
+    }
   }
 
   setState(ConnectionState::Disconnected);
@@ -174,16 +183,33 @@ void WebSocketClient::cleanupClient() {
       Log::debug("WebSocket: Error stopping client - " + juce::String(e.what()));
     }
 
-    // Wait for ASIO thread to finish (with timeout)
+    // Wait for ASIO thread to finish
     if (asioThread && asioThread->joinable()) {
-      // Give it a moment to finish
+      // Give it a moment to finish cleanly
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
       if (asioThread->joinable()) {
-        // Thread is still running - attempt to join with a timeout
-        // Note: std::thread doesn't support timed join, so we accept some resource usage
-        // The thread will eventually finish when the client is destroyed
-        Log::warn("WebSocket: ASIO thread still running during cleanup");
+        // Thread is still running - wait for it with a longer timeout
+        // The thread should exit when client->stop() is called
+        Log::debug("WebSocket: Waiting for ASIO thread to finish...");
+
+        // Wait up to 1 second for thread to finish
+        auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1000);
+        while (asioThread->joinable() && std::chrono::steady_clock::now() < deadline) {
+          std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        }
+
+        if (asioThread->joinable()) {
+          Log::warn("WebSocket: ASIO thread did not finish within timeout");
+          // Still try to join - will hang if thread is truly stuck
+          asioThread->join();
+        } else {
+          Log::debug("WebSocket: ASIO thread finished cleanly");
+        }
+      } else {
+        asioThread->join();
       }
+
       asioThread.reset();
     }
 
