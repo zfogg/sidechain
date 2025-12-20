@@ -16,11 +16,6 @@
 using namespace Sidechain::Stores;
 
 // ==============================================================================
-// Forward declarations
-// ==============================================================================
-static juce::Image loadImageFromURL(const juce::String &urlStr);
-
-// ==============================================================================
 // UserProfile implementation
 // ==============================================================================
 UserProfile UserProfile::fromJson(const juce::var &json) {

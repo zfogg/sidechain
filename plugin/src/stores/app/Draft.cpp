@@ -9,7 +9,9 @@ namespace Stores {
 
 void AppStore::loadDrafts() {
   auto draftSlice = sliceManager.getDraftSlice();
-  draftSlice->dispatch([](DraftState &state) { state.isLoading = true; });
+  DraftState newState = draftSlice->getState();
+  newState.isLoading = true;
+  draftSlice->setState(newState);
 
   // Load drafts from cache directory
   std::vector<std::shared_ptr<Sidechain::Draft>> draftsList;
@@ -40,26 +42,26 @@ void AppStore::loadDrafts() {
     Util::logError("AppStore", "Failed to load drafts: " + juce::String(e.what()));
   }
 
-  draftSlice->dispatch([draftsList](DraftState &state) {
-    state.drafts = draftsList;
-    state.isLoading = false;
-    state.draftError = "";
-  });
+  DraftState finalState = draftSlice->getState();
+  finalState.drafts = draftsList;
+  finalState.isLoading = false;
+  finalState.draftError = "";
+  draftSlice->setState(finalState);
 }
 
 void AppStore::deleteDraft(const juce::String &draftId) {
   auto draftSlice = sliceManager.getDraftSlice();
-  draftSlice->dispatch([draftId](DraftState &state) {
-    // Remove draft from list
-    for (int i = static_cast<int>(state.drafts.size()) - 1; i >= 0; --i) {
-      auto draft = state.drafts[i];
-      if (draft && draft->id == draftId) {
-        state.drafts.erase(state.drafts.begin() + i);
-        Util::logInfo("AppStore", "Deleted draft: " + draftId);
-        break;
-      }
+  DraftState newState = draftSlice->getState();
+  // Remove draft from list
+  for (int i = static_cast<int>(newState.drafts.size()) - 1; i >= 0; --i) {
+    auto draft = newState.drafts[static_cast<size_t>(i)];
+    if (draft && draft->id == draftId) {
+      newState.drafts.erase(newState.drafts.begin() + static_cast<int>(i));
+      Util::logInfo("AppStore", "Deleted draft: " + draftId);
+      break;
     }
-  });
+  }
+  draftSlice->setState(newState);
 
   // Remove from cache
   try {
@@ -83,7 +85,9 @@ void AppStore::clearAutoRecoveryDraft() {
     Util::logError("AppStore", "Failed to clear auto-recovery draft: " + juce::String(e.what()));
   }
 
-  sliceManager.getDraftSlice()->dispatch([](DraftState &state) { state.draftError = ""; });
+  DraftState newState = sliceManager.getDraftSlice()->getState();
+  newState.draftError = "";
+  sliceManager.getDraftSlice()->setState(newState);
 }
 
 void AppStore::saveDrafts() {

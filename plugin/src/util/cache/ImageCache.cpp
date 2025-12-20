@@ -73,11 +73,8 @@ void SidechainImageCache::cacheImage(const juce::String &url, const juce::Image 
     return;
   }
 
-  if (!out.flush()) {
-    Log::warn("SidechainImageCache: Failed to flush image to temp file");
-    tempFile.deleteFile();
-    return;
-  }
+  out.flush(); // Best effort flush - FileOutputStream::flush() returns void
+  // FileOutputStream::flush() doesn't return a bool, so we can't check for errors
 
   // Move to file cache
   auto cachedFile = fileCache.cacheFile(url, tempFile);

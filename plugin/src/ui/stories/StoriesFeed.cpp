@@ -18,8 +18,7 @@ const juce::Colour badgeRed(0xffe53935);
 
 // ==============================================================================
 StoriesFeed::StoriesFeed(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
-  startTimerHz(60);
-
+  // Timer only starts when needed for smooth scroll animation
   Log::info("StoriesFeed created");
   initialize();
 }
@@ -47,9 +46,10 @@ void StoriesFeed::subscribeToAppStore() {
         return;
 
       std::vector<UserStories> newUserStoriesGroups;
-      for (int i = 0; i < groups.size(); ++i) {
+      for (size_t i = 0; i < groups.size(); ++i) {
         const auto &groupPtr = groups[i];
-        if (!groupPtr) continue;
+        if (!groupPtr)
+          continue;
         UserStories uiGroup;
         uiGroup.userId = groupPtr->id;
         uiGroup.username = groupPtr->username;
@@ -155,18 +155,25 @@ void StoriesFeed::mouseUp(const juce::MouseEvent &event) {
 void StoriesFeed::mouseWheelMove(const juce::MouseEvent & /*event*/, const juce::MouseWheelDetails &wheel) {
   // Horizontal scroll
   float delta = (std::abs(wheel.deltaX) > 0.0001f) ? wheel.deltaX : wheel.deltaY;
-  targetScrollOffset = juce::jlimit(0.0f, maxScrollOffset, targetScrollOffset - delta * 50.0f);
+  targetScrollOffset = juce::jlimit(0.0f, maxScrollOffset, targetScrollOffset - delta * 100.0f);
+
+  // Start timer for smooth scroll animation (30 FPS is enough for smooth visual feedback)
+  if (!isTimerRunning()) {
+    startTimerHz(30);
+  }
 }
 
 // ==============================================================================
 void StoriesFeed::timerCallback() {
   // Smooth scroll animation
-  if (std::abs(scrollOffset - targetScrollOffset) > 0.5f) {
-    scrollOffset += (targetScrollOffset - scrollOffset) * 0.2f;
+  float delta = targetScrollOffset - scrollOffset;
+  if (std::abs(delta) > 0.5f) {
+    scrollOffset += delta * 0.2f;
     repaint();
-  } else if (std::abs(scrollOffset - targetScrollOffset) > 0.0001f) {
+  } else if (std::abs(delta) > 0.0001f) {
     scrollOffset = targetScrollOffset;
     repaint();
+    stopTimer(); // Stop timer when animation complete (on-demand timer)
   }
 }
 

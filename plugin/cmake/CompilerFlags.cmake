@@ -39,6 +39,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
         "-Wno-missing-designated-field-initializers"  # Designated field init (GCC 9.2+, Clang 10+)
         "-Wno-implicit-int-conversion-on-negation"    # int8_t conversions in math (Clang 12+)
         "-Wnan-infinity-disabled"                     # Audio processing math
+        "-Wno-deprecated-declarations"                # Internal API migrations (FeedPost::fromJson, etc)
     )
 
     foreach(flag ${CONDITIONAL_CXX_FLAGS})
@@ -173,6 +174,7 @@ function(suppress_juce_warnings target_name)
             -Wno-virtual-in-final                       # JUCE final classes
             -Wno-unnecessary-virtual-specifier          # JUCE VST3
             -Wno-nan-infinity-disabled                  # Audio processing math
+            -Wno-missing-designated-field-initializers  # JUCE designated init patterns
         )
     elseif(MSVC)
         target_compile_options(${target_name} PRIVATE

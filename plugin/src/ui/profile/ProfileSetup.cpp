@@ -127,7 +127,7 @@ void ProfileSetup::paint(juce::Graphics &g) {
   g.fillAll(SidechainColors::background());
 
   // Calculate responsive positions
-  const int contentWidth = juce::jmin(CONTENT_WIDTH, getWidth() - 40); // Cap at max width with padding
+  [[maybe_unused]] const int contentWidth = juce::jmin(CONTENT_WIDTH, getWidth() - 40); // Cap at max width with padding
 
   // Logout button at top-right (responsive)
   auto logoutBtnBounds = juce::Rectangle<int>(getWidth() - LOGOUT_BUTTON_WIDTH - 10, 10, LOGOUT_BUTTON_WIDTH, 40);

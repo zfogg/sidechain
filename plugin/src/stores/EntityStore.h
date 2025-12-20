@@ -203,7 +203,7 @@ public:
    * Normalize Story from JSON
    * TODO: Implement Story::fromJson() serialization
    */
-  std::shared_ptr<Story> normalizeStory(const juce::var &json) {
+  std::shared_ptr<Story> normalizeStory([[maybe_unused]] const juce::var &json) {
     // TODO: Implement Story::fromJson() with proper nlohmann::json serialization
     // For now, skip normalization
     return nullptr;
@@ -288,7 +288,7 @@ public:
    * Normalize Playlist from JSON
    * TODO: Implement Playlist::fromJson() serialization
    */
-  std::shared_ptr<Playlist> normalizePlaylist(const juce::var &json) {
+  std::shared_ptr<Playlist> normalizePlaylist([[maybe_unused]] const juce::var &json) {
     // TODO: Implement Playlist::fromJson() with proper nlohmann::json serialization
     // For now, skip normalization
     return nullptr;
@@ -305,7 +305,7 @@ public:
    */
   std::vector<std::shared_ptr<FeedPost>> normalizePosts(const juce::Array<juce::var> &jsonArray) {
     std::vector<std::shared_ptr<FeedPost>> posts;
-    posts.reserve(jsonArray.size());
+    posts.reserve(static_cast<size_t>(jsonArray.size()));
 
     for (const auto &json : jsonArray) {
       if (auto post = normalizePost(json)) {
@@ -321,7 +321,7 @@ public:
    */
   std::vector<std::shared_ptr<Playlist>> normalizePlaylists(const juce::Array<juce::var> &jsonArray) {
     std::vector<std::shared_ptr<Playlist>> playlists;
-    playlists.reserve(jsonArray.size());
+    playlists.reserve(static_cast<size_t>(jsonArray.size()));
 
     for (const auto &json : jsonArray) {
       if (auto playlist = normalizePlaylist(json)) {

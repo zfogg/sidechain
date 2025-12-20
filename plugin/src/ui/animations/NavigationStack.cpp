@@ -5,7 +5,7 @@ namespace Sidechain {
 namespace UI {
 namespace Animations {
 
-NavigationStack::NavigationStack(juce::Component *parent, size_t initialCapacity)
+NavigationStack::NavigationStack(juce::Component *parent, [[maybe_unused]] size_t initialCapacity)
     : parent_(parent), defaultPushTransition_(TransitionType::SlideInFromRight),
       defaultPopTransition_(TransitionType::SlideOutToRight), defaultPushDurationMs_(300), defaultPopDurationMs_(300),
       transitionsEnabled_(true), activeTransitionCount_(0) {
@@ -233,8 +233,6 @@ void NavigationStack::applyEntryTransition(juce::Component *view, TransitionType
     handle = controller.fadeIn(view, durationMs);
     break;
   case TransitionType::ScaleIn:
-    handle = controller.scaleIn(view, durationMs);
-    break;
   case TransitionType::ZoomIn:
     handle = controller.scaleIn(view, durationMs);
     break;
@@ -284,8 +282,6 @@ void NavigationStack::applyExitTransition(juce::Component *view, TransitionType 
     handle = controller.fadeOut(view, durationMs);
     break;
   case TransitionType::ScaleOut:
-    handle = controller.scaleOut(view, durationMs);
-    break;
   case TransitionType::ZoomOut:
     handle = controller.scaleOut(view, durationMs);
     break;

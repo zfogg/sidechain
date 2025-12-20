@@ -85,7 +85,7 @@ PostsFeed::PostsFeed(Sidechain::Stores::AppStore *store) : AppStoreComponent(sto
   Log::debug("PostsFeedComponent: Keyboard focus enabled for shortcuts");
 
   // Create comments panel (initially hidden)
-  commentsPanel = std::make_unique<CommentsPanel>();
+  commentsPanel = std::make_unique<CommentsPanel>(appStore);
   commentsPanel->onClose = [this]() {
     Log::debug("PostsFeedComponent: Comments panel close requested");
     hideCommentsPanel();
@@ -427,7 +427,7 @@ void PostsFeed::handleFeedStateChanged() {
   const auto &currentFeed = state.getCurrentFeed();
 
   if (!currentFeed) {
-    Log::error("PostsFeed::handleFeedStateChanged: currentFeed is null!");
+    Log::debug("PostsFeed::handleFeedStateChanged: currentFeed is null - feed not loaded yet");
     return;
   }
 
@@ -493,6 +493,16 @@ void PostsFeed::handleFeedStateChanged() {
   rebuildPostCards();
   updateScrollBounds();
   updateAudioPlayerPlaylist();
+
+  // Auto-open first post's comments for debugging (when feed first loads)
+  if (autoOpenFirstPostComments && !firstPostCommentsOpened && !currentFeed->posts.empty()) {
+    firstPostCommentsOpened = true;
+    const auto &firstPost = currentFeed->posts[0];
+    if (firstPost) {
+      Log::info("PostsFeed::handleFeedStateChanged: AUTO-OPENING COMMENTS FOR FIRST POST: " + firstPost->id);
+      juce::MessageManager::callAsync([this, firstPost]() { showCommentsForPost(*firstPost); });
+    }
+  }
 
   // Query presence for all unique post authors
   queryPresenceForPosts();
@@ -971,9 +981,15 @@ void PostsFeed::rebuildPostCards() {
 }
 
 void PostsFeed::updatePostCardPositions() {
+  // Skip update if scroll position hasn't changed enough (performance optimization)
+  double scrollDelta = std::abs(scrollPosition - lastUpdateScrollPosition);
+  if (lastUpdateScrollPosition >= 0 && scrollDelta < SCROLL_UPDATE_THRESHOLD) {
+    return; // Skip expensive position update
+  }
+
+  lastUpdateScrollPosition = scrollPosition;
   auto contentBounds = getFeedContentBounds();
   int cardWidth = contentBounds.getWidth() - 40; // Padding
-  int visibleCount = 0;
 
   if (!aggregatedCards.isEmpty()) {
     // Layout aggregated cards (variable height)
@@ -986,15 +1002,9 @@ void PostsFeed::updatePostCardPositions() {
       // Show/hide based on visibility
       bool visible = (currentY + cardHeight > contentBounds.getY()) && (currentY < contentBounds.getBottom());
       card->setVisible(visible);
-      if (visible)
-        visibleCount++;
 
       currentY += cardHeight + POST_CARD_SPACING;
     }
-
-    Log::debug("PostsFeed::updatePostCardPositions: Updated aggregated cards - "
-               "total: " +
-               juce::String(aggregatedCards.size()) + ", visible: " + juce::String(visibleCount));
   } else {
     // Layout regular post cards (fixed height)
     for (int i = 0; i < postCards.size(); ++i) {
@@ -1007,12 +1017,7 @@ void PostsFeed::updatePostCardPositions() {
       // Show/hide based on visibility
       bool visible = (cardY + POST_CARD_HEIGHT > contentBounds.getY()) && (cardY < contentBounds.getBottom());
       card->setVisible(visible);
-      if (visible)
-        visibleCount++;
     }
-
-    Log::debug("PostsFeed::updatePostCardPositions: Updated positions - total: " + juce::String(postCards.size()) +
-               ", visible: " + juce::String(visibleCount) + ", scrollPosition: " + juce::String(scrollPosition, 1));
   }
 }
 

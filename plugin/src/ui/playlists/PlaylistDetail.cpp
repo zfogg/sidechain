@@ -22,10 +22,10 @@ PlaylistDetail::~PlaylistDetail() {
 // ==============================================================================
 void PlaylistDetail::onAppStateChanged(const Sidechain::Stores::PlaylistState &state) {
   // Find the current playlist in the state
-  for (int i = 0; i < state.playlists.size(); ++i) {
+  for (size_t i = 0; i < state.playlists.size(); ++i) {
     const auto &playlistPtr = state.playlists[i];
     if (playlistPtr && playlistPtr->id == playlistId) {
-      playlist = *playlistPtr;  // Dereference shared_ptr
+      playlist = *playlistPtr; // Dereference shared_ptr
       // Note: We still need to fetch full playlist details including entries
       // from NetworkClient, as state may only contain basic info
       break;
@@ -361,8 +361,8 @@ void PlaylistDetail::drawActionButtons(juce::Graphics &g, juce::Rectangle<int> &
   g.drawText("Share", shareBounds, juce::Justification::centred);
 }
 
-void PlaylistDetail::drawEntryCard(juce::Graphics &g, juce::Rectangle<int> bounds, const Sidechain::PlaylistEntry &entry,
-                                   int index) {
+void PlaylistDetail::drawEntryCard(juce::Graphics &g, juce::Rectangle<int> bounds,
+                                   const Sidechain::PlaylistEntry &entry, int index) {
   bounds = bounds.reduced(PADDING, 4);
 
   bool isHovered = bounds.contains(getMouseXYRelative());

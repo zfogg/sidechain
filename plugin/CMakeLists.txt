@@ -142,11 +142,14 @@ include(cmake/Linting.cmake)
 #==============================================================================
 # Build formats configuration
 #==============================================================================
-# Build formats - conditionally include Standalone
-# VST3 is always built, AU only on macOS, Standalone only if option is enabled
+# Build formats - conditionally include AU and Standalone
+# VST3 is always built, AU and Standalone are optional
 set(PLUGIN_FORMATS "VST3")
-if(APPLE)
+if(APPLE AND SIDECHAIN_BUILD_AU)
     list(APPEND PLUGIN_FORMATS "AU")
+    message(STATUS "AU format will be built")
+elseif(APPLE)
+    message(STATUS "AU format disabled (enable with -DSIDECHAIN_BUILD_AU=ON for faster builds, skip AU)")
 endif()
 if(SIDECHAIN_BUILD_STANDALONE)
     list(APPEND PLUGIN_FORMATS "Standalone")

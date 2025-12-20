@@ -131,12 +131,18 @@ private:
   // Scroll state
   double scrollPosition = 0.0;
   double targetScrollPosition = 0.0;
+  double lastUpdateScrollPosition = -1.0; // Cache for optimization
   Sidechain::UI::Animations::AnimationHandle scrollAnimationHandle;
   int totalContentHeight = 0;
   int previousContentHeight = 0;
   static constexpr int POST_CARD_HEIGHT = PostCard::CARD_HEIGHT; // Use PostCard's height constant
   static constexpr int POST_CARD_SPACING = 10;
-  static constexpr int POSTS_TOP_PADDING = 16; // Top padding for posts container
+  static constexpr int POSTS_TOP_PADDING = 16;      // Top padding for posts container
+  static constexpr int SCROLL_UPDATE_THRESHOLD = 5; // Only update positions if scroll changed by 5+ pixels
+
+  // Auto-open first post's comments on feed load (for debugging)
+  bool autoOpenFirstPostComments = true;
+  bool firstPostCommentsOpened = false;
 
   // ==============================================================================
   // User info (profile picture now displayed in central HeaderComponent)

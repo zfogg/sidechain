@@ -84,7 +84,7 @@ public:
    */
   explicit NavigationStack(juce::Component *parent, size_t initialCapacity = 10);
 
-  virtual ~NavigationStack();
+  virtual ~NavigationStack() override;
 
   // ========== View Management ==========
 
@@ -197,7 +197,7 @@ public:
   // ========== JUCE Component Overrides ==========
 
   void resized() override;
-  void paint(juce::Graphics &g) override {}; // Views handle their own painting
+  void paint(juce::Graphics &g) override {} // Views handle their own painting
 
 private:
   // View entry on the stack

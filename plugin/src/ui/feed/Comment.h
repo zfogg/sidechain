@@ -1,10 +1,8 @@
 #pragma once
 
 #include "../../models/Comment.h" // Use model from models folder
-#include "../../util/Colors.h"
 #include "../../util/HoverState.h"
 #include "../../util/Result.h"
-#include "../../util/Time.h"
 #include "../../stores/AppStore.h"
 #include "../common/AppStoreComponent.h"
 #include <JuceHeader.h>
@@ -146,7 +144,7 @@ class NetworkClient;
  */
 class CommentsPanel : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::CommentsState>, private juce::Timer {
 public:
-  CommentsPanel();
+  explicit CommentsPanel(Sidechain::Stores::AppStore *store = nullptr);
   ~CommentsPanel() override;
 
   // ==============================================================================
@@ -195,7 +193,7 @@ private:
 
   // ==============================================================================
   // Data
-  Sidechain::Stores::AppStore *appStore = nullptr;
+  // Note: appStore is inherited from AppStoreComponent base class
   juce::String currentPostId;
   juce::String currentUserId;
   std::vector<std::shared_ptr<Sidechain::Comment>> comments;
@@ -244,6 +242,10 @@ private:
   void hideMentionAutocomplete();
   void selectMention(int index);
   void insertMention(const juce::String &username);
+
+  // Auto-test comment submission (for debugging)
+  void autoSubmitTestComment();
+  bool autoTestCommentSubmitted = false;
 
   // Emoji picker
   void showEmojiPicker();

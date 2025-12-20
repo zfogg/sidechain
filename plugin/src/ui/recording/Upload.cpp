@@ -1106,8 +1106,12 @@ void Upload::startUpload() {
     std::unique_ptr<juce::FileOutputStream> outStream(audioFile.createOutputStream());
 
     if (outStream) {
-      std::unique_ptr<juce::AudioFormatWriter> writer(
-          wavFormat.createWriterFor(outStream.get(), audioSampleRate, audioBuffer.getNumChannels(), 16, {}, 0));
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+      // TODO: use the new AudioFormatWriterOptions API instead
+      std::unique_ptr<juce::AudioFormatWriter> writer(wavFormat.createWriterFor(
+          outStream.get(), audioSampleRate, static_cast<unsigned int>(audioBuffer.getNumChannels()), 16, {}, 0));
+#pragma clang diagnostic pop
 
       if (writer) {
         outStream.release(); // Release ownership to writer

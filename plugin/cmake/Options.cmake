@@ -20,6 +20,9 @@ option(SIDECHAIN_INSTALL_STANDALONE "Install Standalone app with cmake --install
 # Option to build documentation (Doxygen + Sphinx)
 option(SIDECHAIN_BUILD_DOCS "Build documentation with Doxygen and Sphinx" OFF)
 
+# Option to build AU format (macOS only, optional)
+option(SIDECHAIN_BUILD_AU "Build Audio Unit format on macOS" OFF)
+
 # Option to enable key detection (requires FFTW3)
 option(SIDECHAIN_ENABLE_KEY_DETECTION "Enable musical key detection using libkeyfinder" ON)
 

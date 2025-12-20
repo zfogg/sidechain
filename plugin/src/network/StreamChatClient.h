@@ -346,10 +346,32 @@ public:
                       MessagesCallback callback);
 
   // ==========================================================================
-  // Presence (App-Wide)
+  // Presence (App-Wide) - GetStream.io handles presence automatically
+
+  /** Query presence status for multiple users
+   * @param userIds List of user IDs to query
+   * @param callback Called with list of presence info or error
+   */
   void queryPresence(const std::vector<juce::String> &userIds, PresenceCallback callback);
+
+  /** Update current user's status in GetStream.io
+   * @param status Custom status message (e.g., "jamming")
+   * @param extraData Additional user data
+   * @param callback Called with result or error
+   */
   void updateStatus(const juce::String &status, const juce::var &extraData,
                     std::function<void(Outcome<void>)> callback);
+
+  /** Upsert user data to GetStream.io (for presence updates)
+   * @param userData User data including id, name, status, invisible flag
+   * @param callback Called with result or error
+   */
+  void upsertUser(std::shared_ptr<juce::DynamicObject> userData, std::function<void(Outcome<juce::var>)> callback);
+
+  /** Subscribe to presence change events from GetStream.io
+   * @param callback Called whenever a presence event occurs (user comes online/offline)
+   */
+  void subscribeToPresenceEvents(std::function<void(const juce::var &event)> callback);
 
   // ==========================================================================
   // Real-time Updates (Polling-based until WebSocket is fixed)
@@ -400,10 +422,21 @@ public:
    * - typing.start/typing.stop: Typing indicators
    * - user.presence.changed: User online/offline status
    *
-   * @see disconnectWebSocket() To close the connection
+   * @see disconnect() or disconnectWebSocket() To close the connection
    * @see watchChannel() For polling-based fallback if WebSocket is unavailable
    */
   void connectWebSocket();
+
+  /**
+   * Disconnect from getstream.io WebSocket and mark user offline.
+   *
+   * Closes the WebSocket connection and cleans up resources.
+   * The ASIO event loop thread is stopped and joined.
+   * User will be marked offline on GetStream.io after ~30 seconds.
+   */
+  void disconnect() {
+    disconnectWebSocket();
+  }
 
   /**
    * Disconnect from getstream.io WebSocket.
@@ -412,6 +445,7 @@ public:
    * The ASIO event loop thread is stopped and joined.
    */
   void disconnectWebSocket();
+
   bool isWebSocketConnected() const {
     return wsConnected.load();
   }

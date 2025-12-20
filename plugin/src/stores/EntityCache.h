@@ -2,6 +2,7 @@
 
 #include "../util/logging/Logger.h"
 #include <JuceHeader.h>
+#include <algorithm>
 #include <chrono>
 #include <functional>
 #include <memory>
@@ -220,7 +221,7 @@ public:
 
     // Return unsubscribe function
     return [this, id, observerId]() {
-      std::lock_guard<std::mutex> lock(mutex_);
+      std::lock_guard<std::mutex> unsubscribeLock(mutex_);
       auto &list = observers_[id];
       list.erase(
           std::remove_if(list.begin(), list.end(), [observerId](const auto &pair) { return pair.first == observerId; }),
@@ -255,6 +256,73 @@ public:
                                          [observerId](const auto &pair) { return pair.first == observerId; }),
                           allObservers_.end());
     };
+  }
+
+  // ==============================================================================
+  // Key-based subscriptions (cleaner API for subscribing to specific entity IDs)
+
+  /**
+   * Subscribe to updates for a single entity key/ID
+   * Observer is called whenever that entity is updated
+   * Call unsubscribeFromKey() with the same key to stop listening
+   */
+  void subscribeToKey(const std::string &key, std::function<void(const std::shared_ptr<T> &)> observer) {
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    keySubscriptions_.push_back({std::vector<std::string>{key}, observer});
+
+    // Call observer immediately with current entity if it exists
+    auto it = entities_.find(juce::String(key));
+    if (it != entities_.end() && !isExpired(juce::String(key))) {
+      observer(it->second);
+    }
+  }
+
+  /**
+   * Subscribe to updates for multiple entity keys/IDs
+   * Observer is called with vector of updated entities whenever any of these keys change
+   * Call unsubscribeFromKeys() with the same keys to stop listening
+   */
+  void subscribeToKeys(const std::vector<std::string> &keys,
+                       std::function<void(const std::vector<std::shared_ptr<T>> &)> observer) {
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    keySubscriptions_.push_back({keys, observer});
+
+    // Call observer immediately with current entities for these keys
+    std::vector<std::shared_ptr<T>> current;
+    for (const auto &key : keys) {
+      auto it = entities_.find(juce::String(key));
+      if (it != entities_.end() && !isExpired(juce::String(key))) {
+        current.push_back(it->second);
+      }
+    }
+    observer(current);
+  }
+
+  /**
+   * Unsubscribe from a single entity key/ID
+   * Removes all subscriptions to this specific key
+   */
+  void unsubscribeFromKey(const std::string &key) {
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    keySubscriptions_.erase(
+        std::remove_if(keySubscriptions_.begin(), keySubscriptions_.end(),
+                       [&key](const KeySubscription &sub) { return sub.keys.size() == 1 && sub.keys[0] == key; }),
+        keySubscriptions_.end());
+  }
+
+  /**
+   * Unsubscribe from multiple entity keys/IDs
+   * Removes subscriptions matching this exact set of keys
+   */
+  void unsubscribeFromKeys(const std::vector<std::string> &keys) {
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    keySubscriptions_.erase(std::remove_if(keySubscriptions_.begin(), keySubscriptions_.end(),
+                                           [&keys](const KeySubscription &sub) { return sub.keys == keys; }),
+                            keySubscriptions_.end());
   }
 
   /**
@@ -443,6 +511,13 @@ public:
 
 private:
   // ==============================================================================
+  // Key-based subscription struct
+  struct KeySubscription {
+    std::vector<std::string> keys;
+    std::function<void(const std::vector<std::shared_ptr<T>> &)> callback;
+  };
+
+  // ==============================================================================
   // Internal state
 
   mutable std::mutex mutex_;
@@ -462,6 +537,9 @@ private:
 
   // All-entity observers (for subscribeAll)
   std::vector<std::pair<uint64_t, std::function<void(const std::vector<std::shared_ptr<T>> &)>>> allObservers_;
+
+  // Key-based subscriptions (cleaner API for subscribing to specific entity IDs)
+  std::vector<KeySubscription> keySubscriptions_;
 
   // TTL configuration
   int64_t defaultTTL_ = 0; // 0 = no expiration
@@ -484,13 +562,29 @@ private:
   }
 
   void notifyObservers(const juce::String &id, const std::shared_ptr<T> &entity) {
+    // Notify per-entity observers
     auto it = observers_.find(id);
-    if (it == observers_.end()) {
-      return;
+    if (it != observers_.end()) {
+      for (const auto &[_, observer] : it->second) {
+        observer(entity);
+      }
     }
 
-    for (const auto &[_, observer] : it->second) {
-      observer(entity);
+    // Notify key-based subscribers that are interested in this ID
+    std::string idStr = id.toStdString();
+    for (const auto &keySub : keySubscriptions_) {
+      // Check if this subscription cares about this ID
+      if (std::find(keySub.keys.begin(), keySub.keys.end(), idStr) != keySub.keys.end()) {
+        // Build vector of all current entities for this subscription
+        std::vector<std::shared_ptr<T>> updated;
+        for (const auto &key : keySub.keys) {
+          auto entityIt = entities_.find(juce::String(key));
+          if (entityIt != entities_.end() && !isExpired(juce::String(key))) {
+            updated.push_back(entityIt->second);
+          }
+        }
+        keySub.callback(updated);
+      }
     }
   }
 

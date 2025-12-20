@@ -397,7 +397,8 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
               });
             }
           }
-        }), true);
+        }),
+        true);
   };
   addChildComponent(playlistsComponent.get());
 
@@ -2069,7 +2070,7 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String &user, con
   // Update legacy state (for backwards compatibility during migration)
   username = user;
   email = mail;
-  authToken = ""; // Deprecated - token now stored securely, not in plain text
+  authToken = token; // Store token for saveLoginState()
 
   // Update centralized AppStore
   appStore.setAuthToken(token);
@@ -2130,13 +2131,15 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String &user, con
             }
           }
 
-          // If user has a profile picture (from their S3 storage), skip setup and go straight to feed
-          // If they don't have one, show profile setup to let them upload one
-          if (!userState.profilePictureUrl.isEmpty()) {
-            Log::info("onLoginSuccess: User has S3 profile picture, showing PostsFeed");
+          // Check if profile is complete (has username or display name)
+          // ProfileSetup should only be shown if profile details are missing, not just if picture is missing
+          bool profileComplete = !userState.username.isEmpty() || !userState.displayName.isEmpty();
+
+          if (profileComplete) {
+            Log::info("onLoginSuccess: Profile is complete, showing PostsFeed");
             showView(AppView::PostsFeed);
           } else {
-            Log::info("onLoginSuccess: User has no S3 profile picture, showing ProfileSetup");
+            Log::info("onLoginSuccess: Profile is incomplete, showing ProfileSetup");
             showView(AppView::ProfileSetup);
           }
 
@@ -2210,7 +2213,7 @@ void SidechainAudioProcessorEditor::saveLoginState() {
   auto appProperties =
       std::make_unique<juce::PropertiesFile>(Sidechain::Util::PropertiesFileUtils::getStandardOptions());
 
-  if (!username.isEmpty()) {
+  if (!username.isEmpty() || !email.isEmpty()) {
     appProperties->setValue("isLoggedIn", true);
     appProperties->setValue("username", username);
     appProperties->setValue("email", email);
@@ -2219,15 +2222,17 @@ void SidechainAudioProcessorEditor::saveLoginState() {
 #ifndef NDEBUG
     // Debug build - also save token to local settings for persistence
     // (Release builds use SecureTokenStore)
-    juce::String token = appStore.getAuthState().authToken;
+    juce::String token = authToken;
     if (token.isEmpty()) {
-      // If AppStore doesn't have token, try to retrieve from member variables
-      // This is a fallback for compatibility
-      token = authToken;
+      // Fallback: try to retrieve from AppStore
+      token = appStore.getAuthState().authToken;
     }
     if (token.isNotEmpty()) {
       appProperties->setValue("authToken", token);
-      Log::debug("saveLoginState: Saved authToken to local settings (Debug build)");
+      Log::info("saveLoginState: Saved authToken to local settings (Debug build), token length=" +
+                juce::String(token.length()));
+    } else {
+      Log::warn("saveLoginState: authToken is empty, not saving");
     }
 #endif
   } else {

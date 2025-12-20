@@ -58,32 +58,21 @@ public:
     if (event.x >= getScrollableWidth(scrollBarWidth))
       return;
 
-    double scrollAmount = wheel.deltaY * 50.0;
+    double scrollAmount = wheel.deltaY * 100.0;
     double maxScrollPos = scrollBar->getMaximumRangeLimit();
     targetScrollPosition = juce::jlimit(0.0, maxScrollPos, scrollPosition - scrollAmount);
-
-    Log::debug(getComponentName() + "::mouseWheelMove - Scroll requested: current=" + juce::String(scrollPosition) +
-               ", target=" + juce::String(targetScrollPosition) + ", max=" + juce::String(maxScrollPos));
 
     // Cancel any existing animation
     if (scrollAnimationHandle.isValid()) {
       Sidechain::UI::Animations::AnimationController::getInstance().cancel(scrollAnimationHandle);
     }
 
-    // Create smooth scroll animation (200ms duration) with progress callback
-    auto scrollAnim =
-        Sidechain::UI::Animations::TransitionAnimation<double>::create(scrollPosition, targetScrollPosition, 200)
-            ->onProgress([this](const double &value) {
-              scrollPosition = value;
-              if (scrollBar) {
-                scrollBar->setCurrentRangeStart(scrollPosition, juce::dontSendNotification);
-              }
-              onScrollUpdate(scrollPosition);
-            });
-
-    scrollAnimationHandle = Sidechain::UI::Animations::AnimationController::getInstance().schedule(scrollAnim, nullptr);
-
-    Log::debug(getComponentName() + "::mouseWheelMove - Animation started");
+    // Instant scroll - no animation for responsive feel
+    scrollPosition = targetScrollPosition;
+    if (scrollBar) {
+      scrollBar->setCurrentRangeStart(scrollPosition, juce::dontSendNotification);
+    }
+    onScrollUpdate(scrollPosition);
   }
 
   // ==============================================================================

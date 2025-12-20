@@ -360,7 +360,7 @@ juce::Rectangle<int> CommentRow::getMoreButtonBounds() const {
 // ==============================================================================
 // ==============================================================================
 
-CommentsPanel::CommentsPanel() {
+CommentsPanel::CommentsPanel(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   setupUI();
   initialize(); // Subscribe to AppStore after UI setup
 }
@@ -546,9 +546,11 @@ void CommentsPanel::loadMoreComments() {
 }
 
 void CommentsPanel::updateCommentsList() {
+  Log::info("CommentsPanel::updateCommentsList: RENDERING " + juce::String(comments.size()) + " comments to UI");
   commentRows.clear();
 
   int yPos = 0;
+  int rowIndex = 0;
   for (const auto &comment : comments) {
     auto *row = new CommentRow();
     row->setComment(comment);
@@ -560,9 +562,14 @@ void CommentsPanel::updateCommentsList() {
     contentContainer->addAndMakeVisible(row);
     commentRows.add(row);
 
+    Log::debug("CommentsPanel::updateCommentsList: DREW comment #" + juce::String(rowIndex) + " - id: " + comment->id +
+               ", author: " + comment->username + ", content: " + comment->content.substring(0, 50) + "...");
+
     yPos += rowHeight;
+    rowIndex++;
   }
 
+  Log::info("CommentsPanel::updateCommentsList: DONE RENDERING - total height: " + juce::String(yPos));
   contentContainer->setSize(viewport->getWidth() - 10, yPos);
 }
 
@@ -743,9 +750,10 @@ void CommentsPanel::handleCommentDeleted(bool success, const juce::String &comme
 }
 
 void CommentsPanel::submitComment() {
+  Log::info("CommentsPanel::submitComment: SUBMIT BUTTON CLICKED");
+
   if (appStore == nullptr || currentPostId.isEmpty()) {
-    Log::warn("CommentsPanel::submitComment: Cannot submit - appStore "
-              "null or postId empty");
+    Log::error("CommentsPanel::submitComment: CANNOT SUBMIT - appStore null or postId empty");
     return;
   }
 
@@ -755,10 +763,14 @@ void CommentsPanel::submitComment() {
     return;
   }
 
+  Log::info("CommentsPanel::submitComment: Raw content: " + content);
+
   // Sanitize content before sending to prevent XSS
   // Normalize whitespace and escape HTML entities
   content = Validate::normalizeWhitespace(content);
   content = Validate::escapeHtml(content);
+
+  Log::info("CommentsPanel::submitComment: Sanitized content: " + content);
 
   // Check if we're editing an existing comment
   if (editCommentId.isNotEmpty()) {
@@ -766,6 +778,7 @@ void CommentsPanel::submitComment() {
               ", content length: " + juce::String(content.length()));
 
     if (appStore) {
+      Log::info("CommentsPanel::submitComment: CALLING appStore->updateComment()");
       appStore->updateComment(editCommentId, content);
     }
 
@@ -780,12 +793,16 @@ void CommentsPanel::submitComment() {
   // Determine if this is a reply
   juce::String parentId = replyingToCommentId;
 
-  Log::info("CommentsPanel::submitComment: Submitting comment - postId: " + currentPostId +
+  Log::info("CommentsPanel::submitComment: SUBMITTING NEW COMMENT - postId: " + currentPostId +
             ", content length: " + juce::String(content.length()) +
             (parentId.isNotEmpty() ? (", replying to: " + parentId) : ", top-level comment"));
 
   if (appStore) {
+    Log::info("CommentsPanel::submitComment: CALLING appStore->createComment() with content: " + content);
     appStore->createComment(currentPostId, content, parentId);
+    Log::info("CommentsPanel::submitComment: appStore->createComment() RETURNED");
+  } else {
+    Log::error("CommentsPanel::submitComment: appStore is null!");
   }
 }
 
@@ -794,6 +811,30 @@ void CommentsPanel::cancelReply() {
   replyingToUsername = "";
   // Also clear edit state when canceling reply
   editCommentId = "";
+}
+
+void CommentsPanel::autoSubmitTestComment() {
+  Log::info("CommentsPanel::autoSubmitTestComment: AUTO-TEST - Setting test comment text");
+
+  // Create test comment with timestamp
+  juce::Time now = juce::Time::getCurrentTime();
+  juce::String testComment = "AUTO-TEST COMMENT [" + now.formatted("%H:%M:%S") +
+                             "] - This is an automated test to verify comment submission and rendering flow.";
+
+  Log::info("CommentsPanel::autoSubmitTestComment: AUTO-TEST - Test comment text: " + testComment);
+
+  if (inputField) {
+    inputField->setText(testComment);
+    Log::info("CommentsPanel::autoSubmitTestComment: AUTO-TEST - Input field filled with test text");
+
+    // Wait a moment for UI to update, then submit
+    juce::Timer::callAfterDelay(500, [this]() {
+      Log::info("CommentsPanel::autoSubmitTestComment: AUTO-TEST - Calling submitComment() after delay");
+      submitComment();
+    });
+  } else {
+    Log::error("CommentsPanel::autoSubmitTestComment: AUTO-TEST - Input field is null!");
+  }
 }
 
 void CommentsPanel::timerCallback() {
@@ -1227,8 +1268,11 @@ void CommentsPanel::subscribeToAppStore() {
 }
 
 void CommentsPanel::onAppStateChanged(const Sidechain::Stores::CommentsState &state) {
+  Log::debug("CommentsPanel::onAppStateChanged: AppStore state changed for post: " + currentPostId);
+
   // Check if we have an error
   if (state.commentsError.isNotEmpty()) {
+    Log::error("CommentsPanel::onAppStateChanged: Comments error: " + state.commentsError);
     errorMessage = state.commentsError;
     repaint();
     return;
@@ -1236,6 +1280,7 @@ void CommentsPanel::onAppStateChanged(const Sidechain::Stores::CommentsState &st
 
   // Check loading state
   if (state.isLoadingCommentsForPost(currentPostId)) {
+    Log::debug("CommentsPanel::onAppStateChanged: Still loading comments for post: " + currentPostId);
     isLoading = true;
     repaint();
     return;
@@ -1244,11 +1289,23 @@ void CommentsPanel::onAppStateChanged(const Sidechain::Stores::CommentsState &st
   // Get comments for current post
   auto postComments = state.getCommentsForPost(currentPostId);
   if (!postComments.empty()) {
+    Log::info("CommentsPanel::onAppStateChanged: GOT " + juce::String(postComments.size()) +
+              " comments from AppStore for post: " + currentPostId);
     comments = postComments;
     totalCommentCount = state.totalCountByPostId.at(currentPostId.toStdString());
     isLoading = false;
     errorMessage.clear();
+    Log::info("CommentsPanel::onAppStateChanged: Calling updateCommentsList() to render comments");
     updateCommentsList();
+  } else {
+    Log::debug("CommentsPanel::onAppStateChanged: No comments found for post: " + currentPostId);
+
+    // Auto-submit test comment on first load (for automated testing)
+    if (!autoTestCommentSubmitted && !currentPostId.isEmpty()) {
+      Log::info("CommentsPanel::onAppStateChanged: AUTO-SUBMITTING TEST COMMENT FOR AUTOMATED TEST");
+      autoTestCommentSubmitted = true;
+      juce::MessageManager::callAsync([this]() { autoSubmitTestComment(); });
+    }
   }
 }
 

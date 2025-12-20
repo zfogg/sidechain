@@ -38,10 +38,10 @@ void AppStore::fetchUserProfile(bool forceRefresh) {
 
   Util::logInfo("AppStore", "Fetching user profile", "forceRefresh=" + juce::String(forceRefresh ? "true" : "false"));
 
-  userSlice->dispatch([](UserState &state) {
-    state.isFetchingProfile = true;
-    state.userError = "";
-  });
+  UserState newState = userSlice->getState();
+  newState.isFetchingProfile = true;
+  newState.userError = "";
+  userSlice->setState(newState);
 
   networkClient->getCurrentUser([this](Outcome<juce::var> result) {
     Log::debug("fetchUserProfile callback: result.isOk=" + juce::String(result.isOk() ? "true" : "false"));
@@ -67,21 +67,21 @@ void AppStore::updateProfile(const juce::String &username, const juce::String &d
   auto previousState = userSlice->getState();
 
   // Optimistic update
-  userSlice->dispatch([username, displayName, bio](UserState &state) {
-    if (!username.isEmpty())
-      state.username = username;
-    if (!displayName.isEmpty())
-      state.displayName = displayName;
-    if (!bio.isEmpty())
-      state.bio = bio;
-  });
+  UserState optimisticState = userSlice->getState();
+  if (!username.isEmpty())
+    optimisticState.username = username;
+  if (!displayName.isEmpty())
+    optimisticState.displayName = displayName;
+  if (!bio.isEmpty())
+    optimisticState.bio = bio;
+  userSlice->setState(optimisticState);
 
   networkClient->updateUserProfile(username, displayName, bio, [userSlice, previousState](Outcome<juce::var> result) {
     juce::MessageManager::callAsync([userSlice, previousState, result]() {
       if (!result.isOk()) {
         Util::logError("AppStore", "Failed to update profile: " + result.getError());
         // Revert on error
-        userSlice->dispatch([previousState](UserState &state) { state = previousState; });
+        userSlice->setState(previousState);
       }
     });
   });
@@ -94,10 +94,10 @@ void AppStore::setProfilePictureUrl(const juce::String &url) {
   Util::logInfo("AppStore", "Setting profile picture URL", "url=" + url);
 
   auto userSlice = sliceManager.getUserSlice();
-  userSlice->dispatch([url](UserState &state) {
-    state.profilePictureUrl = url;
-    state.isLoadingImage = true;
-  });
+  UserState newState = userSlice->getState();
+  newState.profilePictureUrl = url;
+  newState.isLoadingImage = true;
+  userSlice->setState(newState);
 
   // Download image asynchronously
   downloadProfileImage(url);
@@ -115,7 +115,9 @@ void AppStore::setLocalPreviewImage(const juce::File &imageFile) {
   Async::run<juce::Image>([imageFile]() { return juce::ImageFileFormat::loadFrom(imageFile); },
                           [userSlice](const juce::Image &image) {
                             if (image.isValid()) {
-                              userSlice->dispatch([image](UserState &state) { state.profileImage = image; });
+                              UserState newState = userSlice->getState();
+                              newState.profileImage = image;
+                              userSlice->setState(newState);
                             }
                           });
 }
@@ -139,14 +141,18 @@ void AppStore::setNotificationSoundEnabled(bool enabled) {
   Util::logDebug("AppStore", "Setting notification sound", "enabled=" + juce::String(enabled ? "true" : "false"));
 
   auto userSlice = sliceManager.getUserSlice();
-  userSlice->dispatch([enabled](UserState &state) { state.notificationSoundEnabled = enabled; });
+  UserState newState = userSlice->getState();
+  newState.notificationSoundEnabled = enabled;
+  userSlice->setState(newState);
 }
 
 void AppStore::setOSNotificationsEnabled(bool enabled) {
   Util::logDebug("AppStore", "Setting OS notifications", "enabled=" + juce::String(enabled ? "true" : "false"));
 
   auto userSlice = sliceManager.getUserSlice();
-  userSlice->dispatch([enabled](UserState &state) { state.osNotificationsEnabled = enabled; });
+  UserState newState = userSlice->getState();
+  newState.osNotificationsEnabled = enabled;
+  userSlice->setState(newState);
 }
 
 // ==============================================================================
@@ -156,21 +162,27 @@ void AppStore::updateFollowerCount(int count) {
   Util::logDebug("AppStore", "Updating follower count", "count=" + juce::String(count));
 
   auto userSlice = sliceManager.getUserSlice();
-  userSlice->dispatch([count](UserState &state) { state.followerCount = count; });
+  UserState newState = userSlice->getState();
+  newState.followerCount = count;
+  userSlice->setState(newState);
 }
 
 void AppStore::updateFollowingCount(int count) {
   Util::logDebug("AppStore", "Updating following count", "count=" + juce::String(count));
 
   auto userSlice = sliceManager.getUserSlice();
-  userSlice->dispatch([count](UserState &state) { state.followingCount = count; });
+  UserState newState = userSlice->getState();
+  newState.followingCount = count;
+  userSlice->setState(newState);
 }
 
 void AppStore::updatePostCount(int count) {
   Util::logDebug("AppStore", "Updating post count", "count=" + juce::String(count));
 
   auto userSlice = sliceManager.getUserSlice();
-  userSlice->dispatch([count](UserState &state) { state.postCount = count; });
+  UserState newState = userSlice->getState();
+  newState.postCount = count;
+  userSlice->setState(newState);
 }
 
 // ==============================================================================
@@ -194,7 +206,9 @@ void AppStore::changeUsername(const juce::String &newUsername) {
   networkClient->changeUsername(newUsername, [userSlice, newUsername](Outcome<juce::var> result) {
     juce::MessageManager::callAsync([userSlice, newUsername, result]() {
       if (result.isOk()) {
-        userSlice->dispatch([newUsername](UserState &state) { state.username = newUsername; });
+        UserState newState = userSlice->getState();
+        newState.username = newUsername;
+        userSlice->setState(newState);
         Util::logInfo("AppStore", "Username changed successfully");
       } else {
         Util::logError("AppStore", "Failed to change username: " + result.getError());
@@ -214,7 +228,9 @@ void AppStore::downloadProfileImage(const juce::String &url) {
 
   // Try cache first
   if (auto cached = imageCache.getImage(url)) {
-    userSlice->dispatch([cached](UserState &state) { state.profileImage = *cached; });
+    UserState newState = userSlice->getState();
+    newState.profileImage = *cached;
+    userSlice->setState(newState);
     return;
   }
 
@@ -241,7 +257,9 @@ void AppStore::downloadProfileImage(const juce::String &url) {
         }
       },
       [userSlice](const juce::Image &img) {
-        userSlice->dispatch([img](UserState &state) { state.profileImage = img; });
+        UserState newState = userSlice->getState();
+        newState.profileImage = img;
+        userSlice->setState(newState);
       });
 }
 
@@ -258,19 +276,31 @@ void AppStore::handleProfileFetchSuccess(const juce::var &data) {
 
   auto userSlice = sliceManager.getUserSlice();
 
-  userSlice->dispatch([data](UserState &state) {
-    state.userId = data.getProperty("id", "").toString();
-    state.username = data.getProperty("name", "").toString();
-    state.email = data.getProperty("email", "").toString();
-    state.bio = data.getProperty("bio", "").toString();
-    state.profilePictureUrl = data.getProperty("image", "").toString();
-    state.userError = "";
-    state.isFetchingProfile = false;
-    state.lastProfileUpdate = juce::Time::getCurrentTime().toMilliseconds();
-  });
+  UserState newState = userSlice->getState();
+  newState.userId = data.getProperty("id", "").toString();
+  newState.username = data.getProperty("username", "").toString();
+  newState.displayName = data.getProperty("display_name", "").toString();
+  newState.email = data.getProperty("email", "").toString();
+  newState.bio = data.getProperty("bio", "").toString();
+
+  // Use avatar_url (backend's effective avatar: S3 if available, else OAuth)
+  // This respects the backend's prioritization logic
+  juce::String profileUrl = data.getProperty("avatar_url", "").toString();
+  if (profileUrl.isEmpty()) {
+    // Fallback to explicit S3 URL if avatar_url is somehow missing
+    profileUrl = data.getProperty("profile_picture_url", "").toString();
+  }
+  if (profileUrl.isEmpty()) {
+    // Final fallback to OAuth URL
+    profileUrl = data.getProperty("oauth_profile_picture_url", "").toString();
+  }
+  newState.profilePictureUrl = profileUrl;
+  newState.userError = "";
+  newState.isFetchingProfile = false;
+  newState.lastProfileUpdate = juce::Time::getCurrentTime().toMilliseconds();
+  userSlice->setState(newState);
 
   // Download the profile image if URL is available
-  auto profileUrl = data.getProperty("image", "").toString();
   if (profileUrl.isNotEmpty()) {
     downloadProfileImage(profileUrl);
   }
@@ -279,10 +309,10 @@ void AppStore::handleProfileFetchSuccess(const juce::var &data) {
 void AppStore::handleProfileFetchError(const juce::String &error) {
   auto userSlice = sliceManager.getUserSlice();
 
-  userSlice->dispatch([error](UserState &state) {
-    state.userError = error;
-    state.isFetchingProfile = false;
-  });
+  UserState newState = userSlice->getState();
+  newState.userError = error;
+  newState.isFetchingProfile = false;
+  userSlice->setState(newState);
 }
 
 void AppStore::followUser(const juce::String &userId) {
@@ -295,7 +325,9 @@ void AppStore::followUser(const juce::String &userId) {
     juce::MessageManager::callAsync([userSlice, result]() {
       if (result.isOk()) {
         // Update following count
-        userSlice->dispatch([](UserState &state) { state.followingCount++; });
+        UserState newState = userSlice->getState();
+        newState.followingCount++;
+        userSlice->setState(newState);
       }
     });
   });
@@ -311,10 +343,10 @@ void AppStore::unfollowUser(const juce::String &userId) {
     juce::MessageManager::callAsync([userSlice, result]() {
       if (result.isOk()) {
         // Update following count
-        userSlice->dispatch([](UserState &state) {
-          if (state.followingCount > 0)
-            state.followingCount--;
-        });
+        UserState newState = userSlice->getState();
+        if (newState.followingCount > 0)
+          newState.followingCount--;
+        userSlice->setState(newState);
       }
     });
   });
@@ -325,17 +357,16 @@ void AppStore::updateProfileComplete(const juce::String &username, const juce::S
                                      const juce::var &socialLinks, bool isPrivate, const juce::String &dawPreference) {
   auto userSlice = sliceManager.getUserSlice();
 
-  userSlice->dispatch(
-      [username, displayName, bio, location, genre, socialLinks, isPrivate, dawPreference](UserState &state) {
-        state.username = username;
-        state.displayName = displayName;
-        state.bio = bio;
-        state.location = location;
-        state.genre = genre;
-        state.socialLinks = socialLinks;
-        state.isPrivate = isPrivate;
-        state.dawPreference = dawPreference;
-      });
+  UserState newState = userSlice->getState();
+  newState.username = username;
+  newState.displayName = displayName;
+  newState.bio = bio;
+  newState.location = location;
+  newState.genre = genre;
+  newState.socialLinks = socialLinks;
+  newState.isPrivate = isPrivate;
+  newState.dawPreference = dawPreference;
+  userSlice->setState(newState);
 }
 
 void AppStore::uploadProfilePicture(const juce::File &file) {
@@ -363,10 +394,10 @@ void AppStore::loadTrendingUsers() {
   Util::logInfo("AppStore", "Loading trending users");
 
   auto searchSlice = sliceManager.getSearchSlice();
-  searchSlice->dispatch([](SearchState &state) {
-    state.results.isSearching = true;
-    state.results.searchError = "";
-  });
+  SearchState newState = searchSlice->getState();
+  newState.results.isSearching = true;
+  newState.results.searchError = "";
+  searchSlice->setState(newState);
 
   networkClient->getTrendingUsers(20, [this](Outcome<juce::var> result) {
     juce::MessageManager::callAsync([this, result]() {
@@ -388,10 +419,10 @@ void AppStore::loadFeaturedProducers() {
   Util::logInfo("AppStore", "Loading featured producers");
 
   auto searchSlice = sliceManager.getSearchSlice();
-  searchSlice->dispatch([](SearchState &state) {
-    state.results.isSearching = true;
-    state.results.searchError = "";
-  });
+  SearchState newState = searchSlice->getState();
+  newState.results.isSearching = true;
+  newState.results.searchError = "";
+  searchSlice->setState(newState);
 
   networkClient->getFeaturedProducers(20, [this](Outcome<juce::var> result) {
     juce::MessageManager::callAsync([this, result]() {
@@ -413,10 +444,10 @@ void AppStore::loadSuggestedUsers() {
   Util::logInfo("AppStore", "Loading suggested users");
 
   auto searchSlice = sliceManager.getSearchSlice();
-  searchSlice->dispatch([](SearchState &state) {
-    state.results.isSearching = true;
-    state.results.searchError = "";
-  });
+  SearchState newState = searchSlice->getState();
+  newState.results.isSearching = true;
+  newState.results.searchError = "";
+  searchSlice->setState(newState);
 
   networkClient->getSuggestedUsers(20, [this](Outcome<juce::var> result) {
     juce::MessageManager::callAsync([this, result]() {
@@ -457,11 +488,11 @@ void AppStore::handleTrendingUsersSuccess(const juce::var &data) {
 
   // Update search state with users
   auto searchSlice = sliceManager.getSearchSlice();
-  searchSlice->dispatch([users](SearchState &state) {
-    state.results.users = users;
-    state.results.isSearching = false;
-    state.results.searchError = "";
-  });
+  SearchState newState = searchSlice->getState();
+  newState.results.users = users;
+  newState.results.isSearching = false;
+  newState.results.searchError = "";
+  searchSlice->setState(newState);
 
   Util::logInfo("AppStore", "Loaded " + juce::String(users.size()) + " trending users");
 }
@@ -491,11 +522,11 @@ void AppStore::handleFeaturedProducersSuccess(const juce::var &data) {
 
   // Update search state with users
   auto searchSlice = sliceManager.getSearchSlice();
-  searchSlice->dispatch([users](SearchState &state) {
-    state.results.users = users;
-    state.results.isSearching = false;
-    state.results.searchError = "";
-  });
+  SearchState newState = searchSlice->getState();
+  newState.results.users = users;
+  newState.results.isSearching = false;
+  newState.results.searchError = "";
+  searchSlice->setState(newState);
 
   Util::logInfo("AppStore", "Loaded " + juce::String(users.size()) + " featured producers");
 }
@@ -525,11 +556,11 @@ void AppStore::handleSuggestedUsersSuccess(const juce::var &data) {
 
   // Update search state with users
   auto searchSlice = sliceManager.getSearchSlice();
-  searchSlice->dispatch([users](SearchState &state) {
-    state.results.users = users;
-    state.results.isSearching = false;
-    state.results.searchError = "";
-  });
+  SearchState newState = searchSlice->getState();
+  newState.results.users = users;
+  newState.results.isSearching = false;
+  newState.results.searchError = "";
+  searchSlice->setState(newState);
 
   Util::logInfo("AppStore", "Loaded " + juce::String(users.size()) + " suggested users");
 }
@@ -541,30 +572,30 @@ void AppStore::handleTrendingUsersError(const juce::String &error) {
   Util::logError("AppStore", "Failed to load trending users: " + error);
 
   auto searchSlice = sliceManager.getSearchSlice();
-  searchSlice->dispatch([error](SearchState &state) {
-    state.results.isSearching = false;
-    state.results.searchError = error;
-  });
+  SearchState newState = searchSlice->getState();
+  newState.results.isSearching = false;
+  newState.results.searchError = error;
+  searchSlice->setState(newState);
 }
 
 void AppStore::handleFeaturedProducersError(const juce::String &error) {
   Util::logError("AppStore", "Failed to load featured producers: " + error);
 
   auto searchSlice = sliceManager.getSearchSlice();
-  searchSlice->dispatch([error](SearchState &state) {
-    state.results.isSearching = false;
-    state.results.searchError = error;
-  });
+  SearchState newState = searchSlice->getState();
+  newState.results.isSearching = false;
+  newState.results.searchError = error;
+  searchSlice->setState(newState);
 }
 
 void AppStore::handleSuggestedUsersError(const juce::String &error) {
   Util::logError("AppStore", "Failed to load suggested users: " + error);
 
   auto searchSlice = sliceManager.getSearchSlice();
-  searchSlice->dispatch([error](SearchState &state) {
-    state.results.isSearching = false;
-    state.results.searchError = error;
-  });
+  SearchState newState = searchSlice->getState();
+  newState.results.isSearching = false;
+  newState.results.searchError = error;
+  searchSlice->setState(newState);
 }
 
 // ==============================================================================
@@ -682,24 +713,25 @@ void AppStore::loadFollowers(const juce::String &userId, int limit, int offset) 
 
   Util::logInfo("AppStore", "Loading followers for user: " + userId);
 
-  // Redux Action: Set loading state
-  sliceManager.getFollowersSlice()->dispatch([userId](FollowersState &state) {
-    state.targetUserId = userId.toStdString();
-    state.listType = FollowersState::Followers;
-    state.isLoading = true;
-    state.errorMessage = "";
-    state.users.clear();
-  });
+  // Redux Action: Set loading state (immutable state instance)
+  sliceManager.getFollowersSlice()->setState(FollowersState({},                   // empty users vector
+                                                            true,                 // isLoading
+                                                            "",                   // no error yet
+                                                            0,                    // totalCount
+                                                            userId.toStdString(), // targetUserId
+                                                            FollowersState::Followers));
 
   // Network request to fetch followers
   networkClient->getFollowers(userId, limit, offset, [this, userId](Outcome<juce::var> result) {
     if (result.isError()) {
-      // Reducer: Create error state
+      // Reducer: Create immutable error state
       auto error = result.getError().toStdString();
-      sliceManager.getFollowersSlice()->dispatch([error](FollowersState &state) {
-        state.isLoading = false;
-        state.errorMessage = error;
-      });
+      auto currentState = sliceManager.getFollowersSlice()->getState();
+      sliceManager.getFollowersSlice()->setState(FollowersState(currentState.users,
+                                                                false, // isLoading
+                                                                error, // errorMessage
+                                                                currentState.totalCount, currentState.targetUserId,
+                                                                currentState.listType));
       return;
     }
 
@@ -726,28 +758,29 @@ void AppStore::loadFollowers(const juce::String &userId, int limit, int offset) 
         }
       }
 
-      // Step 2: Reducer - Create new immutable FollowersState
-      sliceManager.getFollowersSlice()->dispatch([users](FollowersState &state) {
-        state.isLoading = false;
-        state.errorMessage = "";
-        state.totalCount = static_cast<int>(users.size());
-
-        // Convert mutable users to immutable for state
-        state.users.clear();
-        for (const auto &user : users) {
-          state.users.push_back(std::const_pointer_cast<const Sidechain::User>(user));
-        }
-      });
+      // Step 2: Reducer - Create new immutable FollowersState with loaded users
+      std::vector<std::shared_ptr<const Sidechain::User>> immutableUsers;
+      for (const auto &user : users) {
+        immutableUsers.push_back(std::const_pointer_cast<const Sidechain::User>(user));
+      }
+      auto currentState = sliceManager.getFollowersSlice()->getState();
+      sliceManager.getFollowersSlice()->setState(FollowersState(immutableUsers,
+                                                                false,                          // isLoading
+                                                                "",                             // no error
+                                                                static_cast<int>(users.size()), // totalCount
+                                                                currentState.targetUserId, currentState.listType));
 
       Util::logInfo("AppStore", "Loaded " + juce::String(users.size()) + " followers");
 
     } catch (const std::exception &e) {
-      // Reducer: Create error state
+      // Reducer: Create immutable error state
       auto error = std::string(e.what());
-      sliceManager.getFollowersSlice()->dispatch([error](FollowersState &state) {
-        state.isLoading = false;
-        state.errorMessage = error;
-      });
+      auto currentState = sliceManager.getFollowersSlice()->getState();
+      sliceManager.getFollowersSlice()->setState(FollowersState(currentState.users,
+                                                                false, // isLoading
+                                                                error, // errorMessage
+                                                                currentState.totalCount, currentState.targetUserId,
+                                                                currentState.listType));
       Util::logError("AppStore", "Failed to load followers: " + juce::String(e.what()));
     }
   });
@@ -766,24 +799,25 @@ void AppStore::loadFollowing(const juce::String &userId, int limit, int offset) 
 
   Util::logInfo("AppStore", "Loading following for user: " + userId);
 
-  // Redux Action: Set loading state
-  sliceManager.getFollowersSlice()->dispatch([userId](FollowersState &state) {
-    state.targetUserId = userId.toStdString();
-    state.listType = FollowersState::Following;
-    state.isLoading = true;
-    state.errorMessage = "";
-    state.users.clear();
-  });
+  // Redux Action: Set loading state (immutable state instance)
+  sliceManager.getFollowersSlice()->setState(FollowersState({},                   // empty users vector
+                                                            true,                 // isLoading
+                                                            "",                   // no error yet
+                                                            0,                    // totalCount
+                                                            userId.toStdString(), // targetUserId
+                                                            FollowersState::Following));
 
   // Network request to fetch following
   networkClient->getFollowing(userId, limit, offset, [this, userId](Outcome<juce::var> result) {
     if (result.isError()) {
-      // Reducer: Create error state
+      // Reducer: Create immutable error state
       auto error = result.getError().toStdString();
-      sliceManager.getFollowersSlice()->dispatch([error](FollowersState &state) {
-        state.isLoading = false;
-        state.errorMessage = error;
-      });
+      auto currentState = sliceManager.getFollowersSlice()->getState();
+      sliceManager.getFollowersSlice()->setState(FollowersState(currentState.users,
+                                                                false, // isLoading
+                                                                error, // errorMessage
+                                                                currentState.totalCount, currentState.targetUserId,
+                                                                currentState.listType));
       return;
     }
 
@@ -810,28 +844,29 @@ void AppStore::loadFollowing(const juce::String &userId, int limit, int offset) 
         }
       }
 
-      // Step 2: Reducer - Create new immutable FollowersState
-      sliceManager.getFollowersSlice()->dispatch([users](FollowersState &state) {
-        state.isLoading = false;
-        state.errorMessage = "";
-        state.totalCount = static_cast<int>(users.size());
-
-        // Convert mutable users to immutable for state
-        state.users.clear();
-        for (const auto &user : users) {
-          state.users.push_back(std::const_pointer_cast<const Sidechain::User>(user));
-        }
-      });
+      // Step 2: Reducer - Create new immutable FollowersState with loaded users
+      std::vector<std::shared_ptr<const Sidechain::User>> immutableUsers;
+      for (const auto &user : users) {
+        immutableUsers.push_back(std::const_pointer_cast<const Sidechain::User>(user));
+      }
+      auto currentState = sliceManager.getFollowersSlice()->getState();
+      sliceManager.getFollowersSlice()->setState(FollowersState(immutableUsers,
+                                                                false,                          // isLoading
+                                                                "",                             // no error
+                                                                static_cast<int>(users.size()), // totalCount
+                                                                currentState.targetUserId, currentState.listType));
 
       Util::logInfo("AppStore", "Loaded " + juce::String(users.size()) + " following");
 
     } catch (const std::exception &e) {
       // Reducer: Create error state
       auto error = std::string(e.what());
-      sliceManager.getFollowersSlice()->dispatch([error](FollowersState &state) {
-        state.isLoading = false;
-        state.errorMessage = error;
-      });
+      auto currentState = sliceManager.getFollowersSlice()->getState();
+      sliceManager.getFollowersSlice()->setState(FollowersState(currentState.users,
+                                                                false, // isLoading
+                                                                error, // errorMessage
+                                                                currentState.totalCount, currentState.targetUserId,
+                                                                currentState.listType));
       Util::logError("AppStore", "Failed to load following: " + juce::String(e.what()));
     }
   });

@@ -11,7 +11,9 @@ void AppStore::loadFeaturedSounds() {
     return;
   }
 
-  sliceManager.getSoundSlice()->dispatch([](SoundState &state) { state.isFeaturedLoading = true; });
+  SoundState newState = sliceManager.getSoundSlice()->getState();
+  newState.isFeaturedLoading = true;
+  sliceManager.getSoundSlice()->setState(newState);
 
   networkClient->getTrendingSounds(20, [this](Outcome<juce::var> result) {
     if (result.isOk()) {
@@ -33,18 +35,18 @@ void AppStore::loadFeaturedSounds() {
         }
       }
 
-      sliceManager.getSoundSlice()->dispatch([soundsList](SoundState &state) {
-        state.featuredSounds = soundsList;
-        state.isFeaturedLoading = false;
-        state.soundError = "";
-        Util::logInfo("AppStore", "Loaded " + juce::String(soundsList.size()) + " featured sounds");
-      });
+      SoundState successState = sliceManager.getSoundSlice()->getState();
+      successState.featuredSounds = soundsList;
+      successState.isFeaturedLoading = false;
+      successState.soundError = "";
+      Util::logInfo("AppStore", "Loaded " + juce::String(soundsList.size()) + " featured sounds");
+      sliceManager.getSoundSlice()->setState(successState);
     } else {
-      sliceManager.getSoundSlice()->dispatch([result](SoundState &state) {
-        state.isFeaturedLoading = false;
-        state.soundError = result.getError();
-        Util::logError("AppStore", "Failed to load featured sounds: " + result.getError());
-      });
+      SoundState errorState = sliceManager.getSoundSlice()->getState();
+      errorState.isFeaturedLoading = false;
+      errorState.soundError = result.getError();
+      Util::logError("AppStore", "Failed to load featured sounds: " + result.getError());
+      sliceManager.getSoundSlice()->setState(errorState);
     }
   });
 }
@@ -55,7 +57,9 @@ void AppStore::loadRecentSounds() {
     return;
   }
 
-  sliceManager.getSoundSlice()->dispatch([](SoundState &state) { state.isLoading = true; });
+  SoundState loadState = sliceManager.getSoundSlice()->getState();
+  loadState.isLoading = true;
+  sliceManager.getSoundSlice()->setState(loadState);
 
   // Use searchSounds with empty query to get recent sounds
   networkClient->searchSounds("", 20, [this](Outcome<juce::var> result) {
@@ -78,18 +82,18 @@ void AppStore::loadRecentSounds() {
         }
       }
 
-      sliceManager.getSoundSlice()->dispatch([soundsList](SoundState &state) {
-        state.recentSounds = soundsList;
-        state.isLoading = false;
-        state.soundError = "";
-        state.recentOffset = soundsList.size();
-        Util::logInfo("AppStore", "Loaded " + juce::String(soundsList.size()) + " recent sounds");
-      });
+      SoundState recentState = sliceManager.getSoundSlice()->getState();
+      recentState.recentSounds = soundsList;
+      recentState.isLoading = false;
+      recentState.soundError = "";
+      recentState.recentOffset = static_cast<int>(soundsList.size());
+      Util::logInfo("AppStore", "Loaded " + juce::String(soundsList.size()) + " recent sounds");
+      sliceManager.getSoundSlice()->setState(recentState);
     } else {
-      sliceManager.getSoundSlice()->dispatch([result](SoundState &state) {
-        state.isLoading = false;
-        state.soundError = result.getError();
-      });
+      SoundState recentErrorState = sliceManager.getSoundSlice()->getState();
+      recentErrorState.isLoading = false;
+      recentErrorState.soundError = result.getError();
+      sliceManager.getSoundSlice()->setState(recentErrorState);
     }
   });
 }
@@ -125,12 +129,12 @@ void AppStore::loadMoreSounds() {
         }
       }
 
-      sliceManager.getSoundSlice()->dispatch([newSounds](SoundState &state) {
-        for (const auto &sound : newSounds) {
-          state.recentSounds.push_back(sound);
-        }
-        state.recentOffset += newSounds.size();
-      });
+      SoundState moreState = sliceManager.getSoundSlice()->getState();
+      for (const auto &sound : newSounds) {
+        moreState.recentSounds.push_back(sound);
+      }
+      moreState.recentOffset += newSounds.size();
+      sliceManager.getSoundSlice()->setState(moreState);
     }
   });
 }
@@ -138,10 +142,10 @@ void AppStore::loadMoreSounds() {
 void AppStore::refreshSounds() {
   Util::logInfo("AppStore", "Refreshing sounds");
 
-  sliceManager.getSoundSlice()->dispatch([](SoundState &state) {
-    state.isRefreshing = true;
-    state.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
-  });
+  SoundState refreshState = sliceManager.getSoundSlice()->getState();
+  refreshState.isRefreshing = true;
+  refreshState.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
+  sliceManager.getSoundSlice()->setState(refreshState);
 
   // Load both featured and recent sounds
   loadFeaturedSounds();

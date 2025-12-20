@@ -29,10 +29,13 @@ juce::File AppStore::getCachedAudio(const juce::String &url) {
 
 rxcpp::observable<juce::Image> AppStore::loadImageObservable(const juce::String &url) {
   return rxcpp::sources::create<juce::Image>([this, url](auto observer) {
-    getImage(url, [observer](const juce::Image &image) {
+    Log::debug("AppStore::loadImageObservable: Loading " + url);
+    getImage(url, [observer, url](const juce::Image &image) {
       if (image.isValid()) {
+        Log::info("AppStore::loadImageObservable: Loaded successfully - " + url);
         observer.on_next(image);
       } else {
+        Log::warn("AppStore::loadImageObservable: Image invalid after download - " + url);
         observer.on_next(juce::Image()); // Emit empty image on error
       }
       observer.on_completed();
@@ -131,40 +134,86 @@ void AppStore::getImage(const juce::String &url, std::function<void(const juce::
 
   // Try memory cache first
   if (auto cached = imageCache.getImage(url)) {
-    Util::logDebug("AppStore", "Image cache hit: " + url);
+    Log::info("AppStore::getImage: Cache hit - " + url);
     callback(*cached);
     return;
   }
+
+  Log::debug("AppStore::getImage: Cache miss, downloading - " + url);
 
   // Download image on background thread
   Async::run<juce::Image>(
       [this, url]() {
         try {
-          Util::logDebug("AppStore", "Image downloading: " + url);
+          Log::debug("AppStore::getImage: Starting download - " + url);
           juce::URL imageUrl(url);
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-          auto inputStream =
-              imageUrl.createInputStream(false, nullptr, nullptr, "User-Agent: Sidechain/1.0", 5000, nullptr);
+          // Follow redirects (true), handle auth properly, 5s timeout
+          // Note: Don't send custom User-Agent as some servers may reject it
+          auto inputStream = imageUrl.createInputStream(true, nullptr, nullptr, juce::String(), 5000, nullptr);
 #pragma clang diagnostic pop
 
           if (inputStream == nullptr) {
-            Util::logWarning("AppStore", "Failed to open image stream for " + url);
+            Log::warn("AppStore::getImage: Failed to open image stream for " + url);
             return juce::Image();
           }
 
-          auto image = juce::ImageFileFormat::loadFrom(*inputStream);
-          if (image.isValid()) {
-            Util::logInfo("AppStore", "Image downloaded: " + url);
-            imageCache.cacheImage(url, image);
-          } else {
-            Util::logWarning("AppStore", "Failed to decode image from " + url);
+          Log::debug("AppStore::getImage: Stream opened - " + url);
+
+          // Read all data from stream into memory
+          // Note: getTotalLength() might return incorrect value, so we read incrementally
+          std::vector<char> buffer;
+          const int READ_CHUNK_SIZE = 8192;
+          char chunk[READ_CHUNK_SIZE];
+          int bytesRead;
+
+          while ((bytesRead = inputStream->read(chunk, READ_CHUNK_SIZE)) > 0) {
+            buffer.insert(buffer.end(), chunk, chunk + bytesRead);
           }
 
-          return image;
+          int64_t streamLength = buffer.size();
+          Log::debug("AppStore::getImage: Read " + juce::String(streamLength) + " bytes");
+
+          // Check magic bytes to identify format
+          if (streamLength >= 4) {
+            unsigned char byte0 = static_cast<unsigned char>(buffer[0]);
+            unsigned char byte1 = static_cast<unsigned char>(buffer[1]);
+            unsigned char byte2 = static_cast<unsigned char>(buffer[2]);
+            unsigned char byte3 = static_cast<unsigned char>(buffer[3]);
+
+            // If it's HTML (starts with <html or <meta, etc), log the error
+            if (byte0 == 0x3C && (byte1 == 0x68 || byte1 == 0x6D || byte1 == 0x21)) {
+              // It's an HTML error response
+              std::string htmlPreview(buffer.begin(),
+                                      buffer.begin() + juce::jmin(static_cast<int>(buffer.size()), 200));
+              Log::warn("AppStore::getImage: Got HTML response instead of image from " + url);
+              Log::warn("AppStore::getImage: HTML preview: " + juce::String(htmlPreview));
+              return juce::Image();
+            }
+          }
+
+          if (streamLength > 0) {
+            juce::MemoryInputStream memIn(buffer.data(), streamLength, false);
+            auto image = juce::ImageFileFormat::loadFrom(memIn);
+
+            if (image.isValid()) {
+              Log::info("AppStore::getImage: Image decoded successfully - " + juce::String(image.getWidth()) + "x" +
+                        juce::String(image.getHeight()) + " from " + url);
+              imageCache.cacheImage(url, image);
+            } else {
+              Log::warn("AppStore::getImage: Failed to decode image (" + juce::String(streamLength) + " bytes) from " +
+                        url);
+            }
+
+            return image;
+          } else {
+            Log::warn("AppStore::getImage: Stream has no data from " + url);
+            return juce::Image();
+          }
         } catch (const std::exception &e) {
-          Util::logError("AppStore", "Image fetch error: " + juce::String(e.what()));
+          Log::error("AppStore::getImage: Image fetch error: " + juce::String(e.what()));
           return juce::Image();
         }
       },

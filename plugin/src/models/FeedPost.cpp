@@ -262,6 +262,24 @@ void from_json(const nlohmann::json &j, FeedPost &post) {
   JSON_OPTIONAL_STRING(j, "username", post.username, "");
   JSON_OPTIONAL_STRING(j, "user_avatar_url", post.userAvatarUrl, "");
 
+  // Extract user info from nested user object (getstream.io format)
+  if (j.contains("user") && j["user"].is_object()) {
+    const auto &userObj = j["user"];
+    // If we don't already have userId, get it from user.id
+    if (post.userId.isEmpty() && userObj.contains("id") && userObj["id"].is_string()) {
+      post.userId = Json::toJuceString(userObj["id"].get<std::string>());
+    }
+    // If we don't already have username, get it from user.username
+    if (post.username.isEmpty() && userObj.contains("username") && userObj["username"].is_string()) {
+      post.username = Json::toJuceString(userObj["username"].get<std::string>());
+    }
+    // Get avatar_url from user.avatar_url (this is the primary source)
+    if (userObj.contains("avatar_url") && userObj["avatar_url"].is_string()) {
+      juce::String avatarUrl = Json::toJuceString(userObj["avatar_url"].get<std::string>());
+      post.userAvatarUrl = avatarUrl;
+    }
+  }
+
   // Audio metadata
   JSON_OPTIONAL_STRING(j, "audio_url", post.audioUrl, "");
   JSON_OPTIONAL_STRING(j, "waveform", post.waveformSvg, "");
@@ -309,9 +327,8 @@ void from_json(const nlohmann::json &j, FeedPost &post) {
       }
     }
   } else if (j.contains("genre")) {
-    // Single genre as string
-    JSON_OPTIONAL_STRING(j, "genre", post.genres, "");
-    if (post.genres.size() == 0 && j["genre"].is_string()) {
+    // Single genre as string (only if it's actually a string)
+    if (j["genre"].is_string()) {
       post.genres.add(Json::toJuceString(j["genre"].get<std::string>()));
     }
   }

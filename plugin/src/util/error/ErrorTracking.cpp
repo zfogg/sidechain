@@ -175,7 +175,6 @@ juce::var ErrorTracker::exportAsJson() const {
     obj->setProperty("occurrenceCount", error.occurrenceCount);
 
     // Convert timestamp to ISO 8601 string
-    auto timestamp = error.timestamp.time_since_epoch().count();
     auto timeT = std::chrono::system_clock::to_time_t(error.timestamp);
     std::ostringstream oss;
     oss << std::put_time(std::gmtime(&timeT), "%Y-%m-%dT%H:%M:%SZ");

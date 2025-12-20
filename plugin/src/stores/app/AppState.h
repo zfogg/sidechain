@@ -89,7 +89,15 @@ enum class FeedType {
   UserActivityAggregated
 };
 
+/**
+ * FeedState - Immutable feed state for a specific feed type
+ * Stored by value in ImmutableSlice<PostsState>
+ * All changes create new state instances via setState()
+ */
 struct FeedState {
+  // Explicit default constructor for immutable state creation
+  FeedState() = default;
+
   // Store shared_ptr to posts - same memory shared across app, freed when all references drop (RAII)
   std::vector<std::shared_ptr<Sidechain::FeedPost>> posts;
   bool isLoading = false;
@@ -103,7 +111,15 @@ struct FeedState {
   int64_t lastUpdated = 0;
 };
 
+/**
+ * SavedPostsState - Immutable saved posts state
+ * Stored by value in ImmutableSlice<PostsState>
+ * All changes create new state instances via setState()
+ */
 struct SavedPostsState {
+  // Explicit default constructor for immutable state creation
+  SavedPostsState() = default;
+
   std::vector<std::shared_ptr<Sidechain::FeedPost>> posts;
   bool isLoading = false;
   juce::String error;
@@ -114,7 +130,15 @@ struct SavedPostsState {
   int64_t lastUpdated = 0;
 };
 
+/**
+ * ArchivedPostsState - Immutable archived posts state
+ * Stored by value in ImmutableSlice<PostsState>
+ * All changes create new state instances via setState()
+ */
 struct ArchivedPostsState {
+  // Explicit default constructor for immutable state creation
+  ArchivedPostsState() = default;
+
   std::vector<std::shared_ptr<Sidechain::FeedPost>> posts;
   bool isLoading = false;
   juce::String error;
@@ -125,7 +149,15 @@ struct ArchivedPostsState {
   int64_t lastUpdated = 0;
 };
 
+/**
+ * AggregatedFeedState - Immutable aggregated feed state
+ * Stored by value in ImmutableSlice<PostsState>
+ * All changes create new state instances via setState()
+ */
 struct AggregatedFeedState {
+  // Explicit default constructor for immutable state creation
+  AggregatedFeedState() = default;
+
   juce::Array<AggregatedFeedGroup> groups;
   bool isLoading = false;
   juce::String error;
@@ -137,6 +169,9 @@ struct AggregatedFeedState {
 };
 
 struct PostsState {
+  // Explicit default constructor for immutable state creation
+  PostsState() = default;
+
   std::map<FeedType, FeedState> feeds;
   std::map<FeedType, AggregatedFeedState> aggregatedFeeds;
   FeedType currentFeedType = FeedType::Timeline;
@@ -201,10 +236,14 @@ struct UserState {
 // ==============================================================================
 
 /**
- * ChatState - Immutable chat and messaging state
+ * ChannelState - Immutable chat channel state
  * Stored by value in ImmutableSlice<ChatState>
+ * All changes create new state instances via setState()
  */
 struct ChannelState {
+  // Explicit default constructor for immutable state creation
+  ChannelState() = default;
+
   juce::String id;
   juce::String name;
   std::vector<std::shared_ptr<Sidechain::Message>> messages;
@@ -213,6 +252,11 @@ struct ChannelState {
   int unreadCount = 0;
 };
 
+/**
+ * ChatState - Immutable chat and messaging state
+ * Stored by value in ImmutableSlice<ChatState>
+ * All changes create new state instances via setState()
+ */
 struct ChatState {
   std::map<juce::String, ChannelState> channels;
   std::vector<std::shared_ptr<Sidechain::Conversation>> conversations;
@@ -289,10 +333,14 @@ struct CommentsState {
 // ==============================================================================
 
 /**
- * SearchState - Immutable search results state
+ * SearchResultsState - Immutable search results state
  * Stored by value in ImmutableSlice<SearchState>
+ * All changes create new state instances via setState()
  */
 struct SearchResultsState {
+  // Explicit default constructor for immutable state creation
+  SearchResultsState() = default;
+
   std::vector<std::shared_ptr<Sidechain::FeedPost>> posts;
   std::vector<std::shared_ptr<Sidechain::User>> users;
   juce::String searchQuery;
@@ -306,13 +354,29 @@ struct SearchResultsState {
   int64_t lastSearchTime = 0;
 };
 
+/**
+ * GenresState - Immutable genres list state
+ * Stored by value in ImmutableSlice<SearchState>
+ * All changes create new state instances via setState()
+ */
 struct GenresState {
+  // Explicit default constructor for immutable state creation
+  GenresState() = default;
+
   juce::StringArray genres;
   bool isLoading = false;
   juce::String genresError;
 };
 
+/**
+ * SearchState - Immutable combined search state (results + genres)
+ * Stored by value in ImmutableSlice<SearchState>
+ * All changes create new state instances via setState()
+ */
 struct SearchState {
+  // Explicit default constructor for immutable state creation
+  SearchState() = default;
+
   SearchResultsState results;
   GenresState genres;
 };
@@ -377,7 +441,14 @@ struct DiscoveryState {
  */
 enum class PresenceStatus { Unknown, Online, Away, Offline, DoNotDisturb };
 
+/**
+ * PresenceInfo - Immutable user presence information
+ * Used within PresenceState
+ */
 struct PresenceInfo {
+  // Explicit default constructor for immutable state creation
+  PresenceInfo() = default;
+
   juce::String userId;
   PresenceStatus status = PresenceStatus::Unknown;
   int64_t lastSeen = 0;
@@ -398,7 +469,15 @@ struct PresenceState {
 // Stories State
 // ==============================================================================
 
+/**
+ * StoriesState - Immutable stories state
+ * Stored by value in ImmutableSlice<StoriesState>
+ * All changes create new state instances via setState()
+ */
 struct StoriesState {
+  // Explicit default constructor for immutable state creation
+  StoriesState() = default;
+
   std::vector<std::shared_ptr<Sidechain::Story>> feedUserStories;
   std::vector<std::shared_ptr<Sidechain::Story>> myStories;
   std::vector<std::shared_ptr<Sidechain::Story>> highlights;
@@ -411,7 +490,15 @@ struct StoriesState {
 // Upload State
 // ==============================================================================
 
+/**
+ * UploadState - Immutable upload progress state
+ * Stored by value in ImmutableSlice<UploadState>
+ * All changes create new state instances via setState()
+ */
 struct UploadState {
+  // Explicit default constructor for immutable state creation
+  UploadState() = default;
+
   bool isUploading = false;
   int progress = 0;
   juce::String currentFileName;
@@ -423,7 +510,15 @@ struct UploadState {
 // Playlists State
 // ==============================================================================
 
+/**
+ * PlaylistState - Immutable playlists state
+ * Stored by value in ImmutableSlice<PlaylistState>
+ * All changes create new state instances via setState()
+ */
 struct PlaylistState {
+  // Explicit default constructor for immutable state creation
+  PlaylistState() = default;
+
   std::vector<std::shared_ptr<Sidechain::Playlist>> playlists;
   bool isLoading = false;
   juce::String playlistError;
@@ -433,7 +528,15 @@ struct PlaylistState {
 // Challenges State
 // ==============================================================================
 
+/**
+ * ChallengeState - Immutable challenges state
+ * Stored by value in ImmutableSlice<ChallengeState>
+ * All changes create new state instances via setState()
+ */
 struct ChallengeState {
+  // Explicit default constructor for immutable state creation
+  ChallengeState() = default;
+
   std::vector<std::shared_ptr<Sidechain::MIDIChallenge>> challenges;
   bool isLoading = false;
   juce::String challengeError;
@@ -443,7 +546,15 @@ struct ChallengeState {
 // Sound State
 // ==============================================================================
 
+/**
+ * SoundState - Immutable sound data state
+ * Stored by value in ImmutableSlice<SoundState>
+ * All changes create new state instances via setState()
+ */
 struct SoundState {
+  // Explicit default constructor for immutable state creation
+  SoundState() = default;
+
   std::shared_ptr<Sidechain::Sound> soundData;
   bool isLoading = false;
   bool isRefreshing = false;
@@ -463,7 +574,15 @@ struct SoundState {
 // Draft State
 // ==============================================================================
 
+/**
+ * DraftState - Immutable drafts state
+ * Stored by value in ImmutableSlice<DraftState>
+ * All changes create new state instances via setState()
+ */
 struct DraftState {
+  // Explicit default constructor for immutable state creation
+  DraftState() = default;
+
   std::vector<std::shared_ptr<Sidechain::Draft>> drafts;
   bool isLoading = false;
   juce::String draftError;
