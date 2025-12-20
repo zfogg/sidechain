@@ -20,7 +20,7 @@ FollowUserRow::FollowUserRow() {
   setSize(400, ROW_HEIGHT);
 
   // Set up hover state - triggers visual feedback on hover
-  hoverState.onHoverChanged = [this](bool hovered) {
+  hoverState.onHoverChanged = [this]([[maybe_unused]] bool hovered) {
     // Repaint to show/hide hover effects (highlight, follow button)
     repaint();
   };
@@ -180,14 +180,16 @@ juce::Rectangle<int> FollowUserRow::getFollowButtonBounds() const {
 // FollowersList Implementation
 // ==============================================================================
 
-FollowersList::FollowersList() {
+FollowersList::FollowersList(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   Log::info("FollowersList: Initializing");
   setupUI();
+  initialize(); // Subscribe to AppStore after UI setup
 }
 
 FollowersList::~FollowersList() {
   Log::debug("FollowersList: Destroying");
   stopTimer();
+  // AppStoreComponent destructor handles storeUnsubscriber cleanup
 }
 
 void FollowersList::setupUI() {
@@ -216,18 +218,8 @@ void FollowersList::loadList(const juce::String &userId, ListType type) {
   juce::String typeStr = type == ListType::Followers ? "followers" : "following";
   Log::info("FollowersList: Loading " + typeStr + " for user: " + userId);
 
-  // Redux: Subscribe to immutable FollowersSlice from AppStore
-  // Component gets notified whenever the slice changes (loading, users, errors)
-  auto &sliceManager = Sidechain::Stores::Slices::AppSliceManager::getInstance();
-  sliceManager.getFollowersSlice()->subscribe([this](const Sidechain::Stores::FollowersState &state) {
-    // Received new immutable state snapshot
-    currentSlice = state;
-    updateUsersList();
-    repaint();
-  });
-
-  // Redux: Dispatch action to load followers or following
-  // Action will normalize JSON → cache in EntityStore → update FollowersSlice
+  // Dispatch action to load followers or following via AppStore
+  // AppStore will update FollowersState slice
   if (type == ListType::Followers) {
     appStore->loadFollowers(userId, 20, 0);
   } else {
@@ -236,22 +228,22 @@ void FollowersList::loadList(const juce::String &userId, ListType type) {
 }
 
 void FollowersList::refresh() {
-  if (currentSlice.targetUserId.empty()) {
+  if (currentState.targetUserId.empty()) {
     return;
   }
 
-  // Re-load from the target user stored in current slice
-  auto targetUserIdStr = juce::String(currentSlice.targetUserId);
-  auto type = (currentSlice.listType == FollowersState::Followers) ? ListType::Followers : ListType::Following;
+  // Re-load from the target user stored in current state
+  auto targetUserIdStr = juce::String(currentState.targetUserId);
+  auto type = (currentState.listType == FollowersState::Followers) ? ListType::Followers : ListType::Following;
   loadList(targetUserIdStr, type);
 }
 
 void FollowersList::updateUsersList() {
-  // Render users from immutable FollowersSlice state
+  // Render users from immutable FollowersState
   userRows.clear();
 
   int yPos = 0;
-  for (const auto &user : currentSlice.users) {
+  for (const auto &user : currentState.users) {
     if (!user) {
       continue;
     }
@@ -306,35 +298,35 @@ void FollowersList::paint(juce::Graphics &g) {
   auto headerBounds = getLocalBounds().removeFromTop(HEADER_HEIGHT);
   UIHelpers::drawCard(g, headerBounds, SidechainColors::backgroundLight());
 
-  // Header title from immutable slice state
+  // Header title from immutable state
   g.setColour(SidechainColors::textPrimary());
   g.setFont(16.0f);
-  juce::String title = (currentSlice.listType == FollowersState::Followers) ? "Followers" : "Following";
-  if (currentSlice.totalCount > 0) {
-    title += " (" + juce::String(currentSlice.totalCount) + ")";
+  juce::String title = (currentState.listType == FollowersState::Followers) ? "Followers" : "Following";
+  if (currentState.totalCount > 0) {
+    title += " (" + juce::String(currentState.totalCount) + ")";
   }
   g.drawText(title, headerBounds.withTrimmedLeft(15), juce::Justification::centredLeft);
 
   // Loading indicator
-  if (currentSlice.isLoading && currentSlice.users.empty()) {
+  if (currentState.isLoading && currentState.users.empty()) {
     g.setColour(SidechainColors::textMuted());
     g.setFont(12.0f);
     g.drawText("Loading...", getLocalBounds(), juce::Justification::centred);
   }
 
   // Error message
-  if (!currentSlice.errorMessage.empty()) {
+  if (!currentState.errorMessage.empty()) {
     g.setColour(SidechainColors::buttonDanger());
     g.setFont(12.0f);
-    g.drawText(juce::String(currentSlice.errorMessage), getLocalBounds(), juce::Justification::centred);
+    g.drawText(juce::String(currentState.errorMessage), getLocalBounds(), juce::Justification::centred);
   }
 
   // Empty state
-  if (!currentSlice.isLoading && currentSlice.users.empty() && currentSlice.errorMessage.empty()) {
+  if (!currentState.isLoading && currentState.users.empty() && currentState.errorMessage.empty()) {
     g.setColour(SidechainColors::textMuted());
     g.setFont(14.0f);
     juce::String emptyText =
-        (currentSlice.listType == FollowersState::Followers) ? "No followers yet" : "Not following anyone yet";
+        (currentState.listType == FollowersState::Followers) ? "No followers yet" : "Not following anyone yet";
     g.drawText(emptyText, getLocalBounds(), juce::Justification::centred);
   }
 }
@@ -352,4 +344,36 @@ void FollowersList::resized() {
   viewport->setBounds(bounds);
   contentContainer->setSize(viewport->getWidth() - 10, contentContainer->getHeight());
   updateUsersList();
+}
+
+void FollowersList::subscribeToAppStore() {
+  if (!appStore) {
+    Log::warn("FollowersList::subscribeToAppStore: AppStore not set");
+    return;
+  }
+
+  juce::Component::SafePointer<FollowersList> safeThis(this);
+  storeUnsubscriber = appStore->subscribeToFollowers([safeThis](const Sidechain::Stores::FollowersState &state) {
+    if (!safeThis)
+      return;
+    juce::MessageManager::callAsync([safeThis, state]() {
+      if (safeThis) {
+        safeThis->onAppStateChanged(state);
+      }
+    });
+  });
+}
+
+void FollowersList::onAppStateChanged(const Sidechain::Stores::FollowersState &state) {
+  Log::debug("FollowersList::onAppStateChanged: FollowersState updated");
+
+  if (!state.errorMessage.empty()) {
+    currentState.errorMessage = state.errorMessage;
+    repaint();
+    return;
+  }
+
+  currentState = state;
+  updateUsersList();
+  repaint();
 }

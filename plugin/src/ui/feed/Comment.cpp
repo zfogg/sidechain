@@ -8,6 +8,7 @@
 
 #include "../../ui/common/ToastNotification.h"
 #include "../../ui/feed/EmojiReactionsPanel.h"
+#include "../../util/Colors.h"
 #include "../../util/Emoji.h"
 #include "../../util/HoverState.h"
 #include "../../util/Log.h"

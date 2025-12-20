@@ -6,6 +6,7 @@
 #include "../../models/User.h"
 #include "../../stores/app/AppState.h"
 #include "../../stores/slices/AppSlices.h"
+#include "../common/AppStoreComponent.h"
 #include <JuceHeader.h>
 #include <memory>
 
@@ -101,19 +102,21 @@ private:
  * - Follow/unfollow buttons
  * - Click to view profile
  * - Pagination support
+ *
+ * Architecture:
+ * - Extends AppStoreComponent<FollowersState>
+ * - Subscribes to FollowersState for reactive updates
+ * - Renders immutable user list from state
  */
-class FollowersList : public juce::Component, private juce::Timer {
+class FollowersList : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::FollowersState>, private juce::Timer {
 public:
   enum class ListType { Followers, Following };
 
-  FollowersList();
+  explicit FollowersList(Sidechain::Stores::AppStore *store = nullptr);
   ~FollowersList() override;
 
   // ==============================================================================
   // Setup
-  void setAppStore(Sidechain::Stores::AppStore *store) {
-    appStore = store;
-  }
   void setCurrentUserId(const juce::String &userId) {
     currentUserId = userId;
   }
@@ -133,6 +136,12 @@ public:
   void resized() override;
 
   // ==============================================================================
+  // AppStoreComponent<FollowersState> implementation
+protected:
+  void subscribeToAppStore() override;
+  void onAppStateChanged(const Sidechain::Stores::FollowersState &state) override;
+
+  // ==============================================================================
   // Layout constants
   static constexpr int HEADER_HEIGHT = 50;
 
@@ -142,14 +151,9 @@ private:
   void timerCallback() override;
 
   // ==============================================================================
-  // Redux State Management
-  // Subscribe to immutable FollowersSlice from AppStore
-  // Component receives immutable state snapshots and re-renders
-  Sidechain::Stores::AppStore *appStore = nullptr;
-
-  // Current immutable slice state from AppStore
-  // Updated whenever the slice changes via subscription
-  Sidechain::Stores::FollowersState currentSlice;
+  // State Cache (updated in onAppStateChanged)
+  // Stored for access in paint(), updateUsersList(), refresh(), etc.
+  Sidechain::Stores::FollowersState currentState;
 
   // Context
   juce::String currentUserId; // Currently logged in user
