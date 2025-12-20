@@ -191,6 +191,59 @@ services:
       timeout: 5s
       retries: 5
 
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: sidechain-redis-exporter
+    restart: unless-stopped
+    ports:
+      - "9121:9121"
+    environment:
+      REDIS_ADDR: "redis:6379"
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9121/metrics"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: sidechain-postgres-exporter
+    restart: unless-stopped
+    ports:
+      - "9187:9187"
+    environment:
+      DATA_SOURCE_NAME: "postgresql://sidechain:sidechain_dev_password@postgres:5432/sidechain?sslmode=disable"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9187/metrics"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  elasticsearch-exporter:
+    image: quay.io/prometheuscommunity/elasticsearch-exporter:latest
+    container_name: sidechain-es-exporter
+    restart: unless-stopped
+    ports:
+      - "9114:9114"
+    command:
+      - '--es.uri=http://elasticsearch:9200'
+      - '--es.all'
+      - '--es.indices'
+      - '--es.indices_settings'
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9114/metrics"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   grafana:
     image: grafana/grafana:latest
     container_name: sidechain-grafana-dev
