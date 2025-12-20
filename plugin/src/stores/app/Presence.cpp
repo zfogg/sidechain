@@ -19,7 +19,7 @@ void AppStore::setPresenceStatusMessage(const juce::String &message) {
   userData->setProperty("status_message", message);
 
   // Upsert user to GetStream.io
-  streamChatClient->upsertUser(userData, [this, message](Outcome<juce::var> result) {
+  streamChatClient->upsertUser(userData, [](Outcome<juce::var> result) {
     if (result.isError()) {
       Util::logError("AppStore", "Failed to update presence status message: " + result.getError());
       return;

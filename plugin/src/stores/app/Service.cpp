@@ -173,15 +173,13 @@ void AppStore::getImage(const juce::String &url, std::function<void(const juce::
             buffer.insert(buffer.end(), chunk, chunk + bytesRead);
           }
 
-          int64_t streamLength = buffer.size();
+          int64_t streamLength = static_cast<int64_t>(buffer.size());
           Log::debug("AppStore::getImage: Read " + juce::String(streamLength) + " bytes");
 
           // Check magic bytes to identify format
           if (streamLength >= 4) {
             unsigned char byte0 = static_cast<unsigned char>(buffer[0]);
             unsigned char byte1 = static_cast<unsigned char>(buffer[1]);
-            unsigned char byte2 = static_cast<unsigned char>(buffer[2]);
-            unsigned char byte3 = static_cast<unsigned char>(buffer[3]);
 
             // If it's HTML (starts with <html or <meta, etc), log the error
             if (byte0 == 0x3C && (byte1 == 0x68 || byte1 == 0x6D || byte1 == 0x21)) {
@@ -195,7 +193,7 @@ void AppStore::getImage(const juce::String &url, std::function<void(const juce::
           }
 
           if (streamLength > 0) {
-            juce::MemoryInputStream memIn(buffer.data(), streamLength, false);
+            juce::MemoryInputStream memIn(buffer.data(), static_cast<size_t>(streamLength), false);
             auto image = juce::ImageFileFormat::loadFrom(memIn);
 
             if (image.isValid()) {

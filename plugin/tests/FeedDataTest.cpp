@@ -2,6 +2,7 @@
 #include <catch2/catch_approx.hpp>
 #include "models/FeedPost.h"
 #include "models/FeedResponse.h"
+#include <nlohmann/json.hpp>
 // FeedDataManager.h removed - class no longer exists
 
 using Catch::Approx;
@@ -159,7 +160,11 @@ TEST_CASE("Sidechain::FeedPost::fromJson basic parsing", "[Sidechain::FeedPost]"
         })";
 
     auto json = juce::JSON::parse(jsonStr);
-    auto post = Sidechain::FeedPost::fromJson(json);
+    auto jsonStr2 = juce::JSON::toString(json);
+    auto jsonObj = nlohmann::json::parse(jsonStr2.toStdString());
+    auto result = Sidechain::SerializableModel<Sidechain::FeedPost>::createFromJson(jsonObj);
+    REQUIRE(result.isOk());
+    auto post = *result.getValue();
 
     REQUIRE(post.id == "act-123");
     REQUIRE(post.foreignId == "loop:uuid-456");
@@ -197,7 +202,10 @@ TEST_CASE("Sidechain::FeedPost::fromJson basic parsing", "[Sidechain::FeedPost]"
         })";
 
     auto json = juce::JSON::parse(jsonStr);
-    auto post = Sidechain::FeedPost::fromJson(json);
+    auto jsonStr2 = juce::JSON::toString(json);
+    auto jsonObj = nlohmann::json::parse(jsonStr2.toStdString());
+    auto result = Sidechain::SerializableModel<Sidechain::FeedPost>::createFromJson(jsonObj);
+    auto post = *result.getValue();
 
     REQUIRE(post.username == "producer_one");
     REQUIRE(post.userAvatarUrl == "https://cdn.example.com/avatar.jpg");
@@ -215,7 +223,10 @@ TEST_CASE("Sidechain::FeedPost::fromJson basic parsing", "[Sidechain::FeedPost]"
         })";
 
     auto json = juce::JSON::parse(jsonStr);
-    auto post = Sidechain::FeedPost::fromJson(json);
+    auto jsonStr2 = juce::JSON::toString(json);
+    auto jsonObj = nlohmann::json::parse(jsonStr2.toStdString());
+    auto result = Sidechain::SerializableModel<Sidechain::FeedPost>::createFromJson(jsonObj);
+    auto post = *result.getValue();
 
     REQUIRE(post.username == "beat_maker");
     REQUIRE(post.userAvatarUrl == "https://cdn.example.com/avatar2.jpg");
@@ -229,7 +240,10 @@ TEST_CASE("Sidechain::FeedPost::fromJson basic parsing", "[Sidechain::FeedPost]"
         })";
 
     auto json = juce::JSON::parse(jsonStr);
-    auto post = Sidechain::FeedPost::fromJson(json);
+    auto jsonStr2 = juce::JSON::toString(json);
+    auto jsonObj = nlohmann::json::parse(jsonStr2.toStdString());
+    auto result = Sidechain::SerializableModel<Sidechain::FeedPost>::createFromJson(jsonObj);
+    auto post = *result.getValue();
 
     REQUIRE(post.genres.size() == 1);
     REQUIRE(post.genres[0] == "Electronic");
@@ -239,7 +253,10 @@ TEST_CASE("Sidechain::FeedPost::fromJson basic parsing", "[Sidechain::FeedPost]"
     auto testStatus = [](const juce::String &statusStr, Sidechain::FeedPost::Status expected) {
       juce::String jsonStr = R"({"id": "act-123", "audio_url": "test.mp3", "status": ")" + statusStr + R"("})";
       auto json = juce::JSON::parse(jsonStr);
-      auto post = Sidechain::FeedPost::fromJson(json);
+      auto jsonStr2 = juce::JSON::toString(json);
+      auto jsonObj = nlohmann::json::parse(jsonStr2.toStdString());
+      auto result = Sidechain::SerializableModel<Sidechain::FeedPost>::createFromJson(jsonObj);
+      auto post = *result.getValue();
       return post.status == expected;
     };
 
@@ -349,7 +366,10 @@ TEST_CASE("Sidechain::FeedPost JSON round-trip", "[Sidechain::FeedPost]") {
   auto json = original.toJson();
   auto jsonStr = juce::JSON::toString(json);
   auto parsedJson = juce::JSON::parse(jsonStr);
-  auto restored = Sidechain::FeedPost::fromJson(parsedJson);
+  auto jsonStr2 = juce::JSON::toString(parsedJson);
+  auto jsonObj = nlohmann::json::parse(jsonStr2.toStdString());
+  auto result = Sidechain::SerializableModel<Sidechain::FeedPost>::createFromJson(jsonObj);
+  auto restored = *result.getValue();
 
   REQUIRE(restored.id == original.id);
   REQUIRE(restored.foreignId == original.foreignId);

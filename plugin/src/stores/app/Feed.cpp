@@ -771,9 +771,18 @@ void AppStore::handleSavedPostsLoaded(Outcome<juce::var> result) {
 
   juce::Array<FeedPost> loadedPosts;
   for (int i = 0; i < postsArray.size(); ++i) {
-    auto post = FeedPost::fromJson(postsArray[i]);
-    if (post.isValid()) {
-      loadedPosts.add(post);
+    try {
+      auto jsonStr = juce::JSON::toString(postsArray[i]);
+      auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+      auto postResult = SerializableModel<FeedPost>::createFromJson(jsonObj);
+      if (postResult.isOk()) {
+        auto post = *postResult.getValue();
+        if (post.isValid()) {
+          loadedPosts.add(post);
+        }
+      }
+    } catch (const std::exception &) {
+      // Skip invalid posts
     }
   }
 
@@ -825,9 +834,18 @@ void AppStore::handleArchivedPostsLoaded(Outcome<juce::var> result) {
 
   juce::Array<FeedPost> loadedPosts;
   for (int i = 0; i < postsArray.size(); ++i) {
-    auto post = FeedPost::fromJson(postsArray[i]);
-    if (post.isValid()) {
-      loadedPosts.add(post);
+    try {
+      auto jsonStr = juce::JSON::toString(postsArray[i]);
+      auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+      auto postResult = SerializableModel<FeedPost>::createFromJson(jsonObj);
+      if (postResult.isOk()) {
+        auto post = *postResult.getValue();
+        if (post.isValid()) {
+          loadedPosts.add(post);
+        }
+      }
+    } catch (const std::exception &) {
+      // Skip invalid posts
     }
   }
 
@@ -898,9 +916,18 @@ FeedResponse AppStore::parseJsonResponse(const juce::var &json) {
 
   if (postsArray.isArray()) {
     for (int i = 0; i < postsArray.size(); ++i) {
-      auto post = FeedPost::fromJson(postsArray[i]);
-      if (post.isValid()) {
-        response.posts.add(post);
+      try {
+        auto jsonStr = juce::JSON::toString(postsArray[i]);
+        auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+        auto result = SerializableModel<FeedPost>::createFromJson(jsonObj);
+        if (result.isOk()) {
+          auto post = *result.getValue();
+          if (post.isValid()) {
+            response.posts.add(post);
+          }
+        }
+      } catch (const std::exception &) {
+        // Skip invalid posts
       }
     }
   }

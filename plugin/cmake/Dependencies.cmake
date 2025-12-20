@@ -35,7 +35,6 @@ function(suppress_juce_warnings target_name)
                 -Wno-float-equal
                 -Wno-switch-enum
                 -Wno-shadow
-                -Wno-virtual-in-final
                 -Wno-unnecessary-virtual-specifier
             )
         elseif(MSVC)

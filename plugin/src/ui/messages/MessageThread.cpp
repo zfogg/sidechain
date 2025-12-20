@@ -120,9 +120,9 @@ bool MessageThread::isGroupChannel() const {
   return false;
 }
 
-void MessageThread::showMessageActionsMenu(const StreamChatClient::Message &message,
-                                           const juce::Point<int> &screenPos) {}
-void MessageThread::copyMessageText(const juce::String &) {}
+void MessageThread::showMessageActionsMenu(const StreamChatClient::Message & /*message*/,
+                                           const juce::Point<int> & /*screenPos*/) {}
+void MessageThread::copyMessageText(const juce::String & /*text*/) {}
 void MessageThread::editMessage(const StreamChatClient::Message &) {}
 void MessageThread::deleteMessage(const StreamChatClient::Message &) {}
 void MessageThread::replyToMessage(const StreamChatClient::Message &) {}

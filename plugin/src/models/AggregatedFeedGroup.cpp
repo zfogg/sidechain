@@ -25,9 +25,12 @@ AggregatedFeedGroup AggregatedFeedGroup::fromJSON(const nlohmann::json &json) {
   // Parse activities array
   if (json.contains("activities") && json["activities"].is_array()) {
     for (const auto &activityJson : json["activities"]) {
-      auto post = Sidechain::FeedPost::fromJson(activityJson);
-      if (post.isValid())
-        group.activities.add(post);
+      auto result = Sidechain::SerializableModel<FeedPost>::createFromJson(activityJson);
+      if (result.isOk()) {
+        auto post = *result.getValue();
+        if (post.isValid())
+          group.activities.add(post);
+      }
     }
   }
 

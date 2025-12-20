@@ -283,9 +283,18 @@ void SavedPosts::fetchSavedPosts() {
     if (postsArray.isArray()) {
       for (int i = 0; i < postsArray.size(); ++i) {
         auto postData = postsArray[i];
-        auto post = Sidechain::FeedPost::fromJson(postData);
-        if (post.isValid()) {
-          savedPosts.add(post);
+        try {
+          auto jsonStr = juce::JSON::toString(postData);
+          auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+          auto postResult = Sidechain::SerializableModel<Sidechain::FeedPost>::createFromJson(jsonObj);
+          if (postResult.isOk()) {
+            auto post = *postResult.getValue();
+            if (post.isValid()) {
+              savedPosts.add(post);
+            }
+          }
+        } catch (const std::exception &) {
+          // Skip invalid posts
         }
       }
     }

@@ -197,7 +197,7 @@ public:
   // ========== JUCE Component Overrides ==========
 
   void resized() override;
-  void paint(juce::Graphics &g) override {} // Views handle their own painting
+  void paint(juce::Graphics & /*g*/) override {} // Views handle their own painting
 
 private:
   // View entry on the stack

@@ -34,8 +34,17 @@ void AppStore::searchPosts(const juce::String &query) {
       if (data.hasProperty("posts") && data.getProperty("posts", juce::var()).isArray()) {
         auto postsArray = data.getProperty("posts", juce::var());
         for (int i = 0; i < postsArray.size(); ++i) {
-          auto post = Sidechain::FeedPost::fromJson(postsArray[i]);
-          postsList.push_back(std::make_shared<Sidechain::FeedPost>(post));
+          try {
+            auto jsonStr = juce::JSON::toString(postsArray[i]);
+            auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+            auto postResult = Sidechain::SerializableModel<Sidechain::FeedPost>::createFromJson(jsonObj);
+            if (postResult.isOk()) {
+              auto post = *postResult.getValue();
+              postsList.push_back(std::make_shared<Sidechain::FeedPost>(post));
+            }
+          } catch (const std::exception &) {
+            // Skip invalid posts
+          }
         }
       }
 
@@ -129,8 +138,18 @@ void AppStore::loadMoreSearchResults() {
                                    if (data.hasProperty("posts") && data.getProperty("posts", juce::var()).isArray()) {
                                      auto postsArray = data.getProperty("posts", juce::var());
                                      for (int i = 0; i < postsArray.size(); ++i) {
-                                       auto post = Sidechain::FeedPost::fromJson(postsArray[i]);
-                                       newPosts.push_back(std::make_shared<Sidechain::FeedPost>(post));
+                                       try {
+                                         auto jsonStr = juce::JSON::toString(postsArray[i]);
+                                         auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+                                         auto postResult =
+                                             Sidechain::SerializableModel<Sidechain::FeedPost>::createFromJson(jsonObj);
+                                         if (postResult.isOk()) {
+                                           auto post = *postResult.getValue();
+                                           newPosts.push_back(std::make_shared<Sidechain::FeedPost>(post));
+                                         }
+                                       } catch (const std::exception &) {
+                                         // Skip invalid posts
+                                       }
                                      }
                                    }
 

@@ -1143,9 +1143,18 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
                   // Convert to Sidechain::FeedResponse format
                   Sidechain::FeedResponse response;
                   for (int i = 0; i < activities.size(); ++i) {
-                    auto feedPost = Sidechain::FeedPost::fromJson(activities[i]);
-                    if (feedPost.isValid())
-                      response.posts.add(feedPost);
+                    try {
+                      auto jsonStr = juce::JSON::toString(activities[i]);
+                      auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+                      auto postResult = Sidechain::SerializableModel<Sidechain::FeedPost>::createFromJson(jsonObj);
+                      if (postResult.isOk()) {
+                        auto feedPost = *postResult.getValue();
+                        if (feedPost.isValid())
+                          response.posts.add(feedPost);
+                      }
+                    } catch (const std::exception &) {
+                      // Skip invalid posts
+                    }
                   }
                   response.hasMore = false; // Similar posts don't paginate
                   // onFeedLoaded(response); // Refactored to use FeedStore subscription

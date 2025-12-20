@@ -174,6 +174,9 @@ juce_add_gui_app(SidechainJuceHeaderHelper
 # Exclude it from default build targets
 set_target_properties(SidechainJuceHeaderHelper PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
+# Suppress JUCE warnings for helper
+suppress_juce_warnings(SidechainJuceHeaderHelper)
+
 target_sources(SidechainJuceHeaderHelper PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/cmake/JuceHeaderHelper.cpp
 )

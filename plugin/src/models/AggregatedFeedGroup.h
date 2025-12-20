@@ -40,9 +40,18 @@ struct AggregatedFeedGroup {
     auto activitiesVar = json.getProperty("activities", juce::var());
     if (activitiesVar.isArray()) {
       for (int i = 0; i < activitiesVar.size(); ++i) {
-        auto post = FeedPost::fromJson(activitiesVar[i]);
-        if (post.isValid())
-          group.activities.add(post);
+        try {
+          auto jsonStr = juce::JSON::toString(activitiesVar[i]);
+          auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+          auto result = Sidechain::SerializableModel<FeedPost>::createFromJson(jsonObj);
+          if (result.isOk()) {
+            auto post = *result.getValue();
+            if (post.isValid())
+              group.activities.add(post);
+          }
+        } catch (const std::exception &) {
+          // Skip invalid activities
+        }
       }
     }
 

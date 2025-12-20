@@ -637,9 +637,7 @@ void AppStore::loadUser(const juce::String &userId, bool forceRefresh) {
   Util::logInfo("AppStore", "Loading user: " + userId);
 
   // Make network request
-  networkClient->getUser(userId, [this, userId](Outcome<juce::var> result) {
-    auto &entityStore = EntityStore::getInstance();
-
+  networkClient->getUser(userId, [&entityStore, userId](Outcome<juce::var> result) {
     if (result.isOk()) {
       try {
         // Convert juce::var to nlohmann::json

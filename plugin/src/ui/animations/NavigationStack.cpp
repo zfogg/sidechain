@@ -47,15 +47,16 @@ void NavigationStack::push(std::unique_ptr<juce::Component> view, TransitionType
     newView->setBounds(getBounds());
 
     if (transitionsEnabled_) {
-      applyEntryTransition(newView, transition, durationMs,
-                           [this, onComplete, newView, previousView](juce::Component *nv, juce::Component *pv) {
-                             if (onComplete) {
-                               onComplete(newView, previousView);
-                             }
-                             if (navigationCallback_) {
-                               navigationCallback_(newView, previousView);
-                             }
-                           });
+      applyEntryTransition(
+          newView, transition, durationMs,
+          [this, onComplete, newView, previousView](juce::Component * /*nv*/, juce::Component * /*pv*/) {
+            if (onComplete) {
+              onComplete(newView, previousView);
+            }
+            if (navigationCallback_) {
+              navigationCallback_(newView, previousView);
+            }
+          });
     } else {
       if (onComplete) {
         onComplete(newView, previousView);
@@ -229,12 +230,28 @@ void NavigationStack::applyEntryTransition(juce::Component *view, TransitionType
   case TransitionType::SlideInFromBottom:
     handle = controller.slideInFromBottom(view, durationMs);
     break;
+  case TransitionType::SlideOutToLeft:
+  case TransitionType::SlideOutToRight:
+  case TransitionType::SlideOutToTop:
+  case TransitionType::SlideOutToBottom:
+    // Slide out transitions use fade for exit
+    handle = controller.fadeIn(view, durationMs);
+    break;
   case TransitionType::FadeIn:
+    handle = controller.fadeIn(view, durationMs);
+    break;
+  case TransitionType::FadeOut:
+    // Fade out uses fade in (view replacement handles exit)
     handle = controller.fadeIn(view, durationMs);
     break;
   case TransitionType::ScaleIn:
   case TransitionType::ZoomIn:
     handle = controller.scaleIn(view, durationMs);
+    break;
+  case TransitionType::ScaleOut:
+  case TransitionType::ZoomOut:
+    // Scale/zoom out uses fade for exit
+    handle = controller.fadeIn(view, durationMs);
     break;
   case TransitionType::CrossFade:
     // CrossFade is fade in of new view + fade out of previous (handled elsewhere)
@@ -246,9 +263,6 @@ void NavigationStack::applyEntryTransition(juce::Component *view, TransitionType
       onComplete(view, nullptr);
     }
     return;
-  default:
-    handle = controller.fadeIn(view, durationMs);
-    break;
   }
 
   if (onComplete) {
@@ -268,6 +282,10 @@ void NavigationStack::applyExitTransition(juce::Component *view, TransitionType 
   AnimationHandle handle;
 
   switch (type) {
+  case TransitionType::SlideInFromLeft:
+  case TransitionType::SlideInFromRight:
+  case TransitionType::SlideInFromTop:
+  case TransitionType::SlideInFromBottom:
   case TransitionType::SlideOutToLeft:
     // For slide out, we'd need controller to support slide out animations
     // For now, fall through to fade
@@ -278,10 +296,13 @@ void NavigationStack::applyExitTransition(juce::Component *view, TransitionType 
     // Slide out animations not yet implemented, use fade
     handle = controller.fadeOut(view, durationMs);
     break;
+  case TransitionType::FadeIn:
   case TransitionType::FadeOut:
     handle = controller.fadeOut(view, durationMs);
     break;
+  case TransitionType::ScaleIn:
   case TransitionType::ScaleOut:
+  case TransitionType::ZoomIn:
   case TransitionType::ZoomOut:
     handle = controller.scaleOut(view, durationMs);
     break;
@@ -294,9 +315,6 @@ void NavigationStack::applyExitTransition(juce::Component *view, TransitionType 
       onComplete(view, nullptr);
     }
     return;
-  default:
-    handle = controller.fadeOut(view, durationMs);
-    break;
   }
 
   if (onComplete) {

@@ -46,7 +46,7 @@ void ArchivedPosts::onAppStateChanged(const PostsState &state) {
   archivedPosts.clear();
   for (const auto &post : state.archivedPosts.posts) {
     if (post) {
-      archivedPosts.add(*post);  // Dereference shared_ptr
+      archivedPosts.add(*post); // Dereference shared_ptr
     }
   }
 
@@ -283,9 +283,18 @@ void ArchivedPosts::fetchArchivedPosts() {
     if (postsArray.isArray()) {
       for (int i = 0; i < postsArray.size(); ++i) {
         auto postData = postsArray[i];
-        auto post = Sidechain::FeedPost::fromJson(postData);
-        if (post.isValid()) {
-          archivedPosts.add(post);
+        try {
+          auto jsonStr = juce::JSON::toString(postData);
+          auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+          auto postResult = Sidechain::SerializableModel<Sidechain::FeedPost>::createFromJson(jsonObj);
+          if (postResult.isOk()) {
+            auto post = *postResult.getValue();
+            if (post.isValid()) {
+              archivedPosts.add(post);
+            }
+          }
+        } catch (const std::exception &) {
+          // Skip invalid posts
         }
       }
     }

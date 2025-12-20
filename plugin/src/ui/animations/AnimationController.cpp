@@ -455,8 +455,8 @@ std::shared_ptr<TransitionAnimation<float>> AnimationController::createScaleAnim
   auto originalBounds = component->getBounds();
 
   animation->onProgress([component, originalBounds, originalWidth, originalHeight](float scale) {
-    int newWidth = static_cast<int>(originalWidth * scale);
-    int newHeight = static_cast<int>(originalHeight * scale);
+    int newWidth = static_cast<int>(static_cast<float>(originalWidth) * scale);
+    int newHeight = static_cast<int>(static_cast<float>(originalHeight) * scale);
     int newX = originalBounds.getX() + (originalWidth - newWidth) / 2;
     int newY = originalBounds.getY() + (originalHeight - newHeight) / 2;
 

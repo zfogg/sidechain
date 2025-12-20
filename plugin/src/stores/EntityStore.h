@@ -172,13 +172,27 @@ public:
    * Returns the shared_ptr for use in state/UI
    */
   std::shared_ptr<FeedPost> normalizePost(const juce::var &json) {
-    auto post = FeedPost::fromJson(json);
-    if (post.id.isEmpty()) {
+    try {
+      // Convert juce::var to nlohmann::json
+      auto jsonStr = juce::JSON::toString(json);
+      auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+
+      // Use new SerializableModel API
+      auto result = Sidechain::SerializableModel<FeedPost>::createFromJson(jsonObj);
+      if (!result.isOk()) {
+        return nullptr;
+      }
+
+      auto post = *result.getValue();
+      if (post.id.isEmpty()) {
+        return nullptr;
+      }
+
+      // Get or create shared_ptr for this post
+      return posts_.getOrCreate(post.id, [post]() { return std::make_shared<FeedPost>(post); });
+    } catch (const std::exception &) {
       return nullptr;
     }
-
-    // Get or create shared_ptr for this post
-    return posts_.getOrCreate(post.id, [post]() { return std::make_shared<FeedPost>(post); });
   }
 
   /**
@@ -412,13 +426,27 @@ public:
    * Updates entity in cache and notifies all subscribers
    */
   void onPostUpdated(const juce::String &postId, const juce::var &data) {
-    auto updatedPost = FeedPost::fromJson(data);
-    if (!updatedPost.id.isEmpty()) {
-      // Get or create shared_ptr, then update it
-      auto postPtr =
-          posts_.getOrCreate(updatedPost.id, [updatedPost]() { return std::make_shared<FeedPost>(updatedPost); });
-      *postPtr = updatedPost;
-      posts_.set(postId, postPtr);
+    try {
+      // Convert juce::var to nlohmann::json
+      auto jsonStr = juce::JSON::toString(data);
+      auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+
+      // Use new SerializableModel API
+      auto result = Sidechain::SerializableModel<FeedPost>::createFromJson(jsonObj);
+      if (!result.isOk()) {
+        return;
+      }
+
+      auto updatedPost = *result.getValue();
+      if (!updatedPost.id.isEmpty()) {
+        // Get or create shared_ptr, then update it
+        auto postPtr =
+            posts_.getOrCreate(updatedPost.id, [updatedPost]() { return std::make_shared<FeedPost>(updatedPost); });
+        *postPtr = updatedPost;
+        posts_.set(postId, postPtr);
+      }
+    } catch (const std::exception &) {
+      // Error parsing JSON
     }
   }
 
