@@ -1384,6 +1384,32 @@ public:
                                         juce::MemoryBlock *binaryData = nullptr);
 
   // ==========================================================================
+  // Telemetry / Distributed Tracing
+
+  /** Send distributed tracing spans to the telemetry endpoint
+   * @param spans JSON array of span objects from TraceContext::SpanRecorder
+   * @param callback Called with result or error
+   * @note Spans are automatically formatted with client metadata (plugin, version)
+   *       and sent to /api/v1/telemetry/spans endpoint
+   * @example
+   * @code
+   * auto recorder = std::make_unique<SpanRecorder>();
+   * // ... record spans ...
+   * networkClient->sendTelemetrySpans(
+   *     recorder->getJson(),
+   *     [](const auto& outcome) {
+   *         if (outcome.isSuccess()) {
+   *             Log::info("Telemetry sent successfully");
+   *         } else {
+   *             Log::warning("Failed to send telemetry: " + outcome.error());
+   *         }
+   *     }
+   * );
+   * @endcode
+   */
+  void sendTelemetrySpans(const juce::var &spans, ResponseCallback callback = nullptr);
+
+  // ==========================================================================
   // DAW Detection
 
   /**

@@ -1423,3 +1423,29 @@ void NetworkClient::getNotificationsAggregated(int limit, int offset, Aggregated
     juce::MessageManager::callAsync([callback, outcome]() { callback(outcome); });
   });
 }
+
+// ==============================================================================
+// Telemetry / Distributed Tracing
+// ==============================================================================
+
+void NetworkClient::sendTelemetrySpans(const juce::var &spans, ResponseCallback callback) {
+  // Send spans asynchronously on background thread to avoid blocking UI
+  Async::runVoid([this, spans, callback]() {
+    // Build telemetry payload
+    auto payload = juce::var(new juce::DynamicObject());
+    if (auto obj = payload.getDynamicObject()) {
+      obj->setProperty("spans", spans);
+      obj->setProperty("clientType", "plugin");
+      obj->setProperty("clientVersion", "1.0.0");
+    }
+
+    // Send to /api/v1/telemetry/spans endpoint
+    auto result = makeRequestWithRetry("/api/v1/telemetry/spans", "POST", payload, true);
+    auto outcome = requestResultToOutcome(result);
+
+    // Call callback on message thread if provided
+    if (callback) {
+      juce::MessageManager::callAsync([callback, outcome]() { callback(outcome); });
+    }
+  });
+}
