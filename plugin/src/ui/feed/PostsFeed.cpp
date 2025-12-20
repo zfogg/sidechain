@@ -951,7 +951,6 @@ void PostsFeed::rebuildPostCards() {
 
     for (const auto &post : posts) {
       auto *card = postCards.add(new PostCard(appStore));
-      card->setNetworkClient(networkClient);
       card->setPost(*post);         // Dereference shared_ptr
       setupPostCardCallbacks(card); // Pass card with dereferenced post
       addAndMakeVisible(card);
