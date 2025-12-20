@@ -74,8 +74,15 @@ void AppStore::createComment(const juce::String &postId, const juce::String &con
 
         auto json = nlohmann::json::parse(resultStr.toStdString());
 
+        // Extract comment object from response wrapper ({"comment": {...}})
+        nlohmann::json commentJson = json;
+        if (json.contains("comment") && json["comment"].is_object()) {
+          commentJson = json["comment"];
+          Util::logInfo("AppStore", "DEBUG: Extracted comment from wrapper");
+        }
+
         // Normalize comment to model
-        auto normalizedComment = EntityStore::getInstance().normalizeComment(json);
+        auto normalizedComment = EntityStore::getInstance().normalizeComment(commentJson);
 
         if (normalizedComment) {
           Util::logInfo("AppStore", "Comment created successfully with ID: " + juce::String(normalizedComment->id));
