@@ -205,7 +205,7 @@ void MidiChallenges::drawFilterTabs(juce::Graphics &g, juce::Rectangle<int> &bou
   }
 }
 
-void MidiChallenges::drawChallengeCard(juce::Graphics &g, juce::Rectangle<int> bounds, const MIDIChallenge &challenge) {
+void MidiChallenges::drawChallengeCard(juce::Graphics &g, juce::Rectangle<int> bounds, const Sidechain::MIDIChallenge &challenge) {
   bounds = bounds.reduced(PADDING, 8);
 
   bool isHovered = bounds.contains(getMouseXYRelative());
@@ -286,7 +286,7 @@ void MidiChallenges::fetchChallenges(FilterType filter) {
 
   // Then filter by status based on the provided filter type
   // This is client-side filtering - full implementation would request filtered results from API
-  juce::Array<MIDIChallenge> filteredChallenges;
+  juce::Array<Sidechain::MIDIChallenge> filteredChallenges;
 
   for (const auto &challenge : challenges) {
     bool includeChallenge = false;
@@ -333,7 +333,7 @@ void MidiChallenges::updateScrollBounds() {
   scrollBar.setVisible(maxScroll > 0);
 }
 
-juce::String MidiChallenges::getStatusDisplayText(const MIDIChallenge &challenge) const {
+juce::String MidiChallenges::getStatusDisplayText(const Sidechain::MIDIChallenge &challenge) const {
   if (challenge.status == "active")
     return juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA3\xAF")) + " Active"; // 🎯
   else if (challenge.status == "voting")
@@ -345,7 +345,7 @@ juce::String MidiChallenges::getStatusDisplayText(const MIDIChallenge &challenge
   return challenge.status;
 }
 
-juce::String MidiChallenges::getTimeRemainingText(const MIDIChallenge &challenge) const {
+juce::String MidiChallenges::getTimeRemainingText(const Sidechain::MIDIChallenge &challenge) const {
   auto now = juce::Time::getCurrentTime();
 
   if (challenge.isAcceptingSubmissions()) {

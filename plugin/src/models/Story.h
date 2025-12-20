@@ -87,6 +87,13 @@ struct Story : public SerializableModel<Story> {
 };
 
 // ==============================================================================
+// JSON Serialization (for nlohmann::json / SerializableModel<Story>)
+// These are declared here for ADL to find them
+
+inline void to_json(nlohmann::json &j, const Story &story);
+inline void from_json(const nlohmann::json &j, Story &story);
+
+// ==============================================================================
 /**
  * StoryHighlight represents a collection of saved stories that persist beyond
  * 24 hours

@@ -43,7 +43,19 @@ struct Playlist : public SerializableModel<Playlist> {
   bool isOwner() const {
     return userRole == "owner";
   }
+
+  // SerializableModel required method
+  bool isValid() const {
+    return !id.isEmpty() && !name.isEmpty();
+  }
 };
+
+// ==============================================================================
+// JSON Serialization (for nlohmann::json / SerializableModel<Playlist>)
+// These are declared here for ADL to find them
+
+inline void to_json(nlohmann::json &j, const Playlist &playlist);
+inline void from_json(const nlohmann::json &j, Playlist &playlist);
 
 // ==============================================================================
 /**

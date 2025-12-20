@@ -261,7 +261,7 @@ void PostsFeed::setAudioPlayer(HttpAudioPlayer *player) {
           // Find position of post in current feed
           int position = -1;
           for (int i = 0; i < currentFeed->posts.size(); ++i) {
-            if (currentFeed->posts[i].id == postId) {
+            if (currentFeed->posts[i]->id == postId) {
               position = i;
               break;
             }
@@ -487,7 +487,7 @@ void PostsFeed::handleFeedStateChanged() {
     feedSkeleton->setVisible(false);
 
   // Determine if feed is empty or loaded
-  if (currentFeed->posts.isEmpty())
+  if (currentFeed->posts.empty())
     feedDisplayState = PostsFeedDisplayState::Empty;
   else
     feedDisplayState = PostsFeedDisplayState::Loaded;
@@ -523,7 +523,7 @@ void PostsFeed::queryPresenceForPosts() {
   }
 
   auto currentFeed = postsSlice->getState().getCurrentFeed();
-  if (!currentFeed || currentFeed->posts.isEmpty()) {
+  if (!currentFeed || currentFeed->posts.empty()) {
     Log::debug("PostsFeed::queryPresenceForPosts: Skipping - no posts");
     return;
   }
@@ -531,8 +531,8 @@ void PostsFeed::queryPresenceForPosts() {
   // Collect unique user IDs from posts
   std::set<juce::String> uniqueUserIds;
   for (const auto &post : currentFeed->posts) {
-    if (post.userId.isNotEmpty() && !post.isOwnPost) {
-      uniqueUserIds.insert(post.userId);
+    if (post->userId.isNotEmpty() && !post->isOwnPost) {
+      uniqueUserIds.insert(post->userId);
     }
   }
 
@@ -950,10 +950,10 @@ void PostsFeed::rebuildPostCards() {
     for (const auto &post : posts) {
       auto *card = postCards.add(new PostCard(appStore));
       card->setNetworkClient(networkClient);
-      card->setPost(post);
-      setupPostCardCallbacks(card);
+      card->setPost(*post);  // Dereference shared_ptr
+      setupPostCardCallbacks(card); // Pass card with dereferenced post
       addAndMakeVisible(card);
-      Log::debug("PostsFeed::rebuildPostCards: Created card for post: " + post.id);
+      Log::debug("PostsFeed::rebuildPostCards: Created card for post: " + post->id);
     }
 
     Log::debug("PostsFeed::rebuildPostCards: Rebuilt " + juce::String(postCards.size()) + " post cards");
@@ -1009,13 +1009,13 @@ void PostsFeed::updatePostCardPositions() {
 }
 
 void PostsFeed::setupPostCardCallbacks(PostCard *card) {
-  card->onPlayClicked = [this](const FeedPost &post) {
-    Log::info("PostsFeed: Play clicked for post: " + post.id + ", audioUrl: " + post.audioUrl);
+  card->onPlayClicked = [this](const Sidechain::FeedPost &post) {
+    Log::info("PostsFeed: Play clicked for post: " + post->id + ", audioUrl: " + post.audioUrl);
     Log::debug("PostsFeed: audioPlayer=" + juce::String::toHexString((juce::pointer_sized_int)audioPlayer) +
                ", audioUrl.isNotEmpty=" + juce::String(post.audioUrl.isNotEmpty() ? "true" : "false"));
     if (audioPlayer && post.audioUrl.isNotEmpty()) {
       Log::info("PostsFeed: Calling audioPlayer->loadAndPlay()");
-      audioPlayer->loadAndPlay(post.id, post.audioUrl);
+      audioPlayer->loadAndPlay(post->id, post.audioUrl);
 
       // Pre-buffer next post for seamless playback
       if (appStore) {
@@ -1025,14 +1025,14 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
         const auto &posts = currentFeed->posts;
         int currentIndex = -1;
         for (int i = 0; i < posts.size(); ++i) {
-          if (posts[i].id == post.id) {
+          if (posts[i]->id == post->id) {
             currentIndex = i;
             break;
           }
         }
 
         if (currentIndex >= 0 && currentIndex < posts.size() - 1) {
-          const FeedPost &nextPost = posts[currentIndex + 1];
+          const Sidechain::FeedPost &nextPost = posts[currentIndex + 1];
           if (nextPost.audioUrl.isNotEmpty()) {
             Log::debug("PostsFeed: Pre-buffering next post: " + nextPost.id);
             audioPlayer->preloadAudio(nextPost.id, nextPost.audioUrl);
@@ -1042,15 +1042,15 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
     }
   };
 
-  card->onPauseClicked = [this](const FeedPost &post) {
-    Log::debug("Pause clicked for post: " + post.id);
-    if (audioPlayer && audioPlayer->isPostPlaying(post.id)) {
+  card->onPauseClicked = [this](const Sidechain::FeedPost &post) {
+    Log::debug("Pause clicked for post: " + post->id);
+    if (audioPlayer && audioPlayer->isPostPlaying(post->id)) {
       audioPlayer->pause();
     }
   };
 
-  card->onCardTapped = [this](const FeedPost &post) {
-    Log::debug("Card tapped for post: " + post.id);
+  card->onCardTapped = [this](const Sidechain::FeedPost &post) {
+    Log::debug("Card tapped for post: " + post->id);
     // Open comments panel to show post details
     showCommentsForPost(post);
   };
@@ -1061,19 +1061,19 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
   // Emoji reactions handled by FeedStore.addReaction (reactive refactoring)
   // The callback is no longer needed as PostCard now uses FeedStore directly
 
-  card->onUserClicked = [this](const FeedPost &post) {
-    Log::debug("User clicked: " + post.username + " (id: " + post.userId + ")");
-    if (onNavigateToProfile && post.userId.isNotEmpty())
-      onNavigateToProfile(post.userId);
+  card->onUserClicked = [this](const Sidechain::FeedPost &post) {
+    Log::debug("User clicked: " + post->username + " (id: " + post->userId + ")");
+    if (onNavigateToProfile && post->userId.isNotEmpty())
+      onNavigateToProfile(post->userId);
   };
 
-  card->onCommentClicked = [this](const FeedPost &post) {
-    Log::debug("Comments clicked for post: " + post.id);
+  card->onCommentClicked = [this](const Sidechain::FeedPost &post) {
+    Log::debug("Comments clicked for post: " + post->id);
     showCommentsForPost(post);
   };
 
-  card->onShareClicked = [this](const FeedPost &post) {
-    Log::debug("Share clicked for post: " + post.id);
+  card->onShareClicked = [this](const Sidechain::FeedPost &post) {
+    Log::debug("Share clicked for post: " + post->id);
 
     juce::PopupMenu shareMenu;
     shareMenu.addItem(1, "Copy Link");
@@ -1082,9 +1082,9 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
     shareMenu.showMenuAsync(juce::PopupMenu::Options(), [this, post](int result) {
       if (result == 1) {
         // Copy shareable link to clipboard
-        juce::String shareUrl = "https://sidechain.live/post/" + post.id;
+        juce::String shareUrl = "https://sidechain.live/post/" + post->id;
         juce::SystemClipboard::copyTextToClipboard(shareUrl);
-        Log::info("PostsFeed: Copied link for post " + post.id);
+        Log::info("PostsFeed: Copied link for post " + post->id);
       } else if (result == 2) {
         // Send to message
         if (onSendPostToMessage)
@@ -1093,8 +1093,8 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
     });
   };
 
-  card->onMoreClicked = [this](const FeedPost &post) {
-    Log::info("PostsFeedComponent: More menu clicked for post: " + post.id);
+  card->onMoreClicked = [this](const Sidechain::FeedPost &post) {
+    Log::info("PostsFeedComponent: More menu clicked for post: " + post->id);
 
     juce::PopupMenu menu;
 
@@ -1104,7 +1104,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
     // Copy link option
     menu.addItem(2, "Copy Link");
 
-    if (post.isOwnPost) {
+    if (post->isOwnPost) {
       // Delete option for own posts
       menu.addSeparator();
       menu.addItem(3, "Delete Post");
@@ -1117,20 +1117,20 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
     menu.showMenuAsync(juce::PopupMenu::Options(), [this, post](int result) {
       if (result == 1) {
         // More like this - switch to similar posts view
-        Log::info("PostsFeedComponent: More like this clicked for post: " + post.id);
+        Log::info("PostsFeedComponent: More like this clicked for post: " + post->id);
         if (networkClient != nullptr) {
           // Fetch similar posts and show in feed
-          networkClient->getSimilarPosts(post.id, 20, [post](Outcome<juce::var> similarResult) {
+          networkClient->getSimilarPosts(post->id, 20, [post](Outcome<juce::var> similarResult) {
             if (similarResult.isOk()) {
               // Parse similar posts and show in feed
               auto data = similarResult.getValue();
               if (data.isObject()) {
                 auto activities = data.getProperty("activities", juce::var());
                 if (activities.isArray()) {
-                  // Convert to FeedResponse format
-                  FeedResponse response;
+                  // Convert to Sidechain::FeedResponse format
+                  Sidechain::FeedResponse response;
                   for (int i = 0; i < activities.size(); ++i) {
-                    auto feedPost = FeedPost::fromJson(activities[i]);
+                    auto feedPost = Sidechain::FeedPost::fromJson(activities[i]);
                     if (feedPost.isValid())
                       response.posts.add(feedPost);
                   }
@@ -1148,10 +1148,10 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
         }
       } else if (result == 2) {
         // Copy link
-        juce::String shareUrl = "https://sidechain.live/post/" + post.id;
+        juce::String shareUrl = "https://sidechain.live/post/" + post->id;
         juce::SystemClipboard::copyTextToClipboard(shareUrl);
         Log::info("PostsFeedComponent: Copied post link to clipboard");
-      } else if (result == 3 && post.isOwnPost) {
+      } else if (result == 3 && post->isOwnPost) {
         // Delete post
         auto options = juce::MessageBoxOptions()
                            .withTitle("Delete Post")
@@ -1162,7 +1162,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
 
         juce::AlertWindow::showAsync(options, [this, post](int confirmResult) {
           if (confirmResult == 1 && networkClient != nullptr) {
-            networkClient->deletePost(post.id, [postId = post.id](Outcome<juce::var> deleteResult) {
+            networkClient->deletePost(post->id, [postId = post->id](Outcome<juce::var> deleteResult) {
               if (deleteResult.isOk()) {
                 Log::info("PostsFeedComponent: Post deleted successfully - " + postId);
                 // Post deletion now handled by FeedStore subscription
@@ -1196,10 +1196,10 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
           if (reportResult >= 1 && reportResult <= 4 && networkClient != nullptr) {
             juce::String reasons[] = {"spam", "harassment", "inappropriate", "other"};
             juce::String reason = reasons[reportResult - 1];
-            juce::String description = "Reported post: " + post.id;
+            juce::String description = "Reported post: " + post->id;
 
             networkClient->reportPost(
-                post.id, reason, description, [postId = post.id, reason](Outcome<juce::var> reportApiResult) {
+                post->id, reason, description, [postId = post->id, reason](Outcome<juce::var> reportApiResult) {
                   if (reportApiResult.isOk()) {
                     Log::info("PostsFeedComponent: Post reported successfully - " + postId + ", reason: " + reason);
                     juce::MessageManager::callAsync([]() {
@@ -1221,11 +1221,11 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
     });
   };
 
-  card->onAddToDAWClicked = [](const FeedPost &post) {
-    Log::debug("Add to DAW clicked for post: " + post.id);
+  card->onAddToDAWClicked = [](const Sidechain::FeedPost &post) {
+    Log::debug("Add to DAW clicked for post: " + post->id);
 
     if (post.audioUrl.isEmpty()) {
-      Log::warn("No audio URL available for post: " + post.id);
+      Log::warn("No audio URL available for post: " + post->id);
       return;
     }
 
@@ -1276,8 +1276,8 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
     });
   };
 
-  card->onDropToTrackClicked = [this, card](const FeedPost &post) {
-    Log::debug("Drop to Track clicked for post: " + post.id);
+  card->onDropToTrackClicked = [this, card](const Sidechain::FeedPost &post) {
+    Log::debug("Drop to Track clicked for post: " + post->id);
 
     if (networkClient == nullptr) {
       Log::warn("PostsFeedComponent: Cannot download - networkClient is null");
@@ -1288,7 +1288,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
 
     // Get download info from backend
     networkClient->getPostDownloadInfo(
-        post.id, [this, post, card](Outcome<NetworkClient::DownloadInfo> downloadInfoOutcome) {
+        post->id, [this, post, card](Outcome<NetworkClient::DownloadInfo> downloadInfoOutcome) {
           if (!downloadInfoOutcome.isOk()) {
             Log::error("Failed to get download info: " + downloadInfoOutcome.getError());
             juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Error",
@@ -1348,8 +1348,8 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
         });
   };
 
-  card->onDownloadMIDIClicked = [this](const FeedPost &post) {
-    Log::debug("Download MIDI clicked for post: " + post.id + ", midiId: " + post.midiId);
+  card->onDownloadMIDIClicked = [this](const Sidechain::FeedPost &post) {
+    Log::debug("Download MIDI clicked for post: " + post->id + ", midiId: " + post.midiId);
 
     if (!post.hasMidi || post.midiId.isEmpty()) {
       Log::warn("PostsFeedComponent: Cannot download MIDI - no MIDI data available");
@@ -1378,7 +1378,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
     }
 
     // Create filename from post username and ID
-    juce::String safeName = post.username.isNotEmpty() ? post.username : "unknown";
+    juce::String safeName = post->username.isNotEmpty() ? post->username : "unknown";
     safeName = safeName.replaceCharacters(" /\\:*?\"<>|", "__________");
     juce::String filename = safeName + "_" + post.midiId.substring(0, 8) + ".mid";
     juce::File targetFile = targetDir.getChildFile(filename);
@@ -1404,8 +1404,8 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
     });
   };
 
-  card->onAddToPlaylistClicked = [this](const FeedPost &post) {
-    Log::debug("Add to Playlist clicked for post: " + post.id);
+  card->onAddToPlaylistClicked = [this](const Sidechain::FeedPost &post) {
+    Log::debug("Add to Playlist clicked for post: " + post->id);
 
     auto &appStore = AppStore::getInstance();
     juce::Component::SafePointer<PostsFeed> safeThis(this);
@@ -1469,8 +1469,8 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
         });
   };
 
-  card->onDownloadProjectClicked = [this](const FeedPost &post) {
-    Log::debug("Download Project clicked for post: " + post.id + ", projectFileId: " + post.projectFileId);
+  card->onDownloadProjectClicked = [this](const Sidechain::FeedPost &post) {
+    Log::debug("Download Project clicked for post: " + post->id + ", projectFileId: " + post.projectFileId);
 
     if (!post.hasProjectFile || post.projectFileId.isEmpty()) {
       Log::warn("PostsFeedComponent: Cannot download project file - no project "
@@ -1496,7 +1496,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
     }
 
     // Create filename from post username, DAW type and ID
-    juce::String safeName = post.username.isNotEmpty() ? post.username : "unknown";
+    juce::String safeName = post->username.isNotEmpty() ? post->username : "unknown";
     safeName = safeName.replaceCharacters(" /\\:*?\"<>|", "__________");
 
     // Determine file extension based on DAW type
@@ -1539,8 +1539,8 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
   };
 
   // Remix Chains - Remix button clicked
-  card->onRemixClicked = [this](const FeedPost &post, const juce::String &remixType) {
-    Log::info("PostsFeed: Remix clicked for post: " + post.id + " type: " + remixType);
+  card->onRemixClicked = [this](const Sidechain::FeedPost &post, const juce::String &remixType) {
+    Log::info("PostsFeed: Remix clicked for post: " + post->id + " type: " + remixType);
 
     if (networkClient == nullptr) {
       Log::warn("PostsFeed: Cannot start remix - networkClient is null");
@@ -1570,8 +1570,8 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
   };
 
   // Remix Chains - Remix chain badge clicked (view lineage)
-  card->onRemixChainClicked = [this](const FeedPost &post) {
-    Log::info("PostsFeed: Remix chain clicked for post: " + post.id);
+  card->onRemixChainClicked = [this](const Sidechain::FeedPost &post) {
+    Log::info("PostsFeed: Remix chain clicked for post: " + post->id);
 
     if (networkClient == nullptr) {
       Log::warn("PostsFeed: Cannot view remix chain - networkClient is null");
@@ -1579,7 +1579,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
     }
 
     // Fetch and display the remix chain
-    networkClient->getRemixChain(post.id, [postId = post.id](Outcome<juce::var> result) {
+    networkClient->getRemixChain(post->id, [postId = post->id](Outcome<juce::var> result) {
       juce::MessageManager::callAsync([result, postId]() {
         if (!result.isOk()) {
           Log::warn("PostsFeed: Failed to fetch remix chain: " + result.getError());
@@ -1635,12 +1635,12 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
   // The callback is no longer needed as PostCard now uses FeedStore directly Note: Confirmation dialogs moved to a
   // future enhancement in PostCard or a dialog service
 
-  card->onWaveformClicked = [this](const FeedPost &post, float position) {
-    Log::debug("Waveform seek for post: " + post.id + " to " + juce::String(position, 2));
+  card->onWaveformClicked = [this](const Sidechain::FeedPost &post, float position) {
+    Log::debug("Waveform seek for post: " + post->id + " to " + juce::String(position, 2));
     if (audioPlayer) {
       // If this post isn't playing, start it at the clicked position
-      if (!audioPlayer->isPostPlaying(post.id)) {
-        audioPlayer->loadAndPlay(post.id, post.audioUrl);
+      if (!audioPlayer->isPostPlaying(post->id)) {
+        audioPlayer->loadAndPlay(post->id, post.audioUrl);
         // Seek after a short delay to let it load
         juce::Timer::callAfterDelay(100, [this, position]() {
           if (audioPlayer)
@@ -1721,7 +1721,7 @@ juce::String PostsFeed::getComponentName() const {
 void PostsFeed::updateScrollBounds() {
   auto contentBounds = getFeedContentBounds();
   // Use FeedStore instead of local posts array
-  juce::Array<FeedPost> posts;
+  juce::Array<Sidechain::FeedPost> posts;
   if (appStore) {
     const auto &state = appStore->getPostsState();
     const auto currentFeed = state.getCurrentFeed();
@@ -1976,18 +1976,18 @@ bool PostsFeed::keyPressed(const juce::KeyPress &key, juce::Component * /*origin
 // ==============================================================================
 // Comments panel
 
-void PostsFeed::showCommentsForPost(const FeedPost &post) {
+void PostsFeed::showCommentsForPost(const Sidechain::FeedPost &post) {
   if (commentsPanel == nullptr) {
     Log::warn("PostsFeed::showCommentsForPost: Comments panel is null");
     return;
   }
 
-  Log::info("PostsFeed::showCommentsForPost: Showing comments for post: " + post.id);
+  Log::info("PostsFeed::showCommentsForPost: Showing comments for post: " + post->id);
 
   // Set up the panel
   commentsPanel->setNetworkClient(networkClient);
   commentsPanel->setCurrentUserId(currentUserId);
-  commentsPanel->loadCommentsForPost(post.id);
+  commentsPanel->loadCommentsForPost(post->id);
   Log::debug("PostsFeed::showCommentsForPost: Comments panel configured and "
              "loading comments");
 
@@ -2045,7 +2045,7 @@ void PostsFeed::updateAudioPlayerPlaylist() {
   juce::StringArray audioUrls;
 
   // Use FeedStore instead of local posts array
-  juce::Array<FeedPost> posts;
+  juce::Array<Sidechain::FeedPost> posts;
   if (appStore) {
     const auto currentFeed = postsSlice->getState().getCurrentFeed();
     if (currentFeed) {
@@ -2054,7 +2054,7 @@ void PostsFeed::updateAudioPlayerPlaylist() {
   }
   for (const auto &post : posts) {
     if (post.audioUrl.isNotEmpty()) {
-      postIds.add(post.id);
+      postIds.add(post->id);
       audioUrls.add(post.audioUrl);
     }
   }
@@ -2154,8 +2154,8 @@ void PostsFeed::showNewPostsToast(int count) {
 // ==============================================================================
 // Remix Chains - Start remix flow
 
-void PostsFeed::startRemixFlow(const FeedPost &post, const juce::String &remixType) {
-  Log::info("PostsFeed::startRemixFlow: Starting remix - post: " + post.id + ", type: " + remixType);
+void PostsFeed::startRemixFlow(const Sidechain::FeedPost &post, const juce::String &remixType) {
+  Log::info("PostsFeed::startRemixFlow: Starting remix - post: " + post->id + ", type: " + remixType);
 
   // Confirm the remix action
   juce::String confirmMessage = "You're about to remix ";
@@ -2166,7 +2166,7 @@ void PostsFeed::startRemixFlow(const FeedPost &post, const juce::String &remixTy
   else
     confirmMessage += "both audio and MIDI";
   confirmMessage +=
-      " from @" + post.username + "'s post.\n\nYou'll be taken to the recording view to create your remix.";
+      " from @" + post->username + "'s post.\n\nYou'll be taken to the recording view to create your remix.";
 
   auto options = juce::MessageBoxOptions()
                      .withTitle("Start Remix")
@@ -2183,10 +2183,10 @@ void PostsFeed::startRemixFlow(const FeedPost &post, const juce::String &remixTy
     // Call the remix callback to navigate to recording view with context
     if (onStartRemix) {
       // For posts, we pass the post ID (story ID would be empty)
-      onStartRemix(post.id, "", remixType);
+      onStartRemix(post->id, "", remixType);
       Log::info("PostsFeed::startRemixFlow: Navigating to remix recording - "
                 "postId: " +
-                post.id);
+                post->id);
     } else {
       Log::warn("PostsFeed::startRemixFlow: onStartRemix callback not set");
       juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Error",

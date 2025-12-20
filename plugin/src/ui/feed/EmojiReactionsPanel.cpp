@@ -28,7 +28,7 @@ void EmojiReactionsPanel::paint(juce::Graphics &g) {
   g.drawRoundedRectangle(bounds, 12.0f, 1.0f);
 
   // Draw each emoji
-  const auto &emojis = FeedPost::REACTION_EMOJIS;
+  const auto &emojis = Sidechain::FeedPost::REACTION_EMOJIS;
 
   for (int i = 0; i < emojis.size(); ++i) {
     auto emojiBounds = getEmojiBounds(i);
@@ -63,8 +63,8 @@ void EmojiReactionsPanel::resized() {
 void EmojiReactionsPanel::mouseUp(const juce::MouseEvent &event) {
   int index = getEmojiIndexAtPosition(event.getPosition());
 
-  if (index >= 0 && index < FeedPost::REACTION_EMOJIS.size()) {
-    juce::String emoji = FeedPost::REACTION_EMOJIS[index];
+  if (index >= 0 && index < Sidechain::FeedPost::REACTION_EMOJIS.size()) {
+    juce::String emoji = Sidechain::FeedPost::REACTION_EMOJIS[index];
 
     if (onEmojiSelected)
       onEmojiSelected(emoji);
@@ -98,14 +98,14 @@ void EmojiReactionsPanel::setSelectedEmoji(const juce::String &emoji) {
 }
 
 juce::Rectangle<int> EmojiReactionsPanel::getPreferredSize() {
-  int numEmojis = FeedPost::REACTION_EMOJIS.size();
+  int numEmojis = Sidechain::FeedPost::REACTION_EMOJIS.size();
   int width = PANEL_PADDING * 2 + numEmojis * EMOJI_SIZE + (numEmojis - 1) * EMOJI_SPACING;
   return juce::Rectangle<int>(0, 0, width, PANEL_HEIGHT);
 }
 
 // ==============================================================================
 juce::Rectangle<int> EmojiReactionsPanel::getEmojiBounds(int index) const {
-  if (index < 0 || index >= FeedPost::REACTION_EMOJIS.size())
+  if (index < 0 || index >= Sidechain::FeedPost::REACTION_EMOJIS.size())
     return {};
 
   int x = PANEL_PADDING + index * (EMOJI_SIZE + EMOJI_SPACING);
@@ -115,7 +115,7 @@ juce::Rectangle<int> EmojiReactionsPanel::getEmojiBounds(int index) const {
 }
 
 int EmojiReactionsPanel::getEmojiIndexAtPosition(juce::Point<int> pos) const {
-  for (int i = 0; i < FeedPost::REACTION_EMOJIS.size(); ++i) {
+  for (int i = 0; i < Sidechain::FeedPost::REACTION_EMOJIS.size(); ++i) {
     if (getEmojiBounds(i).expanded(4).contains(pos))
       return i;
   }

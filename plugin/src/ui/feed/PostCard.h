@@ -44,12 +44,12 @@ public:
   /** Set the post data to display
    * @param post The feed post to display
    */
-  void setPost(const FeedPost &post);
+  void setPost(const Sidechain::FeedPost &post);
 
   /** Get the current post data
    * @return Reference to the current post
    */
-  const FeedPost &getPost() const {
+  const Sidechain::FeedPost &getPost() const {
     return post;
   }
 
@@ -100,58 +100,58 @@ public:
   // Callbacks for user actions
 
   /** Called when play button is clicked */
-  std::function<void(const FeedPost &)> onPlayClicked;
+  std::function<void(const Sidechain::FeedPost &)> onPlayClicked;
 
   /** Called when pause button is clicked */
-  std::function<void(const FeedPost &)> onPauseClicked;
+  std::function<void(const Sidechain::FeedPost &)> onPauseClicked;
 
   /** Called when like button is toggled
    * @param post The post that was liked/unliked
    * @param liked true if post is now liked, false if unliked
    */
-  std::function<void(const FeedPost &, bool liked)> onLikeToggled;
+  std::function<void(const Sidechain::FeedPost &, bool liked)> onLikeToggled;
 
   /** Called when user selects an emoji reaction
    * @param post The post being reacted to
    * @param emoji The emoji string (empty to clear reaction)
    */
-  std::function<void(const FeedPost &, const juce::String &emoji)> onEmojiReaction;
+  std::function<void(const Sidechain::FeedPost &, const juce::String &emoji)> onEmojiReaction;
 
   /** Called when user avatar/name is clicked (navigate to profile) */
-  std::function<void(const FeedPost &)> onUserClicked;
+  std::function<void(const Sidechain::FeedPost &)> onUserClicked;
 
   /** Called when comment button is clicked
    * @note Currently not fully implemented - comment UI exists but not wired to
    * API See @ref notes/PLAN.md for comment system implementation status
    */
-  std::function<void(const FeedPost &)> onCommentClicked;
+  std::function<void(const Sidechain::FeedPost &)> onCommentClicked;
 
   /** Called when share button is clicked (copies post URL to clipboard) */
-  std::function<void(const FeedPost &)> onShareClicked;
+  std::function<void(const Sidechain::FeedPost &)> onShareClicked;
 
   /** Called when "more" menu button is clicked
    * @warning NOT IMPLEMENTED - Currently only logs the action, no context menu
    * shown See @ref notes/PLAN.md for planned context menu features
    */
-  std::function<void(const FeedPost &)> onMoreClicked;
+  std::function<void(const Sidechain::FeedPost &)> onMoreClicked;
 
   /** Called when save/bookmark button is toggled
    * @param post The post that was saved/unsaved
    * @param saved true if post is now saved, false if unsaved
    */
-  std::function<void(const FeedPost &, bool saved)> onSaveToggled;
+  std::function<void(const Sidechain::FeedPost &, bool saved)> onSaveToggled;
 
   /** Called when repost button is clicked
    * @param post The post to be reposted
    * @note Shows a confirmation dialog before reposting
    */
-  std::function<void(const FeedPost &)> onRepostClicked;
+  std::function<void(const Sidechain::FeedPost &)> onRepostClicked;
 
   /** Called when waveform is clicked (seek to position)
    * @param post The post being seeked
    * @param position Normalized position (0.0 to 1.0) where waveform was clicked
    */
-  std::function<void(const FeedPost &, float position)> onWaveformClicked;
+  std::function<void(const Sidechain::FeedPost &, float position)> onWaveformClicked;
 
   /** Called when follow/unfollow button is toggled
    * @param post The post whose author should be followed/unfollowed
@@ -159,7 +159,7 @@ public:
    * @note UI updates optimistically and backend API call is implemented in
    * PostsFeed.cpp. Success/error notifications are shown to the user.
    */
-  std::function<void(const FeedPost &, bool willFollow)> onFollowToggled;
+  std::function<void(const Sidechain::FeedPost &, bool willFollow)> onFollowToggled;
 
   /** Called when "Add to DAW" button is clicked
    * @param post The post to download
@@ -167,35 +167,35 @@ public:
    *       Success/error notifications are shown to the user (already
    * implemented).
    */
-  std::function<void(const FeedPost &)> onAddToDAWClicked;
+  std::function<void(const Sidechain::FeedPost &)> onAddToDAWClicked;
 
   /** Called when "Drop to Track" button is clicked
    * @param post The post to download and add to DAW project
    * @note Downloads audio file and places it in DAW project folder
    * automatically. This is the one-click "Drop to Track" feature from README.
    */
-  std::function<void(const FeedPost &)> onDropToTrackClicked;
+  std::function<void(const Sidechain::FeedPost &)> onDropToTrackClicked;
 
   /** Called when "Download MIDI" button is clicked
    * @param post The post with MIDI to download
    * @note Only shown when post.hasMidi is true. Downloads .mid file.
    *       Part of R.3.3 Cross-DAW MIDI Collaboration feature.
    */
-  std::function<void(const FeedPost &)> onDownloadMIDIClicked;
+  std::function<void(const Sidechain::FeedPost &)> onDownloadMIDIClicked;
 
   /** Called when "Download Project" button is clicked
    * @param post The post with project file to download
    * @note Only shown when post.hasProjectFile is true. Downloads DAW project
    * file. Part of R.3.4 Project File Exchange feature.
    */
-  std::function<void(const FeedPost &)> onDownloadProjectClicked;
+  std::function<void(const Sidechain::FeedPost &)> onDownloadProjectClicked;
 
   /** Called when "Add to Playlist" button is clicked
    * @param post The post to add to playlist
    * @note Shows playlist selection dialog. Part of R.3.1 Collaborative
    * Playlists feature.
    */
-  std::function<void(const FeedPost &)> onAddToPlaylistClicked;
+  std::function<void(const Sidechain::FeedPost &)> onAddToPlaylistClicked;
 
   /** Called when "Remix" button is clicked
    * @param post The post to remix
@@ -203,14 +203,14 @@ public:
    * @note Initiates remix flow - downloads source content and prepares for
    * recording. Part of R.3.2 Remix Chains feature.
    */
-  std::function<void(const FeedPost &, const juce::String &remixType)> onRemixClicked;
+  std::function<void(const Sidechain::FeedPost &, const juce::String &remixType)> onRemixClicked;
 
   /** Called when remix chain info is clicked (view remix lineage)
    * @param post The post whose remix chain to view
    * @note Shows the remix chain visualization. Part of R.3.2 Remix Chains
    * feature.
    */
-  std::function<void(const FeedPost &)> onRemixChainClicked;
+  std::function<void(const Sidechain::FeedPost &)> onRemixChainClicked;
 
   /** Called when sound indicator is clicked (navigate to sound page)
    * @param soundId The ID of the sound to navigate to
@@ -222,21 +222,21 @@ public:
   /** Called when card is tapped (for expanding details)
    * @param post The post that was tapped
    */
-  std::function<void(const FeedPost &)> onCardTapped;
+  std::function<void(const Sidechain::FeedPost &)> onCardTapped;
 
   /** Called when archive state is toggled
    * @param post The post that was archived/unarchived
    * @param archived true if post should be archived, false to unarchive
    * @note Used for "Archive" option in more menu
    */
-  std::function<void(const FeedPost &, bool archived)> onArchiveToggled;
+  std::function<void(const Sidechain::FeedPost &, bool archived)> onArchiveToggled;
 
   /** Called when pin state is toggled
    * @param post The post that was pinned/unpinned
    * @param pinned true if post should be pinned, false to unpin
    * @note Only available for own posts. Max 3 pinned posts allowed.
    */
-  std::function<void(const FeedPost &, bool pinned)> onPinToggled;
+  std::function<void(const Sidechain::FeedPost &, bool pinned)> onPinToggled;
 
   // ==============================================================================
   // Component overrides
@@ -292,7 +292,7 @@ protected:
 
 private:
   // ==============================================================================
-  FeedPost post;
+  Sidechain::FeedPost post;
 
   // UI state
   HoverState hoverState;

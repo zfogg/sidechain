@@ -105,7 +105,7 @@ void AppStore::switchFeedType(FeedType feedType) {
 
   // Load the new feed if not already loaded
   auto currentState = sliceManager.getPostsSlice()->getState();
-  if (currentState.feeds[feedType].posts.isEmpty()) {
+  if (currentState.feeds[feedType].posts.empty()) {
     loadFeed(feedType, false);
   }
 }
@@ -155,11 +155,10 @@ void AppStore::unsavePost(const juce::String &postId) {
 
   // Optimistic removal from saved posts
   sliceManager.getPostsSlice()->dispatch([postId](PostsState &state) {
-    for (int i = 0; i < state.savedPosts.posts.size(); ++i) {
-      if (state.savedPosts.posts[i].id == postId) {
-        state.savedPosts.posts.remove(i);
-        break;
-      }
+    auto it = std::find_if(state.savedPosts.posts.begin(), state.savedPosts.posts.end(),
+                           [&postId](const auto &post) { return post->id == postId; });
+    if (it != state.savedPosts.posts.end()) {
+      state.savedPosts.posts.erase(it);
     }
   });
 
@@ -221,11 +220,10 @@ void AppStore::restorePost(const juce::String &postId) {
 
   // Optimistic removal from archived posts
   sliceManager.getPostsSlice()->dispatch([postId](PostsState &state) {
-    for (int i = 0; i < state.archivedPosts.posts.size(); ++i) {
-      if (state.archivedPosts.posts[i].id == postId) {
-        state.archivedPosts.posts.remove(i);
-        break;
-      }
+    auto it = std::find_if(state.archivedPosts.posts.begin(), state.archivedPosts.posts.end(),
+                           [&postId](const auto &post) { return post->id == postId; });
+    if (it != state.archivedPosts.posts.end()) {
+      state.archivedPosts.posts.erase(it);
     }
   });
 
@@ -255,8 +253,8 @@ void AppStore::toggleLike(const juce::String &postId) {
 
   for (const auto &[feedType, feedState] : currentPostsState.feeds) {
     for (const auto &post : feedState.posts) {
-      if (post.id == postId) {
-        isCurrentlyLiked = post.isLiked;
+      if (post->id == postId) {
+        isCurrentlyLiked = post->isLiked;
         break;
       }
     }
@@ -267,24 +265,24 @@ void AppStore::toggleLike(const juce::String &postId) {
     // Update all occurrences of the post across all feeds
     for (auto &[feedType, feedState] : state.feeds) {
       for (auto &post : feedState.posts) {
-        if (post.id == postId) {
-          post.isLiked = !post.isLiked;
-          post.likeCount += post.isLiked ? 1 : -1;
+        if (post->id == postId) {
+          post->isLiked = !post->isLiked;
+          post->likeCount += post->isLiked ? 1 : -1;
         }
       }
     }
 
     for (auto &post : state.savedPosts.posts) {
-      if (post.id == postId) {
-        post.isLiked = !post.isLiked;
-        post.likeCount += post.isLiked ? 1 : -1;
+      if (post->id == postId) {
+        post->isLiked = !post->isLiked;
+        post->likeCount += post->isLiked ? 1 : -1;
       }
     }
 
     for (auto &post : state.archivedPosts.posts) {
-      if (post.id == postId) {
-        post.isLiked = !post.isLiked;
-        post.likeCount += post.isLiked ? 1 : -1;
+      if (post->id == postId) {
+        post->isLiked = !post->isLiked;
+        post->likeCount += post->isLiked ? 1 : -1;
       }
     }
   });
@@ -320,8 +318,8 @@ void AppStore::toggleSave(const juce::String &postId) {
 
   for (const auto &[feedType, feedState] : currentPostsState.feeds) {
     for (const auto &post : feedState.posts) {
-      if (post.id == postId) {
-        isCurrentlySaved = post.isSaved;
+      if (post->id == postId) {
+        isCurrentlySaved = post->isSaved;
         break;
       }
     }
@@ -331,24 +329,24 @@ void AppStore::toggleSave(const juce::String &postId) {
   sliceManager.getPostsSlice()->dispatch([postId](PostsState &state) {
     for (auto &[feedType, feedState] : state.feeds) {
       for (auto &post : feedState.posts) {
-        if (post.id == postId) {
-          post.isSaved = !post.isSaved;
-          post.saveCount += post.isSaved ? 1 : -1;
+        if (post->id == postId) {
+          post->isSaved = !post->isSaved;
+          post->saveCount += post->isSaved ? 1 : -1;
         }
       }
     }
 
     for (auto &post : state.savedPosts.posts) {
-      if (post.id == postId) {
-        post.isSaved = !post.isSaved;
-        post.saveCount += post.isSaved ? 1 : -1;
+      if (post->id == postId) {
+        post->isSaved = !post->isSaved;
+        post->saveCount += post->isSaved ? 1 : -1;
       }
     }
 
     for (auto &post : state.archivedPosts.posts) {
-      if (post.id == postId) {
-        post.isSaved = !post.isSaved;
-        post.saveCount += post.isSaved ? 1 : -1;
+      if (post->id == postId) {
+        post->isSaved = !post->isSaved;
+        post->saveCount += post->isSaved ? 1 : -1;
       }
     }
   });
@@ -384,8 +382,8 @@ void AppStore::toggleRepost(const juce::String &postId) {
 
   for (const auto &[feedType, feedState] : currentPostsState.feeds) {
     for (const auto &post : feedState.posts) {
-      if (post.id == postId) {
-        isCurrentlyReposted = post.isReposted;
+      if (post->id == postId) {
+        isCurrentlyReposted = post->isReposted;
         break;
       }
     }
@@ -395,24 +393,24 @@ void AppStore::toggleRepost(const juce::String &postId) {
   sliceManager.getPostsSlice()->dispatch([postId](PostsState &state) {
     for (auto &[feedType, feedState] : state.feeds) {
       for (auto &post : feedState.posts) {
-        if (post.id == postId) {
-          post.isReposted = !post.isReposted;
-          post.repostCount += post.isReposted ? 1 : -1;
+        if (post->id == postId) {
+          post->isReposted = !post->isReposted;
+          post->repostCount += post->isReposted ? 1 : -1;
         }
       }
     }
 
     for (auto &post : state.savedPosts.posts) {
-      if (post.id == postId) {
-        post.isReposted = !post.isReposted;
-        post.repostCount += post.isReposted ? 1 : -1;
+      if (post->id == postId) {
+        post->isReposted = !post->isReposted;
+        post->repostCount += post->isReposted ? 1 : -1;
       }
     }
 
     for (auto &post : state.archivedPosts.posts) {
-      if (post.id == postId) {
-        post.isReposted = !post.isReposted;
-        post.repostCount += post.isReposted ? 1 : -1;
+      if (post->id == postId) {
+        post->isReposted = !post->isReposted;
+        post->repostCount += post->isReposted ? 1 : -1;
       }
     }
   });
@@ -462,21 +460,21 @@ void AppStore::toggleFollow(const juce::String &postId, bool willFollow) {
 
   for (const auto &[feedType, feedState] : currentPostsState.feeds) {
     for (const auto &post : feedState.posts) {
-      if (post.id == postId) {
-        userId = post.userId;
-        previousFollowState = post.isFollowing;
+      if (post->id == postId) {
+        userId = post->userId;
+        previousFollowState = post->isFollowing;
         break;
       }
     }
   }
 
-  if (!userId.isEmpty()) {
+  if (!userId.empty()) {
     // Apply optimistic update - toggle follow state immediately
     sliceManager.getPostsSlice()->dispatch([postId, willFollow](PostsState &state) {
       for (auto &[feedType, feedState] : state.feeds) {
         for (auto &post : feedState.posts) {
-          if (post.id == postId) {
-            post.isFollowing = willFollow;
+          if (post->id == postId) {
+            post->isFollowing = willFollow;
           }
         }
       }
@@ -496,8 +494,8 @@ void AppStore::toggleFollow(const juce::String &postId, bool willFollow) {
           sliceManager.getPostsSlice()->dispatch([postId, previousFollowState](PostsState &state) {
             for (auto &[feedType, feedState] : state.feeds) {
               for (auto &post : feedState.posts) {
-                if (post.id == postId) {
-                  post.isFollowing = previousFollowState;
+                if (post->id == postId) {
+                  post->isFollowing = previousFollowState;
                 }
               }
             }
@@ -515,8 +513,8 @@ void AppStore::toggleFollow(const juce::String &postId, bool willFollow) {
           sliceManager.getPostsSlice()->dispatch([postId, previousFollowState](PostsState &state) {
             for (auto &[feedType, feedState] : state.feeds) {
               for (auto &post : feedState.posts) {
-                if (post.id == postId) {
-                  post.isFollowing = previousFollowState;
+                if (post->id == postId) {
+                  post->isFollowing = previousFollowState;
                 }
               }
             }
@@ -560,8 +558,8 @@ void AppStore::togglePin(const juce::String &postId, bool pinned) {
   sliceManager.getPostsSlice()->dispatch([postId, pinned](PostsState &state) {
     for (auto &[feedType, feedState] : state.feeds) {
       for (auto &post : feedState.posts) {
-        if (post.id == postId) {
-          post.isPinned = pinned;
+        if (post->id == postId) {
+          post->isPinned = pinned;
         }
       }
     }
@@ -690,11 +688,11 @@ void AppStore::handleFetchSuccess(FeedType feedType, const juce::var &data, int 
 
       auto &feedState = s.feeds[feedType];
       if (offset == 0) {
-        feedState.posts = response.posts;
-      } else {
-        for (const auto &post : response.posts) {
-          feedState.posts.add(post);
-        }
+        feedState.posts.clear();
+      }
+      // Convert juce::Array<FeedPost> to vector<shared_ptr<FeedPost>>
+      for (const auto &post : response.posts) {
+        feedState.posts.push_back(std::make_shared<FeedPost>(post));
       }
 
       feedState.isLoading = false;
@@ -772,7 +770,11 @@ void AppStore::handleSavedPostsLoaded(Outcome<juce::var> result) {
   }
 
   sliceManager.getPostsSlice()->dispatch([loadedPosts, totalCount](PostsState &s) {
-    s.savedPosts.posts = loadedPosts;
+    // Convert juce::Array<FeedPost> to vector<shared_ptr<FeedPost>>
+    s.savedPosts.posts.clear();
+    for (const auto &post : loadedPosts) {
+      s.savedPosts.posts.push_back(std::make_shared<FeedPost>(post));
+    }
     s.savedPosts.isLoading = false;
     s.savedPosts.totalCount = totalCount;
     s.savedPosts.offset += loadedPosts.size();
@@ -822,7 +824,11 @@ void AppStore::handleArchivedPostsLoaded(Outcome<juce::var> result) {
   }
 
   sliceManager.getPostsSlice()->dispatch([loadedPosts, totalCount](PostsState &s) {
-    s.archivedPosts.posts = loadedPosts;
+    // Convert juce::Array<FeedPost> to vector<shared_ptr<FeedPost>>
+    s.archivedPosts.posts.clear();
+    for (const auto &post : loadedPosts) {
+      s.archivedPosts.posts.push_back(std::make_shared<FeedPost>(post));
+    }
     s.archivedPosts.isLoading = false;
     s.archivedPosts.totalCount = totalCount;
     s.archivedPosts.offset += loadedPosts.size();
@@ -849,7 +855,7 @@ bool AppStore::isCurrentFeedCached() const {
       auto &feedState = state.feeds.at(feedType);
       auto ageMs = now - feedState.lastUpdated;
       auto ageSecs = ageMs / 1000;
-      return !feedState.posts.isEmpty() && ageSecs < cacheTTLSeconds;
+      return !feedState.posts.empty() && ageSecs < cacheTTLSeconds;
     }
   }
 
@@ -994,8 +1000,8 @@ rxcpp::observable<int> AppStore::likePostObservable(const juce::String &postId) 
 
     for (const auto &[feedType, feedState] : currentPostsState.feeds) {
       for (const auto &post : feedState.posts) {
-        if (post.id == postId) {
-          isCurrentlyLiked = post.isLiked;
+        if (post->id == postId) {
+          isCurrentlyLiked = post->isLiked;
           break;
         }
       }
@@ -1008,9 +1014,9 @@ rxcpp::observable<int> AppStore::likePostObservable(const juce::String &postId) 
     sliceManager.getPostsSlice()->dispatch([postId](PostsState &state) {
       for (auto &[feedType, feedState] : state.feeds) {
         for (auto &post : feedState.posts) {
-          if (post.id == postId) {
-            post.isLiked = !post.isLiked;
-            post.likeCount += post.isLiked ? 1 : -1;
+          if (post->id == postId) {
+            post->isLiked = !post->isLiked;
+            post->likeCount += post->isLiked ? 1 : -1;
           }
         }
       }
@@ -1032,9 +1038,9 @@ rxcpp::observable<int> AppStore::likePostObservable(const juce::String &postId) 
           sliceManager.getPostsSlice()->dispatch([postId, previousState](PostsState &state) {
             for (auto &[feedType, feedState] : state.feeds) {
               for (auto &post : feedState.posts) {
-                if (post.id == postId) {
-                  post.isLiked = previousState;
-                  post.likeCount += previousState ? 1 : -1;
+                if (post->id == postId) {
+                  post->isLiked = previousState;
+                  post->likeCount += previousState ? 1 : -1;
                 }
               }
             }
@@ -1055,9 +1061,9 @@ rxcpp::observable<int> AppStore::likePostObservable(const juce::String &postId) 
           sliceManager.getPostsSlice()->dispatch([postId, previousState](PostsState &state) {
             for (auto &[feedType, feedState] : state.feeds) {
               for (auto &post : feedState.posts) {
-                if (post.id == postId) {
-                  post.isLiked = previousState;
-                  post.likeCount += previousState ? 1 : -1;
+                if (post->id == postId) {
+                  post->isLiked = previousState;
+                  post->likeCount += previousState ? 1 : -1;
                 }
               }
             }
@@ -1086,8 +1092,8 @@ rxcpp::observable<int> AppStore::toggleSaveObservable(const juce::String &postId
 
     for (const auto &[feedType, feedState] : currentPostsState.feeds) {
       for (const auto &post : feedState.posts) {
-        if (post.id == postId) {
-          isCurrentlySaved = post.isSaved;
+        if (post->id == postId) {
+          isCurrentlySaved = post->isSaved;
           break;
         }
       }
@@ -1100,24 +1106,24 @@ rxcpp::observable<int> AppStore::toggleSaveObservable(const juce::String &postId
     sliceManager.getPostsSlice()->dispatch([postId](PostsState &state) {
       for (auto &[feedType, feedState] : state.feeds) {
         for (auto &post : feedState.posts) {
-          if (post.id == postId) {
-            post.isSaved = !post.isSaved;
-            post.saveCount += post.isSaved ? 1 : -1;
+          if (post->id == postId) {
+            post->isSaved = !post->isSaved;
+            post->saveCount += post->isSaved ? 1 : -1;
           }
         }
       }
 
       for (auto &post : state.savedPosts.posts) {
-        if (post.id == postId) {
-          post.isSaved = !post.isSaved;
-          post.saveCount += post.isSaved ? 1 : -1;
+        if (post->id == postId) {
+          post->isSaved = !post->isSaved;
+          post->saveCount += post->isSaved ? 1 : -1;
         }
       }
 
       for (auto &post : state.archivedPosts.posts) {
-        if (post.id == postId) {
-          post.isSaved = !post.isSaved;
-          post.saveCount += post.isSaved ? 1 : -1;
+        if (post->id == postId) {
+          post->isSaved = !post->isSaved;
+          post->saveCount += post->isSaved ? 1 : -1;
         }
       }
     });
@@ -1137,22 +1143,22 @@ rxcpp::observable<int> AppStore::toggleSaveObservable(const juce::String &postId
           sliceManager.getPostsSlice()->dispatch([postId, previousState](PostsState &state) {
             for (auto &[feedType, feedState] : state.feeds) {
               for (auto &post : feedState.posts) {
-                if (post.id == postId) {
-                  post.isSaved = previousState;
-                  post.saveCount += previousState ? 1 : -1;
+                if (post->id == postId) {
+                  post->isSaved = previousState;
+                  post->saveCount += previousState ? 1 : -1;
                 }
               }
             }
             for (auto &post : state.savedPosts.posts) {
-              if (post.id == postId) {
-                post.isSaved = previousState;
-                post.saveCount += previousState ? 1 : -1;
+              if (post->id == postId) {
+                post->isSaved = previousState;
+                post->saveCount += previousState ? 1 : -1;
               }
             }
             for (auto &post : state.archivedPosts.posts) {
-              if (post.id == postId) {
-                post.isSaved = previousState;
-                post.saveCount += previousState ? 1 : -1;
+              if (post->id == postId) {
+                post->isSaved = previousState;
+                post->saveCount += previousState ? 1 : -1;
               }
             }
           });
@@ -1171,22 +1177,22 @@ rxcpp::observable<int> AppStore::toggleSaveObservable(const juce::String &postId
           sliceManager.getPostsSlice()->dispatch([postId, previousState](PostsState &state) {
             for (auto &[feedType, feedState] : state.feeds) {
               for (auto &post : feedState.posts) {
-                if (post.id == postId) {
-                  post.isSaved = previousState;
-                  post.saveCount += previousState ? 1 : -1;
+                if (post->id == postId) {
+                  post->isSaved = previousState;
+                  post->saveCount += previousState ? 1 : -1;
                 }
               }
             }
             for (auto &post : state.savedPosts.posts) {
-              if (post.id == postId) {
-                post.isSaved = previousState;
-                post.saveCount += previousState ? 1 : -1;
+              if (post->id == postId) {
+                post->isSaved = previousState;
+                post->saveCount += previousState ? 1 : -1;
               }
             }
             for (auto &post : state.archivedPosts.posts) {
-              if (post.id == postId) {
-                post.isSaved = previousState;
-                post.saveCount += previousState ? 1 : -1;
+              if (post->id == postId) {
+                post->isSaved = previousState;
+                post->saveCount += previousState ? 1 : -1;
               }
             }
           });
