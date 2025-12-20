@@ -11,7 +11,7 @@ on:
       - 'plugin/**/CMakeLists.txt'
       - 'plugin/Sidechain.jucer'
       - 'plugin/cmake/**'
-      - '.github/workflows/plugin_tests.yml'
+      - '.github/workflows/test-plugin.yml'
   pull_request:
     branches: [main]
     paths:
@@ -22,7 +22,7 @@ on:
       - 'plugin/**/CMakeLists.txt'
       - 'plugin/Sidechain.jucer'
       - 'plugin/cmake/**'
-      - '.github/workflows/plugin_tests.yml'
+      - '.github/workflows/test-plugin.yml'
 
 # Permissions needed for dorny/test-reporter to create check runs
 permissions:

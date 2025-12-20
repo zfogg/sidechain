@@ -92,13 +92,24 @@ jobs:
           if [ -d "vendor" ]; then
             go mod vendor
           fi
-          go test ./... -v -race
+          go test ./... -v -race -coverprofile=coverage.out -covermode=atomic
 
       - name: Stop Docker Compose Services
         if: always()
         run: |
           cd backend
           docker compose down -v
+
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v5
+        if: always()
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: backend/coverage.out
+          flags: backend
+          name: backend-coverage
+          fail_ci_if_error: false
+          verbose: true
 
   build-plugin-debug:
     name: Build Plugin (Debug)
