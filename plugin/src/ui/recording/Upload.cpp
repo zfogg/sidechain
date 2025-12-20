@@ -1094,8 +1094,49 @@ void Upload::startUpload() {
   postData->setProperty("key", keyStr);
   postData->setProperty("bpm", bpm);
 
-  // TODO: Create actual audio file from audioBuffer
-  juce::File audioFile(filename);
+  // Create actual audio file from audioBuffer and write to temporary location
+  // Use system temp directory to store the WAV file before upload
+  juce::File tempDir = juce::File::getSpecialLocation(juce::File::tempDirectory);
+  juce::String audioFileName = filename.replaceCharacters(" ", "_") + ".wav";
+  juce::File audioFile = tempDir.getChildFile(audioFileName);
+
+  // Write audio buffer to WAV file
+  if (audioBuffer.getNumSamples() > 0) {
+    juce::WavAudioFormat wavFormat;
+    std::unique_ptr<juce::FileOutputStream> outStream(audioFile.createOutputStream());
+
+    if (outStream) {
+      std::unique_ptr<juce::AudioFormatWriter> writer(
+          wavFormat.createWriterFor(outStream.get(), audioSampleRate, audioBuffer.getNumChannels(), 16, {}, 0));
+
+      if (writer) {
+        outStream.release(); // Release ownership to writer
+        writer->writeFromAudioSampleBuffer(audioBuffer, 0, audioBuffer.getNumSamples());
+        writer->flush();
+
+        Log::debug("Upload::startUpload: Audio file written to " + audioFile.getFullPathName());
+      } else {
+        Log::error("Upload::startUpload: Failed to create WAV writer");
+        uploadState = UploadState::Error;
+        errorMessage = "Failed to encode audio";
+        repaint();
+        return;
+      }
+    } else {
+      Log::error("Upload::startUpload: Failed to create output stream for " + audioFile.getFullPathName());
+      uploadState = UploadState::Error;
+      errorMessage = "Failed to write audio file";
+      repaint();
+      return;
+    }
+  } else {
+    Log::error("Upload::startUpload: Audio buffer is empty");
+    uploadState = UploadState::Error;
+    errorMessage = "No audio data to upload";
+    repaint();
+    return;
+  }
+
   appStore->uploadPost(postData.get(), audioFile);
 
   // Store upload details for success preview
