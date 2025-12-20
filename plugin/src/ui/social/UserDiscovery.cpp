@@ -534,14 +534,21 @@ void UserDiscovery::scrollBarMoved(juce::ScrollBar *bar, double newRangeStart) {
 
 // ==============================================================================
 void UserDiscovery::loadDiscoveryData() {
-  jassert(userStore != nullptr);
-  if (!userStore) {
-    Log::error("UserDiscovery: Cannot load discovery data - UserStore is null");
+  if (!networkClient) {
+    Log::warn("UserDiscovery::loadDiscoveryData: NetworkClient not set");
     return;
   }
 
-  Log::info("UserDiscovery: Loading discovery data from UserStore");
-  // UserStore will trigger state changes that notify our subscription
+  Log::info("UserDiscovery: Loading discovery data from NetworkClient");
+
+  // Fetch all discovery sections in parallel
+  fetchTrendingUsers();
+  fetchFeaturedProducers();
+  fetchSuggestedUsers();
+  fetchAvailableGenres();
+
+  // Note: Similar producers and recommended to follow currently reuse suggested users
+  // Phase 2: Add dedicated endpoints when backend provides them
 }
 
 void UserDiscovery::refresh() {
@@ -565,25 +572,253 @@ void UserDiscovery::performSearch(const juce::String &query) {
   searchResults.clear();
   addToRecentSearches(query);
 
-  // UserStore handles the search - will notify via subscription when results arrive
-  // TODO: Add searchUsers method to UserStore
-  // Phase 2: Implement searchUsers to enable user search via AppStore reactive pattern
-  rebuildUserCards();
-  repaint();
+  if (!networkClient) {
+    Log::warn("UserDiscovery::performSearch: NetworkClient not set");
+    isSearching = false;
+    repaint();
+    return;
+  }
+
+  // Call NetworkClient searchUsers
+  networkClient->searchUsers(query, 20, 0, [this](Outcome<juce::var> result) {
+    juce::MessageManager::callAsync([this, result]() {
+      isSearching = false;
+
+      if (result.isOk()) {
+        auto response = result.getValue();
+        searchResults.clear();
+
+        // Parse users array from response
+        auto usersArray = response.getProperty("users", juce::var());
+        if (usersArray.isArray()) {
+          for (int i = 0; i < usersArray.size(); ++i) {
+            auto userJson = usersArray[i];
+            searchResults.add(DiscoveredUser::fromJson(userJson));
+          }
+        }
+
+        Log::info("UserDiscovery::performSearch: Found " + juce::String(searchResults.size()) + " users");
+        rebuildUserCards();
+        queryPresenceForUsers(searchResults);
+      } else {
+        Log::error("UserDiscovery::performSearch: " + result.getError());
+      }
+
+      repaint();
+    });
+  });
 }
 
-void UserDiscovery::fetchTrendingUsers() {}
-void UserDiscovery::fetchFeaturedProducers() {}
-void UserDiscovery::fetchSuggestedUsers() {}
-void UserDiscovery::fetchSimilarProducers() {}
-void UserDiscovery::fetchRecommendedToFollow() {}
-void UserDiscovery::fetchAvailableGenres() {}
-void UserDiscovery::fetchUsersByGenre(const juce::String & /*genre*/) {}
+void UserDiscovery::fetchTrendingUsers() {
+  if (!networkClient) {
+    Log::warn("UserDiscovery::fetchTrendingUsers: NetworkClient not set");
+    return;
+  }
+
+  isTrendingLoading = true;
+  repaint();
+
+  networkClient->getTrendingUsers(20, [this](Outcome<juce::var> result) {
+    juce::MessageManager::callAsync([this, result]() {
+      isTrendingLoading = false;
+
+      if (result.isOk()) {
+        auto response = result.getValue();
+        trendingUsers.clear();
+
+        // Parse users array from response
+        auto usersArray = response.getProperty("users", juce::var());
+        if (usersArray.isArray()) {
+          for (int i = 0; i < usersArray.size(); ++i) {
+            auto userJson = usersArray[i];
+            trendingUsers.add(DiscoveredUser::fromJson(userJson));
+          }
+        }
+
+        Log::info("UserDiscovery::fetchTrendingUsers: Loaded " + juce::String(trendingUsers.size()) +
+                  " trending users");
+        rebuildUserCards();
+        queryPresenceForUsers(trendingUsers);
+      } else {
+        Log::error("UserDiscovery::fetchTrendingUsers: " + result.getError());
+      }
+
+      repaint();
+    });
+  });
+}
+
+void UserDiscovery::fetchFeaturedProducers() {
+  if (!networkClient) {
+    Log::warn("UserDiscovery::fetchFeaturedProducers: NetworkClient not set");
+    return;
+  }
+
+  isFeaturedLoading = true;
+  repaint();
+
+  networkClient->getFeaturedProducers(20, [this](Outcome<juce::var> result) {
+    juce::MessageManager::callAsync([this, result]() {
+      isFeaturedLoading = false;
+
+      if (result.isOk()) {
+        auto response = result.getValue();
+        featuredProducers.clear();
+
+        // Parse users array from response
+        auto usersArray = response.getProperty("users", juce::var());
+        if (usersArray.isArray()) {
+          for (int i = 0; i < usersArray.size(); ++i) {
+            auto userJson = usersArray[i];
+            featuredProducers.add(DiscoveredUser::fromJson(userJson));
+          }
+        }
+
+        Log::info("UserDiscovery::fetchFeaturedProducers: Loaded " + juce::String(featuredProducers.size()) +
+                  " featured producers");
+        rebuildUserCards();
+        queryPresenceForUsers(featuredProducers);
+      } else {
+        Log::error("UserDiscovery::fetchFeaturedProducers: " + result.getError());
+      }
+
+      repaint();
+    });
+  });
+}
+
+void UserDiscovery::fetchSuggestedUsers() {
+  if (!networkClient) {
+    Log::warn("UserDiscovery::fetchSuggestedUsers: NetworkClient not set");
+    return;
+  }
+
+  isSuggestedLoading = true;
+  repaint();
+
+  networkClient->getSuggestedUsers(20, [this](Outcome<juce::var> result) {
+    juce::MessageManager::callAsync([this, result]() {
+      isSuggestedLoading = false;
+
+      if (result.isOk()) {
+        auto response = result.getValue();
+        suggestedUsers.clear();
+
+        // Parse users array from response
+        auto usersArray = response.getProperty("users", juce::var());
+        if (usersArray.isArray()) {
+          for (int i = 0; i < usersArray.size(); ++i) {
+            auto userJson = usersArray[i];
+            suggestedUsers.add(DiscoveredUser::fromJson(userJson));
+          }
+        }
+
+        Log::info("UserDiscovery::fetchSuggestedUsers: Loaded " + juce::String(suggestedUsers.size()) +
+                  " suggested users");
+        rebuildUserCards();
+        queryPresenceForUsers(suggestedUsers);
+      } else {
+        Log::error("UserDiscovery::fetchSuggestedUsers: " + result.getError());
+      }
+
+      repaint();
+    });
+  });
+}
+
+void UserDiscovery::fetchSimilarProducers() {
+  // Similar producers uses the same suggested users endpoint with different parameters
+  // For now, reuse suggested users logic
+  // Phase 2: Add dedicated endpoint if backend provides one
+  fetchSuggestedUsers();
+}
+
+void UserDiscovery::fetchRecommendedToFollow() {
+  // Recommended to follow uses collaborative filtering
+  // For now, reuse suggested users logic
+  // Phase 2: Add dedicated Gorse-based endpoint if backend provides one
+  fetchSuggestedUsers();
+}
+
+void UserDiscovery::fetchAvailableGenres() {
+  if (!networkClient) {
+    Log::warn("UserDiscovery::fetchAvailableGenres: NetworkClient not set");
+    return;
+  }
+
+  isGenresLoading = true;
+  repaint();
+
+  networkClient->getAvailableGenres([this](Outcome<juce::var> result) {
+    juce::MessageManager::callAsync([this, result]() {
+      isGenresLoading = false;
+
+      if (result.isOk()) {
+        auto response = result.getValue();
+        availableGenres.clear();
+
+        // Parse genres array from response
+        auto genresArray = response.getProperty("genres", juce::var());
+        if (genresArray.isArray()) {
+          for (int i = 0; i < genresArray.size(); ++i) {
+            auto genre = genresArray[i].toString();
+            if (genre.isNotEmpty()) {
+              availableGenres.add(genre);
+            }
+          }
+        }
+
+        Log::info("UserDiscovery::fetchAvailableGenres: Loaded " + juce::String(availableGenres.size()) + " genres");
+      } else {
+        Log::error("UserDiscovery::fetchAvailableGenres: " + result.getError());
+      }
+
+      repaint();
+    });
+  });
+}
+
+void UserDiscovery::fetchUsersByGenre(const juce::String &genre) {
+  if (!networkClient || genre.isEmpty()) {
+    Log::warn("UserDiscovery::fetchUsersByGenre: NetworkClient not set or genre empty");
+    return;
+  }
+
+  genreUsers.clear();
+  repaint();
+
+  networkClient->getUsersByGenre(genre, 20, 0, [this](Outcome<juce::var> result) {
+    juce::MessageManager::callAsync([this, result]() {
+      if (result.isOk()) {
+        auto response = result.getValue();
+        genreUsers.clear();
+
+        // Parse users array from response
+        auto usersArray = response.getProperty("users", juce::var());
+        if (usersArray.isArray()) {
+          for (int i = 0; i < usersArray.size(); ++i) {
+            auto userJson = usersArray[i];
+            genreUsers.add(DiscoveredUser::fromJson(userJson));
+          }
+        }
+
+        Log::info("UserDiscovery::fetchUsersByGenre: Loaded " + juce::String(genreUsers.size()) + " users for genre");
+        rebuildUserCards();
+        queryPresenceForUsers(genreUsers);
+      } else {
+        Log::error("UserDiscovery::fetchUsersByGenre: " + result.getError());
+      }
+
+      repaint();
+    });
+  });
+}
 
 void UserDiscovery::handleFollowToggle(const DiscoveredUser &user, bool willFollow) {
-  jassert(userStore != nullptr);
-  if (!userStore)
+  if (!networkClient) {
+    Log::warn("UserDiscovery::handleFollowToggle: NetworkClient not set");
     return;
+  }
 
   // Optimistic UI update
   for (auto *card : userCards) {
@@ -593,7 +828,62 @@ void UserDiscovery::handleFollowToggle(const DiscoveredUser &user, bool willFoll
     }
   }
 
-  // TODO: Phase 2 - Add followUser/unfollowUser to store
+  // Update local arrays for optimistic UI
+  auto updateUserInArray = [&user, willFollow](juce::Array<DiscoveredUser> &userArray) {
+    for (auto &u : userArray) {
+      if (u.id == user.id) {
+        u.isFollowing = willFollow;
+        break;
+      }
+    }
+  };
+
+  updateUserInArray(trendingUsers);
+  updateUserInArray(featuredProducers);
+  updateUserInArray(suggestedUsers);
+  updateUserInArray(similarProducers);
+  updateUserInArray(recommendedToFollow);
+  updateUserInArray(searchResults);
+  updateUserInArray(genreUsers);
+
+  // Call NetworkClient to perform follow/unfollow
+  if (willFollow) {
+    networkClient->followUser(user.id, [this, userId = user.id](Outcome<juce::var> result) {
+      juce::MessageManager::callAsync([this, userId, result]() {
+        if (result.isError()) {
+          Log::error("UserDiscovery::handleFollowToggle: Failed to follow user " + userId + ": " + result.getError());
+          // Revert optimistic update on error
+          for (auto *card : userCards) {
+            if (card->getUserId() == userId) {
+              card->setIsFollowing(false);
+              break;
+            }
+          }
+          repaint();
+        } else {
+          Log::info("UserDiscovery::handleFollowToggle: Successfully followed user " + userId);
+        }
+      });
+    });
+  } else {
+    networkClient->unfollowUser(user.id, [this, userId = user.id](Outcome<juce::var> result) {
+      juce::MessageManager::callAsync([this, userId, result]() {
+        if (result.isError()) {
+          Log::error("UserDiscovery::handleFollowToggle: Failed to unfollow user " + userId + ": " + result.getError());
+          // Revert optimistic update on error
+          for (auto *card : userCards) {
+            if (card->getUserId() == userId) {
+              card->setIsFollowing(true);
+              break;
+            }
+          }
+          repaint();
+        } else {
+          Log::info("UserDiscovery::handleFollowToggle: Successfully unfollowed user " + userId);
+        }
+      });
+    });
+  }
 }
 
 // ==============================================================================

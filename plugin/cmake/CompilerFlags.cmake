@@ -76,6 +76,15 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
         # macOS-specific
         add_compile_options(-fvisibility=hidden)
         add_link_options(-dead_strip)
+
+        # Use LLD linker for faster link times on macOS (if available)
+        find_program(LLD_LINKER ld.lld)
+        if(LLD_LINKER)
+            message(STATUS "Using LLD linker for faster link times: ${LLD_LINKER}")
+            add_link_options(-fuse-ld=lld)
+        else()
+            message(STATUS "LLD linker not found on macOS, using default linker (ld64). Install llvm for faster builds: brew install llvm")
+        endif()
     elseif(UNIX AND NOT APPLE)
         # Linux-specific
         add_compile_options(-fvisibility=hidden)
