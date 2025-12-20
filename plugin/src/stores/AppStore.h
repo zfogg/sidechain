@@ -513,6 +513,10 @@ public:
     return sliceManager.getCommentsSlice()->subscribe(callback);
   }
 
+  std::function<void()> subscribeToDiscovery(std::function<void(const DiscoveryState &)> callback) {
+    return sliceManager.getDiscoverySlice()->subscribe(callback);
+  }
+
   // Temporary accessor for UI components - to be removed
   const Stores::AuthState &getAuthState() const {
     return sliceManager.getAuthSlice()->getState();

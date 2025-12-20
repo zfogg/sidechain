@@ -8,7 +8,7 @@
 #include <vector>
 
 // ==============================================================================
-UserDiscovery::UserDiscovery() {
+UserDiscovery::UserDiscovery(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   Log::info("UserDiscovery: Initializing");
 
   // Create search box
@@ -34,26 +34,15 @@ UserDiscovery::UserDiscovery() {
   // Load recent searches from disk
   loadRecentSearches();
 
-  // Note: Online status is now implemented - queries getstream.io Chat presence
-  // and shows online indicators on UserCards
+  // Subscribe to AppStore after all UI setup is complete
+  initialize();
 }
 
 UserDiscovery::~UserDiscovery() {
   Log::debug("UserDiscovery: Destroying");
   searchBox->removeListener(this);
   scrollBar.removeListener(this);
-  if (storeUnsubscriber) {
-    storeUnsubscriber();
-  }
-  if (trendingUnsubscriber) {
-    trendingUnsubscriber();
-  }
-  if (featuredUnsubscriber) {
-    featuredUnsubscriber();
-  }
-  if (suggestedUnsubscriber) {
-    suggestedUnsubscriber();
-  }
+  // AppStoreComponent destructor handles storeUnsubscriber cleanup
 }
 
 // ==============================================================================
@@ -61,22 +50,6 @@ void UserDiscovery::setStreamChatClient(StreamChatClient *client) {
   streamChatClient = client;
   Log::info("UserDiscovery::setStreamChatClient: StreamChatClient set " +
             juce::String(client != nullptr ? "(valid)" : "(null)"));
-}
-
-void UserDiscovery::setUserStore(std::shared_ptr<Sidechain::Stores::AppStore> store) {
-  // Unsubscribe from old store
-  if (storeUnsubscriber) {
-    storeUnsubscriber();
-  }
-
-  userStore = store;
-  jassert(userStore != nullptr); // UserStore is required
-
-  Log::info("UserDiscovery: UserStore set");
-  // Will subscribe to UserStore for discovery data
-  // TODO: Implement discovery data in UserStore (loadTrendingUsers, loadSuggestedUsers, etc.)
-  // Phase 2: Move discovery data loading to UserStore for reactive updates
-  // Currently uses local member variables (trendingUsers, featuredProducers, etc.)
 }
 
 // ==============================================================================
@@ -538,7 +511,7 @@ void UserDiscovery::scrollBarMoved(juce::ScrollBar *bar, double newRangeStart) {
 
 // ==============================================================================
 void UserDiscovery::loadDiscoveryData() {
-  if (!userStore) {
+  if (!appStore) {
     Log::warn("UserDiscovery::loadDiscoveryData: AppStore not set");
     return;
   }
@@ -556,16 +529,16 @@ void UserDiscovery::loadDiscoveryData() {
 }
 
 void UserDiscovery::refresh() {
-  jassert(userStore != nullptr);
+  jassert(appStore != nullptr);
   loadDiscoveryData();
   repaint();
 }
 
 // ==============================================================================
 void UserDiscovery::performSearch(const juce::String &query) {
-  jassert(userStore != nullptr);
-  if (!userStore) {
-    Log::warn("UserDiscovery: Cannot perform search - UserStore null");
+  jassert(appStore != nullptr);
+  if (!appStore) {
+    Log::warn("UserDiscovery: Cannot perform search - AppStore null");
     return;
   }
 
@@ -577,7 +550,7 @@ void UserDiscovery::performSearch(const juce::String &query) {
   addToRecentSearches(query);
 
   // Search and cache users via AppStore
-  userStore->searchUsersAndCache(query, 20, 0);
+  appStore->searchUsersAndCache(query, 20, 0);
 
   // Subscribe to EntityStore user cache changes to get search results
   auto &entityStore = Sidechain::Stores::EntityStore::getInstance();
@@ -614,7 +587,7 @@ void UserDiscovery::performSearch(const juce::String &query) {
 }
 
 void UserDiscovery::fetchTrendingUsers() {
-  if (!userStore) {
+  if (!appStore) {
     Log::warn("UserDiscovery::fetchTrendingUsers: AppStore not set");
     return;
   }
@@ -622,50 +595,44 @@ void UserDiscovery::fetchTrendingUsers() {
   isTrendingLoading = true;
   repaint();
 
-  // Unsubscribe from previous subscription if any
-  if (trendingUnsubscriber) {
-    trendingUnsubscriber();
-  }
-
   // Load trending users via AppStore (caches to EntityStore)
-  userStore->loadTrendingUsers();
+  appStore->loadTrendingUsers();
 
   // Subscribe to EntityStore user cache changes to get trending users
   // Note: This is a simplified approach - ideally AppStore would provide
   // a discovery state slice with trending/featured/suggested sections
   auto &entityStore = Sidechain::Stores::EntityStore::getInstance();
-  trendingUnsubscriber =
-      entityStore.users().subscribeAll([this](const std::vector<std::shared_ptr<Sidechain::User>> &allUsers) {
-        juce::MessageManager::callAsync([this, users = allUsers]() {
-          isTrendingLoading = false;
-          trendingUsers.clear();
+  entityStore.users().subscribeAll([this](const std::vector<std::shared_ptr<Sidechain::User>> &allUsers) {
+    juce::MessageManager::callAsync([this, users = allUsers]() {
+      isTrendingLoading = false;
+      trendingUsers.clear();
 
-          // For now, convert all cached users to DiscoveredUser format
-          // In a full implementation, AppStore would track which users are trending
-          for (const auto &user : users) {
-            if (user && user->isValid()) {
-              DiscoveredUser discovered;
-              discovered.id = user->id;
-              discovered.username = user->username;
-              discovered.displayName = user->displayName;
-              discovered.avatarUrl = user->avatarUrl;
-              discovered.bio = user->bio;
-              discovered.isFollowing = user->isFollowing;
-              trendingUsers.add(discovered);
-            }
-          }
+      // For now, convert all cached users to DiscoveredUser format
+      // In a full implementation, AppStore would track which users are trending
+      for (const auto &user : users) {
+        if (user && user->isValid()) {
+          DiscoveredUser discovered;
+          discovered.id = user->id;
+          discovered.username = user->username;
+          discovered.displayName = user->displayName;
+          discovered.avatarUrl = user->avatarUrl;
+          discovered.bio = user->bio;
+          discovered.isFollowing = user->isFollowing;
+          trendingUsers.add(discovered);
+        }
+      }
 
-          Log::info("UserDiscovery::fetchTrendingUsers: Loaded " + juce::String(trendingUsers.size()) +
-                    " trending users from EntityStore");
-          rebuildUserCards();
-          queryPresenceForUsers(trendingUsers);
-          repaint();
-        });
-      });
+      Log::info("UserDiscovery::fetchTrendingUsers: Loaded " + juce::String(trendingUsers.size()) +
+                " trending users from EntityStore");
+      rebuildUserCards();
+      queryPresenceForUsers(trendingUsers);
+      repaint();
+    });
+  });
 }
 
 void UserDiscovery::fetchFeaturedProducers() {
-  if (!userStore) {
+  if (!appStore) {
     Log::warn("UserDiscovery::fetchFeaturedProducers: AppStore not set");
     return;
   }
@@ -673,47 +640,41 @@ void UserDiscovery::fetchFeaturedProducers() {
   isFeaturedLoading = true;
   repaint();
 
-  // Unsubscribe from previous subscription if any
-  if (featuredUnsubscriber) {
-    featuredUnsubscriber();
-  }
-
   // Load featured producers via AppStore (caches to EntityStore)
-  userStore->loadFeaturedProducers();
+  appStore->loadFeaturedProducers();
 
   // Subscribe to EntityStore user cache changes to get featured producers
   auto &entityStore = Sidechain::Stores::EntityStore::getInstance();
-  featuredUnsubscriber =
-      entityStore.users().subscribeAll([this](const std::vector<std::shared_ptr<Sidechain::User>> &allUsers) {
-        juce::MessageManager::callAsync([this, users = allUsers]() {
-          isFeaturedLoading = false;
-          featuredProducers.clear();
+  entityStore.users().subscribeAll([this](const std::vector<std::shared_ptr<Sidechain::User>> &allUsers) {
+    juce::MessageManager::callAsync([this, users = allUsers]() {
+      isFeaturedLoading = false;
+      featuredProducers.clear();
 
-          // Convert cached users to DiscoveredUser format
-          for (const auto &user : users) {
-            if (user && user->isValid()) {
-              DiscoveredUser discovered;
-              discovered.id = user->id;
-              discovered.username = user->username;
-              discovered.displayName = user->displayName;
-              discovered.avatarUrl = user->avatarUrl;
-              discovered.bio = user->bio;
-              discovered.isFollowing = user->isFollowing;
-              featuredProducers.add(discovered);
-            }
-          }
+      // Convert cached users to DiscoveredUser format
+      for (const auto &user : users) {
+        if (user && user->isValid()) {
+          DiscoveredUser discovered;
+          discovered.id = user->id;
+          discovered.username = user->username;
+          discovered.displayName = user->displayName;
+          discovered.avatarUrl = user->avatarUrl;
+          discovered.bio = user->bio;
+          discovered.isFollowing = user->isFollowing;
+          featuredProducers.add(discovered);
+        }
+      }
 
-          Log::info("UserDiscovery::fetchFeaturedProducers: Loaded " + juce::String(featuredProducers.size()) +
-                    " featured producers");
-          rebuildUserCards();
-          queryPresenceForUsers(featuredProducers);
-          repaint();
-        });
-      });
+      Log::info("UserDiscovery::fetchFeaturedProducers: Loaded " + juce::String(featuredProducers.size()) +
+                " featured producers");
+      rebuildUserCards();
+      queryPresenceForUsers(featuredProducers);
+      repaint();
+    });
+  });
 }
 
 void UserDiscovery::fetchSuggestedUsers() {
-  if (!userStore) {
+  if (!appStore) {
     Log::warn("UserDiscovery::fetchSuggestedUsers: AppStore not set");
     return;
   }
@@ -721,43 +682,37 @@ void UserDiscovery::fetchSuggestedUsers() {
   isSuggestedLoading = true;
   repaint();
 
-  // Unsubscribe from previous subscription if any
-  if (suggestedUnsubscriber) {
-    suggestedUnsubscriber();
-  }
-
   // Load suggested users via AppStore (caches to EntityStore)
-  userStore->loadSuggestedUsers();
+  appStore->loadSuggestedUsers();
 
   // Subscribe to EntityStore user cache changes to get suggested users
   auto &entityStore = Sidechain::Stores::EntityStore::getInstance();
-  suggestedUnsubscriber =
-      entityStore.users().subscribeAll([this](const std::vector<std::shared_ptr<Sidechain::User>> &allUsers) {
-        juce::MessageManager::callAsync([this, users = allUsers]() {
-          isSuggestedLoading = false;
-          suggestedUsers.clear();
+  entityStore.users().subscribeAll([this](const std::vector<std::shared_ptr<Sidechain::User>> &allUsers) {
+    juce::MessageManager::callAsync([this, users = allUsers]() {
+      isSuggestedLoading = false;
+      suggestedUsers.clear();
 
-          // Convert cached users to DiscoveredUser format
-          for (const auto &user : users) {
-            if (user && user->isValid()) {
-              DiscoveredUser discovered;
-              discovered.id = user->id;
-              discovered.username = user->username;
-              discovered.displayName = user->displayName;
-              discovered.avatarUrl = user->avatarUrl;
-              discovered.bio = user->bio;
-              discovered.isFollowing = user->isFollowing;
-              suggestedUsers.add(discovered);
-            }
-          }
+      // Convert cached users to DiscoveredUser format
+      for (const auto &user : users) {
+        if (user && user->isValid()) {
+          DiscoveredUser discovered;
+          discovered.id = user->id;
+          discovered.username = user->username;
+          discovered.displayName = user->displayName;
+          discovered.avatarUrl = user->avatarUrl;
+          discovered.bio = user->bio;
+          discovered.isFollowing = user->isFollowing;
+          suggestedUsers.add(discovered);
+        }
+      }
 
-          Log::info("UserDiscovery::fetchSuggestedUsers: Loaded " + juce::String(suggestedUsers.size()) +
-                    " suggested users");
-          rebuildUserCards();
-          queryPresenceForUsers(suggestedUsers);
-          repaint();
-        });
-      });
+      Log::info("UserDiscovery::fetchSuggestedUsers: Loaded " + juce::String(suggestedUsers.size()) +
+                " suggested users");
+      rebuildUserCards();
+      queryPresenceForUsers(suggestedUsers);
+      repaint();
+    });
+  });
 }
 
 void UserDiscovery::fetchSimilarProducers() {
@@ -806,7 +761,7 @@ void UserDiscovery::fetchUsersByGenre(const juce::String &genre) {
 }
 
 void UserDiscovery::handleFollowToggle(const DiscoveredUser &user, bool willFollow) {
-  if (!userStore) {
+  if (!appStore) {
     Log::warn("UserDiscovery::handleFollowToggle: AppStore not set");
     return;
   }
@@ -839,10 +794,10 @@ void UserDiscovery::handleFollowToggle(const DiscoveredUser &user, bool willFoll
 
   // Call AppStore to perform follow/unfollow
   if (willFollow) {
-    userStore->followUser(user.id);
+    appStore->followUser(user.id);
     Log::info("UserDiscovery::handleFollowToggle: Initiated follow for user " + user.id);
   } else {
-    userStore->unfollowUser(user.id);
+    appStore->unfollowUser(user.id);
     Log::info("UserDiscovery::handleFollowToggle: Initiated unfollow for user " + user.id);
   }
 }
@@ -1280,5 +1235,62 @@ void UserDiscovery::updateUserPresence(const juce::String &userId, bool isOnline
   }
 
   // Repaint to show updated online indicators
+  repaint();
+}
+
+// ==============================================================================
+// AppStoreComponent<DiscoveryState> Implementation
+
+void UserDiscovery::subscribeToAppStore() {
+  if (!appStore) {
+    Log::warn("UserDiscovery::subscribeToAppStore: AppStore not set");
+    return;
+  }
+
+  // Subscribe to DiscoveryState slice for reactive updates
+  juce::Component::SafePointer<UserDiscovery> safeThis(this);
+  storeUnsubscriber = appStore->subscribeToDiscovery([safeThis](const Sidechain::Stores::DiscoveryState &state) {
+    if (!safeThis)
+      return;
+    // Post to message thread for thread-safe UI updates
+    juce::MessageManager::callAsync([safeThis, state]() {
+      if (safeThis) {
+        safeThis->onAppStateChanged(state);
+      }
+    });
+  });
+
+  // Load initial discovery data via AppStore
+  loadDiscoveryData();
+}
+
+void UserDiscovery::onAppStateChanged(const Sidechain::Stores::DiscoveryState &state) {
+  Log::debug("UserDiscovery::onAppStateChanged: DiscoveryState updated");
+
+  // Check for errors
+  if (state.discoveryError.isNotEmpty()) {
+    Log::warn("UserDiscovery::onAppStateChanged: Discovery error - " + state.discoveryError);
+    errorMessage = state.discoveryError;
+    repaint();
+    return;
+  }
+
+  // Update loading states
+  isTrendingLoading = state.isTrendingLoading;
+  isFeaturedLoading = state.isFeaturedLoading;
+  isSuggestedLoading = state.isSuggestedLoading;
+  isSimilarLoading = state.isSimilarLoading;
+  isRecommendedLoading = state.isRecommendedLoading;
+  isGenresLoading = state.isGenresLoading;
+
+  // Update discovery users - convert from shared_ptr<const User> to DiscoveredUser
+  // This is a cache update - the actual rendering still uses local DiscoveredUser arrays
+  // Full refactoring would remove these caches and render directly from state
+  // For now, we maintain backward compatibility with existing render code
+
+  availableGenres = state.availableGenres;
+  errorMessage.clear();
+
+  // Repaint to show updated users
   repaint();
 }

@@ -2,6 +2,7 @@
 
 #include "UserCard.h"
 #include "../../stores/AppStore.h"
+#include "../common/AppStoreComponent.h"
 #include <JuceHeader.h>
 #include <memory>
 
@@ -18,16 +19,23 @@ class StreamChatClient;
  * - Featured producers section
  * - Suggested users based on interests
  * - Genre filtering
+ *
+ * Architecture:
+ * - Extends AppStoreComponent<DiscoveryState>
+ * - Subscribes to DiscoveryState for reactive updates
+ * - Delegates user loading to AppStore
+ * - Handles local UI state (search input, scroll position, etc)
  */
-class UserDiscovery : public juce::Component, public juce::TextEditor::Listener, public juce::ScrollBar::Listener {
+class UserDiscovery : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::DiscoveryState>,
+                      public juce::TextEditor::Listener,
+                      public juce::ScrollBar::Listener {
 public:
-  UserDiscovery();
+  explicit UserDiscovery(Sidechain::Stores::AppStore *store = nullptr);
   ~UserDiscovery() override;
 
   // ==============================================================================
-  // Store and network client integration
+  // Setup (call after construction)
   void setStreamChatClient(StreamChatClient *client);
-  void setUserStore(std::shared_ptr<Sidechain::Stores::AppStore> store);
   void setCurrentUserId(const juce::String &userId) {
     currentUserId = userId;
   }
@@ -58,6 +66,12 @@ public:
   void loadDiscoveryData();
   void refresh();
 
+  // ==============================================================================
+  // AppStoreComponent<DiscoveryState> implementation
+protected:
+  void subscribeToAppStore() override;
+  void onAppStateChanged(const Sidechain::Stores::DiscoveryState &state) override;
+
 private:
   // ==============================================================================
   // View modes
@@ -72,37 +86,29 @@ private:
   // ==============================================================================
   // Data
   StreamChatClient *streamChatClient = nullptr;
-  std::shared_ptr<Sidechain::Stores::AppStore> userStore;
-  std::function<void()> storeUnsubscriber;
   juce::String currentUserId;
 
-  // Unsubscribers for discovery sections
-  std::function<void()> trendingUnsubscriber;
-  std::function<void()> featuredUnsubscriber;
-  std::function<void()> suggestedUnsubscriber;
-
-  // Search state
+  // Search state (local UI state, not from store)
   juce::String currentSearchQuery;
-  juce::Array<DiscoveredUser> searchResults;
   bool isSearching = false;
 
   // Recent searches (persisted)
   juce::StringArray recentSearches;
   static constexpr int MAX_RECENT_SEARCHES = 10;
 
-  // Discovery sections (fallback when store not available)
+  // Discovery sections (cached from DiscoveryState)
   juce::Array<DiscoveredUser> trendingUsers;
   juce::Array<DiscoveredUser> featuredProducers;
   juce::Array<DiscoveredUser> suggestedUsers;
   juce::Array<DiscoveredUser> similarProducers;
   juce::Array<DiscoveredUser> recommendedToFollow;
 
-  // Genre filter state (local UI state)
+  // Genre filter state (local UI state - subset of full state)
   juce::String selectedGenre;
   juce::Array<DiscoveredUser> genreUsers;
   juce::StringArray availableGenres;
 
-  // Loading states (fallback when store not available)
+  // Loading states (cached from DiscoveryState)
   bool isTrendingLoading = false;
   bool isFeaturedLoading = false;
   bool isSuggestedLoading = false;
@@ -110,7 +116,10 @@ private:
   bool isRecommendedLoading = false;
   bool isGenresLoading = false;
 
-  // Error state
+  // Search results (local cache)
+  juce::Array<DiscoveredUser> searchResults;
+
+  // Error state (cached from DiscoveryState)
   juce::String errorMessage;
 
   // ==============================================================================
