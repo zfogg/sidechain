@@ -414,8 +414,45 @@ void SelectHighlightDialog::addStoryToHighlight(const juce::String &highlightId)
 }
 
 void SelectHighlightDialog::loadCoverImage(const Sidechain::StoryHighlight &highlight) {
-  (void)highlight; // Not implemented yet
-  // TODO: Load highlight cover image using ImageLoader
-  // Phase 2: Implement image loading for highlight cover display
-  // Image loading to be implemented
+  if (highlight.getCoverUrl().isEmpty())
+    return;
+
+  // Skip if already loading or cached
+  if (coverImages.find(highlight.id) != coverImages.end())
+    return;
+
+  // Mark as loading (empty image in map)
+  coverImages[highlight.id] = juce::Image();
+
+  // Use NetworkClient's binary download (since we don't have AppStore access here)
+  if (networkClient == nullptr)
+    return;
+
+  juce::Component::SafePointer<SelectHighlightDialog> safeThis(this);
+  juce::String highlightId = highlight.id;
+  juce::String coverUrl = highlight.getCoverUrl();
+
+  networkClient->getBinaryAbsolute(coverUrl, [safeThis, highlightId](Outcome<juce::MemoryBlock> result) {
+    if (safeThis == nullptr)
+      return;
+
+    juce::MessageManager::callAsync([safeThis, highlightId, result]() {
+      if (safeThis == nullptr)
+        return;
+
+      if (result.isOk() && result.getValue().getSize() > 0) {
+        auto imageData = result.getValue();
+        juce::MemoryInputStream stream(imageData, false);
+        auto image = juce::ImageFileFormat::loadFrom(stream);
+        if (image.isValid()) {
+          safeThis->coverImages[highlightId] = image;
+          safeThis->repaint();
+        } else {
+          safeThis->coverImages.erase(highlightId);
+        }
+      } else {
+        safeThis->coverImages.erase(highlightId);
+      }
+    });
+  });
 }

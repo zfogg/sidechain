@@ -75,6 +75,9 @@ private:
   // Horizontal scroll
   int scrollOffset = 0;
 
+  // Cover images cache
+  std::map<juce::String, juce::Image> coverImages;
+
   // ==============================================================================
   // Layout constants
   static constexpr int HIGHLIGHT_SIZE = 64;

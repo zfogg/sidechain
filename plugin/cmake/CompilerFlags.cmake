@@ -78,12 +78,13 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
         add_link_options(-dead_strip)
 
         # Use LLD linker for faster link times on macOS (if available)
+        # Note: LLD + LTO has compatibility issues, so only enable if LTO is also available
         find_program(LLD_LINKER ld.lld)
         if(LLD_LINKER)
-            message(STATUS "Using LLD linker for faster link times: ${LLD_LINKER}")
-            add_link_options(-fuse-ld=lld)
-        else()
-            message(STATUS "LLD linker not found on macOS, using default linker (ld64). Install llvm for faster builds: brew install llvm")
+            message(STATUS "LLD linker found at: ${LLD_LINKER}")
+            message(STATUS "NOTE: LLD+LTO has compatibility issues on macOS with mixed compilations")
+            message(STATUS "To use LLD, disable LTO or rebuild all dependencies with matching settings")
+            message(STATUS "For now, using default macOS linker (ld64)")
         endif()
     elseif(UNIX AND NOT APPLE)
         # Linux-specific

@@ -147,36 +147,30 @@ void StoryHighlights::drawHighlight(juce::Graphics &g, const Sidechain::StoryHig
   // Draw cover image or placeholder
   auto imageBounds = circleBounds.reduced(4);
 
-  // Use unified getImage - handles all three cache levels automatically (memory -> file -> HTTP)
-  // - Returns immediately from memory cache
-  // - Loads from file cache on background thread
-  // - Downloads from HTTP if not cached
-  // - Stores in both caches when downloading or loading from file
-  if (appStore && !highlight.coverImageUrl.isEmpty()) {
-    juce::Component::SafePointer<StoryHighlights> safeThis(this);
-    appStore->loadImageObservable(highlight.coverImageUrl)
-        .subscribe(
-            [safeThis](const juce::Image & /*image*/) {
-              if (safeThis == nullptr)
-                return;
-              // Image loaded successfully (from any cache level or HTTP)
-              safeThis->repaint();
-            },
-            [safeThis](std::exception_ptr) {
-              if (safeThis == nullptr)
-                return;
-              Log::warn("StoryHighlights: Failed to load story image");
-            });
-  }
+  // Check if we have a cached image
+  auto it = coverImages.find(highlight.id);
+  if (it != coverImages.end() && it->second.isValid()) {
+    // Draw cached image
+    juce::Path clipPath;
+    clipPath.addEllipse(imageBounds);
+    g.saveState();
+    g.reduceClipRegion(clipPath);
+    g.drawImage(it->second, imageBounds, juce::RectanglePlacement::centred | juce::RectanglePlacement::fillDestination);
+    g.restoreState();
+  } else {
+    // Draw placeholder while image loads
+    g.setColour(Colors::addButtonBg);
+    g.fillEllipse(imageBounds);
+    g.setColour(Colors::textPrimary);
+    g.setFont(juce::Font(juce::FontOptions().withHeight(20.0f)).boldened());
+    juce::String initial = highlight.name.isNotEmpty() ? highlight.name.substring(0, 1).toUpperCase() : "?";
+    g.drawText(initial, imageBounds.toNearestInt(), juce::Justification::centred);
 
-  // Draw placeholder while image loads, or cached image if available
-  // The placeholder will be replaced when the image arrives
-  g.setColour(Colors::addButtonBg);
-  g.fillEllipse(imageBounds);
-  g.setColour(Colors::textPrimary);
-  g.setFont(juce::Font(juce::FontOptions().withHeight(20.0f)).boldened());
-  juce::String initial = highlight.name.isNotEmpty() ? highlight.name.substring(0, 1).toUpperCase() : "?";
-  g.drawText(initial, imageBounds.toNearestInt(), juce::Justification::centred);
+    // Load image if not already loading
+    if (appStore && !highlight.getCoverUrl().isEmpty() && coverImages.find(highlight.id) == coverImages.end()) {
+      loadCoverImage(highlight);
+    }
+  }
 
   // Draw name
   g.setColour(Colors::textSecondary);
@@ -270,8 +264,35 @@ juce::Rectangle<int> StoryHighlights::getAddButtonBounds() const {
 
 // ==============================================================================
 void StoryHighlights::loadCoverImage(const Sidechain::StoryHighlight &highlight) {
-  (void)highlight; // Not implemented yet
-  // TODO: Load highlight cover image from URL
-  // Phase 2: Implement image loading for highlight covers
-  // Image loading to be implemented
+  if (!appStore || highlight.getCoverUrl().isEmpty())
+    return;
+
+  // Skip if already loading or cached
+  if (coverImages.find(highlight.id) != coverImages.end())
+    return;
+
+  // Mark as loading (empty image in map)
+  coverImages[highlight.id] = juce::Image();
+
+  juce::Component::SafePointer<StoryHighlights> safeThis(this);
+  juce::String highlightId = highlight.id;
+  juce::String coverUrl = highlight.getCoverUrl();
+
+  appStore->getImage(coverUrl, [safeThis, highlightId](const juce::Image &image) {
+    if (safeThis == nullptr)
+      return;
+
+    juce::MessageManager::callAsync([safeThis, highlightId, image]() {
+      if (safeThis == nullptr)
+        return;
+
+      if (image.isValid()) {
+        safeThis->coverImages[highlightId] = image;
+        safeThis->repaint();
+      } else {
+        // Remove failed load marker
+        safeThis->coverImages.erase(highlightId);
+      }
+    });
+  });
 }

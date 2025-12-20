@@ -288,6 +288,25 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
                                    juce::MessageManager::callAsync([this, result]() {
                                      if (result.isOk()) {
                                        Log::info("Story uploaded successfully");
+
+                                       // Extract story ID from response
+                                       juce::String storyId;
+                                       auto response = result.getValue();
+                                       if (Json::isObject(response)) {
+                                         // Try "story" object first, then direct "id" property
+                                         auto storyObj = Json::getObject(response, "story");
+                                         if (Json::isObject(storyObj)) {
+                                           storyId = Json::getString(storyObj, "id");
+                                         } else {
+                                           storyId = Json::getString(response, "id");
+                                         }
+                                       }
+
+                                       if (storyId.isNotEmpty()) {
+                                         // Show highlight selection dialog to optionally save to highlight
+                                         showSelectHighlightDialog(storyId);
+                                       }
+
                                        // Navigate back to feed
                                        showView(AppView::PostsFeed);
                                      } else {
@@ -572,12 +591,12 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
 
     // Create direct channel with selected user
     if (streamChatClient && streamChatClient->isAuthenticated()) {
-      streamChatClient->createDirectChannel(userId, [](Outcome<StreamChatClient::Channel> result) {
-        juce::MessageManager::callAsync([result]() {
+      streamChatClient->createDirectChannel(userId, [this](Outcome<StreamChatClient::Channel> result) {
+        juce::MessageManager::callAsync([this, result]() {
           if (result.isOk()) {
             auto channel = result.getValue();
-            Log::info("PluginEditor: Direct channel created - ready to show message thread: " + channel.id);
-            // showMessageThread will be called when UI navigation is refactored
+            Log::info("PluginEditor: Direct channel created - navigating to message thread: " + channel.id);
+            showMessageThread(channel.type, channel.id);
           } else {
             Log::error("PluginEditor: Failed to create direct channel - " + result.getError());
             juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Error",
@@ -599,12 +618,12 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
       juce::String channelId = "group_" + juce::String(juce::Time::currentTimeMillis());
 
       streamChatClient->createGroupChannel(
-          channelId, groupName, userIds, [](Outcome<StreamChatClient::Channel> result) {
-            juce::MessageManager::callAsync([result]() {
+          channelId, groupName, userIds, [this](Outcome<StreamChatClient::Channel> result) {
+            juce::MessageManager::callAsync([this, result]() {
               if (result.isOk()) {
                 auto channel = result.getValue();
-                Log::info("PluginEditor: Group channel created - ready to show message thread: " + channel.id);
-                // showMessageThread will be called when UI navigation is refactored
+                Log::info("PluginEditor: Group channel created - navigating to message thread: " + channel.id);
+                showMessageThread(channel.type, channel.id);
               } else {
                 Log::error("PluginEditor: Failed to create group channel - " + result.getError());
                 juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Error",
@@ -738,9 +757,9 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   messagesListComponent = std::make_unique<MessagesList>();
   messagesListComponent->setStreamChatClient(streamChatClient.get());
   messagesListComponent->setNetworkClient(networkClient.get());
-  messagesListComponent->onChannelSelected = [](const juce::String &channelType, const juce::String &channelId) {
+  messagesListComponent->onChannelSelected = [this](const juce::String &channelType, const juce::String &channelId) {
     Log::info("PluginEditor: onChannelSelected callback - channelType: " + channelType + ", channelId: " + channelId);
-    // TODO: Implement navigation to message thread view
+    showMessageThread(channelType, channelId);
   };
   messagesListComponent->onNewMessage = [this]() {
     // Show user picker dialog to create new conversation
@@ -781,6 +800,12 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   messageThreadComponent->setStreamChatClient(streamChatClient.get());
   messageThreadComponent->setNetworkClient(networkClient.get());
   messageThreadComponent->setAudioProcessor(&audioProcessor);
+
+  // Set current user ID if available
+  if (!appStore.getUserState().userId.isEmpty()) {
+    messageThreadComponent->setCurrentUserId(appStore.getUserState().userId);
+  }
+
   messageThreadComponent->onBackPressed = [this]() { showView(AppView::Messages); };
   messageThreadComponent->onSharedPostClicked = [this](const juce::String &postId) {
     // Navigate to feed and show the post (would need to add scrollToPost
@@ -824,12 +849,12 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   profileComponent->onMessageClicked = [this](const juce::String &userId) {
     // Create direct channel with user and navigate to message thread
     if (streamChatClient && streamChatClient->isAuthenticated()) {
-      streamChatClient->createDirectChannel(userId, [](Outcome<StreamChatClient::Channel> result) {
-        juce::MessageManager::callAsync([result]() {
+      streamChatClient->createDirectChannel(userId, [this](Outcome<StreamChatClient::Channel> result) {
+        juce::MessageManager::callAsync([this, result]() {
           if (result.isOk()) {
             auto channel = result.getValue();
-            Log::info("PluginEditor: DM channel created - ready to show message thread: " + channel.id);
-            // showMessageThread will be called when UI navigation is refactored
+            Log::info("PluginEditor: DM channel created - navigating to message thread: " + channel.id);
+            showMessageThread(channel.type, channel.id);
           } else {
             Log::error("PluginEditor: Failed to create DM channel: " + result.getError());
           }
@@ -1122,6 +1147,14 @@ void SidechainAudioProcessorEditor::showView(AppView view, NavigationDirection d
   if (view == AppView::Messages && messagesListComponent) {
     Log::debug("showView: Setting up Messages BEFORE animation - calling loadChannels()");
     messagesListComponent->loadChannels();
+  }
+
+  if (view == AppView::MessageThread && messageThreadComponent) {
+    Log::debug("showView: Setting up MessageThread BEFORE animation - channel: " + messageChannelId);
+    // Channel is already loaded in showMessageThread(), but ensure component is ready
+    if (!messageChannelType.isEmpty() && !messageChannelId.isEmpty()) {
+      messageThreadComponent->loadChannel(messageChannelType, messageChannelId);
+    }
   }
 
   // Determine if we should animate the transition
@@ -1517,14 +1550,33 @@ void SidechainAudioProcessorEditor::showProfile(const juce::String &userId) {
   }
 }
 
-/*
 void SidechainAudioProcessorEditor::showMessageThread(const juce::String &channelType, const juce::String &channelId) {
+  if (channelType.isEmpty() || channelId.isEmpty()) {
+    Log::error("PluginEditor::showMessageThread: channelType or channelId is empty");
+    return;
+  }
+
   Log::info("PluginEditor::showMessageThread - type: " + channelType + ", id: " + channelId);
+
+  // Store channel info for the view
   messageChannelType = channelType;
   messageChannelId = channelId;
-  showView(AppView::MessageThread);
+
+  // Load the channel in MessageThread component before showing view
+  if (messageThreadComponent != nullptr) {
+    messageThreadComponent->loadChannel(channelType, channelId);
+
+    // Set current user ID if available
+    if (!appStore.getUserState().userId.isEmpty()) {
+      messageThreadComponent->setCurrentUserId(appStore.getUserState().userId);
+    }
+  } else {
+    Log::error("PluginEditor::showMessageThread: messageThreadComponent is null");
+  }
+
+  // Navigate to MessageThread view
+  showView(AppView::MessageThread, NavigationDirection::Forward);
 }
-*/
 
 void SidechainAudioProcessorEditor::showPlaylists() {
   showView(AppView::Playlists);

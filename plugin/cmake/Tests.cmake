@@ -39,6 +39,12 @@ if(SIDECHAIN_BUILD_TESTS)
         ${CMAKE_CURRENT_SOURCE_DIR}/src/audio/KeyDetector.h
     )
 
+    # Disable LTO for test library to avoid linker issues with static libraries and LTO
+    # LTO + static libraries can cause symbol visibility issues with LLD
+    set_target_properties(SidechainTestLib PROPERTIES
+        INTERPROCEDURAL_OPTIMIZATION FALSE
+    )
+
     # SidechainTestLib needs access to Sidechain's generated JuceHeader.h
     # We need to build Sidechain first to generate the header
     add_dependencies(SidechainTestLib Sidechain)
@@ -111,6 +117,16 @@ if(SIDECHAIN_BUILD_TESTS)
     # Test executable
     add_executable(SidechainTests ${SIDECHAIN_TEST_SOURCES})
 
+    # Disable LTO for test executable to avoid linker issues with mixed LTO/non-LTO libraries
+    # This is necessary when linking against non-LTO static libraries like SidechainTestLib
+    set_target_properties(SidechainTests PROPERTIES
+        INTERPROCEDURAL_OPTIMIZATION FALSE
+    )
+
+    # Explicitly disable LTO at link time for test executable
+    # This is needed because Sidechain plugin may be built with LTO in Release mode
+    target_link_options(SidechainTests PRIVATE -fno-lto)
+
     # SidechainNetwork depends on KeyDetector which is in SidechainTestLib
     # List SidechainTestLib last to resolve the circular dependency
     target_link_libraries(SidechainTests PRIVATE
@@ -118,8 +134,17 @@ if(SIDECHAIN_BUILD_TESTS)
         Sidechain
         SidechainNetwork
         SidechainUI
+        SidechainAudio
         SidechainTestLib
     )
+
+    # Explicitly remove LTO compile flags from the test target
+    # This prevents LTO issues when linking mixed LTO/non-LTO libraries
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(SidechainTests PRIVATE -fno-lto)
+    elseif(MSVC)
+        target_compile_options(SidechainTests PRIVATE /GL-)
+    endif()
 
     # Coverage flags for test executable
     if(SIDECHAIN_ENABLE_COVERAGE)
