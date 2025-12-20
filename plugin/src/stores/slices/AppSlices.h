@@ -41,13 +41,13 @@ namespace Slices {
  *       }
  *   });
  *
- *   // Dispatch actions to modify state
- *   authSlice->dispatch([](AuthState& auth) {
- *       auth.isLoggedIn = true;
- *       auth.userId = "user_123";
- *   });
+ *   // Update state (immutable - create new instances)
+ *   AuthState newAuth = authSlice->getState();
+ *   newAuth.isLoggedIn = true;
+ *   newAuth.userId = "user_123";
+ *   authSlice->setState(newAuth);  // Atomic replace - all subscribers notified
  *
- *   // Subscribe to derived state (memoized)
+ *   // Subscribe to derived state (selector pattern)
  *   authSlice->subscribeToSelection(
  *       [](const AuthState& auth) { return auth.isLoggedIn; },
  *       [this](const bool& isLoggedIn) { updateLoginUI(isLoggedIn); }
@@ -69,91 +69,97 @@ namespace Slices {
 // Auth Slice
 // ==============================================================================
 
-using AuthSlice = InMemorySlice<AuthState>;
+using AuthSlice = ImmutableSlice<AuthState>;
 
 // ==============================================================================
 // Feed/Posts Slice
 // ==============================================================================
 
-using PostsSlice = InMemorySlice<PostsState>;
+using PostsSlice = ImmutableSlice<PostsState>;
 
 // ==============================================================================
 // User/Profile Slice
 // ==============================================================================
 
-using UserSlice = InMemorySlice<UserState>;
+using UserSlice = ImmutableSlice<UserState>;
 
 // ==============================================================================
 // Chat Slice
 // ==============================================================================
 
-using ChatSlice = InMemorySlice<ChatState>;
+using ChatSlice = ImmutableSlice<ChatState>;
 
 // ==============================================================================
 // Draft Slice
 // ==============================================================================
 
-using DraftSlice = InMemorySlice<DraftState>;
+using DraftSlice = ImmutableSlice<DraftState>;
 
 // ==============================================================================
 // Challenge Slice
 // ==============================================================================
 
-using ChallengeSlice = InMemorySlice<ChallengeState>;
+using ChallengeSlice = ImmutableSlice<ChallengeState>;
 
 // ==============================================================================
 // Stories Slice
 // ==============================================================================
 
-using StoriesSlice = InMemorySlice<StoriesState>;
+using StoriesSlice = ImmutableSlice<StoriesState>;
 
 // ==============================================================================
 // Upload Slice
 // ==============================================================================
 
-using UploadSlice = InMemorySlice<UploadState>;
+using UploadSlice = ImmutableSlice<UploadState>;
 
 // ==============================================================================
 // Notification Slice
 // ==============================================================================
 
-using NotificationSlice = InMemorySlice<NotificationState>;
+using NotificationSlice = ImmutableSlice<NotificationState>;
 
 // ==============================================================================
 // Comments Slice
 // ==============================================================================
 
-using CommentsSlice = InMemorySlice<CommentsState>;
+using CommentsSlice = ImmutableSlice<CommentsState>;
 
 // ==============================================================================
 // Search Slice
 // ==============================================================================
 
-using SearchSlice = InMemorySlice<SearchState>;
+using SearchSlice = ImmutableSlice<SearchState>;
+
+// ==============================================================================
+// Discovery Slice
+// ==============================================================================
+
+using DiscoverySlice = ImmutableSlice<DiscoveryState>;
 
 // ==============================================================================
 // Followers Slice
 // ==============================================================================
 
-using FollowersSlice = InMemorySlice<FollowersState>;
+using FollowersSlice = ImmutableSlice<FollowersState>;
 
 // ==============================================================================
 // Playlist Slice
 // ==============================================================================
 
-using PlaylistSlice = InMemorySlice<PlaylistState>;
+using PlaylistSlice = ImmutableSlice<PlaylistState>;
 
 // ==============================================================================
 // Sound Slice
 // ==============================================================================
 
-using SoundSlice = InMemorySlice<SoundState>;
+using SoundSlice = ImmutableSlice<SoundState>;
 
 // ==============================================================================
 // Presence Slice
 // ==============================================================================
 
-using PresenceSlice = InMemorySlice<PresenceState>;
+using PresenceSlice = ImmutableSlice<PresenceState>;
 
 /**
  * AppSliceManager - Facade for managing all application slices
@@ -263,6 +269,13 @@ public:
     return searchSlice_;
   }
 
+  std::shared_ptr<DiscoverySlice> getDiscoverySlice() {
+    if (!discoverySlice_) {
+      discoverySlice_ = std::make_shared<DiscoverySlice>(DiscoveryState());
+    }
+    return discoverySlice_;
+  }
+
   std::shared_ptr<FollowersSlice> getFollowersSlice() {
     if (!followersSlice_) {
       followersSlice_ = std::make_shared<FollowersSlice>(FollowersState());
@@ -292,40 +305,43 @@ public:
   }
 
   /**
-   * Reset all slices to initial state
+   * Reset all slices to initial state (immutable pattern)
+   * Creates new state instances for each slice
    * Useful for logout or app reset
    */
   void resetAllSlices() {
     if (authSlice_)
-      authSlice_->dispatch([](AuthState &state) { state = AuthState(); });
+      authSlice_->setState(AuthState());
     if (postsSlice_)
-      postsSlice_->dispatch([](PostsState &state) { state = PostsState(); });
+      postsSlice_->setState(PostsState());
     if (userSlice_)
-      userSlice_->dispatch([](UserState &state) { state = UserState(); });
+      userSlice_->setState(UserState());
     if (chatSlice_)
-      chatSlice_->dispatch([](ChatState &state) { state = ChatState(); });
+      chatSlice_->setState(ChatState());
     if (draftSlice_)
-      draftSlice_->dispatch([](DraftState &state) { state = DraftState(); });
+      draftSlice_->setState(DraftState());
     if (challengeSlice_)
-      challengeSlice_->dispatch([](ChallengeState &state) { state = ChallengeState(); });
+      challengeSlice_->setState(ChallengeState());
     if (storiesSlice_)
-      storiesSlice_->dispatch([](StoriesState &state) { state = StoriesState(); });
+      storiesSlice_->setState(StoriesState());
     if (uploadSlice_)
-      uploadSlice_->dispatch([](UploadState &state) { state = UploadState(); });
+      uploadSlice_->setState(UploadState());
     if (notificationSlice_)
-      notificationSlice_->dispatch([](NotificationState &state) { state = NotificationState(); });
+      notificationSlice_->setState(NotificationState());
     if (commentsSlice_)
-      commentsSlice_->dispatch([](CommentsState &state) { state = CommentsState(); });
+      commentsSlice_->setState(CommentsState());
     if (searchSlice_)
-      searchSlice_->dispatch([](SearchState &state) { state = SearchState(); });
+      searchSlice_->setState(SearchState());
+    if (discoverySlice_)
+      discoverySlice_->setState(DiscoveryState());
     if (followersSlice_)
-      followersSlice_->dispatch([](FollowersState &state) { state = FollowersState(); });
+      followersSlice_->setState(FollowersState());
     if (playlistSlice_)
-      playlistSlice_->dispatch([](PlaylistState &state) { state = PlaylistState(); });
+      playlistSlice_->setState(PlaylistState());
     if (soundSlice_)
-      soundSlice_->dispatch([](SoundState &state) { state = SoundState(); });
+      soundSlice_->setState(SoundState());
     if (presenceSlice_)
-      presenceSlice_->dispatch([](PresenceState &state) { state = PresenceState(); });
+      presenceSlice_->setState(PresenceState());
   }
 
   /**
@@ -343,6 +359,7 @@ public:
     notificationSlice_ = nullptr;
     commentsSlice_ = nullptr;
     searchSlice_ = nullptr;
+    discoverySlice_ = nullptr;
     followersSlice_ = nullptr;
     playlistSlice_ = nullptr;
     soundSlice_ = nullptr;
@@ -364,6 +381,7 @@ private:
   std::shared_ptr<NotificationSlice> notificationSlice_;
   std::shared_ptr<CommentsSlice> commentsSlice_;
   std::shared_ptr<SearchSlice> searchSlice_;
+  std::shared_ptr<DiscoverySlice> discoverySlice_;
   std::shared_ptr<FollowersSlice> followersSlice_;
   std::shared_ptr<PlaylistSlice> playlistSlice_;
   std::shared_ptr<SoundSlice> soundSlice_;

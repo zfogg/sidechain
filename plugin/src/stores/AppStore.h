@@ -454,73 +454,59 @@ public:
   // Components should call these methods during setup to get reactive updates
 
   std::function<void()> subscribeToAuth(std::function<void(const AuthState &)> callback) {
-    sliceManager.getAuthSlice()->subscribe(callback);
-    return []() {};
+    return sliceManager.getAuthSlice()->subscribe(callback);
   }
 
   std::function<void()> subscribeToChat(std::function<void(const ChatState &)> callback) {
-    sliceManager.getChatSlice()->subscribe(callback);
-    return []() {};
+    return sliceManager.getChatSlice()->subscribe(callback);
   }
 
   std::function<void()> subscribeToChallenges(std::function<void(const ChallengeState &)> callback) {
-    sliceManager.getChallengeSlice()->subscribe(callback);
-    return []() {};
+    return sliceManager.getChallengeSlice()->subscribe(callback);
   }
 
   std::function<void()> subscribeToNotifications(std::function<void(const NotificationState &)> callback) {
-    sliceManager.getNotificationSlice()->subscribe(callback);
-    return []() {};
+    return sliceManager.getNotificationSlice()->subscribe(callback);
   }
 
   std::function<void()> subscribeToFollowers(std::function<void(const FollowersState &)> callback) {
-    sliceManager.getFollowersSlice()->subscribe(callback);
-    return []() {};
+    return sliceManager.getFollowersSlice()->subscribe(callback);
   }
 
   std::function<void()> subscribeToUser(std::function<void(const UserState &)> callback) {
-    sliceManager.getUserSlice()->subscribe(callback);
-    return []() {};
+    return sliceManager.getUserSlice()->subscribe(callback);
   }
 
   std::function<void()> subscribeToFeed(std::function<void(const PostsState &)> callback) {
-    sliceManager.getPostsSlice()->subscribe(callback);
-    return []() {};
+    return sliceManager.getPostsSlice()->subscribe(callback);
   }
 
   std::function<void()> subscribeToPlaylists(std::function<void(const PlaylistState &)> callback) {
-    sliceManager.getPlaylistSlice()->subscribe(callback);
-    return []() {};
+    return sliceManager.getPlaylistSlice()->subscribe(callback);
   }
 
   std::function<void()> subscribeToDrafts(std::function<void(const DraftState &)> callback) {
-    sliceManager.getDraftSlice()->subscribe(callback);
-    return []() {};
+    return sliceManager.getDraftSlice()->subscribe(callback);
   }
 
   std::function<void()> subscribeToUploads(std::function<void(const UploadState &)> callback) {
-    sliceManager.getUploadSlice()->subscribe(callback);
-    return []() {};
+    return sliceManager.getUploadSlice()->subscribe(callback);
   }
 
   std::function<void()> subscribeSounds(std::function<void(const SoundState &)> callback) {
-    sliceManager.getSoundSlice()->subscribe(callback);
-    return []() {};
+    return sliceManager.getSoundSlice()->subscribe(callback);
   }
 
   std::function<void()> subscribeToSearch(std::function<void(const SearchState &)> callback) {
-    sliceManager.getSearchSlice()->subscribe(callback);
-    return []() {};
+    return sliceManager.getSearchSlice()->subscribe(callback);
   }
 
   std::function<void()> subscribeToSounds(std::function<void(const SoundState &)> callback) {
-    sliceManager.getSoundSlice()->subscribe(callback);
-    return []() {};
+    return sliceManager.getSoundSlice()->subscribe(callback);
   }
 
   std::function<void()> subscribeToStories(std::function<void(const StoriesState &)> callback) {
-    sliceManager.getStoriesSlice()->subscribe(callback);
-    return []() {};
+    return sliceManager.getStoriesSlice()->subscribe(callback);
   }
 
   // Temporary accessor for UI components - to be removed

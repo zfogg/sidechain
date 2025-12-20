@@ -25,6 +25,10 @@ namespace Stores {
 // Auth State
 // ==============================================================================
 
+/**
+ * AuthState - Immutable authentication state snapshot
+ * Immutability guaranteed by ImmutableSlice<AuthState> value semantics
+ */
 struct AuthState {
   bool isLoggedIn = false;
   juce::String userId;
@@ -32,7 +36,7 @@ struct AuthState {
   juce::String email;
   juce::String authToken;
   juce::String refreshToken;
-  int64_t tokenExpiresAt = 0; // Milliseconds since epoch
+  int64_t tokenExpiresAt = 0;
   bool isAuthenticating = false;
   bool is2FARequired = false;
   bool isVerifying2FA = false;
@@ -40,6 +44,9 @@ struct AuthState {
   bool isResettingPassword = false;
   juce::String authError;
   int64_t lastAuthTime = 0;
+
+  // Explicit constructor for immutable state creation
+  AuthState() = default;
 
   // Helper methods for token expiration
   bool isTokenExpired() const {
@@ -61,6 +68,12 @@ struct AuthState {
 // ==============================================================================
 // Feed/Posts State
 // ==============================================================================
+
+/**
+ * PostsState - Immutable feed and posts state
+ * Stored by value in ImmutableSlice<PostsState>
+ * All changes create new state instances via setState()
+ */
 
 enum class FeedType {
   Timeline,
@@ -155,6 +168,10 @@ struct PostsState {
 // User State
 // ==============================================================================
 
+/**
+ * UserState - Immutable user profile state
+ * Stored by value in ImmutableSlice<UserState>
+ */
 struct UserState {
   juce::String userId;
   juce::String username;
@@ -183,6 +200,10 @@ struct UserState {
 // Chat State
 // ==============================================================================
 
+/**
+ * ChatState - Immutable chat and messaging state
+ * Stored by value in ImmutableSlice<ChatState>
+ */
 struct ChannelState {
   juce::String id;
   juce::String name;
@@ -208,6 +229,10 @@ struct ChatState {
 // Notification State
 // ==============================================================================
 
+/**
+ * NotificationState - Immutable notifications state
+ * Stored by value in ImmutableSlice<NotificationState>
+ */
 struct NotificationState {
   std::vector<std::shared_ptr<Sidechain::Notification>> notifications;
   int unreadCount = 0;
@@ -220,6 +245,10 @@ struct NotificationState {
 // Comments State
 // ==============================================================================
 
+/**
+ * CommentsState - Immutable comments state per post
+ * Stored by value in ImmutableSlice<CommentsState>
+ */
 struct CommentsState {
   // Comments per post (postId -> list of comments)
   std::map<juce::String, std::vector<std::shared_ptr<Sidechain::Comment>>> commentsByPostId;
@@ -259,6 +288,10 @@ struct CommentsState {
 // Search State
 // ==============================================================================
 
+/**
+ * SearchState - Immutable search results state
+ * Stored by value in ImmutableSlice<SearchState>
+ */
 struct SearchResultsState {
   std::vector<std::shared_ptr<Sidechain::FeedPost>> posts;
   std::vector<std::shared_ptr<Sidechain::User>> users;
@@ -285,9 +318,63 @@ struct SearchState {
 };
 
 // ==============================================================================
+// Discovery State
+// ==============================================================================
+
+/**
+ * DiscoveryState - Immutable user discovery state
+ * Stored by value in ImmutableSlice<DiscoveryState>
+ */
+struct DiscoveryState {
+  // Immutable copies of user entities from cache
+  std::vector<std::shared_ptr<const Sidechain::User>> trendingUsers;
+  std::vector<std::shared_ptr<const Sidechain::User>> featuredProducers;
+  std::vector<std::shared_ptr<const Sidechain::User>> suggestedUsers;
+  std::vector<std::shared_ptr<const Sidechain::User>> similarProducers;
+  std::vector<std::shared_ptr<const Sidechain::User>> recommendedToFollow;
+
+  // Search results
+  std::vector<std::shared_ptr<const Sidechain::User>> searchResults;
+  juce::String searchQuery;
+
+  // Genre-based discovery
+  std::vector<std::shared_ptr<const Sidechain::User>> genreUsers;
+  juce::String selectedGenre;
+  juce::StringArray availableGenres;
+
+  // UI state - Loading indicators
+  bool isTrendingLoading = false;
+  bool isFeaturedLoading = false;
+  bool isSuggestedLoading = false;
+  bool isSimilarLoading = false;
+  bool isRecommendedLoading = false;
+  bool isSearching = false;
+  bool isGenresLoading = false;
+
+  // Error state
+  juce::String discoveryError;
+
+  // Timestamps
+  int64_t lastTrendingUpdate = 0;
+  int64_t lastFeaturedUpdate = 0;
+  int64_t lastSuggestedUpdate = 0;
+  int64_t lastSearchTime = 0;
+
+  // Helper to check if any discovery section is loading
+  bool isAnyLoading() const {
+    return isTrendingLoading || isFeaturedLoading || isSuggestedLoading || isSimilarLoading || isRecommendedLoading ||
+           isSearching || isGenresLoading;
+  }
+};
+
+// ==============================================================================
 // Presence State
 // ==============================================================================
 
+/**
+ * PresenceState - Immutable user presence state
+ * Stored by value in ImmutableSlice<PresenceState>
+ */
 enum class PresenceStatus { Unknown, Online, Away, Offline, DoNotDisturb };
 
 struct PresenceInfo {
@@ -385,12 +472,41 @@ struct DraftState {
 // ==============================================================================
 // Followers State
 // ==============================================================================
-
+/**
+ * FollowersState - Immutable snapshot for followers/following UI
+ *
+ * IMMUTABILITY via ImmutableSlice<FollowersState>:
+ * - Stored by value (not by pointer) in ImmutableSlice
+ * - setState() atomically replaces entire state instance
+ * - Components receive const references to immutable snapshots
+ * - All changes create new state instances via setState()
+ *
+ * Pattern:
+ * - EntityCache holds shared_ptr<User> (mutable source of truth)
+ * - AppStore creates new FollowersState instances when data changes
+ * - ImmutableSlice manages state with value semantics (copies, not pointers)
+ * - Components subscribe and receive const references to snapshots
+ * - dispatch() copies state, modifies copy, calls setState() to replace
+ */
 struct FollowersState {
-  std::vector<std::shared_ptr<Sidechain::User>> followers;
-  std::vector<std::shared_ptr<Sidechain::User>> following;
+  // Immutable copies of user entities from cache
+  std::vector<std::shared_ptr<const Sidechain::User>> users;
+
+  // UI state
   bool isLoading = false;
-  juce::String followersError;
+  std::string errorMessage;
+  int totalCount = 0;
+
+  // Context
+  std::string targetUserId;
+  enum Type { Followers, Following };
+  Type listType = Followers;
+
+  // Explicit constructor for clarity
+  FollowersState(std::vector<std::shared_ptr<const Sidechain::User>> u = {}, bool loading = false,
+                 const std::string &error = "", int count = 0, const std::string &userId = "", Type type = Followers)
+      : users(std::move(u)), isLoading(loading), errorMessage(error), totalCount(count), targetUserId(userId),
+        listType(type) {}
 };
 
 // ==============================================================================
@@ -426,6 +542,7 @@ struct AppState {
   ChatState chat;
   NotificationState notifications;
   SearchState search;
+  DiscoveryState discovery;
   PresenceState presence;
   StoriesState stories;
   UploadState uploads;
