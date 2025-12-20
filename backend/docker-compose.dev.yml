@@ -260,8 +260,62 @@ services:
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
     depends_on:
       - prometheus
+      - tempo
+      - loki
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  tempo:
+    image: grafana/tempo:2.3.1
+    container_name: sidechain-tempo-dev
+    restart: unless-stopped
+    command: ["-config.file=/etc/tempo.yaml"]
+    ports:
+      - "4318:4318"
+      - "3200:3200"
+      - "9095:9095"
+    volumes:
+      - ./tempo/tempo.yaml:/etc/tempo.yaml:ro
+      - tempo_data:/tmp/tempo
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3200/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  loki:
+    image: grafana/loki:2.9.3
+    container_name: sidechain-loki-dev
+    restart: unless-stopped
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki_data:/loki
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3100/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  promtail:
+    image: grafana/promtail:2.9.3
+    container_name: sidechain-promtail-dev
+    restart: unless-stopped
+    volumes:
+      - ./promtail/promtail.yaml:/etc/promtail/config.yml:ro
+      - /var/log:/var/log:ro
+      - ./logs:/app/logs:ro
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9080/ready"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -276,4 +330,8 @@ volumes:
   prometheus_data:
     driver: local
   grafana_data:
+    driver: local
+  tempo_data:
+    driver: local
+  loki_data:
     driver: local

@@ -8,6 +8,7 @@ import (
 
 	"github.com/zfogg/sidechain/backend/internal/metrics"
 	"github.com/zfogg/sidechain/backend/internal/models"
+	"github.com/zfogg/sidechain/backend/internal/telemetry"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -63,6 +64,15 @@ func Initialize() error {
 
 	// METRICS-1: Register GORM hooks for database query metrics
 	registerMetricsHooks(db)
+
+	// Register OpenTelemetry tracing plugin (if enabled)
+	if os.Getenv("OTEL_ENABLED") == "true" {
+		if err := db.Use(telemetry.GORMTracingPlugin()); err != nil {
+			log.Printf("⚠️  Failed to register GORM tracing plugin: %v", err)
+		} else {
+			log.Println("✅ OpenTelemetry GORM tracing plugin registered")
+		}
+	}
 
 	log.Println("✅ Database connected successfully")
 

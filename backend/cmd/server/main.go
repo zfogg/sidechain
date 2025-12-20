@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -34,9 +35,11 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/storage"
 	"github.com/zfogg/sidechain/backend/internal/stories"
 	"github.com/zfogg/sidechain/backend/internal/stream"
+	"github.com/zfogg/sidechain/backend/internal/telemetry"
 	"github.com/zfogg/sidechain/backend/internal/waveform"
 	"github.com/zfogg/sidechain/backend/internal/websocket"
 	"go.uber.org/zap"
+	"go.opentelemetry.io/otel/sdk/trace"
 )
 
 func main() {
@@ -60,6 +63,38 @@ func main() {
 	// Load environment variables
 	if err := godotenv.Load(); err != nil {
 		logger.Log.Warn("Warning: .env file not found, using system environment variables")
+	}
+
+	// Initialize OpenTelemetry (if enabled)
+	var tracerProvider *trace.TracerProvider
+	if os.Getenv("OTEL_ENABLED") == "true" {
+		cfg := telemetry.Config{
+			ServiceName:  getEnvOrDefault("OTEL_SERVICE_NAME", "sidechain-backend"),
+			Environment:  getEnvOrDefault("OTEL_ENVIRONMENT", "development"),
+			OTLPEndpoint: getEnvOrDefault("OTEL_EXPORTER_OTLP_ENDPOINT", "localhost:4318"),
+			Enabled:      true,
+			SamplingRate: getEnvFloat("OTEL_TRACE_SAMPLER_RATE", 1.0),
+		}
+
+		var tracerErr error
+		tracerProvider, tracerErr = telemetry.InitTracer(cfg)
+		if tracerErr != nil {
+			logger.Log.Warn("Failed to initialize OpenTelemetry", zap.Error(tracerErr))
+		} else {
+			logger.Log.Info("✅ OpenTelemetry tracing enabled",
+				zap.String("service", cfg.ServiceName),
+				zap.Float64("sampling_rate", cfg.SamplingRate),
+				zap.String("endpoint", cfg.OTLPEndpoint),
+			)
+			defer func() {
+				if tracerProvider != nil {
+					shutdownErr := tracerProvider.Shutdown(context.Background())
+					if shutdownErr != nil {
+						logger.Log.Error("Failed to shutdown tracer provider", zap.Error(shutdownErr))
+					}
+				}
+			}()
+		}
 	}
 
 	// Initialize Redis cache (optional but recommended)
@@ -629,6 +664,13 @@ func main() {
 	r.Use(middleware.RequestIDMiddleware()) // Add request ID tracking
 	r.Use(middleware.MetricsMiddleware())   // Prometheus metrics collection
 	r.Use(middleware.GinLoggerMiddleware()) // Structured logging
+
+	// Add tracing middleware (if enabled)
+	if os.Getenv("OTEL_ENABLED") == "true" {
+		r.Use(middleware.TracingMiddleware("sidechain-backend"))
+		logger.Log.Info("✅ OpenTelemetry tracing middleware registered")
+	}
+
 	r.Use(gin.Recovery())
 
 	// Gzip compression middleware (compress responses > 1KB)
@@ -1181,4 +1223,28 @@ func main() {
 	}
 
 	logger.Log.Info("Server exited")
+}
+
+// getEnvOrDefault returns the value of an environment variable or a default value
+func getEnvOrDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
+}
+
+// getEnvFloat parses an environment variable as a float64 or returns a default value
+func getEnvFloat(key string, defaultValue float64) float64 {
+	if value := os.Getenv(key); value != "" {
+		if f, err := time.ParseDuration(value + "s"); err == nil {
+			// Try parsing as duration first for convenience
+			return f.Seconds()
+		}
+		// Parse as raw float
+		var f float64
+		if _, err := fmt.Sscanf(value, "%f", &f); err == nil {
+			return f
+		}
+	}
+	return defaultValue
 }

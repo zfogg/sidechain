@@ -1,0 +1,49 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+  log_level: info
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+    batchwait: 1s
+    batchsize: 1048576
+
+scrape_configs:
+  - job_name: sidechain-backend
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: sidechain-backend
+          service: sidechain-backend
+          __path__: /app/logs/*.log
+    pipeline_stages:
+      # Parse JSON logs
+      - json:
+          expressions:
+            level: level
+            ts: ts
+            msg: msg
+            trace_id: trace_id
+            span_id: span_id
+            user_id: user_id
+            request_id: request_id
+            status: status
+            duration: duration
+      # Extract labels for indexing
+      - labels:
+          level:
+          trace_id:
+          span_id:
+          job:
+      # Set timestamp from JSON
+      - timestamp:
+          source: ts
+          format: "2006-01-02T15:04:05.000Z07:00"
+      # Optional: Drop empty messages
+      - match:
+          selector: '{msg=""}'
+          action: drop
