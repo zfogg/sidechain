@@ -904,41 +904,78 @@ type StorySearchHit struct {
 	Score     float64   `json:"score"`
 }
 
-// SearchStories searches for stories by creator username or story metadata
-func (c *Client) SearchStories(ctx context.Context, query string, limit, offset int) (*SearchStoriesResult, error) {
-	// Build search query - search by username (stories found via their creators)
+// SearchStoriesParams contains parameters for story search
+type SearchStoriesParams struct {
+	Query     string
+	DateFrom  *time.Time
+	DateTo    *time.Time
+	Limit     int
+	Offset    int
+}
+
+// SearchStories searches for stories by creator username with optional datetime range
+func (c *Client) SearchStories(ctx context.Context, params SearchStoriesParams) (*SearchStoriesResult, error) {
+	mustClauses := []map[string]interface{}{
+		{
+			"range": map[string]interface{}{
+				"expires_at": map[string]interface{}{
+					"gte": "now",
+				},
+			},
+		},
+	}
+
+	// Add date range filter if provided
+	if params.DateFrom != nil || params.DateTo != nil {
+		dateRange := map[string]interface{}{}
+		if params.DateFrom != nil {
+			dateRange["gte"] = params.DateFrom
+		}
+		if params.DateTo != nil {
+			dateRange["lte"] = params.DateTo
+		}
+		mustClauses = append(mustClauses, map[string]interface{}{
+			"range": map[string]interface{}{
+				"created_at": dateRange,
+			},
+		})
+	}
+
+	shouldClauses := []map[string]interface{}{}
+	if params.Query != "" {
+		shouldClauses = append(shouldClauses,
+			map[string]interface{}{
+				"match": map[string]interface{}{
+					"username": map[string]interface{}{
+						"query":     params.Query,
+						"boost":     2.0,
+						"fuzziness": "AUTO",
+					},
+				},
+			},
+		)
+	}
+
+	// Build search query
+	boolQuery := map[string]interface{}{}
+	if len(mustClauses) > 0 {
+		boolQuery["must"] = mustClauses
+	}
+	if len(shouldClauses) > 0 {
+		boolQuery["should"] = shouldClauses
+		boolQuery["minimum_should_match"] = 1
+	}
+
 	searchQuery := map[string]interface{}{
 		"query": map[string]interface{}{
-			"bool": map[string]interface{}{
-				"must": []map[string]interface{}{
-					{
-						"range": map[string]interface{}{
-							"expires_at": map[string]interface{}{
-								"gte": "now",
-							},
-						},
-					},
-				},
-				"should": []map[string]interface{}{
-					{
-						"match": map[string]interface{}{
-							"username": map[string]interface{}{
-								"query":     query,
-								"boost":     2.0,
-								"fuzziness": "AUTO",
-							},
-						},
-					},
-				},
-				"minimum_should_match": 1,
-			},
+			"bool": boolQuery,
 		},
 		"sort": []map[string]interface{}{
 			{"_score": map[string]interface{}{"order": "desc"}},
 			{"created_at": map[string]interface{}{"order": "desc"}},
 		},
-		"from": offset,
-		"size": limit,
+		"from": params.Offset,
+		"size": params.Limit,
 	}
 
 	return c.executeStorySearch(ctx, searchQuery)
@@ -1115,4 +1152,162 @@ func (c *Client) SyncUserFollowerCountAsync(userID string, followerCount int) {
 			fmt.Printf("⚠️  Failed to sync follower count for user %s: %v\n", userID, err)
 		}
 	}()
+}
+
+// AdvancedSearchParams contains parameters for advanced multi-entity search
+type AdvancedSearchParams struct {
+	Query     string   // Search query
+	Types     []string // "users", "posts", "stories" (empty = all types)
+	Genres    []string // Post genres to filter by
+	BPMMin    *int     // Post BPM minimum
+	BPMMax    *int     // Post BPM maximum
+	Key       string   // Post key
+	DateFrom  *time.Time // Story created_at minimum
+	DateTo    *time.Time // Story created_at maximum
+	Limit     int
+	Offset    int
+}
+
+// AdvancedSearchResults contains results from all search types
+type AdvancedSearchResults struct {
+	Users   *SearchUsersResult   `json:"users,omitempty"`
+	Posts   *SearchPostsResult   `json:"posts,omitempty"`
+	Stories *SearchStoriesResult `json:"stories,omitempty"`
+}
+
+// AdvancedSearch searches across users, posts, and stories simultaneously
+func (c *Client) AdvancedSearch(ctx context.Context, params AdvancedSearchParams) *AdvancedSearchResults {
+	results := &AdvancedSearchResults{}
+
+	// Default to all types if none specified
+	types := params.Types
+	if len(types) == 0 {
+		types = []string{"users", "posts", "stories"}
+	}
+
+	// Search users
+	if contains(types, "users") {
+		if userResults, err := c.SearchUsers(ctx, params.Query, params.Limit, params.Offset); err == nil {
+			results.Users = userResults
+		}
+	}
+
+	// Search posts
+	if contains(types, "posts") {
+		postParams := SearchPostsParams{
+			Query:  params.Query,
+			Genre:  params.Genres,
+			BPMMin: params.BPMMin,
+			BPMMax: params.BPMMax,
+			Key:    params.Key,
+			Limit:  params.Limit,
+			Offset: params.Offset,
+		}
+		if postResults, err := c.SearchPosts(ctx, postParams); err == nil {
+			results.Posts = postResults
+		}
+	}
+
+	// Search stories
+	if contains(types, "stories") {
+		storyParams := SearchStoriesParams{
+			Query:    params.Query,
+			DateFrom: params.DateFrom,
+			DateTo:   params.DateTo,
+			Limit:    params.Limit,
+			Offset:   params.Offset,
+		}
+		if storyResults, err := c.SearchStories(ctx, storyParams); err == nil {
+			results.Stories = storyResults
+		}
+	}
+
+	return results
+}
+
+// AutocompleteGenres provides genre suggestions for autocomplete
+func (c *Client) AutocompleteGenres(ctx context.Context, prefix string, limit int) ([]string, error) {
+	// Query the posts index for unique genres matching the prefix
+	searchQuery := map[string]interface{}{
+		"size": 0, // We only want aggregations
+		"aggs": map[string]interface{}{
+			"genres": map[string]interface{}{
+				"terms": map[string]interface{}{
+					"field": "genre",
+					"size":  limit,
+					"order": map[string]interface{}{
+						"_count": "desc",
+					},
+				},
+			},
+		},
+		"query": map[string]interface{}{
+			"match_all": map[string]interface{}{},
+		},
+	}
+
+	// If prefix provided, filter genres
+	if prefix != "" {
+		searchQuery["query"] = map[string]interface{}{
+			"wildcard": map[string]interface{}{
+				"genre": map[string]interface{}{
+					"value": prefix + "*",
+				},
+			},
+		}
+	}
+
+	queryJSON, err := json.Marshal(searchQuery)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal search query: %w", err)
+	}
+
+	res, err := c.es.Search(
+		c.es.Search.WithContext(ctx),
+		c.es.Search.WithIndex(IndexPosts),
+		c.es.Search.WithBody(bytes.NewReader(queryJSON)),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute search: %w", err)
+	}
+	defer res.Body.Close()
+
+	if res.IsError() {
+		var errResp map[string]interface{}
+		if err := json.NewDecoder(res.Body).Decode(&errResp); err != nil {
+			return nil, fmt.Errorf("error response [%s]", res.Status())
+		}
+		return nil, fmt.Errorf("error getting genre suggestions: [%s] %v", res.Status(), errResp["error"])
+	}
+
+	var aggResp struct {
+		Aggregations struct {
+			Genres struct {
+				Buckets []struct {
+					Key string `json:"key"`
+				} `json:"buckets"`
+			} `json:"genres"`
+		} `json:"aggregations"`
+	}
+
+	if err := json.NewDecoder(res.Body).Decode(&aggResp); err != nil {
+		return nil, fmt.Errorf("failed to decode aggregation response: %w", err)
+	}
+
+	suggestions := make([]string, 0)
+	for _, bucket := range aggResp.Aggregations.Genres.Buckets {
+		suggestions = append(suggestions, bucket.Key)
+	}
+
+	return suggestions, nil
+}
+
+// Helper function to check if string exists in slice
+func contains(slice []string, val string) bool {
+	for _, item := range slice {
+		if item == val {
+			return true
+		}
+	}
+	return false
 }

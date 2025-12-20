@@ -492,7 +492,7 @@ func (h *Handlers) SearchPosts(c *gin.Context) {
 }
 
 // SearchStories searches for stories
-// GET /api/search/stories?q=query&limit=20&offset=0
+// GET /api/search/stories?q=query&from=2024-01-01&to=2024-12-31&limit=20&offset=0
 func (h *Handlers) SearchStories(c *gin.Context) {
 	query := c.Query("q")
 	if query == "" {
@@ -503,14 +503,44 @@ func (h *Handlers) SearchStories(c *gin.Context) {
 	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
 	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
+	// Parse optional datetime range
+	var dateFrom, dateTo *time.Time
+	if fromStr := c.Query("from"); fromStr != "" {
+		if t, err := time.Parse("2006-01-02", fromStr); err == nil {
+			dateFrom = &t
+		}
+	}
+	if toStr := c.Query("to"); toStr != "" {
+		if t, err := time.Parse("2006-01-02", toStr); err == nil {
+			dateTo = &t
+		}
+	}
+
 	var stories []models.Story
 	usingFallback := false
 
-	// Try Elasticsearch first (search by username since stories don't have direct text fields)
+	// Try Elasticsearch first
 	if h.search != nil {
-		// Note: Current search.SearchStories would need implementation
-		// For now, use fallback approach - stories are typically found via user search
-		usingFallback = true
+		esParams := search.SearchStoriesParams{
+			Query:    query,
+			DateFrom: dateFrom,
+			DateTo:   dateTo,
+			Limit:    limit,
+			Offset:   offset,
+		}
+		if esResults, err := h.search.SearchStories(c.Request.Context(), esParams); err == nil && esResults != nil && len(esResults.Stories) > 0 {
+			// Convert ES results back to models for consistency
+			for _, hit := range esResults.Stories {
+				// We'll fetch the full story from DB for complete data
+				var story models.Story
+				database.DB.Preload("User").Where("id = ?", hit.ID).First(&story)
+				if story.ID != "" {
+					stories = append(stories, story)
+				}
+			}
+		} else {
+			usingFallback = true
+		}
 	} else {
 		usingFallback = true
 	}
@@ -689,25 +719,38 @@ func (h *Handlers) AutocompleteGenres(c *gin.Context) {
 	}
 
 	var genres []string
+	usingFallback := false
 
-	// Query all distinct genres from posts and filter by prefix
-	// Note: PostgreSQL array types require special handling with unnest
-	var allGenres []string
-	result := database.DB.
-		Model(&models.AudioPost{}).
-		Distinct("unnest(genre)").
-		Order("count(*) DESC").
-		Limit(500). // Get enough to filter
-		Pluck("unnest(genre)", &allGenres)
+	// Try Elasticsearch first
+	if h.search != nil {
+		if esGenres, err := h.search.AutocompleteGenres(c.Request.Context(), query, limit); err == nil && len(esGenres) > 0 {
+			genres = esGenres
+		} else {
+			usingFallback = true
+		}
+	} else {
+		usingFallback = true
+	}
 
-	if result.Error == nil {
-		// Filter genres by prefix (case-insensitive)
-		query_lower := strings.ToLower(query)
-		for _, genre := range allGenres {
-			if strings.HasPrefix(strings.ToLower(genre), query_lower) {
-				genres = append(genres, genre)
-				if len(genres) >= limit {
-					break
+	// PostgreSQL fallback - Query all distinct genres from posts and filter by prefix
+	if usingFallback {
+		var allGenres []string
+		result := database.DB.
+			Model(&models.AudioPost{}).
+			Distinct("unnest(genre)").
+			Order("count(*) DESC").
+			Limit(500). // Get enough to filter
+			Pluck("unnest(genre)", &allGenres)
+
+		if result.Error == nil {
+			// Filter genres by prefix (case-insensitive)
+			query_lower := strings.ToLower(query)
+			for _, genre := range allGenres {
+				if strings.HasPrefix(strings.ToLower(genre), query_lower) {
+					genres = append(genres, genre)
+					if len(genres) >= limit {
+						break
+					}
 				}
 			}
 		}
@@ -721,10 +764,11 @@ func (h *Handlers) AutocompleteGenres(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"suggestions": genres,
 		"count":       len(genres),
+		"fallback":    usingFallback,
 	})
 }
 
-// AdvancedSearch performs unified search across users, posts, and stories
+// AdvancedSearch performs unified search across users, posts, and stories using Elasticsearch
 // GET /api/search/advanced?q=query&type=all|users|posts|stories&limit=10&offset=0
 func (h *Handlers) AdvancedSearch(c *gin.Context) {
 	query := c.Query("q")
@@ -748,96 +792,82 @@ func (h *Handlers) AdvancedSearch(c *gin.Context) {
 		"limit":  limit,
 		"offset": offset,
 		"results": gin.H{},
+		"using_elasticsearch": false,
 	}
 
-	// Search users (if requested)
-	if searchType == "all" || searchType == "users" {
-		var users []models.User
-		database.DB.
-			Where("username ILIKE ? OR display_name ILIKE ?", "%"+query+"%", "%"+query+"%").
-			Order("follower_count DESC").
-			Limit(limit).
-			Offset(offset).
-			Find(&users)
+	// Try Elasticsearch first
+	var esResults *search.AdvancedSearchResults
+	if h.search != nil {
+		// Parse search types
+		var types []string
+		if searchType != "all" {
+			types = []string{searchType}
+		}
 
-		userResults := h.enrichUsersWithFollowState(c.GetString("user_id"), users)
-		response["results"].(gin.H)["users"] = userResults
+		searchParams := search.AdvancedSearchParams{
+			Query:  query,
+			Types:  types,
+			Limit:  limit,
+			Offset: offset,
+		}
+		esResults = h.search.AdvancedSearch(c.Request.Context(), searchParams)
+		response["using_elasticsearch"] = true
 	}
 
-	// Search posts (if requested)
-	if searchType == "all" || searchType == "posts" {
-		var posts []models.AudioPost
-		database.DB.
-			Preload("User").
-			Where("filename ILIKE ? OR original_filename ILIKE ?", "%"+query+"%", "%"+query+"%").
-			Order("like_count DESC, created_at DESC").
-			Limit(limit).
-			Offset(offset).
-			Find(&posts)
-
-		type PostSummary struct {
-			ID           string `json:"id"`
-			UserID       string `json:"user_id"`
-			Username     string `json:"username"`
-			Filename     string `json:"filename"`
-			Genre        []string `json:"genre"`
-			BPM          int    `json:"bpm"`
-			Key          string `json:"key"`
-			LikeCount    int    `json:"like_count"`
-			PlayCount    int    `json:"play_count"`
-			CommentCount int    `json:"comment_count"`
+	// Use ES results if available, otherwise fallback to PostgreSQL
+	if esResults != nil {
+		// Users
+		if esResults.Users != nil && (searchType == "all" || searchType == "users") {
+			userResults := make([]gin.H, 0, len(esResults.Users.Users))
+			for _, user := range esResults.Users.Users {
+				userResults = append(userResults, gin.H{
+					"id":              user.ID,
+					"username":        user.Username,
+					"display_name":    user.DisplayName,
+					"bio":             user.Bio,
+					"genre":           user.Genre,
+					"follower_count":  user.FollowerCount,
+					"score":           user.Score,
+				})
+			}
+			response["results"].(gin.H)["users"] = userResults
 		}
 
-		postSummaries := make([]PostSummary, 0, len(posts))
-		for _, post := range posts {
-			postSummaries = append(postSummaries, PostSummary{
-				ID:           post.ID,
-				UserID:       post.UserID,
-				Username:     post.User.Username,
-				Filename:     post.Filename,
-				Genre:        post.Genre,
-				BPM:          post.BPM,
-				Key:          post.Key,
-				LikeCount:    post.LikeCount,
-				PlayCount:    post.PlayCount,
-				CommentCount: post.CommentCount,
-			})
-		}
-		response["results"].(gin.H)["posts"] = postSummaries
-	}
-
-	// Search stories (if requested)
-	if searchType == "all" || searchType == "stories" {
-		var stories []models.Story
-		database.DB.
-			Preload("User").
-			Where("stories.expired_at IS NULL").
-			Joins("JOIN users ON users.id = stories.user_id").
-			Where("users.username ILIKE ?", "%"+query+"%").
-			Order("stories.created_at DESC").
-			Limit(limit).
-			Offset(offset).
-			Find(&stories)
-
-		type StorySummary struct {
-			ID        string `json:"id"`
-			UserID    string `json:"user_id"`
-			Username  string `json:"username"`
-			CreatedAt time.Time `json:"created_at"`
-			ExpiresAt time.Time `json:"expires_at"`
+		// Posts
+		if esResults.Posts != nil && (searchType == "all" || searchType == "posts") {
+			postResults := make([]gin.H, 0, len(esResults.Posts.Posts))
+			for _, post := range esResults.Posts.Posts {
+				postResults = append(postResults, gin.H{
+					"id":            post.ID,
+					"user_id":       post.UserID,
+					"username":      post.Username,
+					"genre":         post.Genre,
+					"bpm":           post.BPM,
+					"key":           post.Key,
+					"like_count":    post.LikeCount,
+					"play_count":    post.PlayCount,
+					"comment_count": post.CommentCount,
+					"score":         post.Score,
+				})
+			}
+			response["results"].(gin.H)["posts"] = postResults
 		}
 
-		storySummaries := make([]StorySummary, 0, len(stories))
-		for _, story := range stories {
-			storySummaries = append(storySummaries, StorySummary{
-				ID:        story.ID,
-				UserID:    story.UserID,
-				Username:  story.User.Username,
-				CreatedAt: story.CreatedAt,
-				ExpiresAt: story.ExpiresAt,
-			})
+		// Stories
+		if esResults.Stories != nil && (searchType == "all" || searchType == "stories") {
+			storyResults := make([]gin.H, 0, len(esResults.Stories.Stories))
+			for _, story := range esResults.Stories.Stories {
+				storyResults = append(storyResults, gin.H{
+					"id":        story.ID,
+					"user_id":   story.UserID,
+					"username":  story.Username,
+					"created_at": story.CreatedAt,
+					"expires_at": story.ExpiresAt,
+					"score":     story.Score,
+				})
+			}
+			response["results"].(gin.H)["stories"] = storyResults
 		}
-		response["results"].(gin.H)["stories"] = storySummaries
 	}
 
 	// Track search analytics
@@ -848,12 +878,12 @@ func (h *Handlers) AdvancedSearch(c *gin.Context) {
 		}
 	}
 	if posts, ok := response["results"].(gin.H)["posts"]; ok {
-		if p, ok := posts.([]interface{}); ok {
+		if p, ok := posts.([]gin.H); ok {
 			totalResults += len(p)
 		}
 	}
 	if stories, ok := response["results"].(gin.H)["stories"]; ok {
-		if s, ok := stories.([]interface{}); ok {
+		if s, ok := stories.([]gin.H); ok {
 			totalResults += len(s)
 		}
 	}
