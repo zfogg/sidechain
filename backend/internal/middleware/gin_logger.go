@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/zfogg/sidechain/backend/internal/logger"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -53,6 +54,15 @@ func GinLoggerMiddleware() gin.HandlerFunc {
 
 		if requestIDStr != "" {
 			fields = append(fields, zap.String("request_id", requestIDStr))
+		}
+
+		// Add trace context if available (OpenTelemetry)
+		span := trace.SpanFromContext(c.Request.Context())
+		if span.SpanContext().IsValid() {
+			fields = append(fields,
+				zap.String("trace_id", span.SpanContext().TraceID().String()),
+				zap.String("span_id", span.SpanContext().SpanID().String()),
+			)
 		}
 
 		// Determine log level based on status code

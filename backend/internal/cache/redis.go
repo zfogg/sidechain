@@ -8,6 +8,9 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/metrics"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	"go.uber.org/zap"
 )
 
@@ -78,6 +81,17 @@ func (rc *RedisClient) Close() error {
 
 // Get retrieves a value from Redis
 func (rc *RedisClient) Get(ctx context.Context, key string) (string, error) {
+	// Start distributed tracing span
+	_, span := otel.Tracer("redis").Start(ctx, "redis.get",
+	)
+	defer span.End()
+
+	// Add span attributes
+	span.SetAttributes(
+		attribute.String("cache.key", maskSensitiveKey(key)),
+		attribute.String("cache.operation", "get"),
+	)
+
 	start := time.Now()
 	result, err := rc.client.Get(ctx, key).Result()
 
@@ -86,9 +100,26 @@ func (rc *RedisClient) Get(ctx context.Context, key string) (string, error) {
 	metrics.Get().RedisOperationDuration.WithLabelValues("get", extractKeyPattern(key)).Observe(duration)
 
 	status := "success"
+	hit := false
 	if err != nil {
 		status = "error"
+		if err != redis.Nil {
+			span.SetStatus(codes.Error, err.Error())
+			span.RecordError(err)
+		} else {
+			// Cache miss is not an error
+			status = "miss"
+		}
+	} else {
+		hit = true
 	}
+
+	// Record cache hit/miss
+	span.SetAttributes(
+		attribute.Bool("cache.hit", hit),
+		attribute.String("cache.status", status),
+	)
+
 	metrics.Get().RedisOperationsTotal.WithLabelValues("get", status).Inc()
 
 	return result, err
@@ -96,6 +127,16 @@ func (rc *RedisClient) Get(ctx context.Context, key string) (string, error) {
 
 // Set stores a value in Redis
 func (rc *RedisClient) Set(ctx context.Context, key string, value interface{}) error {
+	// Start distributed tracing span
+	_, span := otel.Tracer("redis").Start(ctx, "redis.set")
+	defer span.End()
+
+	// Add span attributes
+	span.SetAttributes(
+		attribute.String("cache.key", maskSensitiveKey(key)),
+		attribute.String("cache.operation", "set"),
+	)
+
 	start := time.Now()
 	err := rc.client.Set(ctx, key, value, 0).Err()
 
@@ -106,6 +147,8 @@ func (rc *RedisClient) Set(ctx context.Context, key string, value interface{}) e
 	status := "success"
 	if err != nil {
 		status = "error"
+		span.SetStatus(codes.Error, err.Error())
+		span.RecordError(err)
 	}
 	metrics.Get().RedisOperationsTotal.WithLabelValues("set", status).Inc()
 
@@ -264,4 +307,22 @@ func extractKeyPattern(key string) string {
 	}
 
 	return "other"
+}
+
+// maskSensitiveKey masks sensitive parts of cache keys for logging
+// Returns pattern-based key representation to avoid logging sensitive data
+func maskSensitiveKey(key string) string {
+	pattern := extractKeyPattern(key)
+	if pattern == "other" {
+		return key[:minInt(10, len(key))] + "..."
+	}
+	return pattern
+}
+
+// minInt returns the minimum of two integers
+func minInt(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
