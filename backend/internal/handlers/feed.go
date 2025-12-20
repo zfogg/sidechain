@@ -1495,6 +1495,28 @@ func (h *Handlers) TrackPlay(c *gin.Context) {
 		return
 	}
 
+	// Increment play count in database
+	if err := database.DB.Model(&models.AudioPost{}).
+		Where("id = ?", postID).
+		UpdateColumn("play_count", gorm.Expr("play_count + 1")).Error; err != nil {
+		logger.WarnWithFields("Failed to increment play count for post", err)
+	}
+
+	// Sync post engagement metrics to Elasticsearch asynchronously
+	if h.search != nil {
+		go func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+
+			var updatedPost models.AudioPost
+			if err := database.DB.Select("like_count", "play_count", "comment_count").First(&updatedPost, "id = ?", postID).Error; err == nil {
+				if err := h.search.UpdatePostEngagement(ctx, postID, updatedPost.LikeCount, updatedPost.PlayCount, updatedPost.CommentCount); err != nil {
+					logger.WarnWithFields("Failed to update post engagement in Elasticsearch after play", err)
+				}
+			}
+		}()
+	}
+
 	// Real-time Gorse feedback sync
 	// Completed plays are stronger signals (like), partial plays are weaker (view)
 	if h.gorse != nil {
