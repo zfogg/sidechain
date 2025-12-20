@@ -145,6 +145,7 @@ func (s *Service) linkOAuthToExistingUser(user *models.User, provider string, us
 		UserID:            user.ID,
 		Provider:          provider,
 		ProviderUserID:    userInfo.ID,
+		Email:             userInfo.Email,
 		ProfilePictureURL: userInfo.OAuthProfilePictureURL,
 		AccessToken:       userInfo.AccessToken,
 		RefreshToken:      userInfo.RefreshToken,
@@ -208,6 +209,7 @@ func (s *Service) createUserWithOAuth(provider string, userInfo *OAuthUserInfo) 
 			UserID:            user.ID,
 			Provider:          provider,
 			ProviderUserID:    userInfo.ID,
+			Email:             userInfo.Email,
 			ProfilePictureURL: userInfo.OAuthProfilePictureURL,
 			AccessToken:       userInfo.AccessToken,
 			RefreshToken:      userInfo.RefreshToken,
@@ -243,7 +245,7 @@ func (s *Service) getGoogleUserInfo(code string) (*OAuthUserInfo, error) {
 	log.Printf("[OAuth/Service] getGoogleUserInfo: Token exchange successful, fetching user info")
 
 	client := s.googleConfig.Client(context.Background(), token)
-	resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
+	resp, err := client.Get("https://openidconnect.googleapis.com/v1/userinfo")
 	if err != nil {
 		log.Printf("[OAuth/Service] getGoogleUserInfo: Failed to fetch user info: %v", err)
 		return nil, fmt.Errorf("failed to get user info: %w", err)

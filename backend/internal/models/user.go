@@ -976,6 +976,7 @@ type OAuthProvider struct {
 	ID             string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
 	Provider       string `gorm:"index;not null" json:"provider"`         // "google", "discord", etc
 	ProviderUserID string `gorm:"index;not null" json:"provider_user_id"` // OAuth provider's unique user ID
+	Email          string `gorm:"index;not null" json:"email"`             // Email from OAuth provider
 	UserID         string `gorm:"index;not null" json:"user_id"`
 	User           User   `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"-"`
 

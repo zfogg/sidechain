@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -10,7 +9,6 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
-	"github.com/zfogg/sidechain/backend/internal/search"
 	"github.com/zfogg/sidechain/backend/internal/util"
 	"github.com/zfogg/sidechain/backend/internal/websocket"
 	"gorm.io/gorm"
@@ -30,14 +28,14 @@ func (h *Handlers) CreateComment(c *gin.Context) {
 		ParentID *string `json:"parent_id,omitempty"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid_request", "message": err.Error()})
+		util.RespondBadRequest(c, err.Error())
 		return
 	}
 
 	// Verify the post exists
 	var post models.AudioPost
 	if err := database.DB.First(&post, "id = ?", postID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "post_not_found"})
+		util.RespondNotFound(c, "post")
 		return
 	}
 
@@ -46,20 +44,14 @@ func (h *Handlers) CreateComment(c *gin.Context) {
 	if post.UserID != userID {
 		switch post.CommentAudience {
 		case models.CommentAudienceOff:
-			c.JSON(http.StatusForbidden, gin.H{
-				"error":   "comments_disabled",
-				"message": "Comments are disabled for this post",
-			})
+			util.RespondForbidden(c, "Comments are disabled for this post")
 			return
 		case models.CommentAudienceFollowers:
 			// Check if the commenter follows the post owner
 			if h.stream != nil {
 				isFollowing, err := h.stream.CheckIsFollowing(userID, post.UserID)
 				if err != nil || !isFollowing {
-					c.JSON(http.StatusForbidden, gin.H{
-						"error":   "followers_only",
-						"message": "Only followers can comment on this post",
-					})
+					util.RespondForbidden(c, "Only followers can comment on this post")
 					return
 				}
 			}
@@ -71,7 +63,7 @@ func (h *Handlers) CreateComment(c *gin.Context) {
 	if req.ParentID != nil && *req.ParentID != "" {
 		var parentComment models.Comment
 		if err := database.DB.First(&parentComment, "id = ? AND post_id = ?", *req.ParentID, postID).Error; err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "parent_comment_not_found"})
+			util.RespondValidationError(c, "parent_id", "Parent comment not found")
 			return
 		}
 		// Only allow 1 level of nesting - if parent has a parent, use the parent's parent
@@ -89,7 +81,7 @@ func (h *Handlers) CreateComment(c *gin.Context) {
 	}
 
 	if err := database.DB.Create(&comment).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_create_comment", "message": err.Error()})
+		util.RespondInternalError(c, "Failed to create comment")
 		return
 	}
 
@@ -97,19 +89,12 @@ func (h *Handlers) CreateComment(c *gin.Context) {
 		logger.WarnWithFields("Failed to increment comment count for post "+postID, err)
 	}
 
-	// Re-index post in Elasticsearch with updated engagement metrics
+	// Sync post engagement metrics to Elasticsearch
 	if h.search != nil {
 		go func() {
-			// Fetch the updated post with new comment count
 			var updatedPost models.AudioPost
-			if err := database.DB.First(&updatedPost, "id = ?", postID).Error; err == nil {
-				var postUser models.User
-				if err := database.DB.First(&postUser, "id = ?", updatedPost.UserID).Error; err == nil {
-					postDoc := search.AudioPostToSearchDoc(updatedPost, postUser.Username)
-					if err := h.search.IndexPost(c.Request.Context(), updatedPost.ID, postDoc); err != nil {
-						fmt.Printf("Warning: Failed to re-index post %s after comment in Elasticsearch: %v\n", postID, err)
-					}
-				}
+			if err := database.DB.Select("like_count", "play_count", "comment_count").First(&updatedPost, "id = ?", postID).Error; err == nil {
+				h.search.UpdatePostEngagement(c.Request.Context(), postID, updatedPost.LikeCount, updatedPost.PlayCount, updatedPost.CommentCount)
 			}
 		}()
 	}
@@ -173,7 +158,7 @@ func (h *Handlers) GetComments(c *gin.Context) {
 	// Verify the post exists
 	var post models.AudioPost
 	if err := database.DB.First(&post, "id = ?", postID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "post_not_found"})
+		util.RespondNotFound(c, "post")
 		return
 	}
 
@@ -194,7 +179,7 @@ func (h *Handlers) GetComments(c *gin.Context) {
 	}
 
 	if err := query.Find(&comments).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_comments", "message": err.Error()})
+		util.RespondInternalError(c, "Failed to get comments")
 		return
 	}
 
@@ -243,7 +228,7 @@ func (h *Handlers) GetCommentReplies(c *gin.Context) {
 	// Verify the comment exists
 	var comment models.Comment
 	if err := database.DB.First(&comment, "id = ?", commentID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "comment_not_found"})
+		util.RespondNotFound(c, "comment")
 		return
 	}
 
@@ -257,7 +242,7 @@ func (h *Handlers) GetCommentReplies(c *gin.Context) {
 		Find(&replies).Error
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_replies", "message": err.Error()})
+		util.RespondInternalError(c, "Failed to get replies")
 		return
 	}
 
@@ -287,35 +272,32 @@ func (h *Handlers) UpdateComment(c *gin.Context) {
 		Content string `json:"content" binding:"required,min=1,max=2000"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid_request", "message": err.Error()})
+		util.RespondBadRequest(c, err.Error())
 		return
 	}
 
 	var comment models.Comment
 	if err := database.DB.First(&comment, "id = ?", commentID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "comment_not_found"})
+		util.RespondNotFound(c, "comment")
 		return
 	}
 
 	// Check ownership
 	if comment.UserID != userID {
-		c.JSON(http.StatusForbidden, gin.H{"error": "not_comment_owner"})
+		util.RespondForbidden(c, "You do not own this comment")
 		return
 	}
 
 	// Check if comment was deleted
 	if comment.IsDeleted {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "comment_deleted"})
+		util.RespondValidationError(c, "comment", "Comment has been deleted")
 		return
 	}
 
 	// Check 5-minute edit window
 	editWindow := 5 * time.Minute
 	if time.Since(comment.CreatedAt) > editWindow {
-		c.JSON(http.StatusForbidden, gin.H{
-			"error":   "edit_window_expired",
-			"message": "Comments can only be edited within 5 minutes of creation",
-		})
+		util.RespondForbidden(c, "Comments can only be edited within 5 minutes of creation")
 		return
 	}
 
@@ -326,7 +308,7 @@ func (h *Handlers) UpdateComment(c *gin.Context) {
 	comment.EditedAt = &now
 
 	if err := database.DB.Save(&comment).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_update_comment", "message": err.Error()})
+		util.RespondInternalError(c, "Failed to update comment")
 		return
 	}
 
@@ -349,13 +331,13 @@ func (h *Handlers) DeleteComment(c *gin.Context) {
 
 	var comment models.Comment
 	if err := database.DB.First(&comment, "id = ?", commentID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "comment_not_found"})
+		util.RespondNotFound(c, "comment")
 		return
 	}
 
 	// Check ownership
 	if comment.UserID != userID {
-		c.JSON(http.StatusForbidden, gin.H{"error": "not_comment_owner"})
+		util.RespondForbidden(c, "You do not own this comment")
 		return
 	}
 
@@ -364,26 +346,19 @@ func (h *Handlers) DeleteComment(c *gin.Context) {
 	comment.Content = "[Comment deleted]"
 
 	if err := database.DB.Save(&comment).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_delete_comment", "message": err.Error()})
+		util.RespondInternalError(c, "Failed to delete comment")
 		return
 	}
 
 	// Decrement post comment count
 	database.DB.Model(&models.AudioPost{}).Where("id = ?", comment.PostID).UpdateColumn("comment_count", gorm.Expr("GREATEST(comment_count - 1, 0)"))
 
-	// Re-index post in Elasticsearch with updated engagement metrics
+	// Sync post engagement metrics to Elasticsearch (comment_count only)
 	if h.search != nil {
 		go func() {
-			// Fetch the updated post with new comment count
 			var post models.AudioPost
-			if err := database.DB.First(&post, "id = ?", comment.PostID).Error; err == nil {
-				var postUser models.User
-				if err := database.DB.First(&postUser, "id = ?", post.UserID).Error; err == nil {
-					postDoc := search.AudioPostToSearchDoc(post, postUser.Username)
-					if err := h.search.IndexPost(c.Request.Context(), post.ID, postDoc); err != nil {
-						fmt.Printf("Warning: Failed to re-index post %s after comment deletion in Elasticsearch: %v\n", post.ID, err)
-					}
-				}
+			if err := database.DB.Select("like_count", "play_count", "comment_count").First(&post, "id = ?", comment.PostID).Error; err == nil {
+				h.search.UpdatePostEngagement(c.Request.Context(), post.ID, post.LikeCount, post.PlayCount, post.CommentCount)
 			}
 		}()
 	}
@@ -404,12 +379,12 @@ func (h *Handlers) LikeComment(c *gin.Context) {
 
 	var comment models.Comment
 	if err := database.DB.First(&comment, "id = ?", commentID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "comment_not_found"})
+		util.RespondNotFound(c, "comment")
 		return
 	}
 
 	if comment.IsDeleted {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "cannot_like_deleted_comment"})
+		util.RespondValidationError(c, "comment", "Cannot like a deleted comment")
 		return
 	}
 
@@ -418,7 +393,7 @@ func (h *Handlers) LikeComment(c *gin.Context) {
 		err := h.stream.AddReactionWithEmoji("like", userID, comment.StreamActivityID, "")
 		if err != nil {
 			// Log but don't fail - update local count anyway
-			fmt.Printf("Failed to add Stream.io reaction: %v\n", err)
+			logger.WarnWithFields("Failed to add Stream.io reaction", err)
 		}
 	}
 
