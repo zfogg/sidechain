@@ -1,5 +1,4 @@
 #include "Profile.h"
-#include "../../network/NetworkClient.h"
 #include "../../network/StreamChatClient.h"
 #include "../../stores/AppStore.h"
 
@@ -158,13 +157,6 @@ Profile::~Profile() {
 }
 
 // ==============================================================================
-void Profile::setNetworkClient(NetworkClient *client) {
-  networkClient = client;
-  if (storyHighlights)
-    storyHighlights->setNetworkClient(client);
-  Log::info("Profile: NetworkClient set " + juce::String(client != nullptr ? "(valid)" : "(null)"));
-}
-
 void Profile::setStreamChatClient(StreamChatClient *client) {
   streamChatClient = client;
   Log::info("Profile::setStreamChatClient: StreamChatClient set " +
@@ -1110,15 +1102,6 @@ void Profile::fetchProfile(const juce::String &userId) {
     return;
   }
 
-  if (networkClient == nullptr) {
-    Log::error("Profile::fetchProfile: NetworkClient is null");
-    hasError = true;
-    errorMessage = "Network not available";
-    isLoading = false;
-    repaint();
-    return;
-  }
-
   // Safely construct endpoint (avoid assertion failures with invalid strings)
   juce::String safeUserId = userId.trim();
   if (safeUserId.isEmpty()) {
@@ -1130,90 +1113,91 @@ void Profile::fetchProfile(const juce::String &userId) {
     return;
   }
 
-  Log::info("Profile::fetchProfile: Fetching profile for userId: " + safeUserId);
+  Log::info("Profile::fetchProfile: Loading profile for userId: " + safeUserId);
 
-  networkClient->getUser(safeUserId, [this, userId](Outcome<juce::var> result) {
-    juce::MessageManager::callAsync([this, result, userId]() {
-      isLoading = false;
+  // Use AppStore to load and subscribe to user model
+  // AppStore handles network requests, caching via EntityStore, and provides strongly-typed models
+  appStore->subscribeToUser(safeUserId, [this, userId](const std::shared_ptr<Sidechain::User> &user) {
+    isLoading = false;
 
-      if (result.isOk() && result.getValue().isObject()) {
-        auto response = result.getValue();
-        Log::info("Profile::fetchProfile: Profile fetch successful for userId: " + userId);
-        setProfile(UserProfile::fromJson(response));
-      } else {
-        Log::error("Profile::fetchProfile: Profile fetch failed for userId: " + userId);
-        hasError = true;
-        if (result.isOk()) {
-          auto response = result.getValue();
-          if (response.isObject() && response.hasProperty("error")) {
-            errorMessage = response["error"].toString();
-            Log::warn("Profile::fetchProfile: Error message: " + errorMessage);
-          } else {
-            errorMessage = "Failed to load profile";
-            Log::warn("Profile::fetchProfile: No error message in response");
-          }
-        } else {
-          errorMessage = result.getError();
-          Log::warn("Profile::fetchProfile: Error: " + errorMessage);
-        }
+    if (user && user->isValid()) {
+      Log::info("Profile::fetchProfile: Profile loaded for userId: " + userId);
 
-        // Configure and show error state component
-        if (errorStateComponent != nullptr) {
-          errorStateComponent->configureFromError(errorMessage);
-          errorStateComponent->setVisible(true);
-        }
+      // Convert User model to UserProfile struct for compatibility with existing code
+      UserProfile convertedProfile;
+      convertedProfile.id = user->id;
+      convertedProfile.username = user->username;
+      convertedProfile.displayName = user->displayName;
+      convertedProfile.bio = user->bio;
+      convertedProfile.avatarUrl = user->avatarUrl;
+      convertedProfile.location = user->location;
+      convertedProfile.genre = user->genre;
+      convertedProfile.followerCount = user->followerCount;
+      convertedProfile.followingCount = user->followingCount;
+      convertedProfile.isFollowing = user->isFollowing;
+      convertedProfile.isPrivate = user->isPrivate;
+      convertedProfile.isOnline = user->isOnline;
+      convertedProfile.isInStudio = user->isInStudio;
+
+      setProfile(convertedProfile);
+      hasError = false;
+      errorMessage = "";
+    } else {
+      Log::error("Profile::fetchProfile: User not found or invalid");
+      hasError = true;
+      errorMessage = "Failed to load profile";
+
+      if (errorStateComponent != nullptr) {
+        errorStateComponent->configureFromError(errorMessage);
+        errorStateComponent->setVisible(true);
       }
+    }
 
-      repaint();
-    });
+    repaint();
   });
+
+  // Trigger network request - AppStore will load from server and cache in EntityStore
+  appStore->loadUser(safeUserId);
 }
 
 void Profile::fetchUserPosts(const juce::String &userId) {
-  if (networkClient == nullptr) {
-    Log::warn("Profile::fetchUserPosts: NetworkClient is null");
+  if (appStore == nullptr) {
+    Log::warn("Profile::fetchUserPosts: AppStore is null");
     return;
   }
 
-  Log::info("Profile::fetchUserPosts: Fetching posts for userId: " + userId);
+  Log::info("Profile::fetchUserPosts: Loading posts for userId: " + userId);
 
-  networkClient->getUserPosts(userId, 20, 0, [this, userId](Outcome<juce::var> result) {
-    juce::MessageManager::callAsync([this, result, userId]() {
-      if (result.isOk() && result.getValue().isObject()) {
-        auto response = result.getValue();
-        Log::debug("Profile::fetchUserPosts: Posts fetch successful for userId: " + userId);
+  // Load posts from AppStore - will be cached in EntityStore with shared_ptr normalization
+  appStore->loadUserPosts(userId, 20, 0);
+
+  // Subscribe to receive updated posts whenever they change
+  // This provides reactive updates when any component modifies post data (likes, saves, etc.)
+  appStore->getEntityStore().posts().subscribeAll(
+      [this, userId](const std::vector<std::shared_ptr<Sidechain::FeedPost>> &allPosts) {
+        // Filter posts to only show this user's posts
+        // In a real implementation, we'd have a separate subscription for user-specific posts
+        // For now, we filter from all posts (this will be optimized later)
+
         userPosts.clear();
+        int validPosts = 0;
 
-        auto postsArray = Json::getArray(response, "posts");
-        if (Json::isArray(postsArray)) {
-          int validPosts = 0;
-          for (int i = 0; i < postsArray.size(); ++i) {
-            Sidechain::FeedPost post = Sidechain::FeedPost::fromJson(postsArray[i]);
-            if (post.isValid()) {
-              userPosts.add(post);
-              validPosts++;
-            }
+        for (const auto &post : allPosts) {
+          if (post && post->isValid() && post->userId == userId) {
+            userPosts.add(*post); // Convert shared_ptr to value for compatibility
+            validPosts++;
           }
-          Log::info("Profile::fetchUserPosts: Loaded " + juce::String(validPosts) + " valid posts out of " +
-                    juce::String(postsArray.size()) + " total");
-        } else {
-          Log::warn("Profile::fetchUserPosts: No posts array in response");
         }
 
+        Log::info("Profile::fetchUserPosts: Loaded " + juce::String(validPosts) + " valid posts for userId: " + userId);
         updatePostCards();
-      } else {
-        Log::error("Profile::fetchUserPosts: Posts fetch failed for userId: " + userId);
-      }
-
-      repaint();
-    });
-  });
+        repaint();
+      });
 }
 
 void Profile::handleFollowToggle() {
-  if (profile.id.isEmpty() || !networkClient) {
-    Log::warn("Profile::handleFollowToggle: Cannot toggle follow - profile.id: " + profile.id +
-              ", NetworkClient: " + juce::String(networkClient != nullptr ? "valid" : "null"));
+  if (profile.id.isEmpty()) {
+    Log::warn("Profile::handleFollowToggle: Cannot toggle follow - profile.id is empty");
     return;
   }
 
@@ -1256,9 +1240,8 @@ void Profile::handleFollowToggle() {
 }
 
 void Profile::handleMuteToggle() {
-  if (profile.id.isEmpty() || !networkClient) {
-    Log::warn("Profile::handleMuteToggle: Cannot toggle mute - profile.id: " + profile.id +
-              ", NetworkClient: " + juce::String(networkClient != nullptr ? "valid" : "null"));
+  if (profile.id.isEmpty()) {
+    Log::warn("Profile::handleMuteToggle: Cannot toggle mute - profile.id is empty");
     return;
   }
 
@@ -1426,7 +1409,8 @@ void Profile::showFollowersList(const juce::String &userId, FollowersList::ListT
   Log::info("Profile::showFollowersList: Showing " + typeStr + " list for userId: " + userId);
 
   // Set up the panel
-  followersListPanel->setNetworkClient(networkClient);
+  // NOTE: FollowersList still needs a NetworkClient, which should be set by the parent component
+  // TODO: Refactor FollowersList to use AppStore instead of NetworkClient
   followersListPanel->setCurrentUserId(currentUserId);
 
   // Position panel on right side (40% of width, max 350px)
@@ -1518,46 +1502,34 @@ void Profile::updateUserPresence(const juce::String &userId, bool isOnline, cons
 }
 
 void Profile::checkForActiveStories(const juce::String &userId) {
-  if (networkClient == nullptr || userId.isEmpty()) {
+  if (appStore == nullptr || userId.isEmpty()) {
     hasActiveStory = false;
     repaint();
     return;
   }
 
-  // Fetch stories feed and check if this user has any active stories
-  networkClient->getStoriesFeed([this, userId](Outcome<juce::var> result) {
-    juce::MessageManager::callAsync([this, result, userId]() {
-      bool hasStory = false;
+  // Load stories feed from AppStore
+  appStore->loadStoriesFeed();
 
-      if (result.isOk() && result.getValue().isObject()) {
-        auto response = result.getValue();
-        if (response.hasProperty("stories")) {
-          auto *storiesArray = response["stories"].getArray();
-          if (storiesArray) {
-            // Check if any story belongs to this user and is not expired
-            for (const auto &storyVar : *storiesArray) {
-              juce::String storyUserId = storyVar["user_id"].toString();
-              if (storyUserId == userId) {
-                // Check expiration
-                juce::String expiresAtStr = storyVar["expires_at"].toString();
-                if (expiresAtStr.isNotEmpty()) {
-                  juce::Time expiresAt = juce::Time::fromISO8601(expiresAtStr);
-                  if (expiresAt.toMilliseconds() > 0 && juce::Time::getCurrentTime() < expiresAt) {
-                    hasStory = true;
-                    break;
-                  }
-                }
-              }
-            }
-          }
+  // Subscribe to stories changes to check if this user has active stories
+  appStore->subscribeToStories([this, userId](const Sidechain::Stores::StoriesState &state) {
+    bool hasStory = false;
+
+    // Check if any story belongs to this user and is not expired
+    for (const auto &story : state.feedUserStories) {
+      if (story && story->userId == userId) {
+        // Check expiration
+        if (story->expiresAt.toMilliseconds() > 0 && juce::Time::getCurrentTime() < story->expiresAt) {
+          hasStory = true;
+          break;
         }
       }
+    }
 
-      if (hasActiveStory != hasStory) {
-        hasActiveStory = hasStory;
-        repaint();
-      }
-    });
+    if (hasActiveStory != hasStory) {
+      hasActiveStory = hasStory;
+      repaint();
+    }
   });
 }
 

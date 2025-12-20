@@ -9,7 +9,6 @@
 #include "../stories/StoryHighlights.h"
 #include <JuceHeader.h>
 
-class NetworkClient;
 class StreamChatClient;
 class PostCard;
 
@@ -74,7 +73,6 @@ public:
 
   // ==============================================================================
   // Data binding
-  void setNetworkClient(NetworkClient *client);
   void setStreamChatClient(StreamChatClient *client);
   void setCurrentUserId(const juce::String &userId);
   void loadProfile(const juce::String &userId);
@@ -106,10 +104,10 @@ public:
   std::function<void()> onMutedUsersClicked;                          // Navigate to muted users list (own profile only)
   std::function<void(const juce::String &userId)> onMessageClicked;   // Opens DM with user
   std::function<void(const juce::String &userId)> onViewStoryClicked; // Opens story viewer for user's story
-  std::function<void(const juce::String &userId)> onNavigateToProfile; // Navigates to another user's profile
-  std::function<void(const Sidechain::StoryHighlight &)> onHighlightClicked;      // Opens story viewer for a highlight
-  std::function<void()> onCreateHighlightClicked;                      // Opens create highlight flow
-                                                                       // (own profile only)
+  std::function<void(const juce::String &userId)> onNavigateToProfile;       // Navigates to another user's profile
+  std::function<void(const Sidechain::StoryHighlight &)> onHighlightClicked; // Opens story viewer for a highlight
+  std::function<void()> onCreateHighlightClicked;                            // Opens create highlight flow
+                                                                             // (own profile only)
 
   // ==============================================================================
   // Component overrides
@@ -139,7 +137,6 @@ private:
   UserProfile profile; // For other users OR populated from UserStore for own profile
   juce::String currentUserId;
   juce::Array<Sidechain::FeedPost> userPosts;
-  NetworkClient *networkClient = nullptr;
   StreamChatClient *streamChatClient = nullptr;
 
   // Loading/error states (For other users; own profile uses UserStore state)

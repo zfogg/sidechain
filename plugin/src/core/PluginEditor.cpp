@@ -825,7 +825,6 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   // ==========================================================================
   // Create Profile
   profileComponent = std::make_unique<Profile>(&appStore);
-  profileComponent->setNetworkClient(networkClient.get());
   profileComponent->onBackPressed = [this]() { navigateBack(); };
   profileComponent->onEditProfile = [this]() {
     // Show the Settings/Edit Profile dialog
