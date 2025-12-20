@@ -3,10 +3,11 @@
 #include "../../util/Colors.h"
 #include "../../util/HoverState.h"
 #include "../../util/Time.h"
+#include "../../models/User.h"
+#include "../../stores/app/AppState.h"
+#include "../../stores/slices/AppSlices.h"
 #include <JuceHeader.h>
 #include <memory>
-
-class NetworkClient;
 
 namespace Sidechain {
 namespace Stores {
@@ -48,28 +49,27 @@ struct FollowListUser {
 // ==============================================================================
 /**
  * FollowUserRow displays a single user in the followers/following list
+ * Works with immutable shared_ptr<const User> from EntityStore
  */
 class FollowUserRow : public juce::Component {
 public:
   FollowUserRow();
   ~FollowUserRow() override = default;
 
-  void setUser(const FollowListUser &user);
-  const FollowListUser &getUser() const {
-    return user;
+  // Set user from immutable shared_ptr<const User>
+  void setUser(const std::shared_ptr<const Sidechain::User> &user);
+  const std::shared_ptr<const Sidechain::User> &getUser() const {
+    return userPtr;
   }
-
-  // Update follow state
-  void setFollowing(bool following);
 
   // Set the app store for image caching
   void setAppStore(Sidechain::Stores::AppStore *store) {
     appStore = store;
   }
 
-  // Callbacks
-  std::function<void(const FollowListUser &)> onUserClicked;
-  std::function<void(const FollowListUser &, bool willFollow)> onFollowToggled;
+  // Callbacks - dispatch actions through AppStore
+  std::function<void(const juce::String &userId)> onUserClicked;
+  std::function<void(const juce::String &userId, bool willFollow)> onFollowToggled;
 
   // Component overrides
   void paint(juce::Graphics &g) override;
@@ -81,7 +81,7 @@ public:
   static constexpr int ROW_HEIGHT = 70;
 
 private:
-  FollowListUser user;
+  std::shared_ptr<const Sidechain::User> userPtr;
   HoverState hoverState;
   Sidechain::Stores::AppStore *appStore = nullptr;
 
@@ -111,8 +111,8 @@ public:
 
   // ==============================================================================
   // Setup
-  void setNetworkClient(NetworkClient *client) {
-    networkClient = client;
+  void setAppStore(Sidechain::Stores::AppStore *store) {
+    appStore = store;
   }
   void setCurrentUserId(const juce::String &userId) {
     currentUserId = userId;
@@ -142,17 +142,17 @@ private:
   void timerCallback() override;
 
   // ==============================================================================
-  // Data
-  NetworkClient *networkClient = nullptr;
-  juce::String targetUserId;  // User whose followers/following we're viewing
+  // Redux State Management
+  // Subscribe to immutable FollowersSlice from AppStore
+  // Component receives immutable state snapshots and re-renders
+  Sidechain::Stores::AppStore *appStore = nullptr;
+
+  // Current immutable slice state from AppStore
+  // Updated whenever the slice changes via subscription
+  Sidechain::Stores::FollowersState currentSlice;
+
+  // Context
   juce::String currentUserId; // Currently logged in user
-  ListType listType = ListType::Followers;
-  juce::Array<FollowListUser> users;
-  int totalCount = 0;
-  bool isLoading = false;
-  bool hasMore = false;
-  int currentOffset = 0;
-  juce::String errorMessage;
 
   // ==============================================================================
   // UI Components
@@ -165,11 +165,7 @@ private:
   // Methods
   void setupUI();
   void updateUsersList();
-  void loadMoreUsers();
-
-  // API callbacks
-  void handleUsersLoaded(bool success, const juce::var &usersData);
-  void handleFollowToggled(const FollowListUser &user, bool willFollow);
+  void onSliceChanged(const Sidechain::Stores::FollowersState &state);
 
   // Row callbacks
   void setupRowCallbacks(FollowUserRow *row);

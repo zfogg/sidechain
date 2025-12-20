@@ -681,8 +681,76 @@ void AppStore::loadFollowers(const juce::String &userId, int limit, int offset) 
   }
 
   Util::logInfo("AppStore", "Loading followers for user: " + userId);
-  // TODO: Phase 3d - Implement follower loading via networkClient
-  // Expected: networkClient->getFollowers(userId, limit, offset, callback)
+
+  // Redux Action: Set loading state
+  sliceManager.getFollowersSlice()->dispatch([userId](FollowersState &state) {
+    state.targetUserId = userId.toStdString();
+    state.listType = FollowersState::Followers;
+    state.isLoading = true;
+    state.errorMessage = "";
+    state.users.clear();
+  });
+
+  // Network request to fetch followers
+  networkClient->getFollowers(userId, limit, offset, [this, userId](Outcome<juce::var> result) {
+    if (result.isError()) {
+      // Reducer: Create error state
+      auto error = result.getError().toStdString();
+      sliceManager.getFollowersSlice()->dispatch([error](FollowersState &state) {
+        state.isLoading = false;
+        state.errorMessage = error;
+      });
+      return;
+    }
+
+    try {
+      auto jsonArray = result.getValue().getArray();
+      if (!jsonArray) {
+        throw std::runtime_error("Response is not an array");
+      }
+
+      // Step 1: Normalize JSON to mutable User objects and store in EntityCache
+      std::vector<std::shared_ptr<Sidechain::User>> users;
+      for (int i = 0; i < jsonArray->size(); ++i) {
+        try {
+          auto jsonStr = (*jsonArray)[i].toString().toStdString();
+          auto json = nlohmann::json::parse(jsonStr);
+
+          // Normalize and cache in EntityStore
+          auto user = EntityStore::getInstance().normalizeUser(json);
+          if (user) {
+            users.push_back(user);
+          }
+        } catch (const std::exception &e) {
+          Util::logError("AppStore", "Failed to parse follower JSON: " + juce::String(e.what()));
+        }
+      }
+
+      // Step 2: Reducer - Create new immutable FollowersState
+      sliceManager.getFollowersSlice()->dispatch([users](FollowersState &state) {
+        state.isLoading = false;
+        state.errorMessage = "";
+        state.totalCount = static_cast<int>(users.size());
+
+        // Convert mutable users to immutable for state
+        state.users.clear();
+        for (const auto &user : users) {
+          state.users.push_back(std::const_pointer_cast<const Sidechain::User>(user));
+        }
+      });
+
+      Util::logInfo("AppStore", "Loaded " + juce::String(users.size()) + " followers");
+
+    } catch (const std::exception &e) {
+      // Reducer: Create error state
+      auto error = std::string(e.what());
+      sliceManager.getFollowersSlice()->dispatch([error](FollowersState &state) {
+        state.isLoading = false;
+        state.errorMessage = error;
+      });
+      Util::logError("AppStore", "Failed to load followers: " + juce::String(e.what()));
+    }
+  });
 }
 
 void AppStore::loadFollowing(const juce::String &userId, int limit, int offset) {
@@ -697,9 +765,79 @@ void AppStore::loadFollowing(const juce::String &userId, int limit, int offset) 
   }
 
   Util::logInfo("AppStore", "Loading following for user: " + userId);
-  // TODO: Phase 3d - Implement following loading via networkClient
-  // Expected: networkClient->getFollowing(userId, limit, offset, callback)
+
+  // Redux Action: Set loading state
+  sliceManager.getFollowersSlice()->dispatch([userId](FollowersState &state) {
+    state.targetUserId = userId.toStdString();
+    state.listType = FollowersState::Following;
+    state.isLoading = true;
+    state.errorMessage = "";
+    state.users.clear();
+  });
+
+  // Network request to fetch following
+  networkClient->getFollowing(userId, limit, offset, [this, userId](Outcome<juce::var> result) {
+    if (result.isError()) {
+      // Reducer: Create error state
+      auto error = result.getError().toStdString();
+      sliceManager.getFollowersSlice()->dispatch([error](FollowersState &state) {
+        state.isLoading = false;
+        state.errorMessage = error;
+      });
+      return;
+    }
+
+    try {
+      auto jsonArray = result.getValue().getArray();
+      if (!jsonArray) {
+        throw std::runtime_error("Response is not an array");
+      }
+
+      // Step 1: Normalize JSON to mutable User objects and store in EntityCache
+      std::vector<std::shared_ptr<Sidechain::User>> users;
+      for (int i = 0; i < jsonArray->size(); ++i) {
+        try {
+          auto jsonStr = (*jsonArray)[i].toString().toStdString();
+          auto json = nlohmann::json::parse(jsonStr);
+
+          // Normalize and cache in EntityStore
+          auto user = EntityStore::getInstance().normalizeUser(json);
+          if (user) {
+            users.push_back(user);
+          }
+        } catch (const std::exception &e) {
+          Util::logError("AppStore", "Failed to parse following JSON: " + juce::String(e.what()));
+        }
+      }
+
+      // Step 2: Reducer - Create new immutable FollowersState
+      sliceManager.getFollowersSlice()->dispatch([users](FollowersState &state) {
+        state.isLoading = false;
+        state.errorMessage = "";
+        state.totalCount = static_cast<int>(users.size());
+
+        // Convert mutable users to immutable for state
+        state.users.clear();
+        for (const auto &user : users) {
+          state.users.push_back(std::const_pointer_cast<const Sidechain::User>(user));
+        }
+      });
+
+      Util::logInfo("AppStore", "Loaded " + juce::String(users.size()) + " following");
+
+    } catch (const std::exception &e) {
+      // Reducer: Create error state
+      auto error = std::string(e.what());
+      sliceManager.getFollowersSlice()->dispatch([error](FollowersState &state) {
+        state.isLoading = false;
+        state.errorMessage = error;
+      });
+      Util::logError("AppStore", "Failed to load following: " + juce::String(e.what()));
+    }
+  });
 }
+
+// Old handler methods removed - now using Redux pattern in loadFollowers/loadFollowing
 
 } // namespace Stores
 } // namespace Sidechain

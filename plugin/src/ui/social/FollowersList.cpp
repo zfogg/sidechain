@@ -1,6 +1,7 @@
 #include "FollowersList.h"
-#include "../../network/NetworkClient.h"
 #include "../../stores/AppStore.h"
+#include "../../stores/EntityStore.h"
+#include "../../models/User.h"
 
 #include "../../util/Colors.h"
 #include "../../util/Json.h"
@@ -21,22 +22,21 @@ FollowUserRow::FollowUserRow() {
   // Set up hover state - triggers visual feedback on hover
   hoverState.onHoverChanged = [this](bool hovered) {
     // Repaint to show/hide hover effects (highlight, follow button)
-    if (hovered) {
-      // Show hover effects (row highlight, follow/unfollow button)
-      repaint();
-    } else {
-      // Hide hover effects when mouse leaves
-      repaint();
-    }
+    repaint();
   };
 }
 
-void FollowUserRow::setUser(const FollowListUser &newUser) {
-  user = newUser;
+void FollowUserRow::setUser(const std::shared_ptr<const Sidechain::User> &user) {
+  userPtr = user;
+  if (!userPtr) {
+    Log::warn("FollowUserRow: Setting user to null");
+    return;
+  }
+
   // Fetch avatar image via AppStore reactive observable (with caching)
-  if (user.avatarUrl.isNotEmpty() && appStore) {
+  if (appStore && userPtr->avatarUrl.isNotEmpty()) {
     juce::Component::SafePointer<FollowUserRow> safeThis(this);
-    appStore->loadImageObservable(user.avatarUrl)
+    appStore->loadImageObservable(userPtr->avatarUrl)
         .subscribe(
             [safeThis](const juce::Image &image) {
               if (safeThis == nullptr)
@@ -53,12 +53,11 @@ void FollowUserRow::setUser(const FollowListUser &newUser) {
   repaint();
 }
 
-void FollowUserRow::setFollowing(bool following) {
-  user.isFollowing = following;
-  repaint();
-}
-
 void FollowUserRow::paint(juce::Graphics &g) {
+  if (!userPtr) {
+    return;
+  }
+
   // Background
   g.setColour(hoverState.isHovered() ? SidechainColors::backgroundLighter() : SidechainColors::backgroundLight());
   g.fillRect(getLocalBounds());
@@ -70,28 +69,30 @@ void FollowUserRow::paint(juce::Graphics &g) {
 
   auto avatarBounds = getAvatarBounds();
 
-  // Avatar
-  juce::String name = user.displayName.isNotEmpty() ? user.displayName : user.username;
+  // Avatar - display name or username
+  juce::String displayName(userPtr->displayName);
+  juce::String username(userPtr->username);
+  juce::String name = !displayName.isEmpty() ? displayName : username;
 
   // Use reactive observable for image loading (with caching)
-  if (appStore && user.avatarUrl.isNotEmpty()) {
+  if (appStore && userPtr->avatarUrl.isNotEmpty()) {
+    juce::String avatarUrl(userPtr->avatarUrl);
     juce::Component::SafePointer<FollowUserRow> safeThis(this);
-    appStore->loadImageObservable(user.avatarUrl)
-        .subscribe(
-            [safeThis](const juce::Image &image) {
-              if (safeThis == nullptr)
-                return;
-              if (image.isValid())
-                safeThis->repaint();
-            },
-            [safeThis](std::exception_ptr) {
-              if (safeThis == nullptr)
-                return;
-              Log::warn("FollowersList: Failed to load avatar in paint");
-            });
+    appStore->loadImageObservable(avatarUrl).subscribe(
+        [safeThis](const juce::Image &image) {
+          if (safeThis == nullptr)
+            return;
+          if (image.isValid())
+            safeThis->repaint();
+        },
+        [safeThis](std::exception_ptr) {
+          if (safeThis == nullptr)
+            return;
+          Log::warn("FollowersList: Failed to load avatar in paint");
+        });
   }
 
-  // Fallback: colored circle with user initials (will be replaced with actual image when loaded)
+  // Fallback: colored circle with user initials
   juce::String initials = StringUtils::getInitials(name);
 
   g.setColour(SidechainColors::surface());
@@ -115,24 +116,17 @@ void FollowUserRow::paint(juce::Graphics &g) {
   g.drawText(name, textX, 12, textWidth, 20, juce::Justification::centredLeft);
 
   // @username (if display name is different)
-  if (user.displayName.isNotEmpty() && user.displayName != user.username) {
+  if (!displayName.isEmpty() && displayName != username) {
     g.setColour(SidechainColors::textMuted());
     g.setFont(12.0f);
-    g.drawText("@" + user.username, textX, 32, textWidth, 16, juce::Justification::centredLeft);
+    g.drawText("@" + username, textX, 32, textWidth, 16, juce::Justification::centredLeft);
   }
 
-  // "Follows you" badge
-  if (user.followsYou) {
-    g.setColour(SidechainColors::textMuted());
-    g.setFont(10.0f);
-    int badgeY = user.displayName.isNotEmpty() ? 48 : 32;
-    g.drawText("Follows you", textX, badgeY, 80, 14, juce::Justification::centredLeft);
-  }
-
-  // Follow button (don't show for current user)
+  // Follow button
   auto followBounds = getFollowButtonBounds();
+  bool isFollowing = userPtr->isFollowing;
 
-  if (user.isFollowing) {
+  if (isFollowing) {
     UIHelpers::drawOutlineButton(g, followBounds, "Following", SidechainColors::border(),
                                  SidechainColors::textPrimary(), false, 4.0f);
   } else {
@@ -146,18 +140,24 @@ void FollowUserRow::resized() {
 }
 
 void FollowUserRow::mouseUp(const juce::MouseEvent &event) {
+  if (!userPtr) {
+    return;
+  }
+
   auto pos = event.getPosition();
 
   // Check follow button click
   if (getFollowButtonBounds().contains(pos)) {
-    if (onFollowToggled)
-      onFollowToggled(user, !user.isFollowing);
+    if (onFollowToggled) {
+      onFollowToggled(juce::String(userPtr->id), !userPtr->isFollowing);
+    }
     return;
   }
 
   // Otherwise, navigate to user
-  if (onUserClicked)
-    onUserClicked(user);
+  if (onUserClicked) {
+    onUserClicked(juce::String(userPtr->id));
+  }
 }
 
 void FollowUserRow::mouseEnter(const juce::MouseEvent & /*event*/) {
@@ -207,135 +207,58 @@ void FollowersList::setupUI() {
   addAndMakeVisible(viewport.get());
 }
 
-// ==============================================================================
-// TODO: Store integration (migration to AppStore reactive pattern is planned for Phase 2)
-// For now, using direct NetworkClient calls for followers/following operations
-
 void FollowersList::loadList(const juce::String &userId, ListType type) {
-  if (userId.isEmpty() || networkClient == nullptr) {
-    Log::warn("FollowersList: Cannot load list - userId empty or network "
-              "client null");
+  if (userId.isEmpty() || appStore == nullptr) {
+    Log::warn("FollowersList: Cannot load list - userId empty or appStore null");
     return;
   }
 
   juce::String typeStr = type == ListType::Followers ? "followers" : "following";
   Log::info("FollowersList: Loading " + typeStr + " for user: " + userId);
 
-  targetUserId = userId;
-  listType = type;
-  currentOffset = 0;
-  users.clear();
-  userRows.clear();
-  errorMessage = "";
-  isLoading = true;
-  repaint();
+  // Redux: Subscribe to immutable FollowersSlice from AppStore
+  // Component gets notified whenever the slice changes (loading, users, errors)
+  auto &sliceManager = Sidechain::Stores::Slices::AppSliceManager::getInstance();
+  sliceManager.getFollowersSlice()->subscribe([this](const Sidechain::Stores::FollowersState &state) {
+    // Received new immutable state snapshot
+    currentSlice = state;
+    updateUsersList();
+    repaint();
+  });
 
-  auto callback = [this](Outcome<juce::var> responseOutcome) {
-    if (responseOutcome.isOk())
-      handleUsersLoaded(true, responseOutcome.getValue());
-    else
-      handleUsersLoaded(false, juce::var());
-  };
-
-  if (type == ListType::Followers)
-    networkClient->getFollowers(userId, 20, 0, callback);
-  else
-    networkClient->getFollowing(userId, 20, 0, callback);
+  // Redux: Dispatch action to load followers or following
+  // Action will normalize JSON → cache in EntityStore → update FollowersSlice
+  if (type == ListType::Followers) {
+    appStore->loadFollowers(userId, 20, 0);
+  } else {
+    appStore->loadFollowing(userId, 20, 0);
+  }
 }
 
 void FollowersList::refresh() {
-  if (targetUserId.isEmpty())
+  if (currentSlice.targetUserId.empty()) {
     return;
-
-  loadList(targetUserId, listType);
-}
-
-void FollowersList::handleUsersLoaded(bool success, const juce::var &usersData) {
-  isLoading = false;
-  juce::String typeStr = listType == ListType::Followers ? "followers" : "following";
-
-  if (success && Json::isObject(usersData)) {
-    // Parse users array
-    juce::String usersKey = (listType == ListType::Followers) ? "followers" : "following";
-    auto usersArray = Json::getArray(usersData, usersKey.toRawUTF8());
-
-    if (Json::isArray(usersArray)) {
-      auto *arr = usersArray.getArray();
-      if (arr != nullptr) {
-        for (const auto &item : *arr) {
-          FollowListUser user = FollowListUser::fromJson(item);
-          if (user.isValid())
-            users.add(user);
-        }
-      }
-    }
-
-    totalCount = Json::getInt(usersData, "total_count", users.size());
-    hasMore = users.size() < totalCount;
-    currentOffset = users.size();
-
-    Log::info("FollowersList: Loaded " + juce::String(users.size()) + " " + typeStr +
-              " (total: " + juce::String(totalCount) + ")");
-    updateUsersList();
-  } else {
-    Log::error("FollowersList: Failed to load " + typeStr);
-    errorMessage = "Failed to load " + typeStr;
   }
 
-  repaint();
-}
-
-void FollowersList::loadMoreUsers() {
-  if (isLoading || !hasMore || networkClient == nullptr)
-    return;
-
-  isLoading = true;
-  repaint();
-
-  auto callback = [this](Outcome<juce::var> responseOutcome) {
-    isLoading = false;
-
-    if (responseOutcome.isOk()) {
-      auto data = responseOutcome.getValue();
-      if (Json::isObject(data)) {
-        juce::String usersKey = (listType == ListType::Followers) ? "followers" : "following";
-        auto usersArray = Json::getArray(data, usersKey.toRawUTF8());
-
-        if (Json::isArray(usersArray)) {
-          auto *arr = usersArray.getArray();
-          if (arr != nullptr) {
-            for (const auto &item : *arr) {
-              FollowListUser user = FollowListUser::fromJson(item);
-              if (user.isValid())
-                users.add(user);
-            }
-          }
-        }
-
-        totalCount = Json::getInt(data, "total_count", users.size());
-        hasMore = users.size() < totalCount;
-        currentOffset = users.size();
-
-        updateUsersList();
-      }
-    }
-
-    repaint();
-  };
-
-  if (listType == ListType::Followers)
-    networkClient->getFollowers(targetUserId, 20, currentOffset, callback);
-  else
-    networkClient->getFollowing(targetUserId, 20, currentOffset, callback);
+  // Re-load from the target user stored in current slice
+  auto targetUserIdStr = juce::String(currentSlice.targetUserId);
+  auto type = (currentSlice.listType == FollowersState::Followers) ? ListType::Followers : ListType::Following;
+  loadList(targetUserIdStr, type);
 }
 
 void FollowersList::updateUsersList() {
+  // Render users from immutable FollowersSlice state
   userRows.clear();
 
   int yPos = 0;
-  for (const auto &user : users) {
+  for (const auto &user : currentSlice.users) {
+    if (!user) {
+      continue;
+    }
+
     auto *row = new FollowUserRow();
-    row->setUser(user);
+    row->setAppStore(appStore);
+    row->setUser(user); // Pass immutable const User*
     setupRowCallbacks(row);
     row->setBounds(0, yPos, contentContainer->getWidth(), FollowUserRow::ROW_HEIGHT);
     contentContainer->addAndMakeVisible(row);
@@ -348,34 +271,26 @@ void FollowersList::updateUsersList() {
 }
 
 void FollowersList::setupRowCallbacks(FollowUserRow *row) {
-  row->onUserClicked = [this](const FollowListUser &user) {
-    if (onUserClicked)
-      onUserClicked(user.id);
+  // Dispatch user click action
+  row->onUserClicked = [this](const juce::String &userId) {
+    if (onUserClicked) {
+      onUserClicked(userId);
+    }
   };
 
-  row->onFollowToggled = [this](const FollowListUser &user, bool willFollow) { handleFollowToggled(user, willFollow); };
-}
-
-void FollowersList::handleFollowToggled(const FollowListUser &user, bool willFollow) {
-  if (networkClient == nullptr)
-    return;
-
-  // Optimistic update
-  for (auto *row : userRows) {
-    if (row->getUser().id == user.id) {
-      row->setFollowing(willFollow);
-      break;
+  // Dispatch follow/unfollow action through AppStore
+  row->onFollowToggled = [this](const juce::String &userId, bool willFollow) {
+    if (appStore == nullptr) {
+      return;
     }
-  }
 
-  // Use AppStore to handle follow/unfollow with cache invalidation
-  auto &appStore = AppStore::getInstance();
-
-  if (willFollow) {
-    appStore.followUser(user.id);
-  } else {
-    appStore.unfollowUser(user.id);
-  }
+    // Redux: Dispatch action to follow/unfollow user
+    if (willFollow) {
+      appStore->followUser(userId);
+    } else {
+      appStore->unfollowUser(userId);
+    }
+  };
 }
 
 void FollowersList::timerCallback() {
@@ -391,33 +306,35 @@ void FollowersList::paint(juce::Graphics &g) {
   auto headerBounds = getLocalBounds().removeFromTop(HEADER_HEIGHT);
   UIHelpers::drawCard(g, headerBounds, SidechainColors::backgroundLight());
 
-  // Header title
+  // Header title from immutable slice state
   g.setColour(SidechainColors::textPrimary());
   g.setFont(16.0f);
-  juce::String title = (listType == ListType::Followers) ? "Followers" : "Following";
-  if (totalCount > 0)
-    title += " (" + juce::String(totalCount) + ")";
+  juce::String title = (currentSlice.listType == FollowersState::Followers) ? "Followers" : "Following";
+  if (currentSlice.totalCount > 0) {
+    title += " (" + juce::String(currentSlice.totalCount) + ")";
+  }
   g.drawText(title, headerBounds.withTrimmedLeft(15), juce::Justification::centredLeft);
 
   // Loading indicator
-  if (isLoading && users.isEmpty()) {
+  if (currentSlice.isLoading && currentSlice.users.empty()) {
     g.setColour(SidechainColors::textMuted());
     g.setFont(12.0f);
     g.drawText("Loading...", getLocalBounds(), juce::Justification::centred);
   }
 
   // Error message
-  if (errorMessage.isNotEmpty()) {
+  if (!currentSlice.errorMessage.empty()) {
     g.setColour(SidechainColors::buttonDanger());
     g.setFont(12.0f);
-    g.drawText(errorMessage, getLocalBounds(), juce::Justification::centred);
+    g.drawText(juce::String(currentSlice.errorMessage), getLocalBounds(), juce::Justification::centred);
   }
 
   // Empty state
-  if (!isLoading && users.isEmpty() && errorMessage.isEmpty()) {
+  if (!currentSlice.isLoading && currentSlice.users.empty() && currentSlice.errorMessage.empty()) {
     g.setColour(SidechainColors::textMuted());
     g.setFont(14.0f);
-    juce::String emptyText = (listType == ListType::Followers) ? "No followers yet" : "Not following anyone yet";
+    juce::String emptyText =
+        (currentSlice.listType == FollowersState::Followers) ? "No followers yet" : "Not following anyone yet";
     g.drawText(emptyText, getLocalBounds(), juce::Justification::centred);
   }
 }
