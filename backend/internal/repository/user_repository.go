@@ -9,7 +9,8 @@ import (
 )
 
 var (
-	ErrUserNotFound = errors.New("user not found")
+	ErrUserNotFound  = errors.New("user not found")
+	ErrInvalidInput  = errors.New("invalid input")
 )
 
 // UserRepository handles all database operations for users

@@ -18,6 +18,6 @@ func HandleDBError(c *gin.Context, err error, resourceName string) bool {
 	}
 
 	// For other database errors, return internal server error
-	RespondInternalError(c, "query_failed", "Failed to fetch "+resourceName)
+	RespondInternalError(c, "Failed to fetch "+resourceName)
 	return true
 }
