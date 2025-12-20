@@ -24,7 +24,7 @@ void AppStore::loadDrafts() {
           auto content = file.loadFileAsString();
           auto draft = juce::JSON::parse(content);
           if (draft.isObject()) {
-            draftsList.add(draft);
+            draftsList.push_back(draft);
           }
         } catch (...) {
           Util::logWarning("AppStore", "Failed to parse draft file: " + file.getFileName());
@@ -94,7 +94,7 @@ void AppStore::saveDrafts() {
 
       try {
         juce::String draftId = draft.getProperty("id", "").toString();
-        if (draftId.isEmpty()) {
+        if (draftId.empty()) {
           continue;
         }
 

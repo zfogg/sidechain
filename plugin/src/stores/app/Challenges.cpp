@@ -20,7 +20,7 @@ void AppStore::loadChallenges() {
 
       if (data.isArray()) {
         for (int i = 0; i < data.size(); ++i) {
-          challengesList.add(data[i]);
+          challengesList.push_back(data[i]);
         }
       }
 
@@ -55,7 +55,7 @@ void AppStore::submitChallenge(const juce::String &challengeId, const juce::File
 
   // Read MIDI file content
   auto midiContent = midiFile.loadFileAsString();
-  if (midiContent.isEmpty()) {
+  if (midiContent.empty()) {
     Util::logError("AppStore", "Failed to read MIDI file content: " + midiFile.getFullPathName());
     return;
   }

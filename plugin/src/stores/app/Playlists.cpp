@@ -1,5 +1,6 @@
 #include "../AppStore.h"
 #include "../../util/logging/Logger.h"
+#include <nlohmann/json.hpp>
 
 namespace Sidechain {
 namespace Stores {
@@ -54,20 +55,35 @@ void AppStore::loadPlaylists() {
   networkClient->getPlaylists("all", [this](Outcome<juce::var> result) {
     if (result.isOk()) {
       const auto data = result.getValue();
-      juce::Array<juce::var> playlistsList;
 
-      if (data.isArray()) {
-        for (int i = 0; i < data.size(); ++i) {
-          playlistsList.add(data[i]);
+      // Parse juce::var response into shared_ptr Playlist objects
+      juce::String jsonString = juce::JSON::toString(data, false);
+      try {
+        auto jsonArray = nlohmann::json::parse(jsonString.toStdString());
+        auto parseResult = Playlist::createFromJsonArray(jsonArray);
+
+        if (parseResult.isOk()) {
+          auto playlistsList = parseResult.getValue();
+          sliceManager.getPlaylistSlice()->dispatch([playlistsList](PlaylistState &state) {
+            state.playlists = playlistsList;
+            state.isLoading = false;
+            state.playlistError = "";
+            Util::logInfo("AppStore", "Loaded " + juce::String(playlistsList.size()) + " playlists");
+          });
+        } else {
+          sliceManager.getPlaylistSlice()->dispatch([parseResult](PlaylistState &state) {
+            state.isLoading = false;
+            state.playlistError = parseResult.getError();
+            Util::logError("AppStore", "Failed to parse playlists: " + parseResult.getError());
+          });
         }
+      } catch (const std::exception &e) {
+        sliceManager.getPlaylistSlice()->dispatch([e](PlaylistState &state) {
+          state.isLoading = false;
+          state.playlistError = juce::String(e.what());
+          Util::logError("AppStore", "JSON parse error: " + juce::String(e.what()));
+        });
       }
-
-      sliceManager.getPlaylistSlice()->dispatch([playlistsList](PlaylistState &state) {
-        state.playlists = playlistsList;
-        state.isLoading = false;
-        state.playlistError = "";
-        Util::logInfo("AppStore", "Loaded " + juce::String(playlistsList.size()) + " playlists");
-      });
     } else {
       sliceManager.getPlaylistSlice()->dispatch([result](PlaylistState &state) {
         state.isLoading = false;

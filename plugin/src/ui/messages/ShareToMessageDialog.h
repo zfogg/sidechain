@@ -54,8 +54,8 @@ public:
   }
 
   // Set the post to share
-  void setPost(const FeedPost &postToShare);
-  void setStoryToShare(const Story &story);
+  void setPost(const Sidechain::FeedPost &postToShare);
+  void setStoryToShare(const Sidechain::Story &story);
 
   // Show modal dialog
   void showModal(juce::Component *parent);

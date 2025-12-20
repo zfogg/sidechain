@@ -81,7 +81,7 @@ public:
   std::function<void()> onGoToDiscovery;
 
   // Callback for sharing a post to DMs
-  std::function<void(const FeedPost &post)> onSendPostToMessage;
+  std::function<void(const Sidechain::FeedPost &post)> onSendPostToMessage;
 
   // Callback for navigating to a sound page
   std::function<void(const juce::String &soundId)> onSoundClicked;
@@ -180,7 +180,7 @@ private:
   // Skeleton loader (shown when feedState == Loading)
   std::unique_ptr<FeedSkeleton> feedSkeleton;
 
-  void showCommentsForPost(const FeedPost &post);
+  void showCommentsForPost(const Sidechain::FeedPost &post);
   void hideCommentsPanel();
 
   // ==============================================================================
@@ -215,7 +215,7 @@ private:
   void queryPresenceForPosts();
 
   // Remix flow
-  void startRemixFlow(const FeedPost &post, const juce::String &remixType);
+  void startRemixFlow(const Sidechain::FeedPost &post, const juce::String &remixType);
 
   // Infinite scroll
   void checkLoadMore();

@@ -20,7 +20,7 @@ void AppStore::loadNotifications() {
 
       if (notifResult.notifications.isArray()) {
         for (int i = 0; i < notifResult.notifications.size(); ++i) {
-          notificationsList.add(notifResult.notifications[i]);
+          notificationsList.push_back(notifResult.notifications[i]);
         }
       }
 
@@ -50,7 +50,7 @@ void AppStore::loadMoreNotifications() {
 
   auto notificationSlice = sliceManager.getNotificationSlice();
   const auto &currentState = notificationSlice->getState();
-  if (currentState.notifications.isEmpty()) {
+  if (currentState.notifications.empty()) {
     return;
   }
 
@@ -62,13 +62,13 @@ void AppStore::loadMoreNotifications() {
 
           if (notifResult.notifications.isArray()) {
             for (int i = 0; i < notifResult.notifications.size(); ++i) {
-              newNotifications.add(notifResult.notifications[i]);
+              newNotifications.push_back(notifResult.notifications[i]);
             }
           }
 
           notificationSlice->dispatch([newNotifications, notifResult](NotificationState &state) {
             for (const auto &notification : newNotifications) {
-              state.notifications.add(notification);
+              state.notifications.push_back(notification);
             }
             state.unreadCount = notifResult.unread;
             state.unseenCount = notifResult.unseen;

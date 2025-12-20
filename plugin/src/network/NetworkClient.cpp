@@ -1304,3 +1304,39 @@ Outcome<std::vector<std::shared_ptr<Sidechain::User>>> NetworkClient::parseUsers
 
 // ==============================================================================
 // Toggle convenience methods (for FeedStore optimistic updates)
+
+// ==============================================================================
+// Additional model parsing helpers (Phase 3 refactoring)
+
+Outcome<std::vector<std::shared_ptr<Sidechain::Playlist>>>
+NetworkClient::parsePlaylistsResponse(const juce::var &response) {
+  if (!response.isArray()) {
+    return Outcome<std::vector<std::shared_ptr<Sidechain::Playlist>>>::error("Expected array response for playlists");
+  }
+
+  juce::String jsonString = juce::JSON::toString(response, false);
+  try {
+    auto jsonArray = nlohmann::json::parse(jsonString.toStdString());
+    return Sidechain::Playlist::createFromJsonArray(jsonArray);
+  } catch (const std::exception &e) {
+    return Outcome<std::vector<std::shared_ptr<Sidechain::Playlist>>>::error("Failed to parse playlists: " +
+                                                                            juce::String(e.what()));
+  }
+}
+
+Outcome<std::vector<std::shared_ptr<Sidechain::Story>>> NetworkClient::parseStoriesResponse(
+    const juce::var &response) {
+  if (!response.isArray()) {
+    return Outcome<std::vector<std::shared_ptr<Sidechain::Story>>>::error("Expected array response for stories");
+  }
+
+  juce::String jsonString = juce::JSON::toString(response, false);
+  try {
+    auto jsonArray = nlohmann::json::parse(jsonString.toStdString());
+    return Sidechain::Story::createFromJsonArray(jsonArray);
+  } catch (const std::exception &e) {
+    return Outcome<std::vector<std::shared_ptr<Sidechain::Story>>>::error("Failed to parse stories: " +
+                                                                         juce::String(e.what()));
+  }
+}
+

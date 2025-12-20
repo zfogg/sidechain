@@ -19,7 +19,7 @@ void AppStore::loadFeaturedSounds() {
 
       if (data.isArray()) {
         for (int i = 0; i < data.size(); ++i) {
-          soundsList.add(data[i]);
+          soundsList.push_back(data[i]);
         }
       }
 
@@ -55,7 +55,7 @@ void AppStore::loadRecentSounds() {
 
       if (data.isArray()) {
         for (int i = 0; i < data.size(); ++i) {
-          soundsList.add(data[i]);
+          soundsList.push_back(data[i]);
         }
       }
 
@@ -82,7 +82,7 @@ void AppStore::loadMoreSounds() {
 
   auto soundSlice = sliceManager.getSoundSlice();
   const auto &currentState = soundSlice->getState();
-  if (currentState.recentSounds.isEmpty()) {
+  if (currentState.recentSounds.empty()) {
     return;
   }
 
@@ -93,13 +93,13 @@ void AppStore::loadMoreSounds() {
 
       if (data.isArray()) {
         for (int i = 0; i < data.size(); ++i) {
-          newSounds.add(data[i]);
+          newSounds.push_back(data[i]);
         }
       }
 
       sliceManager.getSoundSlice()->dispatch([newSounds](SoundState &state) {
         for (const auto &sound : newSounds) {
-          state.recentSounds.add(sound);
+          state.recentSounds.push_back(sound);
         }
         state.recentOffset += newSounds.size();
       });

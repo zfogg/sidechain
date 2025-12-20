@@ -52,7 +52,7 @@ void PostCard::setNetworkClient(NetworkClient *client) {
   waveformView.setNetworkClient(client);
 }
 
-void PostCard::setPost(const FeedPost &newPost) {
+void PostCard::setPost(const Sidechain::FeedPost &newPost) {
   post = newPost;
   Log::debug("PostCard: Setting post - ID: " + post.id + ", user: " + post.username +
              ", isFollowing: " + juce::String(post.isFollowing ? "true" : "false") +
@@ -1574,11 +1574,11 @@ void PostCard::subscribeToAppStore() {
 
       const auto &currentFeed = postsState.getCurrentFeed();
       for (const auto &feedPost : currentFeed->posts) {
-        if (feedPost.id == postId) {
+        if (feedPost->id == postId) {
           if (safeThis == nullptr)
             return;
-          if (!feedPost.id.isEmpty()) {
-            safeThis->post = feedPost;
+          if (!feedPost->id.isEmpty()) {
+            safeThis->post = *feedPost;  // Dereference shared_ptr to get FeedPost
             safeThis->repaint();
           }
           return;

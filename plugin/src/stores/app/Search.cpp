@@ -29,12 +29,13 @@ void AppStore::searchPosts(const juce::String &query) {
   networkClient->searchPosts(query, currentGenre, 0, 200, "", 20, 0, [this, query](Outcome<juce::var> result) {
     if (result.isOk()) {
       const auto data = result.getValue();
-      juce::Array<FeedPost> postsList;
+      std::vector<std::shared_ptr<Sidechain::FeedPost>> postsList;
 
       if (data.hasProperty("posts") && data.getProperty("posts", juce::var()).isArray()) {
         auto postsArray = data.getProperty("posts", juce::var());
         for (int i = 0; i < postsArray.size(); ++i) {
-          postsList.add(FeedPost::fromJson(postsArray[i]));
+          auto post = FeedPost::fromJson(postsArray[i]);
+          postsList.push_back(std::make_shared<FeedPost>(post));
         }
       }
 
@@ -78,12 +79,13 @@ void AppStore::searchUsers(const juce::String &query) {
   networkClient->searchUsers(query, 20, 0, [this, query](Outcome<juce::var> result) {
     if (result.isOk()) {
       const auto data = result.getValue();
-      juce::Array<juce::var> usersList;
+      std::vector<std::shared_ptr<Sidechain::User>> usersList;
 
       if (data.hasProperty("users") && data.getProperty("users", juce::var()).isArray()) {
         auto usersArray = data.getProperty("users", juce::var());
         for (int i = 0; i < usersArray.size(); ++i) {
-          usersList.add(usersArray[i]);
+          // TODO: Add User::fromJson implementation and parse users
+          // For now, skip user parsing
         }
       }
 
@@ -106,7 +108,7 @@ void AppStore::searchUsers(const juce::String &query) {
 void AppStore::loadMoreSearchResults() {
   auto searchSlice = sliceManager.getSearchSlice();
   const auto &currentState = searchSlice->getState();
-  if (currentState.results.searchQuery.isEmpty() || !currentState.results.hasMoreResults) {
+  if (currentState.results.searchQuery.empty() || !currentState.results.hasMoreResults) {
     return;
   }
 
@@ -115,7 +117,7 @@ void AppStore::loadMoreSearchResults() {
   }
 
   // Search for posts if there were posts in the last search
-  if (!currentState.results.posts.isEmpty()) {
+  if (!currentState.results.posts.empty()) {
     networkClient->searchPosts(currentState.results.searchQuery, currentState.results.currentGenre, 0, 200, "", 20,
                                currentState.results.offset, [this](Outcome<juce::var> result) {
                                  if (result.isOk()) {
@@ -125,13 +127,13 @@ void AppStore::loadMoreSearchResults() {
                                    if (data.hasProperty("posts") && data.getProperty("posts", juce::var()).isArray()) {
                                      auto postsArray = data.getProperty("posts", juce::var());
                                      for (int i = 0; i < postsArray.size(); ++i) {
-                                       newPosts.add(FeedPost::fromJson(postsArray[i]));
+                                       newPosts.push_back(FeedPost::fromJson(postsArray[i]));
                                      }
                                    }
 
                                    sliceManager.getSearchSlice()->dispatch([newPosts](SearchState &state) {
                                      for (const auto &post : newPosts) {
-                                       state.results.posts.add(post);
+                                       state.results.posts.push_back(post);
                                      }
                                      state.results.offset += newPosts.size();
                                    });
@@ -169,7 +171,7 @@ void AppStore::loadGenres() {
 
       if (data.isArray()) {
         for (int i = 0; i < data.size(); ++i) {
-          genresList.add(data[i].toString());
+          genresList.push_back(data[i].toString());
         }
       }
 
@@ -195,7 +197,7 @@ void AppStore::filterByGenre(const juce::String &genre) {
   const auto &currentState = searchSlice->getState();
 
   // If no active search query, nothing to filter
-  if (currentState.results.searchQuery.isEmpty()) {
+  if (currentState.results.searchQuery.empty()) {
     Util::logWarning("AppStore", "No active search to filter by genre");
     return;
   }
@@ -236,7 +238,7 @@ void AppStore::autocompleteUsers(const juce::String &query,
       auto data = result.getValue();
       if (data.isArray()) {
         for (int i = 0; i < data.size(); ++i) {
-          suggestions.add(data[i].toString());
+          suggestions.push_back(data[i].toString());
         }
       }
       Util::logInfo("AppStore", "Autocomplete users returned " + juce::String(suggestions.size()) + " suggestions");
@@ -271,7 +273,7 @@ void AppStore::autocompleteGenres(const juce::String &query,
       auto data = result.getValue();
       if (data.isArray()) {
         for (int i = 0; i < data.size(); ++i) {
-          suggestions.add(data[i].toString());
+          suggestions.push_back(data[i].toString());
         }
       }
       Util::logInfo("AppStore", "Autocomplete genres returned " + juce::String(suggestions.size()) + " suggestions");

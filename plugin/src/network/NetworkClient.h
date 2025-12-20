@@ -5,6 +5,12 @@
 #include "../util/Result.h"
 #include "../models/FeedPost.h"
 #include "../models/User.h"
+#include "../models/Notification.h"
+#include "../models/Conversation.h"
+#include "../models/Playlist.h"
+#include "../models/Story.h"
+#include "../models/Sound.h"
+#include "../models/MidiChallenge.h"
 #include <JuceHeader.h>
 #include <atomic>
 #include <functional>
@@ -86,9 +92,12 @@ public:
   // =========================================================================
   // Model-based callback types (new - Phase 3 refactoring)
   // These callbacks return shared_ptr models instead of juce::var
+  // Note: Only models with from_json/to_json implementations supported
   using FeedPostsCallback = std::function<void(Outcome<std::vector<std::shared_ptr<Sidechain::FeedPost>>>)>;
   using UserCallback = std::function<void(Outcome<std::shared_ptr<Sidechain::User>>)>;
   using UsersCallback = std::function<void(Outcome<std::vector<std::shared_ptr<Sidechain::User>>>)>;
+  using PlaylistsCallback = std::function<void(Outcome<std::vector<std::shared_ptr<Sidechain::Playlist>>>)>;
+  using StoriesCallback = std::function<void(Outcome<std::vector<std::shared_ptr<Sidechain::Story>>>)>;
 
   // ==========================================================================
   // Two-Factor Authentication types
@@ -1415,6 +1424,10 @@ public:
    * @return Outcome with vector of shared_ptr<User> or error message
    */
   static Outcome<std::vector<std::shared_ptr<Sidechain::User>>> parseUsersResponse(const juce::var &response);
+
+  // Parse helpers for additional model types
+  static Outcome<std::vector<std::shared_ptr<Sidechain::Playlist>>> parsePlaylistsResponse(const juce::var &response);
+  static Outcome<std::vector<std::shared_ptr<Sidechain::Story>>> parseStoriesResponse(const juce::var &response);
 
 private:
   Config config;

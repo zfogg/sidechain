@@ -19,7 +19,7 @@ void AppStore::loadStoriesFeed() {
 
       if (data.isArray()) {
         for (int i = 0; i < data.size(); ++i) {
-          storiesList.add(data[i]);
+          storiesList.push_back(data[i]);
         }
       }
 
@@ -84,7 +84,7 @@ void AppStore::deleteStory(const juce::String &storyId) {
         for (int i = state.myStories.size() - 1; i >= 0; --i) {
           auto story = state.myStories[i];
           if (story.hasProperty("id") && story.getProperty("id", juce::var()).toString() == storyId) {
-            state.myStories.remove(i);
+            state.myStories.erase(i);
             Util::logInfo("AppStore", "Story deleted: " + storyId);
             break;
           }
@@ -105,7 +105,7 @@ void AppStore::createHighlight(const juce::String &name, const juce::Array<juce:
     return;
   }
 
-  if (name.isEmpty()) {
+  if (name.empty()) {
     Util::logError("AppStore", "Cannot create highlight - name cannot be empty");
     return;
   }
@@ -121,7 +121,7 @@ void AppStore::createHighlight(const juce::String &name, const juce::Array<juce:
       Util::logInfo("AppStore", "Highlight created successfully: " + highlightId);
 
       // If we have stories to add, add them one by one
-      if (!storyIds.isEmpty()) {
+      if (!storyIds.empty()) {
         Util::logInfo("AppStore", "Adding " + juce::String(storyIds.size()) + " stories to highlight");
 
         // Add each story to the highlight

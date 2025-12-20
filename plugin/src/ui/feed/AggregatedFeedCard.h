@@ -23,7 +23,7 @@ public:
   ~AggregatedFeedCard() override;
 
   /** Set the aggregated group data */
-  void setGroup(const AggregatedFeedGroup &group);
+  void setGroup(const Sidechain::AggregatedFeedGroup &group);
 
   /** Get the group ID */
   juce::String getGroupId() const {
@@ -50,7 +50,7 @@ public:
   std::function<void(const juce::String &postId)> onPlayClicked;
 
 private:
-  AggregatedFeedGroup groupData;
+  Sidechain::AggregatedFeedGroup groupData;
   bool expanded = false;
   bool hovering = false;
 
