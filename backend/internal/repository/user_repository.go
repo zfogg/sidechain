@@ -66,11 +66,11 @@ func (r *userRepository) CreateUser(ctx context.Context, user *models.User) erro
 func (r *userRepository) GetUser(ctx context.Context, userID string) (*models.User, error) {
 	var user models.User
 	err := r.db.WithContext(ctx).Where("id = ?", userID).First(&user).Error
-	
+
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, ErrUserNotFound
 	}
-	
+
 	return &user, err
 }
 
@@ -80,11 +80,11 @@ func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (*mod
 	err := r.db.WithContext(ctx).
 		Where("LOWER(email) = LOWER(?)", email).
 		First(&user).Error
-	
+
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, ErrUserNotFound
 	}
-	
+
 	return &user, err
 }
 
@@ -94,11 +94,11 @@ func (r *userRepository) GetUserByUsername(ctx context.Context, username string)
 	err := r.db.WithContext(ctx).
 		Where("LOWER(username) = LOWER(?)", username).
 		First(&user).Error
-	
+
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, ErrUserNotFound
 	}
-	
+
 	return &user, err
 }
 
@@ -121,61 +121,61 @@ func (r *userRepository) DeleteUser(ctx context.Context, userID string) error {
 // GetUsers gets multiple users by IDs
 func (r *userRepository) GetUsers(ctx context.Context, userIDs []string) ([]*models.User, error) {
 	var users []*models.User
-	
+
 	err := r.db.WithContext(ctx).
 		Where("id IN ?", userIDs).
 		Find(&users).Error
-	
+
 	return users, err
 }
 
 // SearchUsers searches users by username or display name
 func (r *userRepository) SearchUsers(ctx context.Context, query string, limit, offset int) ([]*models.User, error) {
 	var users []*models.User
-	
+
 	searchPattern := "%" + query + "%"
-	
+
 	err := r.db.WithContext(ctx).
 		Where("LOWER(username) LIKE LOWER(?) OR LOWER(display_name) LIKE LOWER(?)", searchPattern, searchPattern).
 		Order("follower_count DESC").
 		Limit(limit).
 		Offset(offset).
 		Find(&users).Error
-	
+
 	return users, err
 }
 
 // GetTrendingUsers gets trending users (by follower growth)
 func (r *userRepository) GetTrendingUsers(ctx context.Context, limit, offset int) ([]*models.User, error) {
 	var users []*models.User
-	
+
 	err := r.db.WithContext(ctx).
 		Order("follower_count DESC").
 		Limit(limit).
 		Offset(offset).
 		Find(&users).Error
-	
+
 	return users, err
 }
 
 // GetUsersByGenre gets users by primary genre
 func (r *userRepository) GetUsersByGenre(ctx context.Context, genre string, limit, offset int) ([]*models.User, error) {
 	var users []*models.User
-	
+
 	err := r.db.WithContext(ctx).
 		Where("genre = ?", genre).
 		Order("follower_count DESC").
 		Limit(limit).
 		Offset(offset).
 		Find(&users).Error
-	
+
 	return users, err
 }
 
 // GetFollowers gets users following the given user
 func (r *userRepository) GetFollowers(ctx context.Context, userID string, limit, offset int) ([]*models.User, error) {
 	var users []*models.User
-	
+
 	err := r.db.WithContext(ctx).
 		Joins("JOIN follows ON follows.follower_id = users.id").
 		Where("follows.following_id = ?", userID).
@@ -183,14 +183,14 @@ func (r *userRepository) GetFollowers(ctx context.Context, userID string, limit,
 		Limit(limit).
 		Offset(offset).
 		Find(&users).Error
-	
+
 	return users, err
 }
 
 // GetFollowing gets users that the given user follows
 func (r *userRepository) GetFollowing(ctx context.Context, userID string, limit, offset int) ([]*models.User, error) {
 	var users []*models.User
-	
+
 	err := r.db.WithContext(ctx).
 		Joins("JOIN follows ON follows.following_id = users.id").
 		Where("follows.follower_id = ?", userID).
@@ -198,31 +198,31 @@ func (r *userRepository) GetFollowing(ctx context.Context, userID string, limit,
 		Limit(limit).
 		Offset(offset).
 		Find(&users).Error
-	
+
 	return users, err
 }
 
 // GetFollowerCount gets follower count for a user
 func (r *userRepository) GetFollowerCount(ctx context.Context, userID string) (int64, error) {
 	var count int64
-	
+
 	err := r.db.WithContext(ctx).
 		Table("follows").
 		Where("following_id = ?", userID).
 		Count(&count).Error
-	
+
 	return count, err
 }
 
 // GetFollowingCount gets following count for a user
 func (r *userRepository) GetFollowingCount(ctx context.Context, userID string) (int64, error) {
 	var count int64
-	
+
 	err := r.db.WithContext(ctx).
 		Table("follows").
 		Where("follower_id = ?", userID).
 		Count(&count).Error
-	
+
 	return count, err
 }
 
@@ -235,7 +235,7 @@ func (r *userRepository) CreateFollow(ctx context.Context, followerID, following
 		FollowerID:  followerID,
 		FollowingID: followingID,
 	}
-	
+
 	return r.db.WithContext(ctx).
 		Table("follows").
 		Create(&follow).Error
@@ -252,12 +252,12 @@ func (r *userRepository) DeleteFollow(ctx context.Context, followerID, following
 // IsFollowing checks if follower follows following
 func (r *userRepository) IsFollowing(ctx context.Context, followerID, followingID string) (bool, error) {
 	var count int64
-	
+
 	err := r.db.WithContext(ctx).
 		Table("follows").
 		Where("follower_id = ? AND following_id = ?", followerID, followingID).
 		Count(&count).Error
-	
+
 	return count > 0, err
 }
 
@@ -267,6 +267,6 @@ func (r *userRepository) GetTotalUserCount(ctx context.Context) (int64, error) {
 	err := r.db.WithContext(ctx).
 		Model(&models.User{}).
 		Count(&count).Error
-	
+
 	return count, err
 }

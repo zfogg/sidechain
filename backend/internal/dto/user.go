@@ -8,20 +8,20 @@ import (
 
 // UserResponse is the public user representation (safe for API responses)
 type UserResponse struct {
-	ID               string    `json:"id"`
-	Username         string    `json:"username"`
-	DisplayName      string    `json:"display_name"`
-	Bio              string    `json:"bio"`
-	ProfilePictureURL string   `json:"profile_picture_url"`
-	Genre            string    `json:"genre"`
-	DAWPreference    string    `json:"daw_preference"`
-	IsVerified       bool      `json:"is_verified"`
-	IsPrivate        bool      `json:"is_private"`
-	FollowerCount    int       `json:"follower_count"`
-	FollowingCount   int       `json:"following_count"`
-	PostCount        int       `json:"post_count"`
-	CreatedAt        time.Time `json:"created_at"`
-	
+	ID                string    `json:"id"`
+	Username          string    `json:"username"`
+	DisplayName       string    `json:"display_name"`
+	Bio               string    `json:"bio"`
+	ProfilePictureURL string    `json:"profile_picture_url"`
+	Genre             string    `json:"genre"`
+	DAWPreference     string    `json:"daw_preference"`
+	IsVerified        bool      `json:"is_verified"`
+	IsPrivate         bool      `json:"is_private"`
+	FollowerCount     int       `json:"follower_count"`
+	FollowingCount    int       `json:"following_count"`
+	PostCount         int       `json:"post_count"`
+	CreatedAt         time.Time `json:"created_at"`
+
 	// Relationship fields (only set when requested by authenticated user)
 	IsFollowing *bool `json:"is_following,omitempty"`
 	FollowsYou  *bool `json:"follows_you,omitempty"`
@@ -83,8 +83,8 @@ func ToUserDetailResponse(user *models.User) *UserDetailResponse {
 	}
 
 	return &UserDetailResponse{
-		UserResponse: *ToUserResponse(user),
-		Email:        user.Email,
+		UserResponse:  *ToUserResponse(user),
+		Email:         user.Email,
 		EmailVerified: user.EmailVerified,
 	}
 }
