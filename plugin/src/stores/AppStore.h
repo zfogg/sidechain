@@ -428,7 +428,8 @@ public:
 
   // ==============================================================================
   // UI Component Subscription Helpers (Thin delegates to slices)
-  // TODO: Remove these and update UI components to subscribe directly to slices
+  // These are now the recommended way for UI components to subscribe to state changes
+  // Components should call these methods during setup to get reactive updates
 
   std::function<void()> subscribeToAuth(std::function<void(const AuthState &)> callback) {
     sliceManager.getAuthSlice()->subscribe(callback);

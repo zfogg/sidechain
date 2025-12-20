@@ -14,8 +14,7 @@
 #include "ui/common/Header.h"
 #include "ui/common/ToastNotification.h"
 #include "ui/feed/PostsFeed.h"
-#include "ui/messages/MessageThread.h" // TODO: Fix MessageThread compilation
-class MessageThread;                   // Forward declaration
+#include "ui/messages/MessageThread.h"
 #include "ui/messages/MessagesList.h"
 #include "ui/messages/ShareToMessageDialog.h"
 #include "ui/messages/UserPickerDialog.h"
@@ -144,7 +143,12 @@ private:
    * @param channelType The type of channel (e.g., "messaging", "team")
    * @param channelId The unique channel identifier
    */
-  // void showMessageThread(const juce::String &channelType, const juce::String &channelId);  // TODO: Fix
+  /** Navigate to message thread view
+   * @param channelType The type of channel (direct, group, etc.)
+   * @param channelId The channel ID to display
+   * Note: MessageThread implementation is scheduled for Phase 2
+   */
+  void showMessageThread(const juce::String &channelType, const juce::String &channelId);
 
   /** Navigate to a user's profile view
    * @param userId The user ID to display

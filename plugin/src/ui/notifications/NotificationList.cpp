@@ -47,7 +47,8 @@ NotificationItem NotificationItem::fromJson(const juce::var &json) {
   return item;
 }
 
-NotificationItem NotificationItem::fromAggregatedGroup(const Sidechain::AggregatedFeedGroup &group, bool read, bool seen) {
+NotificationItem NotificationItem::fromAggregatedGroup(const Sidechain::AggregatedFeedGroup &group, bool read,
+                                                       bool seen) {
   NotificationItem item;
   item.group = group;
   item.isRead = read;
@@ -80,10 +81,10 @@ NotificationItem NotificationItem::fromAggregatedGroup(const Sidechain::Aggregat
   return item;
 }
 
-// TODO: - Implement notification sound option (user preference)
-// TODO: - Add notification preferences (mute specific types)
-// TODO: - Consider WebSocket push for real-time updates (polling
-// is sufficient for MVP)
+// Phase 2 features:
+// - Notification sound option (user preference)
+// - Notification preferences (mute specific types)
+// - WebSocket push for real-time updates (polling is sufficient for MVP)
 
 juce::String NotificationItem::getDisplayText() const {
   juce::String text;

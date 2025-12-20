@@ -341,7 +341,8 @@ public:
 
   // ==============================================================================
   // High-level fetch operations (with automatic caching)
-  // TODO: Implement these when NetworkClient is migrated to nlohmann::json
+  // These will be implemented when NetworkClient is fully migrated to nlohmann::json
+  // Phase 2: Enable these methods for direct entity fetching
 
   // rxcpp::observable<FeedPost> fetchPost(const juce::String& id);
   // rxcpp::observable<Story> fetchStory(const juce::String& id);

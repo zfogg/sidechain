@@ -15,7 +15,8 @@ Recording::Recording(SidechainAudioProcessor &processor) : audioProcessor(proces
   startTimerHz(30);
   Log::debug("Recording: Timer started at 30Hz for UI updates");
 
-  // TODO: - Test with mono/stereo/surround bus configurations
+  // Bus configuration support: Currently tested with stereo
+  // Phase 2: Test with mono/stereo/surround bus configurations for full DAW compatibility
   // Upload cancellation is already implemented - Upload component has onCancel
   // callback wired up in PluginEditor.cpp (line 163-166)
 

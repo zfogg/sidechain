@@ -56,9 +56,10 @@ Search::Search(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   // layoutComponents before scrollBar exists
   setSize(1000, 700);
 
-  // TODO: Phase 7 - Advanced Search - Search by BPM, key, genre
-  // TODO: Phase 7 - Filter posts by metadata (BPM, key, genre, DAW)
-  // TODO: Phase 7 - Search hashtags
+  // Phase 7 features:
+  // - Advanced Search - Search by BPM, key, genre
+  // - Filter posts by metadata (BPM, key, genre, DAW)
+  // - Search hashtags
 }
 
 Search::~Search() {

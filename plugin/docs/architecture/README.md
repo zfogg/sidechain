@@ -173,7 +173,7 @@ Comprehensive guide to the AI-powered recommendation system:
 
 **Read this if**: You're working on recommendation features or want to understand how content discovery works.
 
-### Network Architecture (TODO)
+### Network Architecture
 
 Details on the plugin's networking layer:
 - HTTP client implementation
@@ -182,7 +182,10 @@ Details on the plugin's networking layer:
 - Authentication flow
 - Error handling strategies
 
-### State Management (TODO)
+**Location**: `plugin/src/network/`
+**Status**: Documented in code comments, full guide to be written
+
+### State Management
 
 Reactive state management using the Store pattern:
 - Observer pattern implementation
@@ -190,7 +193,10 @@ Reactive state management using the Store pattern:
 - State update flow
 - Best practices
 
-### Audio Pipeline (TODO)
+**Location**: `plugin/src/stores/`
+**Pattern**: Redux-like slices with immutable updates
+
+### Audio Pipeline
 
 Audio processing from capture to playback:
 - DAW audio bus integration
@@ -198,6 +204,9 @@ Audio processing from capture to playback:
 - Waveform generation
 - HTTP audio streaming
 - Playback synchronization
+
+**Location**: `plugin/src/audio/`
+**Status**: Core functionality complete, fine-tuning in progress
 
 ---
 
