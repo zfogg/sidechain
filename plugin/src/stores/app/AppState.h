@@ -660,6 +660,7 @@ struct AppState {
   UserState user;
   ChatState chat;
   NotificationState notifications;
+  CommentsState comments;
   SearchState search;
   DiscoveryState discovery;
   PresenceState presence;
