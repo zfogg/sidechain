@@ -36,8 +36,6 @@ void MessageThread::loadChannel(const juce::String &type, const juce::String &id
 void MessageThread::onAppStateChanged(const Sidechain::Stores::ChatState &state) {
   repaint();
 }
-void MessageThread::subscribeToAppStore() {}
-void MessageThread::unsubscribeFromAppStore() {}
 
 void MessageThread::drawMessages(juce::Graphics &g) {}
 void MessageThread::drawMessageBubble(juce::Graphics &g, const StreamChatClient::Message &message, int &y, int width) {}

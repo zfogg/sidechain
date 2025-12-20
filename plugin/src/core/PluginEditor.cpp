@@ -187,7 +187,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     showView(AppView::Recording);
   };
   postsFeedComponent->onGoToDiscovery = [this]() { showView(AppView::Discovery); };
-  postsFeedComponent->onSendPostToMessage = [this](const FeedPost &post) { showSharePostToMessage(post); };
+  postsFeedComponent->onSendPostToMessage = [this](const Sidechain::FeedPost &post) { showSharePostToMessage(post); };
   postsFeedComponent->onSoundClicked = [this](const juce::String &soundId) { showSoundPage(soundId); };
   addChildComponent(postsFeedComponent.get());
 
@@ -266,7 +266,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   searchComponent->setCurrentUserId(appStore.getUserState().userId);
   searchComponent->onBackPressed = [this]() { navigateBack(); };
   searchComponent->onUserSelected = [this](const juce::String &userId) { showProfile(userId); };
-  searchComponent->onPostSelected = [this](const FeedPost &post) {
+  searchComponent->onPostSelected = [this](const Sidechain::FeedPost &post) {
     // Navigate to post details view (SoundPage shows post + other posts using same sound)
     if (soundPageComponent) {
       soundPageComponent->loadSoundForPost(post.id);
@@ -481,17 +481,17 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   savedPostsComponent->setNetworkClient(networkClient.get());
   savedPostsComponent->setCurrentUserId(appStore.getUserState().userId);
   savedPostsComponent->onBackPressed = [this]() { navigateBack(); };
-  savedPostsComponent->onPostClicked = [this](const FeedPost &post) {
+  savedPostsComponent->onPostClicked = [this](const Sidechain::FeedPost &post) {
     // Navigate to user profile when post is clicked
     showProfile(post.userId);
   };
-  savedPostsComponent->onPlayClicked = [this](const FeedPost &post) {
+  savedPostsComponent->onPlayClicked = [this](const Sidechain::FeedPost &post) {
     if (!post.audioUrl.isEmpty()) {
       audioProcessor.getAudioPlayer().loadAndPlay(post.audioUrl, post.id);
       savedPostsComponent->setCurrentlyPlayingPost(post.id);
     }
   };
-  savedPostsComponent->onPauseClicked = [this](const FeedPost & /*post*/) {
+  savedPostsComponent->onPauseClicked = [this](const Sidechain::FeedPost & /*post*/) {
     audioProcessor.getAudioPlayer().stop();
     savedPostsComponent->clearPlayingState();
   };
@@ -504,17 +504,17 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   archivedPostsComponent->setNetworkClient(networkClient.get());
   archivedPostsComponent->setCurrentUserId(appStore.getUserState().userId);
   archivedPostsComponent->onBackPressed = [this]() { navigateBack(); };
-  archivedPostsComponent->onPostClicked = [this](const FeedPost &post) {
+  archivedPostsComponent->onPostClicked = [this](const Sidechain::FeedPost &post) {
     // Navigate to user profile when post is clicked
     showProfile(post.userId);
   };
-  archivedPostsComponent->onPlayClicked = [this](const FeedPost &post) {
+  archivedPostsComponent->onPlayClicked = [this](const Sidechain::FeedPost &post) {
     if (!post.audioUrl.isEmpty()) {
       audioProcessor.getAudioPlayer().loadAndPlay(post.audioUrl, post.id);
       archivedPostsComponent->setCurrentlyPlayingPost(post.id);
     }
   };
-  archivedPostsComponent->onPauseClicked = [this](const FeedPost & /*post*/) {
+  archivedPostsComponent->onPauseClicked = [this](const Sidechain::FeedPost & /*post*/) {
     audioProcessor.getAudioPlayer().stop();
     archivedPostsComponent->clearPlayingState();
   };
@@ -571,11 +571,11 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
 
     // Create direct channel with selected user
     if (streamChatClient && streamChatClient->isAuthenticated()) {
-      streamChatClient->createDirectChannel(userId, [this](Outcome<StreamChatClient::Channel> result) {
-        juce::MessageManager::callAsync([this, result]() {
+      streamChatClient->createDirectChannel(userId, [](Outcome<StreamChatClient::Channel> result) {
+        juce::MessageManager::callAsync([result]() {
           if (result.isOk()) {
             auto channel = result.getValue();
-            showMessageThread(channel.type, channel.id);
+            // TODO: showMessageThread(channel.type, channel.id);
           } else {
             Log::error("PluginEditor: Failed to create direct channel - " + result.getError());
             juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Error",
@@ -597,11 +597,11 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
       juce::String channelId = "group_" + juce::String(juce::Time::currentTimeMillis());
 
       streamChatClient->createGroupChannel(
-          channelId, groupName, userIds, [this](Outcome<StreamChatClient::Channel> result) {
-            juce::MessageManager::callAsync([this, result]() {
+          channelId, groupName, userIds, [](Outcome<StreamChatClient::Channel> result) {
+            juce::MessageManager::callAsync([result]() {
               if (result.isOk()) {
                 auto channel = result.getValue();
-                showMessageThread(channel.type, channel.id);
+                // TODO: showMessageThread(channel.type, channel.id);
               } else {
                 Log::error("PluginEditor: Failed to create group channel - " + result.getError());
                 juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Error",
@@ -735,9 +735,9 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   messagesListComponent = std::make_unique<MessagesList>();
   messagesListComponent->setStreamChatClient(streamChatClient.get());
   messagesListComponent->setNetworkClient(networkClient.get());
-  messagesListComponent->onChannelSelected = [this](const juce::String &channelType, const juce::String &channelId) {
+  messagesListComponent->onChannelSelected = [](const juce::String &channelType, const juce::String &channelId) {
     Log::info("PluginEditor: onChannelSelected callback - channelType: " + channelType + ", channelId: " + channelId);
-    showMessageThread(channelType, channelId);
+    // TODO: showMessageThread(channelType, channelId);
   };
   messagesListComponent->onNewMessage = [this]() {
     // Show user picker dialog to create new conversation
@@ -812,18 +812,20 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     // Navigate to archived posts view
     showArchivedPosts();
   };
-  profileComponent->onPlayClicked = [this](const FeedPost &post) {
+  profileComponent->onPlayClicked = [this](const Sidechain::FeedPost &post) {
     audioProcessor.getAudioPlayer().loadAndPlay(post.id, post.audioUrl);
   };
-  profileComponent->onPauseClicked = [this](const FeedPost & /*post*/) { audioProcessor.getAudioPlayer().stop(); };
+  profileComponent->onPauseClicked = [this](const Sidechain::FeedPost & /*post*/) {
+    audioProcessor.getAudioPlayer().stop();
+  };
   profileComponent->onMessageClicked = [this](const juce::String &userId) {
     // Create direct channel with user and navigate to message thread
     if (streamChatClient && streamChatClient->isAuthenticated()) {
-      streamChatClient->createDirectChannel(userId, [this](Outcome<StreamChatClient::Channel> result) {
-        juce::MessageManager::callAsync([this, result]() {
+      streamChatClient->createDirectChannel(userId, [](Outcome<StreamChatClient::Channel> result) {
+        juce::MessageManager::callAsync([result]() {
           if (result.isOk()) {
             auto channel = result.getValue();
-            showMessageThread(channel.type, channel.id);
+            // TODO: showMessageThread(channel.type, channel.id);
           } else {
             Log::error("PluginEditor: Failed to create DM channel: " + result.getError());
           }
@@ -836,7 +838,9 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   };
   profileComponent->onViewStoryClicked = [this](const juce::String &userId) { showUserStory(userId); };
   profileComponent->onNavigateToProfile = [this](const juce::String &userId) { showProfile(userId); };
-  profileComponent->onHighlightClicked = [this](const StoryHighlight &highlight) { showHighlightStories(highlight); };
+  profileComponent->onHighlightClicked = [this](const Sidechain::StoryHighlight &highlight) {
+    showHighlightStories(highlight);
+  };
   profileComponent->onCreateHighlightClicked = [this]() { showCreateHighlightDialog(); };
   profileComponent->onNotificationSettingsClicked = [this]() { showNotificationSettings(); };
   profileComponent->onTwoFactorSettingsClicked = [this]() { showTwoFactorSettings(); };
@@ -1510,12 +1514,14 @@ void SidechainAudioProcessorEditor::showProfile(const juce::String &userId) {
   }
 }
 
+/*
 void SidechainAudioProcessorEditor::showMessageThread(const juce::String &channelType, const juce::String &channelId) {
   Log::info("PluginEditor::showMessageThread - type: " + channelType + ", id: " + channelId);
   messageChannelType = channelType;
   messageChannelId = channelId;
   showView(AppView::MessageThread);
 }
+*/
 
 void SidechainAudioProcessorEditor::showPlaylists() {
   showView(AppView::Playlists);
@@ -1774,7 +1780,7 @@ void SidechainAudioProcessorEditor::showUserStory(const juce::String &userId) {
   });
 }
 
-void SidechainAudioProcessorEditor::showHighlightStories(const StoryHighlight &highlight) {
+void SidechainAudioProcessorEditor::showHighlightStories(const Sidechain::StoryHighlight &highlight) {
   if (!networkClient || highlight.id.isEmpty())
     return;
 
@@ -1865,7 +1871,7 @@ void SidechainAudioProcessorEditor::showSelectHighlightDialog(const juce::String
   selectHighlightDialog->showModal(this);
 }
 
-void SidechainAudioProcessorEditor::showSharePostToMessage(const FeedPost &post) {
+void SidechainAudioProcessorEditor::showSharePostToMessage(const Sidechain::FeedPost &post) {
   if (!shareToMessageDialog)
     return;
 
@@ -1893,7 +1899,7 @@ void SidechainAudioProcessorEditor::showShareStoryToMessage(const StoryData &sto
   shareToMessageDialog->setCurrentUserId(appStore.getUserState().userId);
 
   // Convert StoryData to Story
-  Story storyModel;
+  Sidechain::Story storyModel;
   storyModel.id = story.id;
   storyModel.userId = story.userId;
   storyModel.username = story.username;
@@ -2411,7 +2417,7 @@ void SidechainAudioProcessorEditor::sendTestMessageOnStartup() {
         // Delay slightly to ensure state updates, then open the message thread
         juce::Timer::callAfterDelay(500, [this, channelType, channelId]() {
           Log::info("sendTestMessageOnStartup: 🎯 Opening message thread to display conversation");
-          showMessageThread(channelType, channelId);
+          ////showMessageThread(channelType, channelId);
 
           // After opening, simulate a send button click to test the full flow
           juce::Timer::callAfterDelay(1000, [this]() {

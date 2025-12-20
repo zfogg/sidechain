@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../util/json/JsonValidation.h"
+#include "../util/Json.h"
 #include "../util/Result.h"
 #include "../util/SerializableModel.h"
 #include <JuceHeader.h>
@@ -56,6 +57,47 @@ struct Playlist : public SerializableModel<Playlist> {
 
 inline void to_json(nlohmann::json &j, const Playlist &playlist);
 inline void from_json(const nlohmann::json &j, Playlist &playlist);
+
+// ==============================================================================
+// nlohmann::json implementations (inline in header for proper linking)
+
+inline void to_json(nlohmann::json &j, const Playlist &playlist) {
+  j = nlohmann::json{
+      {"id", Json::fromJuceString(playlist.id)},
+      {"name", Json::fromJuceString(playlist.name)},
+      {"description", Json::fromJuceString(playlist.description)},
+      {"owner_id", Json::fromJuceString(playlist.ownerId)},
+      {"owner_username", Json::fromJuceString(playlist.ownerUsername)},
+      {"owner_avatar_url", Json::fromJuceString(playlist.ownerAvatarUrl)},
+      {"is_collaborative", playlist.isCollaborative},
+      {"is_public", playlist.isPublic},
+      {"entry_count", playlist.entryCount},
+      {"user_role", Json::fromJuceString(playlist.userRole)},
+      {"created_at", playlist.createdAt.toISO8601(true).toStdString()},
+  };
+}
+
+inline void from_json(const nlohmann::json &j, Playlist &playlist) {
+  JSON_OPTIONAL_STRING(j, "id", playlist.id, "");
+  JSON_OPTIONAL_STRING(j, "name", playlist.name, "");
+  JSON_OPTIONAL_STRING(j, "description", playlist.description, "");
+  JSON_OPTIONAL_STRING(j, "owner_id", playlist.ownerId, "");
+  JSON_OPTIONAL_STRING(j, "owner_username", playlist.ownerUsername, "");
+  JSON_OPTIONAL_STRING(j, "owner_avatar_url", playlist.ownerAvatarUrl, "");
+  JSON_OPTIONAL(j, "is_collaborative", playlist.isCollaborative, false);
+  JSON_OPTIONAL(j, "is_public", playlist.isPublic, true);
+  JSON_OPTIONAL(j, "entry_count", playlist.entryCount, 0);
+  JSON_OPTIONAL_STRING(j, "user_role", playlist.userRole, "");
+
+  // Parse timestamp
+  if (j.contains("created_at") && !j["created_at"].is_null()) {
+    try {
+      playlist.createdAt = juce::Time::fromISO8601(Json::toJuceString(j["created_at"].get<std::string>()));
+    } catch (...) {
+      // Invalid timestamp format
+    }
+  }
+}
 
 // ==============================================================================
 /**

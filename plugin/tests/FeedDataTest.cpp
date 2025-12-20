@@ -7,11 +7,11 @@
 using Catch::Approx;
 
 //==============================================================================
-// FeedPost Tests
+// Sidechain::FeedPost Tests
 //==============================================================================
 
-TEST_CASE("FeedPost basic construction", "[FeedPost]") {
-  FeedPost post;
+TEST_CASE("Sidechain::FeedPost basic construction", "[Sidechain::FeedPost]") {
+  Sidechain::FeedPost post;
 
   SECTION("Default values") {
     REQUIRE(post.id.isEmpty());
@@ -24,7 +24,7 @@ TEST_CASE("FeedPost basic construction", "[FeedPost]") {
     REQUIRE(post.playCount == 0);
     REQUIRE(post.commentCount == 0);
     REQUIRE(post.isLiked == false);
-    REQUIRE(post.status == FeedPost::Status::Unknown);
+    REQUIRE(post.status == Sidechain::FeedPost::Status::Unknown);
     REQUIRE(post.genres.isEmpty());
   }
 
@@ -33,109 +33,108 @@ TEST_CASE("FeedPost basic construction", "[FeedPost]") {
   }
 }
 
-//==============================================================================
-TEST_CASE("FeedPost::extractUserId", "[FeedPost]") {
+TEST_CASE("Sidechain::FeedPost::extractUserId", "[Sidechain::FeedPost]") {
   SECTION("Standard user:id format") {
-    REQUIRE(FeedPost::extractUserId("user:12345") == "12345");
-    REQUIRE(FeedPost::extractUserId("user:abc-def-123") == "abc-def-123");
+    REQUIRE(Sidechain::FeedPost::extractUserId("user:12345") == "12345");
+    REQUIRE(Sidechain::FeedPost::extractUserId("user:abc-def-123") == "abc-def-123");
   }
 
   SECTION("Stream User SU:user:id format") {
-    REQUIRE(FeedPost::extractUserId("SU:user:12345") == "12345");
-    REQUIRE(FeedPost::extractUserId("SU:user:test-user") == "test-user");
+    REQUIRE(Sidechain::FeedPost::extractUserId("SU:user:12345") == "12345");
+    REQUIRE(Sidechain::FeedPost::extractUserId("SU:user:test-user") == "test-user");
   }
 
   SECTION("SU: without user prefix") {
-    REQUIRE(FeedPost::extractUserId("SU:12345") == "12345");
+    REQUIRE(Sidechain::FeedPost::extractUserId("SU:12345") == "12345");
   }
 
   SECTION("No prefix - returns as-is") {
-    REQUIRE(FeedPost::extractUserId("12345") == "12345");
-    REQUIRE(FeedPost::extractUserId("plain-id") == "plain-id");
+    REQUIRE(Sidechain::FeedPost::extractUserId("12345") == "12345");
+    REQUIRE(Sidechain::FeedPost::extractUserId("plain-id") == "plain-id");
   }
 
   SECTION("Empty string") {
-    REQUIRE(FeedPost::extractUserId("").isEmpty());
+    REQUIRE(Sidechain::FeedPost::extractUserId("").isEmpty());
   }
 }
 
 //==============================================================================
-TEST_CASE("FeedPost::formatTimeAgo", "[FeedPost]") {
+TEST_CASE("Sidechain::FeedPost::formatTimeAgo", "[Sidechain::FeedPost]") {
   auto now = juce::Time::getCurrentTime();
 
   SECTION("Just now (< 60 seconds)") {
     auto recent = now - juce::RelativeTime::seconds(30);
-    REQUIRE(FeedPost::formatTimeAgo(recent) == "just now");
+    REQUIRE(Sidechain::FeedPost::formatTimeAgo(recent) == "just now");
 
     auto veryRecent = now - juce::RelativeTime::seconds(5);
-    REQUIRE(FeedPost::formatTimeAgo(veryRecent) == "just now");
+    REQUIRE(Sidechain::FeedPost::formatTimeAgo(veryRecent) == "just now");
   }
 
   SECTION("Minutes ago") {
     auto oneMin = now - juce::RelativeTime::minutes(1);
-    REQUIRE(FeedPost::formatTimeAgo(oneMin) == "1 min ago");
+    REQUIRE(Sidechain::FeedPost::formatTimeAgo(oneMin) == "1 min ago");
 
     auto fiveMins = now - juce::RelativeTime::minutes(5);
-    REQUIRE(FeedPost::formatTimeAgo(fiveMins) == "5 mins ago");
+    REQUIRE(Sidechain::FeedPost::formatTimeAgo(fiveMins) == "5 mins ago");
 
     auto thirtyMins = now - juce::RelativeTime::minutes(30);
-    REQUIRE(FeedPost::formatTimeAgo(thirtyMins) == "30 mins ago");
+    REQUIRE(Sidechain::FeedPost::formatTimeAgo(thirtyMins) == "30 mins ago");
   }
 
   SECTION("Hours ago") {
     auto oneHour = now - juce::RelativeTime::hours(1);
-    REQUIRE(FeedPost::formatTimeAgo(oneHour) == "1 hour ago");
+    REQUIRE(Sidechain::FeedPost::formatTimeAgo(oneHour) == "1 hour ago");
 
     auto fiveHours = now - juce::RelativeTime::hours(5);
-    REQUIRE(FeedPost::formatTimeAgo(fiveHours) == "5 hours ago");
+    REQUIRE(Sidechain::FeedPost::formatTimeAgo(fiveHours) == "5 hours ago");
 
     auto twentyThreeHours = now - juce::RelativeTime::hours(23);
-    REQUIRE(FeedPost::formatTimeAgo(twentyThreeHours) == "23 hours ago");
+    REQUIRE(Sidechain::FeedPost::formatTimeAgo(twentyThreeHours) == "23 hours ago");
   }
 
   SECTION("Days ago") {
     auto oneDay = now - juce::RelativeTime::days(1);
-    REQUIRE(FeedPost::formatTimeAgo(oneDay) == "1 day ago");
+    REQUIRE(Sidechain::FeedPost::formatTimeAgo(oneDay) == "1 day ago");
 
     auto threeDays = now - juce::RelativeTime::days(3);
-    REQUIRE(FeedPost::formatTimeAgo(threeDays) == "3 days ago");
+    REQUIRE(Sidechain::FeedPost::formatTimeAgo(threeDays) == "3 days ago");
 
     auto sixDays = now - juce::RelativeTime::days(6);
-    REQUIRE(FeedPost::formatTimeAgo(sixDays) == "6 days ago");
+    REQUIRE(Sidechain::FeedPost::formatTimeAgo(sixDays) == "6 days ago");
   }
 
   SECTION("Weeks ago") {
     auto oneWeek = now - juce::RelativeTime::days(7);
-    REQUIRE(FeedPost::formatTimeAgo(oneWeek) == "1 week ago");
+    REQUIRE(Sidechain::FeedPost::formatTimeAgo(oneWeek) == "1 week ago");
 
     auto twoWeeks = now - juce::RelativeTime::days(14);
-    REQUIRE(FeedPost::formatTimeAgo(twoWeeks) == "2 weeks ago");
+    REQUIRE(Sidechain::FeedPost::formatTimeAgo(twoWeeks) == "2 weeks ago");
   }
 
   SECTION("Months ago") {
     auto oneMonth = now - juce::RelativeTime::days(35);
-    REQUIRE(FeedPost::formatTimeAgo(oneMonth) == "1 month ago");
+    REQUIRE(Sidechain::FeedPost::formatTimeAgo(oneMonth) == "1 month ago");
 
     auto threeMonths = now - juce::RelativeTime::days(100);
-    REQUIRE(FeedPost::formatTimeAgo(threeMonths) == "3 months ago");
+    REQUIRE(Sidechain::FeedPost::formatTimeAgo(threeMonths) == "3 months ago");
   }
 
   SECTION("Years ago") {
     auto oneYear = now - juce::RelativeTime::days(400);
-    REQUIRE(FeedPost::formatTimeAgo(oneYear) == "1 year ago");
+    REQUIRE(Sidechain::FeedPost::formatTimeAgo(oneYear) == "1 year ago");
 
     auto twoYears = now - juce::RelativeTime::days(800);
-    REQUIRE(FeedPost::formatTimeAgo(twoYears) == "2 years ago");
+    REQUIRE(Sidechain::FeedPost::formatTimeAgo(twoYears) == "2 years ago");
   }
 
   SECTION("Future time returns just now") {
     auto future = now + juce::RelativeTime::hours(1);
-    REQUIRE(FeedPost::formatTimeAgo(future) == "just now");
+    REQUIRE(Sidechain::FeedPost::formatTimeAgo(future) == "just now");
   }
 }
 
 //==============================================================================
-TEST_CASE("FeedPost::fromJson basic parsing", "[FeedPost]") {
+TEST_CASE("Sidechain::FeedPost::fromJson basic parsing", "[Sidechain::FeedPost]") {
   SECTION("Parse complete activity JSON") {
     juce::String jsonStr = R"({
             "id": "act-123",
@@ -160,7 +159,7 @@ TEST_CASE("FeedPost::fromJson basic parsing", "[FeedPost]") {
         })";
 
     auto json = juce::JSON::parse(jsonStr);
-    auto post = FeedPost::fromJson(json);
+    auto post = Sidechain::FeedPost::fromJson(json);
 
     REQUIRE(post.id == "act-123");
     REQUIRE(post.foreignId == "loop:uuid-456");
@@ -182,7 +181,7 @@ TEST_CASE("FeedPost::fromJson basic parsing", "[FeedPost]") {
     REQUIRE(post.playCount == 100);
     REQUIRE(post.commentCount == 5);
     REQUIRE(post.isLiked == true);
-    REQUIRE(post.status == FeedPost::Status::Ready);
+    REQUIRE(post.status == Sidechain::FeedPost::Status::Ready);
     REQUIRE(post.isValid() == true);
   }
 
@@ -198,7 +197,7 @@ TEST_CASE("FeedPost::fromJson basic parsing", "[FeedPost]") {
         })";
 
     auto json = juce::JSON::parse(jsonStr);
-    auto post = FeedPost::fromJson(json);
+    auto post = Sidechain::FeedPost::fromJson(json);
 
     REQUIRE(post.username == "producer_one");
     REQUIRE(post.userAvatarUrl == "https://cdn.example.com/avatar.jpg");
@@ -216,7 +215,7 @@ TEST_CASE("FeedPost::fromJson basic parsing", "[FeedPost]") {
         })";
 
     auto json = juce::JSON::parse(jsonStr);
-    auto post = FeedPost::fromJson(json);
+    auto post = Sidechain::FeedPost::fromJson(json);
 
     REQUIRE(post.username == "beat_maker");
     REQUIRE(post.userAvatarUrl == "https://cdn.example.com/avatar2.jpg");
@@ -230,33 +229,33 @@ TEST_CASE("FeedPost::fromJson basic parsing", "[FeedPost]") {
         })";
 
     auto json = juce::JSON::parse(jsonStr);
-    auto post = FeedPost::fromJson(json);
+    auto post = Sidechain::FeedPost::fromJson(json);
 
     REQUIRE(post.genres.size() == 1);
     REQUIRE(post.genres[0] == "Electronic");
   }
 
   SECTION("Parse different status values") {
-    auto testStatus = [](const juce::String &statusStr, FeedPost::Status expected) {
+    auto testStatus = [](const juce::String &statusStr, Sidechain::FeedPost::Status expected) {
       juce::String jsonStr = R"({"id": "act-123", "audio_url": "test.mp3", "status": ")" + statusStr + R"("})";
       auto json = juce::JSON::parse(jsonStr);
-      auto post = FeedPost::fromJson(json);
+      auto post = Sidechain::FeedPost::fromJson(json);
       return post.status == expected;
     };
 
-    REQUIRE(testStatus("ready", FeedPost::Status::Ready));
-    REQUIRE(testStatus("READY", FeedPost::Status::Ready));
-    REQUIRE(testStatus("Ready", FeedPost::Status::Ready));
-    REQUIRE(testStatus("processing", FeedPost::Status::Processing));
-    REQUIRE(testStatus("failed", FeedPost::Status::Failed));
-    REQUIRE(testStatus("unknown", FeedPost::Status::Unknown));
-    REQUIRE(testStatus("garbage", FeedPost::Status::Unknown));
+    REQUIRE(testStatus("ready", Sidechain::FeedPost::Status::Ready));
+    REQUIRE(testStatus("READY", Sidechain::FeedPost::Status::Ready));
+    REQUIRE(testStatus("Ready", Sidechain::FeedPost::Status::Ready));
+    REQUIRE(testStatus("processing", Sidechain::FeedPost::Status::Processing));
+    REQUIRE(testStatus("failed", Sidechain::FeedPost::Status::Failed));
+    REQUIRE(testStatus("unknown", Sidechain::FeedPost::Status::Unknown));
+    REQUIRE(testStatus("garbage", Sidechain::FeedPost::Status::Unknown));
   }
 }
 
 //==============================================================================
-TEST_CASE("FeedPost::toJson serialization", "[FeedPost]") {
-  FeedPost post;
+TEST_CASE("Sidechain::FeedPost::toJson serialization", "[Sidechain::FeedPost]") {
+  Sidechain::FeedPost post;
   post.id = "test-id";
   post.foreignId = "loop:test-uuid";
   post.actor = "user:123";
@@ -278,7 +277,7 @@ TEST_CASE("FeedPost::toJson serialization", "[FeedPost]") {
   post.playCount = 50;
   post.commentCount = 3;
   post.isLiked = false;
-  post.status = FeedPost::Status::Ready;
+  post.status = Sidechain::FeedPost::Status::Ready;
   post.timestamp = juce::Time::getCurrentTime();
 
   auto json = post.toJson();
@@ -329,8 +328,8 @@ TEST_CASE("FeedPost::toJson serialization", "[FeedPost]") {
 }
 
 //==============================================================================
-TEST_CASE("FeedPost JSON round-trip", "[FeedPost]") {
-  FeedPost original;
+TEST_CASE("Sidechain::FeedPost JSON round-trip", "[Sidechain::FeedPost]") {
+  Sidechain::FeedPost original;
   original.id = "round-trip-id";
   original.foreignId = "loop:round-trip";
   original.actor = "user:456";
@@ -343,14 +342,14 @@ TEST_CASE("FeedPost JSON round-trip", "[FeedPost]") {
   original.key = "C major";
   original.genres.add("House");
   original.likeCount = 25;
-  original.status = FeedPost::Status::Ready;
+  original.status = Sidechain::FeedPost::Status::Ready;
   original.timestamp = juce::Time::getCurrentTime();
 
   // Serialize and parse back
   auto json = original.toJson();
   auto jsonStr = juce::JSON::toString(json);
   auto parsedJson = juce::JSON::parse(jsonStr);
-  auto restored = FeedPost::fromJson(parsedJson);
+  auto restored = Sidechain::FeedPost::fromJson(parsedJson);
 
   REQUIRE(restored.id == original.id);
   REQUIRE(restored.foreignId == original.foreignId);
@@ -366,22 +365,22 @@ TEST_CASE("FeedPost JSON round-trip", "[FeedPost]") {
 }
 
 //==============================================================================
-TEST_CASE("FeedPost::isValid", "[FeedPost]") {
+TEST_CASE("Sidechain::FeedPost::isValid", "[Sidechain::FeedPost]") {
   SECTION("Valid post has id and audio_url") {
-    FeedPost post;
+    Sidechain::FeedPost post;
     post.id = "test-id";
     post.audioUrl = "https://example.com/audio.mp3";
     REQUIRE(post.isValid() == true);
   }
 
   SECTION("Invalid without id") {
-    FeedPost post;
+    Sidechain::FeedPost post;
     post.audioUrl = "https://example.com/audio.mp3";
     REQUIRE(post.isValid() == false);
   }
 
   SECTION("Invalid without audio_url") {
-    FeedPost post;
+    Sidechain::FeedPost post;
     post.id = "test-id";
     REQUIRE(post.isValid() == false);
   }
@@ -392,7 +391,7 @@ TEST_CASE("FeedPost::isValid", "[FeedPost]") {
 //==============================================================================
 
 TEST_CASE("FeedResponse default values", "[FeedResponse]") {
-  FeedResponse response;
+  Sidechain::FeedResponse response;
 
   REQUIRE(response.posts.isEmpty());
   REQUIRE(response.limit == 20);

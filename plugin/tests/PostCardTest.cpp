@@ -34,8 +34,8 @@ public:
     }
   }
 
-  FeedPost createTestPost(const juce::String &id = "test-post-1") {
-    FeedPost post;
+  Sidechain::FeedPost createTestPost(const juce::String &id = "test-post-1") {
+    Sidechain::FeedPost post;
     post.id = id;
     post.foreignId = "loop:uuid-123";
     post.actor = "user:789";
@@ -52,7 +52,7 @@ public:
     post.commentCount = 2;
     post.isLiked = false; // Initially NOT liked
     post.isSaved = false; // Initially NOT saved
-    post.status = FeedPost::Status::Ready;
+    post.status = Sidechain::FeedPost::Status::Ready;
     post.timestamp = juce::Time::getCurrentTime();
     return post;
   }
@@ -75,7 +75,7 @@ TEST_CASE_METHOD(PostCardTestFixture, "PostCard initialization", "[PostCard]") {
 //==============================================================================
 TEST_CASE_METHOD(PostCardTestFixture, "PostCard setPost updates display", "[PostCard]") {
   PostCard card;
-  FeedPost testPost = createTestPost("post-1");
+  Sidechain::FeedPost testPost = createTestPost("post-1");
 
   SECTION("setPost updates the post data") {
     card.setPost(testPost);
@@ -97,7 +97,7 @@ TEST_CASE_METHOD(PostCardTestFixture, "PostCard setPost updates display", "[Post
 //==============================================================================
 TEST_CASE_METHOD(PostCardTestFixture, "PostCard playback methods", "[PostCard]") {
   PostCard card;
-  FeedPost testPost = createTestPost("post-playback");
+  Sidechain::FeedPost testPost = createTestPost("post-playback");
   card.setPost(testPost);
 
   SECTION("setIsPlaying works without errors") {
@@ -151,7 +151,7 @@ TEST_CASE_METHOD(PostCardTestFixture, "PostCard playback methods", "[PostCard]")
 //==============================================================================
 TEST_CASE_METHOD(PostCardTestFixture, "PostCard like state changes on callback", "[PostCard][Like][Callback]") {
   PostCard card;
-  FeedPost testPost = createTestPost("post-like");
+  Sidechain::FeedPost testPost = createTestPost("post-like");
   testPost.isLiked = false;
   testPost.likeCount = 5;
   card.setPost(testPost);
@@ -159,11 +159,11 @@ TEST_CASE_METHOD(PostCardTestFixture, "PostCard like state changes on callback",
   SECTION("onLikeToggled callback can be registered") {
     // Track callback invocations
     bool callbackFired = false;
-    FeedPost postFromCallback;
+    Sidechain::FeedPost postFromCallback;
     bool likedState = false;
 
     // Set up callback
-    card.onLikeToggled = [&](const FeedPost &post, bool liked) {
+    card.onLikeToggled = [&](const Sidechain::FeedPost &post, bool liked) {
       callbackFired = true;
       postFromCallback = post;
       likedState = liked;
@@ -183,10 +183,10 @@ TEST_CASE_METHOD(PostCardTestFixture, "PostCard like state changes on callback",
     REQUIRE(card.getPost().likeCount == 5);
 
     // Simulate network success - update post data via setPost()
-    card.onLikeToggled = [&](const FeedPost &post, bool liked) {
+    card.onLikeToggled = [&](const Sidechain::FeedPost &post, bool liked) {
       // This callback would normally make network request
       // For test, simulate success by updating post
-      FeedPost updatedPost = post;
+      Sidechain::FeedPost updatedPost = post;
       updatedPost.isLiked = liked;
       if (liked) {
         updatedPost.likeCount = post.likeCount + 1;
@@ -206,13 +206,13 @@ TEST_CASE_METHOD(PostCardTestFixture, "PostCard like state changes on callback",
 
   SECTION("UI updates after unlike") {
     // Start with liked post
-    FeedPost likedPost = testPost;
+    Sidechain::FeedPost likedPost = testPost;
     likedPost.isLiked = true;
     likedPost.likeCount = 6;
     card.setPost(likedPost);
 
-    card.onLikeToggled = [&](const FeedPost &post, bool liked) {
-      FeedPost updatedPost = post;
+    card.onLikeToggled = [&](const Sidechain::FeedPost &post, bool liked) {
+      Sidechain::FeedPost updatedPost = post;
       updatedPost.isLiked = liked;
       if (liked) {
         updatedPost.likeCount = post.likeCount + 1;
@@ -234,7 +234,7 @@ TEST_CASE_METHOD(PostCardTestFixture, "PostCard like state changes on callback",
 //==============================================================================
 TEST_CASE_METHOD(PostCardTestFixture, "PostCard comment interaction", "[PostCard][Comment][Callback]") {
   PostCard card;
-  FeedPost testPost = createTestPost("post-comment");
+  Sidechain::FeedPost testPost = createTestPost("post-comment");
   testPost.commentCount = 3;
   card.setPost(testPost);
 
@@ -244,9 +244,9 @@ TEST_CASE_METHOD(PostCardTestFixture, "PostCard comment interaction", "[PostCard
 
   SECTION("onCommentClicked callback can be registered and fired") {
     bool callbackFired = false;
-    FeedPost callbackPost;
+    Sidechain::FeedPost callbackPost;
 
-    card.onCommentClicked = [&](const FeedPost &post) {
+    card.onCommentClicked = [&](const Sidechain::FeedPost &post) {
       callbackFired = true;
       callbackPost = post;
     };
@@ -263,15 +263,15 @@ TEST_CASE_METHOD(PostCardTestFixture, "PostCard comment interaction", "[PostCard
 //==============================================================================
 TEST_CASE_METHOD(PostCardTestFixture, "PostCard save state updates", "[PostCard][Save][Callback]") {
   PostCard card;
-  FeedPost testPost = createTestPost("post-save");
+  Sidechain::FeedPost testPost = createTestPost("post-save");
   card.setPost(testPost);
 
   SECTION("Save callback invoked with state") {
     bool callbackFired = false;
-    FeedPost callbackPost;
+    Sidechain::FeedPost callbackPost;
     bool savedState = false;
 
-    card.onSaveToggled = [&](const FeedPost &post, bool saved) {
+    card.onSaveToggled = [&](const Sidechain::FeedPost &post, bool saved) {
       callbackFired = true;
       callbackPost = post;
       savedState = saved;
@@ -290,8 +290,8 @@ TEST_CASE_METHOD(PostCardTestFixture, "PostCard save state updates", "[PostCard]
     REQUIRE(card.getPost().isSaved == false);
 
     // Simulate save
-    card.onSaveToggled = [&](const FeedPost &post, bool saved) {
-      FeedPost updated = post;
+    card.onSaveToggled = [&](const Sidechain::FeedPost &post, bool saved) {
+      Sidechain::FeedPost updated = post;
       updated.isSaved = saved;
       card.setPost(updated);
     };
@@ -308,15 +308,15 @@ TEST_CASE_METHOD(PostCardTestFixture, "PostCard save state updates", "[PostCard]
 //==============================================================================
 TEST_CASE_METHOD(PostCardTestFixture, "PostCard follow state interaction", "[PostCard][Follow][Callback]") {
   PostCard card;
-  FeedPost testPost = createTestPost("post-follow");
+  Sidechain::FeedPost testPost = createTestPost("post-follow");
   testPost.isFollowing = false;
   card.setPost(testPost);
 
   SECTION("Follow state updates on callback") {
     REQUIRE(card.getPost().isFollowing == false);
 
-    card.onFollowToggled = [&](const FeedPost &post, bool willFollow) {
-      FeedPost updated = post;
+    card.onFollowToggled = [&](const Sidechain::FeedPost &post, bool willFollow) {
+      Sidechain::FeedPost updated = post;
       updated.isFollowing = willFollow;
       card.setPost(updated);
     };
@@ -334,7 +334,7 @@ TEST_CASE_METHOD(PostCardTestFixture, "PostCard follow state interaction", "[Pos
 //==============================================================================
 TEST_CASE_METHOD(PostCardTestFixture, "PostCard multiple state changes in sequence", "[PostCard][State]") {
   PostCard card;
-  FeedPost testPost = createTestPost("post-multi");
+  Sidechain::FeedPost testPost = createTestPost("post-multi");
   card.setPost(testPost);
 
   SECTION("Complex interaction sequence") {
@@ -343,8 +343,8 @@ TEST_CASE_METHOD(PostCardTestFixture, "PostCard multiple state changes in sequen
     REQUIRE(true); // No crash
 
     // Like the post
-    card.onLikeToggled = [&](const FeedPost &post, bool liked) {
-      FeedPost updated = post;
+    card.onLikeToggled = [&](const Sidechain::FeedPost &post, bool liked) {
+      Sidechain::FeedPost updated = post;
       updated.isLiked = liked;
       if (liked)
         updated.likeCount++;
@@ -356,8 +356,8 @@ TEST_CASE_METHOD(PostCardTestFixture, "PostCard multiple state changes in sequen
     REQUIRE(card.getPost().likeCount == 6);
 
     // Save the post
-    card.onSaveToggled = [&](const FeedPost &post, bool saved) {
-      FeedPost updated = post;
+    card.onSaveToggled = [&](const Sidechain::FeedPost &post, bool saved) {
+      Sidechain::FeedPost updated = post;
       updated.isSaved = saved;
       card.setPost(updated);
     };
@@ -371,14 +371,14 @@ TEST_CASE_METHOD(PostCardTestFixture, "PostCard multiple state changes in sequen
 //==============================================================================
 TEST_CASE_METHOD(PostCardTestFixture, "PostCard error handling in callbacks", "[PostCard][Error]") {
   PostCard card;
-  FeedPost testPost = createTestPost("post-error");
+  Sidechain::FeedPost testPost = createTestPost("post-error");
   card.setPost(testPost);
 
   SECTION("Post state unchanged on callback error") {
-    FeedPost originalPost = card.getPost();
+    Sidechain::FeedPost originalPost = card.getPost();
 
     // Callback doesn't update (simulating error/network failure)
-    card.onLikeToggled = [](const FeedPost &post, bool liked) {
+    card.onLikeToggled = [](const Sidechain::FeedPost &post, bool liked) {
       // Do nothing - simulates error/network failure
       // In real app, would show error toast
     };

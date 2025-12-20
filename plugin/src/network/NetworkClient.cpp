@@ -1320,12 +1320,11 @@ NetworkClient::parsePlaylistsResponse(const juce::var &response) {
     return Sidechain::Playlist::createFromJsonArray(jsonArray);
   } catch (const std::exception &e) {
     return Outcome<std::vector<std::shared_ptr<Sidechain::Playlist>>>::error("Failed to parse playlists: " +
-                                                                            juce::String(e.what()));
+                                                                             juce::String(e.what()));
   }
 }
 
-Outcome<std::vector<std::shared_ptr<Sidechain::Story>>> NetworkClient::parseStoriesResponse(
-    const juce::var &response) {
+Outcome<std::vector<std::shared_ptr<Sidechain::Story>>> NetworkClient::parseStoriesResponse(const juce::var &response) {
   if (!response.isArray()) {
     return Outcome<std::vector<std::shared_ptr<Sidechain::Story>>>::error("Expected array response for stories");
   }
@@ -1336,7 +1335,90 @@ Outcome<std::vector<std::shared_ptr<Sidechain::Story>>> NetworkClient::parseStor
     return Sidechain::Story::createFromJsonArray(jsonArray);
   } catch (const std::exception &e) {
     return Outcome<std::vector<std::shared_ptr<Sidechain::Story>>>::error("Failed to parse stories: " +
-                                                                         juce::String(e.what()));
+                                                                          juce::String(e.what()));
   }
 }
 
+// ==============================================================================
+// Feed API methods (Phase 3 refactoring)
+
+void NetworkClient::getLatestFeed(int limit, int offset, FeedCallback callback) {
+  if (!callback)
+    return;
+
+  Async::runVoid([this, limit, offset, callback]() {
+    juce::String path = "/api/v1/feed/latest?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
+    auto result = makeRequestWithRetry(path, "GET", juce::var(), true);
+    auto outcome = requestResultToOutcome(result);
+
+    juce::MessageManager::callAsync([callback, outcome]() { callback(outcome); });
+  });
+}
+
+void NetworkClient::getPopularFeed(int limit, int offset, FeedCallback callback) {
+  if (!callback)
+    return;
+
+  Async::runVoid([this, limit, offset, callback]() {
+    juce::String path = "/api/v1/feed/popular?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
+    auto result = makeRequestWithRetry(path, "GET", juce::var(), true);
+    auto outcome = requestResultToOutcome(result);
+
+    juce::MessageManager::callAsync([callback, outcome]() { callback(outcome); });
+  });
+}
+
+void NetworkClient::getDiscoveryFeed(int limit, int offset, FeedCallback callback) {
+  if (!callback)
+    return;
+
+  Async::runVoid([this, limit, offset, callback]() {
+    juce::String path = "/api/v1/feed/discovery?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
+    auto result = makeRequestWithRetry(path, "GET", juce::var(), true);
+    auto outcome = requestResultToOutcome(result);
+
+    juce::MessageManager::callAsync([callback, outcome]() { callback(outcome); });
+  });
+}
+
+void NetworkClient::getAggregatedTimeline(int limit, int offset, AggregatedFeedCallback callback) {
+  if (!callback)
+    return;
+
+  Async::runVoid([this, limit, offset, callback]() {
+    juce::String path =
+        "/api/v1/feed/timeline/aggregated?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
+    auto result = makeRequestWithRetry(path, "GET", juce::var(), true);
+    auto outcome = requestResultToOutcome(result);
+
+    juce::MessageManager::callAsync([callback, outcome]() { callback(outcome); });
+  });
+}
+
+void NetworkClient::getTrendingFeedGrouped(int limit, int offset, AggregatedFeedCallback callback) {
+  if (!callback)
+    return;
+
+  Async::runVoid([this, limit, offset, callback]() {
+    juce::String path =
+        "/api/v1/feed/trending/grouped?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
+    auto result = makeRequestWithRetry(path, "GET", juce::var(), true);
+    auto outcome = requestResultToOutcome(result);
+
+    juce::MessageManager::callAsync([callback, outcome]() { callback(outcome); });
+  });
+}
+
+void NetworkClient::getNotificationsAggregated(int limit, int offset, AggregatedFeedCallback callback) {
+  if (!callback)
+    return;
+
+  Async::runVoid([this, limit, offset, callback]() {
+    juce::String path =
+        "/api/v1/notifications/aggregated?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
+    auto result = makeRequestWithRetry(path, "GET", juce::var(), true);
+    auto outcome = requestResultToOutcome(result);
+
+    juce::MessageManager::callAsync([callback, outcome]() { callback(outcome); });
+  });
+}
