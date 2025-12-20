@@ -84,6 +84,12 @@ plugin/build/
 *.tmp
 *.temp
 *.bak
+*.orig
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
 
 # Dependencies
 node_modules/
