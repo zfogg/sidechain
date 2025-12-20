@@ -289,5 +289,36 @@ void AppStore::autocompleteGenres(const juce::String &query,
   });
 }
 
+// ==============================================================================
+// Search and Discovery - User Search
+
+void AppStore::searchUsersAndCache(const juce::String &query, int limit, int offset) {
+  if (!networkClient) {
+    Util::logError("AppStore", "NetworkClient not set");
+    return;
+  }
+
+  auto &entityStore = EntityStore::getInstance();
+
+  networkClient->searchUsers(query, limit, offset, [&entityStore](Outcome<juce::var> result) {
+    if (!result.isOk()) {
+      Util::logError("AppStore", "Failed to search users: " + result.getError());
+      return;
+    }
+
+    try {
+      auto var = result.getValue();
+      if (var.isArray()) {
+        for (int i = 0; i < var.size(); ++i) {
+          auto json = nlohmann::json::parse(var[i].toString().toStdString());
+          entityStore.normalizeUser(json);
+        }
+      }
+    } catch (const std::exception &e) {
+      Util::logError("AppStore", "Failed to parse search results JSON: " + juce::String(e.what()));
+    }
+  });
+}
+
 } // namespace Stores
 } // namespace Sidechain

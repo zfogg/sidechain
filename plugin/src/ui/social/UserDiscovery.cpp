@@ -1,6 +1,6 @@
 #include "UserDiscovery.h"
-#include "../../network/NetworkClient.h"
 #include "../../network/StreamChatClient.h"
+#include "../../stores/EntityStore.h"
 #include "../../util/Json.h"
 #include "../../util/Log.h"
 #include "../../util/Result.h"
@@ -45,14 +45,18 @@ UserDiscovery::~UserDiscovery() {
   if (storeUnsubscriber) {
     storeUnsubscriber();
   }
+  if (trendingUnsubscriber) {
+    trendingUnsubscriber();
+  }
+  if (featuredUnsubscriber) {
+    featuredUnsubscriber();
+  }
+  if (suggestedUnsubscriber) {
+    suggestedUnsubscriber();
+  }
 }
 
 // ==============================================================================
-void UserDiscovery::setNetworkClient(NetworkClient *client) {
-  networkClient = client;
-  Log::debug("UserDiscovery: NetworkClient set " + juce::String(client != nullptr ? "(valid)" : "(null)"));
-}
-
 void UserDiscovery::setStreamChatClient(StreamChatClient *client) {
   streamChatClient = client;
   Log::info("UserDiscovery::setStreamChatClient: StreamChatClient set " +
@@ -534,12 +538,12 @@ void UserDiscovery::scrollBarMoved(juce::ScrollBar *bar, double newRangeStart) {
 
 // ==============================================================================
 void UserDiscovery::loadDiscoveryData() {
-  if (!networkClient) {
-    Log::warn("UserDiscovery::loadDiscoveryData: NetworkClient not set");
+  if (!userStore) {
+    Log::warn("UserDiscovery::loadDiscoveryData: AppStore not set");
     return;
   }
 
-  Log::info("UserDiscovery: Loading discovery data from NetworkClient");
+  Log::info("UserDiscovery: Loading discovery data from AppStore");
 
   // Fetch all discovery sections in parallel
   fetchTrendingUsers();
@@ -572,158 +576,188 @@ void UserDiscovery::performSearch(const juce::String &query) {
   searchResults.clear();
   addToRecentSearches(query);
 
-  if (!networkClient) {
-    Log::warn("UserDiscovery::performSearch: NetworkClient not set");
-    isSearching = false;
-    repaint();
-    return;
-  }
+  // Search and cache users via AppStore
+  userStore->searchUsersAndCache(query, 20, 0);
 
-  // Call NetworkClient searchUsers
-  networkClient->searchUsers(query, 20, 0, [this](Outcome<juce::var> result) {
-    juce::MessageManager::callAsync([this, result]() {
-      isSearching = false;
+  // Subscribe to EntityStore user cache changes to get search results
+  auto &entityStore = Sidechain::Stores::EntityStore::getInstance();
+  auto searchUnsubscriber =
+      entityStore.users().subscribeAll([this](const std::vector<std::shared_ptr<Sidechain::User>> &allUsers) {
+        juce::MessageManager::callAsync([this, users = allUsers]() {
+          isSearching = false;
+          searchResults.clear();
 
-      if (result.isOk()) {
-        auto response = result.getValue();
-        searchResults.clear();
-
-        // Parse users array from response
-        auto usersArray = response.getProperty("users", juce::var());
-        if (usersArray.isArray()) {
-          for (int i = 0; i < usersArray.size(); ++i) {
-            auto userJson = usersArray[i];
-            searchResults.add(DiscoveredUser::fromJson(userJson));
+          // Convert cached users to DiscoveredUser format
+          for (const auto &user : users) {
+            if (user && user->isValid()) {
+              DiscoveredUser discovered;
+              discovered.id = user->id;
+              discovered.username = user->username;
+              discovered.displayName = user->displayName;
+              discovered.avatarUrl = user->avatarUrl;
+              discovered.bio = user->bio;
+              discovered.isFollowing = user->isFollowing;
+              searchResults.add(discovered);
+            }
           }
-        }
 
-        Log::info("UserDiscovery::performSearch: Found " + juce::String(searchResults.size()) + " users");
-        rebuildUserCards();
-        queryPresenceForUsers(searchResults);
-      } else {
-        Log::error("UserDiscovery::performSearch: " + result.getError());
-      }
+          Log::info("UserDiscovery::performSearch: Found " + juce::String(searchResults.size()) +
+                    " users for query \"" + currentSearchQuery + "\"");
+          rebuildUserCards();
+          queryPresenceForUsers(searchResults);
+          repaint();
+        });
+      });
 
-      repaint();
-    });
-  });
+  // Note: Search subscription is not stored - it's transient for this search
+  // The subscription will be kept alive by the lambda capture of [this]
 }
 
 void UserDiscovery::fetchTrendingUsers() {
-  if (!networkClient) {
-    Log::warn("UserDiscovery::fetchTrendingUsers: NetworkClient not set");
+  if (!userStore) {
+    Log::warn("UserDiscovery::fetchTrendingUsers: AppStore not set");
     return;
   }
 
   isTrendingLoading = true;
   repaint();
 
-  networkClient->getTrendingUsers(20, [this](Outcome<juce::var> result) {
-    juce::MessageManager::callAsync([this, result]() {
-      isTrendingLoading = false;
+  // Unsubscribe from previous subscription if any
+  if (trendingUnsubscriber) {
+    trendingUnsubscriber();
+  }
 
-      if (result.isOk()) {
-        auto response = result.getValue();
-        trendingUsers.clear();
+  // Load trending users via AppStore (caches to EntityStore)
+  userStore->loadTrendingUsers();
 
-        // Parse users array from response
-        auto usersArray = response.getProperty("users", juce::var());
-        if (usersArray.isArray()) {
-          for (int i = 0; i < usersArray.size(); ++i) {
-            auto userJson = usersArray[i];
-            trendingUsers.add(DiscoveredUser::fromJson(userJson));
+  // Subscribe to EntityStore user cache changes to get trending users
+  // Note: This is a simplified approach - ideally AppStore would provide
+  // a discovery state slice with trending/featured/suggested sections
+  auto &entityStore = Sidechain::Stores::EntityStore::getInstance();
+  trendingUnsubscriber =
+      entityStore.users().subscribeAll([this](const std::vector<std::shared_ptr<Sidechain::User>> &allUsers) {
+        juce::MessageManager::callAsync([this, users = allUsers]() {
+          isTrendingLoading = false;
+          trendingUsers.clear();
+
+          // For now, convert all cached users to DiscoveredUser format
+          // In a full implementation, AppStore would track which users are trending
+          for (const auto &user : users) {
+            if (user && user->isValid()) {
+              DiscoveredUser discovered;
+              discovered.id = user->id;
+              discovered.username = user->username;
+              discovered.displayName = user->displayName;
+              discovered.avatarUrl = user->avatarUrl;
+              discovered.bio = user->bio;
+              discovered.isFollowing = user->isFollowing;
+              trendingUsers.add(discovered);
+            }
           }
-        }
 
-        Log::info("UserDiscovery::fetchTrendingUsers: Loaded " + juce::String(trendingUsers.size()) +
-                  " trending users");
-        rebuildUserCards();
-        queryPresenceForUsers(trendingUsers);
-      } else {
-        Log::error("UserDiscovery::fetchTrendingUsers: " + result.getError());
-      }
-
-      repaint();
-    });
-  });
+          Log::info("UserDiscovery::fetchTrendingUsers: Loaded " + juce::String(trendingUsers.size()) +
+                    " trending users from EntityStore");
+          rebuildUserCards();
+          queryPresenceForUsers(trendingUsers);
+          repaint();
+        });
+      });
 }
 
 void UserDiscovery::fetchFeaturedProducers() {
-  if (!networkClient) {
-    Log::warn("UserDiscovery::fetchFeaturedProducers: NetworkClient not set");
+  if (!userStore) {
+    Log::warn("UserDiscovery::fetchFeaturedProducers: AppStore not set");
     return;
   }
 
   isFeaturedLoading = true;
   repaint();
 
-  networkClient->getFeaturedProducers(20, [this](Outcome<juce::var> result) {
-    juce::MessageManager::callAsync([this, result]() {
-      isFeaturedLoading = false;
+  // Unsubscribe from previous subscription if any
+  if (featuredUnsubscriber) {
+    featuredUnsubscriber();
+  }
 
-      if (result.isOk()) {
-        auto response = result.getValue();
-        featuredProducers.clear();
+  // Load featured producers via AppStore (caches to EntityStore)
+  userStore->loadFeaturedProducers();
 
-        // Parse users array from response
-        auto usersArray = response.getProperty("users", juce::var());
-        if (usersArray.isArray()) {
-          for (int i = 0; i < usersArray.size(); ++i) {
-            auto userJson = usersArray[i];
-            featuredProducers.add(DiscoveredUser::fromJson(userJson));
+  // Subscribe to EntityStore user cache changes to get featured producers
+  auto &entityStore = Sidechain::Stores::EntityStore::getInstance();
+  featuredUnsubscriber =
+      entityStore.users().subscribeAll([this](const std::vector<std::shared_ptr<Sidechain::User>> &allUsers) {
+        juce::MessageManager::callAsync([this, users = allUsers]() {
+          isFeaturedLoading = false;
+          featuredProducers.clear();
+
+          // Convert cached users to DiscoveredUser format
+          for (const auto &user : users) {
+            if (user && user->isValid()) {
+              DiscoveredUser discovered;
+              discovered.id = user->id;
+              discovered.username = user->username;
+              discovered.displayName = user->displayName;
+              discovered.avatarUrl = user->avatarUrl;
+              discovered.bio = user->bio;
+              discovered.isFollowing = user->isFollowing;
+              featuredProducers.add(discovered);
+            }
           }
-        }
 
-        Log::info("UserDiscovery::fetchFeaturedProducers: Loaded " + juce::String(featuredProducers.size()) +
-                  " featured producers");
-        rebuildUserCards();
-        queryPresenceForUsers(featuredProducers);
-      } else {
-        Log::error("UserDiscovery::fetchFeaturedProducers: " + result.getError());
-      }
-
-      repaint();
-    });
-  });
+          Log::info("UserDiscovery::fetchFeaturedProducers: Loaded " + juce::String(featuredProducers.size()) +
+                    " featured producers");
+          rebuildUserCards();
+          queryPresenceForUsers(featuredProducers);
+          repaint();
+        });
+      });
 }
 
 void UserDiscovery::fetchSuggestedUsers() {
-  if (!networkClient) {
-    Log::warn("UserDiscovery::fetchSuggestedUsers: NetworkClient not set");
+  if (!userStore) {
+    Log::warn("UserDiscovery::fetchSuggestedUsers: AppStore not set");
     return;
   }
 
   isSuggestedLoading = true;
   repaint();
 
-  networkClient->getSuggestedUsers(20, [this](Outcome<juce::var> result) {
-    juce::MessageManager::callAsync([this, result]() {
-      isSuggestedLoading = false;
+  // Unsubscribe from previous subscription if any
+  if (suggestedUnsubscriber) {
+    suggestedUnsubscriber();
+  }
 
-      if (result.isOk()) {
-        auto response = result.getValue();
-        suggestedUsers.clear();
+  // Load suggested users via AppStore (caches to EntityStore)
+  userStore->loadSuggestedUsers();
 
-        // Parse users array from response
-        auto usersArray = response.getProperty("users", juce::var());
-        if (usersArray.isArray()) {
-          for (int i = 0; i < usersArray.size(); ++i) {
-            auto userJson = usersArray[i];
-            suggestedUsers.add(DiscoveredUser::fromJson(userJson));
+  // Subscribe to EntityStore user cache changes to get suggested users
+  auto &entityStore = Sidechain::Stores::EntityStore::getInstance();
+  suggestedUnsubscriber =
+      entityStore.users().subscribeAll([this](const std::vector<std::shared_ptr<Sidechain::User>> &allUsers) {
+        juce::MessageManager::callAsync([this, users = allUsers]() {
+          isSuggestedLoading = false;
+          suggestedUsers.clear();
+
+          // Convert cached users to DiscoveredUser format
+          for (const auto &user : users) {
+            if (user && user->isValid()) {
+              DiscoveredUser discovered;
+              discovered.id = user->id;
+              discovered.username = user->username;
+              discovered.displayName = user->displayName;
+              discovered.avatarUrl = user->avatarUrl;
+              discovered.bio = user->bio;
+              discovered.isFollowing = user->isFollowing;
+              suggestedUsers.add(discovered);
+            }
           }
-        }
 
-        Log::info("UserDiscovery::fetchSuggestedUsers: Loaded " + juce::String(suggestedUsers.size()) +
-                  " suggested users");
-        rebuildUserCards();
-        queryPresenceForUsers(suggestedUsers);
-      } else {
-        Log::error("UserDiscovery::fetchSuggestedUsers: " + result.getError());
-      }
-
-      repaint();
-    });
-  });
+          Log::info("UserDiscovery::fetchSuggestedUsers: Loaded " + juce::String(suggestedUsers.size()) +
+                    " suggested users");
+          rebuildUserCards();
+          queryPresenceForUsers(suggestedUsers);
+          repaint();
+        });
+      });
 }
 
 void UserDiscovery::fetchSimilarProducers() {
@@ -741,82 +775,39 @@ void UserDiscovery::fetchRecommendedToFollow() {
 }
 
 void UserDiscovery::fetchAvailableGenres() {
-  if (!networkClient) {
-    Log::warn("UserDiscovery::fetchAvailableGenres: NetworkClient not set");
-    return;
-  }
+  // TODO: Phase 3 - Implement genre filtering with AppStore
+  // For now, this is disabled as NetworkClient is no longer available
+  isGenresLoading = false;
 
-  isGenresLoading = true;
+  // Placeholder: Add a few common genres for testing
+  availableGenres.clear();
+  availableGenres.add("Electronic");
+  availableGenres.add("Hip Hop");
+  availableGenres.add("Pop");
+  availableGenres.add("Rock");
+  availableGenres.add("Ambient");
+
+  Log::info("UserDiscovery::fetchAvailableGenres: Using placeholder genres");
   repaint();
-
-  networkClient->getAvailableGenres([this](Outcome<juce::var> result) {
-    juce::MessageManager::callAsync([this, result]() {
-      isGenresLoading = false;
-
-      if (result.isOk()) {
-        auto response = result.getValue();
-        availableGenres.clear();
-
-        // Parse genres array from response
-        auto genresArray = response.getProperty("genres", juce::var());
-        if (genresArray.isArray()) {
-          for (int i = 0; i < genresArray.size(); ++i) {
-            auto genre = genresArray[i].toString();
-            if (genre.isNotEmpty()) {
-              availableGenres.add(genre);
-            }
-          }
-        }
-
-        Log::info("UserDiscovery::fetchAvailableGenres: Loaded " + juce::String(availableGenres.size()) + " genres");
-      } else {
-        Log::error("UserDiscovery::fetchAvailableGenres: " + result.getError());
-      }
-
-      repaint();
-    });
-  });
 }
 
 void UserDiscovery::fetchUsersByGenre(const juce::String &genre) {
-  if (!networkClient || genre.isEmpty()) {
-    Log::warn("UserDiscovery::fetchUsersByGenre: NetworkClient not set or genre empty");
+  // TODO: Phase 3 - Implement genre-based user filtering with AppStore
+  // For now, this is disabled as NetworkClient is no longer available
+  if (genre.isEmpty()) {
+    Log::warn("UserDiscovery::fetchUsersByGenre: genre parameter is empty");
     return;
   }
 
   genreUsers.clear();
+  Log::info("UserDiscovery::fetchUsersByGenre: Genre filtering not yet implemented with AppStore for \"" + genre +
+            "\"");
   repaint();
-
-  networkClient->getUsersByGenre(genre, 20, 0, [this](Outcome<juce::var> result) {
-    juce::MessageManager::callAsync([this, result]() {
-      if (result.isOk()) {
-        auto response = result.getValue();
-        genreUsers.clear();
-
-        // Parse users array from response
-        auto usersArray = response.getProperty("users", juce::var());
-        if (usersArray.isArray()) {
-          for (int i = 0; i < usersArray.size(); ++i) {
-            auto userJson = usersArray[i];
-            genreUsers.add(DiscoveredUser::fromJson(userJson));
-          }
-        }
-
-        Log::info("UserDiscovery::fetchUsersByGenre: Loaded " + juce::String(genreUsers.size()) + " users for genre");
-        rebuildUserCards();
-        queryPresenceForUsers(genreUsers);
-      } else {
-        Log::error("UserDiscovery::fetchUsersByGenre: " + result.getError());
-      }
-
-      repaint();
-    });
-  });
 }
 
 void UserDiscovery::handleFollowToggle(const DiscoveredUser &user, bool willFollow) {
-  if (!networkClient) {
-    Log::warn("UserDiscovery::handleFollowToggle: NetworkClient not set");
+  if (!userStore) {
+    Log::warn("UserDiscovery::handleFollowToggle: AppStore not set");
     return;
   }
 
@@ -846,43 +837,13 @@ void UserDiscovery::handleFollowToggle(const DiscoveredUser &user, bool willFoll
   updateUserInArray(searchResults);
   updateUserInArray(genreUsers);
 
-  // Call NetworkClient to perform follow/unfollow
+  // Call AppStore to perform follow/unfollow
   if (willFollow) {
-    networkClient->followUser(user.id, [this, userId = user.id](Outcome<juce::var> result) {
-      juce::MessageManager::callAsync([this, userId, result]() {
-        if (result.isError()) {
-          Log::error("UserDiscovery::handleFollowToggle: Failed to follow user " + userId + ": " + result.getError());
-          // Revert optimistic update on error
-          for (auto *card : userCards) {
-            if (card->getUserId() == userId) {
-              card->setIsFollowing(false);
-              break;
-            }
-          }
-          repaint();
-        } else {
-          Log::info("UserDiscovery::handleFollowToggle: Successfully followed user " + userId);
-        }
-      });
-    });
+    userStore->followUser(user.id);
+    Log::info("UserDiscovery::handleFollowToggle: Initiated follow for user " + user.id);
   } else {
-    networkClient->unfollowUser(user.id, [this, userId = user.id](Outcome<juce::var> result) {
-      juce::MessageManager::callAsync([this, userId, result]() {
-        if (result.isError()) {
-          Log::error("UserDiscovery::handleFollowToggle: Failed to unfollow user " + userId + ": " + result.getError());
-          // Revert optimistic update on error
-          for (auto *card : userCards) {
-            if (card->getUserId() == userId) {
-              card->setIsFollowing(true);
-              break;
-            }
-          }
-          repaint();
-        } else {
-          Log::info("UserDiscovery::handleFollowToggle: Successfully unfollowed user " + userId);
-        }
-      });
-    });
+    userStore->unfollowUser(user.id);
+    Log::info("UserDiscovery::handleFollowToggle: Initiated unfollow for user " + user.id);
   }
 }
 

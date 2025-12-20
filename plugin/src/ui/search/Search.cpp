@@ -194,10 +194,12 @@ void Search::updateUserPresence(const juce::String &userId, bool isOnline, const
 
       // Update corresponding PostCard
       for (auto *card : postCards) {
-        if (card->getPost().userId == userId) {
-          auto updatedPost = card->getPost();
-          updatedPost.isOnline = isOnline;
-          updatedPost.isInStudio = isInStudio;
+        auto post = card->getPost();
+        if (post && post->userId == userId) {
+          // Create a shared_ptr copy with modifications
+          auto updatedPost = std::make_shared<Sidechain::FeedPost>(*post);
+          updatedPost->isOnline = isOnline;
+          updatedPost->isInStudio = isInStudio;
           card->setPost(updatedPost);
           break;
         }

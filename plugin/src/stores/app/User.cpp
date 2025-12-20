@@ -561,5 +561,107 @@ void AppStore::handleSuggestedUsersError(const juce::String &error) {
   });
 }
 
+// ==============================================================================
+// User Model Subscriptions (Redux Pattern)
+
+std::function<void()> AppStore::subscribeToUser(const juce::String &userId,
+                                                std::function<void(const std::shared_ptr<User> &)> callback) {
+  if (!callback) {
+    Util::logError("AppStore", "Cannot subscribe to user - callback is null");
+    return []() {};
+  }
+
+  auto &entityStore = EntityStore::getInstance();
+  return entityStore.users().subscribe(userId, callback);
+}
+
+void AppStore::loadUser(const juce::String &userId, bool forceRefresh) {
+  if (userId.isEmpty()) {
+    Util::logError("AppStore", "Cannot load user - userId is empty");
+    return;
+  }
+
+  if (!networkClient) {
+    Util::logError("AppStore", "Cannot load user - network client not configured");
+    return;
+  }
+
+  auto &entityStore = EntityStore::getInstance();
+
+  // Check cache first (unless force refresh)
+  if (!forceRefresh) {
+    auto cached = entityStore.users().get(userId);
+    if (cached) {
+      Util::logInfo("AppStore", "User " + userId + " already cached");
+      return;
+    }
+  }
+
+  Util::logInfo("AppStore", "Loading user: " + userId);
+
+  // Make network request
+  networkClient->getUser(userId, [this, userId](Outcome<juce::var> result) {
+    auto &entityStore = EntityStore::getInstance();
+
+    if (result.isOk()) {
+      try {
+        // Convert juce::var to nlohmann::json
+        auto jsonStr = result.getValue().toString().toStdString();
+        auto json = nlohmann::json::parse(jsonStr);
+
+        // Normalize user (creates/updates shared_ptr in EntityStore)
+        auto normalized = entityStore.normalizeUser(json);
+        if (normalized) {
+          Util::logInfo("AppStore", "Loaded user: " + userId);
+        } else {
+          Util::logError("AppStore", "Failed to normalize user data for: " + userId);
+        }
+      } catch (const std::exception &e) {
+        Util::logError("AppStore", "Failed to parse user JSON: " + juce::String(e.what()));
+      }
+    } else {
+      Util::logError("AppStore", "Failed to load user " + userId + ": " + result.getError());
+    }
+  });
+}
+
+void AppStore::loadUserPosts(const juce::String &userId, int limit, int offset) {
+  if (userId.isEmpty()) {
+    Util::logError("AppStore", "Cannot load user posts - userId is empty");
+    return;
+  }
+
+  if (!networkClient) {
+    Util::logError("AppStore", "Cannot load user posts - network client not configured");
+    return;
+  }
+
+  Util::logInfo("AppStore", "Loading posts for user: " + userId + " (limit=" + juce::String(limit) +
+                                ", offset=" + juce::String(offset) + ")");
+
+  // Make network request - getUserPosts takes ResponseCallback which returns Outcome<juce::var>
+  networkClient->getUserPosts(userId, limit, offset, [userId](Outcome<juce::var> result) {
+    auto &entityStore = EntityStore::getInstance();
+
+    if (result.isOk()) {
+      auto postsData = result.getValue();
+
+      // Normalize posts
+      if (postsData.isArray()) {
+        std::vector<std::shared_ptr<FeedPost>> normalizedPosts;
+        for (int i = 0; i < postsData.size(); ++i) {
+          // normalizePost expects juce::var
+          if (auto normalized = entityStore.normalizePost(postsData[i])) {
+            normalizedPosts.push_back(normalized);
+          }
+        }
+        Util::logInfo("AppStore", "Loaded " + juce::String(normalizedPosts.size()) + " posts for user: " + userId);
+      }
+    } else {
+      Util::logError("AppStore", "Failed to load posts for user " + userId + ": " + result.getError());
+    }
+  });
+}
+
 } // namespace Stores
 } // namespace Sidechain

@@ -5,7 +5,6 @@
 #include <JuceHeader.h>
 #include <memory>
 
-class NetworkClient;
 class StreamChatClient;
 
 // ==============================================================================
@@ -27,7 +26,6 @@ public:
 
   // ==============================================================================
   // Store and network client integration
-  void setNetworkClient(NetworkClient *client);
   void setStreamChatClient(StreamChatClient *client);
   void setUserStore(std::shared_ptr<Sidechain::Stores::AppStore> store);
   void setCurrentUserId(const juce::String &userId) {
@@ -73,11 +71,15 @@ private:
 
   // ==============================================================================
   // Data
-  NetworkClient *networkClient = nullptr;
   StreamChatClient *streamChatClient = nullptr;
   std::shared_ptr<Sidechain::Stores::AppStore> userStore;
   std::function<void()> storeUnsubscriber;
   juce::String currentUserId;
+
+  // Unsubscribers for discovery sections
+  std::function<void()> trendingUnsubscriber;
+  std::function<void()> featuredUnsubscriber;
+  std::function<void()> suggestedUnsubscriber;
 
   // Search state
   juce::String currentSearchQuery;

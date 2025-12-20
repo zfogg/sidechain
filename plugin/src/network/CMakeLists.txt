@@ -40,7 +40,6 @@ add_library(SidechainNetwork STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/User.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/WebSocket.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/Comments.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/ModelSubscriptions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/Notifications.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/Sounds.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/Stories.cpp
