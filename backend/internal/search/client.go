@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v9"
+	"github.com/zfogg/sidechain/backend/internal/metrics"
 )
 
 // Index names
@@ -129,6 +130,24 @@ func (c *Client) createPostsIndex(ctx context.Context) error {
 				},
 				"username": map[string]interface{}{
 					"type": "keyword",
+				},
+				"filename": map[string]interface{}{
+					"type":     "text",
+					"analyzer": "standard",
+					"fields": map[string]interface{}{
+						"keyword": map[string]interface{}{
+							"type": "keyword",
+						},
+					},
+				},
+				"original_filename": map[string]interface{}{
+					"type":     "text",
+					"analyzer": "standard",
+					"fields": map[string]interface{}{
+						"keyword": map[string]interface{}{
+							"type": "keyword",
+						},
+					},
 				},
 				"genre": map[string]interface{}{
 					"type": "keyword",
@@ -257,6 +276,8 @@ func (c *Client) IndexUser(ctx context.Context, userID string, doc map[string]in
 
 // IndexPost indexes a post document for search
 func (c *Client) IndexPost(ctx context.Context, postID string, doc map[string]interface{}) error {
+	startTime := time.Now()
+
 	body, err := json.Marshal(doc)
 	if err != nil {
 		return fmt.Errorf("failed to marshal post document: %w", err)
@@ -267,6 +288,7 @@ func (c *Client) IndexPost(ctx context.Context, postID string, doc map[string]in
 		c.es.Index.WithContext(ctx),
 	)
 	if err != nil {
+		metrics.ElasticsearchErrorsTotal.WithLabelValues(IndexPosts, "index", "request_failed").Inc()
 		return fmt.Errorf("failed to index post: %w", err)
 	}
 	defer res.Body.Close()
@@ -276,8 +298,14 @@ func (c *Client) IndexPost(ctx context.Context, postID string, doc map[string]in
 		if err := json.NewDecoder(res.Body).Decode(&errResp); err != nil {
 			return fmt.Errorf("error response [%s]", res.Status())
 		}
+		metrics.ElasticsearchErrorsTotal.WithLabelValues(IndexPosts, "index", "index_failed").Inc()
 		return fmt.Errorf("error indexing post: [%s] %v", res.Status(), errResp["error"])
 	}
+
+	// Record success metric
+	duration := time.Since(startTime).Seconds()
+	metrics.ElasticsearchIndexOperationDuration.WithLabelValues(IndexPosts, "index").Observe(duration)
+	metrics.ElasticsearchIndexOperationsTotal.WithLabelValues(IndexPosts, "index").Inc()
 
 	return nil
 }
@@ -394,6 +422,8 @@ type UserSearchHit struct {
 
 // SearchUsers searches for users by query
 func (c *Client) SearchUsers(ctx context.Context, query string, limit, offset int) (*SearchUsersResult, error) {
+	startTime := time.Now()
+
 	// Build search query
 	searchQuery := map[string]interface{}{
 		"query": map[string]interface{}{
@@ -439,7 +469,22 @@ func (c *Client) SearchUsers(ctx context.Context, query string, limit, offset in
 		"size": limit,
 	}
 
-	return c.executeUserSearch(ctx, searchQuery)
+	result, err := c.executeUserSearch(ctx, searchQuery)
+
+	// Record metrics
+	duration := time.Since(startTime).Seconds()
+	status := "success"
+	if err != nil {
+		status = "error"
+		metrics.ElasticsearchErrorsTotal.WithLabelValues(IndexUsers, "search", "query_failed").Inc()
+	}
+	metrics.ElasticsearchQueryDuration.WithLabelValues(IndexUsers, "search", status).Observe(duration)
+	metrics.ElasticsearchQueriesTotal.WithLabelValues(IndexUsers, "search", status).Inc()
+	if result != nil {
+		metrics.ElasticsearchDocumentCount.WithLabelValues(IndexUsers).Set(float64(result.Total))
+	}
+
+	return result, err
 }
 
 // executeUserSearch executes a user search query
@@ -556,6 +601,8 @@ type SearchPostsParams struct {
 
 // SearchPosts searches for posts with filters
 func (c *Client) SearchPosts(ctx context.Context, params SearchPostsParams) (*SearchPostsResult, error) {
+	startTime := time.Now()
+
 	mustClauses := []map[string]interface{}{}
 	shouldClauses := []map[string]interface{}{}
 
@@ -730,7 +777,22 @@ func (c *Client) SearchPosts(ctx context.Context, params SearchPostsParams) (*Se
 		"timeout": "5s",
 	}
 
-	return c.executePostSearch(ctx, query)
+	result, err := c.executePostSearch(ctx, query)
+
+	// Record metrics
+	duration := time.Since(startTime).Seconds()
+	status := "success"
+	if err != nil {
+		status = "error"
+		metrics.ElasticsearchErrorsTotal.WithLabelValues(IndexPosts, "search", "query_failed").Inc()
+	}
+	metrics.ElasticsearchQueryDuration.WithLabelValues(IndexPosts, "search", status).Observe(duration)
+	metrics.ElasticsearchQueriesTotal.WithLabelValues(IndexPosts, "search", status).Inc()
+	if result != nil {
+		metrics.ElasticsearchDocumentCount.WithLabelValues(IndexPosts).Set(float64(result.Total))
+	}
+
+	return result, err
 }
 
 // executePostSearch executes a post search query
@@ -1063,6 +1125,8 @@ func (c *Client) TrackSearchQuery(ctx context.Context, query string, resultCount
 // UpdatePostEngagement performs a partial update on a post document with engagement metrics
 // This is more efficient than re-indexing the entire document
 func (c *Client) UpdatePostEngagement(ctx context.Context, postID string, likeCount, playCount, commentCount int) error {
+	startTime := time.Now()
+
 	updateDoc := map[string]interface{}{
 		"doc": map[string]interface{}{
 			"like_count":    likeCount,
@@ -1080,6 +1144,8 @@ func (c *Client) UpdatePostEngagement(ctx context.Context, postID string, likeCo
 		c.es.Update.WithContext(ctx),
 	)
 	if err != nil {
+		// Record error metric
+		metrics.ElasticsearchErrorsTotal.WithLabelValues(IndexPosts, "update", "request_failed").Inc()
 		return fmt.Errorf("failed to update post engagement: %w", err)
 	}
 	defer res.Body.Close()
@@ -1089,8 +1155,14 @@ func (c *Client) UpdatePostEngagement(ctx context.Context, postID string, likeCo
 		if err := json.NewDecoder(res.Body).Decode(&errResp); err != nil {
 			return fmt.Errorf("error response [%s]", res.Status())
 		}
+		metrics.ElasticsearchErrorsTotal.WithLabelValues(IndexPosts, "update", "update_failed").Inc()
 		return fmt.Errorf("error updating post engagement: [%s] %v", res.Status(), errResp["error"])
 	}
+
+	// Record success metric
+	duration := time.Since(startTime).Seconds()
+	metrics.ElasticsearchIndexOperationDuration.WithLabelValues(IndexPosts, "update").Observe(duration)
+	metrics.ElasticsearchIndexOperationsTotal.WithLabelValues(IndexPosts, "update").Inc()
 
 	return nil
 }

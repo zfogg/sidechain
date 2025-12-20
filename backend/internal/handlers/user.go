@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -14,7 +15,6 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
-	"github.com/zfogg/sidechain/backend/internal/search"
 	"github.com/zfogg/sidechain/backend/internal/stream"
 	"github.com/zfogg/sidechain/backend/internal/util"
 	"github.com/zfogg/sidechain/backend/internal/websocket"
@@ -189,17 +189,13 @@ func (h *Handlers) LikePost(c *gin.Context) {
 		}()
 	}
 
-	// Re-index post in Elasticsearch with updated engagement metrics
+	// Update post engagement metrics in Elasticsearch (partial update - more efficient)
 	if h.search != nil {
 		go func() {
 			var post models.AudioPost
-			if err := database.DB.Where("stream_activity_id = ?", req.ActivityID).First(&post).Error; err == nil {
-				var user models.User
-				if err := database.DB.First(&user, "id = ?", post.UserID).Error; err == nil {
-					postDoc := search.AudioPostToSearchDoc(post, user.Username)
-					if err := h.search.IndexPost(c.Request.Context(), post.ID, postDoc); err != nil {
-						fmt.Printf("Warning: Failed to re-index post %s after like in Elasticsearch: %v\n", post.ID, err)
-					}
+			if err := database.DB.Select("id", "like_count", "play_count", "comment_count").Where("stream_activity_id = ?", req.ActivityID).First(&post).Error; err == nil {
+				if err := h.search.UpdatePostEngagement(c.Request.Context(), post.ID, post.LikeCount, post.PlayCount, post.CommentCount); err != nil {
+					logger.WarnWithFields("Failed to update post engagement in Elasticsearch after like", err)
 				}
 			}
 		}()
@@ -268,17 +264,13 @@ func (h *Handlers) UnlikePost(c *gin.Context) {
 		return
 	}
 
-	// Re-index post in Elasticsearch with updated engagement metrics
+	// Update post engagement metrics in Elasticsearch (partial update - more efficient)
 	if h.search != nil {
 		go func() {
 			var post models.AudioPost
-			if err := database.DB.Where("stream_activity_id = ?", activityID).First(&post).Error; err == nil {
-				var user models.User
-				if err := database.DB.First(&user, "id = ?", post.UserID).Error; err == nil {
-					postDoc := search.AudioPostToSearchDoc(post, user.Username)
-					if err := h.search.IndexPost(c.Request.Context(), post.ID, postDoc); err != nil {
-						fmt.Printf("Warning: Failed to re-index post %s after unlike in Elasticsearch: %v\n", post.ID, err)
-					}
+			if err := database.DB.Select("id", "like_count", "play_count", "comment_count").Where("stream_activity_id = ?", activityID).First(&post).Error; err == nil {
+				if err := h.search.UpdatePostEngagement(c.Request.Context(), post.ID, post.LikeCount, post.PlayCount, post.CommentCount); err != nil {
+					logger.WarnWithFields("Failed to update post engagement in Elasticsearch after unlike", err)
 				}
 			}
 		}()
@@ -638,6 +630,26 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 	// Reload user
 	database.DB.First(currentUser, "id = ?", currentUser.ID)
 
+	// Sync user to Elasticsearch (async)
+	if h.search != nil {
+		h.search.SyncUserFollowerCountAsync(currentUser.ID, currentUser.FollowerCount)
+		// Re-index user with updated profile data
+		go func() {
+			userDoc := map[string]interface{}{
+				"id":             currentUser.ID,
+				"username":       currentUser.Username,
+				"display_name":   currentUser.DisplayName,
+				"bio":            currentUser.Bio,
+				"genre":          currentUser.Genre,
+				"follower_count": currentUser.FollowerCount,
+				"created_at":     currentUser.CreatedAt,
+			}
+			if err := h.search.IndexUser(context.Background(), currentUser.ID, userDoc); err != nil {
+				fmt.Printf("Warning: Failed to update user in Elasticsearch: %v\n", err)
+			}
+		}()
+	}
+
 	// Re-sync user to Gorse when profile changes
 	// This updates recommendation preferences and user-as-item for follow recommendations
 	if h.gorse != nil {
@@ -753,6 +765,24 @@ func (h *Handlers) ChangeUsername(c *gin.Context) {
 	if err := database.DB.Model(currentUser).Update("username", newUsername).Error; err != nil {
 		util.RespondInternalError(c, "update_failed", err.Error())
 		return
+	}
+
+	// Sync to Elasticsearch (username change)
+	if h.search != nil {
+		go func() {
+			userDoc := map[string]interface{}{
+				"id":             currentUser.ID,
+				"username":       newUsername,
+				"display_name":   currentUser.DisplayName,
+				"bio":            currentUser.Bio,
+				"genre":          currentUser.Genre,
+				"follower_count": currentUser.FollowerCount,
+				"created_at":     currentUser.CreatedAt,
+			}
+			if err := h.search.IndexUser(context.Background(), currentUser.ID, userDoc); err != nil {
+				fmt.Printf("Warning: Failed to update username in Elasticsearch: %v\n", err)
+			}
+		}()
 	}
 
 	if h.stream != nil {

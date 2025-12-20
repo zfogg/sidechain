@@ -4,6 +4,59 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+)
+
+// Search metrics exported to Prometheus
+var (
+	SearchQueriesTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "search_queries_total",
+			Help: "Total number of search queries",
+		},
+		[]string{"type"},
+	)
+
+	SearchQueryDuration = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "search_query_duration_seconds",
+			Help:    "Search query duration in seconds",
+			Buckets: []float64{0.01, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5},
+		},
+		[]string{"type"},
+	)
+
+	SearchResultsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "search_results_total",
+			Help: "Total number of search results returned",
+		},
+		[]string{"type"},
+	)
+
+	SearchCacheHitsTotal = promauto.NewCounter(
+		prometheus.CounterOpts{
+			Name: "search_cache_hits_total",
+			Help: "Total number of search cache hits",
+		},
+	)
+
+	SearchCacheMissesTotal = promauto.NewCounter(
+		prometheus.CounterOpts{
+			Name: "search_cache_misses_total",
+			Help: "Total number of search cache misses",
+		},
+	)
+
+	SearchErrorsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "search_errors_total",
+			Help: "Total number of search errors",
+		},
+		[]string{"type", "error_type"},
+	)
 )
 
 // SearchMetrics tracks performance and usage metrics for search operations
@@ -76,17 +129,21 @@ func (sm *SearchMetrics) RecordQuery(metric QueryMetric) {
 	// Cache tracking
 	if metric.CacheHit {
 		atomic.AddInt64(&sm.CacheHits, 1)
+		SearchCacheHitsTotal.Inc()
 	} else {
 		atomic.AddInt64(&sm.CacheMisses, 1)
+		SearchCacheMissesTotal.Inc()
 	}
 
 	// Error tracking
 	if metric.Error {
 		atomic.AddInt64(&sm.ErrorCount, 1)
+		SearchErrorsTotal.WithLabelValues(metric.Type, "query_failed").Inc()
 	}
 
 	// Duration tracking (in milliseconds)
 	durationMs := metric.Duration.Milliseconds()
+	durationSec := float64(durationMs) / 1000.0
 
 	// Update total time
 	atomic.AddInt64(&sm.TotalQueryTime, durationMs)
@@ -100,6 +157,11 @@ func (sm *SearchMetrics) RecordQuery(metric QueryMetric) {
 		sm.queryTimings = append(sm.queryTimings, durationMs)
 	}
 	sm.mu.Unlock()
+
+	// Export to Prometheus
+	SearchQueriesTotal.WithLabelValues(metric.Type).Inc()
+	SearchQueryDuration.WithLabelValues(metric.Type).Observe(durationSec)
+	SearchResultsTotal.WithLabelValues(metric.Type).Add(float64(metric.ResultCount))
 }
 
 // RecordTimeout records a query timeout

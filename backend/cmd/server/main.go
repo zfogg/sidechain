@@ -136,6 +136,78 @@ func main() {
 		} else {
 			logger.Log.Info("✅ Elasticsearch indices initialized successfully")
 		}
+
+		// Check if Elasticsearch indices need reindexing (automatic schema migration)
+		go func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+			defer cancel()
+
+			needsReindex, err := baseSearchClient.CheckIndexVersion(ctx)
+			if err != nil {
+				logger.Log.Warn("Failed to check Elasticsearch index version",
+					zap.Error(err),
+				)
+				return
+			}
+
+			if needsReindex {
+				logger.Log.Info("🔄 Elasticsearch index schema outdated, starting automatic reindex...")
+
+				// Delete old indices
+				for _, indexName := range []string{search.IndexPosts, search.IndexUsers, search.IndexStories} {
+					if err := baseSearchClient.DeleteIndex(ctx, indexName); err != nil {
+						logger.Log.Warn("Failed to delete old index",
+							zap.String("index", indexName),
+							zap.Error(err),
+						)
+					}
+				}
+
+				// Recreate indices with new schema
+				if err := baseSearchClient.InitializeIndices(ctx); err != nil {
+					logger.Log.Error("Failed to initialize Elasticsearch indices during reindex",
+						zap.Error(err),
+					)
+					return
+				}
+
+				// Update version metadata in all indices
+				for _, indexName := range []string{search.IndexPosts, search.IndexUsers, search.IndexStories} {
+					if err := baseSearchClient.UpdateIndexVersion(ctx, indexName); err != nil {
+						logger.Log.Warn("Failed to update index version",
+							zap.String("index", indexName),
+							zap.Error(err),
+						)
+					}
+				}
+
+				// Backfill data from database
+				backfillStart := time.Now()
+				if err := baseSearchClient.BackfillAllIndices(ctx); err != nil {
+					logger.Log.Error("Failed to backfill Elasticsearch indices",
+						zap.Error(err),
+					)
+					return
+				}
+
+				logger.Log.Info("✅ Automatic Elasticsearch reindex completed",
+					zap.Duration("duration", time.Since(backfillStart)),
+				)
+			} else {
+				logger.Log.Info("✅ Elasticsearch indices up to date")
+			}
+		}()
+
+		// Initialize Elasticsearch reconciliation service (runs every hour)
+		reconciliationInterval := 1 * time.Hour
+		if intervalStr := os.Getenv("ELASTICSEARCH_RECONCILIATION_INTERVAL"); intervalStr != "" {
+			if parsed, err := time.ParseDuration(intervalStr); err == nil {
+				reconciliationInterval = parsed
+			}
+		}
+		reconciliationService := search.NewReconciliationService(baseSearchClient, reconciliationInterval)
+		reconciliationService.Start()
+		defer reconciliationService.Stop()
 	}
 
 	// Initialize alert system
@@ -272,11 +344,13 @@ func main() {
 		zap.String("url", gorseURL),
 	)
 
-	// Set up post completion callback to sync to Gorse
+	// Set up post completion callback to sync to Gorse and Elasticsearch
 	audioProcessor.SetPostCompleteCallback(func(postID string) {
-		logger.Log.Debug("Post completed processing, syncing to Gorse",
+		logger.Log.Debug("Post completed processing, syncing to Gorse and Elasticsearch",
 			logger.WithPostID(postID),
 		)
+
+		// Sync to Gorse
 		if err := gorseClient.SyncItem(postID); err != nil {
 			logger.Log.Warn("Failed to sync post to Gorse",
 				zap.Error(err),
@@ -286,6 +360,44 @@ func main() {
 			logger.Log.Debug("Successfully synced post to Gorse",
 				logger.WithPostID(postID),
 			)
+		}
+
+		// Sync to Elasticsearch
+		if baseSearchClient != nil {
+			go func() {
+				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				defer cancel()
+
+				var post models.AudioPost
+				if err := database.DB.First(&post, "id = ?", postID).Error; err != nil {
+					logger.Log.Warn("Failed to fetch post for ES indexing",
+						zap.Error(err),
+						logger.WithPostID(postID),
+					)
+					return
+				}
+
+				var user models.User
+				if err := database.DB.First(&user, "id = ?", post.UserID).Error; err != nil {
+					logger.Log.Warn("Failed to fetch user for ES indexing",
+						zap.Error(err),
+						logger.WithPostID(postID),
+					)
+					return
+				}
+
+				postDoc := search.AudioPostToSearchDoc(post, user.Username)
+				if err := baseSearchClient.IndexPost(ctx, post.ID, postDoc); err != nil {
+					logger.Log.Warn("Failed to index post to Elasticsearch after upload",
+						zap.Error(err),
+						logger.WithPostID(postID),
+					)
+				} else {
+					logger.Log.Debug("Successfully indexed post to Elasticsearch after upload",
+						logger.WithPostID(postID),
+					)
+				}
+			}()
 		}
 	})
 
