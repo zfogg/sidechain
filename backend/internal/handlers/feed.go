@@ -166,7 +166,7 @@ func (h *Handlers) GetTimeline(c *gin.Context) {
 
 	activities, err := h.stream.GetUserTimeline(userID, limit, offset)
 	if err != nil {
-		util.RespondInternalError(c, "failed_to_get_timeline", "Failed to get timeline")
+		util.RespondInternalError(c, "Failed to get timeline")
 		return
 	}
 
@@ -213,7 +213,7 @@ func (h *Handlers) GetGlobalFeed(c *gin.Context) {
 
 	activities, err := h.stream.GetGlobalFeed(limit, offset)
 	if err != nil {
-		util.RespondInternalError(c, "failed_to_get_global_feed", "Failed to get global feed")
+		util.RespondInternalError(c, "Failed to get global feed")
 		return
 	}
 
@@ -270,7 +270,7 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		util.RespondBadRequest(c, "invalid_request", err.Error())
+		util.RespondBadRequest(c, err.Error())
 		return
 	}
 
@@ -285,7 +285,7 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 			if util.HandleDBError(c, err, "midi_pattern") {
 				return
 			}
-			util.RespondBadRequest(c, "invalid_midi_id")
+			util.RespondValidationError(c, "midi_id", "MIDI pattern not found")
 			return
 		}
 		// Check access - must be public or owned by user
@@ -305,7 +305,7 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 			IsPublic:      true, // Public by default when attached to post
 		}
 		if err := database.DB.Create(pattern).Error; err != nil {
-			util.RespondInternalError(c, "failed_to_create_midi")
+			util.RespondInternalError(c, "Failed to create MIDI pattern")
 			return
 		}
 		midiPatternID = &pattern.ID
@@ -333,7 +333,7 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 	}
 
 	if err := h.stream.CreateLoopActivity(userID, activity); err != nil {
-		util.RespondInternalError(c, "failed_to_create_post", "Failed to create post")
+		util.RespondInternalError(c, "Failed to create post")
 		return
 	}
 
@@ -445,7 +445,7 @@ func (h *Handlers) GetEnrichedTimeline(c *gin.Context) {
 
 	activities, err := h.stream.GetEnrichedTimeline(currentUser.StreamUserID, limit, offset)
 	if err != nil {
-		util.RespondInternalError(c, "failed_to_get_timeline", err.Error())
+		util.RespondInternalError(c, "Failed to get timeline")
 		return
 	}
 
@@ -831,7 +831,7 @@ func (h *Handlers) GetUnifiedTimeline(c *gin.Context) {
 	// Get the stream client as concrete type for timeline service
 	streamClient, ok := h.stream.(*stream.Client)
 	if !ok {
-		util.RespondInternalError(c, "stream_client_error", "Failed to get stream client")
+		util.RespondInternalError(c, "Failed to get stream client")
 		return
 	}
 
@@ -839,7 +839,7 @@ func (h *Handlers) GetUnifiedTimeline(c *gin.Context) {
 	timelineSvc := timeline.NewService(streamClient, h.gorse)
 	resp, err := timelineSvc.GetTimeline(context.Background(), currentUser.ID, limit, offset)
 	if err != nil {
-		util.RespondInternalError(c, "failed_to_get_timeline", err.Error())
+		util.RespondInternalError(c, "Failed to get timeline")
 		return
 	}
 
@@ -964,7 +964,7 @@ func (h *Handlers) GetEnrichedGlobalFeed(c *gin.Context) {
 
 	activities, err := h.stream.GetEnrichedGlobalFeed(limit, offset)
 	if err != nil {
-		util.RespondInternalError(c, "failed_to_get_global_feed", err.Error())
+		util.RespondInternalError(c, "Failed to get global feed")
 		return
 	}
 
@@ -993,14 +993,14 @@ func (h *Handlers) GetAggregatedTimeline(c *gin.Context) {
 	// Use database-backed timeline service instead of Stream.io
 	streamClient, ok := h.stream.(*stream.Client)
 	if !ok {
-		util.RespondInternalError(c, "stream_client_error", "Failed to get stream client")
+		util.RespondInternalError(c, "Failed to get stream client")
 		return
 	}
 
 	timelineSvc := timeline.NewService(streamClient, h.gorse)
 	timelineResp, err := timelineSvc.GetTimeline(context.Background(), currentUser.ID, limit, offset)
 	if err != nil {
-		util.RespondInternalError(c, "failed_to_get_aggregated_timeline", err.Error())
+		util.RespondInternalError(c, "Failed to get aggregated timeline")
 		return
 	}
 
@@ -1083,7 +1083,7 @@ func (h *Handlers) GetTrendingFeed(c *gin.Context) {
 
 	resp, err := h.stream.GetTrendingFeed(limit, offset)
 	if err != nil {
-		util.RespondInternalError(c, "failed_to_get_trending_feed", err.Error())
+		util.RespondInternalError(c, "Failed to get trending feed")
 		return
 	}
 
@@ -1165,7 +1165,7 @@ func (h *Handlers) GetTrendingFeedGrouped(c *gin.Context) {
 
 	resp, err := h.stream.GetTrendingFeed(limit, offset)
 	if err != nil {
-		util.RespondInternalError(c, "failed_to_get_trending_feed", err.Error())
+		util.RespondInternalError(c, "Failed to get trending feed")
 		return
 	}
 
@@ -1228,13 +1228,13 @@ func (h *Handlers) DeletePost(c *gin.Context) {
 
 	// Check ownership
 	if post.UserID != userID {
-		util.RespondForbidden(c, "not_post_owner")
+		util.RespondForbidden(c, "You do not own this post")
 		return
 	}
 
 	// Soft delete the post
 	if err := database.DB.Delete(&post).Error; err != nil {
-		util.RespondInternalError(c, "failed_to_delete_post", err.Error())
+		util.RespondInternalError(c, "Failed to delete post")
 		return
 	}
 
@@ -1274,7 +1274,7 @@ func (h *Handlers) ReportPost(c *gin.Context) {
 		Description string `json:"description,omitempty"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		util.RespondBadRequest(c, "invalid_request", err.Error())
+		util.RespondBadRequest(c, err.Error())
 		return
 	}
 
@@ -1288,7 +1288,7 @@ func (h *Handlers) ReportPost(c *gin.Context) {
 		}
 	}
 	if !valid {
-		util.RespondBadRequest(c, "invalid_reason", "Reason must be one of: spam, harassment, inappropriate, copyright, violence, other")
+		util.RespondValidationError(c, "reason", "Reason must be one of: spam, harassment, inappropriate, copyright, violence, other")
 		return
 	}
 
@@ -1312,7 +1312,7 @@ func (h *Handlers) ReportPost(c *gin.Context) {
 	}
 
 	if err := database.DB.Create(&report).Error; err != nil {
-		util.RespondInternalError(c, "failed_to_create_report", err.Error())
+		util.RespondInternalError(c, "Failed to create report")
 		return
 	}
 
@@ -1341,7 +1341,7 @@ func (h *Handlers) DownloadPost(c *gin.Context) {
 
 	// Check if post is public or user owns it
 	if !post.IsPublic && post.UserID != userID {
-		util.RespondForbidden(c, "post_not_accessible")
+		util.RespondForbidden(c, "You cannot access this post")
 		return
 	}
 
@@ -1411,7 +1411,7 @@ func (h *Handlers) UpdateCommentAudience(c *gin.Context) {
 		CommentAudience string `json:"comment_audience" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		util.RespondBadRequest(c, "invalid_request", err.Error())
+		util.RespondBadRequest(c, err.Error())
 		return
 	}
 
@@ -1419,26 +1419,26 @@ func (h *Handlers) UpdateCommentAudience(c *gin.Context) {
 	if req.CommentAudience != models.CommentAudienceEveryone &&
 		req.CommentAudience != models.CommentAudienceFollowers &&
 		req.CommentAudience != models.CommentAudienceOff {
-		util.RespondBadRequest(c, "invalid_comment_audience", "Must be 'everyone', 'followers', or 'off'")
+		util.RespondValidationError(c, "comment_audience", "Must be 'everyone', 'followers', or 'off'")
 		return
 	}
 
 	// Find the post
 	var post models.AudioPost
 	if err := database.DB.First(&post, "id = ?", postID).Error; err != nil {
-		util.RespondNotFound(c, "post_not_found")
+		util.RespondNotFound(c, "post")
 		return
 	}
 
 	// Check ownership
 	if post.UserID != userID {
-		util.RespondForbidden(c, "not_post_owner")
+		util.RespondForbidden(c, "You do not own this post")
 		return
 	}
 
 	// Update the comment_audience
 	if err := database.DB.Model(&post).Update("comment_audience", req.CommentAudience).Error; err != nil {
-		util.RespondInternalError(c, "failed_to_update")
+		util.RespondInternalError(c, "Failed to update comment audience")
 		return
 	}
 
