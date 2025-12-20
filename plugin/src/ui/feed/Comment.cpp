@@ -361,6 +361,7 @@ juce::Rectangle<int> CommentRow::getMoreButtonBounds() const {
 
 CommentsPanel::CommentsPanel() {
   setupUI();
+  initialize(); // Subscribe to AppStore after UI setup
 }
 
 CommentsPanel::~CommentsPanel() {
@@ -724,8 +725,8 @@ void CommentsPanel::handleCommentDeleted(bool success, const juce::String &comme
 
   if (success) {
     // Remove from list
-    for (int i = (int)comments.size() - 1; i >= 0; --i) {
-      if (comments[i] && comments[i]->id == commentId) {
+    for (int i = static_cast<int>(comments.size()) - 1; i >= 0; --i) {
+      if (comments[static_cast<size_t>(i)] && comments[static_cast<size_t>(i)]->id == commentId) {
         Log::debug("CommentsPanel::handleCommentDeleted: Removing comment from list");
         comments.erase(comments.begin() + i);
         totalCommentCount--;
@@ -1209,15 +1210,19 @@ void CommentsPanel::subscribeToAppStore() {
     return;
   }
 
-  // Subscribe to comments for the current post
-  if (currentPostId.isNotEmpty()) {
-    commentsUnsubscriber = appStore->subscribeToPostComments(
-        currentPostId, [this](const std::vector<std::shared_ptr<Sidechain::Comment>> &commentsData) {
-          // Update UI with strongly typed models
-          comments = commentsData;
-          updateCommentsList();
-        });
-  }
+  // Subscribe to CommentsState slice - notified whenever comments state changes
+  // This will be called with the full CommentsState whenever any post's comments change
+  juce::Component::SafePointer<CommentsPanel> safeThis(this);
+  storeUnsubscriber = appStore->subscribeToComments([safeThis](const Sidechain::Stores::CommentsState &state) {
+    if (!safeThis)
+      return;
+    // Post to message thread for thread-safe UI updates
+    juce::MessageManager::callAsync([safeThis, state]() {
+      if (safeThis) {
+        safeThis->onAppStateChanged(state);
+      }
+    });
+  });
 }
 
 void CommentsPanel::onAppStateChanged(const Sidechain::Stores::CommentsState &state) {

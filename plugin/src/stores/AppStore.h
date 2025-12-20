@@ -509,6 +509,10 @@ public:
     return sliceManager.getStoriesSlice()->subscribe(callback);
   }
 
+  std::function<void()> subscribeToComments(std::function<void(const CommentsState &)> callback) {
+    return sliceManager.getCommentsSlice()->subscribe(callback);
+  }
+
   // Temporary accessor for UI components - to be removed
   const Stores::AuthState &getAuthState() const {
     return sliceManager.getAuthSlice()->getState();
