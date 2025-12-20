@@ -122,13 +122,8 @@ PostsFeed::PostsFeed(Sidechain::Stores::AppStore *store) : AppStoreComponent(sto
 
   Log::info("PostsFeedComponent: Initialization complete");
 
-  // Initialize PostsSlice subscription
-  postsSlice = Sidechain::Stores::Slices::AppSliceManager::getInstance().getPostsSlice();
-  if (postsSlice) {
-    postsSlice->subscribe([this](const Sidechain::Stores::PostsState & /*state*/) {
-      juce::MessageManager::callAsync([this]() { handleFeedStateChanged(); });
-    });
-  }
+  // Subscribe to AppStore after UI setup
+  initialize();
 }
 
 PostsFeed::~PostsFeed() {
@@ -262,9 +257,9 @@ void PostsFeed::setAudioPlayer(HttpAudioPlayer *player) {
 
           // Find position of post in current feed
           int position = -1;
-          for (int i = 0; i < currentFeed->posts.size(); ++i) {
+          for (size_t i = 0; i < currentFeed->posts.size(); ++i) {
             if (currentFeed->posts[i]->id == postId) {
-              position = i;
+              position = static_cast<int>(i);
               break;
             }
           }
@@ -510,8 +505,20 @@ void PostsFeed::onAppStateChanged(const Sidechain::Stores::PostsState & /*state*
 }
 
 void PostsFeed::subscribeToAppStore() {
-  // No longer used - PostsFeed now subscribes directly to PostsSlice
-  // See constructor for PostsSlice subscription
+  // Subscribe to PostsSlice for feed state changes
+  postsSlice = Sidechain::Stores::Slices::AppSliceManager::getInstance().getPostsSlice();
+  if (postsSlice) {
+    juce::Component::SafePointer<PostsFeed> safeThis(this);
+    postsSlice->subscribe([safeThis](const Sidechain::Stores::PostsState &state) {
+      if (!safeThis)
+        return;
+      juce::MessageManager::callAsync([safeThis, state]() {
+        if (safeThis) {
+          safeThis->onAppStateChanged(state);
+        }
+      });
+    });
+  }
 }
 
 // ==============================================================================
@@ -1025,15 +1032,15 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
           return;
         const auto &posts = currentFeed->posts;
         int currentIndex = -1;
-        for (int i = 0; i < posts.size(); ++i) {
+        for (size_t i = 0; i < posts.size(); ++i) {
           if (posts[i]->id == post.id) {
-            currentIndex = i;
+            currentIndex = static_cast<int>(i);
             break;
           }
         }
 
-        if (currentIndex >= 0 && currentIndex < posts.size() - 1) {
-          const Sidechain::FeedPost &nextPost = *posts[currentIndex + 1]; // Dereference shared_ptr
+        if (currentIndex >= 0 && currentIndex < static_cast<int>(posts.size()) - 1) {
+          const Sidechain::FeedPost &nextPost = *posts[static_cast<size_t>(currentIndex + 1)]; // Dereference shared_ptr
           if (nextPost.audioUrl.isNotEmpty()) {
             Log::debug("PostsFeed: Pre-buffering next post: " + nextPost.id);
             audioPlayer->preloadAudio(nextPost.id, nextPost.audioUrl);
