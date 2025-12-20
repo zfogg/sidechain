@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/elastic/go-elasticsearch/v9"
 )
@@ -887,10 +888,231 @@ func (c *Client) SuggestUsers(ctx context.Context, query string, limit int) ([]s
 	return suggestions, nil
 }
 
+// SearchStoriesResult represents a story search result
+type SearchStoriesResult struct {
+	Stories []StorySearchHit `json:"stories"`
+	Total   int              `json:"total"`
+}
+
+// StorySearchHit represents a single story search hit
+type StorySearchHit struct {
+	ID        string    `json:"id"`
+	UserID    string    `json:"user_id"`
+	Username  string    `json:"username"`
+	CreatedAt string    `json:"created_at"`
+	ExpiresAt string    `json:"expires_at"`
+	Score     float64   `json:"score"`
+}
+
+// SearchStories searches for stories by creator username or story metadata
+func (c *Client) SearchStories(ctx context.Context, query string, limit, offset int) (*SearchStoriesResult, error) {
+	// Build search query - search by username (stories found via their creators)
+	searchQuery := map[string]interface{}{
+		"query": map[string]interface{}{
+			"bool": map[string]interface{}{
+				"must": []map[string]interface{}{
+					{
+						"range": map[string]interface{}{
+							"expires_at": map[string]interface{}{
+								"gte": "now",
+							},
+						},
+					},
+				},
+				"should": []map[string]interface{}{
+					{
+						"match": map[string]interface{}{
+							"username": map[string]interface{}{
+								"query":     query,
+								"boost":     2.0,
+								"fuzziness": "AUTO",
+							},
+						},
+					},
+				},
+				"minimum_should_match": 1,
+			},
+		},
+		"sort": []map[string]interface{}{
+			{"_score": map[string]interface{}{"order": "desc"}},
+			{"created_at": map[string]interface{}{"order": "desc"}},
+		},
+		"from": offset,
+		"size": limit,
+	}
+
+	return c.executeStorySearch(ctx, searchQuery)
+}
+
+// executeStorySearch executes a story search query
+func (c *Client) executeStorySearch(ctx context.Context, query map[string]interface{}) (*SearchStoriesResult, error) {
+	queryJSON, err := json.Marshal(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal search query: %w", err)
+	}
+
+	res, err := c.es.Search(
+		c.es.Search.WithContext(ctx),
+		c.es.Search.WithIndex(IndexStories),
+		c.es.Search.WithBody(bytes.NewReader(queryJSON)),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute search: %w", err)
+	}
+	defer res.Body.Close()
+
+	if res.IsError() {
+		var errResp map[string]interface{}
+		if err := json.NewDecoder(res.Body).Decode(&errResp); err != nil {
+			return nil, fmt.Errorf("error response [%s]", res.Status())
+		}
+		return nil, fmt.Errorf("error searching stories: [%s] %v", res.Status(), errResp["error"])
+	}
+
+	var searchResp struct {
+		Hits struct {
+			Total struct {
+				Value int `json:"value"`
+			} `json:"total"`
+			Hits []struct {
+				ID     string                 `json:"_id"`
+				Score  float64                `json:"_score"`
+				Source map[string]interface{} `json:"_source"`
+			} `json:"hits"`
+		} `json:"hits"`
+	}
+
+	if err := json.NewDecoder(res.Body).Decode(&searchResp); err != nil {
+		return nil, fmt.Errorf("failed to decode search response: %w", err)
+	}
+
+	stories := make([]StorySearchHit, 0, len(searchResp.Hits.Hits))
+	for _, hit := range searchResp.Hits.Hits {
+		story := StorySearchHit{
+			ID:    hit.ID,
+			Score: hit.Score,
+		}
+
+		if userID, ok := hit.Source["user_id"].(string); ok {
+			story.UserID = userID
+		}
+		if username, ok := hit.Source["username"].(string); ok {
+			story.Username = username
+		}
+		if createdAt, ok := hit.Source["created_at"].(string); ok {
+			story.CreatedAt = createdAt
+		}
+		if expiresAt, ok := hit.Source["expires_at"].(string); ok {
+			story.ExpiresAt = expiresAt
+		}
+
+		stories = append(stories, story)
+	}
+
+	return &SearchStoriesResult{
+		Stories: stories,
+		Total:   searchResp.Hits.Total.Value,
+	}, nil
+}
+
 // TrackSearchQuery tracks a search query for analytics
 func (c *Client) TrackSearchQuery(ctx context.Context, query string, resultCount int, filters map[string]interface{}) error {
 	// In a production system, you'd index this to a separate "search_analytics" index
 	// For now, we'll just log it - can be expanded later
 	fmt.Printf("🔍 Search query tracked: query='%s', results=%d, filters=%v\n", query, resultCount, filters)
 	return nil
+}
+
+// UpdatePostEngagement performs a partial update on a post document with engagement metrics
+// This is more efficient than re-indexing the entire document
+func (c *Client) UpdatePostEngagement(ctx context.Context, postID string, likeCount, playCount, commentCount int) error {
+	updateDoc := map[string]interface{}{
+		"doc": map[string]interface{}{
+			"like_count":    likeCount,
+			"play_count":    playCount,
+			"comment_count": commentCount,
+		},
+	}
+
+	body, err := json.Marshal(updateDoc)
+	if err != nil {
+		return fmt.Errorf("failed to marshal update document: %w", err)
+	}
+
+	res, err := c.es.Update(IndexPosts, postID, bytes.NewReader(body),
+		c.es.Update.WithContext(ctx),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to update post engagement: %w", err)
+	}
+	defer res.Body.Close()
+
+	if res.IsError() {
+		var errResp map[string]interface{}
+		if err := json.NewDecoder(res.Body).Decode(&errResp); err != nil {
+			return fmt.Errorf("error response [%s]", res.Status())
+		}
+		return fmt.Errorf("error updating post engagement: [%s] %v", res.Status(), errResp["error"])
+	}
+
+	return nil
+}
+
+// UpdateUserFollowerCount performs a partial update on a user document with follower count
+func (c *Client) UpdateUserFollowerCount(ctx context.Context, userID string, followerCount int) error {
+	updateDoc := map[string]interface{}{
+		"doc": map[string]interface{}{
+			"follower_count": followerCount,
+		},
+	}
+
+	body, err := json.Marshal(updateDoc)
+	if err != nil {
+		return fmt.Errorf("failed to marshal update document: %w", err)
+	}
+
+	res, err := c.es.Update(IndexUsers, userID, bytes.NewReader(body),
+		c.es.Update.WithContext(ctx),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to update user follower count: %w", err)
+	}
+	defer res.Body.Close()
+
+	if res.IsError() {
+		var errResp map[string]interface{}
+		if err := json.NewDecoder(res.Body).Decode(&errResp); err != nil {
+			return fmt.Errorf("error response [%s]", res.Status())
+		}
+		return fmt.Errorf("error updating user follower count: [%s] %v", res.Status(), errResp["error"])
+	}
+
+	return nil
+}
+
+// SyncEngagementMetricsAsync updates engagement metrics asynchronously without blocking
+// This is used when reactions/likes/plays change to keep Elasticsearch in sync with the database
+func (c *Client) SyncEngagementMetricsAsync(postID string, likeCount, playCount, commentCount int) {
+	// Non-blocking goroutine to prevent latency impact on user-facing requests
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		if err := c.UpdatePostEngagement(ctx, postID, likeCount, playCount, commentCount); err != nil {
+			fmt.Printf("⚠️  Failed to sync engagement metrics for post %s: %v\n", postID, err)
+		}
+	}()
+}
+
+// SyncUserFollowerCountAsync updates user follower count asynchronously without blocking
+func (c *Client) SyncUserFollowerCountAsync(userID string, followerCount int) {
+	// Non-blocking goroutine to prevent latency impact on user-facing requests
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		if err := c.UpdateUserFollowerCount(ctx, userID, followerCount); err != nil {
+			fmt.Printf("⚠️  Failed to sync follower count for user %s: %v\n", userID, err)
+		}
+	}()
 }
