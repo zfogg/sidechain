@@ -120,6 +120,7 @@ public:
 
     // Notify observers
     notifyObservers(id, entity);
+    notifyAllObservers();
   }
 
   /**
@@ -141,6 +142,7 @@ public:
 
     // Notify observers
     notifyObservers(id, it->second);
+    notifyAllObservers();
     return true;
   }
 
@@ -226,6 +228,60 @@ public:
     };
   }
 
+  /**
+   * Subscribe to all entity updates
+   * Observer is called with vector of all entities whenever cache changes
+   * Returns unsubscribe function
+   */
+  Unsubscriber subscribeAll(std::function<void(const std::vector<std::shared_ptr<T>> &)> observer) {
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    auto observerId = nextObserverId_++;
+    allObservers_.emplace_back(observerId, std::move(observer));
+
+    // Immediately call observer with current state
+    std::vector<std::shared_ptr<T>> all;
+    for (const auto &[id, entity] : entities_) {
+      if (!isExpired(id)) {
+        all.push_back(entity);
+      }
+    }
+    allObservers_.back().second(all);
+
+    // Return unsubscribe function
+    return [this, observerId]() {
+      std::lock_guard<std::mutex> unsubLock(mutex_);
+      allObservers_.erase(std::remove_if(allObservers_.begin(), allObservers_.end(),
+                                         [observerId](const auto &pair) { return pair.first == observerId; }),
+                          allObservers_.end());
+    };
+  }
+
+  /**
+   * Get all entities as vector of shared_ptrs
+   * Returns vector of all non-expired entities
+   */
+  std::vector<std::shared_ptr<T>> getAll() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    std::vector<std::shared_ptr<T>> result;
+
+    for (const auto &[id, entity] : entities_) {
+      if (!isExpired(id)) {
+        result.push_back(entity);
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Get number of entities currently in cache (including expired)
+   */
+  size_t size() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return entities_.size();
+  }
+
   // ==============================================================================
   // Optimistic updates
 
@@ -251,6 +307,7 @@ public:
 
     // Notify observers
     notifyObservers(id, it->second);
+    notifyAllObservers();
   }
 
   /**
@@ -280,6 +337,7 @@ public:
 
     // Notify observers of rollback
     notifyObservers(id, snapIt->second);
+    notifyAllObservers();
 
     // Clear snapshot
     optimisticSnapshots_.erase(id);
@@ -402,6 +460,9 @@ private:
   std::unordered_map<juce::String, std::vector<std::pair<uint64_t, Observer>>> observers_;
   uint64_t nextObserverId_ = 0;
 
+  // All-entity observers (for subscribeAll)
+  std::vector<std::pair<uint64_t, std::function<void(const std::vector<std::shared_ptr<T>> &)>>> allObservers_;
+
   // TTL configuration
   int64_t defaultTTL_ = 0; // 0 = no expiration
 
@@ -430,6 +491,25 @@ private:
 
     for (const auto &[_, observer] : it->second) {
       observer(entity);
+    }
+  }
+
+  void notifyAllObservers() {
+    if (allObservers_.empty()) {
+      return;
+    }
+
+    // Collect all non-expired entities
+    std::vector<std::shared_ptr<T>> all;
+    for (const auto &[id, entity] : entities_) {
+      if (!isExpired(id)) {
+        all.push_back(entity);
+      }
+    }
+
+    // Notify all subscribers
+    for (const auto &[_, observer] : allObservers_) {
+      observer(all);
     }
   }
 };

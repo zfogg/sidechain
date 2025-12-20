@@ -41,32 +41,34 @@ public:
   // ==============================================================================
   // Data binding
 
-  /** Set the post data to display
-   * @param post The feed post to display
+  /** Set the post data to display from shared_ptr (preferred - keeps strong reference)
+   * @param post The feed post to display as shared_ptr
+   */
+  void setPost(const std::shared_ptr<Sidechain::FeedPost> &post);
+
+  /** Set the post data to display from reference (creates internal copy)
+   * @param post The feed post to display as reference
    */
   void setPost(const Sidechain::FeedPost &post);
 
   /** Get the current post data
-   * @return Reference to the current post
+   * @return Reference to the current post (or null if not set)
    */
-  const Sidechain::FeedPost &getPost() const {
-    return post;
+  const Sidechain::FeedPost *getPost() const {
+    if (postPtr) {
+      return postPtr.get();
+    }
+    return nullptr;
   }
 
   /** Get the post ID
    * @return The unique post identifier
    */
   juce::String getPostId() const {
-    return post.id;
-  }
-
-  // NetworkClient deprecated - use AppStore::getInstance() instead
-  // Waveform images are now loaded through the UI layer
-  // This method is kept for compatibility but does nothing
-  // TODO Phase 2: Remove this method entirely once all call sites updated
-  void setNetworkClient(NetworkClient *client) {
-    // No-op: NetworkClient is now accessed through AppStore
-    (void)client; // Suppress unused parameter warning
+    if (postPtr) {
+      return postPtr->id;
+    }
+    return "";
   }
 
   // ==============================================================================
@@ -296,7 +298,7 @@ protected:
 
 private:
   // ==============================================================================
-  Sidechain::FeedPost post;
+  std::shared_ptr<Sidechain::FeedPost> postPtr; // Strong reference to post model
 
   // UI state
   HoverState hoverState;

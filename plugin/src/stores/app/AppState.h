@@ -5,6 +5,7 @@
 #include "../../models/Story.h"
 #include "../../models/User.h"
 #include "../../models/Notification.h"
+#include "../../models/Comment.h"
 #include "../../models/Message.h"
 #include "../../models/Conversation.h"
 #include "../../models/Playlist.h"
@@ -213,6 +214,45 @@ struct NotificationState {
   int unseenCount = 0;
   bool isLoading = false;
   juce::String notificationError;
+};
+
+// ==============================================================================
+// Comments State
+// ==============================================================================
+
+struct CommentsState {
+  // Comments per post (postId -> list of comments)
+  std::map<juce::String, std::vector<std::shared_ptr<Sidechain::Comment>>> commentsByPostId;
+
+  // Pagination state per post
+  std::map<juce::String, int> offsetByPostId;
+  std::map<juce::String, int> limitByPostId;
+  std::map<juce::String, int> totalCountByPostId;
+  std::map<juce::String, bool> hasMoreByPostId;
+
+  // Loading states
+  std::map<juce::String, bool> isLoadingByPostId;
+  juce::String currentLoadingPostId;
+
+  // Error handling
+  juce::String commentsError;
+
+  // Timestamps
+  std::map<juce::String, int64_t> lastUpdatedByPostId;
+
+  // Helper methods
+  std::vector<std::shared_ptr<Sidechain::Comment>> getCommentsForPost(const juce::String &postId) const {
+    auto it = commentsByPostId.find(postId);
+    if (it != commentsByPostId.end()) {
+      return it->second;
+    }
+    return {};
+  }
+
+  bool isLoadingCommentsForPost(const juce::String &postId) const {
+    auto it = isLoadingByPostId.find(postId);
+    return it != isLoadingByPostId.end() && it->second;
+  }
 };
 
 // ==============================================================================

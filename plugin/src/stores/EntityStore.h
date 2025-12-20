@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../models/Comment.h"
 #include "../models/Conversation.h"
 #include "../models/Draft.h"
 #include "../models/FeedPost.h"
@@ -112,6 +113,13 @@ public:
     return notifications_;
   }
 
+  EntityCache<Comment> &comments() {
+    return comments_;
+  }
+  const EntityCache<Comment> &comments() const {
+    return comments_;
+  }
+
   EntityCache<Message> &messages() {
     return messages_;
   }
@@ -193,14 +201,17 @@ public:
 
   /**
    * Normalize Story from JSON
+   * TODO: Implement Story::fromJson() serialization
    */
   std::shared_ptr<Story> normalizeStory(const juce::var &json) {
-    auto story = Story::fromJson(json);
-    if (story.id.isEmpty()) {
-      return nullptr;
-    }
-
-    return stories_.getOrCreate(story.id, [story]() { return std::make_shared<Story>(story); });
+    // TODO: Implement Story::fromJson() with proper nlohmann::json serialization
+    // For now, skip normalization
+    return nullptr;
+    // auto story = Story::fromJson(json);
+    // if (story.id.isEmpty()) {
+    //   return nullptr;
+    // }
+    // return stories_.getOrCreate(story.id, [story]() { return std::make_shared<Story>(story); });
   }
 
   /**
@@ -217,6 +228,23 @@ public:
                                         [notification]() { return std::make_shared<Notification>(notification); });
     } catch (const Json::ValidationError &e) {
       Util::logError("EntityStore", "Failed to normalize notification", e.what());
+      return nullptr;
+    }
+  }
+
+  /**
+   * Normalize Comment from JSON
+   */
+  std::shared_ptr<Comment> normalizeComment(const nlohmann::json &json) {
+    try {
+      auto comment = Comment::fromJson(json);
+      if (comment.id.isEmpty()) {
+        return nullptr;
+      }
+
+      return comments_.getOrCreate(comment.id, [comment]() { return std::make_shared<Comment>(comment); });
+    } catch (const Json::ValidationError &e) {
+      Util::logError("EntityStore", "Failed to normalize comment", e.what());
       return nullptr;
     }
   }
@@ -258,14 +286,17 @@ public:
 
   /**
    * Normalize Playlist from JSON
+   * TODO: Implement Playlist::fromJson() serialization
    */
   std::shared_ptr<Playlist> normalizePlaylist(const juce::var &json) {
-    auto playlist = Playlist::fromJson(json);
-    if (playlist.id.isEmpty()) {
-      return nullptr;
-    }
-
-    return playlists_.getOrCreate(playlist.id, [playlist]() { return std::make_shared<Playlist>(playlist); });
+    // TODO: Implement Playlist::fromJson() with proper nlohmann::json serialization
+    // For now, skip normalization
+    return nullptr;
+    // auto playlist = Playlist::fromJson(json);
+    // if (playlist.id.isEmpty()) {
+    //   return nullptr;
+    // }
+    // return playlists_.getOrCreate(playlist.id, [playlist]() { return std::make_shared<Playlist>(playlist); });
   }
 
   /**
@@ -301,6 +332,28 @@ public:
     return playlists;
   }
 
+  /**
+   * Normalize array of comments from JSON
+   * Returns vector of shared_ptrs with deduplication
+   */
+  std::vector<std::shared_ptr<Comment>> normalizeComments(const nlohmann::json &jsonArray) {
+    std::vector<std::shared_ptr<Comment>> comments;
+
+    if (!jsonArray.is_array()) {
+      return comments;
+    }
+
+    comments.reserve(jsonArray.size());
+
+    for (const auto &json : jsonArray) {
+      if (auto comment = normalizeComment(json)) {
+        comments.push_back(comment);
+      }
+    }
+
+    return comments;
+  }
+
   // ==============================================================================
   // Configuration
 
@@ -319,6 +372,7 @@ public:
    * - Stories: 5 minutes (24-hour lifespan, view counts change)
    * - Users: 10 minutes (profiles change infrequently)
    * - Notifications: 1 minute (real-time expectations)
+   * - Comments: 1 minute (frequent updates, replies)
    * - Messages: 0 (no TTL, invalidate via WebSocket only)
    * - Conversations: 5 minutes
    * - Playlists: 5 minutes
@@ -331,6 +385,7 @@ public:
     stories_.setDefaultTTL(5 * 60 * 1000);       // 5 minutes
     users_.setDefaultTTL(10 * 60 * 1000);        // 10 minutes
     notifications_.setDefaultTTL(1 * 60 * 1000); // 1 minute
+    comments_.setDefaultTTL(1 * 60 * 1000);      // 1 minute
     messages_.setDefaultTTL(0);                  // No expiration (WebSocket only)
     conversations_.setDefaultTTL(5 * 60 * 1000); // 5 minutes
     playlists_.setDefaultTTL(5 * 60 * 1000);     // 5 minutes
@@ -443,6 +498,7 @@ public:
           store_->stories_.expireStale();
           store_->users_.expireStale();
           store_->notifications_.expireStale();
+          store_->comments_.expireStale();
           store_->messages_.expireStale();
           store_->conversations_.expireStale();
           store_->playlists_.expireStale();
@@ -489,6 +545,10 @@ public:
     notifications_.invalidateAll();
   }
 
+  void invalidateAllComments() {
+    comments_.invalidateAll();
+  }
+
   void invalidateAllMessages() {
     messages_.invalidateAll();
   }
@@ -502,6 +562,7 @@ public:
     stories_.invalidateAll();
     users_.invalidateAll();
     notifications_.invalidateAll();
+    comments_.invalidateAll();
     messages_.invalidateAll();
     conversations_.invalidateAll();
     playlists_.invalidateAll();
@@ -514,8 +575,9 @@ public:
   // Statistics
 
   size_t totalEntityCount() const {
-    return posts_.size() + stories_.size() + users_.size() + notifications_.size() + messages_.size() +
-           conversations_.size() + playlists_.size() + challenges_.size() + drafts_.size() + sounds_.size();
+    return posts_.size() + stories_.size() + users_.size() + notifications_.size() + comments_.size() +
+           messages_.size() + conversations_.size() + playlists_.size() + challenges_.size() + drafts_.size() +
+           sounds_.size();
   }
 
 private:
@@ -538,6 +600,7 @@ private:
   EntityCache<Story> stories_;
   EntityCache<User> users_;
   EntityCache<Notification> notifications_;
+  EntityCache<Comment> comments_;
   EntityCache<Message> messages_;
   EntityCache<Conversation> conversations_;
   EntityCache<Playlist> playlists_;

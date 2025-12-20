@@ -50,13 +50,19 @@ PostCard::~PostCard() {
 // ==============================================================================
 // setNetworkClient is now deprecated and defined inline in PostCard.h as no-op
 
-void PostCard::setPost(const Sidechain::FeedPost &newPost) {
-  post = newPost;
-  Log::debug("PostCard: Setting post - ID: " + post.id + ", user: " + post.username +
-             ", isFollowing: " + juce::String(post.isFollowing ? "true" : "false") +
-             ", isOwnPost: " + juce::String(post.isOwnPost ? "true" : "false"));
+void PostCard::setPost(const std::shared_ptr<Sidechain::FeedPost> &newPost) {
+  postPtr = newPost;
 
-  if (appStore && !post.id.isEmpty()) {
+  if (!postPtr) {
+    Log::warn("PostCard: Setting post to null");
+    return;
+  }
+
+  Log::debug("PostCard: Setting post - ID: " + postPtr->id + ", user: " + postPtr->username +
+             ", isFollowing: " + juce::String(postPtr->isFollowing ? "true" : "false") +
+             ", isOwnPost: " + juce::String(postPtr->isOwnPost ? "true" : "false"));
+
+  if (appStore && !postPtr->id.isEmpty()) {
     bindToStore(appStore);
   }
 
@@ -79,10 +85,10 @@ void PostCard::setPost(const Sidechain::FeedPost &newPost) {
 
   // Fetch avatar image via AppStore reactive observable (with caching)
   avatarImage = juce::Image(); // Clear previous image
-  if (post.userAvatarUrl.isNotEmpty() && appStore) {
-    Log::debug("PostCard: Loading avatar from URL: " + post.userAvatarUrl);
+  if (postPtr->userAvatarUrl.isNotEmpty() && appStore) {
+    Log::debug("PostCard: Loading avatar from URL: " + postPtr->userAvatarUrl);
     juce::Component::SafePointer<PostCard> safeThisAvatar(this);
-    appStore->loadImageObservable(post.userAvatarUrl)
+    appStore->loadImageObservable(postPtr->userAvatarUrl)
         .subscribe(
             [safeThisAvatar](const juce::Image &image) {
               if (safeThisAvatar == nullptr)
@@ -104,14 +110,20 @@ void PostCard::setPost(const Sidechain::FeedPost &newPost) {
   }
 
   // Load waveform image from CDN
-  if (post.waveformUrl.isNotEmpty()) {
-    Log::debug("PostCard: Loading waveform from " + post.waveformUrl);
-    waveformView.loadFromUrl(post.waveformUrl);
+  if (postPtr->waveformUrl.isNotEmpty()) {
+    Log::debug("PostCard: Loading waveform from " + postPtr->waveformUrl);
+    waveformView.loadFromUrl(postPtr->waveformUrl);
   } else {
     waveformView.clear();
   }
 
   repaint();
+}
+
+void PostCard::setPost(const Sidechain::FeedPost &newPost) {
+  // Create a shared_ptr from the reference (creates a copy in a new allocation)
+  auto newPostPtr = std::make_shared<Sidechain::FeedPost>(newPost);
+  setPost(newPostPtr);
 }
 
 // ==============================================================================
@@ -125,8 +137,10 @@ void PostCard::setPlaybackProgress(float progress) {
 
 void PostCard::setIsPlaying(bool playing) {
   isPlaying = playing;
-  Log::debug("PostCard: Playback state changed - post: " + post.id +
-             ", playing: " + juce::String(playing ? "true" : "false"));
+  if (postPtr) {
+    Log::debug("PostCard: Playback state changed - post: " + postPtr->id +
+               ", playing: " + juce::String(playing ? "true" : "false"));
+  }
   repaint();
 }
 
@@ -144,13 +158,18 @@ void PostCard::setDownloadProgress(float progress) {
 // ==============================================================================
 void PostCard::paint(juce::Graphics &g) {
   SCOPED_TIMER_THRESHOLD("ui::render_post", 16.0);
+
+  if (!postPtr) {
+    return; // Nothing to draw if post is not set
+  }
+
   // Apply fade-in opacity
   g.setOpacity(currentOpacity);
 
   drawBackground(g);
 
   // Draw repost attribution header if this is a repost
-  if (post.isARepost)
+  if (postPtr->isARepost)
     drawRepostAttribution(g);
 
   drawAvatar(g, getAvatarBounds());
@@ -200,7 +219,7 @@ void PostCard::drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds) {
   g.drawEllipse(bounds.toFloat(), 1.0f);
 
   // Draw online indicator (green/cyan dot in bottom-right corner)
-  if (post.isOnline || post.isInStudio) {
+  if (postPtr && (postPtr->isOnline || postPtr->isInStudio)) {
     const int indicatorSize = 14;
     const int borderWidth = 2;
 
@@ -215,7 +234,7 @@ void PostCard::drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds) {
 
     // Draw indicator (cyan for in_studio, green for just online)
     auto innerBounds = indicatorBounds.reduced(borderWidth);
-    g.setColour(post.isInStudio ? SidechainColors::inStudioIndicator() : SidechainColors::onlineIndicator());
+    g.setColour(postPtr->isInStudio ? SidechainColors::inStudioIndicator() : SidechainColors::onlineIndicator());
     g.fillEllipse(innerBounds);
   }
 }
@@ -224,8 +243,8 @@ void PostCard::drawUserInfo(juce::Graphics &g, juce::Rectangle<int> bounds) {
   int yOffset = bounds.getY();
 
   // For reposts, show original post info; otherwise show current post info
-  juce::String displayFilename = post.isARepost ? post.originalFilename : post.filename;
-  juce::String displayUsername = post.isARepost ? post.originalUsername : post.username;
+  juce::String displayFilename = postPtr->isARepost ? postPtr->originalFilename : postPtr->filename;
+  juce::String displayUsername = postPtr->isARepost ? postPtr->originalUsername : postPtr->username;
 
   // Primary header: filename if available, otherwise username
   g.setColour(SidechainColors::textPrimary());
@@ -252,27 +271,27 @@ void PostCard::drawUserInfo(juce::Graphics &g, juce::Rectangle<int> bounds) {
   // Timestamp
   g.setColour(SidechainColors::textMuted());
   g.setFont(13.0f);
-  g.drawText(post.timeAgo, bounds.getX(), yOffset, bounds.getWidth(), 20, juce::Justification::centredLeft);
+  g.drawText(postPtr->timeAgo, bounds.getX(), yOffset, bounds.getWidth(), 20, juce::Justification::centredLeft);
 
   // DAW badge if present
-  if (post.daw.isNotEmpty()) {
+  if (postPtr->daw.isNotEmpty()) {
     g.setColour(SidechainColors::textMuted());
     g.setFont(12.0f);
-    g.drawText(post.daw, bounds.getX(), yOffset + 20, bounds.getWidth(), 18, juce::Justification::centredLeft);
+    g.drawText(postPtr->daw, bounds.getX(), yOffset + 20, bounds.getWidth(), 18, juce::Justification::centredLeft);
   }
 }
 
 void PostCard::drawFollowButton(juce::Graphics &g, juce::Rectangle<int> bounds) {
   // Don't show follow button for own posts
-  if (post.isOwnPost)
+  if (postPtr->isOwnPost)
     return;
 
   // Button text based on follow state
-  juce::String buttonText = post.isFollowing ? "Following" : "Follow";
+  juce::String buttonText = postPtr->isFollowing ? "Following" : "Follow";
 
   // Colors based on state
   juce::Colour bgColor, textColor, borderColor;
-  if (post.isFollowing) {
+  if (postPtr->isFollowing) {
     // Following state: subtle outline button
     bgColor = juce::Colour::fromRGBA(0, 0, 0, 0);
     textColor = SidechainColors::textSecondary();
@@ -302,10 +321,10 @@ void PostCard::drawWaveform(juce::Graphics &g, juce::Rectangle<int> bounds) {
   SCOPED_TIMER("ui::draw_waveform");
   // If we have a waveform URL, the WaveformImageView component will handle
   // rendering
-  if (post.waveformUrl.isNotEmpty()) {
+  if (postPtr->waveformUrl.isNotEmpty()) {
     // Duration overlay at bottom-right of waveform - use UIHelpers::drawBadge
-    if (post.durationSeconds > 0) {
-      juce::String duration = StringFormatter::formatDuration(post.durationSeconds);
+    if (postPtr->durationSeconds > 0) {
+      juce::String duration = StringFormatter::formatDuration(postPtr->durationSeconds);
       auto durationBounds = bounds.removeFromBottom(18).removeFromRight(50).reduced(2);
       UIHelpers::drawBadge(g, durationBounds, duration, SidechainColors::background().withAlpha(0.85f),
                            SidechainColors::textPrimary(), 10.0f, 3.0f);
@@ -326,7 +345,7 @@ void PostCard::drawWaveform(juce::Graphics &g, juce::Rectangle<int> bounds) {
   // Draw waveform bars
   for (int i = 0; i < numBars; ++i) {
     float barProgress = static_cast<float>(i) / static_cast<float>(numBars);
-    int barHeight = 5 + (std::hash<int>{}(post.id.hashCode() + i) % 25);
+    int barHeight = 5 + (std::hash<int>{}(postPtr->id.hashCode() + i) % 25);
     int barX = bounds.getX() + i * (barWidth + barSpacing);
     int barY = bounds.getCentreY() - barHeight / 2;
 
@@ -341,8 +360,8 @@ void PostCard::drawWaveform(juce::Graphics &g, juce::Rectangle<int> bounds) {
   }
 
   // Duration overlay at bottom-right of waveform - use UIHelpers::drawBadge
-  if (post.durationSeconds > 0) {
-    juce::String duration = StringFormatter::formatDuration(post.durationSeconds);
+  if (postPtr->durationSeconds > 0) {
+    juce::String duration = StringFormatter::formatDuration(postPtr->durationSeconds);
     auto durationBounds = juce::Rectangle<int>(bounds.getRight() - 45, bounds.getBottom() - 18, 40, 16);
 
     UIHelpers::drawBadge(g, durationBounds, duration, SidechainColors::background().withAlpha(0.85f),
@@ -391,21 +410,21 @@ void PostCard::drawMetadataBadges(juce::Graphics &g, juce::Rectangle<int> bounds
   int colWidth = bounds.getWidth() / 2 - 4; // Two columns with spacing
 
   // Row 1: BPM and Key badges side-by-side
-  bool hasBpm = post.bpm > 0;
-  bool hasKey = post.key.isNotEmpty();
+  bool hasBpm = postPtr->bpm > 0;
+  bool hasKey = postPtr->key.isNotEmpty();
 
   if (hasBpm || hasKey) {
     if (hasBpm) {
       auto bpmBounds = juce::Rectangle<int>(badgeX, badgeY, colWidth, BADGE_HEIGHT);
-      UIHelpers::drawBadge(g, bpmBounds, StringFormatter::formatBPM(post.bpm), SidechainColors::surface(),
+      UIHelpers::drawBadge(g, bpmBounds, StringFormatter::formatBPM(postPtr->bpm), SidechainColors::surface(),
                            SidechainColors::textPrimary(), 13.0f, 4.0f);
     }
 
     if (hasKey) {
       int keyX = hasBpm ? badgeX + colWidth + 8 : badgeX;
       auto keyBounds = juce::Rectangle<int>(keyX, badgeY, colWidth, BADGE_HEIGHT);
-      UIHelpers::drawBadge(g, keyBounds, post.key, SidechainColors::surface(), SidechainColors::textPrimary(), 13.0f,
-                           4.0f);
+      UIHelpers::drawBadge(g, keyBounds, postPtr->key, SidechainColors::surface(), SidechainColors::textPrimary(),
+                           13.0f, 4.0f);
     }
     badgeY += BADGE_HEIGHT + 6;
   }
@@ -414,22 +433,22 @@ void PostCard::drawMetadataBadges(juce::Graphics &g, juce::Rectangle<int> bounds
   juce::String statsText;
   bool hasStats = false;
 
-  if (post.playCount > 0) {
-    statsText += StringFormatter::formatPlays(post.playCount);
+  if (postPtr->playCount > 0) {
+    statsText += StringFormatter::formatPlays(postPtr->playCount);
     hasStats = true;
   }
 
-  if (post.saveCount > 0) {
+  if (postPtr->saveCount > 0) {
     if (hasStats)
       statsText += " • ";
-    statsText += juce::String(post.saveCount) + " saved";
+    statsText += juce::String(postPtr->saveCount) + " saved";
     hasStats = true;
   }
 
-  if (post.downloadCount > 0) {
+  if (postPtr->downloadCount > 0) {
     if (hasStats)
       statsText += " • ";
-    statsText += juce::String(post.downloadCount) + " downloads";
+    statsText += juce::String(postPtr->downloadCount) + " downloads";
     hasStats = true;
   }
 
@@ -441,9 +460,9 @@ void PostCard::drawMetadataBadges(juce::Graphics &g, juce::Rectangle<int> bounds
   }
 
   // Row 3: Genre badges (up to two, side by side)
-  if (post.genres.size() > 0) {
-    for (int i = 0; i < juce::jmin(2, post.genres.size()); ++i) {
-      juce::String genre = post.genres[i];
+  if (postPtr->genres.size() > 0) {
+    for (int i = 0; i < juce::jmin(2, postPtr->genres.size()); ++i) {
+      juce::String genre = postPtr->genres[i];
       // Truncate long genre names
       if (genre.length() > 10)
         genre = genre.substring(0, 8) + "..";
@@ -457,7 +476,7 @@ void PostCard::drawMetadataBadges(juce::Graphics &g, juce::Rectangle<int> bounds
   }
 
   // Row 4: MIDI badge (always visible when post has MIDI)
-  if (post.hasMidi) {
+  if (postPtr->hasMidi) {
     auto midiBadgeBounds = juce::Rectangle<int>(badgeX, badgeY, 65, BADGE_HEIGHT);
     UIHelpers::drawBadge(g, midiBadgeBounds, "MIDI", SidechainColors::primary().withAlpha(0.2f),
                          SidechainColors::primary(), 13.0f, 4.0f);
@@ -465,13 +484,13 @@ void PostCard::drawMetadataBadges(juce::Graphics &g, juce::Rectangle<int> bounds
   }
 
   // Row 5: Remix chain info
-  if (post.isRemix) {
+  if (postPtr->isRemix) {
     juce::String remixLabel = "Remix";
-    if (post.remixType.isNotEmpty() && post.remixType != "both") {
-      remixLabel += " (" + post.remixType + ")";
+    if (postPtr->remixType.isNotEmpty() && postPtr->remixType != "both") {
+      remixLabel += " (" + postPtr->remixType + ")";
     }
-    if (post.remixChainDepth > 0) {
-      remixLabel += " [Depth: " + juce::String(post.remixChainDepth) + "]";
+    if (postPtr->remixChainDepth > 0) {
+      remixLabel += " [Depth: " + juce::String(postPtr->remixChainDepth) + "]";
     }
     auto remixBounds = juce::Rectangle<int>(badgeX, badgeY, bounds.getWidth(), BADGE_HEIGHT);
     UIHelpers::drawBadge(g, remixBounds, remixLabel, SidechainColors::coralPink().withAlpha(0.2f),
@@ -480,8 +499,8 @@ void PostCard::drawMetadataBadges(juce::Graphics &g, juce::Rectangle<int> bounds
   }
 
   // Row 6: Remix count (if this post has been remixed)
-  if (post.remixCount > 0) {
-    juce::String remixCountText = juce::String(post.remixCount) + " remix" + (post.remixCount != 1 ? "es" : "");
+  if (postPtr->remixCount > 0) {
+    juce::String remixCountText = juce::String(postPtr->remixCount) + " remix" + (postPtr->remixCount != 1 ? "es" : "");
     g.setColour(SidechainColors::textSecondary());
     g.setFont(12.0f);
     g.drawText(remixCountText, badgeX, badgeY, bounds.getWidth(), 18, juce::Justification::centredLeft);
@@ -489,9 +508,9 @@ void PostCard::drawMetadataBadges(juce::Graphics &g, juce::Rectangle<int> bounds
   }
 
   // Row 7: Recommendation reason badge (for "For You" feed)
-  if (post.recommendationReason.isNotEmpty()) {
+  if (postPtr->recommendationReason.isNotEmpty()) {
     auto reasonBounds = juce::Rectangle<int>(badgeX, badgeY, bounds.getWidth(), BADGE_HEIGHT);
-    UIHelpers::drawBadge(g, reasonBounds, post.recommendationReason, SidechainColors::primary().withAlpha(0.2f),
+    UIHelpers::drawBadge(g, reasonBounds, postPtr->recommendationReason, SidechainColors::primary().withAlpha(0.2f),
                          SidechainColors::primary(), 11.0f, 4.0f);
   }
 }
@@ -502,32 +521,32 @@ void PostCard::drawSocialButtons(juce::Graphics &g, juce::Rectangle<int> /*bound
   auto likeBounds = getLikeButtonBounds();
 
   // Show user's reaction emoji if they've reacted, otherwise show heart
-  if (post.userReaction.isNotEmpty()) {
+  if (postPtr->userReaction.isNotEmpty()) {
     // Show the emoji the user reacted with
     g.setFont(18.0f);
     g.setColour(SidechainColors::textPrimary());
-    g.drawText(post.userReaction, likeBounds.withWidth(24), juce::Justification::centred);
+    g.drawText(postPtr->userReaction, likeBounds.withWidth(24), juce::Justification::centred);
   } else {
     // Show heart icon
-    juce::Colour likeColor = post.isLiked ? SidechainColors::like() : SidechainColors::textMuted();
+    juce::Colour likeColor = postPtr->isLiked ? SidechainColors::like() : SidechainColors::textMuted();
     g.setColour(likeColor);
     g.setFont(16.0f);
-    juce::String heartIcon = post.isLiked ? juce::String(juce::CharPointer_UTF8("\xE2\x99\xA5"))
-                                          : juce::String(juce::CharPointer_UTF8("\xE2\x99\xA1"));
+    juce::String heartIcon = postPtr->isLiked ? juce::String(juce::CharPointer_UTF8("\xE2\x99\xA5"))
+                                              : juce::String(juce::CharPointer_UTF8("\xE2\x99\xA1"));
     g.drawText(heartIcon, likeBounds.withWidth(22), juce::Justification::centred);
   }
 
   // Calculate total reaction count (sum of all emoji reactions)
-  int totalReactions = post.likeCount;
-  for (const auto &[emoji, count] : post.reactionCounts) {
+  int totalReactions = postPtr->likeCount;
+  for (const auto &[emoji, count] : postPtr->reactionCounts) {
     if (emoji != "like") // Don't double-count "like" reactions
       totalReactions += count;
   }
 
   // Show total reaction count if we have reactions
   if (totalReactions > 0) {
-    g.setColour(post.isLiked || post.userReaction.isNotEmpty() ? SidechainColors::like()
-                                                               : SidechainColors::textMuted());
+    g.setColour(postPtr->isLiked || postPtr->userReaction.isNotEmpty() ? SidechainColors::like()
+                                                                       : SidechainColors::textMuted());
     g.setFont(13.0f);
     g.drawText(StringFormatter::formatCount(totalReactions), likeBounds.withX(likeBounds.getX() + 24).withWidth(30),
                juce::Justification::centredLeft);
@@ -540,20 +559,20 @@ void PostCard::drawSocialButtons(juce::Graphics &g, juce::Rectangle<int> /*bound
   drawSaveButton(g, getSaveButtonBounds());
 
   // Repost button (don't show for own posts)
-  if (!post.isOwnPost)
+  if (!postPtr->isOwnPost)
     drawRepostButton(g, getRepostButtonBounds());
 
   // Pin button (only show for own posts)
-  if (post.isOwnPost)
+  if (postPtr->isOwnPost)
     drawPinButton(g, getPinButtonBounds());
 
   // Pinned badge (show if post is pinned)
-  if (post.isPinned)
+  if (postPtr->isPinned)
     drawPinnedBadge(g);
 
   // Comment count/status
   auto commentBounds = getCommentButtonBounds();
-  bool commentsOff = post.commentsDisabled();
+  bool commentsOff = postPtr->commentsDisabled();
   g.setColour(commentsOff ? SidechainColors::textMuted().withAlpha(0.4f) : SidechainColors::textMuted());
   g.setFont(16.0f);
   // Draw comment bubble icon (avoid emoji for Linux font compatibility)
@@ -578,7 +597,7 @@ void PostCard::drawSocialButtons(juce::Graphics &g, juce::Rectangle<int> /*bound
     g.setColour(SidechainColors::textMuted().withAlpha(0.4f));
     g.drawText("Off", commentBounds.withX(commentBounds.getX() + 22).withWidth(28), juce::Justification::centredLeft);
   } else {
-    g.drawText(StringFormatter::formatCount(post.commentCount),
+    g.drawText(StringFormatter::formatCount(postPtr->commentCount),
                commentBounds.withX(commentBounds.getX() + 22).withWidth(28), juce::Justification::centredLeft);
   }
 
@@ -632,7 +651,7 @@ void PostCard::drawSocialButtons(juce::Graphics &g, juce::Rectangle<int> /*bound
   }
 
   // Download MIDI button (only shown when post has MIDI and on hover)
-  if (post.hasMidi && hoverState.isHovered()) {
+  if (postPtr->hasMidi && hoverState.isHovered()) {
     auto midiBounds = getDownloadMIDIButtonBounds();
 
     if (midiBounds.contains(getMouseXYRelative())) {
@@ -662,7 +681,7 @@ void PostCard::drawSocialButtons(juce::Graphics &g, juce::Rectangle<int> /*bound
 
   // Download Project File button (only shown when post has project file and on
   // hover)
-  if (post.hasProjectFile && hoverState.isHovered()) {
+  if (postPtr->hasProjectFile && hoverState.isHovered()) {
     auto projectBounds = getDownloadProjectButtonBounds();
 
     if (projectBounds.contains(getMouseXYRelative())) {
@@ -673,7 +692,7 @@ void PostCard::drawSocialButtons(juce::Graphics &g, juce::Rectangle<int> /*bound
     // Use DAW type to indicate project file (avoid emoji for Linux font
     // compatibility)
     juce::String dawLabel =
-        post.projectFileDaw.isNotEmpty() ? post.projectFileDaw.toUpperCase().substring(0, 3) : "PRJ";
+        postPtr->projectFileDaw.isNotEmpty() ? postPtr->projectFileDaw.toUpperCase().substring(0, 3) : "PRJ";
     g.setColour(SidechainColors::primary());
     g.setFont(11.0f);
     g.drawText(dawLabel, projectBounds, juce::Justification::centred);
@@ -696,9 +715,9 @@ void PostCard::drawSocialButtons(juce::Graphics &g, juce::Rectangle<int> /*bound
 
     // Show different label based on what's remixable
     juce::String remixLabel;
-    if (post.hasMidi && post.audioUrl.isNotEmpty())
+    if (postPtr->hasMidi && postPtr->audioUrl.isNotEmpty())
       remixLabel = "Remix"; // Can remix both
-    else if (post.hasMidi)
+    else if (postPtr->hasMidi)
       remixLabel = "Remix MIDI";
     else
       remixLabel = "Remix";
@@ -709,7 +728,7 @@ void PostCard::drawSocialButtons(juce::Graphics &g, juce::Rectangle<int> /*bound
   }
 
   // Remix chain badge (shows remix count or "Remix of..." indicator)
-  if (post.isRemix || post.remixCount > 0) {
+  if (postPtr->isRemix || postPtr->remixCount > 0) {
     auto chainBounds = getRemixChainBadgeBounds();
 
     // Background
@@ -725,18 +744,18 @@ void PostCard::drawSocialButtons(juce::Graphics &g, juce::Rectangle<int> /*bound
     g.setFont(9.0f);
 
     juce::String badgeText;
-    if (post.isRemix && post.remixCount > 0) {
+    if (postPtr->isRemix && postPtr->remixCount > 0) {
       // Both a remix and has remixes
-      badgeText = "Remix +" + juce::String(post.remixCount);
-    } else if (post.isRemix) {
+      badgeText = "Remix +" + juce::String(postPtr->remixCount);
+    } else if (postPtr->isRemix) {
       // Just a remix (depth indicator)
-      if (post.remixChainDepth > 1)
-        badgeText = "Remix (x" + juce::String(post.remixChainDepth) + ")";
+      if (postPtr->remixChainDepth > 1)
+        badgeText = "Remix (x" + juce::String(postPtr->remixChainDepth) + ")";
       else
         badgeText = "Remix";
     } else {
       // Original with remixes
-      badgeText = juce::String(post.remixCount) + " Remixes";
+      badgeText = juce::String(postPtr->remixCount) + " Remixes";
     }
 
     g.drawText(badgeText, chainBounds, juce::Justification::centred);
@@ -744,7 +763,7 @@ void PostCard::drawSocialButtons(juce::Graphics &g, juce::Rectangle<int> /*bound
 }
 
 void PostCard::drawReactionCounts(juce::Graphics &g, juce::Rectangle<int> likeBounds) {
-  if (post.reactionCounts.empty())
+  if (postPtr->reactionCounts.empty())
     return;
 
   // Collect all reactions and sort by count (descending)
@@ -754,7 +773,7 @@ void PostCard::drawReactionCounts(juce::Graphics &g, juce::Rectangle<int> likeBo
   };
 
   juce::Array<ReactionItem> reactions;
-  for (const auto &[emoji, count] : post.reactionCounts) {
+  for (const auto &[emoji, count] : postPtr->reactionCounts) {
     // Skip "like" reactions as they're already shown in the main count
     if (emoji == "like" || count == 0)
       continue;
@@ -797,14 +816,14 @@ void PostCard::drawReactionCounts(juce::Graphics &g, juce::Rectangle<int> likeBo
 
 void PostCard::drawSaveButton(juce::Graphics &g, juce::Rectangle<int> bounds) {
   // Bookmark/Save button
-  juce::Colour saveColor = post.isSaved ? SidechainColors::primary() : SidechainColors::textMuted();
+  juce::Colour saveColor = postPtr->isSaved ? SidechainColors::primary() : SidechainColors::textMuted();
   g.setColour(saveColor);
 
   // Draw bookmark icon
   auto iconBounds = bounds.withWidth(16).withHeight(18).withY(bounds.getCentreY() - 9);
   juce::Path bookmark;
 
-  if (post.isSaved) {
+  if (postPtr->isSaved) {
     // Filled bookmark
     bookmark.addRectangle(static_cast<float>(iconBounds.getX()), static_cast<float>(iconBounds.getY()),
                           static_cast<float>(iconBounds.getWidth()), static_cast<float>(iconBounds.getHeight() - 4));
@@ -826,19 +845,19 @@ void PostCard::drawSaveButton(juce::Graphics &g, juce::Rectangle<int> bounds) {
   }
 
   // Draw save count if > 0
-  if (post.saveCount > 0) {
+  if (postPtr->saveCount > 0) {
     g.setFont(11.0f);
-    g.drawText(StringFormatter::formatCount(post.saveCount), bounds.withX(bounds.getX() + 18).withWidth(25),
+    g.drawText(StringFormatter::formatCount(postPtr->saveCount), bounds.withX(bounds.getX() + 18).withWidth(25),
                juce::Justification::centredLeft);
   }
 }
 
 void PostCard::drawRepostButton(juce::Graphics &g, juce::Rectangle<int> bounds) {
   // Don't show repost button for own posts
-  if (post.isOwnPost)
+  if (postPtr->isOwnPost)
     return;
 
-  juce::Colour repostColor = post.isReposted ? SidechainColors::success() : SidechainColors::textMuted();
+  juce::Colour repostColor = postPtr->isReposted ? SidechainColors::success() : SidechainColors::textMuted();
   g.setColour(repostColor);
 
   // Draw repost icon (two arrows in circular motion, similar to Twitter
@@ -876,19 +895,19 @@ void PostCard::drawRepostButton(juce::Graphics &g, juce::Rectangle<int> bounds) 
   g.strokePath(bottomArc, juce::PathStrokeType(1.5f));
 
   // Draw repost count if > 0
-  if (post.repostCount > 0) {
+  if (postPtr->repostCount > 0) {
     g.setFont(11.0f);
-    g.drawText(StringFormatter::formatCount(post.repostCount), bounds.withX(bounds.getX() + 20).withWidth(20),
+    g.drawText(StringFormatter::formatCount(postPtr->repostCount), bounds.withX(bounds.getX() + 20).withWidth(20),
                juce::Justification::centredLeft);
   }
 }
 
 void PostCard::drawPinButton(juce::Graphics &g, juce::Rectangle<int> bounds) {
   // Only show for own posts
-  if (!post.isOwnPost)
+  if (!postPtr->isOwnPost)
     return;
 
-  juce::Colour pinColor = post.isPinned ? SidechainColors::primary() : SidechainColors::textMuted();
+  juce::Colour pinColor = postPtr->isPinned ? SidechainColors::primary() : SidechainColors::textMuted();
   g.setColour(pinColor);
 
   // Draw pin icon (pushpin shape)
@@ -900,7 +919,7 @@ void PostCard::drawPinButton(juce::Graphics &g, juce::Rectangle<int> bounds) {
 
   juce::Path pin;
 
-  if (post.isPinned) {
+  if (postPtr->isPinned) {
     // Filled pushpin for pinned state
     // Pin head (rounded rectangle at top)
     pin.addRoundedRectangle(x + 2, y, w - 4, h * 0.35f, 2.0f);
@@ -924,7 +943,7 @@ void PostCard::drawPinButton(juce::Graphics &g, juce::Rectangle<int> bounds) {
 }
 
 void PostCard::drawPinnedBadge(juce::Graphics &g) {
-  if (!post.isPinned)
+  if (!postPtr->isPinned)
     return;
 
   // Draw small pin badge in top-right corner of the card
@@ -946,7 +965,7 @@ void PostCard::drawPinnedBadge(juce::Graphics &g) {
 
 void PostCard::drawSoundBadge(juce::Graphics &g) {
   // Only show if post has a detected sound with multiple usages
-  if (post.soundId.isEmpty() || post.soundUsageCount < 2)
+  if (postPtr->soundId.isEmpty() || postPtr->soundUsageCount < 2)
     return;
 
   auto badgeBounds = getSoundBadgeBounds();
@@ -972,19 +991,20 @@ void PostCard::drawSoundBadge(juce::Graphics &g) {
 
   // Format text: use sound name if available, otherwise generic text
   juce::String badgeText;
-  if (post.soundName.isNotEmpty()) {
+  if (postPtr->soundName.isNotEmpty()) {
     // Truncate long sound names
-    juce::String name = post.soundName.length() > 10 ? post.soundName.substring(0, 8) + ".." : post.soundName;
-    badgeText = name + " (" + juce::String(post.soundUsageCount) + ")";
+    juce::String name =
+        postPtr->soundName.length() > 10 ? postPtr->soundName.substring(0, 8) + ".." : postPtr->soundName;
+    badgeText = name + " (" + juce::String(postPtr->soundUsageCount) + ")";
   } else {
-    badgeText = juce::String(post.soundUsageCount) + " posts";
+    badgeText = juce::String(postPtr->soundUsageCount) + " posts";
   }
 
   g.drawText(badgeText, badgeBounds.reduced(4, 0), juce::Justification::centred);
 }
 
 void PostCard::drawRepostAttribution(juce::Graphics &g) {
-  if (!post.isARepost || post.originalUsername.isEmpty())
+  if (!postPtr->isARepost || postPtr->originalUsername.isEmpty())
     return;
 
   // Draw "Username reposted" header above the card content
@@ -992,7 +1012,7 @@ void PostCard::drawRepostAttribution(juce::Graphics &g) {
   g.setFont(11.0f);
 
   // Repost icon (small arrows)
-  juce::String repostText = post.username + " reposted";
+  juce::String repostText = postPtr->username + " reposted";
 
   // Draw at the very top of the card
   auto headerBounds = juce::Rectangle<int>(15, 2, getWidth() - 30, 14);
@@ -1023,18 +1043,18 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
 
   // Check play button
   if (getPlayButtonBounds().contains(pos)) {
-    Log::info("PostCard: Play button clicked for post: " + post.id + ", audioUrl: " + post.audioUrl);
+    Log::info("PostCard: Play button clicked for post: " + postPtr->id + ", audioUrl: " + postPtr->audioUrl);
     if (isPlaying) {
       if (onPauseClicked) {
         Log::debug("PostCard: Calling onPauseClicked callback");
-        onPauseClicked(post);
+        onPauseClicked(*postPtr);
       } else {
         Log::warn("PostCard: onPauseClicked callback not set!");
       }
     } else {
       if (onPlayClicked) {
         Log::debug("PostCard: Calling onPlayClicked callback");
-        onPlayClicked(post);
+        onPlayClicked(*postPtr);
       } else {
         Log::warn("PostCard: onPlayClicked callback not set!");
       }
@@ -1047,26 +1067,27 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
     if (!wasLongPress) {
       if (appStore) {
         juce::Component::SafePointer<PostCard> safeThis(this);
-        appStore->likePostObservable(post.id).subscribe(
-            [safeThis](int) {
-              if (safeThis == nullptr)
-                return;
-              Log::debug("PostCard: Like toggled successfully");
-            },
-            [safeThis](std::exception_ptr error) {
-              if (safeThis == nullptr)
-                return;
-              try {
-                std::rethrow_exception(error);
-              } catch (const std::exception &e) {
-                Log::error("PostCard: Failed to toggle like - " + juce::String(e.what()));
-              } catch (...) {
-                Log::error("PostCard: Failed to toggle like - unknown error");
-              }
-            });
+        appStore->likePostObservable(postPtr->id)
+            .subscribe(
+                [safeThis](int) {
+                  if (safeThis == nullptr)
+                    return;
+                  Log::debug("PostCard: Like toggled successfully");
+                },
+                [safeThis](std::exception_ptr error) {
+                  if (safeThis == nullptr)
+                    return;
+                  try {
+                    std::rethrow_exception(error);
+                  } catch (const std::exception &e) {
+                    Log::error("PostCard: Failed to toggle like - " + juce::String(e.what()));
+                  } catch (...) {
+                    Log::error("PostCard: Failed to toggle like - unknown error");
+                  }
+                });
       } else if (onLikeToggled) {
         // Fallback for when AppStore is not set
-        onLikeToggled(post, !post.isLiked);
+        onLikeToggled(*postPtr, !postPtr->isLiked);
       }
     }
     return;
@@ -1074,15 +1095,15 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
 
   // Check comment button (only if comments are enabled)
   if (getCommentButtonBounds().contains(pos)) {
-    if (!post.commentsDisabled() && onCommentClicked)
-      onCommentClicked(post);
+    if (!postPtr->commentsDisabled() && onCommentClicked)
+      onCommentClicked(*postPtr);
     return;
   }
 
   // Check share button
   if (getShareButtonBounds().contains(pos)) {
     if (onShareClicked)
-      onShareClicked(post);
+      onShareClicked(*postPtr);
     return;
   }
 
@@ -1090,63 +1111,65 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
   if (getSaveButtonBounds().contains(pos)) {
     if (appStore) {
       juce::Component::SafePointer<PostCard> safeThis(this);
-      appStore->toggleSaveObservable(post.id).subscribe(
-          [safeThis](int) {
-            if (safeThis == nullptr)
-              return;
-            Log::debug("PostCard: Post save toggled successfully");
-          },
-          [safeThis](std::exception_ptr error) {
-            if (safeThis == nullptr)
-              return;
-            try {
-              std::rethrow_exception(error);
-            } catch (const std::exception &e) {
-              Log::error("PostCard: Failed to toggle save - " + juce::String(e.what()));
-            } catch (...) {
-              Log::error("PostCard: Failed to toggle save - unknown error");
-            }
-          });
+      appStore->toggleSaveObservable(postPtr->id)
+          .subscribe(
+              [safeThis](int) {
+                if (safeThis == nullptr)
+                  return;
+                Log::debug("PostCard: Post save toggled successfully");
+              },
+              [safeThis](std::exception_ptr error) {
+                if (safeThis == nullptr)
+                  return;
+                try {
+                  std::rethrow_exception(error);
+                } catch (const std::exception &e) {
+                  Log::error("PostCard: Failed to toggle save - " + juce::String(e.what()));
+                } catch (...) {
+                  Log::error("PostCard: Failed to toggle save - unknown error");
+                }
+              });
     } else if (onSaveToggled) {
       // Fallback for when AppStore is not set
-      onSaveToggled(post, !post.isSaved);
+      onSaveToggled(*postPtr, !postPtr->isSaved);
     }
     return;
   }
 
   // Check repost button (not for own posts)
-  if (!post.isOwnPost && getRepostButtonBounds().contains(pos)) {
+  if (!postPtr->isOwnPost && getRepostButtonBounds().contains(pos)) {
     if (appStore) {
       juce::Component::SafePointer<PostCard> safeThis(this);
-      appStore->toggleRepostObservable(post.id).subscribe(
-          [safeThis](int) {
-            if (safeThis == nullptr)
-              return;
-            Log::debug("PostCard: Post repost toggled successfully");
-          },
-          [safeThis](std::exception_ptr error) {
-            if (safeThis == nullptr)
-              return;
-            try {
-              std::rethrow_exception(error);
-            } catch (const std::exception &e) {
-              Log::error("PostCard: Failed to toggle repost - " + juce::String(e.what()));
-            } catch (...) {
-              Log::error("PostCard: Failed to toggle repost - unknown error");
-            }
-          });
+      appStore->toggleRepostObservable(postPtr->id)
+          .subscribe(
+              [safeThis](int) {
+                if (safeThis == nullptr)
+                  return;
+                Log::debug("PostCard: Post repost toggled successfully");
+              },
+              [safeThis](std::exception_ptr error) {
+                if (safeThis == nullptr)
+                  return;
+                try {
+                  std::rethrow_exception(error);
+                } catch (const std::exception &e) {
+                  Log::error("PostCard: Failed to toggle repost - " + juce::String(e.what()));
+                } catch (...) {
+                  Log::error("PostCard: Failed to toggle repost - unknown error");
+                }
+              });
     } else if (onRepostClicked) {
       // Fallback for when AppStore is not set
-      onRepostClicked(post);
+      onRepostClicked(*postPtr);
     }
     return;
   }
 
   // Check pin button (only for own posts)
-  if (post.isOwnPost && getPinButtonBounds().contains(pos)) {
+  if (postPtr->isOwnPost && getPinButtonBounds().contains(pos)) {
     if (appStore) {
       juce::Component::SafePointer<PostCard> safeThis(this);
-      appStore->togglePinObservable(post.id, !post.isPinned)
+      appStore->togglePinObservable(postPtr->id, !postPtr->isPinned)
           .subscribe(
               [safeThis](int) {
                 if (safeThis == nullptr)
@@ -1166,7 +1189,7 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
               });
     } else if (onPinToggled) {
       // Fallback for when AppStore is not set
-      onPinToggled(post, !post.isPinned);
+      onPinToggled(*postPtr, !postPtr->isPinned);
     }
     return;
   }
@@ -1175,7 +1198,7 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
   if (getFollowButtonBounds().contains(pos)) {
     if (appStore) {
       juce::Component::SafePointer<PostCard> safeThis(this);
-      appStore->toggleFollowObservable(post.id, !post.isFollowing)
+      appStore->toggleFollowObservable(postPtr->id, !postPtr->isFollowing)
           .subscribe(
               [safeThis](int) {
                 if (safeThis == nullptr)
@@ -1195,7 +1218,7 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
               });
     } else if (onFollowToggled) {
       // Fallback for when AppStore is not set
-      onFollowToggled(post, !post.isFollowing);
+      onFollowToggled(*postPtr, !postPtr->isFollowing);
     }
     return;
   }
@@ -1203,42 +1226,42 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
   // Check more button
   if (getMoreButtonBounds().contains(pos)) {
     if (onMoreClicked)
-      onMoreClicked(post);
+      onMoreClicked(*postPtr);
     return;
   }
 
   // Check Add to DAW button
   if (getAddToDAWButtonBounds().contains(pos)) {
     if (onAddToDAWClicked)
-      onAddToDAWClicked(post);
+      onAddToDAWClicked(*postPtr);
     return;
   }
 
   // Check Drop to Track button
   if (hoverState.isHovered() && getDropToTrackButtonBounds().contains(pos)) {
     if (onDropToTrackClicked)
-      onDropToTrackClicked(post);
+      onDropToTrackClicked(*postPtr);
     return;
   }
 
   // Check Download MIDI button (only when post has MIDI)
-  if (post.hasMidi && hoverState.isHovered() && getDownloadMIDIButtonBounds().contains(pos)) {
+  if (postPtr->hasMidi && hoverState.isHovered() && getDownloadMIDIButtonBounds().contains(pos)) {
     if (onDownloadMIDIClicked)
-      onDownloadMIDIClicked(post);
+      onDownloadMIDIClicked(*postPtr);
     return;
   }
 
   // Check Download Project File button (only when post has project file)
-  if (post.hasProjectFile && hoverState.isHovered() && getDownloadProjectButtonBounds().contains(pos)) {
+  if (postPtr->hasProjectFile && hoverState.isHovered() && getDownloadProjectButtonBounds().contains(pos)) {
     if (onDownloadProjectClicked)
-      onDownloadProjectClicked(post);
+      onDownloadProjectClicked(*postPtr);
     return;
   }
 
   // Check Add to Playlist button
   if (hoverState.isHovered() && getAddToPlaylistButtonBounds().contains(pos)) {
     if (onAddToPlaylistClicked)
-      onAddToPlaylistClicked(post);
+      onAddToPlaylistClicked(*postPtr);
     return;
   }
 
@@ -1247,41 +1270,41 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
     if (onRemixClicked) {
       // Determine default remix type based on what's available
       juce::String defaultRemixType = "audio";
-      if (post.hasMidi && post.audioUrl.isNotEmpty())
+      if (postPtr->hasMidi && postPtr->audioUrl.isNotEmpty())
         defaultRemixType = "both"; // Default to remixing both when available
-      else if (post.hasMidi)
+      else if (postPtr->hasMidi)
         defaultRemixType = "midi";
 
-      onRemixClicked(post, defaultRemixType);
+      onRemixClicked(*postPtr, defaultRemixType);
     }
     return;
   }
 
   // Check Remix chain badge (view remix lineage)
-  if ((post.isRemix || post.remixCount > 0) && getRemixChainBadgeBounds().contains(pos)) {
+  if ((postPtr->isRemix || postPtr->remixCount > 0) && getRemixChainBadgeBounds().contains(pos)) {
     if (onRemixChainClicked)
-      onRemixChainClicked(post);
+      onRemixChainClicked(*postPtr);
     return;
   }
 
   // Check sound badge (navigate to sound page)
-  if (post.soundId.isNotEmpty() && post.soundUsageCount >= 2 && getSoundBadgeBounds().contains(pos)) {
+  if (postPtr->soundId.isNotEmpty() && postPtr->soundUsageCount >= 2 && getSoundBadgeBounds().contains(pos)) {
     if (onSoundClicked)
-      onSoundClicked(post.soundId);
+      onSoundClicked(postPtr->soundId);
     return;
   }
 
   // Check avatar (navigate to profile)
   if (getAvatarBounds().contains(pos)) {
     if (onUserClicked)
-      onUserClicked(post);
+      onUserClicked(*postPtr);
     return;
   }
 
   // Check username area (navigate to profile)
   if (getUserInfoBounds().contains(pos)) {
     if (onUserClicked)
-      onUserClicked(post);
+      onUserClicked(*postPtr);
     return;
   }
 
@@ -1291,16 +1314,16 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
     float normalizedPos =
         static_cast<float>(pos.x - waveformBounds.getX()) / static_cast<float>(waveformBounds.getWidth());
     normalizedPos = juce::jlimit(0.0f, 1.0f, normalizedPos);
-    if (onWaveformClicked)
-      onWaveformClicked(post, normalizedPos);
+    if (onWaveformClicked && postPtr)
+      onWaveformClicked(*postPtr, normalizedPos);
     return;
   }
 
   // If this was a simple click on the card (not on any interactive element),
   // trigger card tap
   if (event.mouseWasClicked() && !event.mods.isAnyModifierKeyDown()) {
-    if (onCardTapped) {
-      onCardTapped(post);
+    if (onCardTapped && postPtr) {
+      onCardTapped(*postPtr);
     }
   }
 }
@@ -1381,7 +1404,7 @@ juce::Rectangle<int> PostCard::getDownloadMIDIButtonBounds() const {
 juce::Rectangle<int> PostCard::getDownloadProjectButtonBounds() const {
   // Position next to MIDI button
   auto waveform = getWaveformBounds();
-  int xOffset = post.hasMidi ? 250 : 185;
+  int xOffset = postPtr->hasMidi ? 250 : 185;
   return juce::Rectangle<int>(waveform.getX() + xOffset, CARD_HEIGHT - 25, 60, 20);
 }
 
@@ -1503,8 +1526,8 @@ void PostCard::showEmojiReactionsPanel() {
   auto *bubble = new EmojiReactionsBubble(this);
 
   // Set the currently selected emoji if user has already reacted
-  if (post.userReaction.isNotEmpty())
-    bubble->setSelectedEmoji(post.userReaction);
+  if (postPtr->userReaction.isNotEmpty())
+    bubble->setSelectedEmoji(postPtr->userReaction);
 
   // Handle emoji selection
   bubble->onEmojiSelected = [this](const juce::String &emoji) { handleEmojiSelected(emoji); };
@@ -1521,7 +1544,7 @@ void PostCard::handleEmojiSelected(const juce::String &emoji) {
   // Use AppStore for reactive update if available
   if (appStore) {
     juce::Component::SafePointer<PostCard> safeThis(this);
-    appStore->addReactionObservable(post.id, emoji)
+    appStore->addReactionObservable(postPtr->id, emoji)
         .subscribe(
             [safeThis](int) {
               if (safeThis == nullptr)
@@ -1541,9 +1564,9 @@ void PostCard::handleEmojiSelected(const juce::String &emoji) {
             });
   } else if (onEmojiReaction) {
     // Fallback for when AppStore is not set
-    post.userReaction = emoji;
-    post.isLiked = true;
-    onEmojiReaction(post, emoji);
+    postPtr->userReaction = emoji;
+    postPtr->isLiked = true;
+    onEmojiReaction(*postPtr, emoji);
   }
 
   repaint();
@@ -1559,7 +1582,7 @@ void PostCard::subscribeToAppStore() {
   using namespace Sidechain::Stores;
 
   // Capture post ID by value to avoid accessing potentially invalid member
-  juce::String postId = post.id;
+  juce::String postId = postPtr->id;
   juce::Component::SafePointer<PostCard> safeThis(this);
 
   storeUnsubscriber = appStore->subscribeToFeed([safeThis, postId](const PostsState &postsState) {
@@ -1576,7 +1599,7 @@ void PostCard::subscribeToAppStore() {
           if (safeThis == nullptr)
             return;
           if (!feedPost->id.isEmpty()) {
-            safeThis->post = *feedPost; // Dereference shared_ptr to get FeedPost
+            safeThis->postPtr = feedPost; // Keep strong reference to shared_ptr
             safeThis->repaint();
           }
           return;
@@ -1602,13 +1625,13 @@ juce::String PostCard::getTooltip() {
 
   // Like button
   if (getLikeButtonBounds().contains(mousePos))
-    return post.isLiked ? "Unlike" : "Like (hold for reactions)";
+    return postPtr->isLiked ? "Unlike" : "Like (hold for reactions)";
 
   // Comment button
   if (getCommentButtonBounds().contains(mousePos)) {
-    if (post.commentsDisabled())
+    if (postPtr->commentsDisabled())
       return "Comments are disabled";
-    else if (post.commentsFollowersOnly())
+    else if (postPtr->commentsFollowersOnly())
       return "Comments: Followers only";
     else
       return "View comments";
@@ -1620,38 +1643,38 @@ juce::String PostCard::getTooltip() {
 
   // Save/bookmark button
   if (getSaveButtonBounds().contains(mousePos))
-    return post.isSaved ? "Remove from saved" : "Save to collection";
+    return postPtr->isSaved ? "Remove from saved" : "Save to collection";
 
   // Repost button
-  if (!post.isOwnPost && getRepostButtonBounds().contains(mousePos))
-    return post.isReposted ? "Undo repost" : "Repost to your feed";
+  if (!postPtr->isOwnPost && getRepostButtonBounds().contains(mousePos))
+    return postPtr->isReposted ? "Undo repost" : "Repost to your feed";
 
   // Pin button (only for own posts)
-  if (post.isOwnPost && getPinButtonBounds().contains(mousePos))
-    return post.isPinned ? "Unpin from profile" : "Pin to profile";
+  if (postPtr->isOwnPost && getPinButtonBounds().contains(mousePos))
+    return postPtr->isPinned ? "Unpin from profile" : "Pin to profile";
 
   // More button (context menu)
   if (getMoreButtonBounds().contains(mousePos))
     return "More options";
 
   // Follow button
-  if (!post.isOwnPost && getFollowButtonBounds().contains(mousePos))
-    return post.isFollowing ? "Unfollow" : "Follow";
+  if (!postPtr->isOwnPost && getFollowButtonBounds().contains(mousePos))
+    return postPtr->isFollowing ? "Unfollow" : "Follow";
 
   // User avatar/info - navigate to profile
   if (getAvatarBounds().contains(mousePos) || getUserInfoBounds().contains(mousePos))
-    return "View " + post.username + "'s profile";
+    return "View " + postPtr->username + "'s profile";
 
   // Waveform - seek
   if (getWaveformBounds().contains(mousePos))
     return "Click to seek";
 
   // Download MIDI button
-  if (post.hasMidi && getDownloadMIDIButtonBounds().contains(mousePos))
+  if (postPtr->hasMidi && getDownloadMIDIButtonBounds().contains(mousePos))
     return "Download MIDI file";
 
   // Download project file button
-  if (post.hasProjectFile && getDownloadProjectButtonBounds().contains(mousePos))
+  if (postPtr->hasProjectFile && getDownloadProjectButtonBounds().contains(mousePos))
     return "Download DAW project file";
 
   // Add to DAW button
@@ -1671,14 +1694,14 @@ juce::String PostCard::getTooltip() {
     return "Create a remix";
 
   // Remix chain badge
-  if ((post.isRemix || post.remixCount > 0) && getRemixChainBadgeBounds().contains(mousePos))
+  if ((postPtr->isRemix || postPtr->remixCount > 0) && getRemixChainBadgeBounds().contains(mousePos))
     return "View remix chain";
 
   // Sound badge
-  if (post.soundId.isNotEmpty() && post.soundUsageCount >= 2 && getSoundBadgeBounds().contains(mousePos)) {
-    juce::String tooltip = "View " + juce::String(post.soundUsageCount) + " posts with this sound";
-    if (post.soundName.isNotEmpty())
-      tooltip = post.soundName + " - " + tooltip;
+  if (postPtr->soundId.isNotEmpty() && postPtr->soundUsageCount >= 2 && getSoundBadgeBounds().contains(mousePos)) {
+    juce::String tooltip = "View " + juce::String(postPtr->soundUsageCount) + " posts with this sound";
+    if (postPtr->soundName.isNotEmpty())
+      tooltip = postPtr->soundName + " - " + tooltip;
     return tooltip;
   }
 

@@ -120,6 +120,12 @@ using UploadSlice = InMemorySlice<UploadState>;
 using NotificationSlice = InMemorySlice<NotificationState>;
 
 // ==============================================================================
+// Comments Slice
+// ==============================================================================
+
+using CommentsSlice = InMemorySlice<CommentsState>;
+
+// ==============================================================================
 // Search Slice
 // ==============================================================================
 
@@ -243,6 +249,13 @@ public:
     return notificationSlice_;
   }
 
+  std::shared_ptr<CommentsSlice> getCommentsSlice() {
+    if (!commentsSlice_) {
+      commentsSlice_ = std::make_shared<CommentsSlice>(CommentsState());
+    }
+    return commentsSlice_;
+  }
+
   std::shared_ptr<SearchSlice> getSearchSlice() {
     if (!searchSlice_) {
       searchSlice_ = std::make_shared<SearchSlice>(SearchState());
@@ -301,6 +314,8 @@ public:
       uploadSlice_->dispatch([](UploadState &state) { state = UploadState(); });
     if (notificationSlice_)
       notificationSlice_->dispatch([](NotificationState &state) { state = NotificationState(); });
+    if (commentsSlice_)
+      commentsSlice_->dispatch([](CommentsState &state) { state = CommentsState(); });
     if (searchSlice_)
       searchSlice_->dispatch([](SearchState &state) { state = SearchState(); });
     if (followersSlice_)
@@ -326,6 +341,7 @@ public:
     storiesSlice_ = nullptr;
     uploadSlice_ = nullptr;
     notificationSlice_ = nullptr;
+    commentsSlice_ = nullptr;
     searchSlice_ = nullptr;
     followersSlice_ = nullptr;
     playlistSlice_ = nullptr;
@@ -346,6 +362,7 @@ private:
   std::shared_ptr<StoriesSlice> storiesSlice_;
   std::shared_ptr<UploadSlice> uploadSlice_;
   std::shared_ptr<NotificationSlice> notificationSlice_;
+  std::shared_ptr<CommentsSlice> commentsSlice_;
   std::shared_ptr<SearchSlice> searchSlice_;
   std::shared_ptr<FollowersSlice> followersSlice_;
   std::shared_ptr<PlaylistSlice> playlistSlice_;

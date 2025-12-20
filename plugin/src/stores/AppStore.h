@@ -1,6 +1,7 @@
 #pragma once
 
 #include "slices/AppSlices.h"
+#include "EntityStore.h"
 #include "../models/FeedResponse.h"
 #include "../models/AggregatedFeedResponse.h"
 #include "../network/NetworkClient.h"
@@ -717,6 +718,152 @@ public:
    * @param isOnline Whether user is now online
    */
   void onWebSocketPresenceUpdate(const juce::String &userId, bool isOnline);
+
+  // ==============================================================================
+  // Model-Level Subscription API (New Redux Pattern)
+  // These methods provide strongly-typed access to models with automatic normalization
+  // All components should use these instead of direct NetworkClient calls
+
+  /**
+   * Subscribe to a specific post by ID with strong typing.
+   * Returns shared_ptr<FeedPost> from EntityStore (single source of truth).
+   *
+   * @param postId Post ID to subscribe to
+   * @param callback Called whenever this post changes (likes, comments, etc.)
+   * @return Unsubscriber function - call to stop receiving updates
+   */
+  std::function<void()> subscribeToPost(const juce::String &postId,
+                                        std::function<void(const std::shared_ptr<FeedPost> &)> callback);
+
+  /**
+   * Subscribe to all feed posts as strongly-typed models.
+   * Returns vector<shared_ptr<FeedPost>> from EntityStore.
+   *
+   * @param callback Called with current feed posts whenever feed changes
+   * @return Unsubscriber function
+   */
+  std::function<void()> subscribeToPosts(std::function<void(const std::vector<std::shared_ptr<FeedPost>> &)> callback);
+
+  /**
+   * Subscribe to a specific user by ID with strong typing.
+   * Returns shared_ptr<User> from EntityStore (single source of truth).
+   *
+   * @param userId User ID to subscribe to
+   * @param callback Called whenever this user's profile changes
+   * @return Unsubscriber function
+   */
+  std::function<void()> subscribeToUser(const juce::String &userId,
+                                        std::function<void(const std::shared_ptr<User> &)> callback);
+
+  /**
+   * Subscribe to comments for a specific post with strong typing.
+   * Returns vector<shared_ptr<Comment>> from EntityStore.
+   *
+   * @param postId Post ID to get comments for
+   * @param callback Called with comment list whenever comments change
+   * @return Unsubscriber function
+   */
+  std::function<void()>
+  subscribeToPostComments(const juce::String &postId,
+                          std::function<void(const std::vector<std::shared_ptr<Comment>> &)> callback);
+
+  /**
+   * Subscribe to a specific comment by ID with strong typing.
+   * Returns shared_ptr<Comment> from EntityStore.
+   *
+   * @param commentId Comment ID to subscribe to
+   * @param callback Called whenever this comment changes (reactions, edits)
+   * @return Unsubscriber function
+   */
+  std::function<void()> subscribeToComment(const juce::String &commentId,
+                                           std::function<void(const std::shared_ptr<Comment> &)> callback);
+
+  /**
+   * Load user profile from network and cache in EntityStore.
+   * User will be available via subscribeToUser(userId, callback).
+   * Waits for server confirmation before updating (pessimistic).
+   *
+   * @param userId User ID to load
+   * @param forceRefresh Force network request even if cached
+   */
+  void loadUser(const juce::String &userId, bool forceRefresh = false);
+
+  /**
+   * Load posts for a user and cache in EntityStore.
+   * Posts will be available via subscribeToPosts() or subscribeToPost(postId).
+   *
+   * @param userId User ID to load posts for
+   * @param limit Number of posts to load
+   * @param offset Pagination offset
+   */
+  void loadUserPosts(const juce::String &userId, int limit = 20, int offset = 0);
+
+  /**
+   * Load comments for a post and cache in EntityStore.
+   * Comments will be available via subscribeToPostComments(postId) or subscribeToComment(commentId).
+   *
+   * @param postId Post ID to load comments for
+   * @param limit Number of comments to load
+   * @param offset Pagination offset
+   */
+  void loadPostComments(const juce::String &postId, int limit = 20, int offset = 0);
+
+  /**
+   * Load followers for a user and cache in EntityStore.
+   *
+   * @param userId User ID to load followers for
+   * @param limit Number of followers to load
+   * @param offset Pagination offset
+   */
+  void loadFollowers(const juce::String &userId, int limit = 20, int offset = 0);
+
+  /**
+   * Load following list for a user and cache in EntityStore.
+   *
+   * @param userId User ID to load following for
+   * @param limit Number to load
+   * @param offset Pagination offset
+   */
+  void loadFollowing(const juce::String &userId, int limit = 20, int offset = 0);
+
+  /**
+   * Search users and cache results in EntityStore.
+   * Results available via subscribeToSearch().
+   *
+   * @param query Search query
+   * @param limit Number of results
+   * @param offset Pagination offset
+   */
+  void searchUsersAndCache(const juce::String &query, int limit = 20, int offset = 0);
+
+  /**
+   * Load trending users and cache in EntityStore.
+   *
+   * @param limit Number of trending users to load
+   */
+  void loadTrendingUsersAndCache(int limit = 20);
+
+  /**
+   * Load featured producers and cache in EntityStore.
+   *
+   * @param limit Number of featured producers to load
+   */
+  void loadFeaturedProducersAndCache(int limit = 20);
+
+  /**
+   * Load suggested users and cache in EntityStore.
+   *
+   * @param limit Number of suggested users to load
+   */
+  void loadSuggestedUsersAndCache(int limit = 20);
+
+  /**
+   * Get EntityStore instance for direct normalized access to all cached models.
+   * Use for read-only access. Use AppStore methods for mutations.
+   */
+  EntityStore &getEntityStore() {
+    return EntityStore::getInstance();
+  }
 
 private:
   NetworkClient *networkClient = nullptr;

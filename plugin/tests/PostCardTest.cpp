@@ -68,7 +68,7 @@ TEST_CASE_METHOD(PostCardTestFixture, "PostCard initialization", "[PostCard]") {
   }
 
   SECTION("PostCard post is initially empty") {
-    REQUIRE(card.getPost().id.isEmpty());
+    REQUIRE(card.getPost()->id.isEmpty());
   }
 }
 
@@ -80,12 +80,12 @@ TEST_CASE_METHOD(PostCardTestFixture, "PostCard setPost updates display", "[Post
   SECTION("setPost updates the post data") {
     card.setPost(testPost);
 
-    REQUIRE(card.getPost().id == "post-1");
-    REQUIRE(card.getPost().username == "test_producer");
-    REQUIRE(card.getPost().likeCount == 5);
-    REQUIRE(card.getPost().playCount == 10);
-    REQUIRE(card.getPost().commentCount == 2);
-    REQUIRE(card.getPost().isLiked == false);
+    REQUIRE(card.getPost()->id == "post-1");
+    REQUIRE(card.getPost()->username == "test_producer");
+    REQUIRE(card.getPost()->likeCount == 5);
+    REQUIRE(card.getPost()->playCount == 10);
+    REQUIRE(card.getPost()->commentCount == 2);
+    REQUIRE(card.getPost()->isLiked == false);
   }
 
   SECTION("getPostId returns correct ID") {
@@ -179,8 +179,8 @@ TEST_CASE_METHOD(PostCardTestFixture, "PostCard like state changes on callback",
 
   SECTION("UI updates after successful like via callback") {
     // Initial state: NOT liked, 5 likes
-    REQUIRE(card.getPost().isLiked == false);
-    REQUIRE(card.getPost().likeCount == 5);
+    REQUIRE(card.getPost()->isLiked == false);
+    REQUIRE(card.getPost()->likeCount == 5);
 
     // Simulate network success - update post data via setPost()
     card.onLikeToggled = [&](const Sidechain::FeedPost &post, bool liked) {
@@ -200,8 +200,8 @@ TEST_CASE_METHOD(PostCardTestFixture, "PostCard like state changes on callback",
     card.onLikeToggled(testPost, true);
 
     // After callback, UI should reflect the like
-    REQUIRE(card.getPost().isLiked == true);
-    REQUIRE(card.getPost().likeCount == 6);
+    REQUIRE(card.getPost()->isLiked == true);
+    REQUIRE(card.getPost()->likeCount == 6);
   }
 
   SECTION("UI updates after unlike") {
@@ -226,8 +226,8 @@ TEST_CASE_METHOD(PostCardTestFixture, "PostCard like state changes on callback",
     card.onLikeToggled(likedPost, false);
 
     // Should go back to unliked
-    REQUIRE(card.getPost().isLiked == false);
-    REQUIRE(card.getPost().likeCount == 5);
+    REQUIRE(card.getPost()->isLiked == false);
+    REQUIRE(card.getPost()->likeCount == 5);
   }
 }
 
@@ -239,7 +239,7 @@ TEST_CASE_METHOD(PostCardTestFixture, "PostCard comment interaction", "[PostCard
   card.setPost(testPost);
 
   SECTION("Comment count persists in post") {
-    REQUIRE(card.getPost().commentCount == 3);
+    REQUIRE(card.getPost()->commentCount == 3);
   }
 
   SECTION("onCommentClicked callback can be registered and fired") {
@@ -287,7 +287,7 @@ TEST_CASE_METHOD(PostCardTestFixture, "PostCard save state updates", "[PostCard]
 
   SECTION("UI updates reflect save state changes") {
     // Initial: not saved
-    REQUIRE(card.getPost().isSaved == false);
+    REQUIRE(card.getPost()->isSaved == false);
 
     // Simulate save
     card.onSaveToggled = [&](const Sidechain::FeedPost &post, bool saved) {
@@ -297,11 +297,11 @@ TEST_CASE_METHOD(PostCardTestFixture, "PostCard save state updates", "[PostCard]
     };
 
     card.onSaveToggled(testPost, true);
-    REQUIRE(card.getPost().isSaved == true);
+    REQUIRE(card.getPost()->isSaved == true);
 
     // Simulate unsave
-    card.onSaveToggled(card.getPost(), false);
-    REQUIRE(card.getPost().isSaved == false);
+    card.onSaveToggled(*card.getPost(), false);
+    REQUIRE(card.getPost()->isSaved == false);
   }
 }
 
@@ -313,7 +313,7 @@ TEST_CASE_METHOD(PostCardTestFixture, "PostCard follow state interaction", "[Pos
   card.setPost(testPost);
 
   SECTION("Follow state updates on callback") {
-    REQUIRE(card.getPost().isFollowing == false);
+    REQUIRE(card.getPost()->isFollowing == false);
 
     card.onFollowToggled = [&](const Sidechain::FeedPost &post, bool willFollow) {
       Sidechain::FeedPost updated = post;
@@ -323,11 +323,11 @@ TEST_CASE_METHOD(PostCardTestFixture, "PostCard follow state interaction", "[Pos
 
     // Follow the user
     card.onFollowToggled(testPost, true);
-    REQUIRE(card.getPost().isFollowing == true);
+    REQUIRE(card.getPost()->isFollowing == true);
 
     // Unfollow
-    card.onFollowToggled(card.getPost(), false);
-    REQUIRE(card.getPost().isFollowing == false);
+    card.onFollowToggled(*card.getPost(), false);
+    REQUIRE(card.getPost()->isFollowing == false);
   }
 }
 
@@ -351,9 +351,9 @@ TEST_CASE_METHOD(PostCardTestFixture, "PostCard multiple state changes in sequen
       card.setPost(updated);
     };
 
-    card.onLikeToggled(card.getPost(), true);
-    REQUIRE(card.getPost().isLiked == true);
-    REQUIRE(card.getPost().likeCount == 6);
+    card.onLikeToggled(*card.getPost(), true);
+    REQUIRE(card.getPost()->isLiked == true);
+    REQUIRE(card.getPost()->likeCount == 6);
 
     // Save the post
     card.onSaveToggled = [&](const Sidechain::FeedPost &post, bool saved) {
@@ -362,9 +362,9 @@ TEST_CASE_METHOD(PostCardTestFixture, "PostCard multiple state changes in sequen
       card.setPost(updated);
     };
 
-    card.onSaveToggled(card.getPost(), true);
-    REQUIRE(card.getPost().isSaved == true);
-    REQUIRE(card.getPost().isLiked == true); // Still liked
+    card.onSaveToggled(*card.getPost(), true);
+    REQUIRE(card.getPost()->isSaved == true);
+    REQUIRE(card.getPost()->isLiked == true); // Still liked
   }
 }
 
@@ -375,7 +375,7 @@ TEST_CASE_METHOD(PostCardTestFixture, "PostCard error handling in callbacks", "[
   card.setPost(testPost);
 
   SECTION("Post state unchanged on callback error") {
-    Sidechain::FeedPost originalPost = card.getPost();
+    Sidechain::FeedPost originalPost = *card.getPost();
 
     // Callback doesn't update (simulating error/network failure)
     card.onLikeToggled = [](const Sidechain::FeedPost &post, bool liked) {
@@ -386,8 +386,8 @@ TEST_CASE_METHOD(PostCardTestFixture, "PostCard error handling in callbacks", "[
     card.onLikeToggled(testPost, true);
 
     // Post state should remain unchanged
-    REQUIRE(card.getPost().id == originalPost.id);
-    REQUIRE(card.getPost().isLiked == originalPost.isLiked);
-    REQUIRE(card.getPost().likeCount == originalPost.likeCount);
+    REQUIRE(card.getPost()->id == originalPost.id);
+    REQUIRE(card.getPost()->isLiked == originalPost.isLiked);
+    REQUIRE(card.getPost()->likeCount == originalPost.likeCount);
   }
 }

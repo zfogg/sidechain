@@ -562,8 +562,8 @@ void PostsFeed::queryPresenceForPosts() {
     // Update PostCards with presence data
     for (const auto &presence : presenceList) {
       for (auto *card : postCards) {
-        if (card->getPost().userId == presence.userId) {
-          auto updatedPost = card->getPost();
+        if (card->getPost() && card->getPost()->userId == presence.userId) {
+          auto updatedPost = *card->getPost();
           updatedPost.isOnline = presence.online;
           updatedPost.isInStudio = (presence.status == "in_studio" || presence.status == "in studio");
           card->setPost(updatedPost);
@@ -584,8 +584,8 @@ void PostsFeed::updateUserPresence(const juce::String &userId, bool isOnline, co
 
   // Update PostCards with presence data (no local posts array)
   for (auto *card : postCards) {
-    if (card->getPost().userId == userId) {
-      auto updatedPost = card->getPost();
+    if (card->getPost() && card->getPost()->userId == userId) {
+      auto updatedPost = *card->getPost();
       updatedPost.isOnline = isOnline;
       updatedPost.isInStudio = isInStudio;
       card->setPost(updatedPost);
@@ -951,8 +951,8 @@ void PostsFeed::rebuildPostCards() {
 
     for (const auto &post : posts) {
       auto *card = postCards.add(new PostCard(appStore));
-      card->setPost(*post);         // Dereference shared_ptr
-      setupPostCardCallbacks(card); // Pass card with dereferenced post
+      card->setPost(post);          // Pass shared_ptr directly (preferred - keeps strong reference)
+      setupPostCardCallbacks(card); // Pass card with shared_ptr post
       addAndMakeVisible(card);
       Log::debug("PostsFeed::rebuildPostCards: Created card for post: " + post->id);
     }
