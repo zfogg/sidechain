@@ -43,6 +43,8 @@ ifeq ($(UNAME_S),Darwin)
 	CMAKE_GENERATOR = -G Ninja
 	# On macOS, default to /usr/local (SIP protects /usr)
 	PREFIX ?= /usr/local
+	# Use debug-no-vcpkg preset on macOS
+	CMAKE_PRESET ?= debug-no-vcpkg
 else ifeq ($(UNAME_S),Linux)
 	PLATFORM = linux
 	PLUGIN_OUTPUT = plugin/build/src/core/Sidechain_artefacts/$(CMAKE_BUILD_TYPE)/VST3/Sidechain.vst3
@@ -50,6 +52,8 @@ else ifeq ($(UNAME_S),Linux)
 	CMAKE_GENERATOR = -G Ninja
 	# On Linux, default to /usr (can use sudo)
 	PREFIX ?= /usr
+	# Use debug-no-vcpkg preset on Linux
+	CMAKE_PRESET ?= debug-no-vcpkg
 else ifeq ($(OS),Windows_NT)
 	PLATFORM = windows
 	PLUGIN_OUTPUT = plugin/build/src/core/Sidechain_artefacts/$(CMAKE_BUILD_TYPE)/VST3/Sidechain.vst3
@@ -57,6 +61,8 @@ else ifeq ($(OS),Windows_NT)
 	CMAKE_GENERATOR = -G "Visual Studio 17 2022" -A x64
 	# On Windows, default to Program Files
 	PREFIX ?= $(ProgramFiles)/Sidechain
+	# Use debug preset on Windows (with vcpkg)
+	CMAKE_PRESET ?= debug
 else
 	$(error Unsupported platform: $(UNAME_S))
 endif
@@ -107,14 +113,7 @@ plugin: $(BUILD_DIR)/CMakeCache.txt
 $(BUILD_DIR)/CMakeCache.txt: plugin/CMakeLists.txt
 	@echo "🔄 Configuring CMake build for $(PLATFORM) ($(CMAKE_BUILD_TYPE))..."
 	@mkdir -p $(BUILD_DIR)
-	@# Use Ninja if available, otherwise fall back to platform default
-	@if command -v ninja >/dev/null 2>&1; then \
-		echo "✅ Using Ninja generator (faster parallel builds)"; \
-		cmake -S plugin -B $(BUILD_DIR) -G Ninja -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE) -DCMAKE_EXPORT_COMPILE_COMMANDS=ON $(if $(SIDECHAIN_BUILD_STANDALONE),-DSIDECHAIN_BUILD_STANDALONE=ON,); \
-	else \
-		echo "⚠️  Ninja not found, using $(CMAKE_GENERATOR). Install ninja for faster builds."; \
-		cmake -S plugin -B $(BUILD_DIR) $(CMAKE_GENERATOR) -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE) -DCMAKE_EXPORT_COMPILE_COMMANDS=ON $(if $(SIDECHAIN_BUILD_STANDALONE),-DSIDECHAIN_BUILD_STANDALONE=ON,); \
-	fi
+	@cmake --preset $(CMAKE_PRESET) -S plugin -B $(BUILD_DIR) -DCMAKE_EXPORT_COMPILE_COMMANDS=ON $(if $(SIDECHAIN_BUILD_STANDALONE),-DSIDECHAIN_BUILD_STANDALONE=ON,)
 	@echo "✅ CMake configuration complete"
 	@if [ -f "$(BUILD_DIR)/compile_commands.json" ]; then \
 		ln -sf "$(BUILD_DIR)/compile_commands.json" compile_commands.json 2>/dev/null || true; \
@@ -124,14 +123,7 @@ $(BUILD_DIR)/CMakeCache.txt: plugin/CMakeLists.txt
 # Explicit plugin-configure target for manual reconfiguration
 plugin-configure:
 	@echo "🔄 Configuring CMake build for $(PLATFORM) ($(CMAKE_BUILD_TYPE))..."
-	@# Use Ninja if available, otherwise fall back to platform default
-	@if command -v ninja >/dev/null 2>&1; then \
-		echo "✅ Using Ninja generator (faster parallel builds)"; \
-		cmake -S plugin -B $(BUILD_DIR) -G Ninja -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE) -DCMAKE_EXPORT_COMPILE_COMMANDS=ON $(if $(SIDECHAIN_BUILD_STANDALONE),-DSIDECHAIN_BUILD_STANDALONE=ON,); \
-	else \
-		echo "⚠️  Ninja not found, using $(CMAKE_GENERATOR). Install ninja for faster builds."; \
-		cmake -S plugin -B $(BUILD_DIR) $(CMAKE_GENERATOR) -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE) -DCMAKE_EXPORT_COMPILE_COMMANDS=ON $(if $(SIDECHAIN_BUILD_STANDALONE),-DSIDECHAIN_BUILD_STANDALONE=ON,); \
-	fi
+	@cmake --preset $(CMAKE_PRESET) -S plugin -B $(BUILD_DIR) -DCMAKE_EXPORT_COMPILE_COMMANDS=ON $(if $(SIDECHAIN_BUILD_STANDALONE),-DSIDECHAIN_BUILD_STANDALONE=ON,)
 	@echo "✅ CMake configuration complete"
 	@if [ -f "$(BUILD_DIR)/compile_commands.json" ]; then \
 		ln -sf "$(BUILD_DIR)/compile_commands.json" compile_commands.json 2>/dev/null || true; \
@@ -304,7 +296,7 @@ test-plugin-unit-ci: test-plugin-configure
 
 test-plugin-configure:
 	@echo "🔄 Configuring CMake build with tests..."
-	@cmake -S plugin -B $(BUILD_DIR) $(CMAKE_GENERATOR) -DCMAKE_BUILD_TYPE=Release -DSIDECHAIN_BUILD_TESTS=ON
+	@cmake --preset $(CMAKE_PRESET) -S plugin -B $(BUILD_DIR) -DSIDECHAIN_BUILD_TESTS=ON
 
 # Plugin test coverage
 test-plugin-coverage: test-plugin-coverage-configure
@@ -320,7 +312,7 @@ test-plugin-coverage: test-plugin-coverage-configure
 
 test-plugin-coverage-configure:
 	@echo "🔄 Configuring CMake build with tests and coverage..."
-	@cmake -S plugin -B $(BUILD_DIR) $(CMAKE_GENERATOR) -DCMAKE_BUILD_TYPE=Debug -DSIDECHAIN_BUILD_TESTS=ON -DSIDECHAIN_ENABLE_COVERAGE=ON
+	@cmake --preset $(CMAKE_PRESET) -S plugin -B $(BUILD_DIR) -DSIDECHAIN_BUILD_TESTS=ON -DSIDECHAIN_ENABLE_COVERAGE=ON
 
 # Code quality targets (linting and formatting)
 format: plugin-configure
