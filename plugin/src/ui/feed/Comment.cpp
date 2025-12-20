@@ -1,6 +1,10 @@
 #include "Comment.h"
 #include "../../network/NetworkClient.h"
 #include "../../stores/AppStore.h"
+#include "../../stores/EntityStore.h"
+#include "../../util/logging/Logger.h"
+
+#include <nlohmann/json.hpp>
 
 #include "../../ui/common/ToastNotification.h"
 #include "../../ui/feed/EmojiReactionsPanel.h"
@@ -34,13 +38,17 @@ CommentRow::CommentRow() {
 }
 
 // ==============================================================================
-void CommentRow::setComment(const Comment &newComment) {
-  comment = newComment;
+void CommentRow::setComment(const std::shared_ptr<Sidechain::Comment> &comment) {
+  commentPtr = comment;
+
+  if (!commentPtr) {
+    return;
+  }
 
   // Fetch avatar image via AppStore reactive observable (with caching)
-  if (comment.userAvatarUrl.isNotEmpty() && appStore) {
+  if (commentPtr->userAvatarUrl.isNotEmpty() && appStore) {
     juce::Component::SafePointer<CommentRow> safeThis(this);
-    appStore->loadImageObservable(comment.userAvatarUrl)
+    appStore->loadImageObservable(commentPtr->userAvatarUrl)
         .subscribe(
             [safeThis](const juce::Image &image) {
               if (safeThis == nullptr)
@@ -51,7 +59,35 @@ void CommentRow::setComment(const Comment &newComment) {
             [safeThis](std::exception_ptr) {
               if (safeThis == nullptr)
                 return;
-              Log::warn("Comment: Failed to load avatar image");
+              Log::warn("CommentRow: Failed to load avatar image");
+            });
+  }
+
+  repaint();
+}
+
+void CommentRow::setComment(const Sidechain::Comment &comment) {
+  commentPtr = std::make_shared<Sidechain::Comment>(comment);
+
+  if (!commentPtr) {
+    return;
+  }
+
+  // Fetch avatar image via AppStore reactive observable (with caching)
+  if (commentPtr->userAvatarUrl.isNotEmpty() && appStore) {
+    juce::Component::SafePointer<CommentRow> safeThis(this);
+    appStore->loadImageObservable(commentPtr->userAvatarUrl)
+        .subscribe(
+            [safeThis](const juce::Image &image) {
+              if (safeThis == nullptr)
+                return;
+              if (image.isValid())
+                safeThis->repaint();
+            },
+            [safeThis](std::exception_ptr) {
+              if (safeThis == nullptr)
+                return;
+              Log::warn("CommentRow: Failed to load avatar image");
             });
   }
 
@@ -59,10 +95,14 @@ void CommentRow::setComment(const Comment &newComment) {
 }
 
 void CommentRow::updateLikeCount(int count, bool liked) {
-  Log::debug("CommentRow::updateLikeCount: Updating like count - id: " + comment.id +
+  if (!commentPtr) {
+    return;
+  }
+
+  Log::debug("CommentRow::updateLikeCount: Updating like count - id: " + commentPtr->id +
              ", count: " + juce::String(count) + ", liked: " + juce::String(liked ? "yes" : "no"));
-  comment.likeCount = count;
-  comment.isLiked = liked;
+  commentPtr->likeCount = count;
+  commentPtr->isLiked = liked;
   repaint();
 }
 
@@ -89,9 +129,9 @@ void CommentRow::paint(juce::Graphics &g) {
 
 void CommentRow::drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds) {
   // Use reactive observable for image loading (with caching)
-  if (appStore && comment.userAvatarUrl.isNotEmpty()) {
+  if (appStore && commentPtr && commentPtr->userAvatarUrl.isNotEmpty()) {
     juce::Component::SafePointer<CommentRow> safeThis(this);
-    appStore->loadImageObservable(comment.userAvatarUrl)
+    appStore->loadImageObservable(commentPtr->userAvatarUrl)
         .subscribe(
             [safeThis](const juce::Image &image) {
               if (safeThis == nullptr)
@@ -116,36 +156,45 @@ void CommentRow::drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds) {
 }
 
 void CommentRow::drawUserInfo(juce::Graphics &g, juce::Rectangle<int> bounds) {
+  if (!commentPtr)
+    return;
+
   // Username
   g.setColour(SidechainColors::textPrimary());
   g.setFont(13.0f);
-  auto usernameWidth = juce::GlyphArrangement::getStringWidth(g.getCurrentFont(), comment.username);
-  g.drawText(comment.username.isEmpty() ? "Unknown" : comment.username, bounds.getX(), bounds.getY(),
+  auto usernameWidth = juce::GlyphArrangement::getStringWidth(g.getCurrentFont(), commentPtr->username);
+  g.drawText(commentPtr->username.isEmpty() ? "Unknown" : commentPtr->username, bounds.getX(), bounds.getY(),
              static_cast<int>(usernameWidth) + 5, 18, juce::Justification::centredLeft);
 
   // Timestamp (after username)
   g.setColour(SidechainColors::textMuted());
   g.setFont(11.0f);
-  g.drawText(comment.timeAgo, bounds.getX() + static_cast<int>(usernameWidth) + 8, bounds.getY(), 60, 18,
+  g.drawText(commentPtr->timeAgo, bounds.getX() + static_cast<int>(usernameWidth) + 8, bounds.getY(), 60, 18,
              juce::Justification::centredLeft);
 
   // "Edited" indicator if applicable
-  if (comment.canEdit && comment.isOwnComment) {
+  if (commentPtr->canEdit && commentPtr->isOwnComment) {
     // Show within edit window indicator (subtle)
   }
 }
 
 void CommentRow::drawContent(juce::Graphics &g, juce::Rectangle<int> bounds) {
+  if (!commentPtr)
+    return;
+
   g.setColour(SidechainColors::textPrimary());
   g.setFont(13.0f);
 
   // Draw comment text, wrapping if needed
   // Escape HTML entities to prevent XSS
-  juce::String safeContent = Validate::escapeHtml(comment.content);
+  juce::String safeContent = Validate::escapeHtml(commentPtr->content);
   g.drawFittedText(safeContent, bounds, juce::Justification::topLeft, 3, 1.0f);
 }
 
 void CommentRow::drawActions(juce::Graphics &g, juce::Rectangle<int> bounds) {
+  if (!commentPtr)
+    return;
+
   // Use provided bounds for responsive layout of action buttons
   // Distribute available space proportionally
   auto actionsBounds = bounds;
@@ -154,17 +203,17 @@ void CommentRow::drawActions(juce::Graphics &g, juce::Rectangle<int> bounds) {
 
   // Like button - with icon and count
   auto likeBounds = actionsBounds.removeFromLeft(60);
-  juce::Colour likeColor = comment.isLiked ? SidechainColors::like() : SidechainColors::textMuted();
+  juce::Colour likeColor = commentPtr->isLiked ? SidechainColors::like() : SidechainColors::textMuted();
   g.setColour(likeColor);
   g.setFont(12.0f);
 
-  juce::String heartIcon = comment.isLiked ? juce::String(juce::CharPointer_UTF8("\xE2\x99\xA5")) : // Filled heart
-                               juce::String(juce::CharPointer_UTF8("\xE2\x99\xA1"));                // Empty heart
+  juce::String heartIcon = commentPtr->isLiked ? juce::String(juce::CharPointer_UTF8("\xE2\x99\xA5")) : // Filled heart
+                               juce::String(juce::CharPointer_UTF8("\xE2\x99\xA1"));                    // Empty heart
   g.drawText(heartIcon, likeBounds.removeFromLeft(16), juce::Justification::centredLeft);
 
   // Like count
-  if (comment.likeCount > 0) {
-    g.drawText(StringFormatter::formatCount(comment.likeCount), likeBounds.removeFromLeft(25),
+  if (commentPtr->likeCount > 0) {
+    g.drawText(StringFormatter::formatCount(commentPtr->likeCount), likeBounds.removeFromLeft(25),
                juce::Justification::centredLeft);
   }
 
@@ -193,42 +242,50 @@ void CommentRow::resized() {
 
 void CommentRow::mouseUp(const juce::MouseEvent &event) {
   auto pos = event.getPosition();
-  Log::debug("CommentRow::mouseUp: Mouse clicked at (" + juce::String(pos.x) + ", " + juce::String(pos.y) +
-             ") on comment: " + comment.id);
+  if (commentPtr) {
+    Log::debug("CommentRow::mouseUp: Mouse clicked at (" + juce::String(pos.x) + ", " + juce::String(pos.y) +
+               ") on comment: " + commentPtr->id);
+  }
 
   // Check avatar/username for user click
   if (getAvatarBounds().contains(pos) || getUserInfoBounds().contains(pos)) {
     Log::info("CommentRow::mouseUp: User clicked on avatar/username");
-    if (onUserClicked)
-      onUserClicked(comment);
+    if (onUserClicked && commentPtr)
+      onUserClicked(*commentPtr);
     return;
   }
 
   // Check like button
   if (getLikeButtonBounds().contains(pos)) {
-    bool willBeLiked = !comment.isLiked;
+    if (!commentPtr)
+      return;
+    bool willBeLiked = !commentPtr->isLiked;
     Log::info("CommentRow::mouseUp: Like button clicked - will be liked: " + juce::String(willBeLiked ? "yes" : "no"));
     if (onLikeToggled)
-      onLikeToggled(comment, willBeLiked);
+      onLikeToggled(*commentPtr, willBeLiked);
     return;
   }
 
   // Check reply button
   if (getReplyButtonBounds().contains(pos)) {
+    if (!commentPtr)
+      return;
     Log::info("CommentRow::mouseUp: Reply button clicked");
     if (onReplyClicked)
-      onReplyClicked(comment);
+      onReplyClicked(*commentPtr);
     return;
   }
 
   // Check more button
   if (getMoreButtonBounds().contains(pos)) {
+    if (!commentPtr)
+      return;
     Log::info("CommentRow::mouseUp: More button clicked, showing context menu");
     // Show context menu
     juce::PopupMenu menu;
 
-    if (comment.isOwnComment) {
-      if (comment.canEdit)
+    if (commentPtr->isOwnComment) {
+      if (commentPtr->canEdit)
         menu.addItem(1, "Edit");
       menu.addItem(2, "Delete");
     } else {
@@ -238,13 +295,16 @@ void CommentRow::mouseUp(const juce::MouseEvent &event) {
     menu.showMenuAsync(juce::PopupMenu::Options(), [this](int result) {
       if (result == 1 && onEditClicked) {
         Log::info("CommentRow::mouseUp: Edit menu item selected");
-        onEditClicked(comment);
+        if (commentPtr)
+          onEditClicked(*commentPtr);
       } else if (result == 2 && onDeleteClicked) {
         Log::info("CommentRow::mouseUp: Delete menu item selected");
-        onDeleteClicked(comment);
+        if (commentPtr)
+          onDeleteClicked(*commentPtr);
       } else if (result == 3 && onReportClicked) {
         Log::info("CommentRow::mouseUp: Report menu item selected");
-        onReportClicked(comment);
+        if (commentPtr)
+          onReportClicked(*commentPtr);
       }
     });
     return;
@@ -373,31 +433,20 @@ void CommentsPanel::loadCommentsForPost(const juce::String &postId) {
   currentPostId = postId;
 
   currentOffset = 0;
-  comments.clear();
-  commentRows.clear();
   errorMessage = "";
   isLoading = true;
   repaint();
 
-  auto &appStoreRef = AppStore::getInstance();
-  juce::Component::SafePointer<CommentsPanel> safeThis(this);
-  appStoreRef.getCommentsObservable(postId, 20, 0)
-      .subscribe(
-          [safeThis](const juce::Array<juce::var> &commentsArray) {
-            if (safeThis == nullptr)
-              return;
-            juce::var commentsVar = commentsArray;
-            Outcome<std::pair<juce::var, int>> result = Outcome<std::pair<juce::var, int>>::ok(
-                std::make_pair(commentsVar, static_cast<int>(commentsArray.size())));
-            safeThis->handleCommentsLoaded(result);
-          },
-          [safeThis](std::exception_ptr) {
-            if (safeThis == nullptr)
-              return;
-            Outcome<std::pair<juce::var, int>> errorResult =
-                Outcome<std::pair<juce::var, int>>::error("Failed to load comments");
-            safeThis->handleCommentsLoaded(errorResult);
-          });
+  // Delegate to AppStore - it will normalize to models and update CommentsState
+  // which triggers subscribeToAppStore() callback
+  if (appStore) {
+    appStore->loadPostComments(postId, 20, 0);
+  } else {
+    Sidechain::Util::logError("CommentsPanel", "Cannot load comments - AppStore not set");
+    isLoading = false;
+    errorMessage = "AppStore not initialized";
+    repaint();
+  }
 }
 
 void CommentsPanel::refreshComments() {
@@ -420,15 +469,21 @@ void CommentsPanel::handleCommentsLoaded(Outcome<std::pair<juce::var, int>> comm
       auto *arr = commentsData.getArray();
       if (arr != nullptr) {
         for (const auto &item : *arr) {
-          Comment comment = Comment::fromJson(item);
-          if (comment.isValid())
-            comments.add(comment);
+          try {
+            auto json = nlohmann::json::parse(item.toString().toStdString());
+            auto normalized = EntityStore::getInstance().normalizeComment(json);
+            if (normalized) {
+              comments.push_back(normalized);
+            }
+          } catch (const std::exception &e) {
+            Sidechain::Util::logError("CommentsPanel", "Failed to parse comment: " + juce::String(e.what()));
+          }
         }
       }
 
       totalCommentCount = total;
-      hasMoreComments = comments.size() < total;
-      currentOffset = comments.size();
+      hasMoreComments = (int)comments.size() < total;
+      currentOffset = (int)comments.size();
       updateCommentsList();
     } else {
       errorMessage = "Invalid comments response";
@@ -458,14 +513,20 @@ void CommentsPanel::loadMoreComments() {
 
             if (commentsArray.size() > 0) {
               for (const auto &item : commentsArray) {
-                Comment comment = Comment::fromJson(item);
-                if (comment.isValid())
-                  safeThis->comments.add(comment);
+                try {
+                  auto json = nlohmann::json::parse(item.toString().toStdString());
+                  auto normalized = EntityStore::getInstance().normalizeComment(json);
+                  if (normalized) {
+                    safeThis->comments.push_back(normalized);
+                  }
+                } catch (const std::exception &e) {
+                  Sidechain::Util::logError("CommentsPanel", "Failed to parse comment: " + juce::String(e.what()));
+                }
               }
 
-              safeThis->totalCommentCount = safeThis->comments.size();
+              safeThis->totalCommentCount = (int)safeThis->comments.size();
               safeThis->hasMoreComments = false;
-              safeThis->currentOffset = safeThis->comments.size();
+              safeThis->currentOffset = (int)safeThis->comments.size();
               safeThis->updateCommentsList();
             } else {
               safeThis->errorMessage = "Invalid comments response";
@@ -489,10 +550,10 @@ void CommentsPanel::updateCommentsList() {
   for (const auto &comment : comments) {
     auto *row = new CommentRow();
     row->setComment(comment);
-    row->setIsReply(comment.parentId.isNotEmpty());
+    row->setIsReply(comment->parentId.isNotEmpty());
     setupRowCallbacks(row);
 
-    int rowHeight = comment.parentId.isNotEmpty() ? CommentRow::REPLY_ROW_HEIGHT : CommentRow::ROW_HEIGHT;
+    int rowHeight = comment->parentId.isNotEmpty() ? CommentRow::REPLY_ROW_HEIGHT : CommentRow::ROW_HEIGHT;
     row->setBounds(0, yPos, contentContainer->getWidth(), rowHeight);
     contentContainer->addAndMakeVisible(row);
     commentRows.add(row);
@@ -504,14 +565,16 @@ void CommentsPanel::updateCommentsList() {
 }
 
 void CommentsPanel::setupRowCallbacks(CommentRow *row) {
-  row->onUserClicked = [this](const Comment &comment) {
+  row->onUserClicked = [this](const Sidechain::Comment &comment) {
     if (onUserClicked)
       onUserClicked(comment.userId);
   };
 
-  row->onLikeToggled = [this](const Comment &comment, bool liked) { handleCommentLikeToggled(comment, liked); };
+  row->onLikeToggled = [this](const Sidechain::Comment &comment, bool liked) {
+    handleCommentLikeToggled(comment, liked);
+  };
 
-  row->onReplyClicked = [this](const Comment &comment) {
+  row->onReplyClicked = [this](const Sidechain::Comment &comment) {
     replyingToCommentId = comment.id;
     replyingToUsername = comment.username;
     inputField->setText("@" + comment.username + " ");
@@ -519,7 +582,7 @@ void CommentsPanel::setupRowCallbacks(CommentRow *row) {
     repaint();
   };
 
-  row->onEditClicked = [this](const Comment &comment) {
+  row->onEditClicked = [this](const Sidechain::Comment &comment) {
     // Handle edit comment action.
     // Set edit state and populate input with existing content
     editCommentId = comment.id;
@@ -537,7 +600,7 @@ void CommentsPanel::setupRowCallbacks(CommentRow *row) {
   // - Comment reporting: wired up in onReportClicked (line 561-604) - uses
   // Delete comment via AppStore
 
-  row->onDeleteClicked = [this](const Comment &comment) {
+  row->onDeleteClicked = [this](const Sidechain::Comment &comment) {
     if (appStore == nullptr)
       return;
 
@@ -555,7 +618,7 @@ void CommentsPanel::setupRowCallbacks(CommentRow *row) {
     });
   };
 
-  row->onReportClicked = [this](const Comment &comment) {
+  row->onReportClicked = [this](const Sidechain::Comment &comment) {
     // Handle report comment action.
     Log::info("CommentsPanel::setupRowCallbacks: Report comment clicked - "
               "commentId: " +
@@ -582,7 +645,7 @@ void CommentsPanel::setupRowCallbacks(CommentRow *row) {
   };
 }
 
-void CommentsPanel::handleCommentLikeToggled(const Comment &comment, bool liked) {
+void CommentsPanel::handleCommentLikeToggled(const Sidechain::Comment &comment, bool liked) {
   Log::info("CommentsPanel::handleCommentLikeToggled: Toggling like - commentId: " + comment.id +
             ", liked: " + juce::String(liked ? "yes" : "no"));
 
@@ -625,15 +688,20 @@ void CommentsPanel::handleCommentCreated(Outcome<juce::var> commentResult) {
     auto commentData = commentResult.getValue();
     Log::info("CommentsPanel::handleCommentCreated: Comment creation successful");
 
-    Comment newComment = Comment::fromJson(commentData);
-    if (newComment.isValid()) {
-      Log::info("CommentsPanel::handleCommentCreated: Adding new comment - id: " + newComment.id +
-                ", username: " + newComment.username);
-      comments.insert(0, newComment); // Add at top
-      totalCommentCount++;
-      updateCommentsList();
-    } else {
-      Log::warn("CommentsPanel::handleCommentCreated: Comment data invalid");
+    try {
+      auto json = nlohmann::json::parse(commentData.toString().toStdString());
+      auto newComment = EntityStore::getInstance().normalizeComment(json);
+      if (newComment) {
+        Log::info("CommentsPanel::handleCommentCreated: Adding new comment - id: " + newComment->id +
+                  ", username: " + newComment->username);
+        comments.insert(comments.begin(), newComment); // Add at top
+        totalCommentCount++;
+        updateCommentsList();
+      } else {
+        Log::warn("CommentsPanel::handleCommentCreated: Comment data invalid");
+      }
+    } catch (const std::exception &e) {
+      Log::warn("CommentsPanel::handleCommentCreated: Failed to parse comment - " + juce::String(e.what()));
     }
 
     inputField->clear();
@@ -656,10 +724,10 @@ void CommentsPanel::handleCommentDeleted(bool success, const juce::String &comme
 
   if (success) {
     // Remove from list
-    for (int i = comments.size() - 1; i >= 0; --i) {
-      if (comments[i].id == commentId) {
+    for (int i = (int)comments.size() - 1; i >= 0; --i) {
+      if (comments[i] && comments[i]->id == commentId) {
         Log::debug("CommentsPanel::handleCommentDeleted: Removing comment from list");
-        comments.remove(i);
+        comments.erase(comments.begin() + i);
         totalCommentCount--;
         break;
       }
@@ -778,7 +846,7 @@ void CommentsPanel::paint(juce::Graphics &g) {
   }
 
   // Empty state
-  if (!isLoading && comments.isEmpty() && errorMessage.isEmpty()) {
+  if (!isLoading && comments.empty() && errorMessage.isEmpty()) {
     g.setColour(SidechainColors::textMuted());
     g.setFont(14.0f);
     g.drawText("No comments yet. Be the first!", getLocalBounds(), juce::Justification::centred);
@@ -1135,6 +1203,52 @@ void CommentsPanel::insertEmoji(const juce::String &emoji) {
   inputField->setText(text);
   inputField->setCaretPosition(caretPos + emoji.length());
   inputField->grabKeyboardFocus();
+}
+
+// ==============================================================================
+// AppStoreComponent Implementation
+
+void CommentsPanel::subscribeToAppStore() {
+  if (!appStore) {
+    Sidechain::Util::logError("CommentsPanel", "Cannot subscribe to AppStore - not set");
+    return;
+  }
+
+  // Subscribe to comments for the current post
+  if (currentPostId.isNotEmpty()) {
+    commentsUnsubscriber = appStore->subscribeToPostComments(
+        currentPostId, [this](const std::vector<std::shared_ptr<Sidechain::Comment>> &commentsData) {
+          // Update UI with strongly typed models
+          comments = commentsData;
+          updateCommentsList();
+        });
+  }
+}
+
+void CommentsPanel::onAppStateChanged(const Sidechain::Stores::CommentsState &state) {
+  // Check if we have an error
+  if (state.commentsError.isNotEmpty()) {
+    errorMessage = state.commentsError;
+    repaint();
+    return;
+  }
+
+  // Check loading state
+  if (state.isLoadingCommentsForPost(currentPostId)) {
+    isLoading = true;
+    repaint();
+    return;
+  }
+
+  // Get comments for current post
+  auto postComments = state.getCommentsForPost(currentPostId);
+  if (!postComments.empty()) {
+    comments = postComments;
+    totalCommentCount = state.totalCountByPostId.at(currentPostId.toStdString());
+    isLoading = false;
+    errorMessage.clear();
+    updateCommentsList();
+  }
 }
 
 // ==============================================================================

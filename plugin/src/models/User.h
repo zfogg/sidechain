@@ -3,7 +3,7 @@
 #include "../util/json/JsonValidation.h"
 #include <JuceHeader.h>
 #include <nlohmann/json.hpp>
-#include <unordered_map>
+#include <map>
 
 namespace Sidechain {
 
@@ -20,7 +20,7 @@ struct SocialLinks {
   juce::String bandcamp;
 
   // Allow custom links beyond the standard platforms
-  std::unordered_map<std::string, std::string> custom;
+  std::map<std::string, std::string> custom;
 
   bool isEmpty() const {
     return instagram.isEmpty() && twitter.isEmpty() && youtube.isEmpty() && soundcloud.isEmpty() && spotify.isEmpty() &&

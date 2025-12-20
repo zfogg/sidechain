@@ -1,10 +1,12 @@
 #pragma once
 
+#include "../../models/Comment.h" // Use model from models folder
 #include "../../util/Colors.h"
 #include "../../util/HoverState.h"
 #include "../../util/Result.h"
 #include "../../util/Time.h"
 #include "../../stores/AppStore.h"
+#include "../common/AppStoreComponent.h"
 #include <JuceHeader.h>
 
 namespace Sidechain {
@@ -13,59 +15,8 @@ class AppStore;
 }
 } // namespace Sidechain
 
-// ==============================================================================
-/**
- * Comment represents a single comment on a post
- *
- * Maps to the Comment model from the backend
- */
-struct Comment {
-  juce::String id;
-  juce::String postId; // The post this comment belongs to
-  juce::String userId;
-  juce::String username;
-  juce::String userAvatarUrl;
-  juce::String content;
-  juce::String parentId; // For threaded replies (empty for top-level)
-  juce::Time createdAt;
-  juce::String timeAgo; // Human-readable time (e.g., "2h ago")
-  int likeCount = 0;
-  bool isLiked = false;
-  bool isOwnComment = false; // Whether current user authored this comment
-  bool canEdit = false;      // Within 5-minute edit window
-
-  // Parse from JSON response
-  static Comment fromJson(const juce::var &json) {
-    Comment comment;
-    if (json.isObject()) {
-      comment.id = json.getProperty("id", "").toString();
-      comment.postId = json.getProperty("post_id", "").toString();
-      comment.userId = json.getProperty("user_id", "").toString();
-      comment.username = json.getProperty("username", "").toString();
-      comment.userAvatarUrl = json.getProperty("avatar_url", "").toString();
-      if (comment.userAvatarUrl.isEmpty())
-        comment.userAvatarUrl = json.getProperty("profile_picture_url", "").toString();
-      comment.content = json.getProperty("content", "").toString();
-      comment.parentId = json.getProperty("parent_id", "").toString();
-      comment.likeCount = static_cast<int>(json.getProperty("like_count", 0));
-      comment.isLiked = static_cast<bool>(json.getProperty("is_liked", false));
-      comment.isOwnComment = static_cast<bool>(json.getProperty("is_own_comment", false));
-      comment.canEdit = static_cast<bool>(json.getProperty("can_edit", false));
-
-      // Parse timestamp
-      auto createdAtStr = json.getProperty("created_at", "").toString();
-      if (createdAtStr.isNotEmpty()) {
-        comment.createdAt = juce::Time::fromISO8601(createdAtStr);
-        comment.timeAgo = TimeUtils::formatTimeAgoShort(comment.createdAt);
-      }
-    }
-    return comment;
-  }
-
-  bool isValid() const {
-    return id.isNotEmpty() && content.isNotEmpty();
-  }
-};
+// Type alias for backwards compatibility - UI code uses Comment model from models/
+using UIComment = Sidechain::Comment;
 
 // ==============================================================================
 /**
@@ -87,12 +38,25 @@ public:
 
   // ==============================================================================
   // Data binding
-  void setComment(const Comment &comment);
-  const Comment &getComment() const {
-    return comment;
+
+  // Set comment from shared_ptr (preferred - keeps strong reference)
+  void setComment(const std::shared_ptr<Sidechain::Comment> &comment);
+
+  // Set comment from model reference (creates internal copy)
+  void setComment(const Sidechain::Comment &comment);
+
+  const Sidechain::Comment *getComment() const {
+    if (commentPtr) {
+      return commentPtr.get();
+    }
+    return nullptr;
   }
+
   juce::String getCommentId() const {
-    return comment.id;
+    if (commentPtr) {
+      return commentPtr->id;
+    }
+    return "";
   }
 
   // Set whether this is a reply (indented)
@@ -111,12 +75,12 @@ public:
 
   // ==============================================================================
   // Callbacks
-  std::function<void(const Comment &)> onUserClicked;
-  std::function<void(const Comment &, bool liked)> onLikeToggled;
-  std::function<void(const Comment &)> onReplyClicked;
-  std::function<void(const Comment &)> onEditClicked;
-  std::function<void(const Comment &)> onDeleteClicked;
-  std::function<void(const Comment &)> onReportClicked;
+  std::function<void(const Sidechain::Comment &)> onUserClicked;
+  std::function<void(const Sidechain::Comment &, bool liked)> onLikeToggled;
+  std::function<void(const Sidechain::Comment &)> onReplyClicked;
+  std::function<void(const Sidechain::Comment &)> onEditClicked;
+  std::function<void(const Sidechain::Comment &)> onDeleteClicked;
+  std::function<void(const Sidechain::Comment &)> onReportClicked;
 
   // ==============================================================================
   // Component overrides
@@ -134,7 +98,7 @@ public:
   static constexpr int REPLY_INDENT = 40;
 
 private:
-  Comment comment;
+  std::shared_ptr<Sidechain::Comment> commentPtr; // Strong reference to comment model
   HoverState hoverState;
   bool isReply = false;
   Sidechain::Stores::AppStore *appStore = nullptr;
@@ -167,29 +131,35 @@ class NetworkClient;
  * CommentsPanel displays a full comments section for a post
  *
  * Features:
- * - List of comments with infinite scroll
+ * - List of comments with infinite scroll (models from EntityStore)
  * - Text input field for new comments
  * - Reply threading (1 level deep)
  * - Like/unlike on comments
  * - Edit/delete own comments
- * - Real-time updates via CommentStore (reactive pattern)
+ * - Real-time updates via AppStore subscriptions
+ *
+ * Architecture:
+ * - Extends AppStoreComponent<CommentsState>
+ * - Subscribes to comments for current post
+ * - Comments delivered as shared_ptr<Comment> models
+ * - No manual JSON parsing - all done in AppStore
  */
-class CommentsPanel : public juce::Component, private juce::Timer {
+class CommentsPanel : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::CommentsState>, private juce::Timer {
 public:
   CommentsPanel();
   ~CommentsPanel() override;
 
   // ==============================================================================
   // Setup
-  void setAppStore(Sidechain::Stores::AppStore *store) {
-    appStore = store;
-  }
+
   void setCurrentUserId(const juce::String &userId) {
     currentUserId = userId;
   }
 
-  // Load comments for a post
+  // Load comments for a post (delegates to AppStore)
   void loadCommentsForPost(const juce::String &postId);
+
+  // Refresh comments from cache/network
   void refreshComments();
 
   // Get current post ID
@@ -228,7 +198,7 @@ private:
   Sidechain::Stores::AppStore *appStore = nullptr;
   juce::String currentPostId;
   juce::String currentUserId;
-  juce::Array<Comment> comments;
+  std::vector<std::shared_ptr<Sidechain::Comment>> comments;
   int totalCommentCount = 0;
   bool isLoading = false;
   bool hasMoreComments = false;
@@ -283,7 +253,7 @@ private:
   void handleCommentsLoaded(Outcome<std::pair<juce::var, int>> commentsResult);
   void handleCommentCreated(Outcome<juce::var> commentResult);
   void handleCommentDeleted(bool success, const juce::String &commentId);
-  void handleCommentLikeToggled(const Comment &comment, bool liked);
+  void handleCommentLikeToggled(const Sidechain::Comment &comment, bool liked);
 
   // Row callbacks
   void setupRowCallbacks(CommentRow *row);
@@ -299,6 +269,16 @@ private:
     CommentsPanel *parent;
   };
   std::unique_ptr<MentionListener> mentionListener;
+
+  // ==============================================================================
+  // AppStoreComponent<CommentsState> implementation
+protected:
+  void subscribeToAppStore() override;
+  void onAppStateChanged(const Sidechain::Stores::CommentsState &state) override;
+
+private:
+  // Unsubscriber function from AppStore subscription
+  std::function<void()> commentsUnsubscriber;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CommentsPanel)
 };

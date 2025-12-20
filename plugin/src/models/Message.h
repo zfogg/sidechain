@@ -3,7 +3,7 @@
 #include "../util/json/JsonValidation.h"
 #include <JuceHeader.h>
 #include <nlohmann/json.hpp>
-#include <unordered_map>
+#include <map>
 #include <vector>
 
 namespace Sidechain {
@@ -84,7 +84,7 @@ struct Message : public SerializableModel<Message> {
 
   // ==============================================================================
   // Reactions (emoji -> list of user IDs)
-  std::unordered_map<std::string, std::vector<std::string>> reactions;
+  std::map<std::string, std::vector<std::string>> reactions;
 
   // ==============================================================================
   // Status
@@ -105,7 +105,7 @@ struct Message : public SerializableModel<Message> {
 
   // ==============================================================================
   // Metadata (custom data like post references, etc.)
-  std::unordered_map<std::string, std::string> metadata;
+  std::map<std::string, std::string> metadata;
 
   // ==============================================================================
   // Typed JSON serialization
@@ -219,7 +219,7 @@ inline void from_json(const nlohmann::json &j, Message &msg) {
 
   // Parse reactions
   if (j.contains("reactions") && j["reactions"].is_object()) {
-    msg.reactions = j["reactions"].get<std::unordered_map<std::string, std::vector<std::string>>>();
+    msg.reactions = j["reactions"].get<std::map<std::string, std::vector<std::string>>>();
   }
 
   // Parse read receipts
@@ -240,7 +240,7 @@ inline void from_json(const nlohmann::json &j, Message &msg) {
 
   // Parse metadata
   if (j.contains("metadata") && j["metadata"].is_object()) {
-    msg.metadata = j["metadata"].get<std::unordered_map<std::string, std::string>>();
+    msg.metadata = j["metadata"].get<std::map<std::string, std::string>>();
   }
 }
 

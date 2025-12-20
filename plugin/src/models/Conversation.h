@@ -3,6 +3,7 @@
 #include "../util/json/JsonValidation.h"
 #include <JuceHeader.h>
 #include <nlohmann/json.hpp>
+#include <map>
 #include <vector>
 
 namespace Sidechain {
@@ -47,7 +48,7 @@ struct Conversation : public SerializableModel<Conversation> {
 
   // ==============================================================================
   // Metadata (custom data like avatar, description for group chats)
-  std::unordered_map<std::string, std::string> metadata;
+  std::map<std::string, std::string> metadata;
 
   // ==============================================================================
   // Typed JSON serialization
@@ -141,7 +142,7 @@ inline void from_json(const nlohmann::json &j, Conversation &conv) {
 
   // Parse metadata
   if (j.contains("metadata") && j["metadata"].is_object()) {
-    conv.metadata = j["metadata"].get<std::unordered_map<std::string, std::string>>();
+    conv.metadata = j["metadata"].get<std::map<std::string, std::string>>();
   }
 }
 

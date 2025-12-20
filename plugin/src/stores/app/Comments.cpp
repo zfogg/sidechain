@@ -1,8 +1,12 @@
 #include "../AppStore.h"
 #include "../../util/logging/Logger.h"
+#include "../EntityStore.h"
 
 namespace Sidechain {
 namespace Stores {
+
+// ==============================================================================
+// Legacy Observable API (for backwards compatibility, use loadPostComments instead)
 
 rxcpp::observable<juce::Array<juce::var>> AppStore::getCommentsObservable(const juce::String &postId, int limit,
                                                                           int offset) {
@@ -144,6 +148,130 @@ void AppStore::reportComment(const juce::String &commentId, const juce::String &
       Util::logError("AppStore", "Failed to report comment: " + result.getError());
     }
   });
+}
+
+// ==============================================================================
+// New Model-Based API with EntityStore and CommentsState
+
+void AppStore::loadPostComments(const juce::String &postId, int limit, int offset) {
+  if (!networkClient) {
+    Util::logError("AppStore", "Cannot load comments - network client not set");
+    return;
+  }
+
+  auto commentsSlice = sliceManager.getCommentsSlice();
+  if (!commentsSlice) {
+    Util::logError("AppStore", "Cannot load comments - comments slice not available");
+    return;
+  }
+
+  // Update loading state
+  commentsSlice->dispatch([postId](CommentsState &state) {
+    state.isLoadingByPostId[postId.toStdString()] = true;
+    state.currentLoadingPostId = postId;
+  });
+
+  Util::logInfo("AppStore", "Loading comments for post: " + postId + " (limit=" + juce::String(limit) +
+                                ", offset=" + juce::String(offset) + ")");
+
+  // Make network request
+  networkClient->getComments(postId, limit, offset, [this, postId, limit](Outcome<std::pair<juce::var, int>> result) {
+    auto slice = sliceManager.getCommentsSlice();
+    if (!slice)
+      return;
+
+    if (result.isOk()) {
+      auto [commentsData, totalCount] = result.getValue();
+
+      // Convert juce::var to nlohmann::json and normalize comments
+      std::vector<std::shared_ptr<Comment>> normalizedComments;
+      if (commentsData.isArray()) {
+        for (int i = 0; i < commentsData.size(); ++i) {
+          try {
+            auto json = nlohmann::json::parse(commentsData[i].toString().toStdString());
+            auto normalized = EntityStore::getInstance().normalizeComment(json);
+            if (normalized) {
+              normalizedComments.push_back(normalized);
+            }
+          } catch (const std::exception &e) {
+            Util::logError("AppStore", "Failed to parse comment: " + juce::String(e.what()));
+          }
+        }
+      }
+
+      Util::logInfo("AppStore", "Loaded " + juce::String(normalizedComments.size()) + " comments for post: " + postId);
+
+      // Update CommentsState with models
+      slice->dispatch([postId, normalizedComments, totalCount, limit](CommentsState &state) {
+        state.commentsByPostId[postId.toStdString()] = normalizedComments;
+        state.totalCountByPostId[postId.toStdString()] = totalCount;
+        state.limitByPostId[postId.toStdString()] = limit;
+        state.isLoadingByPostId[postId.toStdString()] = false;
+        state.lastUpdatedByPostId[postId.toStdString()] = juce::Time::getCurrentTime().toMilliseconds();
+        state.hasMoreByPostId[postId.toStdString()] = (int)normalizedComments.size() >= limit;
+        state.commentsError.clear();
+      });
+    } else {
+      Util::logError("AppStore", "Failed to load comments: " + result.getError());
+
+      // Update state with error
+      slice->dispatch([postId, error = result.getError()](CommentsState &state) {
+        state.isLoadingByPostId[postId.toStdString()] = false;
+        state.commentsError = error;
+      });
+    }
+  });
+}
+
+std::function<void()>
+AppStore::subscribeToPostComments(const juce::String &postId,
+                                  std::function<void(const std::vector<std::shared_ptr<Comment>> &)> callback) {
+  if (!callback) {
+    Util::logError("AppStore", "Cannot subscribe - callback is null");
+    return []() {};
+  }
+
+  auto commentsSlice = sliceManager.getCommentsSlice();
+  if (!commentsSlice) {
+    Util::logError("AppStore", "Cannot subscribe to comments - comments slice not available");
+    return []() {};
+  }
+
+  // Subscribe to CommentsState changes and invoke callback with state
+  commentsSlice->subscribe([callback, postId](const CommentsState &state) {
+    auto commentsIt = state.commentsByPostId.find(postId.toStdString());
+    if (commentsIt != state.commentsByPostId.end()) {
+      callback(commentsIt->second);
+    }
+  });
+
+  // StateSlice doesn't support unsubscription, return no-op
+  return []() {};
+}
+
+std::function<void()> AppStore::subscribeToComment(const juce::String &commentId,
+                                                   std::function<void(const std::shared_ptr<Comment> &)> callback) {
+  if (!callback) {
+    Util::logError("AppStore", "Cannot subscribe - callback is null");
+    return []() {};
+  }
+
+  auto &entityStore = EntityStore::getInstance();
+
+  // Return immediate value from cache if available
+  auto cachedComment = entityStore.comments().get(commentId);
+  if (cachedComment) {
+    callback(cachedComment);
+  }
+
+  // Subscribe to EntityStore changes for this comment
+  std::function<void()> unsubscriber =
+      entityStore.comments().subscribe(commentId, [callback](const std::shared_ptr<Comment> &comment) {
+        // Callback receives shared_ptr directly from EntityCache
+        callback(comment);
+      });
+
+  return unsubscriber;
 }
 
 } // namespace Stores
