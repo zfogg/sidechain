@@ -1990,7 +1990,6 @@ void PostsFeed::showCommentsForPost(const Sidechain::FeedPost &post) {
   Log::info("PostsFeed::showCommentsForPost: Showing comments for post: " + post.id);
 
   // Set up the panel
-  commentsPanel->setNetworkClient(networkClient);
   commentsPanel->setCurrentUserId(currentUserId);
   commentsPanel->loadCommentsForPost(post.id);
   Log::debug("PostsFeed::showCommentsForPost: Comments panel configured and "

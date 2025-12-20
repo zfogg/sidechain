@@ -535,10 +535,10 @@ void CommentsPanel::setupRowCallbacks(CommentRow *row) {
   // - Comment deletion: wired up in onDeleteClicked (line 552)
   // - Comment likes: wired up in handleCommentLikeToggled (line 640-683)
   // - Comment reporting: wired up in onReportClicked (line 561-604) - uses
-  // NetworkClient::reportComment
+  // Delete comment via AppStore
 
   row->onDeleteClicked = [this](const Comment &comment) {
-    if (networkClient == nullptr)
+    if (appStore == nullptr)
       return;
 
     // Confirm delete
@@ -571,14 +571,12 @@ void CommentsPanel::setupRowCallbacks(CommentRow *row) {
                        .withButton("Cancel");
 
     juce::AlertWindow::showAsync(options, [this, comment](int reportResult) {
-      if (reportResult >= 1 && reportResult <= 4 && networkClient != nullptr) {
+      if (reportResult >= 1 && reportResult <= 4 && appStore != nullptr) {
         juce::String reasons[] = {"spam", "harassment", "inappropriate", "other"};
         juce::String reason = reasons[reportResult - 1];
         juce::String description = "Reported comment: " + comment.content.substring(0, 100);
 
-        if (appStore != nullptr) {
-          appStore->reportComment(comment.id, reason, description);
-        }
+        appStore->reportComment(comment.id, reason, description);
       }
     });
   };
@@ -588,13 +586,13 @@ void CommentsPanel::handleCommentLikeToggled(const Comment &comment, bool liked)
   Log::info("CommentsPanel::handleCommentLikeToggled: Toggling like - commentId: " + comment.id +
             ", liked: " + juce::String(liked ? "yes" : "no"));
 
-  // Use NetworkClient directly
-  if (networkClient == nullptr) {
-    Log::warn("CommentsPanel::handleCommentLikeToggled: No networkClient available");
+  // Use AppStore to toggle like
+  if (appStore == nullptr) {
+    Log::warn("CommentsPanel::handleCommentLikeToggled: No appStore available");
     return;
   }
 
-  Log::debug("CommentsPanel::handleCommentLikeToggled: Using NetworkClient fallback");
+  Log::debug("CommentsPanel::handleCommentLikeToggled: Using AppStore");
 
   // Optimistic update
   for (auto *row : commentRows) {
@@ -675,8 +673,8 @@ void CommentsPanel::handleCommentDeleted(bool success, const juce::String &comme
 }
 
 void CommentsPanel::submitComment() {
-  if (networkClient == nullptr || currentPostId.isEmpty()) {
-    Log::warn("CommentsPanel::submitComment: Cannot submit - networkClient "
+  if (appStore == nullptr || currentPostId.isEmpty()) {
+    Log::warn("CommentsPanel::submitComment: Cannot submit - appStore "
               "null or postId empty");
     return;
   }
@@ -961,7 +959,7 @@ void CommentsPanel::MentionListener::textEditorReturnKeyPressed(juce::TextEditor
 }
 
 void CommentsPanel::checkForMention() {
-  if (inputField == nullptr || networkClient == nullptr)
+  if (inputField == nullptr || appStore == nullptr)
     return;
 
   juce::String text = inputField->getText();
@@ -1016,7 +1014,7 @@ void CommentsPanel::checkForMention() {
 }
 
 void CommentsPanel::showMentionAutocomplete(const juce::String &query) {
-  if (networkClient == nullptr)
+  if (appStore == nullptr)
     return;
 
   isShowingMentions = true;

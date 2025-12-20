@@ -180,10 +180,7 @@ public:
   ~CommentsPanel() override;
 
   // ==============================================================================
-  // Setup (deprecated - use setAppStore instead)
-  void setNetworkClient(NetworkClient *client) {
-    networkClient = client; // Kept for compatibility only
-  }
+  // Setup
   void setAppStore(Sidechain::Stores::AppStore *store) {
     appStore = store;
   }
@@ -228,7 +225,6 @@ private:
 
   // ==============================================================================
   // Data
-  NetworkClient *networkClient = nullptr;
   Sidechain::Stores::AppStore *appStore = nullptr;
   juce::String currentPostId;
   juce::String currentUserId;
