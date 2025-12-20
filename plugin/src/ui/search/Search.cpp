@@ -55,6 +55,9 @@ Search::Search(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   // layoutComponents before scrollBar exists
   setSize(1000, 700);
 
+  // Subscribe to AppStore after UI setup
+  initialize();
+
   // Phase 7 features:
   // - Advanced Search - Search by BPM, key, genre
   // - Filter posts by metadata (BPM, key, genre, DAW)
@@ -188,10 +191,10 @@ void Search::updateUserPresence(const juce::String &userId, bool isOnline, const
 
       // Update corresponding PostCard
       for (auto *card : postCards) {
-        auto post = card->getPost();
-        if (post && post->userId == userId) {
+        auto cardPost = card->getPost();
+        if (cardPost && cardPost->userId == userId) {
           // Create a shared_ptr copy with modifications
-          auto updatedPost = std::make_shared<Sidechain::FeedPost>(*post);
+          auto updatedPost = std::make_shared<Sidechain::FeedPost>(*cardPost);
           updatedPost->isOnline = isOnline;
           updatedPost->isInStudio = isInStudio;
           card->setPost(updatedPost);
