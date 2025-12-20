@@ -151,9 +151,11 @@ void PostsFeed::setNetworkClient(NetworkClient *client) {
     return;
   }
   networkClient = client;
-  // Set NetworkClient on PostsStore
-  if (appStore)
-    appStore->setNetworkClient(client);
+  // NOTE: No longer forwarding to AppStore - AppStore has its own NetworkClient
+  // PostsFeed keeps its own NetworkClient reference for analytics operations only:
+  // - trackPlay()
+  // - trackRecommendationClick()
+  // - trackListenDuration()
   Log::info("PostsFeed::setNetworkClient: NetworkClient set successfully");
 }
 

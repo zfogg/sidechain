@@ -89,7 +89,8 @@ public:
   // Set user info
   void setUserInfo(const juce::String &username, const juce::String &email, const juce::String &profilePicUrl);
 
-  // Network client integration
+  // Network client integration (deprecated - use AppStore instead)
+  // Kept for analytics tracking only (play tracking, listen duration)
   void setNetworkClient(NetworkClient *client);
 
   // Stream chat client for presence queries
