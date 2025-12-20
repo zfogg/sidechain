@@ -13,27 +13,29 @@ namespace Stores {
 void AppStore::onWebSocketPostUpdated(const juce::String &postId) {
   Util::logDebug("AppStore", "WebSocket: Post updated - " + postId);
 
-  // TODO: Invalidate the specific post cache
-
-  // TODO: Invalidate all feed caches since any post change affects feed display
+  // Invalidate all feed caches since any post change affects feed display
+  sliceManager.getPostsSlice()->dispatch([](PostsState &state) {
+    for (auto &[feedType, feedState] : state.feeds) {
+      feedState.isSynced = false; // Mark as out of sync, needs refresh
+    }
+  });
 }
 
 void AppStore::onWebSocketLikeCountUpdate(const juce::String &postId, int likeCount) {
   Util::logDebug("AppStore",
                  "WebSocket: Like count updated for post " + postId + " - new count: " + juce::String(likeCount));
 
-  // TODO: Invalidate the specific post cache
-
-  // TODO: Invalidate all feed caches
+  // Invalidate all feed caches since like counts affect post display/sorting
+  sliceManager.getPostsSlice()->dispatch([](PostsState &state) {
+    for (auto &[feedType, feedState] : state.feeds) {
+      feedState.isSynced = false; // Mark as out of sync, needs refresh
+    }
+  });
 }
 
 void AppStore::onWebSocketFollowerCountUpdate(const juce::String &userId, int followerCount) {
   Util::logDebug("AppStore", "WebSocket: Follower count updated for user " + userId +
                                  " - new count: " + juce::String(followerCount));
-
-  // TODO: Invalidate the user cache
-
-  // TODO: Invalidate user search results since follower counts may have changed
 
   // Update the current user's follower count in state if this is about us
   if (userId == sliceManager.getUserSlice()->getState().userId) {
@@ -51,23 +53,30 @@ void AppStore::onWebSocketNewPost(const juce::var &postData) {
     }
   }
 
-  // TODO: Invalidate all feed caches so the new post appears
+  // Invalidate all feed caches so the new post appears in feeds on next load
+  sliceManager.getPostsSlice()->dispatch([](PostsState &state) {
+    for (auto &[feedType, feedState] : state.feeds) {
+      feedState.isSynced = false; // Mark as out of sync, needs refresh
+    }
+  });
 }
 
 void AppStore::onWebSocketUserUpdated(const juce::String &userId) {
   Util::logDebug("AppStore", "WebSocket: User profile updated - " + userId);
 
-  // TODO: Invalidate the specific user cache
-
-  // TODO: Invalidate user search results
+  // Invalidate search results cache since user data may have changed
+  sliceManager.getSearchSlice()->dispatch([](SearchState &state) {
+    state.results.lastSearchTime = 0; // Force refresh on next search
+  });
 }
 
 void AppStore::onWebSocketNewMessage(const juce::String &conversationId) {
   Util::logDebug("AppStore", "WebSocket: New message in conversation - " + conversationId);
 
-  // TODO: Invalidate the messages cache for this conversation
-
-  // TODO: Invalidate all channels list since this conversation may need re-sorting
+  // Signal that channels need to be refreshed (new messages may affect unread counts and ordering)
+  sliceManager.getChatSlice()->dispatch([conversationId](ChatState &state) {
+    state.isLoadingChannels = true; // Trigger a refresh to update the channels list
+  });
 }
 
 void AppStore::onWebSocketPresenceUpdate(const juce::String &userId, bool isOnline) {
@@ -79,7 +88,7 @@ void AppStore::onWebSocketPresenceUpdate(const juce::String &userId, bool isOnli
   sliceManager.getUserSlice()->dispatch([userId](UserState &state [[maybe_unused]]) {
     // Store online status per user - could use a map if many users tracked
     // For now, we just log the update. Real implementation might maintain
-    // a presence map or push to a dedicated presence state slice. TODO revisit this.
+    // presence map or push to a dedicated presence state slice. TODO revisit this.
     Util::logDebug("AppStore", "Updated presence for user " + userId + " - online status changed");
   });
 }

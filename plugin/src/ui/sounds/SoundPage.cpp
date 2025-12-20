@@ -2,6 +2,8 @@
 #include "../../network/NetworkClient.h"
 #include "../../util/Result.h"
 #include "../../util/Log.h"
+#include "../../models/Sound.h"
+#include <nlohmann/json.hpp>
 
 // ==============================================================================
 SoundPage::SoundPage(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
@@ -247,7 +249,17 @@ void SoundPage::loadSoundForPost(const juce::String &postId) {
     juce::MessageManager::callAsync([this, result]() {
       if (result.isOk()) {
         auto response = result.getValue();
-        sound = Sidechain::Sound();  // TODO: Convert juce::var to Sound using nlohmann::json
+
+        // Convert juce::var to Sound using nlohmann::json
+        try {
+          nlohmann::json soundJson = nlohmann::json::parse(response.toString().toStdString());
+          sound = Sidechain::Sound::createFromJson(soundJson).getValue()
+                      ? *Sidechain::Sound::createFromJson(soundJson).getValue()
+                      : Sidechain::Sound();
+        } catch (...) {
+          sound = Sidechain::Sound();
+        }
+
         soundId = sound.id;
 
         // Now fetch the posts using this sound
@@ -299,7 +311,17 @@ void SoundPage::fetchSound() {
     juce::MessageManager::callAsync([this, result]() {
       if (result.isOk()) {
         auto response = result.getValue();
-        sound = Sidechain::Sound();  // TODO: Convert juce::var to Sound using nlohmann::json
+
+        // Convert juce::var to Sound using nlohmann::json
+        try {
+          nlohmann::json soundJson = nlohmann::json::parse(response.toString().toStdString());
+          sound = Sidechain::Sound::createFromJson(soundJson).getValue()
+                      ? *Sidechain::Sound::createFromJson(soundJson).getValue()
+                      : Sidechain::Sound();
+        } catch (...) {
+          sound = Sidechain::Sound();
+        }
+
         loadCreatorAvatar();
 
         // Now fetch the posts
@@ -328,7 +350,16 @@ void SoundPage::fetchSoundPosts() {
         posts.clear();
         if (postsArray.isArray()) {
           for (int i = 0; i < postsArray.size(); ++i) {
-            posts.add(Sidechain::SoundPost());  // TODO: Convert juce::var to SoundPost
+            // Convert juce::var to SoundPost using nlohmann::json
+            try {
+              nlohmann::json postJson = nlohmann::json::parse(postsArray[i].toString().toStdString());
+              auto soundPost = Sidechain::SoundPost::createFromJson(postJson);
+              if (soundPost.isOk()) {
+                posts.add(*soundPost.getValue());
+              }
+            } catch (...) {
+              // Skip invalid posts
+            }
           }
         }
 
@@ -448,7 +479,8 @@ void SoundPage::drawSoundInfo(juce::Graphics &g, juce::Rectangle<int> &bounds) {
   }
 }
 
-void SoundPage::drawPostCard(juce::Graphics &g, juce::Rectangle<int> bounds, const Sidechain::SoundPost &post, int index) {
+void SoundPage::drawPostCard(juce::Graphics &g, juce::Rectangle<int> bounds, const Sidechain::SoundPost &post,
+                             int index) {
   // Use index parameter to identify which post in the list is being drawn
   Log::debug("SoundPage: Drawing post card at index " + juce::String(index) + " with ID: " + post.id);
   bool isPlaying = (post.id == currentlyPlayingPostId);
