@@ -685,7 +685,10 @@ void StreamChatClient::cleanupWebSocket() {
           if (con && con->get_state() == websocketpp::session::state::open) {
             wsClient->close(wsConnection, websocketpp::close::status::going_away, "Client disconnect");
           }
+        } catch (const std::exception &e) {
+          Log::debug("StreamChatClient: Error closing WebSocket - " + juce::String(e.what()));
         } catch (...) {
+          Log::debug("StreamChatClient: Unknown error closing WebSocket");
         }
       }
 

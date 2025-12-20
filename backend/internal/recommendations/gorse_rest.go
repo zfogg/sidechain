@@ -206,7 +206,10 @@ func (c *GorseRESTClient) GetForYouFeed(userID string, limit, offset int) ([]Pos
 	}
 
 	// Apply offset (since Gorse doesn't support offset parameter)
-	if offset > 0 && offset < len(itemIDs) {
+	if offset > 0 {
+		if offset >= len(itemIDs) {
+			return []PostScore{}, nil // Offset exceeds available results
+		}
 		itemIDs = itemIDs[offset:]
 	}
 	if len(itemIDs) > limit {
@@ -571,7 +574,10 @@ func (c *GorseRESTClient) GetUsersToFollow(userID string, limit, offset int) ([]
 	}
 
 	// Apply offset
-	if offset > 0 && offset < len(userIDs) {
+	if offset > 0 {
+		if offset >= len(userIDs) {
+			return []UserScore{}, nil // Offset exceeds available results
+		}
 		userIDs = userIDs[offset:]
 	}
 	if len(userIDs) > limit {
@@ -750,7 +756,10 @@ func (c *GorseRESTClient) GetForYouFeedByGenre(userID, genre string, limit, offs
 	}
 
 	// Apply offset
-	if offset > 0 && offset < len(itemIDs) {
+	if offset > 0 {
+		if offset >= len(itemIDs) {
+			return []PostScore{}, nil // Offset exceeds available results
+		}
 		itemIDs = itemIDs[offset:]
 	}
 	if len(itemIDs) > limit {
@@ -925,7 +934,10 @@ func (c *GorseRESTClient) GetPopular(limit, offset int) ([]PostScore, error) {
 	}
 
 	// Apply offset
-	if offset > 0 && offset < len(itemIDs) {
+	if offset > 0 {
+		if offset >= len(itemIDs) {
+			return []PostScore{}, nil // Offset exceeds available results
+		}
 		itemIDs = itemIDs[offset:]
 	}
 	if len(itemIDs) > limit {
@@ -994,7 +1006,10 @@ func (c *GorseRESTClient) GetLatest(limit, offset int) ([]PostScore, error) {
 	}
 
 	// Apply offset
-	if offset > 0 && offset < len(itemIDs) {
+	if offset > 0 {
+		if offset >= len(itemIDs) {
+			return []PostScore{}, nil // Offset exceeds available results
+		}
 		itemIDs = itemIDs[offset:]
 	}
 	if len(itemIDs) > limit {

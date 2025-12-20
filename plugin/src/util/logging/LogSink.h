@@ -199,14 +199,23 @@ private:
 
   void openFile() {
     logFile.open(logPath.toStdString(), std::ios::app);
+    if (!logFile.is_open()) {
+      // Log to stderr as fallback if file logging fails
+      std::cerr << "FileSink: Failed to open log file: " << logPath << std::endl;
+    }
   }
 
   void checkRotate() {
-    if (maxSize == 0)
+    if (maxSize == 0 || !logFile.is_open())
       return;
 
     logFile.flush();
-    if (static_cast<size_t>(logFile.tellp()) > maxSize)
+    if (logFile.fail()) {
+      std::cerr << "FileSink: Failed to flush log file" << std::endl;
+      return;
+    }
+    auto pos = logFile.tellp();
+    if (pos != std::ofstream::pos_type(-1) && static_cast<size_t>(pos) > maxSize)
       rotateFile();
   }
 
@@ -217,12 +226,16 @@ private:
     for (int i = maxBackupFiles - 1; i >= 1; --i) {
       juce::String oldName = logPath + juce::String(".") + juce::String(i);
       juce::String newName = logPath + juce::String(".") + juce::String(i + 1);
-      std::rename(oldName.toStdString().c_str(), newName.toStdString().c_str());
+      if (std::rename(oldName.toStdString().c_str(), newName.toStdString().c_str()) != 0 && errno != ENOENT) {
+        std::cerr << "FileSink: Failed to rotate log file " << oldName << " to " << newName << std::endl;
+      }
     }
 
     // Move current file to .1
     juce::String backupName = logPath + ".1";
-    std::rename(logPath.toStdString().c_str(), backupName.toStdString().c_str());
+    if (std::rename(logPath.toStdString().c_str(), backupName.toStdString().c_str()) != 0) {
+      std::cerr << "FileSink: Failed to rotate current log file to " << backupName << std::endl;
+    }
 
     // Open new log file
     openFile();

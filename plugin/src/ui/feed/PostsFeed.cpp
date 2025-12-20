@@ -1250,14 +1250,21 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
           // Write to file
           juce::FileOutputStream output(targetFile);
           if (output.openedOk()) {
-            output.write(audioData.getData(), audioData.getSize());
-            output.flush();
+            bool writeSuccess = output.write(audioData.getData(), audioData.getSize()) && output.flush();
 
-            juce::MessageManager::callAsync([targetFile]() {
-              Log::info("Audio saved to: " + targetFile.getFullPathName());
-              juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon, "Success",
-                                                     "Audio saved to:\n" + targetFile.getFullPathName());
-            });
+            if (writeSuccess) {
+              juce::MessageManager::callAsync([targetFile]() {
+                Log::info("Audio saved to: " + targetFile.getFullPathName());
+                juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon, "Success",
+                                                       "Audio saved to:\n" + targetFile.getFullPathName());
+              });
+            } else {
+              juce::MessageManager::callAsync([targetFile]() {
+                Log::error("Failed to write audio data: " + targetFile.getFullPathName());
+                juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Error",
+                                                       "Failed to write audio data:\n" + targetFile.getFullPathName());
+              });
+            }
           } else {
             juce::MessageManager::callAsync([targetFile]() {
               Log::error("Failed to write audio file: " + targetFile.getFullPathName());
