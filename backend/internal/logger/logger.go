@@ -1,9 +1,11 @@
 package logger
 
 import (
+	"context"
 	"os"
 	"strings"
 
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -197,4 +199,24 @@ func WithStatus(status int) zap.Field {
 
 func WithDuration(duration interface{}) zap.Field {
 	return zap.Any("duration", duration)
+}
+
+// WithTraceContext extracts trace ID and span ID from context and returns zap fields
+// If context has no valid span, returns empty slice
+func WithTraceContext(ctx context.Context) []zap.Field {
+	span := trace.SpanFromContext(ctx)
+	if !span.SpanContext().IsValid() {
+		return []zap.Field{}
+	}
+
+	return []zap.Field{
+		zap.String("trace_id", span.SpanContext().TraceID().String()),
+		zap.String("span_id", span.SpanContext().SpanID().String()),
+	}
+}
+
+// WithTraceContextAndFields is a convenience function that combines trace context with additional fields
+func WithTraceContextAndFields(ctx context.Context, fields ...zap.Field) []zap.Field {
+	traceFields := WithTraceContext(ctx)
+	return append(traceFields, fields...)
 }
