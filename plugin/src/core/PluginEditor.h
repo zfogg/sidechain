@@ -139,10 +139,6 @@ private:
    */
   void showView(AppView view, NavigationDirection direction = NavigationDirection::Forward);
 
-  /** Show a message thread view
-   * @param channelType The type of channel (e.g., "messaging", "team")
-   * @param channelId The unique channel identifier
-   */
   /** Navigate to message thread view
    * @param channelType The type of channel (direct, group, etc.)
    * @param channelId The channel ID to display

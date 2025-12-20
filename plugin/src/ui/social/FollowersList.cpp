@@ -208,7 +208,7 @@ void FollowersList::setupUI() {
 }
 
 // ==============================================================================
-// Store integration (migration to AppStore reactive pattern is planned for Phase 2)
+// TODO: Store integration (migration to AppStore reactive pattern is planned for Phase 2)
 // For now, using direct NetworkClient calls for followers/following operations
 
 void FollowersList::loadList(const juce::String &userId, ListType type) {
