@@ -57,13 +57,22 @@ void AppStore::createComment(const juce::String &postId, const juce::String &con
   Util::logInfo("AppStore", "Creating comment on post: " + postId);
 
   networkClient->createComment(postId, content, parentId, [this, postId](Outcome<juce::var> result) {
+    Util::logInfo("AppStore", "DEBUG: createComment CALLBACK FIRED! postId=" + postId);
+
     auto slice = sliceManager.getCommentsSlice();
-    if (!slice)
+    if (!slice) {
+      Util::logError("AppStore", "DEBUG: Comments slice is null!");
       return;
+    }
 
     if (result.isOk()) {
+      Util::logInfo("AppStore", "DEBUG: createComment result.isOk() = TRUE");
       try {
-        auto json = nlohmann::json::parse(result.getValue().toString().toStdString());
+        auto resultVar = result.getValue();
+        auto resultStr = juce::JSON::toString(resultVar);
+        Util::logInfo("AppStore", "DEBUG: createComment response string: " + resultStr.substring(0, 200));
+
+        auto json = nlohmann::json::parse(resultStr.toStdString());
 
         // Normalize comment to model
         auto normalizedComment = EntityStore::getInstance().normalizeComment(json);
@@ -77,22 +86,31 @@ void AppStore::createComment(const juce::String &postId, const juce::String &con
           if (commentsIt != newState.commentsByPostId.end()) {
             commentsIt->second.insert(commentsIt->second.begin(), normalizedComment);
             newState.totalCountByPostId[postId.toStdString()]++;
+            Util::logInfo("AppStore", "DEBUG: Added comment to existing post's list");
+          } else {
+            Util::logError("AppStore", "DEBUG: Post " + postId + " not found in commentsByPostId map!");
           }
           newState.commentsError.clear();
           slice->setState(newState);
+        } else {
+          Util::logError("AppStore", "Failed to normalize comment from JSON");
+          CommentsState errorState = slice->getState();
+          errorState.commentsError = "Failed to normalize comment";
+          slice->setState(errorState);
         }
       } catch (const std::exception &e) {
         Util::logError("AppStore", "Failed to parse created comment: " + juce::String(e.what()));
 
         CommentsState errorState = slice->getState();
-        errorState.commentsError = juce::String(e.what());
+        errorState.commentsError = "JSON Parse Error: " + juce::String(e.what());
         slice->setState(errorState);
       }
     } else {
+      Util::logError("AppStore", "DEBUG: createComment result.isOk() = FALSE");
       Util::logError("AppStore", "Failed to create comment: " + result.getError());
 
       CommentsState errorState = slice->getState();
-      errorState.commentsError = result.getError();
+      errorState.commentsError = "API Error: " + result.getError();
       slice->setState(errorState);
     }
   });

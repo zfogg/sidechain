@@ -41,13 +41,20 @@ void NetworkClient::getComments(const juce::String &postId, int limit, int offse
 
 void NetworkClient::createComment(const juce::String &postId, const juce::String &content, const juce::String &parentId,
                                   CommentCallback callback) {
+  Log::info("NetworkClient::createComment: Called with postId=" + postId +
+            ", callback=" + juce::String(callback ? "set" : "null"));
+
   if (!isAuthenticated()) {
+    Log::error("NetworkClient::createComment: Not authenticated!");
     if (callback)
       callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
+  Log::info("NetworkClient::createComment: Starting async task");
   Async::runVoid([this, postId, content, parentId, callback]() {
+    Log::info("NetworkClient::createComment: ASYNC BLOCK RUNNING - About to make request");
+
     juce::var data = juce::var(new juce::DynamicObject());
     data.getDynamicObject()->setProperty("content", content);
 
@@ -57,14 +64,22 @@ void NetworkClient::createComment(const juce::String &postId, const juce::String
     juce::String endpoint = buildApiPath("/posts") + "/" + postId + "/comments";
     auto result = makeRequestWithRetry(endpoint, "POST", data, true);
     Log::debug("Create comment response: " + juce::JSON::toString(result.data));
+    Log::info("NetworkClient::createComment: Request completed. callback=" + juce::String(callback ? "set" : "null"));
 
     if (callback) {
+      Log::info("NetworkClient::createComment: Callback is set, posting to message thread");
       juce::MessageManager::callAsync([callback, result]() {
+        Log::info("NetworkClient::createComment: CALLBACK FIRED ON MESSAGE THREAD!");
         auto outcome = requestResultToOutcome(result);
+        Log::info("NetworkClient::createComment: Created outcome, about to invoke callback");
         callback(outcome);
+        Log::info("NetworkClient::createComment: Callback invoked successfully");
       });
+    } else {
+      Log::error("NetworkClient::createComment: Callback is null!");
     }
   });
+  Log::info("NetworkClient::createComment: Async task posted");
 }
 
 void NetworkClient::getCommentReplies(const juce::String &commentId, int limit, int offset,
