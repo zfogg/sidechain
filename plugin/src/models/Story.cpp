@@ -1,5 +1,7 @@
 #include "Story.h"
 
+namespace Sidechain {
+
 // ==============================================================================
 /** Check if story is expired (past expiration time)
  * Stories expire 24 hours after creation.
@@ -221,3 +223,5 @@ juce::var StoryHighlight::toJSON() const {
 
   return json;
 }
+
+} // namespace Sidechain

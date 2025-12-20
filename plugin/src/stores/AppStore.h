@@ -731,18 +731,18 @@ private:
   // Token refresh timer
   class TokenRefreshTimer : public juce::Timer {
   public:
-    TokenRefreshTimer(AppStore* store) : store_(store) {}
-    
+    TokenRefreshTimer(AppStore *store) : store_(store) {}
+
     void timerCallback() override {
       if (store_) {
         store_->checkAndRefreshToken();
       }
     }
-    
+
   private:
-    AppStore* store_;
+    AppStore *store_;
   };
-  
+
   std::unique_ptr<TokenRefreshTimer> tokenRefreshTimer_;
   void checkAndRefreshToken();
 

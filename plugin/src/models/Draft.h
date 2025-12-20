@@ -17,16 +17,16 @@ namespace Sidechain {
 struct Draft {
   // ==============================================================================
   // Core identity
-  juce::String id;           // Local UUID for the draft
-  juce::String type;         // "post", "message", "comment", "story"
+  juce::String id;   // Local UUID for the draft
+  juce::String type; // "post", "message", "comment", "story"
 
   // ==============================================================================
   // Context (what this draft is for)
-  juce::String contextId;    // Conversation ID (for messages), Post ID (for comments)
+  juce::String contextId; // Conversation ID (for messages), Post ID (for comments)
 
   // ==============================================================================
   // Content
-  juce::String text;         // Draft text content
+  juce::String text; // Draft text content
 
   // ==============================================================================
   // Attachments (local file paths)
@@ -52,7 +52,7 @@ struct Draft {
 
   // ==============================================================================
   // Auto-recovery flag
-  bool isAutoRecovery = false;  // Draft created from crashed session
+  bool isAutoRecovery = false; // Draft created from crashed session
 
   // ==============================================================================
   // Typed JSON serialization
@@ -71,8 +71,7 @@ struct Draft {
   // ==============================================================================
   // Display helpers
   bool hasContent() const {
-    return text.isNotEmpty() || audioFilePath.isNotEmpty() || 
-           midiFilePath.isNotEmpty() || imageFilePath.isNotEmpty();
+    return text.isNotEmpty() || audioFilePath.isNotEmpty() || midiFilePath.isNotEmpty() || imageFilePath.isNotEmpty();
   }
 
   bool hasAudio() const {

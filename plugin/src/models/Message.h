@@ -13,14 +13,14 @@ namespace Sidechain {
  * MessageAttachment - Attached media/files in a message
  */
 struct MessageAttachment {
-  juce::String type;       // "image", "audio", "video", "file", "loop", "midi"
-  juce::String url;        // URL to the attached file
-  juce::String filename;   // Original filename
-  int64_t size = 0;        // File size in bytes
-  juce::String mimeType;   // MIME type
+  juce::String type;     // "image", "audio", "video", "file", "loop", "midi"
+  juce::String url;      // URL to the attached file
+  juce::String filename; // Original filename
+  int64_t size = 0;      // File size in bytes
+  juce::String mimeType; // MIME type
 
   // For audio/video
-  float duration = 0.0f;   // Duration in seconds
+  float duration = 0.0f; // Duration in seconds
 
   // For images
   int width = 0;
@@ -49,7 +49,7 @@ inline void from_json(const nlohmann::json &j, MessageAttachment &att) {
   JSON_OPTIONAL_STRING(j, "filename", att.filename, "");
   JSON_OPTIONAL_STRING(j, "mime_type", att.mimeType, "");
   JSON_OPTIONAL_STRING(j, "thumbnail_url", att.thumbnailUrl, "");
-  
+
   JSON_OPTIONAL(j, "size", att.size, 0);
   JSON_OPTIONAL(j, "duration", att.duration, 0.0f);
   JSON_OPTIONAL(j, "width", att.width, 0);
@@ -78,24 +78,24 @@ struct Message {
 
   // ==============================================================================
   // Reply/Thread
-  juce::String replyToId;        // ID of message this is replying to
-  juce::String replyToText;      // Preview of replied message
-  juce::String replyToSenderId;  // Sender of replied message
+  juce::String replyToId;       // ID of message this is replying to
+  juce::String replyToText;     // Preview of replied message
+  juce::String replyToSenderId; // Sender of replied message
 
   // ==============================================================================
   // Reactions (emoji -> list of user IDs)
   std::unordered_map<std::string, std::vector<std::string>> reactions;
-  
+
   // ==============================================================================
   // Status
   bool isEdited = false;
   bool isDeleted = false;
-  bool isSilent = false;         // Silent message (no notification)
+  bool isSilent = false; // Silent message (no notification)
   bool isPinned = false;
 
   // ==============================================================================
   // Read receipts
-  std::vector<std::string> readBy;  // User IDs who have read this message
+  std::vector<std::string> readBy; // User IDs who have read this message
 
   // ==============================================================================
   // Timestamps

@@ -3,6 +3,8 @@
 #include "AggregatedFeedGroup.h"
 #include <JuceHeader.h>
 
+namespace Sidechain {
+
 // ==============================================================================
 /**
  * AggregatedFeedResponse represents a paginated response from an aggregated
@@ -19,3 +21,5 @@ struct AggregatedFeedResponse {
   bool hasMore = false;                    // /< Whether more groups are available
   juce::String error;                      // /< Non-empty if there was an error
 };
+
+} // namespace Sidechain

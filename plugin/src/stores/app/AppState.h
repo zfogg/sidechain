@@ -31,6 +31,7 @@ struct AuthState {
   juce::String email;
   juce::String authToken;
   juce::String refreshToken;
+  int64_t tokenExpiresAt = 0; // Milliseconds since epoch
   bool isAuthenticating = false;
   bool is2FARequired = false;
   bool isVerifying2FA = false;
@@ -38,6 +39,22 @@ struct AuthState {
   bool isResettingPassword = false;
   juce::String authError;
   int64_t lastAuthTime = 0;
+
+  // Helper methods for token expiration
+  bool isTokenExpired() const {
+    if (tokenExpiresAt <= 0)
+      return false;
+    return juce::Time::getCurrentTime().toMilliseconds() > tokenExpiresAt;
+  }
+
+  bool shouldRefreshToken() const {
+    if (tokenExpiresAt <= 0)
+      return false;
+    auto now = juce::Time::getCurrentTime().toMilliseconds();
+    auto timeUntilExpiry = tokenExpiresAt - now;
+    // Refresh if less than 5 minutes remaining
+    return timeUntilExpiry < (5 * 60 * 1000);
+  }
 };
 
 // ==============================================================================

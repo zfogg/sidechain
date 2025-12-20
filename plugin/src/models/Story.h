@@ -2,6 +2,8 @@
 
 #include <JuceHeader.h>
 
+namespace Sidechain {
+
 // ==============================================================================
 /**
  * Story represents a short music clip with MIDI visualization
@@ -118,3 +120,5 @@ struct StoryHighlight {
    */
   juce::var toJSON() const;
 };
+
+} // namespace Sidechain

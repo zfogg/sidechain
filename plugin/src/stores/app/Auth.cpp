@@ -56,7 +56,7 @@ void AppStore::login(const juce::String &email, const juce::String &password) {
 
     // Fetch user profile after successful login
     fetchUserProfile(false);
-    
+
     // Start token refresh timer after successful login
     startTokenRefreshTimer();
   });
@@ -122,33 +122,33 @@ void AppStore::verify2FA(const juce::String &code) {
 
   authSlice->dispatch([](AuthState &state) { state.isVerifying2FA = true; });
 
-  networkClient->verify2FALogin(currentAuth.twoFactorUserId, code,
-                                [this, authSlice](Outcome<std::pair<juce::String, juce::String>> result) {
-                                  if (!result.isOk()) {
-                                    authSlice->dispatch([error = result.getError()](AuthState &state) {
-                                      state.isVerifying2FA = false;
-                                      state.authError = error;
-                                    });
-                                    return;
-                                  }
+  networkClient->verify2FALogin(
+      currentAuth.twoFactorUserId, code, [this, authSlice](Outcome<std::pair<juce::String, juce::String>> result) {
+        if (!result.isOk()) {
+          authSlice->dispatch([error = result.getError()](AuthState &state) {
+            state.isVerifying2FA = false;
+            state.authError = error;
+          });
+          return;
+        }
 
-                                  // Extract token and userId from result pair
-                                  auto [token, userId] = result.getValue();
+        // Extract token and userId from result pair
+        auto [token, userId] = result.getValue();
 
-                                  authSlice->dispatch([token, userId](AuthState &state) {
-                                    state.isVerifying2FA = false;
-                                    state.is2FARequired = false;
-                                    state.isLoggedIn = true;
-                                    state.authToken = token;
-                                    state.userId = userId;
-                                    state.authError = "";
-                                    // Set token expiry to 24 hours from now (backend default)
-                                    state.tokenExpiresAt = juce::Time::getCurrentTime().toMilliseconds() + (24 * 60 * 60 * 1000);
-                                  });
+        authSlice->dispatch([token, userId](AuthState &state) {
+          state.isVerifying2FA = false;
+          state.is2FARequired = false;
+          state.isLoggedIn = true;
+          state.authToken = token;
+          state.userId = userId;
+          state.authError = "";
+          // Set token expiry to 24 hours from now (backend default)
+          state.tokenExpiresAt = juce::Time::getCurrentTime().toMilliseconds() + (24 * 60 * 60 * 1000);
+        });
 
-                                  // Fetch user profile after successful 2FA
-                                  fetchUserProfile(false);
-                                });
+        // Fetch user profile after successful 2FA
+        fetchUserProfile(false);
+      });
 }
 
 void AppStore::requestPasswordReset(const juce::String &email) {
@@ -258,44 +258,44 @@ void AppStore::refreshAuthToken() {
     return;
   }
 
-
   // Call the new refresh endpoint
-  networkClient->refreshAuthToken(currentAuth.authToken, [this, authSlice](Outcome<std::pair<juce::String, juce::String>> result) {
-    if (result.isOk()) {
-      // Extract new token and userId
-      auto [newToken, userId] = result.getValue();
-      
-      authSlice->dispatch([newToken, userId](AuthState &state) {
-        state.authToken = newToken;
-        state.userId = userId;
-        // Reset token expiry to 24 hours from now
-        state.tokenExpiresAt = juce::Time::getCurrentTime().toMilliseconds() + (24 * 60 * 60 * 1000);
-        state.lastAuthTime = juce::Time::getCurrentTime().toMilliseconds();
-        state.authError = "";
+  networkClient->refreshAuthToken(
+      currentAuth.authToken, [this, authSlice](Outcome<std::pair<juce::String, juce::String>> result) {
+        if (result.isOk()) {
+          // Extract new token and userId
+          auto [newToken, userId] = result.getValue();
+
+          authSlice->dispatch([newToken, userId](AuthState &state) {
+            state.authToken = newToken;
+            state.userId = userId;
+            // Reset token expiry to 24 hours from now
+            state.tokenExpiresAt = juce::Time::getCurrentTime().toMilliseconds() + (24 * 60 * 60 * 1000);
+            state.lastAuthTime = juce::Time::getCurrentTime().toMilliseconds();
+            state.authError = "";
+          });
+
+          Util::logInfo("AppStore", "Token refreshed successfully");
+        } else {
+          // Token refresh failed - likely invalid/expired token
+          Util::logError("AppStore", "Token refresh failed: " + result.getError());
+
+          // If token is truly expired, log user out
+          authSlice->dispatch([error = result.getError()](AuthState &state) {
+            state.authError = "Session expired - please log in again";
+            state.isLoggedIn = false;
+            state.authToken = "";
+            state.userId = "";
+            state.tokenExpiresAt = 0;
+          });
+        }
       });
-      
-      Util::logInfo("AppStore", "Token refreshed successfully");
-    } else {
-      // Token refresh failed - likely invalid/expired token
-      Util::logError("AppStore", "Token refresh failed: " + result.getError());
-      
-      // If token is truly expired, log user out
-      authSlice->dispatch([error = result.getError()](AuthState &state) {
-        state.authError = "Session expired - please log in again";
-        state.isLoggedIn = false;
-        state.authToken = "";
-        state.userId = "";
-        state.tokenExpiresAt = 0;
-      });
-    }
-  });
 }
 
 void AppStore::startTokenRefreshTimer() {
   if (!tokenRefreshTimer_) {
     tokenRefreshTimer_ = std::make_unique<TokenRefreshTimer>(this);
   }
-  
+
   // Check every 30 minutes if token needs refresh
   tokenRefreshTimer_->startTimer(30 * 60 * 1000);
   Util::logInfo("AppStore", "Token refresh timer started (checks every 30 minutes)");
@@ -311,12 +311,12 @@ void AppStore::stopTokenRefreshTimer() {
 void AppStore::checkAndRefreshToken() {
   auto authSlice = sliceManager.getAuthSlice();
   auto currentAuth = authSlice->getState();
-  
+
   // Only refresh if logged in and token needs refresh
   if (!currentAuth.isLoggedIn) {
     return;
   }
-  
+
   if (currentAuth.shouldRefreshToken()) {
     Util::logInfo("AppStore", "Token needs refresh (< 1 hour remaining), refreshing automatically");
     refreshAuthToken();

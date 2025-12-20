@@ -91,8 +91,7 @@ public:
    * If not, calls factory to create new entity and stores it
    * This ensures deduplication - same ID always returns same shared_ptr
    */
-  template <typename Factory>
-  std::shared_ptr<T> getOrCreate(const juce::String &id, Factory &&factory) {
+  template <typename Factory> std::shared_ptr<T> getOrCreate(const juce::String &id, Factory &&factory) {
     std::lock_guard<std::mutex> lock(mutex_);
 
     auto it = entities_.find(id);
@@ -128,8 +127,7 @@ public:
    * Applies updater function to existing entity (if found)
    * Notifies observers after update
    */
-  template <typename Updater>
-  bool update(const juce::String &id, Updater &&updater) {
+  template <typename Updater> bool update(const juce::String &id, Updater &&updater) {
     std::lock_guard<std::mutex> lock(mutex_);
 
     auto it = entities_.find(id);
@@ -222,9 +220,9 @@ public:
     return [this, id, observerId]() {
       std::lock_guard<std::mutex> lock(mutex_);
       auto &list = observers_[id];
-      list.erase(std::remove_if(list.begin(), list.end(),
-                                 [observerId](const auto &pair) { return pair.first == observerId; }),
-                 list.end());
+      list.erase(
+          std::remove_if(list.begin(), list.end(), [observerId](const auto &pair) { return pair.first == observerId; }),
+          list.end());
     };
   }
 
@@ -236,8 +234,7 @@ public:
    * Saves current state as snapshot for potential rollback
    * Updates entity immediately
    */
-  template <typename Updater>
-  void optimisticUpdate(const juce::String &id, Updater &&updater) {
+  template <typename Updater> void optimisticUpdate(const juce::String &id, Updater &&updater) {
     std::lock_guard<std::mutex> lock(mutex_);
 
     auto it = entities_.find(id);
@@ -294,7 +291,9 @@ public:
   /**
    * Invalidate specific entity (remove from cache)
    */
-  void invalidate(const juce::String &id) { remove(id); }
+  void invalidate(const juce::String &id) {
+    remove(id);
+  }
 
   /**
    * Invalidate all entities
@@ -376,9 +375,13 @@ public:
   // ==============================================================================
   // TTL configuration
 
-  void setDefaultTTL(int64_t ttlMs) { defaultTTL_ = ttlMs; }
+  void setDefaultTTL(int64_t ttlMs) {
+    defaultTTL_ = ttlMs;
+  }
 
-  int64_t getDefaultTTL() const { return defaultTTL_; }
+  int64_t getDefaultTTL() const {
+    return defaultTTL_;
+  }
 
 private:
   // ==============================================================================

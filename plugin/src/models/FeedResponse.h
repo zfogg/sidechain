@@ -3,6 +3,8 @@
 #include "FeedPost.h"
 #include <JuceHeader.h>
 
+namespace Sidechain {
+
 // ==============================================================================
 /**
  * FeedResponse represents a paginated response from the feed API
@@ -17,3 +19,5 @@ struct FeedResponse {
   bool hasMore = false;        // /< Whether more posts are available
   juce::String error;          // /< Non-empty if there was an error
 };
+
+} // namespace Sidechain

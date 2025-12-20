@@ -3,6 +3,8 @@
 #include "FeedPost.h"
 #include <JuceHeader.h>
 
+namespace Sidechain {
+
 // ==============================================================================
 /**
  * AggregatedFeedGroup represents a group of activities from an aggregated feed
@@ -74,3 +76,5 @@ struct AggregatedFeedGroup {
     return id.isNotEmpty() && !activities.isEmpty();
   }
 };
+
+} // namespace Sidechain

@@ -1,12 +1,19 @@
 #pragma once
 
+#include "../util/json/JsonValidation.h"
+#include "../util/Result.h"
+#include "../util/SerializableModel.h"
 #include <JuceHeader.h>
+#include <nlohmann/json.hpp>
+#include <memory>
+
+namespace Sidechain {
 
 // ==============================================================================
 /**
  * Playlist represents a collection of audio posts
  */
-struct Playlist {
+struct Playlist : public SerializableModel<Playlist> {
   juce::String id;
   juce::String name;
   juce::String description;
@@ -78,3 +85,5 @@ struct PlaylistCollaborator {
   // Parse from JSON response
   static PlaylistCollaborator fromJSON(const juce::var &json);
 };
+
+} // namespace Sidechain

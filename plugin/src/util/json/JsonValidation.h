@@ -110,20 +110,20 @@ inline std::string fromJuceString(const juce::String &str) {
  *   - Friend declarations for to_json/from_json
  */
 #define SIDECHAIN_JSON_TYPE(Type, ...)                                                                                 \
-  friend void to_json(nlohmann::json &j, const Type &obj);                                                            \
-  friend void from_json(const nlohmann::json &j, Type &obj);                                                          \
-  static Type fromJson(const nlohmann::json &j) {                                                                     \
+  friend void to_json(nlohmann::json &j, const Type &obj);                                                             \
+  friend void from_json(const nlohmann::json &j, Type &obj);                                                           \
+  static Type fromJson(const nlohmann::json &j) {                                                                      \
     try {                                                                                                              \
       Type obj;                                                                                                        \
       from_json(j, obj);                                                                                               \
       return obj;                                                                                                      \
-    } catch (const Sidechain::Json::ValidationError &e) {                                                             \
+    } catch (const Sidechain::Json::ValidationError &e) {                                                              \
       throw;                                                                                                           \
     } catch (const std::exception &e) {                                                                                \
-      throw Sidechain::Json::ValidationError("unknown", e.what(), j.dump());                                          \
+      throw Sidechain::Json::ValidationError("unknown", e.what(), j.dump());                                           \
     }                                                                                                                  \
   }                                                                                                                    \
-  nlohmann::json toJson() const {                                                                                     \
+  nlohmann::json toJson() const {                                                                                      \
     nlohmann::json j;                                                                                                  \
     to_json(j, *this);                                                                                                 \
     return j;                                                                                                          \
@@ -151,7 +151,8 @@ inline std::string fromJuceString(const juce::String &str) {
  *   int count;
  *   JSON_OPTIONAL(json, "count", count, 0);
  */
-#define JSON_OPTIONAL(json, field, var, defaultVal) var = Sidechain::Json::optional<decltype(var)>(json, field, defaultVal)
+#define JSON_OPTIONAL(json, field, var, defaultVal)                                                                    \
+  var = Sidechain::Json::optional<decltype(var)>(json, field, defaultVal)
 
 /**
  * JSON_REQUIRE_STRING - Require a string field and convert to juce::String

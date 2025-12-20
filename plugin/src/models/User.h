@@ -23,16 +23,15 @@ struct SocialLinks {
   std::unordered_map<std::string, std::string> custom;
 
   bool isEmpty() const {
-    return instagram.isEmpty() && twitter.isEmpty() && youtube.isEmpty() &&
-           soundcloud.isEmpty() && spotify.isEmpty() && bandcamp.isEmpty() &&
-           custom.empty();
+    return instagram.isEmpty() && twitter.isEmpty() && youtube.isEmpty() && soundcloud.isEmpty() && spotify.isEmpty() &&
+           bandcamp.isEmpty() && custom.empty();
   }
 };
 
 // JSON serialization for SocialLinks
 inline void to_json(nlohmann::json &j, const SocialLinks &links) {
   j = nlohmann::json::object();
-  
+
   if (links.instagram.isNotEmpty())
     j["instagram"] = Json::fromJuceString(links.instagram);
   if (links.twitter.isNotEmpty())
@@ -45,7 +44,7 @@ inline void to_json(nlohmann::json &j, const SocialLinks &links) {
     j["spotify"] = Json::fromJuceString(links.spotify);
   if (links.bandcamp.isNotEmpty())
     j["bandcamp"] = Json::fromJuceString(links.bandcamp);
-  
+
   // Add custom links
   for (const auto &[key, value] : links.custom) {
     j[key] = value;
@@ -53,8 +52,9 @@ inline void to_json(nlohmann::json &j, const SocialLinks &links) {
 }
 
 inline void from_json(const nlohmann::json &j, SocialLinks &links) {
-  if (!j.is_object()) return;
-  
+  if (!j.is_object())
+    return;
+
   if (j.contains("instagram"))
     links.instagram = Json::toJuceString(j["instagram"].get<std::string>());
   if (j.contains("twitter"))
@@ -67,12 +67,12 @@ inline void from_json(const nlohmann::json &j, SocialLinks &links) {
     links.spotify = Json::toJuceString(j["spotify"].get<std::string>());
   if (j.contains("bandcamp"))
     links.bandcamp = Json::toJuceString(j["bandcamp"].get<std::string>());
-  
+
   // Parse any additional custom links
   for (auto it = j.begin(); it != j.end(); ++it) {
     const auto &key = it.key();
-    if (key != "instagram" && key != "twitter" && key != "youtube" &&
-        key != "soundcloud" && key != "spotify" && key != "bandcamp") {
+    if (key != "instagram" && key != "twitter" && key != "youtube" && key != "soundcloud" && key != "spotify" &&
+        key != "bandcamp") {
       if (it.value().is_string()) {
         links.custom[key] = it.value().get<std::string>();
       }
@@ -89,7 +89,7 @@ inline void from_json(const nlohmann::json &j, SocialLinks &links) {
  *
  * Features typed JSON with validation for safe parsing from API responses.
  */
-struct User {
+struct User : public SerializableModel<User> {
   // ==============================================================================
   // Core identity
   juce::String id;
@@ -105,31 +105,31 @@ struct User {
   // ==============================================================================
   // Profile metadata
   juce::String location;
-  juce::String genre;        // Primary genre
-  juce::String daw;          // DAW preference (e.g., "Ableton Live", "FL Studio")
-  juce::String website;      // Personal website URL
-  SocialLinks socialLinks;   // Social media links (Instagram, Twitter, etc.)
+  juce::String genre;      // Primary genre
+  juce::String daw;        // DAW preference (e.g., "Ableton Live", "FL Studio")
+  juce::String website;    // Personal website URL
+  SocialLinks socialLinks; // Social media links (Instagram, Twitter, etc.)
 
   // ==============================================================================
   // Stats
   int followerCount = 0;
   int followingCount = 0;
   int postCount = 0;
-  int likeCount = 0;         // Total likes received across all posts
+  int likeCount = 0; // Total likes received across all posts
 
   // ==============================================================================
   // Account status
-  bool isPrivate = false;    // Private account (requires approval to follow)
-  bool isVerified = false;   // Verified artist/producer badge
-  bool isOnline = false;     // Currently online
-  bool isInStudio = false;   // Custom status: "in studio"
+  bool isPrivate = false;  // Private account (requires approval to follow)
+  bool isVerified = false; // Verified artist/producer badge
+  bool isOnline = false;   // Currently online
+  bool isInStudio = false; // Custom status: "in studio"
 
   // ==============================================================================
   // Relationships (current user's relationship with this user)
-  bool isFollowing = false;  // Current user follows this user
-  bool followsYou = false;   // This user follows current user
-  bool isBlocked = false;    // Current user has blocked this user
-  bool isMuted = false;      // Current user has muted this user
+  bool isFollowing = false; // Current user follows this user
+  bool followsYou = false;  // This user follows current user
+  bool isBlocked = false;   // Current user has blocked this user
+  bool isMuted = false;     // Current user has muted this user
 
   // ==============================================================================
   // Timestamps

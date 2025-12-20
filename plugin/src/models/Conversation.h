@@ -18,12 +18,12 @@ struct Conversation {
   // ==============================================================================
   // Core identity
   juce::String id;
-  juce::String type;         // "direct" or "group"
-  juce::String name;         // Display name (for group chats)
+  juce::String type; // "direct" or "group"
+  juce::String name; // Display name (for group chats)
 
   // ==============================================================================
   // Participants
-  std::vector<std::string> memberIds;    // User IDs of all members
+  std::vector<std::string> memberIds; // User IDs of all members
   int memberCount = 0;
 
   // ==============================================================================

@@ -1,6 +1,11 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "../util/SerializableModel.h"
+#include "../util/json/JsonValidation.h"
+#include <nlohmann/json.hpp>
+
+namespace Sidechain {
 
 // ==============================================================================
 /**
@@ -9,7 +14,7 @@
  * When the same sample/sound is used in multiple posts, they are linked
  * to the same Sound, enabling "See X other posts with this sound" discovery.
  */
-struct Sound {
+struct Sound : public SerializableModel<Sound> {
   juce::String id;
   juce::String name;
   juce::String description;
@@ -32,39 +37,9 @@ struct Sound {
   bool isPublic = true;
   juce::Time createdAt;
 
-  // ==========================================================================
-  // Parsing from JSON
-
-  static Sound fromJson(const juce::var &json) {
-    Sound sound;
-
-    sound.id = json.getProperty("id", "").toString();
-    sound.name = json.getProperty("name", "").toString();
-    sound.description = json.getProperty("description", "").toString();
-    sound.duration = static_cast<double>(json.getProperty("duration", 0.0));
-    sound.creatorId = json.getProperty("creator_id", "").toString();
-    sound.originalPostId = json.getProperty("original_post_id", "").toString();
-    sound.usageCount = static_cast<int>(json.getProperty("usage_count", 0));
-    sound.isTrending = static_cast<bool>(json.getProperty("is_trending", false));
-    sound.trendingRank = static_cast<int>(json.getProperty("trending_rank", 0));
-    sound.isPublic = static_cast<bool>(json.getProperty("is_public", true));
-
-    // Parse creator object if present
-    auto creator = json.getProperty("creator", juce::var());
-    if (creator.isObject()) {
-      sound.creatorUsername = creator.getProperty("username", "").toString();
-      sound.creatorDisplayName = creator.getProperty("display_name", "").toString();
-      sound.creatorAvatarUrl = creator.getProperty("avatar_url", "").toString();
-    }
-
-    // Parse created_at timestamp
-    auto createdAtStr = json.getProperty("created_at", "").toString();
-    if (createdAtStr.isNotEmpty()) {
-      // ISO 8601 format: 2024-01-15T10:30:00Z
-      sound.createdAt = juce::Time::fromISO8601(createdAtStr);
-    }
-
-    return sound;
+  // Validation
+  bool isValid() const {
+    return id.isNotEmpty() && name.isNotEmpty();
   }
 
   // ==========================================================================
@@ -98,10 +73,57 @@ struct Sound {
 };
 
 // ==============================================================================
+// JSON Serialization
+
+inline void to_json(nlohmann::json &j, const Sound &sound) {
+  j = nlohmann::json{
+      {"id", Json::fromJuceString(sound.id)},
+      {"name", Json::fromJuceString(sound.name)},
+      {"description", Json::fromJuceString(sound.description)},
+      {"duration", sound.duration},
+      {"creator_id", Json::fromJuceString(sound.creatorId)},
+      {"creator_username", Json::fromJuceString(sound.creatorUsername)},
+      {"creator_display_name", Json::fromJuceString(sound.creatorDisplayName)},
+      {"creator_avatar_url", Json::fromJuceString(sound.creatorAvatarUrl)},
+      {"original_post_id", Json::fromJuceString(sound.originalPostId)},
+      {"usage_count", sound.usageCount},
+      {"is_trending", sound.isTrending},
+      {"trending_rank", sound.trendingRank},
+      {"is_public", sound.isPublic},
+      {"created_at", sound.createdAt.toISO8601(true).toStdString()},
+  };
+}
+
+inline void from_json(const nlohmann::json &j, Sound &sound) {
+  JSON_OPTIONAL_STRING(j, "id", sound.id, "");
+  JSON_OPTIONAL_STRING(j, "name", sound.name, "");
+  JSON_OPTIONAL_STRING(j, "description", sound.description, "");
+  JSON_OPTIONAL(j, "duration", sound.duration, 0.0);
+  JSON_OPTIONAL_STRING(j, "creator_id", sound.creatorId, "");
+  JSON_OPTIONAL_STRING(j, "creator_username", sound.creatorUsername, "");
+  JSON_OPTIONAL_STRING(j, "creator_display_name", sound.creatorDisplayName, "");
+  JSON_OPTIONAL_STRING(j, "creator_avatar_url", sound.creatorAvatarUrl, "");
+  JSON_OPTIONAL_STRING(j, "original_post_id", sound.originalPostId, "");
+  JSON_OPTIONAL(j, "usage_count", sound.usageCount, 0);
+  JSON_OPTIONAL(j, "is_trending", sound.isTrending, false);
+  JSON_OPTIONAL(j, "trending_rank", sound.trendingRank, 0);
+  JSON_OPTIONAL(j, "is_public", sound.isPublic, true);
+
+  // Parse timestamp
+  if (j.contains("created_at") && !j["created_at"].is_null()) {
+    try {
+      sound.createdAt = juce::Time::fromISO8601(Json::toJuceString(j["created_at"].get<std::string>()));
+    } catch (...) {
+      // Invalid timestamp format
+    }
+  }
+}
+
+// ==============================================================================
 /**
  * SoundPost represents a post that uses a specific sound
  */
-struct SoundPost {
+struct SoundPost : public SerializableModel<SoundPost> {
   juce::String id;
   juce::String audioUrl;
   double duration = 0.0;
@@ -118,34 +140,8 @@ struct SoundPost {
   juce::String displayName;
   juce::String avatarUrl;
 
-  static SoundPost fromJson(const juce::var &json) {
-    SoundPost post;
-
-    post.id = json.getProperty("id", "").toString();
-    post.audioUrl = json.getProperty("audio_url", "").toString();
-    post.duration = static_cast<double>(json.getProperty("duration", 0.0));
-    post.bpm = static_cast<int>(json.getProperty("bpm", 0));
-    post.key = json.getProperty("key", "").toString();
-    post.waveformSvg = json.getProperty("waveform_svg", "").toString();
-    post.likeCount = static_cast<int>(json.getProperty("like_count", 0));
-    post.playCount = static_cast<int>(json.getProperty("play_count", 0));
-
-    // Parse user object
-    auto user = json.getProperty("user", juce::var());
-    if (user.isObject()) {
-      post.userId = user.getProperty("id", "").toString();
-      post.username = user.getProperty("username", "").toString();
-      post.displayName = user.getProperty("display_name", "").toString();
-      post.avatarUrl = user.getProperty("avatar_url", "").toString();
-    }
-
-    // Parse created_at
-    auto createdAtStr = json.getProperty("created_at", "").toString();
-    if (createdAtStr.isNotEmpty()) {
-      post.createdAt = juce::Time::fromISO8601(createdAtStr);
-    }
-
-    return post;
+  bool isValid() const {
+    return id.isNotEmpty() && audioUrl.isNotEmpty();
   }
 
   juce::String getUserDisplayName() const {
@@ -154,3 +150,51 @@ struct SoundPost {
     return username;
   }
 };
+
+// ==============================================================================
+// JSON Serialization for SoundPost
+
+inline void to_json(nlohmann::json &j, const SoundPost &post) {
+  j = nlohmann::json{
+      {"id", Json::fromJuceString(post.id)},
+      {"audio_url", Json::fromJuceString(post.audioUrl)},
+      {"duration", post.duration},
+      {"bpm", post.bpm},
+      {"key", Json::fromJuceString(post.key)},
+      {"waveform_svg", Json::fromJuceString(post.waveformSvg)},
+      {"like_count", post.likeCount},
+      {"play_count", post.playCount},
+      {"created_at", post.createdAt.toISO8601(true).toStdString()},
+      {"user_id", Json::fromJuceString(post.userId)},
+      {"username", Json::fromJuceString(post.username)},
+      {"display_name", Json::fromJuceString(post.displayName)},
+      {"avatar_url", Json::fromJuceString(post.avatarUrl)},
+  };
+}
+
+inline void from_json(const nlohmann::json &j, SoundPost &post) {
+  JSON_OPTIONAL_STRING(j, "id", post.id, "");
+  JSON_OPTIONAL_STRING(j, "audio_url", post.audioUrl, "");
+  JSON_OPTIONAL(j, "duration", post.duration, 0.0);
+  JSON_OPTIONAL(j, "bpm", post.bpm, 0);
+  JSON_OPTIONAL_STRING(j, "key", post.key, "");
+  JSON_OPTIONAL_STRING(j, "waveform_svg", post.waveformSvg, "");
+  JSON_OPTIONAL(j, "like_count", post.likeCount, 0);
+  JSON_OPTIONAL(j, "play_count", post.playCount, 0);
+
+  JSON_OPTIONAL_STRING(j, "user_id", post.userId, "");
+  JSON_OPTIONAL_STRING(j, "username", post.username, "");
+  JSON_OPTIONAL_STRING(j, "display_name", post.displayName, "");
+  JSON_OPTIONAL_STRING(j, "avatar_url", post.avatarUrl, "");
+
+  // Parse timestamp
+  if (j.contains("created_at") && !j["created_at"].is_null()) {
+    try {
+      post.createdAt = juce::Time::fromISO8601(Json::toJuceString(j["created_at"].get<std::string>()));
+    } catch (...) {
+      // Invalid timestamp format
+    }
+  }
+}
+
+} // namespace Sidechain

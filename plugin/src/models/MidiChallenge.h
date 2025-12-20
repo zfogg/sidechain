@@ -2,6 +2,8 @@
 
 #include <JuceHeader.h>
 
+namespace Sidechain {
+
 // ==============================================================================
 /**
  * MIDIChallengeConstraints represents the constraints for a MIDI challenge
@@ -78,3 +80,5 @@ struct MIDIChallengeEntry {
   // Parse from JSON response
   static MIDIChallengeEntry fromJSON(const juce::var &json);
 };
+
+} // namespace Sidechain

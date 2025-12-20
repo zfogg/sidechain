@@ -3,6 +3,8 @@
 #include "../util/Log.h"
 #include "../util/Time.h"
 
+namespace Sidechain {
+
 // ==============================================================================
 /** Create a FeedPost from JSON data
  * Parses getstream.io activity JSON into a FeedPost object.
@@ -14,17 +16,17 @@ FeedPost FeedPost::fromJson(const juce::var &json) {
   FeedPost post;
 
   // Core identifiers
-  post.id = Json::getString(json, "id");
-  post.foreignId = Json::getString(json, "foreign_id");
-  post.actor = Json::getString(json, "actor");
-  post.verb = Json::getString(json, "verb");
-  post.object = Json::getString(json, "object");
+  post.id = ::Json::getString(json, "id");
+  post.foreignId = ::Json::getString(json, "foreign_id");
+  post.actor = ::Json::getString(json, "actor");
+  post.verb = ::Json::getString(json, "verb");
+  post.object = ::Json::getString(json, "object");
 
   // Extract user ID from actor string
   post.userId = extractUserId(post.actor);
 
   // Parse timestamp
-  juce::String timeStr = Json::getString(json, "time");
+  juce::String timeStr = ::Json::getString(json, "time");
   if (timeStr.isNotEmpty()) {
     // getstream.io uses ISO 8601 format: "2024-01-15T10:30:00.000Z"
     post.timestamp = juce::Time::fromISO8601(timeStr);
@@ -34,18 +36,18 @@ FeedPost FeedPost::fromJson(const juce::var &json) {
   // User info (may be nested in actor_data or user object)
   if (Json::hasKey(json, "actor_data")) {
     auto actorData = Json::getObject(json, "actor_data");
-    post.username = Json::getString(actorData, "username");
-    post.userAvatarUrl = Json::getString(actorData, "avatar_url");
+    post.username = ::Json::getString(actorData, "username");
+    post.userAvatarUrl = ::Json::getString(actorData, "avatar_url");
   } else if (Json::hasKey(json, "user")) {
     auto userData = Json::getObject(json, "user");
-    post.username = Json::getString(userData, "username");
-    post.userAvatarUrl = Json::getString(userData, "avatar_url");
+    post.username = ::Json::getString(userData, "username");
+    post.userAvatarUrl = ::Json::getString(userData, "avatar_url");
   }
 
   // Audio metadata
-  post.audioUrl = Json::getString(json, "audio_url");
-  post.waveformSvg = Json::getString(json, "waveform");
-  post.waveformUrl = Json::getString(json, "waveform_url");
+  post.audioUrl = ::Json::getString(json, "audio_url");
+  post.waveformSvg = ::Json::getString(json, "waveform");
+  post.waveformUrl = ::Json::getString(json, "waveform_url");
 
   // Debug: Log waveform URL
   if (post.waveformUrl.isNotEmpty())
@@ -53,71 +55,71 @@ FeedPost FeedPost::fromJson(const juce::var &json) {
   else
     Log::debug("FeedPost: No waveform_url in JSON for post " + post.id);
 
-  post.filename = Json::getString(json, "filename");
+  post.filename = ::Json::getString(json, "filename");
   post.durationSeconds = Json::getFloat(json, "duration_seconds");
-  post.durationBars = Json::getInt(json, "duration_bars");
-  post.bpm = Json::getInt(json, "bpm");
-  post.key = Json::getString(json, "key");
-  post.daw = Json::getString(json, "daw");
+  post.durationBars = ::Json::getInt(json, "duration_bars");
+  post.bpm = ::Json::getInt(json, "bpm");
+  post.key = ::Json::getString(json, "key");
+  post.daw = ::Json::getString(json, "daw");
 
   // MIDI metadata
-  post.hasMidi = Json::getBool(json, "has_midi");
-  post.midiId = Json::getString(json, "midi_pattern_id");
-  post.midiFilename = Json::getString(json, "midi_filename");
+  post.hasMidi = ::Json::getBool(json, "has_midi");
+  post.midiId = ::Json::getString(json, "midi_pattern_id");
+  post.midiFilename = ::Json::getString(json, "midi_filename");
   // Also check for midi_id as alternative field name
   if (post.midiId.isEmpty())
-    post.midiId = Json::getString(json, "midi_id");
+    post.midiId = ::Json::getString(json, "midi_id");
   // If we have a midi_id, we have MIDI
   if (post.midiId.isNotEmpty())
     post.hasMidi = true;
 
   // Project file metadata
-  post.hasProjectFile = Json::getBool(json, "has_project_file");
-  post.projectFileId = Json::getString(json, "project_file_id");
-  post.projectFileDaw = Json::getString(json, "project_file_daw");
+  post.hasProjectFile = ::Json::getBool(json, "has_project_file");
+  post.projectFileId = ::Json::getString(json, "project_file_id");
+  post.projectFileDaw = ::Json::getString(json, "project_file_daw");
   // If we have a project_file_id, we have a project file
   if (post.projectFileId.isNotEmpty())
     post.hasProjectFile = true;
 
   // Remix metadata
-  post.remixOfPostId = Json::getString(json, "remix_of_post_id");
-  post.remixOfStoryId = Json::getString(json, "remix_of_story_id");
-  post.remixType = Json::getString(json, "remix_type");
-  post.remixChainDepth = Json::getInt(json, "remix_chain_depth");
-  post.remixCount = Json::getInt(json, "remix_count");
+  post.remixOfPostId = ::Json::getString(json, "remix_of_post_id");
+  post.remixOfStoryId = ::Json::getString(json, "remix_of_story_id");
+  post.remixType = ::Json::getString(json, "remix_type");
+  post.remixChainDepth = ::Json::getInt(json, "remix_chain_depth");
+  post.remixCount = ::Json::getInt(json, "remix_count");
   // Post is a remix if it has a remix source
   post.isRemix = post.remixOfPostId.isNotEmpty() || post.remixOfStoryId.isNotEmpty();
 
   // Sound/Sample metadata ( - Sound Pages)
-  post.soundId = Json::getString(json, "sound_id");
-  post.soundName = Json::getString(json, "sound_name");
-  post.soundUsageCount = Json::getInt(json, "sound_usage_count");
+  post.soundId = ::Json::getString(json, "sound_id");
+  post.soundName = ::Json::getString(json, "sound_name");
+  post.soundUsageCount = ::Json::getInt(json, "sound_usage_count");
   // Also check extra data for remix info (from getstream.io activity extra
   // field)
   if (!post.isRemix && Json::hasKey(json, "extra")) {
     auto extra = Json::getObject(json, "extra");
     if (Json::hasKey(extra, "remix_of_post_id")) {
-      post.remixOfPostId = Json::getString(extra, "remix_of_post_id");
+      post.remixOfPostId = ::Json::getString(extra, "remix_of_post_id");
       post.isRemix = true;
     }
     if (Json::hasKey(extra, "remix_of_story_id")) {
-      post.remixOfStoryId = Json::getString(extra, "remix_of_story_id");
+      post.remixOfStoryId = ::Json::getString(extra, "remix_of_story_id");
       post.isRemix = true;
     }
     if (Json::hasKey(extra, "remix_type"))
-      post.remixType = Json::getString(extra, "remix_type");
+      post.remixType = ::Json::getString(extra, "remix_type");
     if (Json::hasKey(extra, "remix_chain_depth"))
-      post.remixChainDepth = Json::getInt(extra, "remix_chain_depth");
+      post.remixChainDepth = ::Json::getInt(extra, "remix_chain_depth");
   }
 
   // Parse genres array
   auto genreVar = Json::getArray(json, "genre");
   if (Json::isArray(genreVar)) {
     for (int i = 0; i < Json::arraySize(genreVar); ++i)
-      post.genres.add(Json::getStringAt(genreVar, i));
+      post.genres.add(::Json::getStringAt(genreVar, i));
   } else if (Json::hasKey(json, "genre")) {
     // Single genre as string
-    post.genres.add(Json::getString(json, "genre"));
+    post.genres.add(::Json::getString(json, "genre"));
   }
 
   // Social metrics - first try enriched data from getstream.io
@@ -138,7 +140,7 @@ FeedPost FeedPost::fromJson(const juce::var &json) {
     }
   } else {
     // Fallback to traditional like_count field
-    post.likeCount = Json::getInt(json, "like_count");
+    post.likeCount = ::Json::getInt(json, "like_count");
   }
 
   // Check own_reactions to determine if current user has liked/reacted
@@ -160,25 +162,25 @@ FeedPost FeedPost::fromJson(const juce::var &json) {
     }
   } else {
     // Fallback to traditional is_liked field
-    post.isLiked = Json::getBool(json, "is_liked");
+    post.isLiked = ::Json::getBool(json, "is_liked");
   }
 
-  post.playCount = Json::getInt(json, "play_count");
-  post.commentCount = Json::getInt(json, "comment_count");
-  post.saveCount = Json::getInt(json, "save_count");
-  post.repostCount = Json::getInt(json, "repost_count");
-  post.downloadCount = Json::getInt(json, "download_count");
-  post.isSaved = Json::getBool(json, "is_saved");
-  post.isReposted = Json::getBool(json, "is_reposted");
-  post.isFollowing = Json::getBool(json, "is_following");
-  post.isOwnPost = Json::getBool(json, "is_own_post");
+  post.playCount = ::Json::getInt(json, "play_count");
+  post.commentCount = ::Json::getInt(json, "comment_count");
+  post.saveCount = ::Json::getInt(json, "save_count");
+  post.repostCount = ::Json::getInt(json, "repost_count");
+  post.downloadCount = ::Json::getInt(json, "download_count");
+  post.isSaved = ::Json::getBool(json, "is_saved");
+  post.isReposted = ::Json::getBool(json, "is_reposted");
+  post.isFollowing = ::Json::getBool(json, "is_following");
+  post.isOwnPost = ::Json::getBool(json, "is_own_post");
 
   // Pin metadata
-  post.isPinned = Json::getBool(json, "is_pinned");
-  post.pinOrder = Json::getInt(json, "pin_order");
+  post.isPinned = ::Json::getBool(json, "is_pinned");
+  post.pinOrder = ::Json::getInt(json, "pin_order");
 
   // Comment audience setting
-  post.commentAudience = Json::getString(json, "comment_audience");
+  post.commentAudience = ::Json::getString(json, "comment_audience");
   if (post.commentAudience.isEmpty())
     post.commentAudience = "everyone"; // Default
 
@@ -186,38 +188,38 @@ FeedPost FeedPost::fromJson(const juce::var &json) {
   // Check extra data from getstream.io activity
   if (Json::hasKey(json, "extra")) {
     auto extra = Json::getObject(json, "extra");
-    if (Json::getBool(extra, "is_repost")) {
+    if (::Json::getBool(extra, "is_repost")) {
       post.isARepost = true;
-      post.originalPostId = Json::getString(extra, "original_post_id");
-      post.originalUserId = Json::getString(extra, "original_user_id");
-      post.originalUsername = Json::getString(extra, "original_username");
-      post.originalAvatarUrl = Json::getString(extra, "original_avatar");
-      post.originalFilename = Json::getString(extra, "original_filename");
-      post.repostQuote = Json::getString(extra, "quote");
+      post.originalPostId = ::Json::getString(extra, "original_post_id");
+      post.originalUserId = ::Json::getString(extra, "original_user_id");
+      post.originalUsername = ::Json::getString(extra, "original_username");
+      post.originalAvatarUrl = ::Json::getString(extra, "original_avatar");
+      post.originalFilename = ::Json::getString(extra, "original_filename");
+      post.repostQuote = ::Json::getString(extra, "quote");
     }
   }
   // Also check top-level fields for repost info (alternative format)
   if (!post.isARepost) {
-    post.isARepost = Json::getBool(json, "is_a_repost");
+    post.isARepost = ::Json::getBool(json, "is_a_repost");
     if (post.isARepost || Json::hasKey(json, "original_post_id")) {
       post.isARepost = true;
-      post.originalPostId = Json::getString(json, "original_post_id");
-      post.originalUserId = Json::getString(json, "original_user_id");
-      post.originalUsername = Json::getString(json, "original_username");
-      post.originalAvatarUrl = Json::getString(json, "original_avatar_url");
-      post.originalFilename = Json::getString(json, "original_filename");
-      post.repostQuote = Json::getString(json, "repost_quote");
+      post.originalPostId = ::Json::getString(json, "original_post_id");
+      post.originalUserId = ::Json::getString(json, "original_user_id");
+      post.originalUsername = ::Json::getString(json, "original_username");
+      post.originalAvatarUrl = ::Json::getString(json, "original_avatar_url");
+      post.originalFilename = ::Json::getString(json, "original_filename");
+      post.repostQuote = ::Json::getString(json, "repost_quote");
     }
   }
 
   // Recommendation reason (for unified timeline feed)
-  post.recommendationReason = Json::getString(json, "recommendation_reason");
-  post.source = Json::getString(json, "source");
+  post.recommendationReason = ::Json::getString(json, "recommendation_reason");
+  post.source = ::Json::getString(json, "source");
   post.score = Json::getFloat(json, "score");
-  post.isRecommended = Json::getBool(json, "is_recommended");
+  post.isRecommended = ::Json::getBool(json, "is_recommended");
 
   // Processing status
-  juce::String statusStr = Json::getString(json, "status").toLowerCase();
+  juce::String statusStr = ::Json::getString(json, "status").toLowerCase();
   if (statusStr == "ready")
     post.status = Status::Ready;
   else if (statusStr == "processing")
@@ -468,3 +470,252 @@ bool FeedPost::isValid() const {
   // A post must have at least an ID and an audio URL to be playable
   return id.isNotEmpty() && audioUrl.isNotEmpty();
 }
+
+// ==============================================================================
+// nlohmann::json serialization for use with SerializableModel<FeedPost>
+
+inline void to_json(nlohmann::json &j, const FeedPost &post) {
+  j = nlohmann::json{
+      {"id", Json::fromJuceString(post.id)},
+      {"foreign_id", Json::fromJuceString(post.foreignId)},
+      {"actor", Json::fromJuceString(post.actor)},
+      {"verb", Json::fromJuceString(post.verb)},
+      {"object", Json::fromJuceString(post.object)},
+      {"time", post.timestamp.toISO8601(true).toStdString()},
+      {"audio_url", Json::fromJuceString(post.audioUrl)},
+      {"waveform_url", Json::fromJuceString(post.waveformUrl)},
+      {"filename", Json::fromJuceString(post.filename)},
+      {"duration_seconds", post.durationSeconds},
+      {"duration_bars", post.durationBars},
+      {"bpm", post.bpm},
+      {"key", Json::fromJuceString(post.key)},
+      {"daw", Json::fromJuceString(post.daw)},
+      {"has_midi", post.hasMidi},
+      {"midi_pattern_id", Json::fromJuceString(post.midiId)},
+      {"midi_filename", Json::fromJuceString(post.midiFilename)},
+      {"has_project_file", post.hasProjectFile},
+      {"project_file_id", Json::fromJuceString(post.projectFileId)},
+      {"project_file_daw", Json::fromJuceString(post.projectFileDaw)},
+      {"is_remix", post.isRemix},
+      {"remix_of_post_id", Json::fromJuceString(post.remixOfPostId)},
+      {"remix_of_story_id", Json::fromJuceString(post.remixOfStoryId)},
+      {"remix_type", Json::fromJuceString(post.remixType)},
+      {"remix_chain_depth", post.remixChainDepth},
+      {"remix_count", post.remixCount},
+      {"sound_id", Json::fromJuceString(post.soundId)},
+      {"sound_name", Json::fromJuceString(post.soundName)},
+      {"sound_usage_count", post.soundUsageCount},
+      {"like_count", post.likeCount},
+      {"play_count", post.playCount},
+      {"comment_count", post.commentCount},
+      {"save_count", post.saveCount},
+      {"repost_count", post.repostCount},
+      {"download_count", post.downloadCount},
+      {"is_liked", post.isLiked},
+      {"is_saved", post.isSaved},
+      {"is_reposted", post.isReposted},
+      {"is_following", post.isFollowing},
+      {"is_own_post", post.isOwnPost},
+      {"is_pinned", post.isPinned},
+      {"pin_order", post.pinOrder},
+      {"comment_audience", Json::fromJuceString(post.commentAudience)},
+      {"is_a_repost", post.isARepost},
+      {"original_post_id", Json::fromJuceString(post.originalPostId)},
+      {"original_user_id", Json::fromJuceString(post.originalUserId)},
+      {"original_username", Json::fromJuceString(post.originalUsername)},
+      {"original_avatar_url", Json::fromJuceString(post.originalAvatarUrl)},
+      {"original_filename", Json::fromJuceString(post.originalFilename)},
+      {"repost_quote", Json::fromJuceString(post.repostQuote)},
+      {"is_online", post.isOnline},
+      {"is_in_studio", post.isInStudio},
+      {"user_reaction", Json::fromJuceString(post.userReaction)},
+      {"recommendation_reason", Json::fromJuceString(post.recommendationReason)},
+      {"source", Json::fromJuceString(post.source)},
+      {"score", post.score},
+      {"is_recommended", post.isRecommended},
+  };
+
+  // Add userId and username
+  j["user_id"] = Json::fromJuceString(post.userId);
+  j["username"] = Json::fromJuceString(post.username);
+  j["user_avatar_url"] = Json::fromJuceString(post.userAvatarUrl);
+
+  // Add genres array
+  std::vector<std::string> genresVec;
+  for (const auto &genre : post.genres) {
+    genresVec.push_back(Json::fromJuceString(genre));
+  }
+  j["genres"] = genresVec;
+
+  // Add reaction counts
+  nlohmann::json reactionCountsObj;
+  for (const auto &[emoji, count] : post.reactionCounts) {
+    reactionCountsObj[Json::fromJuceString(emoji)] = count;
+  }
+  j["reaction_counts"] = reactionCountsObj;
+
+  // Add processing status
+  std::string statusStr;
+  switch (post.status) {
+  case FeedPost::Status::Ready:
+    statusStr = "ready";
+    break;
+  case FeedPost::Status::Processing:
+    statusStr = "processing";
+    break;
+  case FeedPost::Status::Failed:
+    statusStr = "failed";
+    break;
+  case FeedPost::Status::Unknown:
+    statusStr = "unknown";
+    break;
+  }
+  j["status"] = statusStr;
+}
+
+inline void from_json(const nlohmann::json &j, FeedPost &post) {
+  // Core identifiers
+  JSON_OPTIONAL_STRING(j, "id", post.id, "");
+  JSON_OPTIONAL_STRING(j, "foreign_id", post.foreignId, "");
+  JSON_OPTIONAL_STRING(j, "actor", post.actor, "");
+  JSON_OPTIONAL_STRING(j, "verb", post.verb, "");
+  JSON_OPTIONAL_STRING(j, "object", post.object, "");
+
+  // Extract user ID from actor
+  post.userId = FeedPost::extractUserId(post.actor);
+
+  // Timestamps
+  if (j.contains("time") && !j["time"].is_null()) {
+    try {
+      post.timestamp = juce::Time::fromISO8601(Json::toJuceString(j["time"].get<std::string>()));
+      post.timeAgo = TimeUtils::formatTimeAgo(post.timestamp);
+    } catch (...) {
+      // Invalid timestamp format
+    }
+  }
+
+  // User info
+  JSON_OPTIONAL_STRING(j, "user_id", post.userId, "");
+  JSON_OPTIONAL_STRING(j, "username", post.username, "");
+  JSON_OPTIONAL_STRING(j, "user_avatar_url", post.userAvatarUrl, "");
+
+  // Audio metadata
+  JSON_OPTIONAL_STRING(j, "audio_url", post.audioUrl, "");
+  JSON_OPTIONAL_STRING(j, "waveform", post.waveformSvg, "");
+  JSON_OPTIONAL_STRING(j, "waveform_url", post.waveformUrl, "");
+  JSON_OPTIONAL_STRING(j, "filename", post.filename, "");
+  JSON_OPTIONAL(j, "duration_seconds", post.durationSeconds, 0.0f);
+  JSON_OPTIONAL(j, "duration_bars", post.durationBars, 0);
+  JSON_OPTIONAL(j, "bpm", post.bpm, 0);
+  JSON_OPTIONAL_STRING(j, "key", post.key, "");
+  JSON_OPTIONAL_STRING(j, "daw", post.daw, "");
+
+  // MIDI metadata
+  JSON_OPTIONAL(j, "has_midi", post.hasMidi, false);
+  JSON_OPTIONAL_STRING(j, "midi_pattern_id", post.midiId, "");
+  JSON_OPTIONAL_STRING(j, "midi_id", post.midiId, post.midiId);
+  JSON_OPTIONAL_STRING(j, "midi_filename", post.midiFilename, "");
+  if (post.midiId.isNotEmpty())
+    post.hasMidi = true;
+
+  // Project file metadata
+  JSON_OPTIONAL(j, "has_project_file", post.hasProjectFile, false);
+  JSON_OPTIONAL_STRING(j, "project_file_id", post.projectFileId, "");
+  JSON_OPTIONAL_STRING(j, "project_file_daw", post.projectFileDaw, "");
+  if (post.projectFileId.isNotEmpty())
+    post.hasProjectFile = true;
+
+  // Remix metadata
+  JSON_OPTIONAL_STRING(j, "remix_of_post_id", post.remixOfPostId, "");
+  JSON_OPTIONAL_STRING(j, "remix_of_story_id", post.remixOfStoryId, "");
+  JSON_OPTIONAL_STRING(j, "remix_type", post.remixType, "");
+  JSON_OPTIONAL(j, "remix_chain_depth", post.remixChainDepth, 0);
+  JSON_OPTIONAL(j, "remix_count", post.remixCount, 0);
+  post.isRemix = post.remixOfPostId.isNotEmpty() || post.remixOfStoryId.isNotEmpty();
+
+  // Sound/Sample metadata
+  JSON_OPTIONAL_STRING(j, "sound_id", post.soundId, "");
+  JSON_OPTIONAL_STRING(j, "sound_name", post.soundName, "");
+  JSON_OPTIONAL(j, "sound_usage_count", post.soundUsageCount, 0);
+
+  // Genres array
+  if (j.contains("genres") && j["genres"].is_array()) {
+    for (const auto &genreJson : j["genres"]) {
+      if (genreJson.is_string()) {
+        post.genres.add(Json::toJuceString(genreJson.get<std::string>()));
+      }
+    }
+  } else if (j.contains("genre")) {
+    // Single genre as string
+    JSON_OPTIONAL_STRING(j, "genre", post.genres, "");
+    if (post.genres.size() == 0 && j["genre"].is_string()) {
+      post.genres.add(Json::toJuceString(j["genre"].get<std::string>()));
+    }
+  }
+
+  // Social metrics
+  JSON_OPTIONAL(j, "like_count", post.likeCount, 0);
+  JSON_OPTIONAL(j, "play_count", post.playCount, 0);
+  JSON_OPTIONAL(j, "comment_count", post.commentCount, 0);
+  JSON_OPTIONAL(j, "save_count", post.saveCount, 0);
+  JSON_OPTIONAL(j, "repost_count", post.repostCount, 0);
+  JSON_OPTIONAL(j, "download_count", post.downloadCount, 0);
+  JSON_OPTIONAL(j, "is_liked", post.isLiked, false);
+  JSON_OPTIONAL(j, "is_saved", post.isSaved, false);
+  JSON_OPTIONAL(j, "is_reposted", post.isReposted, false);
+  JSON_OPTIONAL(j, "is_following", post.isFollowing, false);
+  JSON_OPTIONAL(j, "is_own_post", post.isOwnPost, false);
+
+  // Pin metadata
+  JSON_OPTIONAL(j, "is_pinned", post.isPinned, false);
+  JSON_OPTIONAL(j, "pin_order", post.pinOrder, 0);
+
+  // Comment audience
+  JSON_OPTIONAL_STRING(j, "comment_audience", post.commentAudience, "everyone");
+
+  // Repost metadata
+  JSON_OPTIONAL(j, "is_a_repost", post.isARepost, false);
+  JSON_OPTIONAL_STRING(j, "original_post_id", post.originalPostId, "");
+  JSON_OPTIONAL_STRING(j, "original_user_id", post.originalUserId, "");
+  JSON_OPTIONAL_STRING(j, "original_username", post.originalUsername, "");
+  JSON_OPTIONAL_STRING(j, "original_avatar_url", post.originalAvatarUrl, "");
+  JSON_OPTIONAL_STRING(j, "original_filename", post.originalFilename, "");
+  JSON_OPTIONAL_STRING(j, "repost_quote", post.repostQuote, "");
+
+  // Online status
+  JSON_OPTIONAL(j, "is_online", post.isOnline, false);
+  JSON_OPTIONAL(j, "is_in_studio", post.isInStudio, false);
+
+  // Reaction counts
+  if (j.contains("reaction_counts") && j["reaction_counts"].is_object()) {
+    for (auto it = j["reaction_counts"].begin(); it != j["reaction_counts"].end(); ++it) {
+      if (it.value().is_number_integer()) {
+        post.reactionCounts[Json::toJuceString(it.key())] = it.value().get<int>();
+      }
+    }
+  }
+
+  // User reaction
+  JSON_OPTIONAL_STRING(j, "user_reaction", post.userReaction, "");
+
+  // Recommendation metadata
+  JSON_OPTIONAL_STRING(j, "recommendation_reason", post.recommendationReason, "");
+  JSON_OPTIONAL_STRING(j, "source", post.source, "");
+  JSON_OPTIONAL(j, "score", post.score, 0.0f);
+  JSON_OPTIONAL(j, "is_recommended", post.isRecommended, false);
+
+  // Processing status
+  if (j.contains("status") && j["status"].is_string()) {
+    juce::String statusStr = Json::toJuceString(j["status"].get<std::string>()).toLowerCase();
+    if (statusStr == "ready")
+      post.status = FeedPost::Status::Ready;
+    else if (statusStr == "processing")
+      post.status = FeedPost::Status::Processing;
+    else if (statusStr == "failed")
+      post.status = FeedPost::Status::Failed;
+    else
+      post.status = FeedPost::Status::Unknown;
+  }
+}
+
+} // namespace Sidechain

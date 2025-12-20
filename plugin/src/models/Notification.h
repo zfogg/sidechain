@@ -18,7 +18,7 @@ struct Notification {
   // ==============================================================================
   // Core identity
   juce::String id;
-  juce::String verb;         // "like", "follow", "comment", "repost", "mention"
+  juce::String verb; // "like", "follow", "comment", "repost", "mention"
 
   // ==============================================================================
   // Actors (users who performed the action)
@@ -28,28 +28,28 @@ struct Notification {
 
   // ==============================================================================
   // Target (what was acted upon)
-  juce::String targetType;   // "post", "user", "comment", "story"
-  juce::String targetId;     // ID of the target entity
+  juce::String targetType;    // "post", "user", "comment", "story"
+  juce::String targetId;      // ID of the target entity
   juce::String targetPreview; // Preview text/title of target
 
   // ==============================================================================
   // Content (for comments/mentions)
-  juce::String contentText;  // Comment text or mention context
+  juce::String contentText; // Comment text or mention context
 
   // ==============================================================================
   // Status
   bool isRead = false;
-  bool isSeen = false;       // Seen in notification list but not clicked
+  bool isSeen = false; // Seen in notification list but not clicked
 
   // ==============================================================================
   // Aggregation
-  int actorCount = 0;        // Total number of actors (may be > actorIds.size())
-  juce::String groupId;      // ID for grouping related notifications
+  int actorCount = 0;   // Total number of actors (may be > actorIds.size())
+  juce::String groupId; // ID for grouping related notifications
 
   // ==============================================================================
   // Timestamps
   juce::Time createdAt;
-  juce::Time updatedAt;      // Last time this notification was updated (new actors)
+  juce::Time updatedAt; // Last time this notification was updated (new actors)
 
   // ==============================================================================
   // Typed JSON serialization
@@ -89,10 +89,11 @@ struct Notification {
 
   juce::String getDisplayText() const {
     auto primaryActor = getPrimaryActorUsername();
-    if (primaryActor.isEmpty()) primaryActor = "Someone";
+    if (primaryActor.isEmpty())
+      primaryActor = "Someone";
 
     juce::String text;
-    
+
     // Build actor part
     if (isAggregated()) {
       auto count = getAdditionalActorCount();
@@ -125,11 +126,16 @@ struct Notification {
   }
 
   juce::String getVerbIcon() const {
-    if (verb == "like") return "❤️";
-    if (verb == "follow") return "👤";
-    if (verb == "comment") return "💬";
-    if (verb == "repost") return "🔄";
-    if (verb == "mention") return "@";
+    if (verb == "like")
+      return "❤️";
+    if (verb == "follow")
+      return "👤";
+    if (verb == "comment")
+      return "💬";
+    if (verb == "repost")
+      return "🔄";
+    if (verb == "mention")
+      return "@";
     return "🔔";
   }
 };

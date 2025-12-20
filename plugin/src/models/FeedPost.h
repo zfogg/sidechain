@@ -2,8 +2,13 @@
 
 #include "../util/Emoji.h"
 #include "../util/Result.h"
+#include "../util/SerializableModel.h"
+#include "../util/json/JsonValidation.h"
 #include <JuceHeader.h>
+#include <nlohmann/json.hpp>
 #include <map>
+
+namespace Sidechain {
 
 // ==============================================================================
 /**
@@ -11,7 +16,7 @@
  *
  * Maps to the getstream.io Activity structure from the backend
  */
-class FeedPost {
+class FeedPost : public SerializableModel<FeedPost> {
 public:
   FeedPost() = default;
   ~FeedPost() = default;
@@ -163,21 +168,27 @@ public:
   // Factory methods to create from JSON
 
   /** Create a FeedPost from JSON data
+   *  @deprecated Use SerializableModel<FeedPost>::createFromJson() with nlohmann::json instead
    *  @param json JSON var containing post data
    *  @return FeedPost instance (may be invalid if JSON is malformed)
    */
+  [[deprecated("Use SerializableModel<FeedPost>::createFromJson() with nlohmann::json instead")]]
   static FeedPost fromJson(const juce::var &json);
 
   /** Type-safe parsing with validation - returns error if required fields are
    * missing
+   *  @deprecated Use SerializableModel<FeedPost>::createFromJson() with nlohmann::json instead
    *  @param json JSON var containing post data
    *  @return Outcome with FeedPost if valid, or error message if invalid
    */
+  [[deprecated("Use SerializableModel<FeedPost>::createFromJson() with nlohmann::json instead")]]
   static Outcome<FeedPost> tryFromJson(const juce::var &json);
 
   /** Convert to JSON (for caching)
+   *  @deprecated Use SerializableModel<FeedPost>::toJson() with nlohmann::json instead
    *  @return JSON var representation of this post
    */
+  [[deprecated("Use SerializableModel<FeedPost>::toJson() with nlohmann::json instead")]]
   juce::var toJson() const;
 
   /** Extract user ID from actor string (e.g., "user:12345" -> "12345")
@@ -202,3 +213,5 @@ public:
   // ==============================================================================
   JUCE_LEAK_DETECTOR(FeedPost)
 };
+
+} // namespace Sidechain

@@ -1,22 +1,24 @@
 #include "Playlist.h"
 #include "../util/Json.h"
 
+namespace Sidechain {
+
 // ==============================================================================
 Playlist Playlist::fromJSON(const juce::var &json) {
   Playlist playlist;
 
-  playlist.id = Json::getString(json, "id");
-  playlist.name = Json::getString(json, "name");
-  playlist.description = Json::getString(json, "description");
-  playlist.ownerId = Json::getString(json, "owner_id");
-  playlist.isCollaborative = Json::getBool(json, "is_collaborative");
-  playlist.isPublic = Json::getBool(json, "is_public");
+  playlist.id = ::Json::getString(json, "id");
+  playlist.name = ::Json::getString(json, "name");
+  playlist.description = ::Json::getString(json, "description");
+  playlist.ownerId = ::Json::getString(json, "owner_id");
+  playlist.isCollaborative = ::Json::getBool(json, "is_collaborative");
+  playlist.isPublic = ::Json::getBool(json, "is_public");
 
   // Parse owner info if present
   if (json.hasProperty("owner")) {
     auto owner = json["owner"];
-    playlist.ownerUsername = Json::getString(owner, "username");
-    playlist.ownerAvatarUrl = Json::getString(owner, "avatar_url");
+    playlist.ownerUsername = ::Json::getString(owner, "username");
+    playlist.ownerAvatarUrl = ::Json::getString(owner, "avatar_url");
   }
 
   // Parse entry count
@@ -25,14 +27,14 @@ Playlist Playlist::fromJSON(const juce::var &json) {
     if (entries.isArray())
       playlist.entryCount = entries.size();
   } else {
-    playlist.entryCount = Json::getInt(json, "entry_count");
+    playlist.entryCount = ::Json::getInt(json, "entry_count");
   }
 
   // Parse user role if present
-  playlist.userRole = Json::getString(json, "user_role");
+  playlist.userRole = ::Json::getString(json, "user_role");
 
   // Parse timestamp
-  juce::String timeStr = Json::getString(json, "created_at");
+  juce::String timeStr = ::Json::getString(json, "created_at");
   if (timeStr.isNotEmpty()) {
     playlist.createdAt = juce::Time::fromISO8601(timeStr);
   }
@@ -53,40 +55,40 @@ juce::var Playlist::toJSON() const {
 PlaylistEntry PlaylistEntry::fromJSON(const juce::var &json) {
   PlaylistEntry entry;
 
-  entry.id = Json::getString(json, "id");
-  entry.playlistId = Json::getString(json, "playlist_id");
-  entry.postId = Json::getString(json, "post_id");
-  entry.addedByUserId = Json::getString(json, "added_by_user_id");
-  entry.position = Json::getInt(json, "position");
+  entry.id = ::Json::getString(json, "id");
+  entry.playlistId = ::Json::getString(json, "playlist_id");
+  entry.postId = ::Json::getString(json, "post_id");
+  entry.addedByUserId = ::Json::getString(json, "added_by_user_id");
+  entry.position = ::Json::getInt(json, "position");
 
   // Parse added by user info
   if (json.hasProperty("added_by_user")) {
     auto user = json["added_by_user"];
-    entry.addedByUsername = Json::getString(user, "username");
+    entry.addedByUsername = ::Json::getString(user, "username");
   }
 
   // Parse post data if present
   if (json.hasProperty("post")) {
     auto post = json["post"];
-    entry.postAudioUrl = Json::getString(post, "audio_url");
-    entry.postBpm = Json::getInt(post, "bpm");
-    entry.postKey = Json::getString(post, "key");
+    entry.postAudioUrl = ::Json::getString(post, "audio_url");
+    entry.postBpm = ::Json::getInt(post, "bpm");
+    entry.postKey = ::Json::getString(post, "key");
 
     // Parse genres
     auto genres = Json::getArray(post, "genre");
     if (Json::isArray(genres)) {
       for (int i = 0; i < Json::arraySize(genres); ++i)
-        entry.postGenres.add(Json::getStringAt(genres, i));
+        entry.postGenres.add(::Json::getStringAt(genres, i));
     }
 
     // Parse post user
     if (post.hasProperty("user")) {
-      entry.postUsername = Json::getString(post["user"], "username");
+      entry.postUsername = ::Json::getString(post["user"], "username");
     }
   }
 
   // Parse timestamp
-  juce::String timeStr = Json::getString(json, "added_at");
+  juce::String timeStr = ::Json::getString(json, "added_at");
   if (timeStr.isNotEmpty()) {
     entry.addedAt = juce::Time::fromISO8601(timeStr);
   }
@@ -98,23 +100,25 @@ PlaylistEntry PlaylistEntry::fromJSON(const juce::var &json) {
 PlaylistCollaborator PlaylistCollaborator::fromJSON(const juce::var &json) {
   PlaylistCollaborator collab;
 
-  collab.id = Json::getString(json, "id");
-  collab.playlistId = Json::getString(json, "playlist_id");
-  collab.userId = Json::getString(json, "user_id");
-  collab.role = Json::getString(json, "role");
+  collab.id = ::Json::getString(json, "id");
+  collab.playlistId = ::Json::getString(json, "playlist_id");
+  collab.userId = ::Json::getString(json, "user_id");
+  collab.role = ::Json::getString(json, "role");
 
   // Parse user info if present
   if (json.hasProperty("user")) {
     auto user = json["user"];
-    collab.username = Json::getString(user, "username");
-    collab.userAvatarUrl = Json::getString(user, "avatar_url");
+    collab.username = ::Json::getString(user, "username");
+    collab.userAvatarUrl = ::Json::getString(user, "avatar_url");
   }
 
   // Parse timestamp
-  juce::String timeStr = Json::getString(json, "added_at");
+  juce::String timeStr = ::Json::getString(json, "added_at");
   if (timeStr.isNotEmpty()) {
     collab.addedAt = juce::Time::fromISO8601(timeStr);
   }
 
   return collab;
 }
+
+} // namespace Sidechain
