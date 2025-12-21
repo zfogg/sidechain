@@ -2,6 +2,7 @@
 #include <catch2/catch_approx.hpp>
 #include "models/FeedPost.h"
 #include "models/FeedResponse.h"
+#include "util/Time.h"
 #include <nlohmann/json.hpp>
 // FeedDataManager.h removed - class no longer exists
 
@@ -60,77 +61,77 @@ TEST_CASE("Sidechain::FeedPost::extractUserId", "[Sidechain::FeedPost]") {
 }
 
 //==============================================================================
-TEST_CASE("Sidechain::FeedPost::formatTimeAgo", "[Sidechain::FeedPost]") {
+TEST_CASE("TimeUtils::formatTimeAgo", "[TimeUtils]") {
   auto now = juce::Time::getCurrentTime();
 
   SECTION("Just now (< 60 seconds)") {
     auto recent = now - juce::RelativeTime::seconds(30);
-    REQUIRE(Sidechain::FeedPost::formatTimeAgo(recent) == "just now");
+    REQUIRE(TimeUtils::formatTimeAgo(recent) == "just now");
 
     auto veryRecent = now - juce::RelativeTime::seconds(5);
-    REQUIRE(Sidechain::FeedPost::formatTimeAgo(veryRecent) == "just now");
+    REQUIRE(TimeUtils::formatTimeAgo(veryRecent) == "just now");
   }
 
   SECTION("Minutes ago") {
     auto oneMin = now - juce::RelativeTime::minutes(1);
-    REQUIRE(Sidechain::FeedPost::formatTimeAgo(oneMin) == "1 min ago");
+    REQUIRE(TimeUtils::formatTimeAgo(oneMin) == "1 min ago");
 
     auto fiveMins = now - juce::RelativeTime::minutes(5);
-    REQUIRE(Sidechain::FeedPost::formatTimeAgo(fiveMins) == "5 mins ago");
+    REQUIRE(TimeUtils::formatTimeAgo(fiveMins) == "5 mins ago");
 
     auto thirtyMins = now - juce::RelativeTime::minutes(30);
-    REQUIRE(Sidechain::FeedPost::formatTimeAgo(thirtyMins) == "30 mins ago");
+    REQUIRE(TimeUtils::formatTimeAgo(thirtyMins) == "30 mins ago");
   }
 
   SECTION("Hours ago") {
     auto oneHour = now - juce::RelativeTime::hours(1);
-    REQUIRE(Sidechain::FeedPost::formatTimeAgo(oneHour) == "1 hour ago");
+    REQUIRE(TimeUtils::formatTimeAgo(oneHour) == "1 hour ago");
 
     auto fiveHours = now - juce::RelativeTime::hours(5);
-    REQUIRE(Sidechain::FeedPost::formatTimeAgo(fiveHours) == "5 hours ago");
+    REQUIRE(TimeUtils::formatTimeAgo(fiveHours) == "5 hours ago");
 
     auto twentyThreeHours = now - juce::RelativeTime::hours(23);
-    REQUIRE(Sidechain::FeedPost::formatTimeAgo(twentyThreeHours) == "23 hours ago");
+    REQUIRE(TimeUtils::formatTimeAgo(twentyThreeHours) == "23 hours ago");
   }
 
   SECTION("Days ago") {
     auto oneDay = now - juce::RelativeTime::days(1);
-    REQUIRE(Sidechain::FeedPost::formatTimeAgo(oneDay) == "1 day ago");
+    REQUIRE(TimeUtils::formatTimeAgo(oneDay) == "1 day ago");
 
     auto threeDays = now - juce::RelativeTime::days(3);
-    REQUIRE(Sidechain::FeedPost::formatTimeAgo(threeDays) == "3 days ago");
+    REQUIRE(TimeUtils::formatTimeAgo(threeDays) == "3 days ago");
 
     auto sixDays = now - juce::RelativeTime::days(6);
-    REQUIRE(Sidechain::FeedPost::formatTimeAgo(sixDays) == "6 days ago");
+    REQUIRE(TimeUtils::formatTimeAgo(sixDays) == "6 days ago");
   }
 
   SECTION("Weeks ago") {
     auto oneWeek = now - juce::RelativeTime::days(7);
-    REQUIRE(Sidechain::FeedPost::formatTimeAgo(oneWeek) == "1 week ago");
+    REQUIRE(TimeUtils::formatTimeAgo(oneWeek) == "1 week ago");
 
     auto twoWeeks = now - juce::RelativeTime::days(14);
-    REQUIRE(Sidechain::FeedPost::formatTimeAgo(twoWeeks) == "2 weeks ago");
+    REQUIRE(TimeUtils::formatTimeAgo(twoWeeks) == "2 weeks ago");
   }
 
   SECTION("Months ago") {
     auto oneMonth = now - juce::RelativeTime::days(35);
-    REQUIRE(Sidechain::FeedPost::formatTimeAgo(oneMonth) == "1 month ago");
+    REQUIRE(TimeUtils::formatTimeAgo(oneMonth) == "1 month ago");
 
     auto threeMonths = now - juce::RelativeTime::days(100);
-    REQUIRE(Sidechain::FeedPost::formatTimeAgo(threeMonths) == "3 months ago");
+    REQUIRE(TimeUtils::formatTimeAgo(threeMonths) == "3 months ago");
   }
 
   SECTION("Years ago") {
     auto oneYear = now - juce::RelativeTime::days(400);
-    REQUIRE(Sidechain::FeedPost::formatTimeAgo(oneYear) == "1 year ago");
+    REQUIRE(TimeUtils::formatTimeAgo(oneYear) == "1 year ago");
 
     auto twoYears = now - juce::RelativeTime::days(800);
-    REQUIRE(Sidechain::FeedPost::formatTimeAgo(twoYears) == "2 years ago");
+    REQUIRE(TimeUtils::formatTimeAgo(twoYears) == "2 years ago");
   }
 
   SECTION("Future time returns just now") {
     auto future = now + juce::RelativeTime::hours(1);
-    REQUIRE(Sidechain::FeedPost::formatTimeAgo(future) == "just now");
+    REQUIRE(TimeUtils::formatTimeAgo(future) == "just now");
   }
 }
 
@@ -297,50 +298,52 @@ TEST_CASE("Sidechain::FeedPost::toJson serialization", "[Sidechain::FeedPost]") 
   post.status = Sidechain::FeedPost::Status::Ready;
   post.timestamp = juce::Time::getCurrentTime();
 
-  auto json = post.toJson();
+  // Serialize using new SerializableModel API
+  auto jsonObj =
+      Sidechain::SerializableModel<Sidechain::FeedPost>::toJson(std::make_shared<Sidechain::FeedPost>(post)).getValue();
 
   SECTION("Core identifiers serialized") {
-    REQUIRE(json.getProperty("id", "").toString() == "test-id");
-    REQUIRE(json.getProperty("foreign_id", "").toString() == "loop:test-uuid");
-    REQUIRE(json.getProperty("actor", "").toString() == "user:123");
-    REQUIRE(json.getProperty("verb", "").toString() == "posted");
-    REQUIRE(json.getProperty("object", "").toString() == "loop:test-uuid");
+    REQUIRE(jsonObj.value("id", "") == "test-id");
+    REQUIRE(jsonObj.value("foreign_id", "") == "loop:test-uuid");
+    REQUIRE(jsonObj.value("actor", "") == "user:123");
+    REQUIRE(jsonObj.value("verb", "") == "posted");
+    REQUIRE(jsonObj.value("object", "") == "loop:test-uuid");
   }
 
   SECTION("User data serialized in nested object") {
-    auto userObj = json.getProperty("user", juce::var());
-    REQUIRE(userObj.getProperty("id", "").toString() == "123");
-    REQUIRE(userObj.getProperty("username", "").toString() == "test_user");
-    REQUIRE(userObj.getProperty("avatar_url", "").toString() == "https://example.com/avatar.jpg");
+    auto userObj = jsonObj.value("user", nlohmann::json::object());
+    REQUIRE(userObj.value("id", "") == "123");
+    REQUIRE(userObj.value("username", "") == "test_user");
+    REQUIRE(userObj.value("avatar_url", "") == "https://example.com/avatar.jpg");
   }
 
   SECTION("Audio metadata serialized") {
-    REQUIRE(json.getProperty("audio_url", "").toString() == "https://cdn.example.com/audio.mp3");
-    REQUIRE(json.getProperty("waveform", "").toString() == "<svg></svg>");
-    REQUIRE(static_cast<float>(json.getProperty("duration_seconds", 0.0)) == Approx(45.0f));
-    REQUIRE(static_cast<int>(json.getProperty("duration_bars", 0)) == 16);
-    REQUIRE(static_cast<int>(json.getProperty("bpm", 0)) == 140);
-    REQUIRE(json.getProperty("key", "").toString() == "A minor");
-    REQUIRE(json.getProperty("daw", "").toString() == "FL Studio");
+    REQUIRE(jsonObj.value("audio_url", "") == "https://cdn.example.com/audio.mp3");
+    REQUIRE(jsonObj.value("waveform", "") == "<svg></svg>");
+    REQUIRE(jsonObj.value("duration_seconds", 0.0) == Approx(45.0f));
+    REQUIRE(jsonObj.value("duration_bars", 0) == 16);
+    REQUIRE(jsonObj.value("bpm", 0) == 140);
+    REQUIRE(jsonObj.value("key", "") == "A minor");
+    REQUIRE(jsonObj.value("daw", "") == "FL Studio");
   }
 
   SECTION("Genres serialized as array") {
-    auto genreVar = json.getProperty("genre", juce::var());
-    REQUIRE(genreVar.isArray());
-    REQUIRE(genreVar.size() == 2);
-    REQUIRE(genreVar[0].toString() == "Trap");
-    REQUIRE(genreVar[1].toString() == "Bass");
+    auto genres = jsonObj.value("genre", nlohmann::json::array());
+    REQUIRE(genres.is_array());
+    REQUIRE(genres.size() == 2);
+    REQUIRE(genres[0] == "Trap");
+    REQUIRE(genres[1] == "Bass");
   }
 
   SECTION("Social metrics serialized") {
-    REQUIRE(static_cast<int>(json.getProperty("like_count", 0)) == 10);
-    REQUIRE(static_cast<int>(json.getProperty("play_count", 0)) == 50);
-    REQUIRE(static_cast<int>(json.getProperty("comment_count", 0)) == 3);
-    REQUIRE(static_cast<bool>(json.getProperty("is_liked", true)) == false);
+    REQUIRE(jsonObj.value("like_count", 0) == 10);
+    REQUIRE(jsonObj.value("play_count", 0) == 50);
+    REQUIRE(jsonObj.value("comment_count", 0) == 3);
+    REQUIRE(jsonObj.value("is_liked", true) == false);
   }
 
   SECTION("Status serialized as string") {
-    REQUIRE(json.getProperty("status", "").toString() == "ready");
+    REQUIRE(jsonObj.value("status", "") == "ready");
   }
 }
 
@@ -362,12 +365,10 @@ TEST_CASE("Sidechain::FeedPost JSON round-trip", "[Sidechain::FeedPost]") {
   original.status = Sidechain::FeedPost::Status::Ready;
   original.timestamp = juce::Time::getCurrentTime();
 
-  // Serialize and parse back
-  auto json = original.toJson();
-  auto jsonStr = juce::JSON::toString(json);
-  auto parsedJson = juce::JSON::parse(jsonStr);
-  auto jsonStr2 = juce::JSON::toString(parsedJson);
-  auto jsonObj = nlohmann::json::parse(jsonStr2.toStdString());
+  // Serialize and parse back using new API
+  auto jsonObj =
+      Sidechain::SerializableModel<Sidechain::FeedPost>::toJson(std::make_shared<Sidechain::FeedPost>(original))
+          .getValue();
   auto result = Sidechain::SerializableModel<Sidechain::FeedPost>::createFromJson(jsonObj);
   auto restored = *result.getValue();
 
