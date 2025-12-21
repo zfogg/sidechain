@@ -36,6 +36,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/stories"
 	"github.com/zfogg/sidechain/backend/internal/stream"
 	"github.com/zfogg/sidechain/backend/internal/telemetry"
+	"github.com/zfogg/sidechain/backend/internal/validation"
 	"github.com/zfogg/sidechain/backend/internal/waveform"
 	"github.com/zfogg/sidechain/backend/internal/websocket"
 	"go.uber.org/zap"
@@ -137,6 +138,12 @@ func main() {
 	// Run migrations
 	if err := database.Migrate(); err != nil {
 		logger.FatalWithFields("Failed to run migrations", err)
+	}
+
+	// Validate required services (check if optional services are available)
+	validator := validation.NewServiceValidator()
+	if err := validator.ValidateServices(context.Background()); err != nil {
+		logger.FatalWithFields("Service validation failed - required service not available", err)
 	}
 
 	// Auto-seed development data if in development mode and database is empty
