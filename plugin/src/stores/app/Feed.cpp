@@ -573,7 +573,13 @@ void AppStore::togglePin(const juce::String &postId, bool pinned) {
   }
   sliceManager.posts->setState(newState);
 
-  // TODO: Call actual API when NetworkClient has pin/unpin methods
+  // Call actual API to persist pin/unpin state
+  if (pinned) {
+    networkClient->pinPost(postId, nullptr);
+  } else {
+    networkClient->unpinPost(postId, nullptr);
+  }
+
   Util::logInfo("AppStore", pinned ? "Pin post: " + postId : "Unpin post: " + postId);
 }
 
