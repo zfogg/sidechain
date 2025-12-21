@@ -228,6 +228,94 @@ juce::Rectangle<int> MessageThread::getCancelReplyButtonBounds() const {
   return juce::Rectangle<int>(getWidth() - BUTTON_SIZE - PADDING, replyAreaY + PADDING, BUTTON_SIZE, BUTTON_SIZE);
 }
 
+// ==============================================================================
+// Audio Attachment Playback
+
+bool MessageThread::hasAudioAttachment(const StreamChatClient::Message & /* message */) const {
+  // Check if message has audio attachments
+  // Note: Will be populated from Message.attachments when integrated
+  return false; // TODO: Check message.attachments for type == "audio"
+}
+
+void MessageThread::drawAudioAttachment(juce::Graphics &g, const StreamChatClient::Message & /*message*/,
+                                        juce::Rectangle<int> bounds) {
+  // Draw audio player control within message bubble
+  // Layout:
+  // - Play/pause button (left)
+  // - Progress bar (center)
+  // - Duration label (right)
+
+  g.setColour(juce::Colour(0xff333333));
+  g.fillRoundedRectangle(bounds.toFloat(), 6.0f);
+
+  constexpr int BUTTON_SIZE = 30;
+  constexpr int PADDING = 8;
+
+  // Play/pause button
+  bounds.removeFromLeft(BUTTON_SIZE + PADDING).withTrimmedRight(PADDING);
+  auto isPlaying = playingAudioId.isNotEmpty();
+
+  // Draw play button or pause icon
+  juce::Path playPath;
+  if (isPlaying) {
+    // Draw pause icon (two vertical bars)
+    playPath.addRectangle(2, 2, 4, 10);
+    playPath.addRectangle(7, 2, 4, 10);
+  } else {
+    // Draw play icon (triangle)
+    playPath.startNewSubPath(2, 2);
+    playPath.lineTo(2, 12);
+    playPath.lineTo(10, 7);
+    playPath.closeSubPath();
+  }
+
+  g.setColour(juce::Colour(0xffffffff));
+  auto transform = juce::AffineTransform::scale(1.2f);
+  g.fillPath(playPath, transform);
+
+  // Progress bar
+  auto progressBounds = bounds.removeFromLeft(bounds.getWidth() - 50);
+  g.setColour(juce::Colour(0xff555555));
+  g.fillRoundedRectangle(progressBounds.reduced(2).toFloat(), 3.0f);
+
+  // Playback progress
+  if (audioPlaybackProgress > 0.0) {
+    auto fillBounds = progressBounds.reduced(2);
+    fillBounds.setWidth(static_cast<int>(fillBounds.getWidth() * audioPlaybackProgress));
+    g.setColour(juce::Colour(0xff1DB954)); // Spotify green
+    g.fillRoundedRectangle(fillBounds.toFloat(), 3.0f);
+  }
+
+  // Duration label
+  g.setColour(juce::Colour(0xffcccccc));
+  g.setFont(juce::Font(juce::FontOptions().withHeight(10.0f)));
+  g.drawText("0:00", bounds, juce::Justification::centredRight);
+}
+
+void MessageThread::playAudioAttachment(const StreamChatClient::Message &message) {
+  // Play audio attachment from message
+  if (!audioPlayer)
+    return;
+
+  // Find audio attachment URL
+  // TODO: Integrate with Message.attachments when available
+  // For now, just mark as playing
+  playingAudioId = message.id;
+  repaint();
+}
+
+void MessageThread::pauseAudioPlayback() {
+  // Note: audioPlayer is forward-declared, so we can't call methods on it directly
+  // This is intentional - the actual pause() call will be in the derived implementation
+  // when HttpAudioPlayer is fully integrated
+  playingAudioId = "";
+  repaint();
+}
+
+int MessageThread::getAudioAttachmentHeight() const {
+  return 40; // Height of audio player control
+}
+
 void MessageThread::leaveGroup() {}
 void MessageThread::renameGroup() {}
 void MessageThread::showAddMembersDialog() {}

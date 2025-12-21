@@ -55,6 +55,9 @@ public:
   void setStreamChatClient(StreamChatClient *client);
   void setNetworkClient(NetworkClient *client);
   void setAudioProcessor(SidechainAudioProcessor *processor);
+  void setAudioPlayer(class HttpAudioPlayer *player) {
+    audioPlayer = player;
+  }
 
   // Load a specific channel
   void loadChannel(const juce::String &channelType, const juce::String &channelId);
@@ -136,6 +139,11 @@ private:
   bool showAudioRecorder = false;
   SidechainAudioProcessor *audioProcessor = nullptr;
 
+  // Audio playback for message attachments
+  class HttpAudioPlayer *audioPlayer = nullptr;
+  juce::String playingAudioId;        // Message ID of currently playing audio
+  double audioPlaybackProgress = 0.0; // Current playback position (0.0-1.0)
+
   // Error state component
   std::unique_ptr<ErrorState> errorStateComponent;
 
@@ -207,6 +215,13 @@ private:
   // Helper to get reply preview bounds
   juce::Rectangle<int> getReplyPreviewBounds() const;
   juce::Rectangle<int> getCancelReplyButtonBounds() const;
+
+  // Audio attachment playback
+  bool hasAudioAttachment(const StreamChatClient::Message &message) const;
+  void drawAudioAttachment(juce::Graphics &g, const StreamChatClient::Message &message, juce::Rectangle<int> bounds);
+  void playAudioAttachment(const StreamChatClient::Message &message);
+  void pauseAudioPlayback();
+  int getAudioAttachmentHeight() const;
 
   // Shared content detection and rendering
   bool hasSharedPost(const StreamChatClient::Message &message) const;
