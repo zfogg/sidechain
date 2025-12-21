@@ -6,6 +6,7 @@
 #include "audio/HttpAudioPlayer.h"
 #include "audio/MIDICapture.h"
 #include "audio/SynthEngine.h"
+#include "util/Log.h"
 #include <JuceHeader.h>
 
 // ==============================================================================
@@ -281,11 +282,18 @@ public:
 
   /** Set the buffer audio player for story preview
    * Called by StoryRecordingComponent to enable story audio preview
-   * The caller retains ownership of the player
-   * @param player Pointer to the buffer audio player (can be null)
+   * Uses weak_ptr to safely detect if component is destroyed
+   * @param player Shared pointer to the buffer audio player (can be null)
+   */
+  void setBufferAudioPlayer(const std::shared_ptr<BufferAudioPlayer> &player) {
+    bufferAudioPlayer = player; // Store as weak_ptr from shared_ptr
+  }
+
+  /** Set the buffer audio player (raw pointer version - deprecated, not used)
+   * @param player Raw pointer to the buffer audio player (will be ignored)
    */
   void setBufferAudioPlayer(BufferAudioPlayer *player) {
-    bufferAudioPlayer = player;
+    (void)player; // Ignore raw pointers - use shared_ptr version instead
   }
 
   // ==============================================================================
@@ -348,8 +356,9 @@ private:
   // Audio playback for feed
   HttpAudioPlayer audioPlayer;
 
-  // Buffer audio player for story preview (set by StoryRecordingComponent, owned by caller)
-  BufferAudioPlayer *bufferAudioPlayer = nullptr;
+  // BUG FIX #10: Buffer audio player for story preview (set by StoryRecordingComponent, owned by caller)
+  // Use weak_ptr to detect if the component still exists before accessing on audio thread
+  std::weak_ptr<BufferAudioPlayer> bufferAudioPlayer;
 
   // Audio settings (cached from prepareToPlay)
   double currentSampleRate = 44100.0;

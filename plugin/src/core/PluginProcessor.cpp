@@ -287,9 +287,10 @@ void SidechainAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer, juc
   // This allows users to hear posts while working in their DAW
   audioPlayer.processBlock(buffer, buffer.getNumSamples());
 
-  // Mix in buffer audio player (for story preview)
-  if (bufferAudioPlayer != nullptr) {
-    bufferAudioPlayer->processBlock(buffer, buffer.getNumSamples());
+  // BUG FIX #10: Mix in buffer audio player (for story preview) - safely check weak_ptr
+  if (auto player = bufferAudioPlayer.lock()) {
+    // weak_ptr is valid - component still exists
+    player->processBlock(buffer, buffer.getNumSamples());
   }
 
   // Record aggregated timing

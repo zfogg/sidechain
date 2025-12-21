@@ -804,7 +804,7 @@ void StoryRecording::stopRecording() {
     bufferAudioPlayer->loadBuffer(recordedAudio, recordedSampleRate);
 
     // Register with processor so it can be mixed in processBlock
-    audioProcessor.setBufferAudioPlayer(bufferAudioPlayer.get());
+    audioProcessor.setBufferAudioPlayer(bufferAudioPlayer);
 
     Log::info("StoryRecording: Loaded " + juce::String(recordedAudio.getNumSamples()) + " samples at " +
               juce::String(recordedSampleRate) + "Hz for preview");

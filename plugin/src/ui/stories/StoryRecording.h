@@ -100,8 +100,8 @@ private:
   double recordingStartTime = 0.0;
   double currentRecordingDuration = 0.0;
 
-  // Preview playback using BufferAudioPlayer
-  std::unique_ptr<BufferAudioPlayer> bufferAudioPlayer;
+  // Preview playback using BufferAudioPlayer (shared_ptr for weak_ptr safety)
+  std::shared_ptr<BufferAudioPlayer> bufferAudioPlayer;
   bool isPreviewPlaying = false;
   double previewPlaybackPosition = 0.0;
 
