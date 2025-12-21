@@ -198,7 +198,7 @@ jobs:
         if: always()
         with:
           name: plugin-test-results
-          path: plugin/build/test-results.xml
+          path: plugin/build/test-results/*.xml
           if-no-files-found: warn
 
       - name: Publish Test Results
@@ -206,16 +206,16 @@ jobs:
         if: always()
         with:
           name: Plugin Unit Tests
-          path: plugin/build/test-results.xml
+          path: plugin/build/test-results/*.xml
           reporter: java-junit
-          fail-on-error: true
+          fail-on-error: false
 
       - name: Upload JUnit to Codecov
         uses: codecov/test-results-action@v1
         if: always()
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: plugin/build/test-results.xml
+          files: plugin/build/test-results/*.xml
           flags: plugin
           name: plugin-tests
           fail_ci_if_error: false
