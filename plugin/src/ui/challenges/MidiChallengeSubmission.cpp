@@ -567,11 +567,32 @@ void MidiChallengeSubmission::submitEntry(const juce::String &postId, const juce
   submissionState = SubmissionState::Submitting;
   repaint();
 
-  juce::String midiPatternId = "";
+  // If we have MIDI data, upload it first to get a pattern ID
   if (!midiData.isVoid() && midiData.hasProperty("events")) {
-    // TODO: Upload MIDI pattern first, get ID
-  }
+    networkClient.uploadMIDI(midiData, "MIDI Challenge Entry", "MIDI pattern for challenge entry", true,
+                             [this, postId, audioUrl](Outcome<juce::var> uploadResult) {
+                               juce::MessageManager::callAsync([this, postId, audioUrl, uploadResult]() {
+                                 juce::String midiPatternId = "";
+                                 if (uploadResult.isOk() && uploadResult.getValue().hasProperty("id")) {
+                                   midiPatternId = uploadResult.getValue()["id"].toString();
+                                   Log::info("MidiChallengeSubmission: MIDI pattern uploaded successfully, ID: " +
+                                             midiPatternId);
+                                 } else {
+                                   Log::warn("MidiChallengeSubmission: MIDI upload failed, submitting without pattern ID");
+                                 }
 
+                                 // Now submit the challenge entry with the pattern ID (or empty if upload failed)
+                                 submitChallengeEntry(postId, audioUrl, midiPatternId);
+                               });
+                             });
+  } else {
+    // No MIDI data, submit directly
+    submitChallengeEntry(postId, audioUrl, "");
+  }
+}
+
+void MidiChallengeSubmission::submitChallengeEntry(const juce::String &postId, const juce::String &audioUrl,
+                                                   const juce::String &midiPatternId) {
   networkClient.submitMIDIChallengeEntry(challenge.id, audioUrl, postId, midiData, midiPatternId,
                                          [this](Outcome<juce::var> result) {
                                            juce::MessageManager::callAsync([this, result]() {

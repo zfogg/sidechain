@@ -115,6 +115,8 @@ private:
   // ==============================================================================
   // Network operations
   void submitEntry(const juce::String &postId, const juce::String &audioUrl);
+  void submitChallengeEntry(const juce::String &postId, const juce::String &audioUrl,
+                            const juce::String &midiPatternId);
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MidiChallengeSubmission)
 };
