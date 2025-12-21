@@ -8,17 +8,24 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/zfogg/sidechain/backend/internal/container"
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"gorm.io/gorm"
 )
 
-// ErrorTrackingHandler handles error tracking endpoints
-type ErrorTrackingHandler struct{}
+// ErrorTrackingHandler handles error tracking endpoints.
+// Uses dependency injection via container for service dependencies.
+type ErrorTrackingHandler struct {
+	container *container.Container
+}
 
-// NewErrorTrackingHandler creates a new error tracking handler
-func NewErrorTrackingHandler() *ErrorTrackingHandler {
-	return &ErrorTrackingHandler{}
+// NewErrorTrackingHandler creates a new error tracking handler.
+// All dependencies are accessed through the container.
+func NewErrorTrackingHandler(c *container.Container) *ErrorTrackingHandler {
+	return &ErrorTrackingHandler{
+		container: c,
+	}
 }
 
 // RecordErrors saves a batch of errors from the plugin

@@ -15,14 +15,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/zfogg/sidechain/backend/internal/auth"
+	"github.com/zfogg/sidechain/backend/internal/container"
 	"github.com/zfogg/sidechain/backend/internal/database"
-	"github.com/zfogg/sidechain/backend/internal/email"
 	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
-	"github.com/zfogg/sidechain/backend/internal/search"
-	"github.com/zfogg/sidechain/backend/internal/storage"
-	"github.com/zfogg/sidechain/backend/internal/stream"
 )
 
 // Note: Password reset endpoints are implemented (RequestPasswordReset, ResetPassword)
@@ -37,32 +33,20 @@ type OAuthSession struct {
 	ExpiresAt    time.Time
 }
 
-// AuthHandlers wraps the auth service and provides HTTP handlers
+// AuthHandlers wraps auth functionality and provides HTTP handlers.
+// Uses dependency injection via container for all service dependencies.
 type AuthHandlers struct {
-	authService  *auth.Service
-	uploader     storage.ProfilePictureUploader
-	stream       *stream.Client
-	emailService *email.EmailService
-	search       *search.Client
-	jwtSecret    []byte
+	container *container.Container
 	// OAuth session storage for polling (in-memory, thread-safe)
 	oauthSessions map[string]*OAuthSession
 	oauthMutex    sync.RWMutex
 }
 
-// NewAuthHandlers creates a new auth handlers instance
-func NewAuthHandlers(authService *auth.Service, uploader storage.ProfilePictureUploader, streamClient *stream.Client) *AuthHandlers {
-	var jwtSecret []byte
-	if authService != nil {
-		// Extract JWT secret from auth service if possible
-		// For now, we'll need to pass it separately or extract from env
-		jwtSecret = []byte("default-secret") // This should come from config
-	}
+// NewAuthHandlers creates a new auth handlers instance.
+// All dependencies are accessed through the container.
+func NewAuthHandlers(c *container.Container) *AuthHandlers {
 	ah := &AuthHandlers{
-		authService:   authService,
-		uploader:      uploader,
-		stream:        streamClient,
-		jwtSecret:     jwtSecret,
+		container:     c,
 		oauthSessions: make(map[string]*OAuthSession),
 	}
 

@@ -1,13 +1,6 @@
 package handlers
 
-import (
-	"github.com/zfogg/sidechain/backend/internal/audio"
-	"github.com/zfogg/sidechain/backend/internal/recommendations"
-	"github.com/zfogg/sidechain/backend/internal/search"
-	"github.com/zfogg/sidechain/backend/internal/stream"
-	"github.com/zfogg/sidechain/backend/internal/waveform"
-	"github.com/zfogg/sidechain/backend/internal/websocket"
-)
+import "github.com/zfogg/sidechain/backend/internal/container"
 
 // TODO: - Comprehensive backend test coverage needed
 // TODO: -30 - Add tests for all feed endpoints (GetTimeline, GetGlobalFeed, CreatePost, etc.)
@@ -17,42 +10,22 @@ import (
 // TODO: -5 - Add tests for S3 storage operations
 // TODO: -5 - Add tests for audio processing queue
 
-// Handlers contains all HTTP handlers for the API
+// Handlers contains all HTTP handlers for the API.
+// Uses dependency injection via container for all service dependencies.
 type Handlers struct {
-	stream            stream.StreamClientInterface
-	audioProcessor    *audio.Processor
-	wsHandler         *websocket.Handler
-	gorse             *recommendations.GorseRESTClient
-	search            *search.Client
-	waveformGenerator *waveform.Generator
-	waveformStorage   *waveform.Storage
+	container *container.Container
 }
 
-// NewHandlers creates a new handlers instance
-func NewHandlers(streamClient stream.StreamClientInterface, audioProcessor *audio.Processor) *Handlers {
+// NewHandlers creates a new handlers instance with dependency injection.
+// All service dependencies are accessed through the container.
+func NewHandlers(c *container.Container) *Handlers {
 	return &Handlers{
-		stream:         streamClient,
-		audioProcessor: audioProcessor,
+		container: c,
 	}
 }
 
-// SetWebSocketHandler sets the WebSocket handler for real-time notifications
-func (h *Handlers) SetWebSocketHandler(ws *websocket.Handler) {
-	h.wsHandler = ws
-}
-
-// SetGorseClient sets the Gorse recommendation client
-func (h *Handlers) SetGorseClient(gorse *recommendations.GorseRESTClient) {
-	h.gorse = gorse
-}
-
-// SetSearchClient sets the Elasticsearch search client
-func (h *Handlers) SetSearchClient(searchClient *search.Client) {
-	h.search = searchClient
-}
-
-// SetWaveformTools sets the waveform generator and storage
-func (h *Handlers) SetWaveformTools(generator *waveform.Generator, storage *waveform.Storage) {
-	h.waveformGenerator = generator
-	h.waveformStorage = storage
+// Container returns the underlying dependency injection container.
+// Used for testing and access to all services.
+func (h *Handlers) Container() *container.Container {
+	return h.container
 }
