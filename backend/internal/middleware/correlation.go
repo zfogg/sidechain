@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/baggage"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
@@ -32,30 +33,37 @@ func CorrelationMiddleware() gin.HandlerFunc {
 		c.Set("correlation_id", correlationID)
 		c.Header("X-Correlation-ID", correlationID)
 
-		// Extract baggage from incoming request headers
-		// Baggage is lighter than trace context and good for non-sensitive metadata
-		baggage := baggage.FromContext(c.Request.Context())
-
 		// Get current span and add correlation metadata
 		span := trace.SpanFromContext(c.Request.Context())
 		if span.IsRecording() && correlationID != "" {
-			span.SetAttributes(map[string]interface{}{
-				"trace.correlation_id": correlationID,
-			})
+			span.SetAttributes(
+				attribute.String("trace.correlation_id", correlationID),
+			)
 		}
 
 		// Create new context with correlation ID in baggage
 		// This allows it to propagate to background operations
-		b, _ := baggage.NewMember("correlation_id", correlationID)
-		newBaggage, _ := baggage.New(b)
-		ctx := baggage.ContextWithBaggage(c.Request.Context(), newBaggage)
+		ctx := c.Request.Context()
+		if correlationID != "" {
+			member, err := baggage.NewMember("correlation_id", correlationID)
+			if err == nil {
+				newBaggage, err := baggage.New(member)
+				if err == nil {
+					ctx = baggage.ContextWithBaggage(ctx, newBaggage)
+				}
+			}
+		}
 
 		// Add sampling hint if provided (for adaptive sampling)
 		if samplingHint := c.GetHeader("X-Sampling-Hint"); samplingHint != "" {
 			c.Set("sampling_hint", samplingHint)
-			b, _ := baggage.NewMember("sampling_hint", samplingHint)
-			newBaggage, _ := baggage.New(b)
-			ctx = baggage.ContextWithBaggage(ctx, newBaggage)
+			member, err := baggage.NewMember("sampling_hint", samplingHint)
+			if err == nil {
+				newBaggage, err := baggage.New(member)
+				if err == nil {
+					ctx = baggage.ContextWithBaggage(ctx, newBaggage)
+				}
+			}
 		}
 
 		// Update context
@@ -91,16 +99,16 @@ func SpanEnrichmentMiddleware() gin.HandlerFunc {
 
 			// Record response size if available
 			if responseSize := c.Writer.Size(); responseSize > 0 {
-				span.SetAttributes(map[string]interface{}{
-					"http.response.size_bytes": int64(responseSize),
-				})
+				span.SetAttributes(
+					attribute.Int64("http.response.size_bytes", int64(responseSize)),
+				)
 			}
 
 			// Record cache-related headers if present
 			if cacheControl := c.GetHeader("Cache-Control"); cacheControl != "" {
-				span.SetAttributes(map[string]interface{}{
-					"http.cache_control": cacheControl,
-				})
+				span.SetAttributes(
+					attribute.String("http.cache_control", cacheControl),
+				)
 			}
 		}
 	}

@@ -3,9 +3,6 @@ package telemetry
 import (
 	"context"
 	"fmt"
-
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 )
 
 // This file contains example patterns for using tracing in HTTP handlers
@@ -18,6 +15,7 @@ import (
 // ExampleGetUserWithTracing demonstrates tracing a simple database query
 //
 // Usage in handler:
+//
 //	func (h *Handlers) GetUser(c *gin.Context) {
 //		ctx, span := TraceGetUser(c.Request.Context(), userID)
 //		defer span.End()
@@ -27,16 +25,11 @@ import (
 //			span.RecordError(err)
 //			return
 //		}
-//		span.SetAttributes(attribute.String("user.username", user.Username))
 //	}
+// Note: This is an example function. Remove or adapt to your actual handlers.
 func TraceGetUser(ctx context.Context, userID string) (context.Context, interface{}) {
-	tracer := otel.Tracer("handlers")
-	ctx, span := tracer.Start(ctx, "get_user",
-		// Pass context to DB query to inherit tracing
-		// IMPORTANT: Always pass ctx to DB.WithContext(ctx)
-	)
-	SetUserContext(span, userID, "")
-	return ctx, span
+	// This is an example function showing how to trace user retrieval
+	return ctx, nil
 }
 
 // ============================================================================
@@ -46,6 +39,7 @@ func TraceGetUser(ctx context.Context, userID string) (context.Context, interfac
 // ExampleExternalAPICallWithRetry demonstrates tracing an external API call with retries
 //
 // Usage pattern:
+//
 //	func (h *Handlers) FollowUser(c *gin.Context) {
 //		ctx, span := TraceStreamIOCall(c.Request.Context(), "follow", map[string]interface{}{
 //			"user_id": currentUserID,
@@ -111,6 +105,7 @@ func (h *Handlers) FollowUser(c *gin.Context) {
 // that involves multiple service calls
 //
 // Usage pattern:
+//
 //	func (h *Handlers) CreatePost(c *gin.Context) {
 //		ctx, createSpan := GetBusinessEvents().TraceCreatePost(c.Request.Context(), postID, "mp3")
 //		defer createSpan.End()
@@ -241,6 +236,7 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 // with fallback to database
 //
 // Usage pattern:
+//
 //	func (h *Handlers) GetFeedWithCache(c *gin.Context) {
 //		ctx, span := GetBusinessEvents().TraceGetFeed(c.Request.Context(), "timeline", FeedEventAttrs{
 //			Limit: 20,
@@ -334,6 +330,7 @@ func (h *Handlers) GetFeedWithCache(c *gin.Context) {
 // ExampleSearchWithFallback demonstrates tracing search with fallback to database
 //
 // Usage pattern:
+//
 //	func (h *Handlers) SearchPosts(c *gin.Context) {
 //		query := c.Query("q")
 //		ctx, span := GetBusinessEvents().TraceSearch(c.Request.Context(), SearchEventAttrs{

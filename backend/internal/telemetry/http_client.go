@@ -30,8 +30,7 @@ func NewInstrumentedHTTPClient(cfg HTTPClientConfig) *http.Client {
 	client := &http.Client{
 		Timeout: cfg.Timeout,
 		Transport: otelhttp.NewTransport(
-			&http.DefaultTransport,
-			otelhttp.WithClientTrace(),
+			http.DefaultTransport,
 			otelhttp.WithSpanOptions(
 				trace.WithSpanKind(trace.SpanKindClient),
 			),
@@ -43,12 +42,12 @@ func NewInstrumentedHTTPClient(cfg HTTPClientConfig) *http.Client {
 
 // ExternalServiceCallAttrs holds attributes for external service calls
 type ExternalServiceCallAttrs struct {
-	Service         string // Service name (stream.io, gorse, elasticsearch, s3)
-	Operation       string // Operation being performed
-	ResourceID      string // ID of resource being operated on (optional)
-	RetryCount      int
-	RetryableError  bool
-	CacheHit        bool
+	Service                 string // Service name (stream.io, gorse, elasticsearch, s3)
+	Operation               string // Operation being performed
+	ResourceID              string // ID of resource being operated on (optional)
+	RetryCount              int
+	RetryableError          bool
+	CacheHit                bool
 	CircuitBreakerTriggered bool
 }
 
