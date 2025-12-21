@@ -1015,7 +1015,7 @@ void Search::showBPMPicker() {
                            {120, 130}, // House/Techno
                            {130, 150}, // Techno/Trance
                            {150, 180}, // Drum & Bass
-                           {-1, -1}    // Custom (TODO: implement custom dialog - see PLAN.md Phase 7)
+                           {-1, -1}    // Custom (implemented in showCustomBPMDialog)
                        }};
 
                        if (result > 0 && result <= (int)bpmPresets.size()) {
