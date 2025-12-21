@@ -43,6 +43,8 @@ void SidechainImageCache::cacheImage(const juce::String &url, const juce::Image 
     ext = ".png";
   }
 
+  // FIX #5: DEAD CODE REMOVAL
+  // make_unique always succeeds or throws. All branches set format. Null check is unreachable.
   std::unique_ptr<juce::ImageFileFormat> format;
   if (ext.containsIgnoreCase("png")) {
     format = std::make_unique<juce::PNGImageFormat>();
@@ -51,12 +53,6 @@ void SidechainImageCache::cacheImage(const juce::String &url, const juce::Image 
   } else {
     // Default to PNG
     format = std::make_unique<juce::PNGImageFormat>();
-  }
-
-  if (!format) {
-    Log::warn("SidechainImageCache: Could not determine image format for " + url);
-    tempFile.deleteFile();
-    return;
   }
 
   juce::FileOutputStream out(tempFile);

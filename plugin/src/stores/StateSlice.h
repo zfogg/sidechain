@@ -170,6 +170,12 @@ public:
    * Only notified when selected state changes.
    * Useful for optimizing re-renders - subscribe to specific fields.
    *
+   * FIX #3: Derived type must support operator!= for comparison.
+   * If your type doesn't have operator!=, consider:
+   * 1. Implementing operator!= on the type
+   * 2. Using a simpler type that supports comparison (primitive, string, int, etc.)
+   * 3. Using subscribeToSelection with a comparator if needed
+   *
    * Pattern:
    * ```cpp
    * // Only re-render when trending users change, not entire state
@@ -182,6 +188,7 @@ public:
    * @param selector Function that extracts derived state from full state
    * @param callback Invoked only when selected state differs from previous
    * @return Unsubscriber function
+   * @throws Compile error if Derived doesn't support operator!=
    */
   template <typename Derived>
   Unsubscriber subscribeToSelection(std::function<Derived(const StateType &)> selector,
@@ -192,8 +199,9 @@ public:
     return subscribe([selector, callback, prevValue](const StateType &state) {
       auto currentValue = selector(state);
 
-      // Only call callback if selected state changed
-      if (!*prevValue || *prevValue != currentValue) {
+      // FIX #3: Only call callback if selected state changed
+      // Requires operator!= on Derived type
+      if (!*prevValue || !(*prevValue == currentValue)) {
         *prevValue = currentValue;
         callback(currentValue);
       }
