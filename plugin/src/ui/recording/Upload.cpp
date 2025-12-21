@@ -1132,9 +1132,8 @@ void Upload::startUpload() {
   lastUploadedGenre = genreStr;
   lastUploadedBpm = bpm;
 
-  // Auto-dismiss success after 3 seconds (longer to show success preview)
-  // This will be called by store subscription when uploadState changes to Success
-  // TODO: Phase 2 - Implement actual upload in UploadStore with NetworkClient integration
+  // Upload state changes will be delivered via onAppStateChanged callback
+  // UploadStore handles the actual upload with NetworkClient integration
 }
 
 bool Upload::keyPressed(const juce::KeyPress &key) {
