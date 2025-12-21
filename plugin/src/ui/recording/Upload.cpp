@@ -59,6 +59,7 @@ void Upload::onAppStateChanged(const Sidechain::Stores::UploadState &state) {
   auto isUploading = state.isUploading;
   auto progress = state.progress;
   auto errorMsg = state.uploadError;
+  auto postId = state.postId;
 
   if (isUploading) {
     uploadState = Upload::UploadState::Uploading;
@@ -71,7 +72,9 @@ void Upload::onAppStateChanged(const Sidechain::Stores::UploadState &state) {
     uploadState = Upload::UploadState::Success;
     uploadProgress = 100.0f;
     errorMessage = "";
-    if (onUploadComplete) {
+    if (onUploadCompleteWithPostId && !postId.isEmpty()) {
+      onUploadCompleteWithPostId(postId);
+    } else if (onUploadComplete) {
       onUploadComplete();
     }
   } else {

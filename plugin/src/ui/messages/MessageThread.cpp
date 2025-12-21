@@ -258,9 +258,24 @@ std::optional<StreamChatClient::Message> MessageThread::findParentMessage(const 
   const auto &channelState = channelIt->second;
   for (const auto &message : channelState.messages) {
     if (message && message->id == parentId) {
-      // TODO: Implement proper conversion from Sidechain::Message to StreamChatClient::Message, or simply refactor to
-      // use only one type of message in the app For now, return nullopt as the types don't match
-      return std::nullopt;
+      // Convert Sidechain::Message to StreamChatClient::Message
+      StreamChatClient::Message result;
+      result.id = message->id;
+      result.userId = message->senderId;
+      result.userName = message->senderUsername;
+      result.text = message->text;
+      result.createdAt = message->createdAt.toString(true, true, true);
+      result.isDeleted = message->isDeleted;
+
+      // Store reply info in extraData if this message itself is a reply
+      if (message->replyToId.isNotEmpty()) {
+        auto *extraObj = new juce::DynamicObject();
+        extraObj->setProperty("reply_to_id", message->replyToId);
+        extraObj->setProperty("reply_to_sender", message->replyToSenderId);
+        result.extraData = juce::var(extraObj);
+      }
+
+      return result;
     }
   }
 
@@ -291,9 +306,22 @@ void MessageThread::scrollToMessage(const juce::String &messageId) {
       // Add heights of all non-null messages before this one
       for (size_t j = 0; j < i; ++j) {
         if (channelState.messages[j]) {
-          // TODO: Fix type mismatch - convert Sidechain::Message to StreamChatClient::Message
-          // For now, use a fixed height estimate
-          messagePosition += 80; // Approximate message height
+          // Calculate approximate message height based on content
+          int messageHeight = 60; // Base height for single-line message
+
+          // Add extra height for multi-line text
+          const auto &msg = channelState.messages[j];
+          if (msg && msg->text.length() > 50) {
+            // Estimate ~2 lines per 50 characters, ~25 pixels per line
+            messageHeight += ((msg->text.length() / 50) * 25);
+          }
+
+          // Add height for attachments
+          if (!msg->attachments.empty()) {
+            messageHeight += (msg->attachments.size() * 100); // ~100px per attachment
+          }
+
+          messagePosition += messageHeight;
         }
       }
       // Scroll to this position

@@ -206,6 +206,60 @@ func (h *Handlers) UpdatePlaylist(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"playlist": playlist})
 }
 
+// DeletePlaylist deletes a playlist (owner only)
+// DELETE /api/v1/playlists/:id
+func (h *Handlers) DeletePlaylist(c *gin.Context) {
+	playlistID := c.Param("id")
+	currentUser, ok := util.GetUserFromContext(c)
+	if !ok {
+		return
+	}
+
+	var playlist models.Playlist
+	if err := database.DB.First(&playlist, "id = ?", playlistID).Error; err != nil {
+		if util.HandleDBError(c, err, "playlist") {
+			return
+		}
+		util.RespondInternalError(c, "query_failed", "Failed to fetch playlist")
+		return
+	}
+
+	// Only owner can delete playlist
+	if playlist.OwnerID != currentUser.ID {
+		util.RespondForbidden(c, "forbidden", "You don't have permission to delete this playlist")
+		return
+	}
+
+	// Delete all entries in the playlist
+	if err := database.DB.Where("playlist_id = ?", playlistID).Delete(&models.PlaylistEntry{}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "deletion_failed",
+			"message": "Failed to delete playlist entries",
+		})
+		return
+	}
+
+	// Delete all collaborators
+	if err := database.DB.Where("playlist_id = ?", playlistID).Delete(&models.PlaylistCollaborator{}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "deletion_failed",
+			"message": "Failed to delete playlist collaborators",
+		})
+		return
+	}
+
+	// Delete the playlist itself
+	if err := database.DB.Delete(&playlist).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "deletion_failed",
+			"message": "Failed to delete playlist",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Playlist deleted successfully"})
+}
+
 // AddPlaylistEntry adds a post to a playlist
 // POST /api/v1/playlists/:id/entries
 func (h *Handlers) AddPlaylistEntry(c *gin.Context) {

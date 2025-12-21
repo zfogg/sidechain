@@ -139,9 +139,16 @@ void AppStore::deletePlaylist(const juce::String &playlistId) {
   }
 
   // Make API call to delete on server
-  // NOTE: NetworkClient doesn't have deletePlaylist yet - this is a placeholder
-  // TODO(Backend): Implement DELETE /playlists/{id} endpoint
-  Util::logDebug("AppStore", "NOTE: Server-side playlist deletion not yet implemented in NetworkClient");
+  networkClient->deletePlaylist(playlistId, [this, playlistId](Outcome<juce::var> result) {
+    if (result.isOk()) {
+      Util::logInfo("AppStore", "Playlist deleted on server: " + playlistId);
+    } else {
+      PlaylistState errorState = sliceManager.playlists->getState();
+      errorState.playlistError = result.getError();
+      sliceManager.playlists->setState(errorState);
+      Util::logError("AppStore", "Failed to delete playlist: " + result.getError());
+    }
+  });
 }
 
 void AppStore::addPostToPlaylist(const juce::String &postId, const juce::String &playlistId) {

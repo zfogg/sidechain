@@ -558,6 +558,12 @@ public:
   void createPlaylist(const juce::String &name, const juce::String &description = "", bool isCollaborative = false,
                       bool isPublic = true, ResponseCallback callback = nullptr);
 
+  /** Delete a playlist
+   * @param playlistId The playlist ID to delete
+   * @param callback Called with success/error
+   */
+  void deletePlaylist(const juce::String &playlistId, ResponseCallback callback = nullptr);
+
   /** Get user's playlists
    * @param filter Filter type: "all", "owned", "collaborated", "public"
    * @param callback Called with playlists array or error
