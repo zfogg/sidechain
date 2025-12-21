@@ -13,6 +13,7 @@ type UserResponse struct {
 	DisplayName       string    `json:"display_name"`
 	Bio               string    `json:"bio"`
 	ProfilePictureURL string    `json:"profile_picture_url"`
+	AvatarURL         string    `json:"avatar_url"` // Effective avatar: S3 if available, else OAuth
 	Genre             string    `json:"genre"`
 	DAWPreference     string    `json:"daw_preference"`
 	IsVerified        bool      `json:"is_verified"`
@@ -65,6 +66,7 @@ func ToUserResponse(user *models.User) *UserResponse {
 		DisplayName:       user.DisplayName,
 		Bio:               user.Bio,
 		ProfilePictureURL: user.ProfilePictureURL,
+		AvatarURL:         user.GetAvatarURL(), // Effective avatar: S3 if available, else OAuth
 		Genre:             "", // TODO: Convert StringArray to string
 		DAWPreference:     user.DAWPreference,
 		IsVerified:        false, // TODO: Add IsVerified field to models.User

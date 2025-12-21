@@ -166,6 +166,18 @@ func (s *Seeder) SeedTest() error {
 		if s.streamClient != nil {
 			if err := s.streamClient.CreateUser(user.ID, user.Username); err != nil {
 				fmt.Printf("    ⚠️  Failed to create Stream.io user for %s: %v\n", spec.username, err)
+			} else {
+				// Sync user profile data to Stream.io
+				customData := make(map[string]interface{})
+				customData["display_name"] = user.DisplayName
+				customData["profile_picture_url"] = user.ProfilePictureURL
+				customData["bio"] = user.Bio
+				customData["genre"] = user.Genre
+				customData["daw_preference"] = user.DAWPreference
+
+				if err := s.streamClient.UpdateUserProfile(user.ID, user.Username, customData); err != nil {
+					fmt.Printf("    ⚠️  Failed to sync profile data to Stream.io for %s: %v\n", spec.username, err)
+				}
 			}
 		}
 
@@ -312,6 +324,21 @@ func (s *Seeder) seedUsers(count int) ([]models.User, error) {
 
 		if err := s.db.Create(&user).Error; err != nil {
 			return nil, fmt.Errorf("failed to create user: %w", err)
+		}
+
+		// Sync user profile data to Stream.io if client is available
+		if s.streamClient != nil {
+			customData := make(map[string]interface{})
+			customData["display_name"] = user.DisplayName
+			customData["profile_picture_url"] = user.ProfilePictureURL
+			customData["bio"] = user.Bio
+			customData["genre"] = user.Genre
+			customData["daw_preference"] = user.DAWPreference
+
+			if err := s.streamClient.UpdateUserProfile(user.ID, user.Username, customData); err != nil {
+				// Log but don't fail - Stream.io might not be configured
+				fmt.Printf("    ⚠️  Failed to sync profile data to Stream.io for %s: %v\n", user.Username, err)
+			}
 		}
 
 		users = append(users, user)
