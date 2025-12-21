@@ -224,6 +224,20 @@ target_include_directories(SidechainJuceHeader INTERFACE
 add_dependencies(SidechainJuceHeader SidechainJuceHeaderHelper)
 
 #==============================================================================
+# Global Coverage Configuration
+#==============================================================================
+# Apply coverage flags globally when SIDECHAIN_ENABLE_COVERAGE is set
+# This ensures ALL compiled object files have coverage instrumentation,
+# allowing lcov to capture coverage for the entire linked executable
+if(SIDECHAIN_ENABLE_COVERAGE)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        # Apply coverage flags to all compilation targets
+        add_compile_options(--coverage -fprofile-arcs -ftest-coverage)
+        add_link_options(--coverage)
+    endif()
+endif()
+
+#==============================================================================
 # Build libraries in dependency order (4-library architecture)
 #==============================================================================
 # Libraries are built in dependency order:

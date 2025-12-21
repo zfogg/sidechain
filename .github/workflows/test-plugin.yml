@@ -170,6 +170,7 @@ jobs:
           cache-version: '2'
 
       - name: Generate Coverage Report
+        if: always()
         run: |
           lcov --capture --directory plugin/build --output-file plugin/build/coverage.info \
             --ignore-errors mismatch,source,gcov,version,empty

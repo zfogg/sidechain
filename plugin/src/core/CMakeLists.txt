@@ -135,14 +135,6 @@ if(APPLE)
     target_link_libraries(Sidechain PRIVATE "-framework Security")
 endif()
 
-# Coverage flags for code coverage analysis
-if(SIDECHAIN_ENABLE_COVERAGE)
-    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-        target_compile_options(Sidechain PRIVATE --coverage -fprofile-arcs -ftest-coverage)
-        target_link_options(Sidechain PRIVATE --coverage)
-    endif()
-endif()
-
 # Link curl library for HTTPS support
 find_package(CURL REQUIRED)
 target_link_libraries(Sidechain PRIVATE CURL::libcurl)

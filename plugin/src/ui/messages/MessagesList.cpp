@@ -81,10 +81,12 @@ void MessagesList::onAppStateChanged(const Sidechain::Stores::ChatState &state) 
         {
           auto *extraDataObj = new juce::DynamicObject();
           if (!channelState.usersTyping.empty()) {
-            juce::var typingUsers;
-            int i = 0;
+            juce::var typingUsers = juce::var(juce::Array<juce::var>());
+            auto *typingArray = typingUsers.getArray();
             for (const auto &userId : channelState.usersTyping) {
-              typingUsers[i++] = userId;
+              if (typingArray != nullptr) {
+                typingArray->add(userId);
+              }
             }
             extraDataObj->setProperty("users_typing", typingUsers);
           }
