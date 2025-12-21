@@ -45,8 +45,8 @@ func (h *Handlers) GetFollowingActivityTimeline(c *gin.Context) {
 
 	// Get list of followed user IDs from getstream.io
 	var followedUserIDs []string
-	if h.stream != nil {
-		following, err := h.stream.GetFollowing(currentUser.ID, 100, 0)
+	if h.container.Stream() != nil {
+		following, err := h.container.Stream().GetFollowing(currentUser.ID, 100, 0)
 		if err == nil {
 			for _, f := range following {
 				followedUserIDs = append(followedUserIDs, f.UserID)

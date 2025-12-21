@@ -460,7 +460,7 @@ func (h *Handlers) CreateMIDIChallenge(c *gin.Context) {
 	// Notify all users about new challenge
 	// Run in goroutine to avoid blocking the response
 	go func() {
-		if err := challenges.NotifyAllUsersAboutNewChallenge(h.stream, challenge.ID, challenge.Title); err != nil {
+		if err := challenges.NotifyAllUsersAboutNewChallenge(h.container.Stream(), challenge.ID, challenge.Title); err != nil {
 			// Log error but don't fail the request
 			log.Printf("⚠️ Failed to notify users about new challenge %s: %v", challenge.ID, err)
 		}
@@ -783,7 +783,7 @@ func (h *Handlers) NotifyChallengeVotingOpenToParticipants(challengeID string) e
 		if user.StreamUserID == "" {
 			return nil // Skip users without stream IDs
 		}
-		return h.stream.NotifyChallengeVotingOpen(user.StreamUserID, challengeID, challenge.Title)
+		return h.container.Stream().NotifyChallengeVotingOpen(user.StreamUserID, challengeID, challenge.Title)
 	})
 }
 
@@ -834,7 +834,7 @@ func (h *Handlers) NotifyChallengeEndedToParticipants(challengeID string) error 
 			rank = int(higherCount)
 		}
 
-		return h.stream.NotifyChallengeEnded(
+		return h.container.Stream().NotifyChallengeEnded(
 			user.StreamUserID,
 			challengeID,
 			challenge.Title,

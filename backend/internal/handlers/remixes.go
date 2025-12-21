@@ -228,7 +228,7 @@ func (h *Handlers) CreateRemixPost(c *gin.Context) {
 		activity.Extra["source_midi_pattern_id"] = *sourceMIDIPatternID
 	}
 
-	if err := h.stream.CreateLoopActivity(userID, activity); err != nil {
+	if err := h.container.Stream().CreateLoopActivity(userID, activity); err != nil {
 		// Log but don't fail - post is already created
 		// TODO: Queue for retry
 	}

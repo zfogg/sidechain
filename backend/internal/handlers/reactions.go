@@ -180,7 +180,7 @@ func (h *Handlers) EmojiReact(c *gin.Context) {
 	}
 
 	// Add the emoji reaction
-	if err := h.stream.AddReactionWithEmoji(reactionType, userID, activityID, req.Emoji); err != nil {
+	if err := h.container.Stream().AddReactionWithEmoji(reactionType, userID, activityID, req.Emoji); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to add emoji reaction"})
 		return
 	}

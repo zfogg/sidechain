@@ -177,7 +177,7 @@ func (h *Handlers) UploadAudio(c *gin.Context) {
 	}
 
 	// Submit to background processing queue with postID so it can update the record
-	job, err := h.audioProcessor.SubmitProcessingJob(currentUser.ID, audioPost.ID, tempFilePath, file.Filename, metadata)
+	job, err := h.container.AudioProcessor().SubmitProcessingJob(currentUser.ID, audioPost.ID, tempFilePath, file.Filename, metadata)
 	if err != nil {
 		os.Remove(tempFilePath)
 		// Update the post to failed status
@@ -209,7 +209,7 @@ func (h *Handlers) UploadAudio(c *gin.Context) {
 func (h *Handlers) GetAudioProcessingStatus(c *gin.Context) {
 	jobID := c.Param("job_id")
 
-	status, err := h.audioProcessor.GetJobStatus(jobID)
+	status, err := h.container.AudioProcessor().GetJobStatus(jobID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error":   "job_not_found",

@@ -417,12 +417,12 @@ func (h *AuthHandlers) Verify2FALogin(c *gin.Context) {
 	}
 
 	// Generate auth token
-	if h.authService == nil {
+	if h.container.Auth() == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Auth service not configured"})
 		return
 	}
 
-	authResp, err := h.authService.GenerateTokenForUser(&user)
+	authResp, err := h.container.Auth().GenerateTokenForUser(&user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return

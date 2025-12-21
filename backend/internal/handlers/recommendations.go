@@ -80,14 +80,14 @@ func (h *Handlers) GetForYouFeed(c *gin.Context) {
 	}
 
 	// Use the centralized Gorse client from handlers
-	if h.gorse == nil {
+	if h.container.Gorse() == nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{
 			"error":   "recommendations_unavailable",
 			"message": "Recommendation service is not configured",
 		})
 		return
 	}
-	recService := h.gorse
+	recService := h.container.Gorse()
 
 	// Get recommendations with optional filters
 	var scores []recommendations.PostScore
@@ -186,14 +186,14 @@ func (h *Handlers) GetSimilarPosts(c *gin.Context) {
 	}
 
 	// Use the centralized Gorse client from handlers
-	if h.gorse == nil {
+	if h.container.Gorse() == nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{
 			"error":   "recommendations_unavailable",
 			"message": "Recommendation service is not configured",
 		})
 		return
 	}
-	recService := h.gorse
+	recService := h.container.Gorse()
 
 	// Get similar posts with optional genre filter
 	var posts []models.AudioPost
@@ -270,14 +270,14 @@ func (h *Handlers) GetUsersToFollow(c *gin.Context) {
 	}
 
 	// Use the centralized Gorse client from handlers
-	if h.gorse == nil {
+	if h.container.Gorse() == nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{
 			"error":   "recommendations_unavailable",
 			"message": "Recommendation service is not configured",
 		})
 		return
 	}
-	recService := h.gorse
+	recService := h.container.Gorse()
 
 	// Get recommended users to follow
 	userScores, err := recService.GetUsersToFollow(currentUserID, limit, offset)
@@ -333,14 +333,14 @@ func (h *Handlers) GetRecommendedUsers(c *gin.Context) {
 	}
 
 	// Use the centralized Gorse client from handlers
-	if h.gorse == nil {
+	if h.container.Gorse() == nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{
 			"error":   "recommendations_unavailable",
 			"message": "Recommendation service is not configured",
 		})
 		return
 	}
-	recService := h.gorse
+	recService := h.container.Gorse()
 
 	// Get similar users (using current user's preferences to find similar users)
 	users, err := recService.GetSimilarUsers(currentUserID, limit)
@@ -396,9 +396,9 @@ func (h *Handlers) NotInterestedInPost(c *gin.Context) {
 	}
 
 	// Send negative feedback to Gorse
-	if h.gorse != nil {
+	if h.container.Gorse() != nil {
 		go func() {
-			if err := h.gorse.SyncFeedback(userID, postID, "dislike"); err != nil {
+			if err := h.container.Gorse().SyncFeedback(userID, postID, "dislike"); err != nil {
 				fmt.Printf("Warning: Failed to sync dislike to Gorse: %v\n", err)
 			}
 		}()
@@ -425,9 +425,9 @@ func (h *Handlers) SkipPost(c *gin.Context) {
 	}
 
 	// Send skip feedback to Gorse
-	if h.gorse != nil {
+	if h.container.Gorse() != nil {
 		go func() {
-			if err := h.gorse.SyncFeedback(userID, postID, "skip"); err != nil {
+			if err := h.container.Gorse().SyncFeedback(userID, postID, "skip"); err != nil {
 				fmt.Printf("Warning: Failed to sync skip to Gorse: %v\n", err)
 			}
 		}()
@@ -454,9 +454,9 @@ func (h *Handlers) HidePost(c *gin.Context) {
 	}
 
 	// Send hide feedback to Gorse
-	if h.gorse != nil {
+	if h.container.Gorse() != nil {
 		go func() {
-			if err := h.gorse.SyncFeedback(userID, postID, "hide"); err != nil {
+			if err := h.container.Gorse().SyncFeedback(userID, postID, "hide"); err != nil {
 				fmt.Printf("Warning: Failed to sync hide to Gorse: %v\n", err)
 			}
 		}()
@@ -488,14 +488,14 @@ func (h *Handlers) GetPopular(c *gin.Context) {
 	}
 
 	// Use the centralized Gorse client from handlers
-	if h.gorse == nil {
+	if h.container.Gorse() == nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{
 			"error":   "recommendations_unavailable",
 			"message": "Recommendation service is not configured",
 		})
 		return
 	}
-	recService := h.gorse
+	recService := h.container.Gorse()
 
 	// Get popular posts
 	scores, err := recService.GetPopular(limit, offset)
@@ -569,14 +569,14 @@ func (h *Handlers) GetLatest(c *gin.Context) {
 	}
 
 	// Use the centralized Gorse client from handlers
-	if h.gorse == nil {
+	if h.container.Gorse() == nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{
 			"error":   "recommendations_unavailable",
 			"message": "Recommendation service is not configured",
 		})
 		return
 	}
-	recService := h.gorse
+	recService := h.container.Gorse()
 
 	// Get latest posts
 	scores, err := recService.GetLatest(limit, offset)
@@ -651,14 +651,14 @@ func (h *Handlers) GetDiscoveryFeed(c *gin.Context) {
 	}
 
 	// Use the centralized Gorse client from handlers
-	if h.gorse == nil {
+	if h.container.Gorse() == nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{
 			"error":   "recommendations_unavailable",
 			"message": "Recommendation service is not configured",
 		})
 		return
 	}
-	recService := h.gorse
+	recService := h.container.Gorse()
 
 	// Calculate how many items to fetch from each source
 	// Ratio: 30% popular, 20% latest, 50% personalized
@@ -885,9 +885,9 @@ func (h *Handlers) TrackRecommendationClick(c *gin.Context) {
 	}
 
 	// Send to Gorse as stronger signal if they completed playback
-	if h.gorse != nil && req.Completed {
+	if h.container.Gorse() != nil && req.Completed {
 		go func() {
-			if err := h.gorse.SyncFeedback(userID, req.PostID, "like"); err != nil {
+			if err := h.container.Gorse().SyncFeedback(userID, req.PostID, "like"); err != nil {
 				fmt.Printf("Warning: Failed to sync completed play to Gorse: %v\n", err)
 			}
 		}()
