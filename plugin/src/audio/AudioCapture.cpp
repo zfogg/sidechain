@@ -344,12 +344,9 @@ bool AudioCapture::saveBufferToWavFile(const juce::File &file, const juce::Audio
   juce::WavAudioFormat wavFormat;
   std::unique_ptr<juce::OutputStream> outputStream(std::move(fileStream));
 
-  juce::AudioFormatWriter::AudioFormatWriterOptions options;
-  options.sampleRate = sampleRate;
-  options.numChannels = static_cast<unsigned int>(buffer.getNumChannels());
-  options.bitsPerSample = bitsPerSample;
-
-  std::unique_ptr<juce::AudioFormatWriter> writer(wavFormat.createWriterFor(outputStream.get(), options));
+  // JUCE 8.0.8 API: createWriterFor(stream, sampleRate, numChannels, bitsPerSample, metadata, quality)
+  std::unique_ptr<juce::AudioFormatWriter> writer(wavFormat.createWriterFor(
+      outputStream.get(), sampleRate, static_cast<unsigned int>(buffer.getNumChannels()), bitsPerSample, {}, 0));
 
   if (writer == nullptr) {
     Log::error("saveBufferToWavFile: Could not create WAV writer");
@@ -487,13 +484,9 @@ bool AudioCapture::saveBufferToFlacFile(const juce::File &file, const juce::Audi
   juce::FlacAudioFormat flacFormat;
   std::unique_ptr<juce::OutputStream> outputStream(std::move(fileStream));
 
-  juce::AudioFormatWriter::AudioFormatWriterOptions options;
-  options.sampleRate = sampleRate;
-  options.numChannels = static_cast<unsigned int>(buffer.getNumChannels());
-  options.bitsPerSample = bitsPerSample;
-  options.metaData = quality;
-
-  std::unique_ptr<juce::AudioFormatWriter> writer(flacFormat.createWriterFor(outputStream.get(), options));
+  // JUCE 8.0.8 API: createWriterFor(stream, sampleRate, numChannels, bitsPerSample, metadata, quality)
+  std::unique_ptr<juce::AudioFormatWriter> writer(flacFormat.createWriterFor(
+      outputStream.get(), sampleRate, static_cast<unsigned int>(buffer.getNumChannels()), bitsPerSample, {}, quality));
 
   if (writer == nullptr) {
     Log::error("saveBufferToFlacFile: Could not create FLAC writer");

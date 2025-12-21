@@ -9,7 +9,7 @@ DraftsView::DraftsView(Sidechain::Stores::AppStore *store) : AppStoreComponent(s
   scrollBar->addListener(this);
   scrollBar->setAutoHide(true);
   addAndMakeVisible(scrollBar.get());
-  initialize();
+  subscribeToAppStore();
 }
 
 DraftsView::~DraftsView() {
@@ -35,7 +35,7 @@ void DraftsView::subscribeToAppStore() {
       for (const auto &draftPtr : state.drafts) {
         if (draftPtr) {
           // Serialize Draft to juce::var
-          const auto& draft = *draftPtr;
+          const auto &draft = *draftPtr;
           juce::DynamicObject::Ptr obj = new juce::DynamicObject();
           obj->setProperty("id", draft.id);
           obj->setProperty("type", draft.type);

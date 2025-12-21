@@ -12,7 +12,7 @@ SoundPage::SoundPage(Sidechain::Stores::AppStore *store) : AppStoreComponent(sto
   addAndMakeVisible(scrollBar);
   scrollBar.addListener(this);
   scrollBar.setRangeLimits(0.0, 1.0);
-  initialize();
+  subscribeToAppStore();
 }
 
 SoundPage::~SoundPage() {

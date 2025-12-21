@@ -80,9 +80,9 @@ protected:
   }
 
   // ==============================================================================
-  // AppStoreComponent overrides
-  void subscribeToAppStore() override {}
-  void unsubscribeFromAppStore() override {}
+  // AppStoreComponent methods
+  void subscribeToAppStore() {}
+  void unsubscribeFromAppStore() {}
 
   juce::String getComponentName() const override {
     return "MessageThread";

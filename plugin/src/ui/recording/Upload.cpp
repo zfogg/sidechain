@@ -1106,12 +1106,9 @@ void Upload::startUpload() {
     std::unique_ptr<juce::FileOutputStream> outStream(audioFile.createOutputStream());
 
     if (outStream) {
-      juce::AudioFormatWriter::AudioFormatWriterOptions options;
-      options.sampleRate = audioSampleRate;
-      options.numChannels = static_cast<unsigned int>(audioBuffer.getNumChannels());
-      options.bitsPerSample = 16;
-
-      std::unique_ptr<juce::AudioFormatWriter> writer(wavFormat.createWriterFor(outStream.get(), options));
+      // JUCE 8.0.8 API: createWriterFor(stream, sampleRate, numChannels, bitsPerSample, metadata, quality)
+      std::unique_ptr<juce::AudioFormatWriter> writer(wavFormat.createWriterFor(
+          outStream.get(), audioSampleRate, static_cast<unsigned int>(audioBuffer.getNumChannels()), 16, {}, 0));
 
       if (writer) {
         outStream.release(); // Release ownership to writer

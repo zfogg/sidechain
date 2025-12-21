@@ -216,7 +216,7 @@ private:
   // AppStoreComponent overrides
 protected:
   void onAppStateChanged(const Sidechain::Stores::UserState &state) override;
-  void subscribeToAppStore() override;
+  void subscribeToAppStore();
 
   // ==============================================================================
   // SmoothScrollable overrides

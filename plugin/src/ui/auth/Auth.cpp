@@ -6,7 +6,9 @@
 #include "../../util/Log.h"
 
 // ==============================================================================
-Auth::Auth(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
+Auth::Auth(Sidechain::Stores::AppStore *store)
+    : AppStoreComponent(
+          store, [store](auto cb) { return store ? store->subscribeToAuth(cb) : std::function<void()>([]() {}); }) {
   Log::info("Auth: Initializing authentication component");
 
   // Create all UI components BEFORE calling setSize because setSize
@@ -32,7 +34,6 @@ Auth::Auth(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   // Set size last - this triggers resized which requires components to exist
   setSize(1000, 800);
   Log::info("Auth: Initialization complete");
-  initialize();
 }
 
 Auth::~Auth() {
@@ -47,34 +48,6 @@ void Auth::setNetworkClient(NetworkClient *client) {
 
 // ==============================================================================
 // AppStoreComponent virtual methods
-
-void Auth::subscribeToAppStore() {
-  Log::debug("Auth: Subscribing to AppStore");
-
-  if (!appStore) {
-    Log::warn("Auth: Cannot subscribe to null AppStore");
-    return;
-  }
-
-  // Subscribe to auth state changes
-  juce::Component::SafePointer<Auth> safeThis(this);
-  storeUnsubscriber = appStore->subscribeToAuth([safeThis](const Sidechain::Stores::AuthState &authState) {
-    // Check if Auth component still exists
-    if (!safeThis)
-      return;
-
-    // Schedule UI update on message thread for thread safety
-    juce::MessageManager::callAsync([safeThis, authState]() {
-      // Double-check component still exists after async dispatch
-      if (!safeThis)
-        return;
-
-      safeThis->onAppStateChanged(authState);
-    });
-  });
-
-  Log::debug("Auth: Successfully subscribed to AppStore");
-}
 
 void Auth::onAppStateChanged(const Sidechain::Stores::AuthState &authState) {
   // This method is called when auth state changes in the store

@@ -52,7 +52,9 @@ protected:
   // ==============================================================================
   // AppStoreComponent virtual methods
   void onAppStateChanged(const Sidechain::Stores::ChallengeState &state) override;
-  void subscribeToAppStore() override;
+
+  // Initialization and subscription
+  void subscribeToAppStore();
 
 private:
   // ==============================================================================

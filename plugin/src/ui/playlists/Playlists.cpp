@@ -9,7 +9,7 @@ Playlists::Playlists(Sidechain::Stores::AppStore *store) : AppStoreComponent(sto
   scrollBar.setRangeLimits(0.0, 100.0);
   scrollBar.addListener(this);
   addAndMakeVisible(scrollBar);
-  initialize();
+  subscribeToAppStore();
 }
 
 Playlists::~Playlists() {

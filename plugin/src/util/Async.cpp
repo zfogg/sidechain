@@ -16,6 +16,10 @@ std::atomic<int> nextTimerId{1};
 // Shutdown flag to prevent new async work after shutdown starts
 std::atomic<bool> isShuttingDown{false};
 
+// Forward declarations for timer management
+std::mutex delayTimersMutex;
+std::map<int, std::unique_ptr<class DelayTimer>> delayTimers;
+
 /**
  * DelayTimer - Custom timer for delayed execution
  *
@@ -54,10 +58,6 @@ private:
   int timerId;                    // /< Unique identifier for this timer
   std::function<void()> callback; // /< Callback to execute
 };
-
-// Active delay timers (protected by mutex) - unique_ptr manages lifetime
-std::mutex delayTimersMutex;
-std::map<int, std::unique_ptr<DelayTimer>> delayTimers;
 
 // Debounce timers keyed by string (protected by mutex)
 std::mutex debounceMutex;

@@ -123,7 +123,7 @@ PostsFeed::PostsFeed(Sidechain::Stores::AppStore *store) : AppStoreComponent(sto
   Log::info("PostsFeedComponent: Initialization complete");
 
   // Subscribe to AppStore after UI setup
-  initialize();
+  subscribeToAppStore();
 }
 
 PostsFeed::~PostsFeed() {

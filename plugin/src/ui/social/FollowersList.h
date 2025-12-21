@@ -138,7 +138,7 @@ public:
   // ==============================================================================
   // AppStoreComponent<FollowersState> implementation
 protected:
-  void subscribeToAppStore() override;
+  void subscribeToAppStore();
   void onAppStateChanged(const Sidechain::Stores::FollowersState &state) override;
 
   // ==============================================================================

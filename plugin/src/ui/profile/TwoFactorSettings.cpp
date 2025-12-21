@@ -74,7 +74,7 @@ TwoFactorSettings::TwoFactorSettings(AppStore *store) : AppStoreComponent(store)
   codeInput->setColour(juce::TextEditor::textColourId, Colors::textPrimary);
   codeInput->setInputRestrictions(9, "0123456789-"); // Allow digits and dash for backup codes
   addChildComponent(codeInput.get());
-  initialize();
+  subscribeToAppStore();
 }
 
 TwoFactorSettings::~TwoFactorSettings() = default;

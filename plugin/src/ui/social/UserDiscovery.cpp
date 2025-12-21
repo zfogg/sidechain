@@ -35,7 +35,7 @@ UserDiscovery::UserDiscovery(Sidechain::Stores::AppStore *store) : AppStoreCompo
   loadRecentSearches();
 
   // Subscribe to AppStore after all UI setup is complete
-  initialize();
+  subscribeToAppStore();
 }
 
 UserDiscovery::~UserDiscovery() {

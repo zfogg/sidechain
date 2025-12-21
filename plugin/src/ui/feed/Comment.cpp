@@ -362,7 +362,7 @@ juce::Rectangle<int> CommentRow::getMoreButtonBounds() const {
 
 CommentsPanel::CommentsPanel(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   setupUI();
-  initialize(); // Subscribe to AppStore after UI setup
+  subscribeToAppStore(); // Subscribe to AppStore after UI setup
 }
 
 CommentsPanel::~CommentsPanel() {

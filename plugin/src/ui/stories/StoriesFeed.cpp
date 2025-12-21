@@ -20,7 +20,7 @@ const juce::Colour badgeRed(0xffe53935);
 StoriesFeed::StoriesFeed(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   // Timer only starts when needed for smooth scroll animation
   Log::info("StoriesFeed created");
-  initialize();
+  subscribeToAppStore();
 }
 
 StoriesFeed::~StoriesFeed() {

@@ -215,7 +215,7 @@ private:
 
 protected:
   void onAppStateChanged(const Sidechain::Stores::PostsState &state) override;
-  void subscribeToAppStore() override;
+  void subscribeToAppStore();
 
 private:
   // Presence querying

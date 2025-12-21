@@ -33,7 +33,7 @@ SavedPosts::SavedPosts(AppStore *store) : AppStoreComponent(store) {
   addAndMakeVisible(scrollBar);
   scrollBar.addListener(this);
   scrollBar.setRangeLimits(0.0, 1.0);
-  initialize();
+  subscribeToAppStore();
 }
 
 SavedPosts::~SavedPosts() {

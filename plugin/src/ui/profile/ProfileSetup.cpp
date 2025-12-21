@@ -7,7 +7,7 @@ ProfileSetup::ProfileSetup(Sidechain::Stores::AppStore *store) : AppStoreCompone
   Log::info("ProfileSetup: Initializing profile setup component");
   setSize(1000, 800);
   Log::info("ProfileSetup: Initialization complete");
-  initialize();
+  subscribeToAppStore();
 }
 
 // Layout constants for responsive design

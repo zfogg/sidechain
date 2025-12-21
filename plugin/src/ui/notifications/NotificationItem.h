@@ -32,7 +32,8 @@ struct NotificationItem {
   static NotificationItem fromJson(const juce::var &json);
 
   // Create from AggregatedFeedGroup
-  static NotificationItem fromAggregatedGroup(const Sidechain::AggregatedFeedGroup &group, bool read = false, bool seen = false);
+  static NotificationItem fromAggregatedGroup(const Sidechain::AggregatedFeedGroup &group, bool read = false,
+                                              bool seen = false);
 
   // Generate display text like "Alice and 3 others liked your loop"
   juce::String getDisplayText() const;

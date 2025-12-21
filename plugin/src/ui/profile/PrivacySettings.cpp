@@ -10,7 +10,7 @@ PrivacySettings::PrivacySettings(AppStore *store) : AppStoreComponent(store) {
   setupToggle();
   // Set size last to avoid resized being called before components are created
   setSize(400, 280);
-  initialize();
+  subscribeToAppStore();
 }
 
 PrivacySettings::~PrivacySettings() {

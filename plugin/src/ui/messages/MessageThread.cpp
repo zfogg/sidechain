@@ -7,7 +7,7 @@ MessageThread::MessageThread(Sidechain::Stores::AppStore *store)
     : Sidechain::UI::AppStoreComponent<Sidechain::Stores::ChatState>(store), scrollBar(true) {
   Log::info("MessageThread: Initializing");
   addAndMakeVisible(scrollBar);
-  initialize();
+  subscribeToAppStore();
 }
 
 MessageThread::~MessageThread() {
@@ -57,8 +57,7 @@ void MessageThread::addReaction(const juce::String &, const juce::String &) {}
 void MessageThread::removeReaction(const juce::String &, const juce::String &) {}
 void MessageThread::toggleReaction(const juce::String &, const juce::String &) {}
 
-bool MessageThread::hasUserReacted(const StreamChatClient::Message &message,
-                                   const juce::String &reactionType) const {
+bool MessageThread::hasUserReacted(const StreamChatClient::Message &message, const juce::String &reactionType) const {
   // Check if current user has reacted with this reaction type
   // Reactions structure: { "👍": ["user1", "user2"], "❤️": ["user3"] }
   if (!message.reactions.isObject()) {
@@ -79,8 +78,7 @@ bool MessageThread::hasUserReacted(const StreamChatClient::Message &message,
 
   return false;
 }
-int MessageThread::getReactionCount(const StreamChatClient::Message &message,
-                                    const juce::String &reactionType) const {
+int MessageThread::getReactionCount(const StreamChatClient::Message &message, const juce::String &reactionType) const {
   // Return count of users who reacted with this reaction type
   if (!message.reactions.isObject()) {
     return 0;
@@ -93,8 +91,7 @@ int MessageThread::getReactionCount(const StreamChatClient::Message &message,
 
   return reactionArray.size();
 }
-std::vector<juce::String>
-MessageThread::getReactionTypes(const StreamChatClient::Message &message) const {
+std::vector<juce::String> MessageThread::getReactionTypes(const StreamChatClient::Message &message) const {
   // Return all reaction types (emoji) on this message
   std::vector<juce::String> types;
 
@@ -103,8 +100,9 @@ MessageThread::getReactionTypes(const StreamChatClient::Message &message) const 
   }
 
   // Iterate through all properties in the reactions object to get reaction types
-  for (const auto &key : message.reactions.getDynamicObject()->getProperties().getAllKeys()) {
-    types.push_back(key.toString());
+  auto &properties = message.reactions.getDynamicObject()->getProperties();
+  for (int i = 0; i < properties.size(); ++i) {
+    types.push_back(properties.getName(i).toString());
   }
 
   return types;
@@ -128,7 +126,8 @@ juce::Rectangle<int> MessageThread::getAudioButtonBounds() const {
   constexpr int BUTTON_SIZE = 40;
   constexpr int PADDING = 10;
   int inputAreaY = getHeight() - INPUT_HEIGHT;
-  return juce::Rectangle<int>(getWidth() - (BUTTON_SIZE * 2) - (PADDING * 2), inputAreaY + PADDING, BUTTON_SIZE, BUTTON_SIZE);
+  return juce::Rectangle<int>(getWidth() - (BUTTON_SIZE * 2) - (PADDING * 2), inputAreaY + PADDING, BUTTON_SIZE,
+                              BUTTON_SIZE);
 }
 juce::Rectangle<int> MessageThread::getMessageBounds(const StreamChatClient::Message &message) const {
   // Placeholder: Return bounds for message in the messages area
@@ -139,8 +138,7 @@ juce::Rectangle<int> MessageThread::getMessageBounds(const StreamChatClient::Mes
 
   // Return a default bounds that spans the messages area width
   // Actual height/position would require full message layout tracking
-  return juce::Rectangle<int>(PADDING, messagesAreaY, getWidth() - (PADDING * 2),
-                              MESSAGE_BUBBLE_MIN_HEIGHT);
+  return juce::Rectangle<int>(PADDING, messagesAreaY, getWidth() - (PADDING * 2), MESSAGE_BUBBLE_MIN_HEIGHT);
 }
 juce::Rectangle<int> MessageThread::getHeaderMenuButtonBounds() const {
   // Menu button in top-right corner of header

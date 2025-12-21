@@ -56,7 +56,7 @@ Search::Search(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   setSize(1000, 700);
 
   // Subscribe to AppStore after UI setup
-  initialize();
+  subscribeToAppStore();
 
   // Phase 7 features:
   // - Advanced Search - Search by BPM, key, genre
@@ -1058,7 +1058,7 @@ void Search::showCustomBPMDialog() {
   // Use heap-allocated AlertWindow to avoid use-after-free
   // (enterModalState is async, so stack allocation would be destroyed before callback)
   auto *alert = new juce::AlertWindow("Custom BPM Range",
-                          "Enter minimum and maximum BPM values:", juce::MessageBoxIconType::QuestionIcon);
+                                      "Enter minimum and maximum BPM values:", juce::MessageBoxIconType::QuestionIcon);
 
   alert->addTextEditor("bpmMin", juce::String(bpmMin), "Minimum BPM:", false);
   alert->addTextEditor("bpmMax", juce::String(bpmMax), "Maximum BPM:", false);
@@ -1075,29 +1075,29 @@ void Search::showCustomBPMDialog() {
   alert->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
 
   alert->enterModalState(true, juce::ModalCallbackFunction::create([this, alert](int result) {
-                          if (result == 1) {
-                            juce::String minText = alert->getTextEditorContents("bpmMin").trim();
-                            juce::String maxText = alert->getTextEditorContents("bpmMax").trim();
+                           if (result == 1) {
+                             juce::String minText = alert->getTextEditorContents("bpmMin").trim();
+                             juce::String maxText = alert->getTextEditorContents("bpmMax").trim();
 
-                            int newMin = minText.getIntValue();
-                            int newMax = maxText.getIntValue();
+                             int newMin = minText.getIntValue();
+                             int newMax = maxText.getIntValue();
 
-                            // Validate range
-                            if (newMin >= 0 && newMax > newMin && newMax <= 300) {
-                              bpmMin = newMin;
-                              bpmMax = newMax;
-                              applyFilters();
-                              repaint();
-                            } else {
-                              juce::AlertWindow::showMessageBoxAsync(
-                                  juce::MessageBoxIconType::WarningIcon, "Invalid Range",
-                                  "Please enter a valid BPM range:\n- Minimum: 0-299\n- Maximum: "
-                                  "1-300\n- Maximum must be greater than minimum");
-                            }
-                          }
-                          // Note: alert is deleted by JUCE (deleteWhenDismissed=true)
-                        }),
-                        true); // deleteWhenDismissed=true - JUCE handles cleanup
+                             // Validate range
+                             if (newMin >= 0 && newMax > newMin && newMax <= 300) {
+                               bpmMin = newMin;
+                               bpmMax = newMax;
+                               applyFilters();
+                               repaint();
+                             } else {
+                               juce::AlertWindow::showMessageBoxAsync(
+                                   juce::MessageBoxIconType::WarningIcon, "Invalid Range",
+                                   "Please enter a valid BPM range:\n- Minimum: 0-299\n- Maximum: "
+                                   "1-300\n- Maximum must be greater than minimum");
+                             }
+                           }
+                           // Note: alert is deleted by JUCE (deleteWhenDismissed=true)
+                         }),
+                         true); // deleteWhenDismissed=true - JUCE handles cleanup
 }
 
 void Search::showKeyPicker() {

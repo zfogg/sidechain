@@ -11,66 +11,70 @@ namespace UI {
 /**
  * AppStoreComponent - Base class for components with automatic AppStore binding
  *
- * Eliminates boilerplate subscribe/unsubscribe code by:
- * - Accepting AppStore in constructor
- * - Providing explicit initialize() for safe virtual method calls after construction
- * - Automatically unsubscribing in destructor
- * - Providing thread-safe state callbacks via MessageManager
+ * Eliminates boilerplate by accepting a subscription lambda in the constructor.
+ * No virtual method overrides needed - subscription is set up automatically.
  *
- * Subclasses must:
- * 1. Inherit from AppStoreComponent<StateType>
- * 2. Override subscribeToAppStore() with their specific subscription
- * 3. Override onAppStateChanged() to handle state updates
- * 4. Call initialize() after construction is complete
+ * Features:
+ * - Automatic subscription setup (no initialize() call needed)
+ * - No virtual method overrides required
+ * - Thread-safe state callbacks via MessageManager
+ * - RAII cleanup in destructor
+ * - Runtime binding/unbinding support
  *
- * Usage:
+ * Usage (Before - 9 lines of boilerplate per component):
  *   class MyComponent : public AppStoreComponent<ChallengeState> {
  *   public:
  *     explicit MyComponent(AppStore *store = nullptr) : AppStoreComponent(store) {
- *       // All initialization here before calling initialize
- *       initialize();  // Safe to call virtual methods now
+ *       setupUI();
+ *       initialize();  // Manual call needed
  *     }
- *
  *   protected:
- *     void onAppStateChanged(const ChallengeState &state) override {
- *       // Handle state changes
- *     }
- *
+ *     void onAppStateChanged(const ChallengeState &state) override { ... }
  *     void subscribeToAppStore() override {
  *       juce::Component::SafePointer<MyComponent> safeThis(this);
  *       storeUnsubscriber = appStore->subscribeToChallenges(
- *         [safeThis](const ChallengeState &state) {
- *           if (!safeThis) return;
- *           juce::MessageManager::callAsync([safeThis, state]() {
- *             if (safeThis)
- *               safeThis->onAppStateChanged(state);
- *           });
- *         });
+ *         [safeThis](const auto& state) { ... });
  *     }
+ *   };
+ *
+ * Usage (After - 1 line, no boilerplate):
+ *   class MyComponent : public AppStoreComponent<ChallengeState> {
+ *   public:
+ *     explicit MyComponent(AppStore *store = nullptr)
+ *         : AppStoreComponent(store, [store](auto cb) {
+ *             return store->subscribeToChallenges(cb);
+ *           }) {}
+ *
+ *   protected:
+ *     void onAppStateChanged(const ChallengeState &state) override { ... }
  *   };
  */
 template <typename StateType> class AppStoreComponent : public juce::Component {
 public:
   /**
-   * Constructor with optional AppStore binding
-   * Does NOT subscribe automatically - call initialize() after construction
+   * Type for subscription function
+   * Takes a callback and returns an unsubscriber function
    */
-  explicit AppStoreComponent(Stores::AppStore *store = nullptr) : appStore(store), isInitialized(false) {}
+  using SubscriptionFn = std::function<std::function<void()>(std::function<void(const StateType &)>)>;
 
   /**
-   * Initialize store subscription after construction
-   * Must be called exactly once after derived class construction is complete
-   * Safe to call virtual methods (subscribeToAppStore) at this point
+   * Constructor with optional AppStore and subscription function
+   *
+   * The subscription function is called immediately to set up the store binding.
+   * No need to call initialize() - subscription happens automatically.
+   *
+   * @param store Pointer to AppStore (can be nullptr)
+   * @param subscriptionFn Lambda that takes a callback and returns unsubscriber
+   *
+   * Example:
+   *   AppStoreComponent(store, [store](auto cb) {
+   *     return store->subscribeToChallenges(cb);
+   *   })
    */
-  void initialize() {
-    if (isInitialized) {
-      Log::error("AppStoreComponent::initialize() called more than once");
-      return;
-    }
-
-    isInitialized = true;
-    if (appStore) {
-      subscribeToAppStore();
+  explicit AppStoreComponent(Stores::AppStore *store = nullptr, SubscriptionFn subscriptionFn = nullptr)
+      : appStore(store), userSubscriptionFn(subscriptionFn) {
+    if (appStore && userSubscriptionFn) {
+      setupSubscription();
     }
   }
 
@@ -85,15 +89,16 @@ public:
    * Bind to a different store at runtime
    * Useful for components that are created before store is available
    */
-  void bindToStore(Stores::AppStore *store) {
-    if (storeUnsubscriber) {
-      storeUnsubscriber();
-      storeUnsubscriber = nullptr;
+  void bindToStore(Stores::AppStore *store, SubscriptionFn subscriptionFn = nullptr) {
+    unsubscribeFromAppStore();
+    appStore = store;
+
+    if (subscriptionFn) {
+      userSubscriptionFn = subscriptionFn;
     }
 
-    appStore = store;
-    if (appStore && isInitialized) {
-      subscribeToAppStore();
+    if (appStore && userSubscriptionFn) {
+      setupSubscription();
     }
   }
 
@@ -114,8 +119,8 @@ public:
 
 protected:
   Stores::AppStore *appStore = nullptr;
+  SubscriptionFn userSubscriptionFn;
   std::function<void()> storeUnsubscriber;
-  bool isInitialized;
 
   /**
    * Called when app state changes
@@ -124,18 +129,37 @@ protected:
    */
   virtual void onAppStateChanged(const StateType &state) = 0;
 
+private:
   /**
-   * Subscribe to app store changes
-   * Subclasses override this to set up their subscription
-   * Must set storeUnsubscriber callback
+   * Set up subscription using the provided subscription function
+   * Automatically wraps callback with SafePointer and MessageManager
    */
-  virtual void subscribeToAppStore() = 0;
+  void setupSubscription() {
+    if (!appStore || !userSubscriptionFn) {
+      return;
+    }
+
+    // Create a safe pointer to this component
+    juce::Component::SafePointer<AppStoreComponent> safeThis(this);
+
+    // Call the user's subscription function with our wrapped callback
+    storeUnsubscriber = userSubscriptionFn([safeThis](const StateType &state) {
+      if (!safeThis)
+        return;
+
+      // Schedule UI update on message thread for thread safety
+      juce::MessageManager::callAsync([safeThis, state]() {
+        if (!safeThis)
+          return;
+        safeThis->onAppStateChanged(state);
+      });
+    });
+  }
 
   /**
    * Unsubscribe from app store
-   * Override if you need custom cleanup
    */
-  virtual void unsubscribeFromAppStore() {
+  void unsubscribeFromAppStore() {
     if (storeUnsubscriber) {
       storeUnsubscriber();
       storeUnsubscriber = nullptr;

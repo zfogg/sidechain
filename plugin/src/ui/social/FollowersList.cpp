@@ -183,7 +183,7 @@ juce::Rectangle<int> FollowUserRow::getFollowButtonBounds() const {
 FollowersList::FollowersList(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   Log::info("FollowersList: Initializing");
   setupUI();
-  initialize(); // Subscribe to AppStore after UI setup
+  subscribeToAppStore(); // Subscribe to AppStore after UI setup
 }
 
 FollowersList::~FollowersList() {

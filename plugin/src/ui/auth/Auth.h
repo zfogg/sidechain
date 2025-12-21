@@ -98,7 +98,6 @@ protected:
   // ==============================================================================
   // AppStoreComponent virtual methods
   void onAppStateChanged(const Sidechain::Stores::AuthState &state) override;
-  void subscribeToAppStore() override;
 
 public:
   // ==============================================================================

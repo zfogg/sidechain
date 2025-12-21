@@ -316,7 +316,7 @@ NotificationList::NotificationList(Sidechain::Stores::AppStore *store)
   setSize(PREFERRED_WIDTH, MAX_HEIGHT);
 
   // Subscribe to AppStore after UI setup
-  initialize();
+  subscribeToAppStore();
 }
 
 NotificationList::~NotificationList() {
