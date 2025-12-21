@@ -36,15 +36,15 @@ func NewRedisClient(host string, port string, password string) (*RedisClient, er
 
 	// Create client with connection pooling
 	client := redis.NewClient(&redis.Options{
-		Addr:           addr,
-		Password:       password,
-		DB:             0,
-		MaxRetries:     3,
-		PoolSize:       10,
-		MinIdleConns:   5,
-		ReadTimeout:    3 * time.Second,
-		WriteTimeout:   3 * time.Second,
-		DialTimeout:    5 * time.Second,
+		Addr:         addr,
+		Password:     password,
+		DB:           0,
+		MaxRetries:   3,
+		PoolSize:     10,
+		MinIdleConns: 5,
+		ReadTimeout:  3 * time.Second,
+		WriteTimeout: 3 * time.Second,
+		DialTimeout:  5 * time.Second,
 	})
 
 	// Test connection
@@ -82,8 +82,7 @@ func (rc *RedisClient) Close() error {
 // Get retrieves a value from Redis
 func (rc *RedisClient) Get(ctx context.Context, key string) (string, error) {
 	// Start distributed tracing span
-	_, span := otel.Tracer("redis").Start(ctx, "redis.get",
-	)
+	_, span := otel.Tracer("redis").Start(ctx, "redis.get")
 	defer span.End()
 
 	// Add span attributes
@@ -157,6 +156,17 @@ func (rc *RedisClient) Set(ctx context.Context, key string, value interface{}) e
 
 // SetEx stores a value in Redis with expiration
 func (rc *RedisClient) SetEx(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
+	// Start distributed tracing span with enhanced attributes
+	_, span := otel.Tracer("redis").Start(ctx, "redis.setex")
+	defer span.End()
+
+	// Add span attributes
+	span.SetAttributes(
+		attribute.String("cache.key", maskSensitiveKey(key)),
+		attribute.String("cache.operation", "setex"),
+		attribute.Int64("cache.ttl_seconds", int64(ttl.Seconds())),
+	)
+
 	start := time.Now()
 	err := rc.client.Set(ctx, key, value, ttl).Err()
 
@@ -164,9 +174,16 @@ func (rc *RedisClient) SetEx(ctx context.Context, key string, value interface{},
 	duration := time.Since(start).Seconds()
 	metrics.Get().RedisOperationDuration.WithLabelValues("setex", extractKeyPattern(key)).Observe(duration)
 
+	// Record span duration
+	span.SetAttributes(attribute.Float64("cache.duration_seconds", duration))
+
 	status := "success"
 	if err != nil {
 		status = "error"
+		span.SetStatus(codes.Error, err.Error())
+		span.RecordError(err)
+	} else {
+		span.SetStatus(codes.Ok, "")
 	}
 	metrics.Get().RedisOperationsTotal.WithLabelValues("setex", status).Inc()
 
