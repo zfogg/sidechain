@@ -81,25 +81,30 @@ public:
 
   /**
    * Get the value. Only call if isOk() returns true.
-   * Logs an error and returns default T if called on an error result.
+   * Logs an error and throws if called on an error result.
+   *
+   * BUG FIX #6 & #15: Removed static default value (thread-unsafe).
+   * Use getValueOr() or getValueOrElse() instead to provide defaults safely.
    */
   const T &getValue() const {
     if (!hasValue) {
       Log::error("Outcome::getValue() called on error result: " + errorMessage);
-      static T defaultValue{};
-      return defaultValue;
+      throw std::runtime_error("Outcome::getValue() called on error result");
     }
     return value.value();
   }
 
   /**
    * Get the value (mutable). Only call if isOk() returns true.
+   * Logs an error and throws if called on an error result.
+   *
+   * BUG FIX #6 & #15: Removed static default value (thread-unsafe).
+   * Use getValueOr() or getValueOrElse() instead to provide defaults safely.
    */
   T &getValue() {
     if (!hasValue) {
       Log::error("Outcome::getValue() called on error result: " + errorMessage);
-      static T defaultValue{};
-      return defaultValue;
+      throw std::runtime_error("Outcome::getValue() called on error result");
     }
     return value.value();
   }

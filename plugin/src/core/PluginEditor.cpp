@@ -76,9 +76,14 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   addAndMakeVisible(connectionIndicator.get());
 
   // Set up connection status callback
-  networkClient->setConnectionStatusCallback([this](NetworkClient::ConnectionStatus status) {
-    if (connectionIndicator)
-      connectionIndicator->setStatus(status);
+  // BUG FIX #9: Use SafePointer to protect from dangling pointers after editor destruction
+  juce::Component::SafePointer<SidechainAudioProcessorEditor> connectionCallbackPtr(this);
+  networkClient->setConnectionStatusCallback([connectionCallbackPtr](NetworkClient::ConnectionStatus status) {
+    juce::MessageManager::callAsync([connectionCallbackPtr, status]() {
+      if (connectionCallbackPtr != nullptr && connectionCallbackPtr->connectionIndicator) {
+        connectionCallbackPtr->connectionIndicator->setStatus(status);
+      }
+    });
   });
 
   // Check connection on startup

@@ -454,10 +454,12 @@ void WebSocketClient::onWsFail(connection_hdl hdl) {
     Log::error("WebSocket: Error - " + errorMsg);
 
     // Check for authentication error
+    // BUG FIX #7: Capture callback by value to avoid dangling pointer
     if (errorMsg.contains("401") || errorMsg.contains("Unauthorized")) {
-      juce::MessageManager::callAsync([this]() {
-        if (onError)
-          onError("Authentication failed - please log in again");
+      auto errorCallback = onError;  // Capture by value
+      juce::MessageManager::callAsync([errorCallback]() {
+        if (errorCallback)
+          errorCallback("Authentication failed - please log in again");
       });
     }
   }
@@ -493,9 +495,11 @@ void WebSocketClient::scheduleReconnect() {
     Log::warn("WebSocket: Max reconnect attempts reached");
     shouldReconnect.store(false);
 
-    juce::MessageManager::callAsync([this]() {
-      if (onError)
-        onError("Connection lost - max reconnect attempts reached");
+    // BUG FIX #7: Capture callback by value to avoid dangling pointer
+    auto errorCallback = onError;  // Capture by value
+    juce::MessageManager::callAsync([errorCallback]() {
+      if (errorCallback)
+        errorCallback("Connection lost - max reconnect attempts reached");
     });
     return;
   }
@@ -543,9 +547,11 @@ void WebSocketClient::processTextMessage(const juce::String &text) {
 }
 
 void WebSocketClient::dispatchMessage(const Message &message) {
-  juce::MessageManager::callAsync([this, message]() {
-    if (onMessage)
-      onMessage(message);
+  // BUG FIX #7 & #10: Capture callback by value instead of this pointer
+  auto messageCallback = onMessage;  // Capture by value
+  juce::MessageManager::callAsync([messageCallback, message]() {
+    if (messageCallback)
+      messageCallback(message);
   });
 }
 

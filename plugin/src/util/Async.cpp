@@ -38,13 +38,25 @@ public:
 
   void timerCallback() override {
     stopTimer();
+
+    // BUG FIX #13: Check if already canceled before executing callback
+    {
+      std::lock_guard<std::mutex> lock(delayTimersMutex);
+      if (delayTimers.find(timerId) == delayTimers.end()) {
+        // Timer was already canceled, don't execute callback
+        return;
+      }
+    }
+
     if (callback)
       callback();
+
     // Schedule removal from the map (which will destroy this timer via unique_ptr)
     // Must be done on message thread, which we're already on
     int id = timerId;
     juce::MessageManager::callAsync([id]() {
       std::lock_guard<std::mutex> lock(delayTimersMutex);
+      // Only erase if still present (it might have been canceled)
       delayTimers.erase(id);
     });
   }

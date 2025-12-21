@@ -241,10 +241,15 @@ void BufferAudioPlayer::processBlock(juce::AudioBuffer<float> &buffer, int numSa
   }
 
   // Update position
+  // BUG FIX #14: Use compare-and-swap to avoid TOCTOU race with seekToPosition()
+  // This ensures we only update if no one else (UI thread) modified the position since we loaded it
   juce::int64 newPos =
       static_cast<juce::int64>(static_cast<double>(currentPos) + resamplingRatio * static_cast<double>(numSamples));
   newPos = juce::jlimit<juce::int64>(0, totalSamples, newPos);
-  currentSamplePosition = newPos;
+
+  // Only update if value hasn't changed since we loaded it
+  // If seekToPosition() was called, we'll catch the new position next time around
+  currentSamplePosition.compare_exchange_strong(currentPos, newPos, std::memory_order_release, std::memory_order_relaxed);
 
   // Check if playback has ended
   if (newPos >= totalSamples) {
