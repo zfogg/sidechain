@@ -85,20 +85,57 @@ void AppStore::onWebSocketPresenceUpdate(const juce::String &userId, bool isOnli
   Util::logDebug("AppStore",
                  "WebSocket: Presence update - user " + userId + " is " + (isOnline ? "online" : "offline"));
 
-  // Update presence state directly without invalidating other caches
-  // (presence changes don't affect feed/user data validity, just UI display)
-  UserState newState = sliceManager.user->getState();
-  // Store online status per user - could use a map if many users tracked
-  // For now, we just log the update. Real implementation might maintain
-  // presence map or push to a dedicated presence state slice. TODO revisit this.
-  Util::logDebug("AppStore", "Updated presence for user " + userId + " - online status changed");
-  sliceManager.user->setState(newState);
+  // Update dedicated presence state slice for efficient tracking of multiple users
+  PresenceState newState = sliceManager.presence->getState();
+
+  // Create or update presence info for the user
+  PresenceInfo userPresence;
+  userPresence.userId = userId;
+  userPresence.status = isOnline ? PresenceStatus::Online : PresenceStatus::Offline;
+  userPresence.lastSeen = juce::Time::getCurrentTime().toMilliseconds();
+
+  newState.userPresence[userId] = userPresence;
+  sliceManager.presence->setState(newState);
+
+  Util::logDebug("AppStore", "Updated presence for user " + userId + " - status: " +
+                                 (isOnline ? "Online" : "Offline"));
 }
 
-// TODO: Implement comment handlers when comment system is added
-// void AppStore::onWebSocketCommentCountUpdate(const juce::String &postId, int commentCount) { }
-// void AppStore::onWebSocketNewComment(const juce::String &postId, const juce::String &commentId,
-// const juce::String &username) { }
+void AppStore::onWebSocketCommentCountUpdate(const juce::String &postId, int commentCount) {
+  Util::logDebug("AppStore",
+                 "WebSocket: Comment count updated for post " + postId + " - new count: " + juce::String(commentCount));
+
+  // Invalidate comment cache for this post so UI refreshes with new count
+  CommentsState newState = sliceManager.comments->getState();
+  if (newState.totalCountByPostId.find(postId) != newState.totalCountByPostId.end()) {
+    newState.lastUpdatedByPostId[postId] = 0; // Force refresh
+  }
+  sliceManager.comments->setState(newState);
+
+  // Also invalidate feed caches since comment counts affect post display
+  PostsState postState = sliceManager.posts->getState();
+  for (auto &[feedType, feedState] : postState.feeds) {
+    feedState.isSynced = false; // Mark as out of sync
+  }
+  sliceManager.posts->setState(postState);
+}
+
+void AppStore::onWebSocketNewComment(const juce::String &postId, const juce::String &commentId,
+                                     const juce::String &username) {
+  Util::logDebug("AppStore", "WebSocket: New comment on post " + postId + " from " + username);
+
+  // Invalidate comments for this post so UI refreshes with new comment
+  CommentsState newState = sliceManager.comments->getState();
+  newState.lastUpdatedByPostId[postId] = 0; // Force refresh on next load
+  sliceManager.comments->setState(newState);
+
+  // Also invalidate feed caches since new comments may affect post display
+  PostsState postState = sliceManager.posts->getState();
+  for (auto &[feedType, feedState] : postState.feeds) {
+    feedState.isSynced = false; // Mark as out of sync
+  }
+  sliceManager.posts->setState(postState);
+}
 
 } // namespace Stores
 } // namespace Sidechain
