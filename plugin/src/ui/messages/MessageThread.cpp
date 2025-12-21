@@ -237,14 +237,66 @@ juce::String MessageThread::getReplyToMessageId(const StreamChatClient::Message 
   }
   return "";
 }
-std::optional<StreamChatClient::Message> MessageThread::findParentMessage(const juce::String &) const {
+std::optional<StreamChatClient::Message> MessageThread::findParentMessage(const juce::String &parentId) const {
   // Search through message history to find the parent message by ID
-  // TODO: Implement when ChatState is available from AppStore
+  if (parentId.isEmpty()) {
+    return std::nullopt;
+  }
+
+  if (!appStore) {
+    return std::nullopt;
+  }
+
+  // Get current ChatState from AppStore
+  const auto chatState = appStore->getState<Sidechain::Stores::ChatState>();
+
+  // Find the current channel in the state
+  auto channelIt = chatState.channels.find(channelId);
+  if (channelIt == chatState.channels.end()) {
+    return std::nullopt;
+  }
+
+  // Search through messages in the current channel
+  const auto &channelState = channelIt->second;
+  for (const auto &message : channelState.messages) {
+    if (message && message->id == parentId) {
+      return *message;
+    }
+  }
+
   return std::nullopt;
 }
-void MessageThread::scrollToMessage(const juce::String &) {
+void MessageThread::scrollToMessage(const juce::String &messageId) {
   // Scroll scrollbar to show message with given ID
-  // TODO: Implement when message layout is finalized
+  if (messageId.isEmpty() || !appStore) {
+    return;
+  }
+
+  // Get current ChatState
+  const auto chatState = appStore->getState<Sidechain::Stores::ChatState>();
+
+  // Find the current channel
+  auto channelIt = chatState.channels.find(channelId);
+  if (channelIt == chatState.channels.end()) {
+    return;
+  }
+
+  // Calculate position of message in the message list
+  int messagePosition = 0;
+  const auto &channelState = channelIt->second;
+
+  for (size_t i = 0; i < channelState.messages.size(); ++i) {
+    if (channelState.messages[i] && channelState.messages[i]->id == messageId) {
+      // Found the message - calculate its Y position
+      for (size_t j = 0; j < i; ++j) {
+        messagePosition += calculateMessageHeight(*channelState.messages[j], getWidth() - scrollBar.getWidth());
+      }
+      // Scroll to this position
+      scrollBar.setCurrentRangeStart(messagePosition, juce::sendNotification);
+      repaint();
+      return;
+    }
+  }
 }
 
 bool MessageThread::hasSharedPost(const StreamChatClient::Message &message) const {
@@ -254,20 +306,75 @@ bool MessageThread::hasSharedStory(const StreamChatClient::Message &message) con
   return message.extraData.hasProperty("story_id");
 }
 
-void MessageThread::drawSharedPostPreview(juce::Graphics &g, const StreamChatClient::Message &,
+void MessageThread::drawSharedPostPreview(juce::Graphics &g, const StreamChatClient::Message &message,
                                           juce::Rectangle<int> bounds) {
   // Draw post preview within bounds - includes thumbnail, title, artist
+  if (!message.extraData.hasProperty("post_id")) {
+    return;
+  }
+
+  // Background
   g.setColour(juce::Colour(0xff2a2a2a));
   g.fillRect(bounds);
-  // TODO: Implement full post preview rendering when PostPreview component is available
+
+  // Border
+  g.setColour(juce::Colour(0xff444444));
+  g.drawRect(bounds, 1);
+
+  // Extract post data from extraData
+  juce::String postId = message.extraData.getProperty("post_id", "").toString();
+  juce::String postTitle = message.extraData.getProperty("post_title", "").toString();
+  juce::String artistName = message.extraData.getProperty("artist_name", "").toString();
+
+  // Draw icon (♪ music note)
+  auto iconBounds = bounds.removeFromLeft(bounds.getHeight()).reduced(8);
+  g.setColour(juce::Colour(0xff555555));
+  g.drawText(juce::String::fromUTF8("\xe2\x99\xaa"), iconBounds, juce::Justification::centred);
+
+  // Draw title and artist
+  auto textBounds = bounds.reduced(8, 4);
+  g.setColour(juce::Colours::white);
+  g.setFont(juce::Font(juce::FontOptions().withHeight(13.0f).withStyleFlags(juce::Font::bold)));
+  g.drawText(postTitle.isEmpty() ? "Post" : postTitle, textBounds.removeFromTop(14),
+             juce::Justification::topLeft);
+
+  g.setColour(juce::Colour(0xffaaaaaa));
+  g.setFont(juce::Font(juce::FontOptions().withHeight(11.0f)));
+  g.drawText(artistName.isEmpty() ? "Unknown Artist" : artistName, textBounds,
+             juce::Justification::topLeft);
 }
 
-void MessageThread::drawSharedStoryPreview(juce::Graphics &g, const StreamChatClient::Message &,
+void MessageThread::drawSharedStoryPreview(juce::Graphics &g, const StreamChatClient::Message &message,
                                            juce::Rectangle<int> bounds) {
   // Draw story preview within bounds - includes thumbnail with story gradient
-  g.setColour(juce::Colour(0xff2a2a2a));
+  if (!message.extraData.hasProperty("story_id")) {
+    return;
+  }
+
+  // Background with gradient
+  g.setGradientFill(juce::ColourGradient(juce::Colour(0xff5500ff), bounds.getTopLeft().toFloat(),
+                                         juce::Colour(0xff0099ff), bounds.getBottomRight().toFloat(),
+                                         false));
   g.fillRect(bounds);
-  // TODO: Implement full story preview rendering when StoryPreview component is available
+
+  // Border
+  g.setColour(juce::Colour(0xffffffff));
+  g.drawRect(bounds, 2);
+
+  // Extract story data
+  juce::String storyId = message.extraData.getProperty("story_id", "").toString();
+  juce::String storyAuthor = message.extraData.getProperty("story_author", "").toString();
+
+  // Draw story label
+  g.setColour(juce::Colours::white);
+  g.setFont(juce::Font(juce::FontOptions().withHeight(12.0f).withStyleFlags(juce::Font::bold)));
+  g.drawText("Story", bounds.reduced(8), juce::Justification::topLeft);
+
+  // Draw author name at bottom
+  if (!storyAuthor.isEmpty()) {
+    g.setFont(juce::Font(juce::FontOptions().withHeight(10.0f)));
+    g.drawText(storyAuthor, bounds.reduced(8), juce::Justification::bottomLeft);
+  }
 }
 
 int MessageThread::getSharedContentHeight(const StreamChatClient::Message &message) const {
@@ -278,8 +385,53 @@ int MessageThread::getSharedContentHeight(const StreamChatClient::Message &messa
 }
 
 void MessageThread::timerCallback() {
-  // TODO: Handle periodic updates - scroll sync, typing indicators, message animations
+  // Handle periodic updates - repaint for animations and typing indicators
+  // Check if any users are typing and update display
+  if (appStore) {
+    const auto chatState = appStore->getState<Sidechain::Stores::ChatState>();
+    auto channelIt = chatState.channels.find(channelId);
+    if (channelIt != chatState.channels.end() && !channelIt->second.usersTyping.empty()) {
+      repaint(); // Animate typing indicator
+    }
+  }
 }
-void MessageThread::drawHeader(juce::Graphics &) {
-  // TODO: Draw channel header with back button, channel name/avatar, and menu button
+
+void MessageThread::drawHeader(juce::Graphics &g) {
+  // Draw channel header with back button, channel name/avatar, and menu button
+  auto headerBounds = juce::Rectangle<int>(0, 0, getWidth(), HEADER_HEIGHT);
+
+  // Background
+  g.setColour(juce::Colour(0xff0a0a0a));
+  g.fillRect(headerBounds);
+
+  // Border
+  g.setColour(juce::Colour(0xff333333));
+  g.drawLine(0, HEADER_HEIGHT, getWidth(), HEADER_HEIGHT, 1.0f);
+
+  // Back button bounds
+  auto backButtonBounds = getBackButtonBounds();
+  g.setColour(juce::Colour(0xff666666));
+  g.drawText("<", backButtonBounds, juce::Justification::centred);
+
+  // Channel name/info
+  auto nameBounds = headerBounds.reduced(50, 0);
+  g.setColour(juce::Colours::white);
+  g.setFont(juce::Font(juce::FontOptions().withHeight(16.0f).withStyleFlags(juce::Font::bold)));
+  g.drawText(channelName, nameBounds, juce::Justification::centredLeft);
+
+  // Typing indicator
+  if (appStore) {
+    const auto chatState = appStore->getState<Sidechain::Stores::ChatState>();
+    auto channelIt = chatState.channels.find(channelId);
+    if (channelIt != chatState.channels.end() && !channelIt->second.usersTyping.empty()) {
+      g.setColour(juce::Colour(0xff888888));
+      g.setFont(juce::Font(juce::FontOptions().withHeight(12.0f)));
+      g.drawText("typing...", nameBounds.withTop(nameBounds.getCentreY()), juce::Justification::centredLeft);
+    }
+  }
+
+  // Menu button bounds (⋮ vertical ellipsis)
+  auto menuButtonBounds = getHeaderMenuButtonBounds();
+  g.setColour(juce::Colour(0xff666666));
+  g.drawText(juce::String::fromUTF8("\xe2\x8b\xae"), menuButtonBounds, juce::Justification::centred);
 }

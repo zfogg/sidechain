@@ -175,7 +175,22 @@ void ShareToMessageDialog::textEditorReturnKeyPressed(juce::TextEditor &editor) 
 }
 
 void ShareToMessageDialog::timerCallback() {
-  // TODO: Implement debounced search
+  // Implement debounced search - called after 300ms delay from text input
+  stopTimer();
+
+  juce::String query = searchInput.getText();
+  if (query.isEmpty()) {
+    // Clear search results if query is empty
+    searchResults.clear();
+    repaint();
+    return;
+  }
+
+  // Update search state and perform the search
+  currentSearchQuery = query;
+  isSearching = true;
+  performSearch(query);
+  repaint();
 }
 
 void ShareToMessageDialog::scrollBarMoved(juce::ScrollBar *bar, double newRangeStart) {

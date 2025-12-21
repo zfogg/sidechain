@@ -66,12 +66,46 @@ void AppStore::loadMyStories() {
   myStoriesStartState.isMyStoriesLoading = true;
   sliceManager.stories->setState(myStoriesStartState);
 
-  // TODO: Implement loading user's own stories when NetworkClient provides an API
-  // For now, just mark as not loading
-  StoriesState myStoriesDoneState = sliceManager.stories->getState();
-  myStoriesDoneState.isMyStoriesLoading = false;
-  Util::logInfo("AppStore", "My stories endpoint not yet available");
-  sliceManager.stories->setState(myStoriesDoneState);
+  // Fetch user's own stories from NetworkClient
+  networkClient->getStoriesFeed([this](Outcome<juce::var> result) {
+    if (!result.isOk()) {
+      Util::logError("AppStore", "Failed to load my stories: " + result.getError());
+      StoriesState errorState = sliceManager.stories->getState();
+      errorState.isMyStoriesLoading = false;
+      errorState.myStoriesError = result.getError();
+      sliceManager.stories->setState(errorState);
+      return;
+    }
+
+    // Parse the response - should be an array of stories
+    const auto &data = result.getValue();
+    StoriesState newState = sliceManager.stories->getState();
+    newState.isMyStoriesLoading = false;
+
+    if (data.isArray()) {
+      // Clear existing stories and populate with fetched ones
+      newState.myStories.clear();
+      for (int i = 0; i < data.size(); ++i) {
+        const auto &storyData = data[i];
+        if (storyData.isObject()) {
+          auto *obj = storyData.getDynamicObject();
+          if (obj) {
+            Story story;
+            story.id = obj->getProperty("id").toString();
+            story.audioUrl = obj->getProperty("audio_url").toString();
+            story.createdAt = obj->getProperty("created_at").toString();
+            story.userId = obj->getProperty("user_id").toString();
+            story.userName = obj->getProperty("user_name").toString();
+
+            newState.myStories.push_back(story);
+          }
+        }
+      }
+      Util::logInfo("AppStore", "Loaded " + juce::String(newState.myStories.size()) + " of my stories");
+    }
+
+    sliceManager.stories->setState(newState);
+  });
 }
 
 void AppStore::markStoryAsViewed(const juce::String &storyId) {
