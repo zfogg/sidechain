@@ -73,12 +73,12 @@ void MessagesList::onAppStateChanged(const Sidechain::Stores::ChatState &state) 
             auto *msgObj = new juce::DynamicObject();
             msgObj->setProperty("id", lastMsg->id);
             msgObj->setProperty("text", lastMsg->text);
-            msgObj->setProperty("user_id", lastMsg->userId);
-            msgObj->setProperty("created_at", lastMsg->createdAt);
+            msgObj->setProperty("user_id", lastMsg->senderId);
+            msgObj->setProperty("created_at", lastMsg->createdAt.toISO8601(true));
             channel.lastMessage = juce::var(msgObj);
 
-            // lastMessageAt: Use the timestamp from the last message
-            channel.lastMessageAt = lastMsg->createdAt;
+            // lastMessageAt: Use the timestamp from the last message (convert to string)
+            channel.lastMessageAt = lastMsg->createdAt.toISO8601(true);
           }
         }
 
