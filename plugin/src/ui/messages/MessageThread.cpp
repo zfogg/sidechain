@@ -4,10 +4,11 @@
 #include "UserPickerDialog.h"
 
 MessageThread::MessageThread(Sidechain::Stores::AppStore *store)
-    : Sidechain::UI::AppStoreComponent<Sidechain::Stores::ChatState>(store), scrollBar(true) {
+    : Sidechain::UI::AppStoreComponent<Sidechain::Stores::ChatState>(
+          store, [store](auto cb) { return store ? store->subscribeToChat(cb) : std::function<void()>([]() {}); }),
+      scrollBar(true) {
   Log::info("MessageThread: Initializing");
   addAndMakeVisible(scrollBar);
-  subscribeToAppStore();
 }
 
 MessageThread::~MessageThread() {
@@ -246,7 +247,7 @@ std::optional<StreamChatClient::Message> MessageThread::findParentMessage(const 
   }
 
   // Get current ChatState from AppStore
-  const auto chatState = appStore->getState<Sidechain::Stores::ChatState>();
+  const auto &chatState = appStore->getChatState();
 
   // Find the current channel in the state
   auto channelIt = chatState.channels.find(channelId);
@@ -271,7 +272,7 @@ void MessageThread::scrollToMessage(const juce::String &messageId) {
   }
 
   // Get current ChatState
-  const auto chatState = appStore->getState<Sidechain::Stores::ChatState>();
+  const auto &chatState = appStore->getChatState();
 
   // Find the current channel
   auto channelIt = chatState.channels.find(channelId);
@@ -286,8 +287,11 @@ void MessageThread::scrollToMessage(const juce::String &messageId) {
   for (size_t i = 0; i < channelState.messages.size(); ++i) {
     if (channelState.messages[i] && channelState.messages[i]->id == messageId) {
       // Found the message - calculate its Y position
+      // Add heights of all non-null messages before this one
       for (size_t j = 0; j < i; ++j) {
-        messagePosition += calculateMessageHeight(*channelState.messages[j], getWidth() - scrollBar.getWidth());
+        if (channelState.messages[j]) {
+          messagePosition += calculateMessageHeight(*channelState.messages[j], getWidth() - scrollBar.getWidth());
+        }
       }
       // Scroll to this position
       scrollBar.setCurrentRangeStart(messagePosition, juce::sendNotification);
@@ -332,14 +336,12 @@ void MessageThread::drawSharedPostPreview(juce::Graphics &g, const StreamChatCli
   // Draw title and artist
   auto textBounds = bounds.reduced(8, 4);
   g.setColour(juce::Colours::white);
-  g.setFont(juce::Font(juce::FontOptions().withHeight(13.0f).withStyleFlags(juce::Font::bold)));
-  g.drawText(postTitle.isEmpty() ? "Post" : postTitle, textBounds.removeFromTop(14),
-             juce::Justification::topLeft);
+  g.setFont(juce::Font(juce::FontOptions().withHeight(13.0f).withStyle("Bold")));
+  g.drawText(postTitle.isEmpty() ? "Post" : postTitle, textBounds.removeFromTop(14), juce::Justification::topLeft);
 
   g.setColour(juce::Colour(0xffaaaaaa));
   g.setFont(juce::Font(juce::FontOptions().withHeight(11.0f)));
-  g.drawText(artistName.isEmpty() ? "Unknown Artist" : artistName, textBounds,
-             juce::Justification::topLeft);
+  g.drawText(artistName.isEmpty() ? "Unknown Artist" : artistName, textBounds, juce::Justification::topLeft);
 }
 
 void MessageThread::drawSharedStoryPreview(juce::Graphics &g, const StreamChatClient::Message &message,
@@ -351,8 +353,7 @@ void MessageThread::drawSharedStoryPreview(juce::Graphics &g, const StreamChatCl
 
   // Background with gradient
   g.setGradientFill(juce::ColourGradient(juce::Colour(0xff5500ff), bounds.getTopLeft().toFloat(),
-                                         juce::Colour(0xff0099ff), bounds.getBottomRight().toFloat(),
-                                         false));
+                                         juce::Colour(0xff0099ff), bounds.getBottomRight().toFloat(), false));
   g.fillRect(bounds);
 
   // Border
@@ -365,7 +366,7 @@ void MessageThread::drawSharedStoryPreview(juce::Graphics &g, const StreamChatCl
 
   // Draw story label
   g.setColour(juce::Colours::white);
-  g.setFont(juce::Font(juce::FontOptions().withHeight(12.0f).withStyleFlags(juce::Font::bold)));
+  g.setFont(juce::Font(juce::FontOptions().withHeight(12.0f).withStyle("Bold")));
   g.drawText("Story", bounds.reduced(8), juce::Justification::topLeft);
 
   // Draw author name at bottom
@@ -386,7 +387,7 @@ void MessageThread::timerCallback() {
   // Handle periodic updates - repaint for animations and typing indicators
   // Check if any users are typing and update display
   if (appStore) {
-    const auto chatState = appStore->getState<Sidechain::Stores::ChatState>();
+    const auto &chatState = appStore->getChatState();
     auto channelIt = chatState.channels.find(channelId);
     if (channelIt != chatState.channels.end() && !channelIt->second.usersTyping.empty()) {
       repaint(); // Animate typing indicator
@@ -414,12 +415,12 @@ void MessageThread::drawHeader(juce::Graphics &g) {
   // Channel name/info
   auto nameBounds = headerBounds.reduced(50, 0);
   g.setColour(juce::Colours::white);
-  g.setFont(juce::Font(juce::FontOptions().withHeight(16.0f).withStyleFlags(juce::Font::bold)));
+  g.setFont(juce::Font(juce::FontOptions().withHeight(16.0f).withStyle("Bold")));
   g.drawText(channelName, nameBounds, juce::Justification::centredLeft);
 
   // Typing indicator
   if (appStore) {
-    const auto chatState = appStore->getState<Sidechain::Stores::ChatState>();
+    const auto &chatState = appStore->getChatState();
     auto channelIt = chatState.channels.find(channelId);
     if (channelIt != chatState.channels.end() && !channelIt->second.usersTyping.empty()) {
       g.setColour(juce::Colour(0xff888888));

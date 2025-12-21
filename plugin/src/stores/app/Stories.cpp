@@ -82,22 +82,30 @@ void AppStore::loadMyStories() {
     StoriesState newState = sliceManager.stories->getState();
     newState.isMyStoriesLoading = false;
 
+    // Get current user ID to filter only user's own stories
+    const auto currentAuthState = sliceManager.auth->getState();
+    const juce::String currentUserId = currentAuthState.userId;
+
     if (data.isArray()) {
-      // Clear existing stories and populate with fetched ones
+      // Clear existing stories and populate only with user's own stories
       newState.myStories.clear();
       for (int i = 0; i < data.size(); ++i) {
         const auto &storyData = data[i];
         if (storyData.isObject()) {
           auto *obj = storyData.getDynamicObject();
           if (obj) {
-            Story story;
-            story.id = obj->getProperty("id").toString();
-            story.audioUrl = obj->getProperty("audio_url").toString();
-            story.createdAt = obj->getProperty("created_at").toString();
-            story.userId = obj->getProperty("user_id").toString();
-            story.userName = obj->getProperty("user_name").toString();
+            juce::String storyUserId = obj->getProperty("user_id").toString();
+            // Only include stories that belong to the current user
+            if (storyUserId == currentUserId) {
+              Story story;
+              story.id = obj->getProperty("id").toString();
+              story.audioUrl = obj->getProperty("audio_url").toString();
+              story.createdAt = obj->getProperty("created_at").toString();
+              story.userId = storyUserId;
+              story.userName = obj->getProperty("user_name").toString();
 
-            newState.myStories.push_back(story);
+              newState.myStories.push_back(story);
+            }
           }
         }
       }

@@ -215,7 +215,9 @@ void AppStore::loadMoreArchivedPosts() {
   sliceManager.posts->setState(loadingState);
 
   // Fetch archived posts from NetworkClient
-  int offset = currentState.archivedPosts.offset + currentState.archivedPosts.posts.size();
+  // Note: offset field already represents how many posts have been loaded,
+  // so we use it directly without adding posts.size() again
+  int offset = currentState.archivedPosts.offset;
   networkClient->getArchivedPosts(20, offset, [this, offset](Outcome<juce::var> result) {
     if (!result.isOk()) {
       Util::logError("AppStore", "Failed to load archived posts: " + result.getError());
