@@ -180,6 +180,14 @@ if(UNIX AND NOT APPLE)
     target_link_libraries(SidechainUI PRIVATE ${GTK3_LIBRARIES} ${WEBKIT_LIBRARIES})
 endif()
 
+# Coverage flags for code coverage analysis
+if(SIDECHAIN_ENABLE_COVERAGE)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(SidechainUI PRIVATE --coverage -fprofile-arcs -ftest-coverage)
+        target_link_options(SidechainUI PRIVATE --coverage)
+    endif()
+endif()
+
 # Enable PIC for Release builds, disable for Debug (faster compilation)
 # Handle both single-config (CMAKE_BUILD_TYPE) and multi-config generators (CMAKE_CONFIGURATION_TYPES)
 if(CMAKE_CONFIGURATION_TYPES)

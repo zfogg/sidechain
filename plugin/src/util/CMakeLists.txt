@@ -125,6 +125,14 @@ elseif(UNIX AND NOT APPLE)
     target_link_libraries(SidechainCore PRIVATE uuid)
 endif()
 
+# Coverage flags for code coverage analysis
+if(SIDECHAIN_ENABLE_COVERAGE)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(SidechainCore PRIVATE --coverage -fprofile-arcs -ftest-coverage)
+        target_link_options(SidechainCore PRIVATE --coverage)
+    endif()
+endif()
+
 # Set visibility to hidden by default (faster linking, smaller binaries)
 # Enable PIC for Release builds (required for linking into shared libraries/VST plugins)
 # Disable for Debug builds for faster compilation
