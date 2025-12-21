@@ -1406,8 +1406,7 @@ void Profile::showFollowersList(const juce::String &userId, FollowersList::ListT
   Log::info("Profile::showFollowersList: Showing " + typeStr + " list for userId: " + userId);
 
   // Set up the panel
-  // NOTE: FollowersList still needs a NetworkClient, which should be set by the parent component
-  // TODO: Refactor FollowersList to use AppStore instead of NetworkClient
+  // FollowersList uses AppStore for loading followers/following data
   followersListPanel->setCurrentUserId(currentUserId);
 
   // Position panel on right side (40% of width, max 350px)
