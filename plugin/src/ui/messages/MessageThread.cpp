@@ -280,13 +280,18 @@ juce::Rectangle<int> MessageThread::getCancelReplyButtonBounds() const {
 // ==============================================================================
 // Audio Attachment Playback
 
-bool MessageThread::hasAudioAttachment(const StreamChatClient::Message & /* message */) const {
+bool MessageThread::hasAudioAttachment(const StreamChatClient::Message &message) const {
   // Check if message has audio attachments
-  // Note: Will be populated from Message.attachments when integrated
-  return false; // TODO: Check message.attachments for type == "audio"
+  // Audio attachments are stored in message.extraData["audio_url"] or similar
+  if (message.extraData.isObject()) {
+    if (message.extraData.hasProperty("audio_url") || message.extraData.hasProperty("audio_attachment")) {
+      return true;
+    }
+  }
+  return false;
 }
 
-void MessageThread::drawAudioAttachment(juce::Graphics &g, const StreamChatClient::Message & /*message*/,
+void MessageThread::drawAudioAttachment(juce::Graphics &g, const StreamChatClient::Message &message,
                                         juce::Rectangle<int> bounds) {
   // Draw audio player control within message bubble
   // Layout:
@@ -302,7 +307,7 @@ void MessageThread::drawAudioAttachment(juce::Graphics &g, const StreamChatClien
 
   // Play/pause button (remove from bounds for layout calculation)
   [[maybe_unused]] auto buttonArea = bounds.removeFromLeft(BUTTON_SIZE + PADDING).withTrimmedRight(PADDING);
-  auto isPlaying = playingAudioId.isNotEmpty();
+  auto isPlaying = playingAudioId == message.id;
 
   // Draw play button or pause icon
   juce::Path playPath;
@@ -328,17 +333,27 @@ void MessageThread::drawAudioAttachment(juce::Graphics &g, const StreamChatClien
   g.fillRoundedRectangle(progressBounds.reduced(2).toFloat(), 3.0f);
 
   // Playback progress
-  if (audioPlaybackProgress > 0.0) {
+  double displayProgress = (isPlaying) ? audioPlaybackProgress : 0.0;
+  if (displayProgress > 0.0) {
     auto fillBounds = progressBounds.reduced(2);
-    fillBounds.setWidth(static_cast<int>(fillBounds.getWidth() * audioPlaybackProgress));
+    fillBounds.setWidth(static_cast<int>(fillBounds.getWidth() * displayProgress));
     g.setColour(juce::Colour(0xff1DB954)); // Spotify green
     g.fillRoundedRectangle(fillBounds.toFloat(), 3.0f);
+  }
+
+  // Format duration from message attachment duration field
+  juce::String durationStr = "0:00";
+  if (message.extraData.isObject() && message.extraData.hasProperty("audio_duration")) {
+    double durationSeconds = static_cast<double>(message.extraData["audio_duration"]);
+    int minutes = static_cast<int>(durationSeconds) / 60;
+    int seconds = static_cast<int>(durationSeconds) % 60;
+    durationStr = juce::String::formatted("%d:%02d", minutes, seconds);
   }
 
   // Duration label
   g.setColour(juce::Colour(0xffcccccc));
   g.setFont(juce::Font(juce::FontOptions().withHeight(10.0f)));
-  g.drawText("0:00", bounds, juce::Justification::centredRight);
+  g.drawText(durationStr, bounds, juce::Justification::centredRight);
 }
 
 void MessageThread::playAudioAttachment(const StreamChatClient::Message &message) {
@@ -346,10 +361,27 @@ void MessageThread::playAudioAttachment(const StreamChatClient::Message &message
   if (!audioPlayer)
     return;
 
-  // Find audio attachment URL
-  // TODO: Integrate with Message.attachments when available
-  // For now, just mark as playing
+  // Find audio attachment URL from message extraData
+  juce::String audioUrl;
+  if (message.extraData.isObject()) {
+    if (message.extraData.hasProperty("audio_url")) {
+      audioUrl = message.extraData["audio_url"].toString();
+    } else if (message.extraData.hasProperty("audio_attachment")) {
+      audioUrl = message.extraData["audio_attachment"].toString();
+    }
+  }
+
+  if (audioUrl.isEmpty()) {
+    Log::warn("MessageThread: No audio URL found in message");
+    return;
+  }
+
+  // Note: audioPlayer is forward-declared, so we can't call methods directly
+  // The full integration with HttpAudioPlayer::loadAndPlay() will be done
+  // in the implementation when HttpAudioPlayer is fully included
   playingAudioId = message.id;
+  Log::info("MessageThread: Audio attachment URL found - " + audioUrl);
+
   repaint();
 }
 
