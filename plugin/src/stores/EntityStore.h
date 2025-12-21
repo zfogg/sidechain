@@ -218,13 +218,24 @@ public:
    */
   std::shared_ptr<Story> normalizeStory(const juce::var &json) {
     try {
-      auto story = Story::fromJSON(json);
-      if (story.id.isEmpty()) {
+      // Convert juce::var to nlohmann::json
+      auto jsonStr = juce::JSON::toString(json);
+      auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+
+      // Use new SerializableModel API
+      auto result = Sidechain::SerializableModel<Story>::createFromJson(jsonObj);
+      if (result.isError()) {
+        Util::logError("EntityStore", "Failed to parse story JSON", result.getError().toStdString().c_str());
+        return nullptr;
+      }
+
+      auto story = result.getValue();
+      if (story->id.isEmpty()) {
         return nullptr;
       }
 
       // Get or create shared_ptr for this story
-      return stories_.getOrCreate(story.id, [story]() { return std::make_shared<Story>(story); });
+      return stories_.getOrCreate(story->id, [story]() { return story; });
     } catch (const std::exception &e) {
       Util::logError("EntityStore", "Failed to normalize story", e.what());
       return nullptr;

@@ -244,9 +244,18 @@ void AppStore::loadMoreArchivedPosts() {
 
     // Parse each archived post from the response
     for (int i = 0; i < data.size(); ++i) {
-      auto post = FeedPost::fromJSON(data[i]);
-      if (post) {
-        newState.archivedPosts.posts.push_back(post);
+      try {
+        // Convert juce::var to nlohmann::json
+        auto jsonStr = juce::JSON::toString(data[i]);
+        auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+
+        // Use new SerializableModel API
+        auto postResult = Sidechain::SerializableModel<FeedPost>::createFromJson(jsonObj);
+        if (postResult.isOk()) {
+          newState.archivedPosts.posts.push_back(postResult.getValue());
+        }
+      } catch (...) {
+        // Skip invalid posts
       }
     }
 

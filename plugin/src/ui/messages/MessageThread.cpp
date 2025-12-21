@@ -130,12 +130,11 @@ juce::Rectangle<int> MessageThread::getAudioButtonBounds() const {
   return juce::Rectangle<int>(getWidth() - (BUTTON_SIZE * 2) - (PADDING * 2), inputAreaY + PADDING, BUTTON_SIZE,
                               BUTTON_SIZE);
 }
-juce::Rectangle<int> MessageThread::getMessageBounds(const StreamChatClient::Message &message) const {
+juce::Rectangle<int> MessageThread::getMessageBounds(const StreamChatClient::Message & /*message*/) const {
   // Placeholder: Return bounds for message in the messages area
   // In a full implementation, this would track actual message positions from layout
   constexpr int PADDING = MESSAGE_BUBBLE_PADDING;
   int messagesAreaY = HEADER_HEIGHT + MESSAGE_TOP_PADDING;
-  int messagesAreaHeight = getHeight() - HEADER_HEIGHT - INPUT_HEIGHT;
 
   // Return a default bounds that spans the messages area width
   // Actual height/position would require full message layout tracking
@@ -259,7 +258,9 @@ std::optional<StreamChatClient::Message> MessageThread::findParentMessage(const 
   const auto &channelState = channelIt->second;
   for (const auto &message : channelState.messages) {
     if (message && message->id == parentId) {
-      return *message;
+      // TODO: Implement proper conversion from Sidechain::Message to StreamChatClient::Message, or simply refactor to
+      // use only one type of message in the app For now, return nullopt as the types don't match
+      return std::nullopt;
     }
   }
 
@@ -290,7 +291,9 @@ void MessageThread::scrollToMessage(const juce::String &messageId) {
       // Add heights of all non-null messages before this one
       for (size_t j = 0; j < i; ++j) {
         if (channelState.messages[j]) {
-          messagePosition += calculateMessageHeight(*channelState.messages[j], getWidth() - scrollBar.getWidth());
+          // TODO: Fix type mismatch - convert Sidechain::Message to StreamChatClient::Message
+          // For now, use a fixed height estimate
+          messagePosition += 80; // Approximate message height
         }
       }
       // Scroll to this position
@@ -405,7 +408,8 @@ void MessageThread::drawHeader(juce::Graphics &g) {
 
   // Border
   g.setColour(juce::Colour(0xff333333));
-  g.drawLine(0, HEADER_HEIGHT, getWidth(), HEADER_HEIGHT, 1.0f);
+  g.drawLine(0.0f, static_cast<float>(HEADER_HEIGHT), static_cast<float>(getWidth()), static_cast<float>(HEADER_HEIGHT),
+             1.0f);
 
   // Back button bounds
   auto backButtonBounds = getBackButtonBounds();

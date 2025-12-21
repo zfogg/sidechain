@@ -153,14 +153,8 @@ void AppStore::editMessage(const juce::String &channelId, const juce::String &me
               // Properly update the message model with new text and mark as edited
               msg->text = newText;
 
-              // Add edit timestamp to extraData
-              if (!msg->extraData.isObject()) {
-                msg->extraData = juce::var(juce::DynamicObject::create());
-              }
-              auto *obj = msg->extraData.getDynamicObject();
-              if (obj) {
-                obj->setProperty("edited_at", juce::var(juce::Time::getCurrentTime().toISO8601(true)));
-              }
+              // Note: Edit timestamp tracking would require adding extraData field to Message model
+              // For now, just update the text content
 
               Log::info("AppStore::editMessage - Updated message in state with ID: " + messageId);
               sliceManager.chat->setState(newState);

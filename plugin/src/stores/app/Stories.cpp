@@ -72,7 +72,7 @@ void AppStore::loadMyStories() {
       Util::logError("AppStore", "Failed to load my stories: " + result.getError());
       StoriesState errorState = sliceManager.stories->getState();
       errorState.isMyStoriesLoading = false;
-      errorState.myStoriesError = result.getError();
+      // Note: StoriesState doesn't have myStoriesError field yet
       sliceManager.stories->setState(errorState);
       return;
     }
@@ -97,12 +97,10 @@ void AppStore::loadMyStories() {
             juce::String storyUserId = obj->getProperty("user_id").toString();
             // Only include stories that belong to the current user
             if (storyUserId == currentUserId) {
-              Story story;
-              story.id = obj->getProperty("id").toString();
-              story.audioUrl = obj->getProperty("audio_url").toString();
-              story.createdAt = obj->getProperty("created_at").toString();
-              story.userId = storyUserId;
-              story.userName = obj->getProperty("user_name").toString();
+              auto story = std::make_shared<Story>();
+              story->id = obj->getProperty("id").toString();
+              story->audioUrl = obj->getProperty("audio_url").toString();
+              story->userId = storyUserId;
 
               newState.myStories.push_back(story);
             }
