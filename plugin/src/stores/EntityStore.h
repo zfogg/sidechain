@@ -215,17 +215,20 @@ public:
 
   /**
    * Normalize Story from JSON
-   * TODO: Implement Story::fromJson() serialization
    */
-  std::shared_ptr<Story> normalizeStory([[maybe_unused]] const juce::var &json) {
-    // TODO: Implement Story::fromJson() with proper nlohmann::json serialization
-    // For now, skip normalization
-    return nullptr;
-    // auto story = Story::fromJson(json);
-    // if (story.id.isEmpty()) {
-    //   return nullptr;
-    // }
-    // return stories_.getOrCreate(story.id, [story]() { return std::make_shared<Story>(story); });
+  std::shared_ptr<Story> normalizeStory(const juce::var &json) {
+    try {
+      auto story = Story::fromJSON(json);
+      if (story.id.isEmpty()) {
+        return nullptr;
+      }
+
+      // Get or create shared_ptr for this story
+      return stories_.getOrCreate(story.id, [story]() { return std::make_shared<Story>(story); });
+    } catch (const std::exception &e) {
+      Util::logError("EntityStore", "Failed to normalize story", e.what());
+      return nullptr;
+    }
   }
 
   /**
@@ -300,17 +303,20 @@ public:
 
   /**
    * Normalize Playlist from JSON
-   * TODO: Implement Playlist::fromJson() serialization
    */
-  std::shared_ptr<Playlist> normalizePlaylist([[maybe_unused]] const juce::var &json) {
-    // TODO: Implement Playlist::fromJson() with proper nlohmann::json serialization
-    // For now, skip normalization
-    return nullptr;
-    // auto playlist = Playlist::fromJson(json);
-    // if (playlist.id.isEmpty()) {
-    //   return nullptr;
-    // }
-    // return playlists_.getOrCreate(playlist.id, [playlist]() { return std::make_shared<Playlist>(playlist); });
+  std::shared_ptr<Playlist> normalizePlaylist(const juce::var &json) {
+    try {
+      auto playlist = Playlist::fromJSON(json);
+      if (playlist.id.isEmpty()) {
+        return nullptr;
+      }
+
+      // Get or create shared_ptr for this playlist
+      return playlists_.getOrCreate(playlist.id, [playlist]() { return std::make_shared<Playlist>(playlist); });
+    } catch (const std::exception &e) {
+      Util::logError("EntityStore", "Failed to normalize playlist", e.what());
+      return nullptr;
+    }
   }
 
   /**

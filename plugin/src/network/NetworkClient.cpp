@@ -719,10 +719,12 @@ juce::MemoryBlock NetworkClient::encodeAudioToWAV(const juce::AudioBuffer<float>
   juce::WavAudioFormat wavFormat;
 
   // Create writer using the JUCE AudioFormatWriter API
-  // TODO: use the new AudioFormatWriterOptions API instead
-  std::unique_ptr<juce::AudioFormatWriter> writer(
-      wavFormat.createWriterFor(outputStream.get(), sampleRate, static_cast<unsigned int>(buffer.getNumChannels()), 16,
-                                juce::StringPairArray(), 0));
+  juce::AudioFormatWriter::AudioFormatWriterOptions options;
+  options.sampleRate = sampleRate;
+  options.numChannels = static_cast<unsigned int>(buffer.getNumChannels());
+  options.bitsPerSample = 16;
+
+  std::unique_ptr<juce::AudioFormatWriter> writer(wavFormat.createWriterFor(outputStream.get(), options));
 
   if (writer == nullptr) {
     Log::error("encodeAudioToWAV: Failed to create WAV writer");

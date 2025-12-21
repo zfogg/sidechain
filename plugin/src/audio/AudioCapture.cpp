@@ -343,10 +343,13 @@ bool AudioCapture::saveBufferToWavFile(const juce::File &file, const juce::Audio
   // Create WAV format writer (need unique_ptr<OutputStream> for the API)
   juce::WavAudioFormat wavFormat;
   std::unique_ptr<juce::OutputStream> outputStream(std::move(fileStream));
-  // TODO: use the new AudioFormatWriterOptions API instead
-  std::unique_ptr<juce::AudioFormatWriter> writer(
-      wavFormat.createWriterFor(outputStream.get(), sampleRate, static_cast<unsigned int>(buffer.getNumChannels()),
-                                bitsPerSample, juce::StringPairArray(), 0));
+
+  juce::AudioFormatWriter::AudioFormatWriterOptions options;
+  options.sampleRate = sampleRate;
+  options.numChannels = static_cast<unsigned int>(buffer.getNumChannels());
+  options.bitsPerSample = bitsPerSample;
+
+  std::unique_ptr<juce::AudioFormatWriter> writer(wavFormat.createWriterFor(outputStream.get(), options));
 
   if (writer == nullptr) {
     Log::error("saveBufferToWavFile: Could not create WAV writer");
@@ -483,10 +486,14 @@ bool AudioCapture::saveBufferToFlacFile(const juce::File &file, const juce::Audi
   // Create FLAC format writer (need unique_ptr<OutputStream> for the API)
   juce::FlacAudioFormat flacFormat;
   std::unique_ptr<juce::OutputStream> outputStream(std::move(fileStream));
-  // TODO: use the new AudioFormatWriterOptions API instead
-  std::unique_ptr<juce::AudioFormatWriter> writer(
-      flacFormat.createWriterFor(outputStream.get(), sampleRate, static_cast<unsigned int>(buffer.getNumChannels()),
-                                 bitsPerSample, juce::StringPairArray(), quality));
+
+  juce::AudioFormatWriter::AudioFormatWriterOptions options;
+  options.sampleRate = sampleRate;
+  options.numChannels = static_cast<unsigned int>(buffer.getNumChannels());
+  options.bitsPerSample = bitsPerSample;
+  options.metaData = quality;
+
+  std::unique_ptr<juce::AudioFormatWriter> writer(flacFormat.createWriterFor(outputStream.get(), options));
 
   if (writer == nullptr) {
     Log::error("saveBufferToFlacFile: Could not create FLAC writer");
