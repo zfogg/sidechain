@@ -22,6 +22,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/cache"
 	"github.com/zfogg/sidechain/backend/internal/challenges"
 	"github.com/zfogg/sidechain/backend/internal/config"
+	"github.com/zfogg/sidechain/backend/internal/container"
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/email"
 	"github.com/zfogg/sidechain/backend/internal/handlers"
@@ -38,8 +39,8 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/telemetry"
 	"github.com/zfogg/sidechain/backend/internal/waveform"
 	"github.com/zfogg/sidechain/backend/internal/websocket"
-	"go.uber.org/zap"
 	"go.opentelemetry.io/otel/sdk/trace"
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -548,14 +549,6 @@ func main() {
 		}
 	}()
 
-	// Initialize handlers
-	h := handlers.NewHandlers(streamClient, audioProcessor)
-	h.SetWebSocketHandler(wsHandler) // Enable real-time follow notifications
-	h.SetGorseClient(gorseClient)    // Enable user follow recommendations
-	if baseSearchClient != nil {
-		h.SetSearchClient(baseSearchClient) // Enable search functionality
-	}
-
 	// Initialize waveform generation tools for audio visualization
 	waveformGenerator := waveform.NewGenerator()
 	waveformStorage, err := waveform.NewStorage(
@@ -567,16 +560,69 @@ func main() {
 		logger.WarnWithFields("Failed to initialize waveform storage, waveforms will not be generated", err)
 		waveformStorage = nil
 	} else {
-		h.SetWaveformTools(waveformGenerator, waveformStorage)
 		logger.Log.Info("✅ Waveform tools initialized successfully")
 	}
 
-	authHandlers := handlers.NewAuthHandlers(authService, s3Uploader, streamClient)
-	authHandlers.SetJWTSecret(jwtSecret)
-	authHandlers.SetEmailService(emailService) // Enable password reset emails
-	if baseSearchClient != nil {
-		authHandlers.SetSearchClient(baseSearchClient) // Enable search functionality
+	// ============================================================
+	// SETUP DEPENDENCY INJECTION CONTAINER
+	// ============================================================
+	appContainer := container.New()
+
+	// Register all services in the container
+	appContainer.
+		WithDB(database.DB).
+		WithLogger(logger.Log).
+		WithStreamClient(streamClient).
+		WithAuthService(authService).
+		WithAudioProcessor(audioProcessor).
+		WithWebSocketHandler(wsHandler).
+		WithAlertManager(alertManager).
+		WithAlertEvaluator(alertEvaluator)
+
+	// Register optional services
+	if redisClient != nil {
+		appContainer.WithCache(redisClient)
 	}
+	if s3Uploader != nil {
+		appContainer.WithS3Uploader(s3Uploader)
+	}
+	if baseSearchClient != nil {
+		appContainer.WithSearchClient(baseSearchClient)
+	}
+	if gorseClient != nil {
+		appContainer.WithGorseClient(gorseClient)
+	}
+	if waveformGenerator != nil {
+		appContainer.WithWaveformGenerator(waveformGenerator)
+	}
+	if waveformStorage != nil {
+		appContainer.WithWaveformStorage(waveformStorage)
+	}
+
+	// Validate container has all required dependencies
+	if err := appContainer.Validate(); err != nil {
+		logger.FatalWithFields("Container validation failed", err)
+	}
+	logger.Log.Info("✅ Dependency injection container initialized")
+
+	// Register cleanup hooks for graceful shutdown
+	appContainer.
+		OnCleanup(func(ctx context.Context) error {
+			if audioProcessor != nil {
+				audioProcessor.Stop()
+			}
+			return nil
+		}).
+		OnCleanup(func(ctx context.Context) error {
+			if redisClient != nil {
+				return redisClient.Close()
+			}
+			return nil
+		})
+
+	// Initialize handlers with dependency injection container
+	h := handlers.NewHandlers(appContainer)
+	authHandlers := handlers.NewAuthHandlers(appContainer)
 
 	// Initialize Prometheus metrics
 	metrics.Initialize()
@@ -1032,7 +1078,7 @@ func main() {
 		}
 
 		// Error tracking routes
-		errorTrackingHandler := handlers.NewErrorTrackingHandler()
+		errorTrackingHandler := handlers.NewErrorTrackingHandler(appContainer)
 		errors := api.Group("/errors")
 		{
 			errors.Use(authHandlers.AuthMiddleware())
@@ -1140,7 +1186,7 @@ func main() {
 		}
 
 		// Sound routes
-		soundHandlers := handlers.NewSoundHandlers()
+		soundHandlers := handlers.NewSoundHandlers(appContainer)
 		sounds := api.Group("/sounds")
 		{
 			// Public: Get trending sounds
@@ -1213,6 +1259,11 @@ func main() {
 	// Give outstanding requests 30 seconds to complete
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
+
+	// Cleanup application services via DI container
+	if err := appContainer.Cleanup(ctx); err != nil {
+		logger.Log.Error("Error during application cleanup", zap.Error(err))
+	}
 
 	// Shutdown WebSocket connections gracefully
 	if err := wsHandler.Shutdown(ctx); err != nil {
