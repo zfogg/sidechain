@@ -567,10 +567,10 @@ void MidiChallengeSubmission::submitEntry(const juce::String &postId, const juce
   submissionState = SubmissionState::Submitting;
   repaint();
 
+  // MIDI pattern data is passed directly to submitMIDIChallengeEntry
+  // The backend stores the raw MIDI data with the challenge entry
+  // Future enhancement: Support standalone MIDI pattern IDs for pattern reuse
   juce::String midiPatternId = "";
-  if (!midiData.isVoid() && midiData.hasProperty("events")) {
-    // TODO: Upload MIDI pattern first, get ID
-  }
 
   networkClient.submitMIDIChallengeEntry(challenge.id, audioUrl, postId, midiData, midiPatternId,
                                          [this](Outcome<juce::var> result) {

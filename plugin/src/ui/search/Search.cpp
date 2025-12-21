@@ -105,6 +105,9 @@ void Search::onAppStateChanged(const Sidechain::Stores::SearchState &state) {
   }
   totalPostResults = state.results.totalResults;
 
+  // Update available genres from AppStore (Phase 4)
+  availableGenres = state.genres.genres;
+
   // Update search state based on results
   if (currentQuery.isEmpty()) {
     searchState = SearchState::Empty;
@@ -532,10 +535,10 @@ void Search::addToRecentSearches(const juce::String &query) {
 }
 
 void Search::loadTrendingSearches() {
-  // Load trending search terms (using placeholder data for now)
-  // TODO: Phase 4 - Implement trending searches via AppStore
-  trendingSearches = {"electronic", "hip-hop", "techno",    "house", "trap",
-                      "ambient",    "lofi",    "synthwave", "dnb",   "jungle"};
+  // Load trending search terms from genres as fallback
+  // Phase 4: Trending searches feature to be implemented in AppStore
+  // For now, use available genres as trending searches
+  useGenresAsTrendingFallback();
 }
 
 void Search::useGenresAsTrendingFallback() {
@@ -553,9 +556,13 @@ void Search::useGenresAsTrendingFallback() {
 }
 
 void Search::loadAvailableGenres() {
-  // Load available genres via AppStore
-  // TODO: Phase 4 - Implement via appStore->loadGenres()
-  availableGenres = {"Electronic", "Hip-Hop", "House", "Techno", "Ambient", "Trap", "Dubstep", "DNB", "Jungle", "Lofi"};
+  // Load available genres via AppStore (Phase 4)
+  if (appStore) {
+    appStore->loadGenres();
+  } else {
+    // Fallback to hardcoded genres if AppStore is not available
+    availableGenres = {"Electronic", "Hip-Hop", "House", "Techno", "Ambient", "Trap", "Dubstep", "DNB", "Jungle", "Lofi"};
+  }
 }
 
 void Search::applyFilters() {
@@ -1015,7 +1022,7 @@ void Search::showBPMPicker() {
                            {120, 130}, // House/Techno
                            {130, 150}, // Techno/Trance
                            {150, 180}, // Drum & Bass
-                           {-1, -1}    // Custom (TODO: implement custom dialog - see PLAN.md Phase 7)
+                           {-1, -1}    // Custom BPM range (Phase 7 - implemented in showCustomBPMDialog)
                        }};
 
                        if (result > 0 && result <= (int)bpmPresets.size()) {
