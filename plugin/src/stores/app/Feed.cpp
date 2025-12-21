@@ -698,29 +698,27 @@ void AppStore::handleFetchSuccess(FeedType feedType, const juce::var &data, int 
     if (isAggregatedFeedType(feedType)) {
       auto response = parseAggregatedJsonResponse(data);
 
-      sliceManager.posts->dispatch([feedType, response, offset](PostsState &s) {
-        if (s.aggregatedFeeds.count(feedType) == 0) {
-          s.aggregatedFeeds[feedType] = AggregatedFeedState();
-        }
+      PostsState newState = sliceManager.posts->getState();
+      if (newState.aggregatedFeeds.count(feedType) == 0) {
+        newState.aggregatedFeeds[feedType] = AggregatedFeedState();
+      }
 
-        auto &feedState = s.aggregatedFeeds[feedType];
-        if (offset == 0) {
-          feedState.groups = response.groups;
-        } else {
-          for (const auto &group : response.groups) {
-            feedState.groups.add(group);
-          }
+      auto &feedState = newState.aggregatedFeeds[feedType];
+      if (offset == 0) {
+        feedState.groups = response.groups;
+      } else {
+        for (const auto &group : response.groups) {
+          feedState.groups.add(group);
         }
+      }
 
-        feedState.isLoading = false;
-        feedState.isRefreshing = false;
-        feedState.offset = offset + response.groups.size();
-        feedState.total = response.total;
-        feedState.hasMore = feedState.offset < feedState.total;
-        feedState.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
-        feedState.error = "";
-        feedState.isSynced = true;
-      });
+      feedState.isLoading = false;
+      feedState.offset = offset + static_cast<int>(response.groups.size());
+      feedState.total = response.total;
+      feedState.hasMore = feedState.offset < feedState.total;
+      feedState.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
+      feedState.error = "";
+      sliceManager.posts->setState(newState);
     } else {
 
       Log::debug("========== About to call parseJsonResponse ==========");
@@ -788,13 +786,11 @@ void AppStore::handleFetchError(FeedType feedType, const juce::String &error) {
   if (isAggregatedFeedType(feedType)) {
     if (newState.aggregatedFeeds.count(feedType) > 0) {
       newState.aggregatedFeeds[feedType].isLoading = false;
-      newState.aggregatedFeeds[feedType].isRefreshing = false;
       newState.aggregatedFeeds[feedType].error = error;
     }
   } else {
     if (newState.feeds.count(feedType) > 0) {
       newState.feeds[feedType].isLoading = false;
-      newState.feeds[feedType].isRefreshing = false;
       newState.feeds[feedType].error = error;
     }
   }
@@ -937,12 +933,12 @@ bool AppStore::isCurrentFeedCached() const {
     // Check aggregated feed caching with timestamp tracking
     if (state.aggregatedFeeds.count(feedType) > 0) {
       const auto &feedState = state.aggregatedFeeds.at(feedType);
-      if (feedState.groups.empty()) {
+      if (feedState.groups.size() == 0) {
         return false;
       }
       auto ageMs = now - feedState.lastUpdated;
       auto ageSecs = ageMs / 1000;
-      return ageSecs < cacheTTLSeconds && feedState.isSynced;
+      return ageSecs < cacheTTLSeconds;
     }
     return false;
   } else {
