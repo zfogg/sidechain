@@ -157,6 +157,17 @@ func (rc *RedisClient) Set(ctx context.Context, key string, value interface{}) e
 
 // SetEx stores a value in Redis with expiration
 func (rc *RedisClient) SetEx(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
+	// Start distributed tracing span with enhanced attributes
+	_, span := otel.Tracer("redis").Start(ctx, "redis.setex")
+	defer span.End()
+
+	// Add span attributes
+	span.SetAttributes(
+		attribute.String("cache.key", maskSensitiveKey(key)),
+		attribute.String("cache.operation", "setex"),
+		attribute.Int64("cache.ttl_seconds", int64(ttl.Seconds())),
+	)
+
 	start := time.Now()
 	err := rc.client.Set(ctx, key, value, ttl).Err()
 
@@ -164,9 +175,16 @@ func (rc *RedisClient) SetEx(ctx context.Context, key string, value interface{},
 	duration := time.Since(start).Seconds()
 	metrics.Get().RedisOperationDuration.WithLabelValues("setex", extractKeyPattern(key)).Observe(duration)
 
+	// Record span duration
+	span.SetAttributes(attribute.Float64("cache.duration_seconds", duration))
+
 	status := "success"
 	if err != nil {
 		status = "error"
+		span.SetStatus(codes.Error, err.Error())
+		span.RecordError(err)
+	} else {
+		span.SetStatus(codes.Ok, "")
 	}
 	metrics.Get().RedisOperationsTotal.WithLabelValues("setex", status).Inc()
 
