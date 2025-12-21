@@ -7,10 +7,20 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/metrics"
+	"go.uber.org/zap"
 )
 
 func TestMetricsMiddleware_StatusCodesAreNumeric(t *testing.T) {
+	// Initialize logger for the middleware
+	var err error
+	logger.Log, err = zap.NewDevelopment()
+	if err != nil {
+		t.Fatalf("failed to initialize logger: %v", err)
+	}
+	defer logger.Log.Sync()
+
 	// Initialize metrics
 	m := metrics.Initialize()
 
@@ -72,6 +82,14 @@ func TestMetricsMiddleware_StatusCodesAreNumeric(t *testing.T) {
 func TestMetricsMiddleware_GrafanaQueryCompatibility(t *testing.T) {
 	// This test verifies that status codes are recorded in a format
 	// that's compatible with Grafana Prometheus queries like status=~"5.."
+
+	// Initialize logger for the middleware
+	var err error
+	logger.Log, err = zap.NewDevelopment()
+	if err != nil {
+		t.Fatalf("failed to initialize logger: %v", err)
+	}
+	defer logger.Log.Sync()
 
 	m := metrics.Initialize()
 	m.HTTPRequestsTotal.Reset()
