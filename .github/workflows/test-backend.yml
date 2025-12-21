@@ -82,13 +82,12 @@ jobs:
         if: always()
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./backend/coverage.out
+          files: backend/coverage.out
           flags: backend
           name: backend-coverage
           fail_ci_if_error: false
           verbose: true
           codecov_yml_path: ./codecov.yml
-          directory: ./backend
 
       - name: Publish Test Results
         uses: dorny/test-reporter@v1
