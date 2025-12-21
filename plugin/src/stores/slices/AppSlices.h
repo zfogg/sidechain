@@ -20,15 +20,16 @@ namespace Slices {
  * - SearchSlice: Search results, queries
  * - UploadSlice: Upload progress, status
  *
- * Entity Bridge:
- * - EntitySlice: Bridges EntityStore (normalized data) with Redux slices
- *   See EntitySlice.h for entity-level caching and subscriptions
+ * Entity Caching:
+ * - EntityStore: Centralized cache for all normalized entities (posts, users, etc.)
+ *   All entity caching and subscriptions are handled directly through EntityStore.
+ *   Entity updates flow through the Redux state system for reactive propagation.
  *
  * Slices can be:
  * 1. Used independently for modular state management
  * 2. Composed into AppStore for monolithic access
  * 3. Tested independently without full app context
- * 4. Lazy-loaded to reduce startup overhead
+ * 4. Eager-initialized to ensure all slices are ready at startup
  *
  * Usage:
  *   // Create a slice
@@ -53,14 +54,14 @@ namespace Slices {
  *       [this](const bool& isLoggedIn) { updateLoginUI(isLoggedIn); }
  *   );
  *
- * Entity-level subscriptions (Phase 1):
- *   auto& entitySlice = EntitySlice::getInstance();
+ * Entity-level caching (using EntityStore directly):
+ *   auto& entityStore = EntityStore::getInstance();
  *
  *   // Cache entities from network responses
- *   entitySlice.cachePosts(postsFromAPI);
+ *   entityStore.posts().setMany(postsFromAPI);
  *
  *   // Subscribe to individual entity changes
- *   auto unsub = entitySlice.subscribeToPost(postId, [](const auto& post) {
+ *   auto unsub = entityStore.posts().subscribe(postId, [](const auto& post) {
  *       updateUI(*post);
  *   });
  */

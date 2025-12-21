@@ -112,7 +112,6 @@ if(SIDECHAIN_BUILD_TESTS)
         tests/FeedDataTest.cpp
         tests/PostCardTest.cpp
         tests/MessagingE2ETest.cpp
-        tests/EntitySliceTest.cpp
     )
 
     # Test executable
