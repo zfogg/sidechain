@@ -18,14 +18,31 @@ MidiChallengeSubmission::MidiChallengeSubmission(SidechainAudioProcessor &proces
 
   // Create wrapped Upload component
   uploadComponent = std::make_unique<Upload>(processor, network, store);
-  uploadComponent->onUploadComplete = []() {
+  uploadComponent->onUploadCompleteWithPostId = [this](const juce::String &postId) {
     // After upload completes, submit to challenge
-    // The upload component will have created a post, we need to get the post ID
-    // For now, we'll need to track the post ID from upload response
-    // This is a simplified version - in practice, we'd need to modify Upload to
-    // return post ID
-    Log::info("MidiChallengeSubmission: Upload complete, submitting to challenge");
-    // TODO: Get post ID from upload response and submit to challenge
+    Log::info("MidiChallengeSubmission: Upload complete with post ID: " + postId);
+
+    if (!postId.isEmpty() && !challenge.id.isEmpty()) {
+      // Submit the post to the challenge
+      networkClient.submitMIDIChallengeEntry(
+          challenge.id, "", postId, midiData, "",
+          [this](const auto &outcome) {
+            if (outcome.isSuccess()) {
+              Log::info("MidiChallengeSubmission: Challenge submission successful");
+              submissionState = SubmissionState::Success;
+            } else {
+              Log::error("MidiChallengeSubmission: Challenge submission failed: " + outcome.getError());
+              submissionState = SubmissionState::Error;
+              errorMessage = outcome.getError();
+            }
+            repaint();
+          });
+    } else {
+      Log::warn("MidiChallengeSubmission: Missing post ID or challenge ID");
+      submissionState = SubmissionState::Error;
+      errorMessage = "Could not submit to challenge - missing post ID";
+      repaint();
+    }
   };
   uploadComponent->onCancel = [this]() {
     if (onBackPressed)
@@ -153,11 +170,8 @@ void MidiChallengeSubmission::mouseUp(const juce::MouseEvent &event) {
     return;
   }
 
-  // Submit button
+  // Submit button - the upload component will handle submission once upload completes
   if (submissionState == SubmissionState::Editing && allConstraintsPassed() && getSubmitButtonBounds().contains(pos)) {
-    // TODO: Intercept upload flow to submit to challenge
-    // For now, this is a placeholder - would need to modify Upload component
-    // to support challenge submission flow
     Log::info("MidiChallengeSubmission: Submit button clicked");
     submissionState = SubmissionState::Validating;
     repaint();
@@ -170,8 +184,8 @@ void MidiChallengeSubmission::mouseUp(const juce::MouseEvent &event) {
     validateConstraints(bpm, key, midiData, duration);
 
     if (allConstraintsPassed()) {
-      // TODO: Trigger upload, then submit to challenge
-      Log::info("MidiChallengeSubmission: All constraints passed, ready to submit");
+      // Trigger upload, which will submit to challenge via the onUploadCompleteWithPostId callback
+      Log::info("MidiChallengeSubmission: All constraints passed, uploading...");
     }
   }
 }

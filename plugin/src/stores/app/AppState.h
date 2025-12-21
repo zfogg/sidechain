@@ -503,6 +503,7 @@ struct UploadState {
   int progress = 0;
   juce::String currentFileName;
   juce::String uploadError;
+  juce::String postId;  // Post ID from successful upload
   int64_t startTime = 0;
 };
 

@@ -694,9 +694,7 @@ void AppStore::handleFetchSuccess(FeedType feedType, const juce::var &data, int 
     Log::debug("handleFetchSuccess: feedType=" + feedTypeToString(feedType) + ", offset=" + juce::String(offset) +
                ", limit=" + juce::String(limit));
 
-    // TODO: Implement aggregated feed handling
-    // For now, skip aggregated feed types
-    /*
+    // Handle aggregated feed types (trends, recommendations, etc.)
     if (isAggregatedFeedType(feedType)) {
       auto response = parseAggregatedJsonResponse(data);
 
@@ -723,7 +721,7 @@ void AppStore::handleFetchSuccess(FeedType feedType, const juce::var &data, int 
         feedState.error = "";
         feedState.isSynced = true;
       });
-    } else {*/
+    } else {
 
     Log::debug("========== About to call parseJsonResponse ==========");
     auto response = parseJsonResponse(data);
@@ -768,7 +766,7 @@ void AppStore::handleFetchSuccess(FeedType feedType, const juce::var &data, int 
     feedState.isSynced = true;
     sliceManager.posts->setState(newState);
     Log::debug("========== updateFeedState COMPLETE ==========");
-    // }
+    }
 
     Log::info("========== handleFetchSuccess COMPLETE ==========");
     Log::debug("Loaded feed for feedType=" + feedTypeToString(feedType));
@@ -785,12 +783,20 @@ void AppStore::handleFetchError(FeedType feedType, const juce::String &error) {
   Util::logError("AppStore", "Failed to load feed: " + error);
 
   PostsState newState = sliceManager.posts->getState();
-  // TODO: Handle aggregated feed types
-  // For now, only handle regular feeds
-  if (newState.feeds.count(feedType) > 0) {
-    newState.feeds[feedType].isLoading = false;
-    newState.feeds[feedType].isRefreshing = false;
-    newState.feeds[feedType].error = error;
+
+  // Handle both regular and aggregated feed types
+  if (isAggregatedFeedType(feedType)) {
+    if (newState.aggregatedFeeds.count(feedType) > 0) {
+      newState.aggregatedFeeds[feedType].isLoading = false;
+      newState.aggregatedFeeds[feedType].isRefreshing = false;
+      newState.aggregatedFeeds[feedType].error = error;
+    }
+  } else {
+    if (newState.feeds.count(feedType) > 0) {
+      newState.feeds[feedType].isLoading = false;
+      newState.feeds[feedType].isRefreshing = false;
+      newState.feeds[feedType].error = error;
+    }
   }
   sliceManager.posts->setState(newState);
 }
@@ -928,8 +934,16 @@ bool AppStore::isCurrentFeedCached() const {
   const int cacheTTLSeconds = 300; // 5 minutes
 
   if (isAggregatedFeedType(feedType)) {
-    // TODO: Implement proper aggregated feed caching with timestamp tracking
-    // For now, aggregated feeds are not cached
+    // Check aggregated feed caching with timestamp tracking
+    if (state.aggregatedFeeds.count(feedType) > 0) {
+      const auto &feedState = state.aggregatedFeeds.at(feedType);
+      if (feedState.groups.empty()) {
+        return false;
+      }
+      auto ageMs = now - feedState.lastUpdated;
+      auto ageSecs = ageMs / 1000;
+      return ageSecs < cacheTTLSeconds && feedState.isSynced;
+    }
     return false;
   } else {
     if (state.feeds.count(feedType) > 0) {

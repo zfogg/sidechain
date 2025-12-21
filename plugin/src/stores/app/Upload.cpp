@@ -89,6 +89,7 @@ void AppStore::uploadPost(const juce::var &postData, const juce::File &audioFile
             newState.isUploading = false;
             newState.progress = 100;
             newState.uploadError = "";
+            newState.postId = postId;
             sliceManager.uploads->setState(newState);
           } else {
             Util::logError("AppStore", "Upload failed: " + outcome.error());

@@ -26,6 +26,13 @@ void NetworkClient::createPlaylist(const juce::String &name, const juce::String 
   post(buildApiPath("/playlists"), juce::var(obj), callback);
 }
 
+void NetworkClient::deletePlaylist(const juce::String &playlistId, ResponseCallback callback) {
+  if (callback == nullptr)
+    return;
+
+  del(buildApiPath("/playlists/") + playlistId, callback);
+}
+
 void NetworkClient::getPlaylists(const juce::String &filter, ResponseCallback callback) {
   if (callback == nullptr)
     return;
