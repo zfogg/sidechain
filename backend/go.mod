@@ -13,6 +13,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ses v1.34.17
 	github.com/brianvoe/gofakeit/v7 v7.12.1
 	github.com/coder/websocket v1.8.14
+	github.com/elastic/go-elasticsearch/v8 v8.19.1
 	github.com/elastic/go-elasticsearch/v9 v9.2.1
 	github.com/gin-contrib/cors v1.7.6
 	github.com/gin-contrib/gzip v1.2.5
