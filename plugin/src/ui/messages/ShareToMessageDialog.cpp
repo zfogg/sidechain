@@ -108,10 +108,12 @@ void ShareToMessageDialog::drawPostPreview(juce::Graphics &g) {
   if (shareType == ShareType::Story) {
     g.setColour(SidechainColors::textPrimary());
     g.setFont(juce::Font(juce::FontOptions().withHeight(13.0f)).boldened());
-    g.drawText("Story: " + story.id.substring(0, 12) + "...", previewBounds.removeFromTop(20), juce::Justification::topLeft);
+    g.drawText("Story: " + story.id.substring(0, 12) + "...", previewBounds.removeFromTop(20),
+               juce::Justification::topLeft);
     g.setColour(SidechainColors::textSecondary());
     g.setFont(juce::Font(juce::FontOptions().withHeight(12.0f)));
-    g.drawText("Duration: " + juce::String(static_cast<int>(story.durationSeconds)) + "s", previewBounds, juce::Justification::topLeft);
+    g.drawText("Duration: " + juce::String(static_cast<int>(story.audioDuration)) + "s", previewBounds,
+               juce::Justification::topLeft);
     return;
   }
 
@@ -150,18 +152,21 @@ void ShareToMessageDialog::drawPostPreview(juce::Graphics &g) {
     properties += juce::String(post.bpm) + " BPM";
   }
   if (!post.key.isEmpty()) {
-    if (!properties.isEmpty()) properties += " • ";
+    if (!properties.isEmpty())
+      properties += " • ";
     properties += post.key;
   }
   if (post.durationSeconds > 0) {
-    if (!properties.isEmpty()) properties += " • ";
+    if (!properties.isEmpty())
+      properties += " • ";
     int seconds = static_cast<int>(post.durationSeconds);
     int minutes = seconds / 60;
     int secs = seconds % 60;
     properties += juce::String(minutes) + ":" + (secs < 10 ? "0" : "") + juce::String(secs);
   }
   if (!post.daw.isEmpty()) {
-    if (!properties.isEmpty()) properties += " • ";
+    if (!properties.isEmpty())
+      properties += " • ";
     properties += post.daw;
   }
 

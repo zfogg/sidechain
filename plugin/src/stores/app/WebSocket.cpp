@@ -97,8 +97,7 @@ void AppStore::onWebSocketPresenceUpdate(const juce::String &userId, bool isOnli
   newState.userPresence[userId] = userPresence;
   sliceManager.presence->setState(newState);
 
-  Util::logDebug("AppStore", "Updated presence for user " + userId + " - status: " +
-                                 (isOnline ? "Online" : "Offline"));
+  Util::logDebug("AppStore", "Updated presence for user " + userId + " - status: " + (isOnline ? "Online" : "Offline"));
 }
 
 void AppStore::onWebSocketCommentCountUpdate(const juce::String &postId, int commentCount) {
@@ -122,7 +121,7 @@ void AppStore::onWebSocketCommentCountUpdate(const juce::String &postId, int com
 
 void AppStore::onWebSocketNewComment(const juce::String &postId, const juce::String &commentId,
                                      const juce::String &username) {
-  Util::logDebug("AppStore", "WebSocket: New comment on post " + postId + " from " + username);
+  Util::logDebug("AppStore", "WebSocket: New comment " + commentId + " on post " + postId + " from " + username);
 
   // Invalidate comments for this post so UI refreshes with new comment
   CommentsState newState = sliceManager.comments->getState();

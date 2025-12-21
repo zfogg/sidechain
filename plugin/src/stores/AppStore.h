@@ -714,6 +714,25 @@ public:
    */
   void onWebSocketPresenceUpdate(const juce::String &userId, bool isOnline);
 
+  /**
+   * Handle WebSocket comment count update for a post.
+   * Invalidates post cache and updates comment count in state.
+   *
+   * @param postId ID of the post with updated comment count
+   * @param commentCount New comment count
+   */
+  void onWebSocketCommentCountUpdate(const juce::String &postId, int commentCount);
+
+  /**
+   * Handle WebSocket new comment notification.
+   * Invalidates comment cache for the post.
+   *
+   * @param postId ID of the post with new comment
+   * @param commentId ID of the new comment
+   * @param username Username of the comment author
+   */
+  void onWebSocketNewComment(const juce::String &postId, const juce::String &commentId, const juce::String &username);
+
   // ==============================================================================
   // Model-Level Subscription API (New Redux Pattern)
   // These methods provide strongly-typed access to models with automatic normalization

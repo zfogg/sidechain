@@ -153,6 +153,15 @@ private:
 
   // Hash string to create filename
   static juce::String hashString(const juce::String &str);
+
+  // FIX #1: Internal unlocked version of getCacheSizeBytes() for use when already holding manifestLock
+  int64_t getCacheSizeBytes_unlocked() const {
+    int64_t totalSize = 0;
+    for (const auto &pair : manifest) {
+      totalSize += pair.second.fileSize;
+    }
+    return totalSize;
+  }
 };
 
 // ==============================================================================
@@ -175,28 +184,31 @@ FileCache<T>::FileCache(const juce::String &subdirectory, int64_t maxSizeBytes) 
 template <typename T> std::optional<juce::File> FileCache<T>::getFile(const T &value) {
   juce::String key = CacheKeyTraits<T>::getKey(value);
 
-  juce::File cachedFile;
-  bool fileExists = false;
-  {
-    juce::ScopedReadLock locker(manifestLock);
-    auto it = manifest.find(key);
-    if (it == manifest.end()) {
-      return std::nullopt;
-    }
-    cachedFile = cacheDir.getChildFile(it->second.filename);
-    fileExists = cachedFile.exists();
+  // FIX #4: TOCTOU PREVENTION
+  // Keep read lock while checking file existence to prevent race condition
+  // where file is deleted between our manifest lookup and existence check
+  juce::ScopedReadLock readLock(manifestLock);
+
+  auto it = manifest.find(key);
+  if (it == manifest.end()) {
+    return std::nullopt;
   }
 
-  if (!fileExists) {
+  auto cachedFile = cacheDir.getChildFile(it->second.filename);
+  if (!cachedFile.exists()) {
+    // Lock releases automatically when exiting scope
     removeFile(value);
     return std::nullopt;
   }
 
+  // Lock releases automatically when exiting scope
+
+  // Update access time with write lock
   {
     juce::ScopedWriteLock writeLocker(manifestLock);
-    auto it = manifest.find(key);
-    if (it != manifest.end()) {
-      it->second.lastAccessTime = static_cast<double>(juce::Time::getCurrentTime().toMilliseconds()) / 1000.0;
+    auto it2 = manifest.find(key);
+    if (it2 != manifest.end()) {
+      it2->second.lastAccessTime = static_cast<double>(juce::Time::getCurrentTime().toMilliseconds()) / 1000.0;
       saveManifest();
     }
   }
@@ -243,7 +255,8 @@ template <typename T> juce::File FileCache<T>::cacheFile(const T &value, const j
     entry.fileSize = destFile.getSize();
     manifest[key] = entry;
 
-    if (getCacheSizeBytes() > maxSize) {
+    // FIX #1: Use unlocked version since we already hold write lock (prevents deadlock)
+    if (getCacheSizeBytes_unlocked() > maxSize) {
       evictLRU(static_cast<int64_t>(static_cast<double>(maxSize) * 0.8));
     }
 
@@ -352,7 +365,12 @@ template <typename T> void FileCache<T>::saveManifest() {
 }
 
 template <typename T> void FileCache<T>::evictLRU(int64_t targetSizeBytes) {
-  if (getCacheSizeBytes() <= targetSizeBytes) {
+  // FIX #1: DEADLOCK PREVENTION
+  // This is called from cacheFile() which already holds write lock.
+  // IMPORTANT: Assumes caller holds manifestLock write lock. Does NOT acquire lock.
+  // Use unlocked version for all size checks to avoid recursive lock acquisition.
+
+  if (getCacheSizeBytes_unlocked() <= targetSizeBytes) {
     return;
   }
 
@@ -361,7 +379,7 @@ template <typename T> void FileCache<T>::evictLRU(int64_t targetSizeBytes) {
             [](const auto &a, const auto &b) { return a.second.lastAccessTime < b.second.lastAccessTime; });
 
   for (const auto &pair : entries) {
-    if (getCacheSizeBytes() <= targetSizeBytes) {
+    if (getCacheSizeBytes_unlocked() <= targetSizeBytes) {
       break;
     }
 

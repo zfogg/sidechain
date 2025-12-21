@@ -11,7 +11,6 @@ void AppStore::uploadPost(const juce::var &postData, const juce::File &audioFile
   double bpm = 0.0;
   juce::String key;
   juce::String genre;
-  double duration = 0.0;
 
   if (postData.isObject()) {
     const auto *obj = postData.getDynamicObject();
@@ -21,7 +20,6 @@ void AppStore::uploadPost(const juce::var &postData, const juce::File &audioFile
       bpm = obj->getProperty("bpm");
       key = obj->getProperty("key").toString();
       genre = obj->getProperty("genre").toString();
-      duration = obj->getProperty("duration");
 
       if (!postId.isEmpty()) {
         Util::logInfo("AppStore", "Starting upload for post ID: " + postId);
@@ -62,10 +60,11 @@ void AppStore::uploadPost(const juce::var &postData, const juce::File &audioFile
 
   // Load audio file and upload with metadata
   if (auto reader = std::unique_ptr<juce::AudioFormatReader>(
-          juce::WavAudioFormat().createReaderFor(new juce::FileInputStream(audioFile, true), true))) {
+          juce::WavAudioFormat().createReaderFor(new juce::FileInputStream(audioFile), true))) {
 
     // Create audio buffer from reader
-    juce::AudioBuffer<float> audioBuffer(reader->numChannels, static_cast<int>(reader->lengthInSamples));
+    juce::AudioBuffer<float> audioBuffer(static_cast<int>(reader->numChannels),
+                                         static_cast<int>(reader->lengthInSamples));
     reader->read(&audioBuffer, 0, static_cast<int>(reader->lengthInSamples), 0, true, true);
 
     // Prepare upload metadata
@@ -76,37 +75,35 @@ void AppStore::uploadPost(const juce::var &postData, const juce::File &audioFile
     metadata.genre = genre;
     metadata.durationSeconds = static_cast<double>(reader->lengthInSamples) / reader->sampleRate;
     metadata.sampleRate = static_cast<int>(reader->sampleRate);
-    metadata.numChannels = reader->numChannels;
+    metadata.numChannels = static_cast<int>(reader->numChannels);
     metadata.daw = NetworkClient::detectDAWName();
 
     // Upload audio with metadata
-    networkClient->uploadAudioWithMetadata(
-        audioBuffer, reader->sampleRate, metadata,
-        [this, postId](const auto &outcome) {
-          if (outcome.isSuccess()) {
-            Util::logInfo("AppStore", "Upload successful for post ID: " + postId);
-            UploadState newState = sliceManager.uploads->getState();
-            newState.isUploading = false;
-            newState.progress = 100;
-            newState.uploadError = "";
-            newState.postId = postId;
-            sliceManager.uploads->setState(newState);
-          } else {
-            Util::logError("AppStore", "Upload failed: " + outcome.error());
-            UploadState newState = sliceManager.uploads->getState();
-            newState.isUploading = false;
-            newState.progress = 0;
-            newState.uploadError = outcome.error();
-            sliceManager.uploads->setState(newState);
-          }
-        });
+    networkClient->uploadAudioWithMetadata(audioBuffer, reader->sampleRate, metadata,
+                                           [this, postId](const Outcome<juce::String> &outcome) {
+                                             if (outcome.isOk()) {
+                                               Util::logInfo("AppStore", "Upload successful for post ID: " + postId);
+                                               UploadState uploadState = sliceManager.uploads->getState();
+                                               uploadState.isUploading = false;
+                                               uploadState.progress = 100;
+                                               uploadState.uploadError = "";
+                                               sliceManager.uploads->setState(uploadState);
+                                             } else {
+                                               Util::logError("AppStore", "Upload failed: " + outcome.getError());
+                                               UploadState uploadState = sliceManager.uploads->getState();
+                                               uploadState.isUploading = false;
+                                               uploadState.progress = 0;
+                                               uploadState.uploadError = outcome.getError();
+                                               sliceManager.uploads->setState(uploadState);
+                                             }
+                                           });
   } else {
     Util::logError("AppStore", "Failed to read audio file: " + audioFile.getFullPathName());
-    UploadState newState = sliceManager.uploads->getState();
-    newState.isUploading = false;
-    newState.uploadError = "Failed to read audio file";
-    newState.progress = 0;
-    sliceManager.uploads->setState(newState);
+    UploadState readErrorState = sliceManager.uploads->getState();
+    readErrorState.isUploading = false;
+    readErrorState.uploadError = "Failed to read audio file";
+    readErrorState.progress = 0;
+    sliceManager.uploads->setState(readErrorState);
   }
 }
 
