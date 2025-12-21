@@ -2,6 +2,7 @@
 
 #include "../../stores/AppStore.h"
 #include "../../util/Log.h"
+#include "../../util/SubscriptionBag.h"
 #include <JuceHeader.h>
 #include <functional>
 
@@ -107,6 +108,20 @@ protected:
   Stores::AppStore *appStore = nullptr;
   SubscriptionFn userSubscriptionFn;
   std::function<void()> storeUnsubscriber;
+
+  /**
+   * SubscriptionBag for managing multiple subscriptions
+   * Use this for components that need to subscribe to multiple stores
+   * Auto-unsubscribes on component destruction
+   *
+   * Usage:
+   * ```cpp
+   * subscriptions += appStore->subscribeToPosts([this](const auto& state) { ... });
+   * subscriptions += appStore->subscribeToComments([this](const auto& state) { ... });
+   * // Auto-cleanup on ~AppStoreComponent()
+   * ```
+   */
+  Util::SubscriptionBag subscriptions;
 
   /**
    * Called when app state changes
