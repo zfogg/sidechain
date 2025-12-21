@@ -1499,12 +1499,16 @@ void StreamChatClient::uploadAudioSnippet(const juce::AudioBuffer<float> &audioB
         std::make_unique<juce::MemoryOutputStream>(audioDataBlock, false);
     juce::WavAudioFormat wavFormat;
 
-    juce::AudioFormatWriter::AudioFormatWriterOptions options;
-    options.sampleRate = sampleRate;
-    options.numChannels = static_cast<unsigned int>(audioBuffer.getNumChannels());
-    options.bitsPerSample = 16;
-
-    std::unique_ptr<juce::AudioFormatWriter> writer(wavFormat.createWriterFor(outputStream.get(), options));
+    auto writer = std::unique_ptr<juce::AudioFormatWriter>(
+        wavFormat.createWriterFor(
+            outputStream.get(),
+            sampleRate,
+            static_cast<unsigned int>(audioBuffer.getNumChannels()),
+            16,
+            juce::StringPairArray(),
+            0
+        )
+    );
 
     if (writer == nullptr) {
       Log::error("Failed to create WAV writer");

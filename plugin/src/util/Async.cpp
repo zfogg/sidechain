@@ -40,7 +40,7 @@ public:
     // Must be done on message thread, which we're already on
     int id = timerId;
     juce::MessageManager::callAsync([id]() {
-      std::lock_guard<std::mutex> lock(delayTimersMutex);
+      std::lock_guard<std::mutex> lock{delayTimersMutex};
       delayTimers.erase(id);
     });
   }
