@@ -36,15 +36,15 @@ func NewRedisClient(host string, port string, password string) (*RedisClient, er
 
 	// Create client with connection pooling
 	client := redis.NewClient(&redis.Options{
-		Addr:           addr,
-		Password:       password,
-		DB:             0,
-		MaxRetries:     3,
-		PoolSize:       10,
-		MinIdleConns:   5,
-		ReadTimeout:    3 * time.Second,
-		WriteTimeout:   3 * time.Second,
-		DialTimeout:    5 * time.Second,
+		Addr:         addr,
+		Password:     password,
+		DB:           0,
+		MaxRetries:   3,
+		PoolSize:     10,
+		MinIdleConns: 5,
+		ReadTimeout:  3 * time.Second,
+		WriteTimeout: 3 * time.Second,
+		DialTimeout:  5 * time.Second,
 	})
 
 	// Test connection
@@ -82,8 +82,7 @@ func (rc *RedisClient) Close() error {
 // Get retrieves a value from Redis
 func (rc *RedisClient) Get(ctx context.Context, key string) (string, error) {
 	// Start distributed tracing span
-	_, span := otel.Tracer("redis").Start(ctx, "redis.get",
-	)
+	_, span := otel.Tracer("redis").Start(ctx, "redis.get")
 	defer span.End()
 
 	// Add span attributes

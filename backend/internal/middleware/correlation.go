@@ -118,9 +118,6 @@ func SpanEnrichmentMiddleware() gin.HandlerFunc {
 // Useful in background tasks that need to maintain correlation
 func GetCorrelationIDFromContext(ctx context.Context) string {
 	b := baggage.FromContext(ctx)
-	if b == nil {
-		return ""
-	}
 
 	// Look for correlation_id in baggage
 	for _, member := range b.Members() {
@@ -136,9 +133,6 @@ func GetCorrelationIDFromContext(ctx context.Context) string {
 // Useful for adaptive sampling decisions
 func GetSamplingHintFromContext(ctx context.Context) string {
 	b := baggage.FromContext(ctx)
-	if b == nil {
-		return ""
-	}
 
 	for _, member := range b.Members() {
 		if member.Key() == "sampling_hint" {

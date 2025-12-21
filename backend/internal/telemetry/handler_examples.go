@@ -26,6 +26,7 @@ import (
 //			return
 //		}
 //	}
+//
 // Note: This is an example function. Remove or adapt to your actual handlers.
 func TraceGetUser(ctx context.Context, userID string) (context.Context, interface{}) {
 	// This is an example function showing how to trace user retrieval

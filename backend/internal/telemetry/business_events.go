@@ -28,10 +28,10 @@ func NewBusinessEvents() *BusinessEvents {
 
 // FeedEvent attributes for feed-related operations
 type FeedEventAttrs struct {
-	FeedType      string // "timeline", "global", "trending", "unified", "enriched"
-	Limit         int64
-	Offset        int64
-	ItemCount     int64
+	FeedType       string // "timeline", "global", "trending", "unified", "enriched"
+	Limit          int64
+	Offset         int64
+	ItemCount      int64
 	EnrichmentType string // "users", "waveforms", "reactions"
 	FallbackUsed   bool
 }
@@ -155,10 +155,10 @@ func (be *BusinessEvents) TraceReaction(ctx context.Context, emoji string, targe
 
 // AudioEventAttrs attributes for audio operations
 type AudioEventAttrs struct {
-	FileSizeBytes  int64  // File size in bytes
-	AudioFormat    string // "mp3", "wav", "aiff"
+	FileSizeBytes    int64  // File size in bytes
+	AudioFormat      string // "mp3", "wav", "aiff"
 	ProcessingStatus string // "pending", "complete", "failed"
-	DAW            string // "ableton", "logic", "fl_studio"
+	DAW              string // "ableton", "logic", "fl_studio"
 }
 
 // TraceAudioUpload creates a span for audio upload operations
@@ -228,11 +228,11 @@ func (be *BusinessEvents) TraceSearch(ctx context.Context, attrs SearchEventAttr
 
 // EngagementEventAttrs attributes for engagement operations
 type EngagementEventAttrs struct {
-	EventType  string // "play", "view", "like", "comment", "share"
-	PostID     string
-	UserID     string
-	PlayCount  int64
-	ViewCount  int64
+	EventType string // "play", "view", "like", "comment", "share"
+	PostID    string
+	UserID    string
+	PlayCount int64
+	ViewCount int64
 }
 
 // TraceEngagement creates a span for engagement events (plays, views, likes, etc.)
