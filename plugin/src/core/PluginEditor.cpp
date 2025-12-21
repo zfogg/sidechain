@@ -1197,7 +1197,7 @@ void SidechainAudioProcessorEditor::showView(AppView view, NavigationDirection d
   bool shouldAnimate = componentToShow && componentToHide && componentToShow != componentToHide &&
                        !isSameView // Don't animate if already on same view
                        && currentView != AppView::Authentication && view != AppView::Authentication &&
-                       view != AppView::PostsFeed // TEMP: Skip animation to PostsFeed (TODO 4.21)
+                       view != AppView::PostsFeed // Known Issue 4.21: Skip animation to PostsFeed
                        && direction != NavigationDirection::None;
 
   if (shouldAnimate) {

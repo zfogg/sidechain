@@ -26,11 +26,6 @@ MessagesList::MessagesList(Sidechain::Stores::AppStore *store)
   Log::debug("MessagesList: Error state component created");
 
   startTimer(10000); // Refresh every 10 seconds
-
-  // TODO: - Show "typing" indicator (future) - Deferred to future
-  // phase
-  // TODO: .2 - Implement audio snippet playback in messages
-  // TODO: .3 - Upload audio snippet when sending
 }
 
 MessagesList::~MessagesList() {

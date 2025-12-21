@@ -9,9 +9,13 @@ MessageThread::MessageThread(Sidechain::Stores::AppStore *store)
       scrollBar(true) {
   Log::info("MessageThread: Initializing");
   addAndMakeVisible(scrollBar);
+
+  // Start timer for typing indicator animation (update every 250ms)
+  startTimer(250);
 }
 
 MessageThread::~MessageThread() {
+  stopTimer();
   Log::debug("MessageThread: Destroying");
 }
 
@@ -19,6 +23,7 @@ void MessageThread::paint(juce::Graphics &g) {
   g.fillAll(juce::Colour(0xff1a1a1a));
   drawHeader(g);
   drawMessages(g);
+  drawTypingIndicator(g);
   drawInputArea(g);
 }
 
@@ -41,6 +46,55 @@ void MessageThread::onAppStateChanged(const Sidechain::Stores::ChatState &) {
 }
 
 void MessageThread::drawMessages(juce::Graphics &) {}
+
+void MessageThread::drawTypingIndicator(juce::Graphics &g) {
+  // Get current channel state from store
+  if (!appStore)
+    return;
+
+  auto state = appStore->getChatState();
+  if (state.currentChannelId.isEmpty())
+    return;
+
+  auto it = state.channels.find(state.currentChannelId);
+  if (it == state.channels.end() || it->second.usersTyping.empty())
+    return;
+
+  // Position typing indicator above input area
+  int inputHeight = INPUT_HEIGHT;
+  int replyHeight = replyingToMessageId.isNotEmpty() ? REPLY_PREVIEW_HEIGHT : 0;
+  int typingY = getHeight() - inputHeight - replyHeight - 40;
+
+  // Draw typing indicator with animated dots
+  auto typingBounds = juce::Rectangle<int>(12, typingY, getWidth() - 24, 30);
+
+  g.setColour(juce::Colour(0xff888888));
+  g.setFont(juce::Font(juce::FontOptions().withHeight(12.0f)));
+
+  // Build typing user names
+  juce::String typingText;
+  const auto &usersTyping = it->second.usersTyping;
+
+  if (usersTyping.size() == 1) {
+    typingText = usersTyping[0] + " is typing";
+  } else if (usersTyping.size() == 2) {
+    typingText = usersTyping[0] + " and " + usersTyping[1] + " are typing";
+  } else if (usersTyping.size() > 2) {
+    typingText = juce::String(usersTyping.size()) + " users are typing";
+  }
+
+  // Draw animated dots
+  int64_t currentTime = juce::Time::currentTimeMillis();
+  int dotPhase = static_cast<int>((currentTime / 250) % 4); // 4 phases: dot1, dot2, dot3, none
+
+  juce::String dots;
+  for (int i = 1; i <= 3; ++i) {
+    dots += (i <= dotPhase) ? "•" : " ";
+  }
+
+  g.drawText(typingText + " " + dots, typingBounds, juce::Justification::centredLeft);
+}
+
 void MessageThread::drawMessageBubble(juce::Graphics &, const StreamChatClient::Message &, int &, int) {}
 void MessageThread::drawMessageReactions(juce::Graphics &, const StreamChatClient::Message &, int &, int, int) {}
 void MessageThread::drawEmptyState(juce::Graphics &) {}
