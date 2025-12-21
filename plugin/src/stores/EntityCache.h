@@ -78,8 +78,8 @@ public:
 
     // Check if expired
     if (isExpired(id)) {
-      // Remove expired entry (mutable operation in const method)
-      const_cast<EntityCache<T> *>(this)->remove(id);
+      // Don't remove expired entries in const method to maintain const-correctness
+      // Expired entries will be cleaned up by expireStale() or invalidatePattern()
       return nullptr;
     }
 
@@ -125,19 +125,30 @@ public:
   }
 
   /**
-   * FIX #2: WARNING - NOT IMMUTABLE
-   * Update entity in place (BREAKS IMMUTABILITY GUARANTEE)
+   * DEPRECATED: Immutable alternative pattern for entity updates
    *
-   * IMPORTANT: This method mutates shared entity in-place, which violates the immutability contract.
-   * Use only for performance-critical code where creating new entities is too expensive.
-   * Alternative: Create new entity and call set(id, newEntity) instead.
+   * INSTEAD OF: cache.update(id, [](T& e) { e.field = value; });
+   * USE THIS:
+   *   auto entity = cache.get(id);
+   *   if (entity) {
+   *     auto newEntity = std::make_shared<T>(*entity);
+   *     newEntity->field = value;
+   *     cache.set(id, newEntity);
+   *   }
    *
-   * Applies updater function to existing entity (if found)
+   * This maintains immutability and provides clean state snapshots to observers.
+   * See optimisticUpdate() if you need rollback semantics with snapshots.
+   *
+   * DEPRECATED: Kept for backwards compatibility only.
+   * Apply updater function to existing entity (if found)
    * Notifies observers after update
    *
    * @param id Entity ID to update
    * @param updater Function that mutates entity in-place
    * @return true if entity found and updated, false if not found or expired
+   *
+   * WARNING: This mutates shared entity in-place. All observers receive the mutated reference.
+   * Prefer creating new entities with set() instead for better state management.
    */
   template <typename Updater> bool update(const juce::String &id, Updater &&updater) {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -147,7 +158,8 @@ public:
       return false;
     }
 
-    // IMMUTABILITY WARNING: This mutates shared entity. All observers receive the mutated entity.
+    // MUTATION WARNING: This mutates shared entity. All observers receive the mutated entity.
+    // Prefer immutable patterns: get() -> copy -> modify -> set()
     updater(*it->second);
     timestamps_[id] = juce::Time::currentTimeMillis();
 
@@ -364,15 +376,20 @@ public:
   // Optimistic updates
 
   /**
-   * FIX #2: WARNING - NOT IMMUTABLE
-   * Start optimistic update (BREAKS IMMUTABILITY GUARANTEE)
+   * Optimistic update with automatic rollback on error
    *
-   * IMPORTANT: This method mutates shared entity in-place, which violates the immutability contract.
-   * Use only for optimistic updates where rollback snapshot is needed.
-   * Alternative: Create new entity and call set(id, newEntity) instead.
+   * Saves current state snapshot, applies update immediately (optimistic),
+   * and provides rollback mechanism if network request fails.
    *
-   * Saves current state as snapshot for potential rollback
-   * Updates entity immediately
+   * USAGE: For optimistic UI updates that should roll back on error:
+   *   cache.optimisticUpdate(id, [](T& e) { e.isLiked = true; });
+   *   networkCall([id]() {
+   *     if (failed) cache.rollbackOptimistic(id);
+   *     else cache.confirmOptimistic(id);
+   *   });
+   *
+   * WARNING: This mutates shared entity in-place during optimistic phase.
+   * Use confirmOptimistic() or rollbackOptimistic() to finalize the update.
    *
    * @param id Entity ID to update optimistically
    * @param updater Function that mutates entity in-place
@@ -385,14 +402,14 @@ public:
       return;
     }
 
-    // Save snapshot (deep copy of the entity)
+    // Save snapshot (deep copy of the entity) for potential rollback
     optimisticSnapshots_[id] = std::make_shared<T>(*it->second);
 
-    // IMMUTABILITY WARNING: This mutates shared entity. All observers receive the mutated entity.
+    // Apply update immediately (optimistic - show to user before server confirms)
     updater(*it->second);
     timestamps_[id] = juce::Time::currentTimeMillis();
 
-    // Notify observers
+    // Notify observers of optimistic change
     notifyObservers(id, it->second);
     notifyAllObservers();
   }
