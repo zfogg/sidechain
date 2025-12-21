@@ -101,7 +101,56 @@ void MessageThread::drawEmptyState(juce::Graphics &) {}
 void MessageThread::drawErrorState(juce::Graphics &) {}
 void MessageThread::drawInputArea(juce::Graphics &) {}
 
-void MessageThread::sendMessage() {}
+void MessageThread::sendMessage() {
+  // Send message with optional audio attachment
+  if (!streamChatClient || channelId.isEmpty() || channelType.isEmpty())
+    return;
+
+  // Get message text from input field
+  juce::String messageText = messageInput.getText();
+
+  // Check if user has recorded an audio snippet
+  bool hasAudioSnippet = audioSnippetRecorder && audioSnippetRecorder->isRecording();
+
+  // Text is optional if audio is present
+  if (messageText.isEmpty() && !hasAudioSnippet)
+    return;
+
+  // Build extraData with attachments and metadata
+  juce::var extraData;
+  if (auto obj = std::make_unique<juce::DynamicObject>()) {
+    // Add audio snippet flag if present
+    if (hasAudioSnippet) {
+      obj->setProperty("has_audio_snippet", true);
+      // The audioSnippetRecorder->onRecordingComplete callback will handle
+      // encoding the audio and creating the attachment with type="audio"
+    }
+
+    // Handle reply if user was replying to a message
+    if (replyingToMessageId.isNotEmpty()) {
+      obj->setProperty("reply_to", replyingToMessage.id);
+      obj->setProperty("reply_to_text", replyingToMessage.text);
+      obj->setProperty("reply_to_user_id", replyingToMessage.userId);
+    }
+
+    extraData = juce::var(obj.get());
+  }
+
+  // Send message through StreamChatClient
+  // streamChatClient->sendMessage(channelType, channelId, text, extraData, callback)
+  streamChatClient->sendMessage(channelType, channelId, messageText, extraData,
+                                [](const Outcome<StreamChatClient::Message> &result) {
+                                  if (result.isOk()) {
+                                    Log::info("MessageThread: Message sent successfully");
+                                  } else {
+                                    Log::error("MessageThread: Failed to send message");
+                                  }
+                                });
+
+  // Clear input and reset state
+  messageInput.clear();
+  cancelReply();
+}
 void MessageThread::loadMessages() {}
 void MessageThread::cancelReply() {}
 void MessageThread::reportMessage(const StreamChatClient::Message &) {}
@@ -251,8 +300,8 @@ void MessageThread::drawAudioAttachment(juce::Graphics &g, const StreamChatClien
   constexpr int BUTTON_SIZE = 30;
   constexpr int PADDING = 8;
 
-  // Play/pause button
-  bounds.removeFromLeft(BUTTON_SIZE + PADDING).withTrimmedRight(PADDING);
+  // Play/pause button (remove from bounds for layout calculation)
+  [[maybe_unused]] auto buttonArea = bounds.removeFromLeft(BUTTON_SIZE + PADDING).withTrimmedRight(PADDING);
   auto isPlaying = playingAudioId.isNotEmpty();
 
   // Draw play button or pause icon
