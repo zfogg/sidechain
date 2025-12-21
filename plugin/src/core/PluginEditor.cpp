@@ -40,10 +40,31 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
 
   // Initialize WebSocket client
   webSocketClient = std::make_unique<WebSocketClient>(WebSocketClient::Config::development());
-  webSocketClient->onMessage = [this](const WebSocketClient::Message &msg) { handleWebSocketMessage(msg); };
-  webSocketClient->onStateChanged = [this](WebSocketClient::ConnectionState wsState) {
-    handleWebSocketStateChange(wsState);
+
+  // BUG FIX #3 & #8: Use SafePointer to safely handle WebSocket callbacks
+  // WebSocket may fire callbacks from background thread after editor is destroyed
+  juce::Component::SafePointer<SidechainAudioProcessorEditor> editorPtr(this);
+
+  webSocketClient->onMessage = [editorPtr](const WebSocketClient::Message &msg) {
+    // Dispatch to message thread FIRST (bug #8 fix)
+    juce::MessageManager::callAsync([editorPtr, msg]() {
+      // Check if editor still exists before accessing it (SafePointer checks validity)
+      if (editorPtr != nullptr) {
+        editorPtr->handleWebSocketMessage(msg);
+      }
+    });
   };
+
+  webSocketClient->onStateChanged = [editorPtr](WebSocketClient::ConnectionState wsState) {
+    // Dispatch to message thread FIRST (bug #8 fix)
+    juce::MessageManager::callAsync([editorPtr, wsState]() {
+      // Check if editor still exists before accessing it
+      if (editorPtr != nullptr) {
+        editorPtr->handleWebSocketStateChange(wsState);
+      }
+    });
+  };
+
   webSocketClient->onError = [](const juce::String &error) { Log::error("WebSocket error: " + error); };
 
   // Create connection indicator
@@ -133,29 +154,36 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
       if (profileSetupComponent)
         profileSetupComponent->setUploadProgress(0.1f); // Start at 10%
 
-      networkClient->uploadProfilePicture(imageFile, [this](Outcome<juce::String> result) {
-        juce::MessageManager::callAsync([this, result]() {
-          if (result.isOk() && result.getValue().isNotEmpty()) {
-            auto s3Url = result.getValue();
-            // Update AppStore with the S3 URL (will trigger image download)
-            appStore.setProfilePictureUrl(s3Url);
+      // BUG FIX #4: Use SafePointer to protect against raw this pointer dangling
+      juce::Component::SafePointer<SidechainAudioProcessorEditor> profileEditorPtr(this);
 
-            // Update legacy state
-            profilePicUrl = s3Url;
-            saveLoginState();
+      networkClient->uploadProfilePicture(imageFile, [profileEditorPtr](Outcome<juce::String> result) {
+        // Dispatch to message thread (already async, but explicit is better)
+        juce::MessageManager::callAsync([profileEditorPtr, result]() {
+          // Check if editor still exists before accessing members
+          if (profileEditorPtr != nullptr) {
+            if (result.isOk() && result.getValue().isNotEmpty()) {
+              auto s3Url = result.getValue();
+              // Update AppStore with the S3 URL (will trigger image download)
+              profileEditorPtr->appStore.setProfilePictureUrl(s3Url);
 
-            // Update profile setup component with the S3 URL
-            if (profileSetupComponent) {
-              profileSetupComponent->setProfilePictureUrl(s3Url);
-              profileSetupComponent->setUploadComplete(true); // Show success
+              // Update legacy state
+              profileEditorPtr->profilePicUrl = s3Url;
+              profileEditorPtr->saveLoginState();
+
+              // Update profile setup component with the S3 URL
+              if (profileEditorPtr->profileSetupComponent) {
+                profileEditorPtr->profileSetupComponent->setProfilePictureUrl(s3Url);
+                profileEditorPtr->profileSetupComponent->setUploadComplete(true); // Show success
+              }
+
+              Log::info("Profile picture uploaded successfully: " + s3Url);
+            } else {
+              // On failure, show error state
+              Log::error("Profile picture upload failed");
+              if (profileEditorPtr->profileSetupComponent)
+                profileEditorPtr->profileSetupComponent->setUploadComplete(false); // Show failure
             }
-
-            Log::info("Profile picture uploaded successfully: " + s3Url);
-          } else {
-            // On failure, show error state
-            Log::error("Profile picture upload failed");
-            if (profileSetupComponent)
-              profileSetupComponent->setUploadComplete(false); // Show failure
           }
         });
       });
