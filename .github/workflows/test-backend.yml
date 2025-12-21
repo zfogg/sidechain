@@ -68,8 +68,8 @@ jobs:
           go install github.com/jstemmer/go-junit-report/v2@latest
           go test ./... -v -race -mod=mod -coverprofile=coverage.out -covermode=atomic 2>&1 | tee test-results.txt
           cat test-results.txt | go-junit-report -set-exit-code > test-results.xml
-          # Display coverage summary (ignore error if no coverage file)
-          go tool cover -func=coverage.out | tail -1 || true
+          # Display coverage summary
+          go tool cover -func=coverage.out | tail -1
 
       - name: Stop Docker Compose Services
         if: always()
