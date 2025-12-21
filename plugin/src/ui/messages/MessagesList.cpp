@@ -64,7 +64,39 @@ void MessagesList::onAppStateChanged(const Sidechain::Stores::ChatState &state) 
         channel.name = channelState.name;
         channel.type = "messaging"; // Always messaging type for now (from AppStore)
         channel.unreadCount = channelState.unreadCount;
-        // TODO: Map more fields from ChannelState to StreamChatClient::Channel as needed
+
+        // Map optional fields from ChannelState
+        // lastMessage: Get the most recent message from the messages vector
+        if (!channelState.messages.empty()) {
+          auto lastMsg = channelState.messages.back();
+          if (lastMsg) {
+            auto *msgObj = new juce::DynamicObject();
+            msgObj->setProperty("id", lastMsg->id);
+            msgObj->setProperty("text", lastMsg->text);
+            msgObj->setProperty("user_id", lastMsg->userId);
+            msgObj->setProperty("created_at", lastMsg->createdAt);
+            channel.lastMessage = juce::var(msgObj);
+
+            // lastMessageAt: Use the timestamp from the last message
+            channel.lastMessageAt = lastMsg->createdAt;
+          }
+        }
+
+        // extraData: Store typing indicators and loading state
+        {
+          auto *extraDataObj = new juce::DynamicObject();
+          if (!channelState.usersTyping.empty()) {
+            juce::var typingUsers;
+            int i = 0;
+            for (const auto &userId : channelState.usersTyping) {
+              typingUsers[i++] = userId;
+            }
+            extraDataObj->setProperty("users_typing", typingUsers);
+          }
+          extraDataObj->setProperty("is_loading_messages", channelState.isLoadingMessages);
+          channel.extraData = juce::var(extraDataObj);
+        }
+
         channels.push_back(channel);
         Log::debug("MessagesList: Added channel to list - id: " + channel.id + ", name: " + channel.name);
       }
