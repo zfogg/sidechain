@@ -172,6 +172,53 @@ struct User : public SerializableModel<User> {
       return juce::String(followingCount / 1000.0, 1) + "K";
     return juce::String(followingCount);
   }
+
+  // ==============================================================================
+  // Immutable copy-with-modifications builders
+  // These enforce the architectural constraint that all state changes flow
+  // through Redux state updates, not direct field mutations.
+
+  User withFollowStatus(bool following) const {
+    auto copy = *this;
+    copy.isFollowing = following;
+    return copy;
+  }
+
+  User withFollowerCount(int count) const {
+    auto copy = *this;
+    copy.followerCount = count;
+    return copy;
+  }
+
+  User withFollowerCountDelta(int delta) const {
+    auto copy = *this;
+    copy.followerCount += delta;
+    return copy;
+  }
+
+  User withOnlineStatus(bool online) const {
+    auto copy = *this;
+    copy.isOnline = online;
+    return copy;
+  }
+
+  User withStudioStatus(bool inStudio) const {
+    auto copy = *this;
+    copy.isInStudio = inStudio;
+    return copy;
+  }
+
+  User withMuteStatus(bool muted) const {
+    auto copy = *this;
+    copy.isMuted = muted;
+    return copy;
+  }
+
+  User withBlockStatus(bool blocked) const {
+    auto copy = *this;
+    copy.isBlocked = blocked;
+    return copy;
+  }
 };
 
 // ==============================================================================

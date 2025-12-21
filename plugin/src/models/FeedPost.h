@@ -211,6 +211,56 @@ public:
   bool isValid() const;
 
   // ==============================================================================
+  // Immutable copy-with-modifications builders
+  // These enforce the architectural constraint that all state changes flow
+  // through Redux state updates, not direct field mutations.
+
+  FeedPost withFollowStatus(bool following) const {
+    auto copy = *this;
+    copy.isFollowing = following;
+    return copy;
+  }
+
+  FeedPost withOnlineStatus(bool online) const {
+    auto copy = *this;
+    copy.isOnline = online;
+    return copy;
+  }
+
+  FeedPost withStudioStatus(bool inStudio) const {
+    auto copy = *this;
+    copy.isInStudio = inStudio;
+    return copy;
+  }
+
+  FeedPost withLikeStatus(bool liked, int newLikeCount) const {
+    auto copy = *this;
+    copy.isLiked = liked;
+    copy.likeCount = newLikeCount;
+    return copy;
+  }
+
+  FeedPost withSaveStatus(bool saved, int newSaveCount) const {
+    auto copy = *this;
+    copy.isSaved = saved;
+    copy.saveCount = newSaveCount;
+    return copy;
+  }
+
+  FeedPost withRepostStatus(bool reposted, int newRepostCount) const {
+    auto copy = *this;
+    copy.isReposted = reposted;
+    copy.repostCount = newRepostCount;
+    return copy;
+  }
+
+  FeedPost withCommentCount(int count) const {
+    auto copy = *this;
+    copy.commentCount = count;
+    return copy;
+  }
+
+  // ==============================================================================
   JUCE_LEAK_DETECTOR(FeedPost)
 };
 

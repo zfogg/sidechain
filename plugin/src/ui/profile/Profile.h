@@ -47,6 +47,31 @@ struct UserProfile {
   juce::String getAvatarUrl() const;
   juce::String getMemberSince() const;
   bool isOwnProfile(const juce::String &currentUserId) const;
+
+  // Immutable copy-with-modifications builders
+  UserProfile withFollowStatus(bool following) const {
+    auto copy = *this;
+    copy.isFollowing = following;
+    return copy;
+  }
+
+  UserProfile withFollowerCountDelta(int delta) const {
+    auto copy = *this;
+    copy.followerCount += delta;
+    return copy;
+  }
+
+  UserProfile withOnlineStatus(bool online) const {
+    auto copy = *this;
+    copy.isOnline = online;
+    return copy;
+  }
+
+  UserProfile withStudioStatus(bool inStudio) const {
+    auto copy = *this;
+    copy.isInStudio = inStudio;
+    return copy;
+  }
 };
 
 // ==============================================================================

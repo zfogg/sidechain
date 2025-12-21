@@ -1205,13 +1205,12 @@ void Profile::handleFollowToggle() {
             " - wasFollowing: " + juce::String(wasFollowing ? "true" : "false") +
             ", willFollow: " + juce::String(willFollow ? "true" : "false"));
 
-  // Optimistic UI update
-  profile.isFollowing = willFollow;
-  profile.followerCount += willFollow ? 1 : -1;
+  // Immutable update - create new profile copy with modifications
+  profile = profile.withFollowStatus(willFollow).withFollowerCountDelta(willFollow ? 1 : -1);
 
-  // Update all posts in the local userPosts array
+  // Update all posts in the local userPosts array using immutable builders
   for (auto &post : userPosts) {
-    post.isFollowing = willFollow;
+    post = post.withFollowStatus(willFollow);
   }
 
   // Update post cards and repaint
@@ -1456,8 +1455,8 @@ void Profile::queryPresenceForProfile() {
     }
 
     const auto &presence = presenceList[0];
-    profile.isOnline = presence.online;
-    profile.isInStudio = (presence.status == "in_studio" || presence.status == "in studio");
+    bool isInStudio = (presence.status == "in_studio" || presence.status == "in studio");
+    profile = profile.withOnlineStatus(presence.online).withStudioStatus(isInStudio);
 
     // Format last active time
     if (!presence.lastActive.isEmpty()) {
@@ -1490,8 +1489,7 @@ void Profile::updateUserPresence(const juce::String &userId, bool isOnline, cons
 
   bool isInStudio = (status == "in_studio" || status == "in studio" || status == "recording");
 
-  profile.isOnline = isOnline;
-  profile.isInStudio = isInStudio;
+  profile = profile.withOnlineStatus(isOnline).withStudioStatus(isInStudio);
 
   // Repaint to show updated online status
   repaint();
