@@ -1055,27 +1055,29 @@ void Search::showBPMPicker() {
 }
 
 void Search::showCustomBPMDialog() {
-  juce::AlertWindow alert("Custom BPM Range",
+  // Use heap-allocated AlertWindow to avoid use-after-free
+  // (enterModalState is async, so stack allocation would be destroyed before callback)
+  auto *alert = new juce::AlertWindow("Custom BPM Range",
                           "Enter minimum and maximum BPM values:", juce::MessageBoxIconType::QuestionIcon);
 
-  alert.addTextEditor("bpmMin", juce::String(bpmMin), "Minimum BPM:", false);
-  alert.addTextEditor("bpmMax", juce::String(bpmMax), "Maximum BPM:", false);
+  alert->addTextEditor("bpmMin", juce::String(bpmMin), "Minimum BPM:", false);
+  alert->addTextEditor("bpmMax", juce::String(bpmMax), "Maximum BPM:", false);
 
-  auto *minEditor = alert.getTextEditor("bpmMin");
-  auto *maxEditor = alert.getTextEditor("bpmMax");
+  auto *minEditor = alert->getTextEditor("bpmMin");
+  auto *maxEditor = alert->getTextEditor("bpmMax");
 
   if (minEditor != nullptr)
     minEditor->setInputRestrictions(3, "0123456789");
   if (maxEditor != nullptr)
     maxEditor->setInputRestrictions(3, "0123456789");
 
-  alert.addButton("Apply", 1, juce::KeyPress(juce::KeyPress::returnKey));
-  alert.addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+  alert->addButton("Apply", 1, juce::KeyPress(juce::KeyPress::returnKey));
+  alert->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
 
-  alert.enterModalState(true, juce::ModalCallbackFunction::create([this, &alert](int result) {
+  alert->enterModalState(true, juce::ModalCallbackFunction::create([this, alert](int result) {
                           if (result == 1) {
-                            juce::String minText = alert.getTextEditorContents("bpmMin").trim();
-                            juce::String maxText = alert.getTextEditorContents("bpmMax").trim();
+                            juce::String minText = alert->getTextEditorContents("bpmMin").trim();
+                            juce::String maxText = alert->getTextEditorContents("bpmMax").trim();
 
                             int newMin = minText.getIntValue();
                             int newMax = maxText.getIntValue();
@@ -1093,7 +1095,9 @@ void Search::showCustomBPMDialog() {
                                   "1-300\n- Maximum must be greater than minimum");
                             }
                           }
-                        }));
+                          // Note: alert is deleted by JUCE (deleteWhenDismissed=true)
+                        }),
+                        true); // deleteWhenDismissed=true - JUCE handles cleanup
 }
 
 void Search::showKeyPicker() {

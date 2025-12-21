@@ -20,7 +20,8 @@ std::atomic<bool> isShuttingDown{false};
  * DelayTimer - Custom timer for delayed execution
  *
  * Timer that executes a callback once after a delay and then
- * self-destructs. Used internally by Async::delay().
+ * removes itself from the timer map. Ownership is managed via
+ * unique_ptr in the map, avoiding manual delete and race conditions.
  */
 class DelayTimer : public juce::Timer {
 public:
@@ -35,9 +36,13 @@ public:
     stopTimer();
     if (callback)
       callback();
-    // Self-destruct after firing
+    // Schedule removal from the map (which will destroy this timer via unique_ptr)
     // Must be done on message thread, which we're already on
-    juce::MessageManager::callAsync([this]() { delete this; });
+    int id = timerId;
+    juce::MessageManager::callAsync([id]() {
+      std::lock_guard<std::mutex> lock(delayTimersMutex);
+      delayTimers.erase(id);
+    });
   }
 
   /** Get the unique timer ID */
@@ -50,9 +55,9 @@ private:
   std::function<void()> callback; // /< Callback to execute
 };
 
-// Active delay timers (protected by mutex)
+// Active delay timers (protected by mutex) - unique_ptr manages lifetime
 std::mutex delayTimersMutex;
-std::map<int, DelayTimer *> delayTimers;
+std::map<int, std::unique_ptr<DelayTimer>> delayTimers;
 
 // Debounce timers keyed by string (protected by mutex)
 std::mutex debounceMutex;
@@ -163,14 +168,15 @@ int delay(int delayMs, std::function<void()> callback) {
 
   // Must create timer on message thread
   juce::MessageManager::callAsync([timerId, delayMs, delayCallback = std::move(callback)]() {
-    auto *timer = new DelayTimer(timerId, delayCallback);
+    auto timer = std::make_unique<DelayTimer>(timerId, delayCallback);
+    auto *timerPtr = timer.get();
 
     {
       std::lock_guard<std::mutex> lock(delayTimersMutex);
-      delayTimers[timerId] = timer;
+      delayTimers[timerId] = std::move(timer);
     }
 
-    timer->startTimer(delayMs);
+    timerPtr->startTimer(delayMs);
   });
 
   return timerId;
@@ -188,8 +194,7 @@ void cancelDelay(int timerId) {
     auto it = delayTimers.find(timerId);
     if (it != delayTimers.end()) {
       it->second->stopTimer();
-      delete it->second;
-      delayTimers.erase(it);
+      delayTimers.erase(it); // unique_ptr destructor handles cleanup
     }
   });
 }
@@ -339,9 +344,8 @@ void shutdown() {
     std::lock_guard<std::mutex> lock(delayTimersMutex);
     for (auto &pair : delayTimers) {
       pair.second->stopTimer();
-      delete pair.second;
     }
-    delayTimers.clear();
+    delayTimers.clear(); // unique_ptr destructors handle cleanup
   }
 
   {

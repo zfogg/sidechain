@@ -745,7 +745,7 @@ void TwoFactorSettings::doRegenerateBackupCodes() {
                                 });
                               }
                             }
-                            delete dialog;
+                            // Note: dialog is deleted by JUCE (deleteWhenDismissed=true)
                           }),
                           true);
 }
