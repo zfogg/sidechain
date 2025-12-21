@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 
+namespace Sidechain {
 // ==============================================================================
 /**
  * TimeUtils provides utility functions for time formatting
@@ -40,3 +41,4 @@ juce::String formatTimeAgo(const juce::Time &time);
  */
 juce::String formatTimeAgoShort(const juce::Time &time);
 } // namespace TimeUtils
+} // namespace Sidechain

@@ -61,77 +61,77 @@ TEST_CASE("Sidechain::FeedPost::extractUserId", "[Sidechain::FeedPost]") {
 }
 
 //==============================================================================
-TEST_CASE("TimeUtils::formatTimeAgo", "[TimeUtils]") {
+TEST_CASE("Sidechain::TimeUtils::formatTimeAgo", "[Sidechain::TimeUtils]") {
   auto now = juce::Time::getCurrentTime();
 
   SECTION("Just now (< 60 seconds)") {
     auto recent = now - juce::RelativeTime::seconds(30);
-    REQUIRE(TimeUtils::formatTimeAgo(recent) == "just now");
+    REQUIRE(Sidechain::TimeUtils::formatTimeAgo(recent) == "just now");
 
     auto veryRecent = now - juce::RelativeTime::seconds(5);
-    REQUIRE(TimeUtils::formatTimeAgo(veryRecent) == "just now");
+    REQUIRE(Sidechain::TimeUtils::formatTimeAgo(veryRecent) == "just now");
   }
 
   SECTION("Minutes ago") {
     auto oneMin = now - juce::RelativeTime::minutes(1);
-    REQUIRE(TimeUtils::formatTimeAgo(oneMin) == "1 min ago");
+    REQUIRE(Sidechain::TimeUtils::formatTimeAgo(oneMin) == "1 min ago");
 
     auto fiveMins = now - juce::RelativeTime::minutes(5);
-    REQUIRE(TimeUtils::formatTimeAgo(fiveMins) == "5 mins ago");
+    REQUIRE(Sidechain::TimeUtils::formatTimeAgo(fiveMins) == "5 mins ago");
 
     auto thirtyMins = now - juce::RelativeTime::minutes(30);
-    REQUIRE(TimeUtils::formatTimeAgo(thirtyMins) == "30 mins ago");
+    REQUIRE(Sidechain::TimeUtils::formatTimeAgo(thirtyMins) == "30 mins ago");
   }
 
   SECTION("Hours ago") {
     auto oneHour = now - juce::RelativeTime::hours(1);
-    REQUIRE(TimeUtils::formatTimeAgo(oneHour) == "1 hour ago");
+    REQUIRE(Sidechain::TimeUtils::formatTimeAgo(oneHour) == "1 hour ago");
 
     auto fiveHours = now - juce::RelativeTime::hours(5);
-    REQUIRE(TimeUtils::formatTimeAgo(fiveHours) == "5 hours ago");
+    REQUIRE(Sidechain::TimeUtils::formatTimeAgo(fiveHours) == "5 hours ago");
 
     auto twentyThreeHours = now - juce::RelativeTime::hours(23);
-    REQUIRE(TimeUtils::formatTimeAgo(twentyThreeHours) == "23 hours ago");
+    REQUIRE(Sidechain::TimeUtils::formatTimeAgo(twentyThreeHours) == "23 hours ago");
   }
 
   SECTION("Days ago") {
     auto oneDay = now - juce::RelativeTime::days(1);
-    REQUIRE(TimeUtils::formatTimeAgo(oneDay) == "1 day ago");
+    REQUIRE(Sidechain::TimeUtils::formatTimeAgo(oneDay) == "1 day ago");
 
     auto threeDays = now - juce::RelativeTime::days(3);
-    REQUIRE(TimeUtils::formatTimeAgo(threeDays) == "3 days ago");
+    REQUIRE(Sidechain::TimeUtils::formatTimeAgo(threeDays) == "3 days ago");
 
     auto sixDays = now - juce::RelativeTime::days(6);
-    REQUIRE(TimeUtils::formatTimeAgo(sixDays) == "6 days ago");
+    REQUIRE(Sidechain::TimeUtils::formatTimeAgo(sixDays) == "6 days ago");
   }
 
   SECTION("Weeks ago") {
     auto oneWeek = now - juce::RelativeTime::days(7);
-    REQUIRE(TimeUtils::formatTimeAgo(oneWeek) == "1 week ago");
+    REQUIRE(Sidechain::TimeUtils::formatTimeAgo(oneWeek) == "1 week ago");
 
     auto twoWeeks = now - juce::RelativeTime::days(14);
-    REQUIRE(TimeUtils::formatTimeAgo(twoWeeks) == "2 weeks ago");
+    REQUIRE(Sidechain::TimeUtils::formatTimeAgo(twoWeeks) == "2 weeks ago");
   }
 
   SECTION("Months ago") {
     auto oneMonth = now - juce::RelativeTime::days(35);
-    REQUIRE(TimeUtils::formatTimeAgo(oneMonth) == "1 month ago");
+    REQUIRE(Sidechain::TimeUtils::formatTimeAgo(oneMonth) == "1 month ago");
 
     auto threeMonths = now - juce::RelativeTime::days(100);
-    REQUIRE(TimeUtils::formatTimeAgo(threeMonths) == "3 months ago");
+    REQUIRE(Sidechain::TimeUtils::formatTimeAgo(threeMonths) == "3 months ago");
   }
 
   SECTION("Years ago") {
     auto oneYear = now - juce::RelativeTime::days(400);
-    REQUIRE(TimeUtils::formatTimeAgo(oneYear) == "1 year ago");
+    REQUIRE(Sidechain::TimeUtils::formatTimeAgo(oneYear) == "1 year ago");
 
     auto twoYears = now - juce::RelativeTime::days(800);
-    REQUIRE(TimeUtils::formatTimeAgo(twoYears) == "2 years ago");
+    REQUIRE(Sidechain::TimeUtils::formatTimeAgo(twoYears) == "2 years ago");
   }
 
   SECTION("Future time returns just now") {
     auto future = now + juce::RelativeTime::hours(1);
-    REQUIRE(TimeUtils::formatTimeAgo(future) == "just now");
+    REQUIRE(Sidechain::TimeUtils::formatTimeAgo(future) == "just now");
   }
 }
 

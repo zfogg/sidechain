@@ -85,7 +85,7 @@ juce::String FeedPost::extractUserId(const juce::String &actorString) {
 
 // ==============================================================================
 /** Format timestamp as "time ago" string
- * @deprecated Use TimeUtils::formatTimeAgo() instead
+ * @deprecated Use Sidechain::TimeUtils::formatTimeAgo() instead
  * @param time Timestamp to format
  * @return Human-readable time string (e.g., "2h ago")
  */

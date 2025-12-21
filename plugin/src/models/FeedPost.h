@@ -198,11 +198,11 @@ public:
   static juce::String extractUserId(const juce::String &actor);
 
   /** Format timestamp as "time ago" string
-   *  @deprecated Use TimeUtils::formatTimeAgo() instead
+   *  @deprecated Use Sidechain::TimeUtils::formatTimeAgo() instead
    *  @param time Timestamp to format
    *  @return Human-readable time string (e.g., "2h ago")
    */
-  [[deprecated("Use TimeUtils::formatTimeAgo() instead")]]
+  [[deprecated("Use Sidechain::TimeUtils::formatTimeAgo() instead")]]
   static juce::String formatTimeAgo(const juce::Time &time);
 
   /** Check if post is valid (has required fields)

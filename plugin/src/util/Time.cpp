@@ -1,5 +1,6 @@
 #include "Time.h"
 
+namespace Sidechain {
 namespace TimeUtils {
 
 juce::String formatTimeAgo(const juce::Time &time) {
@@ -90,3 +91,4 @@ juce::String formatTimeAgoShort(const juce::Time &time) {
 }
 
 } // namespace TimeUtils
+} // namespace Sidechain

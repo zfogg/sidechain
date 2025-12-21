@@ -105,7 +105,7 @@ void AggregatedFeedCard::updateActivityCards() {
 }
 
 juce::String AggregatedFeedCard::formatTimestamp(const juce::Time &time) const {
-  return TimeUtils::formatTimeAgo(time);
+  return Sidechain::TimeUtils::formatTimeAgo(time);
 }
 
 void AggregatedFeedCard::paint(juce::Graphics &g) {

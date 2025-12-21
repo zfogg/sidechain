@@ -122,7 +122,7 @@ juce::String NotificationItem::getDisplayText() const {
 
 juce::String NotificationItem::getRelativeTime() const {
   // Use group.updatedAt
-  return TimeUtils::formatTimeAgoShort(group.updatedAt);
+  return Sidechain::TimeUtils::formatTimeAgoShort(group.updatedAt);
 }
 
 juce::String NotificationItem::getVerbIcon() const {
