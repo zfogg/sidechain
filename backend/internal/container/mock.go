@@ -12,8 +12,8 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/search"
 	"github.com/zfogg/sidechain/backend/internal/storage"
 	"github.com/zfogg/sidechain/backend/internal/stream"
-	"github.com/zfogg/sidechain/backend/internal/websocket"
 	"github.com/zfogg/sidechain/backend/internal/waveform"
+	"github.com/zfogg/sidechain/backend/internal/websocket"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )

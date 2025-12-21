@@ -7,7 +7,7 @@ import (
 
 // InitializationError indicates that required dependencies are missing
 type InitializationError struct {
-	Message  string
+	Message     string
 	MissingDeps []string
 }
 

@@ -15,8 +15,8 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/search"
 	"github.com/zfogg/sidechain/backend/internal/storage"
 	"github.com/zfogg/sidechain/backend/internal/stream"
-	"github.com/zfogg/sidechain/backend/internal/websocket"
 	"github.com/zfogg/sidechain/backend/internal/waveform"
+	"github.com/zfogg/sidechain/backend/internal/websocket"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -30,12 +30,12 @@ type Container struct {
 	cache  *cache.RedisClient
 
 	// API clients
-	stream        stream.StreamClientInterface
-	search        *search.Client
-	gorse         *recommendations.GorseRESTClient
-	s3            *storage.S3Uploader
-	auth          *auth.Service
-	wsHandler     *websocket.Handler
+	stream    stream.StreamClientInterface
+	search    *search.Client
+	gorse     *recommendations.GorseRESTClient
+	s3        *storage.S3Uploader
+	auth      *auth.Service
+	wsHandler *websocket.Handler
 
 	// Audio processing
 	audioProcessor *audio.Processor
@@ -45,7 +45,7 @@ type Container struct {
 	waveformStorage   *waveform.Storage
 
 	// Features
-	alertManager  *alerts.AlertManager
+	alertManager   *alerts.AlertManager
 	alertEvaluator *alerts.Evaluator
 
 	// Lifecycle hooks

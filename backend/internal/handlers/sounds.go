@@ -25,18 +25,18 @@ func NewSoundHandlers(c *container.Container) *SoundHandlers {
 
 // SoundResponse represents a sound in API responses
 type SoundResponse struct {
-	ID              string              `json:"id"`
-	Name            string              `json:"name"`
-	Description     string              `json:"description"`
-	Duration        float64             `json:"duration"`
-	CreatorID       string              `json:"creator_id"`
-	Creator         *UserBriefResponse  `json:"creator,omitempty"`
-	OriginalPostID  *string             `json:"original_post_id,omitempty"`
-	UsageCount      int                 `json:"usage_count"`
-	IsTrending      bool                `json:"is_trending"`
-	TrendingRank    int                 `json:"trending_rank"`
-	IsPublic        bool                `json:"is_public"`
-	CreatedAt       string              `json:"created_at"`
+	ID             string             `json:"id"`
+	Name           string             `json:"name"`
+	Description    string             `json:"description"`
+	Duration       float64            `json:"duration"`
+	CreatorID      string             `json:"creator_id"`
+	Creator        *UserBriefResponse `json:"creator,omitempty"`
+	OriginalPostID *string            `json:"original_post_id,omitempty"`
+	UsageCount     int                `json:"usage_count"`
+	IsTrending     bool               `json:"is_trending"`
+	TrendingRank   int                `json:"trending_rank"`
+	IsPublic       bool               `json:"is_public"`
+	CreatedAt      string             `json:"created_at"`
 }
 
 // UserBriefResponse is a brief user info for sound responses
