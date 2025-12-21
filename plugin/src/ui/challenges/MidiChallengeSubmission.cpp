@@ -24,19 +24,17 @@ MidiChallengeSubmission::MidiChallengeSubmission(SidechainAudioProcessor &proces
 
     if (!postId.isEmpty() && !challenge.id.isEmpty()) {
       // Submit the post to the challenge
-      networkClient.submitMIDIChallengeEntry(
-          challenge.id, "", postId, midiData, "",
-          [this](const auto &outcome) {
-            if (outcome.isSuccess()) {
-              Log::info("MidiChallengeSubmission: Challenge submission successful");
-              submissionState = SubmissionState::Success;
-            } else {
-              Log::error("MidiChallengeSubmission: Challenge submission failed: " + outcome.getError());
-              submissionState = SubmissionState::Error;
-              errorMessage = outcome.getError();
-            }
-            repaint();
-          });
+      networkClient.submitMIDIChallengeEntry(challenge.id, "", postId, midiData, "", [this](const auto &outcome) {
+        if (outcome.isSuccess()) {
+          Log::info("MidiChallengeSubmission: Challenge submission successful");
+          submissionState = SubmissionState::Success;
+        } else {
+          Log::error("MidiChallengeSubmission: Challenge submission failed: " + outcome.getError());
+          submissionState = SubmissionState::Error;
+          errorMessage = outcome.getError();
+        }
+        repaint();
+      });
     } else {
       Log::warn("MidiChallengeSubmission: Missing post ID or challenge ID");
       submissionState = SubmissionState::Error;

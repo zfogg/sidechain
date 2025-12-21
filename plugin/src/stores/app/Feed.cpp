@@ -723,49 +723,49 @@ void AppStore::handleFetchSuccess(FeedType feedType, const juce::var &data, int 
       });
     } else {
 
-    Log::debug("========== About to call parseJsonResponse ==========");
-    auto response = parseJsonResponse(data);
-    Log::debug("========== parseJsonResponse COMPLETE, got " + juce::String(response.posts.size()) +
-               " posts ==========");
+      Log::debug("========== About to call parseJsonResponse ==========");
+      auto response = parseJsonResponse(data);
+      Log::debug("========== parseJsonResponse COMPLETE, got " + juce::String(response.posts.size()) +
+                 " posts ==========");
 
-    // Validate response size against requested limit
-    const size_t responseSize = static_cast<size_t>(response.posts.size());
-    const size_t expectedLimit = static_cast<size_t>(limit);
-    if (responseSize > expectedLimit) {
-      Log::warn("AppStore: Response size (" + juce::String(static_cast<int>(responseSize)) +
-                ") exceeds requested limit (" + juce::String(limit) + ")");
-    }
+      // Validate response size against requested limit
+      const size_t responseSize = static_cast<size_t>(response.posts.size());
+      const size_t expectedLimit = static_cast<size_t>(limit);
+      if (responseSize > expectedLimit) {
+        Log::warn("AppStore: Response size (" + juce::String(static_cast<int>(responseSize)) +
+                  ") exceeds requested limit (" + juce::String(limit) + ")");
+      }
 
-    // Cache the feed data in memory cache (5-minute TTL)
-    Log::debug("========== About to cache feed data ==========");
-    auto cacheKey = "feed:" + feedTypeToString(feedType).toLowerCase();
-    Log::debug("========== Feed cached successfully ==========");
+      // Cache the feed data in memory cache (5-minute TTL)
+      Log::debug("========== About to cache feed data ==========");
+      auto cacheKey = "feed:" + feedTypeToString(feedType).toLowerCase();
+      Log::debug("========== Feed cached successfully ==========");
 
-    Log::debug("========== About to call updateFeedState ==========");
-    PostsState newState = sliceManager.posts->getState();
-    if (newState.feeds.count(feedType) == 0) {
-      newState.feeds[feedType] = FeedState();
-    }
+      Log::debug("========== About to call updateFeedState ==========");
+      PostsState newState = sliceManager.posts->getState();
+      if (newState.feeds.count(feedType) == 0) {
+        newState.feeds[feedType] = FeedState();
+      }
 
-    auto &feedState = newState.feeds[feedType];
-    if (offset == 0) {
-      feedState.posts.clear();
-    }
-    // Convert juce::Array<FeedPost> to vector<shared_ptr<FeedPost>>
-    for (const auto &post : response.posts) {
-      feedState.posts.push_back(std::make_shared<FeedPost>(post));
-    }
+      auto &feedState = newState.feeds[feedType];
+      if (offset == 0) {
+        feedState.posts.clear();
+      }
+      // Convert juce::Array<FeedPost> to vector<shared_ptr<FeedPost>>
+      for (const auto &post : response.posts) {
+        feedState.posts.push_back(std::make_shared<FeedPost>(post));
+      }
 
-    feedState.isLoading = false;
-    feedState.isRefreshing = false;
-    feedState.offset = offset + response.posts.size();
-    feedState.total = response.total;
-    feedState.hasMore = response.hasMore; // Use has_more from API response
-    feedState.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
-    feedState.error = "";
-    feedState.isSynced = true;
-    sliceManager.posts->setState(newState);
-    Log::debug("========== updateFeedState COMPLETE ==========");
+      feedState.isLoading = false;
+      feedState.isRefreshing = false;
+      feedState.offset = offset + response.posts.size();
+      feedState.total = response.total;
+      feedState.hasMore = response.hasMore; // Use has_more from API response
+      feedState.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
+      feedState.error = "";
+      feedState.isSynced = true;
+      sliceManager.posts->setState(newState);
+      Log::debug("========== updateFeedState COMPLETE ==========");
     }
 
     Log::info("========== handleFetchSuccess COMPLETE ==========");

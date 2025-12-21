@@ -108,10 +108,10 @@ public:
 
   // ==========================================================================
   // Callbacks
-  std::function<void()> onUploadComplete; // Called after successful upload
+  std::function<void()> onUploadComplete;                               // Called after successful upload
   std::function<void(const juce::String &)> onUploadCompleteWithPostId; // Called after successful upload with post ID
-  std::function<void()> onCancel;         // Called when user cancels
-  std::function<void()> onSaveAsDraft;    // Called when user saves as draft
+  std::function<void()> onCancel;                                       // Called when user cancels
+  std::function<void()> onSaveAsDraft;                                  // Called when user saves as draft
 
 protected:
   void onAppStateChanged(const Sidechain::Stores::UploadState &state) override;
