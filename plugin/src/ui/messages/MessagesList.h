@@ -60,7 +60,6 @@ protected:
   // ==============================================================================
   // AppStoreComponent overrides
   void onAppStateChanged(const Sidechain::Stores::ChatState &state) override;
-  void subscribeToAppStore();
 
 private:
   // ==============================================================================

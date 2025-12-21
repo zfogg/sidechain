@@ -57,7 +57,6 @@ public:
 
 protected:
   void onAppStateChanged(const Sidechain::Stores::PlaylistState &state) override;
-  void subscribeToAppStore();
 
 private:
   // ==============================================================================

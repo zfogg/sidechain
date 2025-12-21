@@ -65,13 +65,28 @@ enum class PostsFeedDisplayState { Loading, Loaded, Empty, Error };
 static PostsFeedDisplayState feedDisplayState = PostsFeedDisplayState::Loading;
 
 // ==============================================================================
-PostsFeed::PostsFeed(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
+PostsFeed::PostsFeed(Sidechain::Stores::AppStore *store)
+    : AppStoreComponent(
+          store, [store](auto cb) { return store ? store->subscribeToFeed(cb) : std::function<void()>([]() {}); }) {
   using namespace Sidechain::Stores;
+  if (appStore) {
+    postsSlice = Sidechain::Stores::Slices::AppSliceManager::getInstance().posts;
+    if (postsSlice) {
+      juce::Component::SafePointer<PostsFeed> safeThis(this);
+      storeUnsubscriber = postsSlice->subscribe([safeThis](const Sidechain::Stores::PostsState &state) {
+        if (!safeThis)
+          return;
+        juce::MessageManager::callAsync([safeThis, state]() {
+          if (safeThis) {
+            safeThis->onAppStateChanged(state);
+          }
+        });
+      });
+    }
+  }
 
   Log::info("PostsFeed: Initializing feed component");
   setSize(1000, 800);
-
-  // AppStoreComponent will call subscribeToAppStore if store is provided
 
   // Add scroll bar
   addAndMakeVisible(scrollBar);
@@ -123,7 +138,6 @@ PostsFeed::PostsFeed(Sidechain::Stores::AppStore *store) : AppStoreComponent(sto
   Log::info("PostsFeedComponent: Initialization complete");
 
   // Subscribe to AppStore after UI setup
-  subscribeToAppStore();
 }
 
 PostsFeed::~PostsFeed() {
@@ -515,23 +529,6 @@ void PostsFeed::handleFeedStateChanged() {
 
 void PostsFeed::onAppStateChanged(const Sidechain::Stores::PostsState & /*state*/) {
   handleFeedStateChanged();
-}
-
-void PostsFeed::subscribeToAppStore() {
-  // Subscribe to PostsSlice for feed state changes
-  postsSlice = Sidechain::Stores::Slices::AppSliceManager::getInstance().posts;
-  if (postsSlice) {
-    juce::Component::SafePointer<PostsFeed> safeThis(this);
-    postsSlice->subscribe([safeThis](const Sidechain::Stores::PostsState &state) {
-      if (!safeThis)
-        return;
-      juce::MessageManager::callAsync([safeThis, state]() {
-        if (safeThis) {
-          safeThis->onAppStateChanged(state);
-        }
-      });
-    });
-  }
 }
 
 // ==============================================================================

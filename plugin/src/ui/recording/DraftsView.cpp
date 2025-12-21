@@ -4,12 +4,13 @@
 #include "Upload.h" // For key/genre names
 
 // ==============================================================================
-DraftsView::DraftsView(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
+DraftsView::DraftsView(Sidechain::Stores::AppStore *store)
+    : AppStoreComponent(
+          store, [store](auto cb) { return store ? store->subscribeToDrafts(cb) : std::function<void()>([]() {}); }) {
   scrollBar = std::make_unique<juce::ScrollBar>(true);
   scrollBar->addListener(this);
   scrollBar->setAutoHide(true);
   addAndMakeVisible(scrollBar.get());
-  subscribeToAppStore();
 }
 
 DraftsView::~DraftsView() {
@@ -18,49 +19,6 @@ DraftsView::~DraftsView() {
 }
 
 // ==============================================================================
-void DraftsView::subscribeToAppStore() {
-  if (!appStore)
-    return;
-
-  juce::Component::SafePointer<DraftsView> safeThis(this);
-  storeUnsubscriber = appStore->subscribeToDrafts([safeThis](const Sidechain::Stores::DraftState &state) {
-    if (!safeThis)
-      return;
-
-    juce::MessageManager::callAsync([safeThis, state]() {
-      if (safeThis == nullptr)
-        return;
-
-      safeThis->drafts.clear();
-      for (const auto &draftPtr : state.drafts) {
-        if (draftPtr) {
-          // Serialize Draft to juce::var
-          const auto &draft = *draftPtr;
-          juce::DynamicObject::Ptr obj = new juce::DynamicObject();
-          obj->setProperty("id", draft.id);
-          obj->setProperty("type", draft.type);
-          obj->setProperty("text", draft.text);
-          obj->setProperty("audio_file_path", draft.audioFilePath);
-          obj->setProperty("midi_file_path", draft.midiFilePath);
-          obj->setProperty("image_file_path", draft.imageFilePath);
-          obj->setProperty("duration", draft.duration);
-          obj->setProperty("bpm", draft.bpm);
-          safeThis->drafts.add(juce::var(obj));
-        }
-      }
-      safeThis->isLoading = false;
-      safeThis->errorMessage = "";
-      safeThis->hasRecoveryDraft = false;
-
-      safeThis->resized();
-      safeThis->repaint();
-    });
-  });
-
-  if (appStore) {
-    appStore->loadDrafts();
-  }
-}
 
 void DraftsView::onAppStateChanged(const Sidechain::Stores::DraftState & /*state*/) {
   repaint();

@@ -8,7 +8,10 @@
 #include <vector>
 
 // ==============================================================================
-UserDiscovery::UserDiscovery(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
+UserDiscovery::UserDiscovery(Sidechain::Stores::AppStore *store)
+    : AppStoreComponent(store, [store](auto cb) {
+        return store ? store->subscribeToDiscovery(cb) : std::function<void()>([]() {});
+      }) {
   Log::info("UserDiscovery: Initializing");
 
   // Create search box
@@ -35,7 +38,6 @@ UserDiscovery::UserDiscovery(Sidechain::Stores::AppStore *store) : AppStoreCompo
   loadRecentSearches();
 
   // Subscribe to AppStore after all UI setup is complete
-  subscribeToAppStore();
 }
 
 UserDiscovery::~UserDiscovery() {
@@ -1240,29 +1242,6 @@ void UserDiscovery::updateUserPresence(const juce::String &userId, bool isOnline
 
 // ==============================================================================
 // AppStoreComponent<DiscoveryState> Implementation
-
-void UserDiscovery::subscribeToAppStore() {
-  if (!appStore) {
-    Log::warn("UserDiscovery::subscribeToAppStore: AppStore not set");
-    return;
-  }
-
-  // Subscribe to DiscoveryState slice for reactive updates
-  juce::Component::SafePointer<UserDiscovery> safeThis(this);
-  storeUnsubscriber = appStore->subscribeToDiscovery([safeThis](const Sidechain::Stores::DiscoveryState &state) {
-    if (!safeThis)
-      return;
-    // Post to message thread for thread-safe UI updates
-    juce::MessageManager::callAsync([safeThis, state]() {
-      if (safeThis) {
-        safeThis->onAppStateChanged(state);
-      }
-    });
-  });
-
-  // Load initial discovery data via AppStore
-  loadDiscoveryData();
-}
 
 void UserDiscovery::onAppStateChanged(const Sidechain::Stores::DiscoveryState &state) {
   Log::debug("UserDiscovery::onAppStateChanged: DiscoveryState updated");

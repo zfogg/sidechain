@@ -83,7 +83,9 @@ bool UserProfile::isOwnProfile(const juce::String &currentUserId) const {
 // ==============================================================================
 // Profile implementation
 // ==============================================================================
-Profile::Profile(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
+Profile::Profile(Sidechain::Stores::AppStore *store)
+    : AppStoreComponent(
+          store, [store](auto cb) { return store ? store->subscribeToUser(cb) : std::function<void()>([]() {}); }) {
   Log::info("Profile: Initializing profile component");
 
   scrollBar = std::make_unique<juce::ScrollBar>(true);
@@ -1628,16 +1630,4 @@ void Profile::onAppStateChanged(const Sidechain::Stores::UserState &state) {
 
     repaint();
   }
-}
-
-void Profile::subscribeToAppStore() {
-  juce::Component::SafePointer<Profile> safeThis(this);
-  storeUnsubscriber = appStore->subscribeToUser([safeThis](const Sidechain::Stores::UserState &state) {
-    if (!safeThis)
-      return;
-    juce::MessageManager::callAsync([safeThis, state]() {
-      if (safeThis)
-        safeThis->onAppStateChanged(state);
-    });
-  });
 }

@@ -306,7 +306,9 @@ void NotificationRow::mouseDown(const juce::MouseEvent &) {
 // ==============================================================================
 
 NotificationList::NotificationList(Sidechain::Stores::AppStore *store)
-    : Sidechain::UI::AppStoreComponent<Sidechain::Stores::NotificationState>(store) {
+    : Sidechain::UI::AppStoreComponent<Sidechain::Stores::NotificationState>(store, [store](auto cb) {
+        return store ? store->subscribeToNotifications(cb) : std::function<void()>([]() {});
+      }) {
   Log::info("NotificationList: Initializing");
   addAndMakeVisible(viewport);
   viewport.setViewedComponent(&contentComponent, false);
@@ -314,9 +316,6 @@ NotificationList::NotificationList(Sidechain::Stores::AppStore *store)
   viewport.getVerticalScrollBar().addListener(this);
 
   setSize(PREFERRED_WIDTH, MAX_HEIGHT);
-
-  // Subscribe to AppStore after UI setup
-  subscribeToAppStore();
 }
 
 NotificationList::~NotificationList() {
@@ -352,21 +351,6 @@ void NotificationList::onAppStateChanged(const Sidechain::Stores::NotificationSt
   if (state.notificationError.isNotEmpty()) {
     setError(state.notificationError);
   }
-}
-
-void NotificationList::subscribeToAppStore() {
-  if (!appStore)
-    return;
-
-  juce::Component::SafePointer<NotificationList> safeThis(this);
-  storeUnsubscriber = appStore->subscribeToNotifications([safeThis](const Sidechain::Stores::NotificationState &state) {
-    if (!safeThis)
-      return;
-    juce::MessageManager::callAsync([safeThis, state]() {
-      if (safeThis)
-        safeThis->onAppStateChanged(state);
-    });
-  });
 }
 
 // ==============================================================================

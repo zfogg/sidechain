@@ -96,7 +96,6 @@ protected:
   // ==============================================================================
   // AppStoreComponent overrides
   void onAppStateChanged(const Sidechain::Stores::NotificationState &state) override;
-  void subscribeToAppStore();
 
 private:
   // ==============================================================================

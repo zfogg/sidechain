@@ -5,12 +5,13 @@
 #include "../../util/Result.h"
 
 // ==============================================================================
-NotificationSettings::NotificationSettings(AppStore *store) : AppStoreComponent(store) {
+NotificationSettings::NotificationSettings(AppStore *store)
+    : AppStoreComponent(
+          store, [store](auto cb) { return store ? store->subscribeToUser(cb) : std::function<void()>([]() {}); }) {
   Log::info("NotificationSettings: Initializing");
   setupToggles();
   // Set size last to avoid resized being called before components are created
   setSize(400, 550);
-  subscribeToAppStore();
 }
 
 NotificationSettings::~NotificationSettings() {
@@ -26,21 +27,6 @@ void NotificationSettings::onAppStateChanged(const UserState &state) {
     osNotificationsToggle->setToggleState(osNotificationsEnabled, juce::dontSendNotification);
 
   repaint();
-}
-
-void NotificationSettings::subscribeToAppStore() {
-  if (!appStore)
-    return;
-
-  juce::Component::SafePointer<NotificationSettings> safeThis(this);
-  storeUnsubscriber = appStore->subscribeToUser([safeThis](const UserState &state) {
-    if (!safeThis)
-      return;
-    juce::MessageManager::callAsync([safeThis, state]() {
-      if (safeThis)
-        safeThis->onAppStateChanged(state);
-    });
-  });
 }
 
 // ==============================================================================

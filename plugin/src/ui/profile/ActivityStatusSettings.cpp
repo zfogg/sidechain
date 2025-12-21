@@ -5,12 +5,13 @@
 #include "../../util/Result.h"
 
 // ==============================================================================
-ActivityStatusSettings::ActivityStatusSettings(AppStore *store) : AppStoreComponent(store) {
+ActivityStatusSettings::ActivityStatusSettings(AppStore *store)
+    : AppStoreComponent(
+          store, [store](auto cb) { return store ? store->subscribeToUser(cb) : std::function<void()>([]() {}); }) {
   Log::info("ActivityStatusSettings: Initializing");
   setupToggles();
   // Set size last to avoid resized being called before components are created
   setSize(400, 320);
-  subscribeToAppStore();
 }
 
 ActivityStatusSettings::~ActivityStatusSettings() {
@@ -22,21 +23,6 @@ void ActivityStatusSettings::onAppStateChanged(const UserState & /*state*/) {
   // Update activity status settings from user state if available
   // Note: Activity status settings might need to be loaded separately via NetworkClient
   repaint();
-}
-
-void ActivityStatusSettings::subscribeToAppStore() {
-  if (!appStore)
-    return;
-
-  juce::Component::SafePointer<ActivityStatusSettings> safeThis(this);
-  storeUnsubscriber = appStore->subscribeToUser([safeThis](const UserState &state) {
-    if (!safeThis)
-      return;
-    juce::MessageManager::callAsync([safeThis, state]() {
-      if (safeThis)
-        safeThis->onAppStateChanged(state);
-    });
-  });
 }
 
 // ==============================================================================

@@ -4,14 +4,16 @@
 #include "../../util/Result.h"
 
 // ==============================================================================
-PlaylistDetail::PlaylistDetail(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
+PlaylistDetail::PlaylistDetail(Sidechain::Stores::AppStore *store)
+    : AppStoreComponent(store, [store](auto cb) {
+        return store ? store->subscribeToPlaylists(cb) : std::function<void()>([]() {});
+      }) {
   Log::info("PlaylistDetailComponent: Initializing");
 
   // Set up scroll bar
   scrollBar.setRangeLimits(0.0, 100.0);
   scrollBar.addListener(this);
   addAndMakeVisible(scrollBar);
-  subscribeToAppStore();
 }
 
 PlaylistDetail::~PlaylistDetail() {
@@ -37,21 +39,6 @@ void PlaylistDetail::onAppStateChanged(const Sidechain::Stores::PlaylistState &s
 
   updateScrollBounds();
   repaint();
-}
-
-void PlaylistDetail::subscribeToAppStore() {
-  if (!appStore)
-    return;
-
-  juce::Component::SafePointer<PlaylistDetail> safeThis(this);
-  storeUnsubscriber = appStore->subscribeToPlaylists([safeThis](const Sidechain::Stores::PlaylistState &state) {
-    if (!safeThis)
-      return;
-    juce::MessageManager::callAsync([safeThis, state]() {
-      if (safeThis)
-        safeThis->onAppStateChanged(state);
-    });
-  });
 }
 
 // ==============================================================================

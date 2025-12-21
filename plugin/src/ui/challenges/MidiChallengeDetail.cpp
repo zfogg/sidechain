@@ -7,14 +7,16 @@
 #include "../../util/Result.h"
 
 // ==============================================================================
-MidiChallengeDetail::MidiChallengeDetail(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
+MidiChallengeDetail::MidiChallengeDetail(Sidechain::Stores::AppStore *store)
+    : AppStoreComponent(store, [store](auto cb) {
+        return store ? store->subscribeToChallenges(cb) : std::function<void()>([]() {});
+      }) {
   Log::info("MidiChallengeDetail: Initializing");
 
   // Set up scroll bar
   scrollBar.setRangeLimits(0.0, 100.0);
   scrollBar.addListener(this);
   addAndMakeVisible(scrollBar);
-  subscribeToAppStore();
 }
 
 MidiChallengeDetail::~MidiChallengeDetail() {
@@ -34,35 +36,6 @@ void MidiChallengeDetail::setAudioPlayer(HttpAudioPlayer *player) {
 
 // ==============================================================================
 // AppStoreComponent virtual methods
-
-void MidiChallengeDetail::subscribeToAppStore() {
-  Log::debug("MidiChallengeDetail: Subscribing to AppStore");
-
-  if (!appStore) {
-    Log::warn("MidiChallengeDetail: Cannot subscribe to null AppStore");
-    return;
-  }
-
-  // Subscribe to challenge state changes
-  juce::Component::SafePointer<MidiChallengeDetail> safeThis(this);
-  storeUnsubscriber =
-      appStore->subscribeToChallenges([safeThis](const Sidechain::Stores::ChallengeState &challengeState) {
-        // Check if component still exists
-        if (!safeThis)
-          return;
-
-        // Schedule UI update on message thread for thread safety
-        juce::MessageManager::callAsync([safeThis, challengeState]() {
-          // Double-check component still exists after async dispatch
-          if (!safeThis)
-            return;
-
-          safeThis->onAppStateChanged(challengeState);
-        });
-      });
-
-  Log::debug("MidiChallengeDetail: Successfully subscribed to AppStore");
-}
 
 void MidiChallengeDetail::onAppStateChanged(const Sidechain::Stores::ChallengeState &state) {
   // Update UI when challenge state changes in the store

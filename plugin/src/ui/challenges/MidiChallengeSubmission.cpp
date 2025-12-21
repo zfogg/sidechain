@@ -10,7 +10,10 @@
 // ==============================================================================
 MidiChallengeSubmission::MidiChallengeSubmission(SidechainAudioProcessor &processor, NetworkClient &network,
                                                  Sidechain::Stores::AppStore *store)
-    : AppStoreComponent(store), audioProcessor(processor), networkClient(network) {
+    : AppStoreComponent(
+          store,
+          [store](auto cb) { return store ? store->subscribeToChallenges(cb) : std::function<void()>([]() {}); }),
+      audioProcessor(processor), networkClient(network) {
   Log::info("MidiChallengeSubmission: Initializing");
 
   // Create wrapped Upload component
@@ -73,35 +76,6 @@ void MidiChallengeSubmission::reset() {
 
 // ==============================================================================
 // AppStoreComponent virtual methods
-
-void MidiChallengeSubmission::subscribeToAppStore() {
-  Log::debug("MidiChallengeSubmission: Subscribing to AppStore");
-
-  if (!appStore) {
-    Log::warn("MidiChallengeSubmission: Cannot subscribe to null AppStore");
-    return;
-  }
-
-  // Subscribe to challenge state changes
-  juce::Component::SafePointer<MidiChallengeSubmission> safeThis(this);
-  storeUnsubscriber =
-      appStore->subscribeToChallenges([safeThis](const Sidechain::Stores::ChallengeState &challengeState) {
-        // Check if component still exists
-        if (!safeThis)
-          return;
-
-        // Schedule UI update on message thread for thread safety
-        juce::MessageManager::callAsync([safeThis, challengeState]() {
-          // Double-check component still exists after async dispatch
-          if (!safeThis)
-            return;
-
-          safeThis->onAppStateChanged(challengeState);
-        });
-      });
-
-  Log::debug("MidiChallengeSubmission: Successfully subscribed to AppStore");
-}
 
 void MidiChallengeSubmission::onAppStateChanged(const Sidechain::Stores::ChallengeState &state) {
   // Update UI when challenge state changes in the store

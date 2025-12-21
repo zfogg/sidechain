@@ -347,3 +347,43 @@ void ShareToMessageDialog::loadRecentConversations() {
       0   // offset
   );
 }
+
+void ShareToMessageDialog::performSearch(const juce::String &query) {
+  if (streamChatClient == nullptr) {
+    Log::warn("ShareToMessageDialog: Cannot perform search - no StreamChatClient");
+    return;
+  }
+
+  Log::debug("ShareToMessageDialog: Searching for query: " + query);
+
+  // Search for channels matching the query
+  streamChatClient->queryChannels(
+      [this](const Outcome<std::vector<StreamChatClient::Channel>> &result) {
+        if (!result) {
+          Log::error("ShareToMessageDialog: Search failed - " + result.getError());
+          isSearching = false;
+          repaint();
+          return;
+        }
+
+        // Convert matching channels to ConversationItems
+        searchResults.clear();
+        const auto &channels = result.getValue();
+        for (const auto &channel : channels) {
+          ConversationItem conversation;
+          conversation.channelType = channel.type;
+          conversation.channelId = channel.id;
+          conversation.channelName = channel.name;
+          conversation.isGroup = (channel.members.size() > 2);
+          conversation.memberCount = static_cast<int>(channel.members.size());
+          searchResults.push_back(conversation);
+        }
+
+        isSearching = false;
+        Log::debug("ShareToMessageDialog: Search found " + juce::String(searchResults.size()) + " results");
+        repaint();
+      },
+      20, // limit
+      0   // offset
+  );
+}

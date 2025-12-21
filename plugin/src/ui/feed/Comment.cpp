@@ -360,9 +360,10 @@ juce::Rectangle<int> CommentRow::getMoreButtonBounds() const {
 // ==============================================================================
 // ==============================================================================
 
-CommentsPanel::CommentsPanel(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
+CommentsPanel::CommentsPanel(Sidechain::Stores::AppStore *store)
+    : AppStoreComponent(
+          store, [store](auto cb) { return store ? store->subscribeToComments(cb) : std::function<void()>([]() {}); }) {
   setupUI();
-  subscribeToAppStore(); // Subscribe to AppStore after UI setup
 }
 
 CommentsPanel::~CommentsPanel() {
@@ -440,15 +441,6 @@ void CommentsPanel::loadCommentsForPost(const juce::String &postId) {
   repaint();
 
   // Delegate to AppStore - it will normalize to models and update CommentsState
-  // which triggers subscribeToAppStore() callback
-  if (appStore) {
-    appStore->loadPostComments(postId, 20, 0);
-  } else {
-    Sidechain::Util::logError("CommentsPanel", "Cannot load comments - AppStore not set");
-    isLoading = false;
-    errorMessage = "AppStore not initialized";
-    repaint();
-  }
 }
 
 void CommentsPanel::refreshComments() {
@@ -1245,27 +1237,6 @@ void CommentsPanel::insertEmoji(const juce::String &emoji) {
 
 // ==============================================================================
 // AppStoreComponent Implementation
-
-void CommentsPanel::subscribeToAppStore() {
-  if (!appStore) {
-    Sidechain::Util::logError("CommentsPanel", "Cannot subscribe to AppStore - not set");
-    return;
-  }
-
-  // Subscribe to CommentsState slice - notified whenever comments state changes
-  // This will be called with the full CommentsState whenever any post's comments change
-  juce::Component::SafePointer<CommentsPanel> safeThis(this);
-  storeUnsubscriber = appStore->subscribeToComments([safeThis](const Sidechain::Stores::CommentsState &state) {
-    if (!safeThis)
-      return;
-    // Post to message thread for thread-safe UI updates
-    juce::MessageManager::callAsync([safeThis, state]() {
-      if (safeThis) {
-        safeThis->onAppStateChanged(state);
-      }
-    });
-  });
-}
 
 void CommentsPanel::onAppStateChanged(const Sidechain::Stores::CommentsState &state) {
   Log::debug("CommentsPanel::onAppStateChanged: AppStore state changed for post: " + currentPostId);

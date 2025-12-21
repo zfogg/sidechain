@@ -69,7 +69,6 @@ public:
   // ==============================================================================
   // AppStoreComponent<DiscoveryState> implementation
 protected:
-  void subscribeToAppStore();
   void onAppStateChanged(const Sidechain::Stores::DiscoveryState &state) override;
 
 private:

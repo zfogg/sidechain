@@ -29,11 +29,12 @@ inline juce::Colour error() {
 } // namespace
 
 // ==============================================================================
-SavedPosts::SavedPosts(AppStore *store) : AppStoreComponent(store) {
+SavedPosts::SavedPosts(AppStore *store)
+    : AppStoreComponent(
+          store, [store](auto cb) { return store ? store->subscribeToFeed(cb) : std::function<void()>([]() {}); }) {
   addAndMakeVisible(scrollBar);
   scrollBar.addListener(this);
   scrollBar.setRangeLimits(0.0, 1.0);
-  subscribeToAppStore();
 }
 
 SavedPosts::~SavedPosts() {
@@ -56,21 +57,6 @@ void SavedPosts::onAppStateChanged(const PostsState &state) {
 
   rebuildPostCards();
   repaint();
-}
-
-void SavedPosts::subscribeToAppStore() {
-  if (!appStore)
-    return;
-
-  juce::Component::SafePointer<SavedPosts> safeThis(this);
-  storeUnsubscriber = appStore->subscribeToFeed([safeThis](const PostsState &state) {
-    if (!safeThis)
-      return;
-    juce::MessageManager::callAsync([safeThis, state]() {
-      if (safeThis)
-        safeThis->onAppStateChanged(state);
-    });
-  });
 }
 
 // ==============================================================================

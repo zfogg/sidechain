@@ -7,7 +7,9 @@
 
 // ==============================================================================
 MessagesList::MessagesList(Sidechain::Stores::AppStore *store)
-    : Sidechain::UI::AppStoreComponent<Sidechain::Stores::ChatState>(store), scrollBar(true) {
+    : Sidechain::UI::AppStoreComponent<Sidechain::Stores::ChatState>(
+          store, [store](auto cb) { return store ? store->subscribeToChat(cb) : std::function<void()>([]() {}); }),
+      scrollBar(true) {
   Log::info("MessagesList: Initializing");
   addAndMakeVisible(scrollBar);
   scrollBar.setRangeLimits(0.0, 0.0);
@@ -75,21 +77,6 @@ void MessagesList::onAppStateChanged(const Sidechain::Stores::ChatState &state) 
   }
 
   repaint();
-}
-
-void MessagesList::subscribeToAppStore() {
-  if (!appStore)
-    return;
-
-  juce::Component::SafePointer<MessagesList> safeThis(this);
-  storeUnsubscriber = appStore->subscribeToChat([safeThis](const Sidechain::Stores::ChatState &state) {
-    if (!safeThis)
-      return;
-    juce::MessageManager::callAsync([safeThis, state]() {
-      if (safeThis)
-        safeThis->onAppStateChanged(state);
-    });
-  });
 }
 
 void MessagesList::paint(juce::Graphics &g) {

@@ -275,7 +275,6 @@ private:
   // ==============================================================================
   // AppStoreComponent<CommentsState> implementation
 protected:
-  void subscribeToAppStore();
   void onAppStateChanged(const Sidechain::Stores::CommentsState &state) override;
 
 private:

@@ -44,7 +44,6 @@ public:
 
 protected:
   void onAppStateChanged(const Sidechain::Stores::DraftState &state) override;
-  void subscribeToAppStore();
 
 private:
   juce::Array<juce::var> drafts;

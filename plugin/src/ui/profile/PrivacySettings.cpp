@@ -5,12 +5,13 @@
 #include "../../util/Result.h"
 
 // ==============================================================================
-PrivacySettings::PrivacySettings(AppStore *store) : AppStoreComponent(store) {
+PrivacySettings::PrivacySettings(AppStore *store)
+    : AppStoreComponent(
+          store, [store](auto cb) { return store ? store->subscribeToUser(cb) : std::function<void()>([]() {}); }) {
   Log::info("PrivacySettings: Initializing");
   setupToggle();
   // Set size last to avoid resized being called before components are created
   setSize(400, 280);
-  subscribeToAppStore();
 }
 
 PrivacySettings::~PrivacySettings() {
@@ -22,21 +23,6 @@ void PrivacySettings::onAppStateChanged(const UserState & /*state*/) {
   // Update privacy settings from user state if available
   // Note: Privacy settings might need to be loaded separately via NetworkClient
   repaint();
-}
-
-void PrivacySettings::subscribeToAppStore() {
-  if (!appStore)
-    return;
-
-  juce::Component::SafePointer<PrivacySettings> safeThis(this);
-  storeUnsubscriber = appStore->subscribeToUser([safeThis](const UserState &state) {
-    if (!safeThis)
-      return;
-    juce::MessageManager::callAsync([safeThis, state]() {
-      if (safeThis)
-        safeThis->onAppStateChanged(state);
-    });
-  });
 }
 
 // ==============================================================================

@@ -3,11 +3,12 @@
 #include "../../util/Log.h"
 #include <thread>
 
-ProfileSetup::ProfileSetup(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
+ProfileSetup::ProfileSetup(Sidechain::Stores::AppStore *store)
+    : AppStoreComponent(
+          store, [store](auto cb) { return store ? store->subscribeToUser(cb) : std::function<void()>([]() {}); }) {
   Log::info("ProfileSetup: Initializing profile setup component");
   setSize(1000, 800);
   Log::info("ProfileSetup: Initialization complete");
-  subscribeToAppStore();
 }
 
 // Layout constants for responsive design
@@ -350,16 +351,4 @@ void ProfileSetup::onAppStateChanged(const Sidechain::Stores::UserState &state) 
   }
 
   repaint();
-}
-
-void ProfileSetup::subscribeToAppStore() {
-  juce::Component::SafePointer<ProfileSetup> safeThis(this);
-  storeUnsubscriber = appStore->subscribeToUser([safeThis](const Sidechain::Stores::UserState &state) {
-    if (!safeThis)
-      return;
-    juce::MessageManager::callAsync([safeThis, state]() {
-      if (safeThis)
-        safeThis->onAppStateChanged(state);
-    });
-  });
 }

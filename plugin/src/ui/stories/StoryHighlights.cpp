@@ -5,7 +5,9 @@
 #include "../../util/Log.h"
 
 // ==============================================================================
-StoryHighlights::StoryHighlights(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {}
+StoryHighlights::StoryHighlights(Sidechain::Stores::AppStore *store)
+    : AppStoreComponent(
+          store, [store](auto cb) { return store ? store->subscribeToStories(cb) : std::function<void()>([]() {}); }) {}
 
 StoryHighlights::~StoryHighlights() {}
 
@@ -33,21 +35,6 @@ void StoryHighlights::onAppStateChanged(const Sidechain::Stores::StoriesState &s
   }
 
   repaint();
-}
-
-void StoryHighlights::subscribeToAppStore() {
-  if (!appStore)
-    return;
-
-  juce::Component::SafePointer<StoryHighlights> safeThis(this);
-  storeUnsubscriber = appStore->subscribeToStories([safeThis](const Sidechain::Stores::StoriesState &state) {
-    if (!safeThis)
-      return;
-    juce::MessageManager::callAsync([safeThis, state]() {
-      if (safeThis)
-        safeThis->onAppStateChanged(state);
-    });
-  });
 }
 
 // ==============================================================================

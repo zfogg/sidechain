@@ -3,7 +3,9 @@
 #include "../../stores/AppStore.h"
 #include "../../util/Log.h"
 
-TwoFactorSettings::TwoFactorSettings(AppStore *store) : AppStoreComponent(store) {
+TwoFactorSettings::TwoFactorSettings(AppStore *store)
+    : AppStoreComponent(
+          store, [store](auto cb) { return store ? store->subscribeToAuth(cb) : std::function<void()>([]() {}); }) {
   // Close button
   closeButton = std::make_unique<juce::TextButton>("X");
   closeButton->addListener(this);
@@ -74,7 +76,6 @@ TwoFactorSettings::TwoFactorSettings(AppStore *store) : AppStoreComponent(store)
   codeInput->setColour(juce::TextEditor::textColourId, Colors::textPrimary);
   codeInput->setInputRestrictions(9, "0123456789-"); // Allow digits and dash for backup codes
   addChildComponent(codeInput.get());
-  subscribeToAppStore();
 }
 
 TwoFactorSettings::~TwoFactorSettings() = default;
@@ -85,21 +86,6 @@ void TwoFactorSettings::onAppStateChanged(const AuthState & /*state*/) {
   // Note: 2FA status might need to be loaded separately via NetworkClient
   // as it's not typically part of the core auth state
   repaint();
-}
-
-void TwoFactorSettings::subscribeToAppStore() {
-  if (!appStore)
-    return;
-
-  juce::Component::SafePointer<TwoFactorSettings> safeThis(this);
-  storeUnsubscriber = appStore->subscribeToAuth([safeThis](const AuthState &state) {
-    if (!safeThis)
-      return;
-    juce::MessageManager::callAsync([safeThis, state]() {
-      if (safeThis)
-        safeThis->onAppStateChanged(state);
-    });
-  });
 }
 
 // ==============================================================================

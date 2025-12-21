@@ -53,10 +53,7 @@ protected:
   // AppStoreComponent virtual methods
   void onAppStateChanged(const Sidechain::Stores::ChallengeState &state) override;
 
-  // Initialization and subscription
-  void subscribeToAppStore();
-
-private:
+  // Initialization and subscriptionprivate:
   // ==============================================================================
   // Filter types
   enum class FilterType { All, Active, Voting, Past, Upcoming };

@@ -6,13 +6,14 @@
 #include <nlohmann/json.hpp>
 
 // ==============================================================================
-SoundPage::SoundPage(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
+SoundPage::SoundPage(Sidechain::Stores::AppStore *store)
+    : AppStoreComponent(
+          store, [store](auto cb) { return store ? store->subscribeToSounds(cb) : std::function<void()>([]() {}); }) {
   Log::info("SoundPage: Initializing");
 
   addAndMakeVisible(scrollBar);
   scrollBar.addListener(this);
   scrollBar.setRangeLimits(0.0, 1.0);
-  subscribeToAppStore();
 }
 
 SoundPage::~SoundPage() {
@@ -39,27 +40,6 @@ void SoundPage::onAppStateChanged(const Sidechain::Stores::SoundState &state) {
 
   Log::debug("SoundPage: Store state changed - isLoading: " + juce::String(static_cast<int>(isLoading)));
   repaint();
-}
-
-void SoundPage::subscribeToAppStore() {
-  if (!appStore) {
-    Log::warn("SoundPage: Cannot subscribe - AppStore is null");
-    return;
-  }
-
-  Log::debug("SoundPage: Subscribing to AppStore sounds state");
-
-  // Subscribe to sounds state changes
-  juce::Component::SafePointer<SoundPage> safeThis(this);
-  storeUnsubscriber = appStore->subscribeToSounds([safeThis](const Sidechain::Stores::SoundState &state) {
-    if (!safeThis)
-      return;
-
-    juce::MessageManager::callAsync([safeThis, state]() {
-      if (safeThis)
-        safeThis->onAppStateChanged(state);
-    });
-  });
 }
 
 // ==============================================================================

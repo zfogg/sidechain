@@ -21,28 +21,13 @@ namespace UI {
  * - RAII cleanup in destructor
  * - Runtime binding/unbinding support
  *
- * Usage (Before - 9 lines of boilerplate per component):
- *   class MyComponent : public AppStoreComponent<ChallengeState> {
- *   public:
- *     explicit MyComponent(AppStore *store = nullptr) : AppStoreComponent(store) {
- *       setupUI();
- *       initialize();  // Manual call needed
- *     }
- *   protected:
- *     void onAppStateChanged(const ChallengeState &state) override { ... }
- *     void subscribeToAppStore() override {
- *       juce::Component::SafePointer<MyComponent> safeThis(this);
- *       storeUnsubscriber = appStore->subscribeToChallenges(
- *         [safeThis](const auto& state) { ... });
- *     }
- *   };
- *
- * Usage (After - 1 line, no boilerplate):
+ * Usage:
  *   class MyComponent : public AppStoreComponent<ChallengeState> {
  *   public:
  *     explicit MyComponent(AppStore *store = nullptr)
  *         : AppStoreComponent(store, [store](auto cb) {
- *             return store->subscribeToChallenges(cb);
+ *             return store ? store->subscribeToChallenges(cb)
+ *                          : std::function<void()>([]() {});
  *           }) {}
  *
  *   protected:
@@ -68,7 +53,8 @@ public:
    *
    * Example:
    *   AppStoreComponent(store, [store](auto cb) {
-   *     return store->subscribeToChallenges(cb);
+   *     return store ? store->subscribeToChallenges(cb)
+   *                  : std::function<void()>([]() {});
    *   })
    */
   explicit AppStoreComponent(Stores::AppStore *store = nullptr, SubscriptionFn subscriptionFn = nullptr)

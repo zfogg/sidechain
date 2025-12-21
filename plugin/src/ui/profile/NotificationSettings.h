@@ -57,7 +57,6 @@ protected:
   // ==============================================================================
   // AppStoreComponent overrides
   void onAppStateChanged(const UserState &state) override;
-  void subscribeToAppStore();
 
 private:
   // ==============================================================================

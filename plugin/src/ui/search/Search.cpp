@@ -8,7 +8,9 @@
 #include <fstream>
 
 // ==============================================================================
-Search::Search(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
+Search::Search(Sidechain::Stores::AppStore *store)
+    : AppStoreComponent(
+          store, [store](auto cb) { return store ? store->subscribeToSearch(cb) : std::function<void()>([]() {}); }) {
   Log::info("Search: Initializing");
 
   // Create search input
@@ -56,7 +58,6 @@ Search::Search(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   setSize(1000, 700);
 
   // Subscribe to AppStore after UI setup
-  subscribeToAppStore();
 
   // Phase 7 features:
   // - Advanced Search - Search by BPM, key, genre
@@ -127,27 +128,6 @@ void Search::onAppStateChanged(const Sidechain::Stores::SearchState &state) {
   Log::debug("Search: Store state changed - " + juce::String(userResults.size()) + " users, " +
              juce::String(postResults.size()) + " posts");
   repaint();
-}
-
-void Search::subscribeToAppStore() {
-  if (!appStore) {
-    Log::warn("Search: Cannot subscribe - AppStore is null");
-    return;
-  }
-
-  Log::debug("Search: Subscribing to AppStore search state");
-
-  // Subscribe to search state changes
-  juce::Component::SafePointer<Search> safeThis(this);
-  storeUnsubscriber = appStore->subscribeToSearch([safeThis](const Sidechain::Stores::SearchState &state) {
-    if (!safeThis)
-      return;
-
-    juce::MessageManager::callAsync([safeThis, state]() {
-      if (safeThis)
-        safeThis->onAppStateChanged(state);
-    });
-  });
 }
 
 // ==============================================================================

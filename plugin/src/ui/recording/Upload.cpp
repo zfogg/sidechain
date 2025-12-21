@@ -38,7 +38,9 @@ const std::array<Upload::CommentAudienceOption, Upload::NUM_COMMENT_AUDIENCES> &
 
 // ==============================================================================
 Upload::Upload(SidechainAudioProcessor &processor, NetworkClient &network, Sidechain::Stores::AppStore *store)
-    : AppStoreComponent(store), audioProcessor(processor), networkClient(network) {
+    : AppStoreComponent(
+          store, [store](auto cb) { return store ? store->subscribeToUploads(cb) : std::function<void()>([]() {}); }),
+      audioProcessor(processor), networkClient(network) {
   Log::info("Upload: Initializing upload component");
   setWantsKeyboardFocus(true);
   startTimerHz(30);
@@ -52,49 +54,31 @@ Upload::~Upload() {
 }
 
 // ==============================================================================
-void Upload::subscribeToAppStore() {
-  if (!appStore)
-    return;
+void Upload::onAppStateChanged(const Sidechain::Stores::UploadState &state) {
+  // Handle upload state changes from the store
+  auto isUploading = state.isUploading;
+  auto progress = state.progress;
+  auto errorMsg = state.uploadError;
 
-  juce::Component::SafePointer<Upload> safeThis(this);
-  storeUnsubscriber = appStore->subscribeToUploads([safeThis](const Sidechain::Stores::UploadState &state) {
-    if (!safeThis)
-      return;
-
-    auto isUploading = state.isUploading;
-    auto progress = state.progress;
-    auto errorMsg = state.uploadError;
-
-    juce::MessageManager::callAsync([safeThis, isUploading, progress, errorMsg]() {
-      if (!safeThis)
-        return;
-
-      if (isUploading) {
-        safeThis->uploadState = Upload::UploadState::Uploading;
-        safeThis->uploadProgress = static_cast<float>(progress);
-        safeThis->errorMessage = "";
-      } else if (!errorMsg.isEmpty()) {
-        safeThis->uploadState = Upload::UploadState::Error;
-        safeThis->errorMessage = errorMsg;
-      } else if (progress > 0) {
-        safeThis->uploadState = Upload::UploadState::Success;
-        safeThis->uploadProgress = 100.0f;
-        safeThis->errorMessage = "";
-        if (safeThis->onUploadComplete) {
-          safeThis->onUploadComplete();
-        }
-      } else {
-        safeThis->uploadState = Upload::UploadState::Editing;
-        safeThis->uploadProgress = 0.0f;
-        safeThis->errorMessage = "";
-      }
-
-      safeThis->repaint();
-    });
-  });
-}
-
-void Upload::onAppStateChanged(const Sidechain::Stores::UploadState & /*state*/) {
+  if (isUploading) {
+    uploadState = Upload::UploadState::Uploading;
+    uploadProgress = static_cast<float>(progress);
+    errorMessage = "";
+  } else if (!errorMsg.isEmpty()) {
+    uploadState = Upload::UploadState::Error;
+    errorMessage = errorMsg;
+  } else if (progress > 0) {
+    uploadState = Upload::UploadState::Success;
+    uploadProgress = 100.0f;
+    errorMessage = "";
+    if (onUploadComplete) {
+      onUploadComplete();
+    }
+  } else {
+    uploadState = Upload::UploadState::Editing;
+    uploadProgress = 0.0f;
+    errorMessage = "";
+  }
   repaint();
 }
 

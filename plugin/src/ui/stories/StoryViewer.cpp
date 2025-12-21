@@ -19,7 +19,9 @@ const juce::Colour playOverlay(0x80000000);
 } // namespace StoryViewerColors
 
 // ==============================================================================
-StoryViewer::StoryViewer(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
+StoryViewer::StoryViewer(Sidechain::Stores::AppStore *store)
+    : AppStoreComponent(
+          store, [store](auto cb) { return store ? store->subscribeToStories(cb) : std::function<void()>([]() {}); }) {
   pianoRoll = std::make_unique<PianoRoll>();
   addChildComponent(pianoRoll.get());
 
@@ -28,7 +30,6 @@ StoryViewer::StoryViewer(Sidechain::Stores::AppStore *store) : AppStoreComponent
   startTimerHz(30);
 
   Log::info("StoryViewer created");
-  subscribeToAppStore();
 }
 
 StoryViewer::~StoryViewer() {
@@ -42,21 +43,6 @@ StoryViewer::~StoryViewer() {
 // ==============================================================================
 void StoryViewer::onAppStateChanged(const Sidechain::Stores::StoriesState & /*state*/) {
   repaint();
-}
-
-void StoryViewer::subscribeToAppStore() {
-  if (!appStore)
-    return;
-
-  juce::Component::SafePointer<StoryViewer> safeThis(this);
-  storeUnsubscriber = appStore->subscribeToStories([safeThis](const Sidechain::Stores::StoriesState &state) {
-    if (!safeThis)
-      return;
-    juce::MessageManager::callAsync([safeThis, state]() {
-      if (safeThis)
-        safeThis->onAppStateChanged(state);
-    });
-  });
 }
 
 // ==============================================================================

@@ -69,7 +69,6 @@ protected:
   // ==========================================================================
   // AppStoreComponent virtual methods
   void onAppStateChanged(const Sidechain::Stores::SoundState &state) override;
-  void subscribeToAppStore();
 
 private:
   // ==========================================================================

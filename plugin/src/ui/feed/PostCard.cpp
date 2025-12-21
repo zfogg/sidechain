@@ -1575,46 +1575,6 @@ void PostCard::handleEmojiSelected(const juce::String &emoji) {
 // ==============================================================================
 // AppStore Subscription (Type-Safe Lazy Pattern)
 
-void PostCard::subscribeToAppStore() {
-  if (!appStore)
-    return;
-
-  using namespace Sidechain::Stores;
-
-  // Capture post ID by value to avoid accessing potentially invalid member
-  juce::String postId = postPtr->id;
-  juce::Component::SafePointer<PostCard> safeThis(this);
-
-  // Use Query Layer for decoupled state access
-  // Queries provide a typed interface instead of navigating nested state structure
-  storeUnsubscriber = appStore->subscribeToFeed([safeThis, postId](const PostsState & /*postsState*/) {
-    if (safeThis == nullptr || postId.isEmpty())
-      return;
-
-    juce::MessageManager::callAsync([safeThis, postId]() {
-      if (safeThis == nullptr)
-        return;
-
-      // Use queries instead of directly accessing state structure
-      auto queries = safeThis->appStore->queries();
-      auto currentFeedPosts = queries.getCurrentFeedPosts();
-
-      // Search for updated post data
-      for (const auto &feedPost : currentFeedPosts) {
-        if (feedPost->id == postId) {
-          if (safeThis == nullptr)
-            return;
-          if (!feedPost->id.isEmpty()) {
-            safeThis->postPtr = feedPost; // Keep strong reference to shared_ptr
-            safeThis->repaint();
-          }
-          return;
-        }
-      }
-    });
-  });
-}
-
 void PostCard::onAppStateChanged(const Sidechain::Stores::PostsState & /*state*/) {
   repaint();
 }

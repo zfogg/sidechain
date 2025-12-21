@@ -180,10 +180,12 @@ juce::Rectangle<int> FollowUserRow::getFollowButtonBounds() const {
 // FollowersList Implementation
 // ==============================================================================
 
-FollowersList::FollowersList(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
+FollowersList::FollowersList(Sidechain::Stores::AppStore *store)
+    : AppStoreComponent(store, [store](auto cb) {
+        return store ? store->subscribeToFollowers(cb) : std::function<void()>([]() {});
+      }) {
   Log::info("FollowersList: Initializing");
   setupUI();
-  subscribeToAppStore(); // Subscribe to AppStore after UI setup
 }
 
 FollowersList::~FollowersList() {
@@ -344,24 +346,6 @@ void FollowersList::resized() {
   viewport->setBounds(bounds);
   contentContainer->setSize(viewport->getWidth() - 10, contentContainer->getHeight());
   updateUsersList();
-}
-
-void FollowersList::subscribeToAppStore() {
-  if (!appStore) {
-    Log::warn("FollowersList::subscribeToAppStore: AppStore not set");
-    return;
-  }
-
-  juce::Component::SafePointer<FollowersList> safeThis(this);
-  storeUnsubscriber = appStore->subscribeToFollowers([safeThis](const Sidechain::Stores::FollowersState &state) {
-    if (!safeThis)
-      return;
-    juce::MessageManager::callAsync([safeThis, state]() {
-      if (safeThis) {
-        safeThis->onAppStateChanged(state);
-      }
-    });
-  });
 }
 
 void FollowersList::onAppStateChanged(const Sidechain::Stores::FollowersState &state) {

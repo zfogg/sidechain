@@ -96,7 +96,6 @@ public:
 
 protected:
   void onAppStateChanged(const Sidechain::Stores::StoriesState &state) override;
-  void subscribeToAppStore();
 
 private:
   // ==============================================================================

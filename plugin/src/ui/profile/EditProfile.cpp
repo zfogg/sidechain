@@ -5,12 +5,13 @@
 #include "../../util/Validate.h"
 
 // ==============================================================================
-EditProfile::EditProfile(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
+EditProfile::EditProfile(Sidechain::Stores::AppStore *store)
+    : AppStoreComponent(
+          store, [store](auto cb) { return store ? store->subscribeToUser(cb) : std::function<void()>([]() {}); }) {
   Log::info("EditProfile: Initializing");
   setupEditors();
   // Set size last to avoid resized being called before components are created
   setSize(500, 1050); // Height for profile editing + settings section
-  subscribeToAppStore();
 }
 
 EditProfile::~EditProfile() {
@@ -641,16 +642,4 @@ void EditProfile::onAppStateChanged(const Sidechain::Stores::UserState & /*state
     // Refresh UI from updated UserStore state
     populateFromUserStore();
   }
-}
-
-void EditProfile::subscribeToAppStore() {
-  juce::Component::SafePointer<EditProfile> safeThis(this);
-  storeUnsubscriber = appStore->subscribeToUser([safeThis](const Sidechain::Stores::UserState &state) {
-    if (!safeThis)
-      return;
-    juce::MessageManager::callAsync([safeThis, state]() {
-      if (safeThis)
-        safeThis->onAppStateChanged(state);
-    });
-  });
 }

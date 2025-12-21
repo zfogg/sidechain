@@ -114,7 +114,6 @@ public:
 
 protected:
   void onAppStateChanged(const Sidechain::Stores::UploadState &state) override;
-  void subscribeToAppStore();
 
 private:
   // ==========================================================================

@@ -215,10 +215,8 @@ private:
   // ==============================================================================
   // AppStoreComponent overrides
 protected:
-  void onAppStateChanged(const Sidechain::Stores::UserState &state) override;
-  void subscribeToAppStore();
-
-  // ==============================================================================
+  void onAppStateChanged(const Sidechain::Stores::UserState &state)
+      override; // ==============================================================================
   // SmoothScrollable overrides
   void onScrollUpdate(double newScrollPosition [[maybe_unused]]) override {
     updatePostCards();

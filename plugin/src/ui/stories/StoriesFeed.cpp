@@ -17,10 +17,11 @@ const juce::Colour badgeRed(0xffe53935);
 } // namespace StoryFeedColors
 
 // ==============================================================================
-StoriesFeed::StoriesFeed(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
+StoriesFeed::StoriesFeed(Sidechain::Stores::AppStore *store)
+    : AppStoreComponent(
+          store, [store](auto cb) { return store ? store->subscribeToStories(cb) : std::function<void()>([]() {}); }) {
   // Timer only starts when needed for smooth scroll animation
   Log::info("StoriesFeed created");
-  subscribeToAppStore();
 }
 
 StoriesFeed::~StoriesFeed() {
@@ -30,58 +31,6 @@ StoriesFeed::~StoriesFeed() {
 
 // ==============================================================================
 // Store integration methods
-void StoriesFeed::subscribeToAppStore() {
-  if (!appStore)
-    return;
-
-  juce::Component::SafePointer<StoriesFeed> safeThis(this);
-  storeUnsubscriber = appStore->subscribeToStories([safeThis](const Sidechain::Stores::StoriesState &state) {
-    if (!safeThis)
-      return;
-
-    auto groups = state.feedUserStories;
-
-    juce::MessageManager::callAsync([safeThis, groups]() {
-      if (!safeThis)
-        return;
-
-      std::vector<UserStories> newUserStoriesGroups;
-      for (size_t i = 0; i < groups.size(); ++i) {
-        const auto &groupPtr = groups[i];
-        if (!groupPtr)
-          continue;
-        UserStories uiGroup;
-        uiGroup.userId = groupPtr->id;
-        uiGroup.username = groupPtr->username;
-        uiGroup.avatarUrl = groupPtr->userAvatarUrl;
-        uiGroup.hasUnviewed = !groupPtr->viewed;
-
-        // Add story to UI group
-        StoryData uiStory;
-        uiStory.id = groupPtr->id;
-        uiStory.userId = groupPtr->userId;
-        uiStory.username = groupPtr->username;
-        uiStory.userAvatarUrl = groupPtr->userAvatarUrl;
-        uiStory.audioUrl = groupPtr->audioUrl;
-        uiStory.filename = groupPtr->filename;
-        uiStory.midiFilename = groupPtr->midiFilename;
-        uiStory.audioDuration = groupPtr->audioDuration;
-        uiStory.midiData = groupPtr->midiData;
-        uiStory.midiPatternId = groupPtr->midiPatternId;
-        uiStory.viewCount = groupPtr->viewCount;
-        uiStory.viewed = groupPtr->viewed;
-        uiStory.expiresAt = groupPtr->expiresAt;
-        uiStory.createdAt = groupPtr->createdAt;
-        uiGroup.stories.push_back(uiStory);
-
-        newUserStoriesGroups.push_back(uiGroup);
-      }
-
-      safeThis->userStoriesGroups = newUserStoriesGroups;
-      safeThis->repaint();
-    });
-  });
-}
 
 void StoriesFeed::onAppStateChanged(const Sidechain::Stores::StoriesState & /*state*/) {
   repaint();
