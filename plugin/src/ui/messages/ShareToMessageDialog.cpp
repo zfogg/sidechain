@@ -96,10 +96,78 @@ void ShareToMessageDialog::drawPostPreview(juce::Graphics &g) {
   g.setColour(SidechainColors::surface());
   g.fillRoundedRectangle(previewBounds.toFloat(), 8.0f);
 
-  // TODO: Implement post preview rendering
+  // If no post is set, show placeholder
+  if (shareType == ShareType::None || (shareType == ShareType::Post && post.id.isEmpty())) {
+    g.setColour(SidechainColors::textSecondary());
+    g.setFont(juce::Font(juce::FontOptions().withHeight(14.0f)));
+    g.drawText("Select a post to share", previewBounds, juce::Justification::centred);
+    return;
+  }
+
+  // For stories, show story preview
+  if (shareType == ShareType::Story) {
+    g.setColour(SidechainColors::textPrimary());
+    g.setFont(juce::Font(juce::FontOptions().withHeight(13.0f)).boldened());
+    g.drawText("Story: " + story.id.substring(0, 12) + "...", previewBounds.removeFromTop(20), juce::Justification::topLeft);
+    g.setColour(SidechainColors::textSecondary());
+    g.setFont(juce::Font(juce::FontOptions().withHeight(12.0f)));
+    g.drawText("Duration: " + juce::String(static_cast<int>(story.durationSeconds)) + "s", previewBounds, juce::Justification::topLeft);
+    return;
+  }
+
+  // Post preview with audio metadata
+  auto leftBounds = previewBounds.removeFromLeft(60);
+
+  // Audio icon/placeholder
+  g.setColour(SidechainColors::primary().withAlpha(0.2f));
+  g.fillRoundedRectangle(leftBounds.toFloat(), 4.0f);
+  g.setColour(SidechainColors::primary());
+  g.setFont(juce::Font(juce::FontOptions().withHeight(24.0f)));
+  g.drawText("♪", leftBounds, juce::Justification::centred);
+
+  // Post metadata on right
+  auto contentBounds = previewBounds.reduced(10, 5);
+
+  // Username
+  g.setColour(SidechainColors::textPrimary());
+  g.setFont(juce::Font(juce::FontOptions().withHeight(13.0f)).boldened());
+  auto nameBounds = contentBounds.removeFromTop(16);
+  g.drawText(post.username.isEmpty() ? "Unknown User" : post.username, nameBounds, juce::Justification::topLeft);
+
+  // Filename
   g.setColour(SidechainColors::textSecondary());
-  g.setFont(juce::Font(juce::FontOptions().withHeight(14.0f)));
-  g.drawText("Post preview", previewBounds, juce::Justification::centred);
+  g.setFont(juce::Font(juce::FontOptions().withHeight(12.0f)));
+  auto filenameBounds = contentBounds.removeFromTop(16);
+  juce::String displayFilename = post.filename.isEmpty() ? "Untitled" : post.filename;
+  if (displayFilename.length() > 30) {
+    displayFilename = displayFilename.substring(0, 27) + "...";
+  }
+  g.drawText(displayFilename, filenameBounds, juce::Justification::topLeft);
+
+  // Audio properties (BPM, Key, Duration, DAW)
+  juce::String properties;
+  if (post.bpm > 0) {
+    properties += juce::String(post.bpm) + " BPM";
+  }
+  if (!post.key.isEmpty()) {
+    if (!properties.isEmpty()) properties += " • ";
+    properties += post.key;
+  }
+  if (post.durationSeconds > 0) {
+    if (!properties.isEmpty()) properties += " • ";
+    int seconds = static_cast<int>(post.durationSeconds);
+    int minutes = seconds / 60;
+    int secs = seconds % 60;
+    properties += juce::String(minutes) + ":" + (secs < 10 ? "0" : "") + juce::String(secs);
+  }
+  if (!post.daw.isEmpty()) {
+    if (!properties.isEmpty()) properties += " • ";
+    properties += post.daw;
+  }
+
+  g.setColour(SidechainColors::textMuted());
+  g.setFont(juce::Font(juce::FontOptions().withHeight(11.0f)));
+  g.drawText(properties, contentBounds, juce::Justification::topLeft);
 }
 
 void ShareToMessageDialog::drawLoadingState(juce::Graphics &g) {
