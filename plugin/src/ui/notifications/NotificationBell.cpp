@@ -24,9 +24,15 @@ NotificationBell::~NotificationBell() = default;
 // ==============================================================================
 // AppStoreComponent implementation
 
-void NotificationBell::onAppStateChanged(const Sidechain::Stores::NotificationState &state) {
-  setUnseenCount(state.unseenCount);
-  setUnreadCount(state.unreadCount);
+void NotificationBell::onAppStateChanged(const Sidechain::Stores::NotificationState & /*state*/) {
+  // Use Query Layer to access notification state
+  // This decouples us from NotificationState structure
+  if (!appStore)
+    return;
+
+  auto queries = appStore->queries();
+  setUnseenCount(queries.getUnseenNotificationCount());
+  setUnreadCount(queries.getUnreadNotificationCount());
 }
 
 void NotificationBell::subscribeToAppStore() {
@@ -34,14 +40,21 @@ void NotificationBell::subscribeToAppStore() {
     return;
 
   juce::Component::SafePointer<NotificationBell> safeThis(this);
-  storeUnsubscriber = appStore->subscribeToNotifications([safeThis](const Sidechain::Stores::NotificationState &state) {
-    if (!safeThis)
-      return;
-    juce::MessageManager::callAsync([safeThis, state]() {
-      if (safeThis)
-        safeThis->onAppStateChanged(state);
-    });
-  });
+  storeUnsubscriber =
+      appStore->subscribeToNotifications([safeThis](const Sidechain::Stores::NotificationState & /*state*/) {
+        if (!safeThis)
+          return;
+        juce::MessageManager::callAsync([safeThis]() {
+          if (safeThis) {
+            // Use Query Layer instead of receiving state parameter
+            if (safeThis->appStore) {
+              auto queries = safeThis->appStore->queries();
+              safeThis->setUnseenCount(queries.getUnseenNotificationCount());
+              safeThis->setUnreadCount(queries.getUnreadNotificationCount());
+            }
+          }
+        });
+      });
 }
 
 // ==============================================================================

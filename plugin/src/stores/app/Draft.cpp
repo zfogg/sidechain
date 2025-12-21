@@ -8,7 +8,7 @@ namespace Sidechain {
 namespace Stores {
 
 void AppStore::loadDrafts() {
-  auto draftSlice = sliceManager.getDraftSlice();
+  auto draftSlice = sliceManager.draft;
   DraftState newState = draftSlice->getState();
   newState.isLoading = true;
   draftSlice->setState(newState);
@@ -50,7 +50,7 @@ void AppStore::loadDrafts() {
 }
 
 void AppStore::deleteDraft(const juce::String &draftId) {
-  auto draftSlice = sliceManager.getDraftSlice();
+  auto draftSlice = sliceManager.draft;
   DraftState newState = draftSlice->getState();
   // Remove draft from list
   for (int i = static_cast<int>(newState.drafts.size()) - 1; i >= 0; --i) {
@@ -85,14 +85,14 @@ void AppStore::clearAutoRecoveryDraft() {
     Util::logError("AppStore", "Failed to clear auto-recovery draft: " + juce::String(e.what()));
   }
 
-  DraftState newState = sliceManager.getDraftSlice()->getState();
+  DraftState newState = sliceManager.draft->getState();
   newState.draftError = "";
-  sliceManager.getDraftSlice()->setState(newState);
+  sliceManager.draft->setState(newState);
 }
 
 void AppStore::saveDrafts() {
   try {
-    auto draftSlice = sliceManager.getDraftSlice();
+    auto draftSlice = sliceManager.draft;
     const auto &draftState = draftSlice->getState();
 
     for (const auto &draft : draftState.drafts) {

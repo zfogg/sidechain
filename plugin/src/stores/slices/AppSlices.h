@@ -162,24 +162,22 @@ using SoundSlice = ImmutableSlice<SoundState>;
 using PresenceSlice = ImmutableSlice<PresenceState>;
 
 /**
- * AppSliceManager - Facade for managing all application slices
+ * AppSliceManager - Centralized accessor for all application slices
  *
- * Provides centralized access to all slices with:
- * - Lazy initialization (slices created on first access)
- * - Memoized selectors for derived state
- * - Unified dispatch for cross-slice operations
- * - Synchronized state across slices
+ * Provides singleton access to all domain-specific slices with:
+ * - Eager initialization on construction (all slices ready at startup)
+ * - Direct public member access (no lazy getter boilerplate)
+ * - Unified state reset for logout/app reset
  *
  * Usage:
  *   auto& manager = AppSliceManager::getInstance();
  *
- *   // Access individual slices
- *   auto& authSlice = manager.getAuthSlice();
- *   auto& feedSlice = manager.getFeedSlice();
+ *   // Direct access to slices (no getter boilerplate)
+ *   manager.auth->setState(newAuthState);
+ *   auto currentFeed = manager.posts->getState();
  *
- *   // Subscribe to multiple slices for coordinated updates
- *   manager.onAuthChanged([](const AuthState& auth) { updateUI(); });
- *   manager.onFeedChanged([](const PostsState& feed) { updateFeed(); });
+ *   // Subscribe to slice changes
+ *   manager.auth->subscribe([](const AuthState& state) { updateUI(); });
  *
  *   // Reset all slices on logout
  *   manager.resetAllSlices();
@@ -191,118 +189,23 @@ public:
     return instance;
   }
 
-  // Getters for individual slices (lazy initialization)
-  std::shared_ptr<AuthSlice> getAuthSlice() {
-    if (!authSlice_) {
-      authSlice_ = std::make_shared<AuthSlice>(AuthState());
-    }
-    return authSlice_;
-  }
-
-  std::shared_ptr<PostsSlice> getPostsSlice() {
-    if (!postsSlice_) {
-      postsSlice_ = std::make_shared<PostsSlice>(PostsState());
-    }
-    return postsSlice_;
-  }
-
-  std::shared_ptr<UserSlice> getUserSlice() {
-    if (!userSlice_) {
-      userSlice_ = std::make_shared<UserSlice>(UserState());
-    }
-    return userSlice_;
-  }
-
-  std::shared_ptr<ChatSlice> getChatSlice() {
-    if (!chatSlice_) {
-      chatSlice_ = std::make_shared<ChatSlice>(ChatState());
-    }
-    return chatSlice_;
-  }
-
-  std::shared_ptr<DraftSlice> getDraftSlice() {
-    if (!draftSlice_) {
-      draftSlice_ = std::make_shared<DraftSlice>(DraftState());
-    }
-    return draftSlice_;
-  }
-
-  std::shared_ptr<ChallengeSlice> getChallengeSlice() {
-    if (!challengeSlice_) {
-      challengeSlice_ = std::make_shared<ChallengeSlice>(ChallengeState());
-    }
-    return challengeSlice_;
-  }
-
-  std::shared_ptr<StoriesSlice> getStoriesSlice() {
-    if (!storiesSlice_) {
-      storiesSlice_ = std::make_shared<StoriesSlice>(StoriesState());
-    }
-    return storiesSlice_;
-  }
-
-  std::shared_ptr<UploadSlice> getUploadSlice() {
-    if (!uploadSlice_) {
-      uploadSlice_ = std::make_shared<UploadSlice>(UploadState());
-    }
-    return uploadSlice_;
-  }
-
-  std::shared_ptr<NotificationSlice> getNotificationSlice() {
-    if (!notificationSlice_) {
-      notificationSlice_ = std::make_shared<NotificationSlice>(NotificationState());
-    }
-    return notificationSlice_;
-  }
-
-  std::shared_ptr<CommentsSlice> getCommentsSlice() {
-    if (!commentsSlice_) {
-      commentsSlice_ = std::make_shared<CommentsSlice>(CommentsState());
-    }
-    return commentsSlice_;
-  }
-
-  std::shared_ptr<SearchSlice> getSearchSlice() {
-    if (!searchSlice_) {
-      searchSlice_ = std::make_shared<SearchSlice>(SearchState());
-    }
-    return searchSlice_;
-  }
-
-  std::shared_ptr<DiscoverySlice> getDiscoverySlice() {
-    if (!discoverySlice_) {
-      discoverySlice_ = std::make_shared<DiscoverySlice>(DiscoveryState());
-    }
-    return discoverySlice_;
-  }
-
-  std::shared_ptr<FollowersSlice> getFollowersSlice() {
-    if (!followersSlice_) {
-      followersSlice_ = std::make_shared<FollowersSlice>(FollowersState());
-    }
-    return followersSlice_;
-  }
-
-  std::shared_ptr<PlaylistSlice> getPlaylistSlice() {
-    if (!playlistSlice_) {
-      playlistSlice_ = std::make_shared<PlaylistSlice>(PlaylistState());
-    }
-    return playlistSlice_;
-  }
-
-  std::shared_ptr<SoundSlice> getSoundSlice() {
-    if (!soundSlice_) {
-      soundSlice_ = std::make_shared<SoundSlice>(SoundState());
-    }
-    return soundSlice_;
-  }
-
-  std::shared_ptr<PresenceSlice> getPresenceSlice() {
-    if (!presenceSlice_) {
-      presenceSlice_ = std::make_shared<PresenceSlice>(PresenceState());
-    }
-    return presenceSlice_;
-  }
+  // Direct public access to slices (eagerly initialized)
+  std::shared_ptr<AuthSlice> auth;
+  std::shared_ptr<PostsSlice> posts;
+  std::shared_ptr<UserSlice> user;
+  std::shared_ptr<ChatSlice> chat;
+  std::shared_ptr<DraftSlice> draft;
+  std::shared_ptr<ChallengeSlice> challenge;
+  std::shared_ptr<StoriesSlice> stories;
+  std::shared_ptr<UploadSlice> uploads;
+  std::shared_ptr<NotificationSlice> notifications;
+  std::shared_ptr<CommentsSlice> comments;
+  std::shared_ptr<SearchSlice> search;
+  std::shared_ptr<DiscoverySlice> discovery;
+  std::shared_ptr<FollowersSlice> followers;
+  std::shared_ptr<PlaylistSlice> playlists;
+  std::shared_ptr<SoundSlice> sounds;
+  std::shared_ptr<PresenceSlice> presence;
 
   /**
    * Reset all slices to initial state (immutable pattern)
@@ -310,82 +213,38 @@ public:
    * Useful for logout or app reset
    */
   void resetAllSlices() {
-    if (authSlice_)
-      authSlice_->setState(AuthState());
-    if (postsSlice_)
-      postsSlice_->setState(PostsState());
-    if (userSlice_)
-      userSlice_->setState(UserState());
-    if (chatSlice_)
-      chatSlice_->setState(ChatState());
-    if (draftSlice_)
-      draftSlice_->setState(DraftState());
-    if (challengeSlice_)
-      challengeSlice_->setState(ChallengeState());
-    if (storiesSlice_)
-      storiesSlice_->setState(StoriesState());
-    if (uploadSlice_)
-      uploadSlice_->setState(UploadState());
-    if (notificationSlice_)
-      notificationSlice_->setState(NotificationState());
-    if (commentsSlice_)
-      commentsSlice_->setState(CommentsState());
-    if (searchSlice_)
-      searchSlice_->setState(SearchState());
-    if (discoverySlice_)
-      discoverySlice_->setState(DiscoveryState());
-    if (followersSlice_)
-      followersSlice_->setState(FollowersState());
-    if (playlistSlice_)
-      playlistSlice_->setState(PlaylistState());
-    if (soundSlice_)
-      soundSlice_->setState(SoundState());
-    if (presenceSlice_)
-      presenceSlice_->setState(PresenceState());
-  }
-
-  /**
-   * Clear all slices (removes all data without resetting to defaults)
-   */
-  void clearAllSlices() {
-    authSlice_ = nullptr;
-    postsSlice_ = nullptr;
-    userSlice_ = nullptr;
-    chatSlice_ = nullptr;
-    draftSlice_ = nullptr;
-    challengeSlice_ = nullptr;
-    storiesSlice_ = nullptr;
-    uploadSlice_ = nullptr;
-    notificationSlice_ = nullptr;
-    commentsSlice_ = nullptr;
-    searchSlice_ = nullptr;
-    discoverySlice_ = nullptr;
-    followersSlice_ = nullptr;
-    playlistSlice_ = nullptr;
-    soundSlice_ = nullptr;
-    presenceSlice_ = nullptr;
+    auth->setState(AuthState());
+    posts->setState(PostsState());
+    user->setState(UserState());
+    chat->setState(ChatState());
+    draft->setState(DraftState());
+    challenge->setState(ChallengeState());
+    stories->setState(StoriesState());
+    uploads->setState(UploadState());
+    notifications->setState(NotificationState());
+    comments->setState(CommentsState());
+    search->setState(SearchState());
+    discovery->setState(DiscoveryState());
+    followers->setState(FollowersState());
+    playlists->setState(PlaylistState());
+    sounds->setState(SoundState());
+    presence->setState(PresenceState());
   }
 
 private:
-  AppSliceManager() = default;
-
-  // Slice instances (lazy-initialized)
-  std::shared_ptr<AuthSlice> authSlice_;
-  std::shared_ptr<PostsSlice> postsSlice_;
-  std::shared_ptr<UserSlice> userSlice_;
-  std::shared_ptr<ChatSlice> chatSlice_;
-  std::shared_ptr<DraftSlice> draftSlice_;
-  std::shared_ptr<ChallengeSlice> challengeSlice_;
-  std::shared_ptr<StoriesSlice> storiesSlice_;
-  std::shared_ptr<UploadSlice> uploadSlice_;
-  std::shared_ptr<NotificationSlice> notificationSlice_;
-  std::shared_ptr<CommentsSlice> commentsSlice_;
-  std::shared_ptr<SearchSlice> searchSlice_;
-  std::shared_ptr<DiscoverySlice> discoverySlice_;
-  std::shared_ptr<FollowersSlice> followersSlice_;
-  std::shared_ptr<PlaylistSlice> playlistSlice_;
-  std::shared_ptr<SoundSlice> soundSlice_;
-  std::shared_ptr<PresenceSlice> presenceSlice_;
+  AppSliceManager()
+      : auth(std::make_shared<AuthSlice>(AuthState())), posts(std::make_shared<PostsSlice>(PostsState())),
+        user(std::make_shared<UserSlice>(UserState())), chat(std::make_shared<ChatSlice>(ChatState())),
+        draft(std::make_shared<DraftSlice>(DraftState())),
+        challenge(std::make_shared<ChallengeSlice>(ChallengeState())),
+        stories(std::make_shared<StoriesSlice>(StoriesState())), uploads(std::make_shared<UploadSlice>(UploadState())),
+        notifications(std::make_shared<NotificationSlice>(NotificationState())),
+        comments(std::make_shared<CommentsSlice>(CommentsState())),
+        search(std::make_shared<SearchSlice>(SearchState())),
+        discovery(std::make_shared<DiscoverySlice>(DiscoveryState())),
+        followers(std::make_shared<FollowersSlice>(FollowersState())),
+        playlists(std::make_shared<PlaylistSlice>(PlaylistState())), sounds(std::make_shared<SoundSlice>(SoundState())),
+        presence(std::make_shared<PresenceSlice>(PresenceState())) {}
 
   // Prevent copying
   AppSliceManager(const AppSliceManager &) = delete;

@@ -50,9 +50,9 @@ void AppStore::loadPlaylists() {
     return;
   }
 
-  PlaylistState newState = sliceManager.getPlaylistSlice()->getState();
+  PlaylistState newState = sliceManager.playlists->getState();
   newState.isLoading = true;
-  sliceManager.getPlaylistSlice()->setState(newState);
+  sliceManager.playlists->setState(newState);
 
   networkClient->getPlaylists("all", [this](Outcome<juce::var> result) {
     if (result.isOk()) {
@@ -66,32 +66,32 @@ void AppStore::loadPlaylists() {
 
         if (parseResult.isOk()) {
           auto playlistsList = parseResult.getValue();
-          PlaylistState successState = sliceManager.getPlaylistSlice()->getState();
+          PlaylistState successState = sliceManager.playlists->getState();
           successState.playlists = playlistsList;
           successState.isLoading = false;
           successState.playlistError = "";
           Util::logInfo("AppStore", "Loaded " + juce::String(playlistsList.size()) + " playlists");
-          sliceManager.getPlaylistSlice()->setState(successState);
+          sliceManager.playlists->setState(successState);
         } else {
-          PlaylistState parseErrorState = sliceManager.getPlaylistSlice()->getState();
+          PlaylistState parseErrorState = sliceManager.playlists->getState();
           parseErrorState.isLoading = false;
           parseErrorState.playlistError = parseResult.getError();
           Util::logError("AppStore", "Failed to parse playlists: " + parseResult.getError());
-          sliceManager.getPlaylistSlice()->setState(parseErrorState);
+          sliceManager.playlists->setState(parseErrorState);
         }
       } catch (const std::exception &e) {
-        PlaylistState exceptionState = sliceManager.getPlaylistSlice()->getState();
+        PlaylistState exceptionState = sliceManager.playlists->getState();
         exceptionState.isLoading = false;
         exceptionState.playlistError = juce::String(e.what());
         Util::logError("AppStore", "JSON parse error: " + juce::String(e.what()));
-        sliceManager.getPlaylistSlice()->setState(exceptionState);
+        sliceManager.playlists->setState(exceptionState);
       }
     } else {
-      PlaylistState networkErrorState = sliceManager.getPlaylistSlice()->getState();
+      PlaylistState networkErrorState = sliceManager.playlists->getState();
       networkErrorState.isLoading = false;
       networkErrorState.playlistError = result.getError();
       Util::logError("AppStore", "Failed to load playlists: " + result.getError());
-      sliceManager.getPlaylistSlice()->setState(networkErrorState);
+      sliceManager.playlists->setState(networkErrorState);
     }
   });
 }
@@ -111,10 +111,10 @@ void AppStore::createPlaylist(const juce::String &name, const juce::String &desc
       // Reload playlists to get the new one
       loadPlaylists();
     } else {
-      PlaylistState createErrorState = sliceManager.getPlaylistSlice()->getState();
+      PlaylistState createErrorState = sliceManager.playlists->getState();
       createErrorState.playlistError = result.getError();
       Util::logError("AppStore", "Failed to create playlist: " + result.getError());
-      sliceManager.getPlaylistSlice()->setState(createErrorState);
+      sliceManager.playlists->setState(createErrorState);
     }
   });
 }
@@ -137,9 +137,9 @@ void AppStore::addPostToPlaylist(const juce::String &postId, const juce::String 
       Util::logInfo("AppStore", "Post added to playlist successfully");
       // Could reload playlists here if needed
     } else {
-      PlaylistState errorState = sliceManager.getPlaylistSlice()->getState();
+      PlaylistState errorState = sliceManager.playlists->getState();
       errorState.playlistError = result.getError();
-      sliceManager.getPlaylistSlice()->setState(errorState);
+      sliceManager.playlists->setState(errorState);
       Util::logError("AppStore", "Failed to add post to playlist: " + result.getError());
     }
   });

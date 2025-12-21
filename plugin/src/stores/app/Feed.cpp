@@ -46,10 +46,10 @@ static inline juce::String feedTypeToString(FeedType feedType) {
 
 void AppStore::loadFeed(FeedType feedType, [[maybe_unused]] bool forceRefresh) {
   if (!networkClient) {
-    PostsState newState = sliceManager.getPostsSlice()->getState();
+    PostsState newState = sliceManager.posts->getState();
     newState.currentFeedType = feedType;
     newState.feedError = "Network client not initialized";
-    sliceManager.getPostsSlice()->setState(newState);
+    sliceManager.posts->setState(newState);
     return;
   }
 
@@ -59,26 +59,26 @@ void AppStore::loadFeed(FeedType feedType, [[maybe_unused]] bool forceRefresh) {
   // Removed cache check - always fetch from network for latest content.
 
   // Update state to loading
-  PostsState loadingState = sliceManager.getPostsSlice()->getState();
+  PostsState loadingState = sliceManager.posts->getState();
   loadingState.currentFeedType = feedType;
   if (loadingState.feeds.count(feedType) == 0) {
     loadingState.feeds[feedType] = FeedState();
   }
   loadingState.feeds[feedType].isLoading = true;
   loadingState.feeds[feedType].error = "";
-  sliceManager.getPostsSlice()->setState(loadingState);
+  sliceManager.posts->setState(loadingState);
 
   // Fetch from network
   performFetch(feedType, 20, 0);
 }
 
 void AppStore::refreshCurrentFeed() {
-  auto currentState = sliceManager.getPostsSlice()->getState();
+  auto currentState = sliceManager.posts->getState();
   loadFeed(currentState.currentFeedType, true);
 }
 
 void AppStore::loadMore() {
-  auto currentState = sliceManager.getPostsSlice()->getState();
+  auto currentState = sliceManager.posts->getState();
   auto feedType = currentState.currentFeedType;
 
   if (currentState.feeds.count(feedType) == 0) {
@@ -91,22 +91,22 @@ void AppStore::loadMore() {
     return;
   }
 
-  PostsState loadingState = sliceManager.getPostsSlice()->getState();
+  PostsState loadingState = sliceManager.posts->getState();
   if (loadingState.feeds.count(feedType) > 0) {
     loadingState.feeds[feedType].isLoading = true;
   }
-  sliceManager.getPostsSlice()->setState(loadingState);
+  sliceManager.posts->setState(loadingState);
 
   performFetch(feedType, feedState.limit, feedState.offset);
 }
 
 void AppStore::switchFeedType(FeedType feedType) {
-  PostsState newState = sliceManager.getPostsSlice()->getState();
+  PostsState newState = sliceManager.posts->getState();
   newState.currentFeedType = feedType;
-  sliceManager.getPostsSlice()->setState(newState);
+  sliceManager.posts->setState(newState);
 
   // Load the new feed if not already loaded
-  auto currentState = sliceManager.getPostsSlice()->getState();
+  auto currentState = sliceManager.posts->getState();
   if (currentState.feeds[feedType].posts.empty()) {
     loadFeed(feedType, false);
   }
@@ -117,35 +117,35 @@ void AppStore::switchFeedType(FeedType feedType) {
 
 void AppStore::loadSavedPosts() {
   if (!networkClient) {
-    PostsState errorState = sliceManager.getPostsSlice()->getState();
+    PostsState errorState = sliceManager.posts->getState();
     errorState.savedPosts.error = "Network client not initialized";
-    sliceManager.getPostsSlice()->setState(errorState);
+    sliceManager.posts->setState(errorState);
     return;
   }
 
   Util::logInfo("AppStore", "Loading saved posts");
 
-  PostsState loadingState = sliceManager.getPostsSlice()->getState();
+  PostsState loadingState = sliceManager.posts->getState();
   loadingState.savedPosts.isLoading = true;
   loadingState.savedPosts.offset = 0;
   loadingState.savedPosts.posts.clear();
   loadingState.savedPosts.error = "";
-  sliceManager.getPostsSlice()->setState(loadingState);
+  sliceManager.posts->setState(loadingState);
 
   networkClient->getSavedPosts(20, 0, [this](Outcome<juce::var> result) { handleSavedPostsLoaded(result); });
 }
 
 void AppStore::loadMoreSavedPosts() {
-  auto currentState = sliceManager.getPostsSlice()->getState();
+  auto currentState = sliceManager.posts->getState();
   if (!currentState.savedPosts.hasMore || currentState.savedPosts.isLoading || !networkClient) {
     return;
   }
 
   Util::logDebug("AppStore", "Loading more saved posts");
 
-  PostsState loadingState = sliceManager.getPostsSlice()->getState();
+  PostsState loadingState = sliceManager.posts->getState();
   loadingState.savedPosts.isLoading = true;
-  sliceManager.getPostsSlice()->setState(loadingState);
+  sliceManager.posts->setState(loadingState);
 
   networkClient->getSavedPosts(currentState.savedPosts.limit, currentState.savedPosts.offset,
                                [this](Outcome<juce::var> result) { handleSavedPostsLoaded(result); });
@@ -159,13 +159,13 @@ void AppStore::unsavePost(const juce::String &postId) {
   Util::logInfo("AppStore", "Unsaving post: " + postId);
 
   // Optimistic removal from saved posts
-  PostsState newState = sliceManager.getPostsSlice()->getState();
+  PostsState newState = sliceManager.posts->getState();
   auto it = std::find_if(newState.savedPosts.posts.begin(), newState.savedPosts.posts.end(),
                          [&postId](const auto &post) { return post->id == postId; });
   if (it != newState.savedPosts.posts.end()) {
     newState.savedPosts.posts.erase(it);
   }
-  sliceManager.getPostsSlice()->setState(newState);
+  sliceManager.posts->setState(newState);
 
   // Send to server
   networkClient->unsavePost(postId, [this, postId](Outcome<juce::var> result) {
@@ -184,35 +184,35 @@ void AppStore::unsavePost(const juce::String &postId) {
 
 void AppStore::loadArchivedPosts() {
   if (!networkClient) {
-    PostsState errorState = sliceManager.getPostsSlice()->getState();
+    PostsState errorState = sliceManager.posts->getState();
     errorState.archivedPosts.error = "Network client not initialized";
-    sliceManager.getPostsSlice()->setState(errorState);
+    sliceManager.posts->setState(errorState);
     return;
   }
 
   Util::logInfo("AppStore", "Loading archived posts");
 
-  PostsState loadingState = sliceManager.getPostsSlice()->getState();
+  PostsState loadingState = sliceManager.posts->getState();
   loadingState.archivedPosts.isLoading = true;
   loadingState.archivedPosts.offset = 0;
   loadingState.archivedPosts.posts.clear();
   loadingState.archivedPosts.error = "";
-  sliceManager.getPostsSlice()->setState(loadingState);
+  sliceManager.posts->setState(loadingState);
 
   networkClient->getArchivedPosts(20, 0, [this](Outcome<juce::var> result) { handleArchivedPostsLoaded(result); });
 }
 
 void AppStore::loadMoreArchivedPosts() {
-  auto currentState = sliceManager.getPostsSlice()->getState();
+  auto currentState = sliceManager.posts->getState();
   if (!currentState.archivedPosts.hasMore || currentState.archivedPosts.isLoading || !networkClient) {
     return;
   }
 
   Util::logDebug("AppStore", "Loading more archived posts");
 
-  PostsState loadingState = sliceManager.getPostsSlice()->getState();
+  PostsState loadingState = sliceManager.posts->getState();
   loadingState.archivedPosts.isLoading = true;
-  sliceManager.getPostsSlice()->setState(loadingState);
+  sliceManager.posts->setState(loadingState);
 
   // TODO: Implement archived posts loading via AppStore
   // networkClient->getArchivedPosts(20, currentState.archivedPosts.offset,
@@ -227,13 +227,13 @@ void AppStore::restorePost(const juce::String &postId) {
   Util::logInfo("AppStore", "Restoring post: " + postId);
 
   // Optimistic removal from archived posts
-  PostsState newState = sliceManager.getPostsSlice()->getState();
+  PostsState newState = sliceManager.posts->getState();
   auto it = std::find_if(newState.archivedPosts.posts.begin(), newState.archivedPosts.posts.end(),
                          [&postId](const auto &post) { return post->id == postId; });
   if (it != newState.archivedPosts.posts.end()) {
     newState.archivedPosts.posts.erase(it);
   }
-  sliceManager.getPostsSlice()->setState(newState);
+  sliceManager.posts->setState(newState);
 
   // Send to server
   networkClient->unarchivePost(postId, [this, postId](Outcome<juce::var> result) {
@@ -256,7 +256,7 @@ void AppStore::toggleLike(const juce::String &postId) {
   }
 
   // Check current like state to determine whether to like or unlike
-  auto currentPostsState = sliceManager.getPostsSlice()->getState();
+  auto currentPostsState = sliceManager.posts->getState();
   bool isCurrentlyLiked = false;
 
   for (const auto &[feedType, feedState] : currentPostsState.feeds) {
@@ -269,7 +269,7 @@ void AppStore::toggleLike(const juce::String &postId) {
   }
 
   // Optimistic update
-  PostsState newState = sliceManager.getPostsSlice()->getState();
+  PostsState newState = sliceManager.posts->getState();
   // Update all occurrences of the post across all feeds
   for (auto &[feedType, feedState] : newState.feeds) {
     for (auto &post : feedState.posts) {
@@ -293,7 +293,7 @@ void AppStore::toggleLike(const juce::String &postId) {
       post->likeCount += post->isLiked ? 1 : -1;
     }
   }
-  sliceManager.getPostsSlice()->setState(newState);
+  sliceManager.posts->setState(newState);
 
   // Send to server - like or unlike based on previous state
   if (isCurrentlyLiked) {
@@ -321,7 +321,7 @@ void AppStore::toggleSave(const juce::String &postId) {
   }
 
   // Check current save state
-  auto currentPostsState = sliceManager.getPostsSlice()->getState();
+  auto currentPostsState = sliceManager.posts->getState();
   bool isCurrentlySaved = false;
 
   for (const auto &[feedType, feedState] : currentPostsState.feeds) {
@@ -334,7 +334,7 @@ void AppStore::toggleSave(const juce::String &postId) {
   }
 
   // Optimistic update
-  PostsState newState = sliceManager.getPostsSlice()->getState();
+  PostsState newState = sliceManager.posts->getState();
   for (auto &[feedType, feedState] : newState.feeds) {
     for (auto &post : feedState.posts) {
       if (post->id == postId) {
@@ -357,7 +357,7 @@ void AppStore::toggleSave(const juce::String &postId) {
       post->saveCount += post->isSaved ? 1 : -1;
     }
   }
-  sliceManager.getPostsSlice()->setState(newState);
+  sliceManager.posts->setState(newState);
 
   // Send to server
   if (isCurrentlySaved) {
@@ -385,7 +385,7 @@ void AppStore::toggleRepost(const juce::String &postId) {
   }
 
   // Check current repost state
-  auto currentPostsState = sliceManager.getPostsSlice()->getState();
+  auto currentPostsState = sliceManager.posts->getState();
   bool isCurrentlyReposted = false;
 
   for (const auto &[feedType, feedState] : currentPostsState.feeds) {
@@ -398,7 +398,7 @@ void AppStore::toggleRepost(const juce::String &postId) {
   }
 
   // Optimistic update
-  PostsState newState = sliceManager.getPostsSlice()->getState();
+  PostsState newState = sliceManager.posts->getState();
   for (auto &[feedType, feedState] : newState.feeds) {
     for (auto &post : feedState.posts) {
       if (post->id == postId) {
@@ -421,7 +421,7 @@ void AppStore::toggleRepost(const juce::String &postId) {
       post->repostCount += post->isReposted ? 1 : -1;
     }
   }
-  sliceManager.getPostsSlice()->setState(newState);
+  sliceManager.posts->setState(newState);
 
   // Send to server
   if (isCurrentlyReposted) {
@@ -462,7 +462,7 @@ void AppStore::toggleFollow(const juce::String &postId, bool willFollow) {
   }
 
   // Extract user ID and current follow state from post
-  auto currentPostsState = sliceManager.getPostsSlice()->getState();
+  auto currentPostsState = sliceManager.posts->getState();
   juce::String userId;
   bool previousFollowState = false;
 
@@ -478,7 +478,7 @@ void AppStore::toggleFollow(const juce::String &postId, bool willFollow) {
 
   if (userId.isNotEmpty()) {
     // Apply optimistic update - toggle follow state immediately
-    PostsState newState = sliceManager.getPostsSlice()->getState();
+    PostsState newState = sliceManager.posts->getState();
     for (auto &[feedType, feedState] : newState.feeds) {
       for (auto &post : feedState.posts) {
         if (post->id == postId) {
@@ -486,7 +486,7 @@ void AppStore::toggleFollow(const juce::String &postId, bool willFollow) {
         }
       }
     }
-    sliceManager.getPostsSlice()->setState(newState);
+    sliceManager.posts->setState(newState);
 
     Util::logDebug("AppStore", "Follow post optimistic update: " + postId + " - " +
                                    juce::String(willFollow ? "follow" : "unfollow"));
@@ -499,7 +499,7 @@ void AppStore::toggleFollow(const juce::String &postId, bool willFollow) {
         } else {
           Util::logError("AppStore", "Failed to follow user: " + result.getError());
           // Rollback optimistic update on error
-          PostsState rollbackState = sliceManager.getPostsSlice()->getState();
+          PostsState rollbackState = sliceManager.posts->getState();
           for (auto &[feedType, feedState] : rollbackState.feeds) {
             for (auto &post : feedState.posts) {
               if (post->id == postId) {
@@ -507,7 +507,7 @@ void AppStore::toggleFollow(const juce::String &postId, bool willFollow) {
               }
             }
           }
-          sliceManager.getPostsSlice()->setState(rollbackState);
+          sliceManager.posts->setState(rollbackState);
         }
       });
     } else {
@@ -518,7 +518,7 @@ void AppStore::toggleFollow(const juce::String &postId, bool willFollow) {
         } else {
           Util::logError("AppStore", "Failed to unfollow user: " + result.getError());
           // Rollback optimistic update on error
-          PostsState rollbackState = sliceManager.getPostsSlice()->getState();
+          PostsState rollbackState = sliceManager.posts->getState();
           for (auto &[feedType, feedState] : rollbackState.feeds) {
             for (auto &post : feedState.posts) {
               if (post->id == postId) {
@@ -526,7 +526,7 @@ void AppStore::toggleFollow(const juce::String &postId, bool willFollow) {
               }
             }
           }
-          sliceManager.getPostsSlice()->setState(rollbackState);
+          sliceManager.posts->setState(rollbackState);
         }
       });
     }
@@ -563,7 +563,7 @@ void AppStore::togglePin(const juce::String &postId, bool pinned) {
   }
 
   // Update UI optimistically
-  PostsState newState = sliceManager.getPostsSlice()->getState();
+  PostsState newState = sliceManager.posts->getState();
   for (auto &[feedType, feedState] : newState.feeds) {
     for (auto &post : feedState.posts) {
       if (post->id == postId) {
@@ -571,7 +571,7 @@ void AppStore::togglePin(const juce::String &postId, bool pinned) {
       }
     }
   }
-  sliceManager.getPostsSlice()->setState(newState);
+  sliceManager.posts->setState(newState);
 
   // TODO: Call actual API when NetworkClient has pin/unpin methods
   Util::logInfo("AppStore", pinned ? "Pin post: " + postId : "Unpin post: " + postId);
@@ -645,7 +645,7 @@ void AppStore::handleFetchSuccess(FeedType feedType, const juce::var &data, int 
     if (isAggregatedFeedType(feedType)) {
       auto response = parseAggregatedJsonResponse(data);
 
-      sliceManager.getPostsSlice()->dispatch([feedType, response, offset](PostsState &s) {
+      sliceManager.posts->dispatch([feedType, response, offset](PostsState &s) {
         if (s.aggregatedFeeds.count(feedType) == 0) {
           s.aggregatedFeeds[feedType] = AggregatedFeedState();
         }
@@ -689,7 +689,7 @@ void AppStore::handleFetchSuccess(FeedType feedType, const juce::var &data, int 
     Log::debug("========== Feed cached successfully ==========");
 
     Log::debug("========== About to call updateFeedState ==========");
-    PostsState newState = sliceManager.getPostsSlice()->getState();
+    PostsState newState = sliceManager.posts->getState();
     if (newState.feeds.count(feedType) == 0) {
       newState.feeds[feedType] = FeedState();
     }
@@ -711,7 +711,7 @@ void AppStore::handleFetchSuccess(FeedType feedType, const juce::var &data, int 
     feedState.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
     feedState.error = "";
     feedState.isSynced = true;
-    sliceManager.getPostsSlice()->setState(newState);
+    sliceManager.posts->setState(newState);
     Log::debug("========== updateFeedState COMPLETE ==========");
     // }
 
@@ -729,7 +729,7 @@ void AppStore::handleFetchSuccess(FeedType feedType, const juce::var &data, int 
 void AppStore::handleFetchError(FeedType feedType, const juce::String &error) {
   Util::logError("AppStore", "Failed to load feed: " + error);
 
-  PostsState newState = sliceManager.getPostsSlice()->getState();
+  PostsState newState = sliceManager.posts->getState();
   // TODO: Handle aggregated feed types
   // For now, only handle regular feeds
   if (newState.feeds.count(feedType) > 0) {
@@ -737,24 +737,24 @@ void AppStore::handleFetchError(FeedType feedType, const juce::String &error) {
     newState.feeds[feedType].isRefreshing = false;
     newState.feeds[feedType].error = error;
   }
-  sliceManager.getPostsSlice()->setState(newState);
+  sliceManager.posts->setState(newState);
 }
 
 void AppStore::handleSavedPostsLoaded(Outcome<juce::var> result) {
   if (!result.isOk()) {
-    PostsState errorState = sliceManager.getPostsSlice()->getState();
+    PostsState errorState = sliceManager.posts->getState();
     errorState.savedPosts.isLoading = false;
     errorState.savedPosts.error = result.getError();
-    sliceManager.getPostsSlice()->setState(errorState);
+    sliceManager.posts->setState(errorState);
     return;
   }
 
   auto data = result.getValue();
   if (!data.isObject()) {
-    PostsState errorState = sliceManager.getPostsSlice()->getState();
+    PostsState errorState = sliceManager.posts->getState();
     errorState.savedPosts.isLoading = false;
     errorState.savedPosts.error = "Invalid saved posts response";
-    sliceManager.getPostsSlice()->setState(errorState);
+    sliceManager.posts->setState(errorState);
     return;
   }
 
@@ -762,10 +762,10 @@ void AppStore::handleSavedPostsLoaded(Outcome<juce::var> result) {
   auto totalCount = static_cast<int>(data.getProperty("total", 0));
 
   if (!postsArray.isArray()) {
-    PostsState errorState = sliceManager.getPostsSlice()->getState();
+    PostsState errorState = sliceManager.posts->getState();
     errorState.savedPosts.isLoading = false;
     errorState.savedPosts.error = "Invalid posts array in response";
-    sliceManager.getPostsSlice()->setState(errorState);
+    sliceManager.posts->setState(errorState);
     return;
   }
 
@@ -786,7 +786,7 @@ void AppStore::handleSavedPostsLoaded(Outcome<juce::var> result) {
     }
   }
 
-  PostsState successState = sliceManager.getPostsSlice()->getState();
+  PostsState successState = sliceManager.posts->getState();
   // Convert juce::Array<FeedPost> to vector<shared_ptr<FeedPost>>
   successState.savedPosts.posts.clear();
   for (const auto &post : loadedPosts) {
@@ -798,26 +798,26 @@ void AppStore::handleSavedPostsLoaded(Outcome<juce::var> result) {
   successState.savedPosts.hasMore = successState.savedPosts.offset < totalCount;
   successState.savedPosts.error = "";
   successState.savedPosts.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
-  sliceManager.getPostsSlice()->setState(successState);
+  sliceManager.posts->setState(successState);
 
   Util::logDebug("AppStore", "Loaded " + juce::String(loadedPosts.size()) + " saved posts");
 }
 
 void AppStore::handleArchivedPostsLoaded(Outcome<juce::var> result) {
   if (!result.isOk()) {
-    PostsState errorState = sliceManager.getPostsSlice()->getState();
+    PostsState errorState = sliceManager.posts->getState();
     errorState.archivedPosts.isLoading = false;
     errorState.archivedPosts.error = result.getError();
-    sliceManager.getPostsSlice()->setState(errorState);
+    sliceManager.posts->setState(errorState);
     return;
   }
 
   auto data = result.getValue();
   if (!data.isObject()) {
-    PostsState errorState = sliceManager.getPostsSlice()->getState();
+    PostsState errorState = sliceManager.posts->getState();
     errorState.archivedPosts.isLoading = false;
     errorState.archivedPosts.error = "Invalid archived posts response";
-    sliceManager.getPostsSlice()->setState(errorState);
+    sliceManager.posts->setState(errorState);
     return;
   }
 
@@ -825,10 +825,10 @@ void AppStore::handleArchivedPostsLoaded(Outcome<juce::var> result) {
   auto totalCount = static_cast<int>(data.getProperty("total", 0));
 
   if (!postsArray.isArray()) {
-    PostsState errorState = sliceManager.getPostsSlice()->getState();
+    PostsState errorState = sliceManager.posts->getState();
     errorState.archivedPosts.isLoading = false;
     errorState.archivedPosts.error = "Invalid posts array in response";
-    sliceManager.getPostsSlice()->setState(errorState);
+    sliceManager.posts->setState(errorState);
     return;
   }
 
@@ -849,7 +849,7 @@ void AppStore::handleArchivedPostsLoaded(Outcome<juce::var> result) {
     }
   }
 
-  PostsState successState = sliceManager.getPostsSlice()->getState();
+  PostsState successState = sliceManager.posts->getState();
   // Convert juce::Array<FeedPost> to vector<shared_ptr<FeedPost>>
   successState.archivedPosts.posts.clear();
   for (const auto &post : loadedPosts) {
@@ -861,13 +861,13 @@ void AppStore::handleArchivedPostsLoaded(Outcome<juce::var> result) {
   successState.archivedPosts.hasMore = successState.archivedPosts.offset < totalCount;
   successState.archivedPosts.error = "";
   successState.archivedPosts.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
-  sliceManager.getPostsSlice()->setState(successState);
+  sliceManager.posts->setState(successState);
 
   Util::logDebug("AppStore", "Loaded " + juce::String(loadedPosts.size()) + " archived posts");
 }
 
 bool AppStore::isCurrentFeedCached() const {
-  auto state = sliceManager.getPostsSlice()->getState();
+  auto state = sliceManager.posts->getState();
   auto feedType = state.currentFeedType;
   auto now = juce::Time::getCurrentTime().toMilliseconds();
   const int cacheTTLSeconds = 300; // 5 minutes
@@ -1030,7 +1030,7 @@ rxcpp::observable<int> AppStore::likePostObservable(const juce::String &postId) 
     }
 
     // Check current like state from app state
-    auto currentPostsState = sliceManager.getPostsSlice()->getState();
+    auto currentPostsState = sliceManager.posts->getState();
     bool isCurrentlyLiked = false;
 
     for (const auto &[feedType, feedState] : currentPostsState.feeds) {
@@ -1046,7 +1046,7 @@ rxcpp::observable<int> AppStore::likePostObservable(const juce::String &postId) 
     auto previousState = isCurrentlyLiked;
 
     // Apply optimistic update
-    PostsState newState = sliceManager.getPostsSlice()->getState();
+    PostsState newState = sliceManager.posts->getState();
     for (auto &[feedType, feedState] : newState.feeds) {
       for (auto &post : feedState.posts) {
         if (post->id == postId) {
@@ -1055,7 +1055,7 @@ rxcpp::observable<int> AppStore::likePostObservable(const juce::String &postId) 
         }
       }
     }
-    sliceManager.getPostsSlice()->setState(newState);
+    sliceManager.posts->setState(newState);
 
     Util::logDebug("AppStore", "Like post optimistic update: " + postId);
 
@@ -1070,7 +1070,7 @@ rxcpp::observable<int> AppStore::likePostObservable(const juce::String &postId) 
         } else {
           Util::logError("AppStore", "Failed to unlike post: " + result.getError());
           // Rollback optimistic update on error
-          PostsState rollbackState = sliceManager.getPostsSlice()->getState();
+          PostsState rollbackState = sliceManager.posts->getState();
           for (auto &[feedType, feedState] : rollbackState.feeds) {
             for (auto &post : feedState.posts) {
               if (post->id == postId) {
@@ -1079,7 +1079,7 @@ rxcpp::observable<int> AppStore::likePostObservable(const juce::String &postId) 
               }
             }
           }
-          sliceManager.getPostsSlice()->setState(rollbackState);
+          sliceManager.posts->setState(rollbackState);
           observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
         }
       });
@@ -1093,7 +1093,7 @@ rxcpp::observable<int> AppStore::likePostObservable(const juce::String &postId) 
         } else {
           Util::logError("AppStore", "Failed to like post: " + result.getError());
           // Rollback optimistic update on error
-          PostsState rollbackState = sliceManager.getPostsSlice()->getState();
+          PostsState rollbackState = sliceManager.posts->getState();
           for (auto &[feedType, feedState] : rollbackState.feeds) {
             for (auto &post : feedState.posts) {
               if (post->id == postId) {
@@ -1102,7 +1102,7 @@ rxcpp::observable<int> AppStore::likePostObservable(const juce::String &postId) 
               }
             }
           }
-          sliceManager.getPostsSlice()->setState(rollbackState);
+          sliceManager.posts->setState(rollbackState);
           observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
         }
       });
@@ -1122,7 +1122,7 @@ rxcpp::observable<int> AppStore::toggleSaveObservable(const juce::String &postId
     }
 
     // Check current save state
-    auto currentPostsState = sliceManager.getPostsSlice()->getState();
+    auto currentPostsState = sliceManager.posts->getState();
     bool isCurrentlySaved = false;
 
     for (const auto &[feedType, feedState] : currentPostsState.feeds) {
@@ -1138,7 +1138,7 @@ rxcpp::observable<int> AppStore::toggleSaveObservable(const juce::String &postId
     auto previousState = isCurrentlySaved;
 
     // Apply optimistic update
-    PostsState newState = sliceManager.getPostsSlice()->getState();
+    PostsState newState = sliceManager.posts->getState();
     for (auto &[feedType, feedState] : newState.feeds) {
       for (auto &post : feedState.posts) {
         if (post->id == postId) {
@@ -1161,7 +1161,7 @@ rxcpp::observable<int> AppStore::toggleSaveObservable(const juce::String &postId
         post->saveCount += post->isSaved ? 1 : -1;
       }
     }
-    sliceManager.getPostsSlice()->setState(newState);
+    sliceManager.posts->setState(newState);
 
     Util::logDebug("AppStore", "Toggle save optimistic update: " + postId);
 
@@ -1175,7 +1175,7 @@ rxcpp::observable<int> AppStore::toggleSaveObservable(const juce::String &postId
         } else {
           Util::logError("AppStore", "Failed to unsave post: " + result.getError());
           // Rollback optimistic update on error
-          PostsState rollbackState = sliceManager.getPostsSlice()->getState();
+          PostsState rollbackState = sliceManager.posts->getState();
           for (auto &[feedType, feedState] : rollbackState.feeds) {
             for (auto &post : feedState.posts) {
               if (post->id == postId) {
@@ -1196,7 +1196,7 @@ rxcpp::observable<int> AppStore::toggleSaveObservable(const juce::String &postId
               post->saveCount += previousState ? 1 : -1;
             }
           }
-          sliceManager.getPostsSlice()->setState(rollbackState);
+          sliceManager.posts->setState(rollbackState);
           observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
         }
       });
@@ -1209,7 +1209,7 @@ rxcpp::observable<int> AppStore::toggleSaveObservable(const juce::String &postId
         } else {
           Util::logError("AppStore", "Failed to save post: " + result.getError());
           // Rollback optimistic update on error
-          PostsState rollbackState = sliceManager.getPostsSlice()->getState();
+          PostsState rollbackState = sliceManager.posts->getState();
           for (auto &[feedType, feedState] : rollbackState.feeds) {
             for (auto &post : feedState.posts) {
               if (post->id == postId) {
@@ -1230,7 +1230,7 @@ rxcpp::observable<int> AppStore::toggleSaveObservable(const juce::String &postId
               post->saveCount += previousState ? 1 : -1;
             }
           }
-          sliceManager.getPostsSlice()->setState(rollbackState);
+          sliceManager.posts->setState(rollbackState);
           observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
         }
       });

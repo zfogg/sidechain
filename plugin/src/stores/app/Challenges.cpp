@@ -10,7 +10,7 @@ void AppStore::loadChallenges() {
     return;
   }
 
-  auto challengeSlice = sliceManager.getChallengeSlice();
+  auto challengeSlice = sliceManager.challenge;
   ChallengeState newState = challengeSlice->getState();
   newState.isLoading = true;
   challengeSlice->setState(newState);

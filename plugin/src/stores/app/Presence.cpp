@@ -10,7 +10,7 @@ void AppStore::setPresenceStatusMessage(const juce::String &message) {
     return;
   }
 
-  auto currentUser = sliceManager.getUserSlice()->getState();
+  auto currentUser = sliceManager.user->getState();
 
   // Build user data to upsert to GetStream.io
   auto userData = std::make_shared<juce::DynamicObject>();
@@ -35,7 +35,7 @@ void AppStore::connectPresence() {
     return;
   }
 
-  auto presenceSlice = sliceManager.getPresenceSlice();
+  auto presenceSlice = sliceManager.presence;
   PresenceState newState = presenceSlice->getState();
   newState.isUpdatingPresence = true;
   presenceSlice->setState(newState);
@@ -69,7 +69,7 @@ void AppStore::handlePresenceUpdate(const juce::String &userId, const juce::var 
 
   // Update local state with user presence information
   // This is how followers see when users come online/offline
-  auto presenceSlice = sliceManager.getPresenceSlice();
+  auto presenceSlice = sliceManager.presence;
   PresenceState presenceState = presenceSlice->getState();
   PresenceInfo info;
   info.userId = userId;
@@ -87,7 +87,7 @@ void AppStore::disconnectPresence() {
   // User will be marked offline after ~30 seconds of no activity
   streamChatClient->disconnect();
 
-  auto presenceSlice = sliceManager.getPresenceSlice();
+  auto presenceSlice = sliceManager.presence;
   PresenceState disconnectState = presenceSlice->getState();
   disconnectState.isConnected = false;
   disconnectState.currentUserStatus = PresenceStatus::Offline;

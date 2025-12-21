@@ -48,7 +48,7 @@ void AppStore::createComment(const juce::String &postId, const juce::String &con
     return;
   }
 
-  auto commentsSlice = sliceManager.getCommentsSlice();
+  auto commentsSlice = sliceManager.comments;
   if (!commentsSlice) {
     Util::logError("AppStore", "Cannot create comment - comments slice not available");
     return;
@@ -59,7 +59,7 @@ void AppStore::createComment(const juce::String &postId, const juce::String &con
   networkClient->createComment(postId, content, parentId, [this, postId](Outcome<juce::var> result) {
     Util::logInfo("AppStore", "DEBUG: createComment CALLBACK FIRED! postId=" + postId);
 
-    auto slice = sliceManager.getCommentsSlice();
+    auto slice = sliceManager.comments;
     if (!slice) {
       Util::logError("AppStore", "DEBUG: Comments slice is null!");
       return;
@@ -129,7 +129,7 @@ void AppStore::deleteComment(const juce::String &commentId) {
     return;
   }
 
-  auto commentsSlice = sliceManager.getCommentsSlice();
+  auto commentsSlice = sliceManager.comments;
   if (!commentsSlice) {
     Util::logError("AppStore", "Cannot delete comment - comments slice not available");
     return;
@@ -152,7 +152,7 @@ void AppStore::deleteComment(const juce::String &commentId) {
   }
 
   networkClient->deleteComment(commentId, [this, commentId, postId](Outcome<juce::var> result) {
-    auto slice = sliceManager.getCommentsSlice();
+    auto slice = sliceManager.comments;
     if (!slice)
       return;
 
@@ -350,7 +350,7 @@ void AppStore::loadPostComments(const juce::String &postId, int limit, int offse
     return;
   }
 
-  auto commentsSlice = sliceManager.getCommentsSlice();
+  auto commentsSlice = sliceManager.comments;
   if (!commentsSlice) {
     Util::logError("AppStore", "Cannot load comments - comments slice not available");
     return;
@@ -367,7 +367,7 @@ void AppStore::loadPostComments(const juce::String &postId, int limit, int offse
 
   // Make network request
   networkClient->getComments(postId, limit, offset, [this, postId, limit](Outcome<std::pair<juce::var, int>> result) {
-    auto slice = sliceManager.getCommentsSlice();
+    auto slice = sliceManager.comments;
     if (!slice)
       return;
 
@@ -422,7 +422,7 @@ AppStore::subscribeToPostComments(const juce::String &postId,
     return []() {};
   }
 
-  auto commentsSlice = sliceManager.getCommentsSlice();
+  auto commentsSlice = sliceManager.comments;
   if (!commentsSlice) {
     Util::logError("AppStore", "Cannot subscribe to comments - comments slice not available");
     return []() {};

@@ -2110,43 +2110,42 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String &user, con
 
   // Subscribe to user state changes to wait for profile fetch to complete
   // This allows us to show the correct view (Feed or ProfileSetup) once we know if user has a profile picture
-  Slices::AppSliceManager::getInstance().getUserSlice()->subscribe(
-      [this](const Sidechain::Stores::UserState &userState) {
-        // Only proceed once we've fetched the profile (userId should be populated)
-        if (!userState.userId.isEmpty() && !userState.isFetchingProfile) {
-          Log::info("onLoginSuccess: Profile fetch complete - userId: " + userState.userId +
-                    ", profilePictureUrl: " + (userState.profilePictureUrl.isEmpty() ? "empty" : "set"));
+  Slices::AppSliceManager::getInstance().user->subscribe([this](const Sidechain::Stores::UserState &userState) {
+    // Only proceed once we've fetched the profile (userId should be populated)
+    if (!userState.userId.isEmpty() && !userState.isFetchingProfile) {
+      Log::info("onLoginSuccess: Profile fetch complete - userId: " + userState.userId +
+                ", profilePictureUrl: " + (userState.profilePictureUrl.isEmpty() ? "empty" : "set"));
 
-          // Sync user state to member variables for use by showView
-          username = userState.username;
-          email = userState.email;
-          profilePicUrl = userState.profilePictureUrl;
-          saveLoginState();
+      // Sync user state to member variables for use by showView
+      username = userState.username;
+      email = userState.email;
+      profilePicUrl = userState.profilePictureUrl;
+      saveLoginState();
 
-          // Update header with user info from AppStore
-          if (headerComponent) {
-            headerComponent->setUserInfo(userState.username, userState.profilePictureUrl);
-            if (userState.profileImage.isValid()) {
-              headerComponent->setProfileImage(userState.profileImage);
-            }
-          }
-
-          // Check if profile is complete (has username or display name)
-          // ProfileSetup should only be shown if profile details are missing, not just if picture is missing
-          bool profileComplete = !userState.username.isEmpty() || !userState.displayName.isEmpty();
-
-          if (profileComplete) {
-            Log::info("onLoginSuccess: Profile is complete, showing PostsFeed");
-            showView(AppView::PostsFeed);
-          } else {
-            Log::info("onLoginSuccess: Profile is incomplete, showing ProfileSetup");
-            showView(AppView::ProfileSetup);
-          }
-
-          // Subscription will continue but callback only fires on state changes
-          // (and only executes code if isFetchingProfile is false)
+      // Update header with user info from AppStore
+      if (headerComponent) {
+        headerComponent->setUserInfo(userState.username, userState.profilePictureUrl);
+        if (userState.profileImage.isValid()) {
+          headerComponent->setProfileImage(userState.profileImage);
         }
-      });
+      }
+
+      // Check if profile is complete (has username or display name)
+      // ProfileSetup should only be shown if profile details are missing, not just if picture is missing
+      bool profileComplete = !userState.username.isEmpty() || !userState.displayName.isEmpty();
+
+      if (profileComplete) {
+        Log::info("onLoginSuccess: Profile is complete, showing PostsFeed");
+        showView(AppView::PostsFeed);
+      } else {
+        Log::info("onLoginSuccess: Profile is incomplete, showing ProfileSetup");
+        showView(AppView::ProfileSetup);
+      }
+
+      // Subscription will continue but callback only fires on state changes
+      // (and only executes code if isFetchingProfile is false)
+    }
+  });
 
   // Fetch user profile from backend to get their S3 profile picture and userId
   appStore.fetchUserProfile(true); // Force refresh to get latest profile data
@@ -2342,7 +2341,7 @@ void SidechainAudioProcessorEditor::loadLoginState() {
     Log::debug("loadLoginState: Fetching user profile from backend");
     auto fetchAttempts = std::make_shared<int>(0);
 
-    Slices::AppSliceManager::getInstance().getUserSlice()->subscribe(
+    Slices::AppSliceManager::getInstance().user->subscribe(
         [this, fetchAttempts](const Sidechain::Stores::UserState &userState) {
           Log::debug("loadLoginState subscription: isFetchingProfile=" +
                      juce::String(userState.isFetchingProfile ? "true" : "false") + ", userError='" +

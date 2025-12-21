@@ -423,20 +423,23 @@ void PostsFeed::handleFeedStateChanged() {
     return;
   }
 
-  const auto &state = appStore->getPostsState();
-  const auto &currentFeed = state.getCurrentFeed();
+  // Use Query Layer to access feed state - decouples from state structure
+  auto queries = appStore->queries();
+  auto currentFeedPosts = queries.getCurrentFeedPosts();
+  bool isLoading = queries.isCurrentFeedLoading();
+  juce::String error = queries.getCurrentFeedError();
 
-  if (!currentFeed) {
-    Log::debug("PostsFeed::handleFeedStateChanged: currentFeed is null - feed not loaded yet");
-    return;
+  if (currentFeedPosts.empty() && !isLoading) {
+    Log::debug("PostsFeed::handleFeedStateChanged: Feed is empty - feed not loaded yet");
+    // Continue processing to show empty state
   }
 
-  Log::debug("PostsFeed::handleFeedStateChanged: State changed - loading: " +
-             juce::String(currentFeed->isLoading ? "true" : "false") + ", error: " + currentFeed->error +
-             ", posts: " + juce::String(currentFeed->posts.size()));
+  Log::debug(
+      "PostsFeed::handleFeedStateChanged: State changed - loading: " + juce::String(isLoading ? "true" : "false") +
+      ", error: " + error + ", posts: " + juce::String(currentFeedPosts.size()));
 
   // Handle loading state
-  if (currentFeed && (currentFeed->isLoading || currentFeed->isRefreshing)) {
+  if (isLoading) {
     feedDisplayState = PostsFeedDisplayState::Loading;
     if (feedSkeleton != nullptr)
       feedSkeleton->setVisible(true);
@@ -447,13 +450,13 @@ void PostsFeed::handleFeedStateChanged() {
   }
 
   // Handle error state
-  if (currentFeed->error.isNotEmpty()) {
+  if (error.isNotEmpty()) {
     feedDisplayState = PostsFeedDisplayState::Error;
-    Log::error("PostsFeed::handleFeedStateChanged: Feed error - " + currentFeed->error);
+    Log::error("PostsFeed::handleFeedStateChanged: Feed error - " + error);
 
     // Check if this is an authentication error - if so, redirect to auth screen
-    if (currentFeed->error.containsIgnoreCase("not authenticated") ||
-        currentFeed->error.containsIgnoreCase("unauthorized") || currentFeed->error.containsIgnoreCase("401")) {
+    if (error.containsIgnoreCase("not authenticated") || error.containsIgnoreCase("unauthorized") ||
+        error.containsIgnoreCase("401")) {
       Log::warn("PostsFeed: Authentication error detected - redirecting to "
                 "auth screen");
       if (onAuthenticationRequired) {
@@ -466,7 +469,7 @@ void PostsFeed::handleFeedStateChanged() {
       feedSkeleton->setVisible(false);
 
     if (errorStateComponent != nullptr) {
-      errorStateComponent->configureFromError(currentFeed->error);
+      errorStateComponent->configureFromError(error);
       errorStateComponent->setVisible(true);
     }
 
@@ -475,7 +478,7 @@ void PostsFeed::handleFeedStateChanged() {
   }
 
   // Handle loaded state
-  Log::info("PostsFeed::handleFeedStateChanged: Feed loaded - posts: " + juce::String(currentFeed->posts.size()));
+  Log::info("PostsFeed::handleFeedStateChanged: Feed loaded - posts: " + juce::String(currentFeedPosts.size()));
 
   // Hide error state and skeleton on successful load
   if (errorStateComponent != nullptr)
@@ -484,7 +487,7 @@ void PostsFeed::handleFeedStateChanged() {
     feedSkeleton->setVisible(false);
 
   // Determine if feed is empty or loaded
-  if (currentFeed->posts.empty())
+  if (currentFeedPosts.empty())
     feedDisplayState = PostsFeedDisplayState::Empty;
   else
     feedDisplayState = PostsFeedDisplayState::Loaded;
@@ -495,9 +498,9 @@ void PostsFeed::handleFeedStateChanged() {
   updateAudioPlayerPlaylist();
 
   // Auto-open first post's comments for debugging (when feed first loads)
-  if (autoOpenFirstPostComments && !firstPostCommentsOpened && !currentFeed->posts.empty()) {
+  if (autoOpenFirstPostComments && !firstPostCommentsOpened && !currentFeedPosts.empty()) {
     firstPostCommentsOpened = true;
-    const auto &firstPost = currentFeed->posts[0];
+    const auto &firstPost = currentFeedPosts[0];
     if (firstPost) {
       Log::info("PostsFeed::handleFeedStateChanged: AUTO-OPENING COMMENTS FOR FIRST POST: " + firstPost->id);
       juce::MessageManager::callAsync([this, firstPost]() { showCommentsForPost(*firstPost); });
@@ -516,7 +519,7 @@ void PostsFeed::onAppStateChanged(const Sidechain::Stores::PostsState & /*state*
 
 void PostsFeed::subscribeToAppStore() {
   // Subscribe to PostsSlice for feed state changes
-  postsSlice = Sidechain::Stores::Slices::AppSliceManager::getInstance().getPostsSlice();
+  postsSlice = Sidechain::Stores::Slices::AppSliceManager::getInstance().posts;
   if (postsSlice) {
     juce::Component::SafePointer<PostsFeed> safeThis(this);
     postsSlice->subscribe([safeThis](const Sidechain::Stores::PostsState &state) {
@@ -902,10 +905,11 @@ void PostsFeed::rebuildPostCards() {
   Log::debug("PostsFeed::rebuildPostCards: FeedType=" + feedTypeToString(currentFeedType) +
              ", isAggregated=" + juce::String(isAggregated ? "true" : "false"));
 
-  // Debug: Log all feed types in state
-  const auto &fullState = appStore->getPostsState();
-  Log::debug("PostsFeed::rebuildPostCards: State has " + juce::String(fullState.feeds.size()) + " feeds, " +
-             juce::String(fullState.aggregatedFeeds.size()) + " aggregated feeds");
+  // Debug: Log current feed status using Query Layer
+  // This demonstrates the cleaner query-based API vs direct state access
+  auto queries = appStore->queries();
+  Log::debug("PostsFeed::rebuildPostCards: Current feed has " + juce::String(queries.getCurrentFeedPosts().size()) +
+             " posts, loading=" + juce::String(queries.isCurrentFeedLoading() ? "true" : "false"));
 
   if (isAggregated) {
     // Build aggregated feed cards
@@ -952,16 +956,15 @@ void PostsFeed::rebuildPostCards() {
 
     Log::debug("PostsFeed::rebuildPostCards: Rebuilt " + juce::String(aggregatedCards.size()) + " aggregated cards");
   } else {
-    // Build regular post cards
-    const auto &state = appStore->getPostsState();
-    const auto &currentFeed = state.getCurrentFeed();
-    const auto &posts = currentFeed->posts;
+    // Build regular post cards using Query Layer
+    const auto posts = queries.getCurrentFeedPosts();
 
     Log::info("PostsFeed::rebuildPostCards: Rebuilding post cards - current: " + juce::String(postCards.size()) +
               ", posts: " + juce::String(posts.size()));
     Log::debug("PostsFeed::rebuildPostCards: CurrentFeed isLoading=" +
-               juce::String(currentFeed->isLoading ? "true" : "false") +
-               ", hasMore=" + juce::String(currentFeed->hasMore ? "true" : "false") + ", error=" + currentFeed->error);
+               juce::String(queries.isCurrentFeedLoading() ? "true" : "false") +
+               ", hasMore=" + juce::String(queries.hasMoreCurrentFeedPosts() ? "true" : "false") +
+               ", error=" + queries.getCurrentFeedError());
 
     postCards.clear();
     aggregatedCards.clear();
@@ -1752,16 +1755,14 @@ juce::String PostsFeed::getComponentName() const {
 
 void PostsFeed::updateScrollBounds() {
   auto contentBounds = getFeedContentBounds();
-  // Use FeedStore instead of local posts array
+  // Use Query Layer to access posts without navigating state structure
   juce::Array<Sidechain::FeedPost> posts;
   if (appStore) {
-    const auto &state = appStore->getPostsState();
-    const auto currentFeed = state.getCurrentFeed();
-    if (currentFeed) {
-      for (const auto &postPtr : currentFeed->posts) {
-        if (postPtr) {
-          posts.add(*postPtr); // Dereference shared_ptr
-        }
+    auto queries = appStore->queries();
+    auto feedPosts = queries.getCurrentFeedPosts();
+    for (const auto &postPtr : feedPosts) {
+      if (postPtr) {
+        posts.add(*postPtr); // Dereference shared_ptr
       }
     }
   }

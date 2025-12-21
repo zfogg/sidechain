@@ -2,6 +2,7 @@
 
 #include "slices/AppSlices.h"
 #include "EntityStore.h"
+#include "queries/AppStoreQueries.h"
 #include "../models/FeedResponse.h"
 #include "../models/AggregatedFeedResponse.h"
 #include "../network/NetworkClient.h"
@@ -42,7 +43,7 @@ namespace Stores {
  *
  * Components subscribe directly to slices:
  *   auto& manager = AppSliceManager::getInstance();
- *   manager.getAuthSlice()->subscribe([this](const AuthState& auth) {
+ *   manager.auth()->subscribe([this](const AuthState& auth) {
  *       if (auth.isLoggedIn) updateUI();
  *   });
  *
@@ -454,92 +455,92 @@ public:
   // Components should call these methods during setup to get reactive updates
 
   std::function<void()> subscribeToAuth(std::function<void(const AuthState &)> callback) {
-    return sliceManager.getAuthSlice()->subscribe(callback);
+    return sliceManager.auth->subscribe(callback);
   }
 
   std::function<void()> subscribeToChat(std::function<void(const ChatState &)> callback) {
-    return sliceManager.getChatSlice()->subscribe(callback);
+    return sliceManager.chat->subscribe(callback);
   }
 
   std::function<void()> subscribeToChallenges(std::function<void(const ChallengeState &)> callback) {
-    return sliceManager.getChallengeSlice()->subscribe(callback);
+    return sliceManager.challenge->subscribe(callback);
   }
 
   std::function<void()> subscribeToNotifications(std::function<void(const NotificationState &)> callback) {
-    return sliceManager.getNotificationSlice()->subscribe(callback);
+    return sliceManager.notifications->subscribe(callback);
   }
 
   std::function<void()> subscribeToFollowers(std::function<void(const FollowersState &)> callback) {
-    return sliceManager.getFollowersSlice()->subscribe(callback);
+    return sliceManager.followers->subscribe(callback);
   }
 
   std::function<void()> subscribeToUser(std::function<void(const UserState &)> callback) {
-    return sliceManager.getUserSlice()->subscribe(callback);
+    return sliceManager.user->subscribe(callback);
   }
 
   std::function<void()> subscribeToFeed(std::function<void(const PostsState &)> callback) {
-    return sliceManager.getPostsSlice()->subscribe(callback);
+    return sliceManager.posts->subscribe(callback);
   }
 
   std::function<void()> subscribeToPlaylists(std::function<void(const PlaylistState &)> callback) {
-    return sliceManager.getPlaylistSlice()->subscribe(callback);
+    return sliceManager.playlists->subscribe(callback);
   }
 
   std::function<void()> subscribeToDrafts(std::function<void(const DraftState &)> callback) {
-    return sliceManager.getDraftSlice()->subscribe(callback);
+    return sliceManager.draft->subscribe(callback);
   }
 
   std::function<void()> subscribeToUploads(std::function<void(const UploadState &)> callback) {
-    return sliceManager.getUploadSlice()->subscribe(callback);
+    return sliceManager.uploads->subscribe(callback);
   }
 
   std::function<void()> subscribeSounds(std::function<void(const SoundState &)> callback) {
-    return sliceManager.getSoundSlice()->subscribe(callback);
+    return sliceManager.sounds->subscribe(callback);
   }
 
   std::function<void()> subscribeToSearch(std::function<void(const SearchState &)> callback) {
-    return sliceManager.getSearchSlice()->subscribe(callback);
+    return sliceManager.search->subscribe(callback);
   }
 
   std::function<void()> subscribeToSounds(std::function<void(const SoundState &)> callback) {
-    return sliceManager.getSoundSlice()->subscribe(callback);
+    return sliceManager.sounds->subscribe(callback);
   }
 
   std::function<void()> subscribeToStories(std::function<void(const StoriesState &)> callback) {
-    return sliceManager.getStoriesSlice()->subscribe(callback);
+    return sliceManager.stories->subscribe(callback);
   }
 
   std::function<void()> subscribeToComments(std::function<void(const CommentsState &)> callback) {
-    return sliceManager.getCommentsSlice()->subscribe(callback);
+    return sliceManager.comments->subscribe(callback);
   }
 
   std::function<void()> subscribeToDiscovery(std::function<void(const DiscoveryState &)> callback) {
-    return sliceManager.getDiscoverySlice()->subscribe(callback);
+    return sliceManager.discovery->subscribe(callback);
   }
 
   // Temporary accessor for UI components - to be removed
   const Stores::AuthState &getAuthState() const {
-    return sliceManager.getAuthSlice()->getState();
+    return sliceManager.auth->getState();
   }
 
   const Stores::PostsState &getPostsState() const {
-    return sliceManager.getPostsSlice()->getState();
+    return sliceManager.posts->getState();
   }
 
   const Stores::UserState &getUserState() const {
-    return sliceManager.getUserSlice()->getState();
+    return sliceManager.user->getState();
   }
 
   const Stores::ChatState &getChatState() const {
-    return sliceManager.getChatSlice()->getState();
+    return sliceManager.chat->getState();
   }
 
   const Stores::SearchState &getSearchState() const {
-    return sliceManager.getSearchSlice()->getState();
+    return sliceManager.search->getState();
   }
 
   const Stores::NotificationState &getNotificationState() const {
-    return sliceManager.getNotificationSlice()->getState();
+    return sliceManager.notifications->getState();
   }
 
   // ==============================================================================
@@ -850,6 +851,59 @@ public:
    * @param limit Number of suggested users to load
    */
   void loadSuggestedUsersAndCache(int limit = 20);
+
+  /**
+   * Get strongly-typed query interface for accessing derived/computed state.
+   *
+   * Components should use queries instead of directly accessing state structure.
+   * This decouples UI from internal state organization.
+   *
+   * Example:
+   *   auto queries = AppStore::getInstance().queries();
+   *   auto posts = queries.getCurrentFeedPosts();
+   *   if (queries.isCurrentFeedLoading()) { showSpinner(); }
+   *
+   * @return AppStoreQueries instance for reading state
+   */
+  AppStoreQueries queries() const {
+    auto postSlice = sliceManager.posts;
+    auto authSlice = sliceManager.auth;
+    auto userSlice = sliceManager.user;
+    auto chatSlice = sliceManager.chat;
+    auto notifSlice = sliceManager.notifications;
+    auto searchSlice = sliceManager.search;
+    auto commentsSlice = sliceManager.comments;
+    auto discoverSlice = sliceManager.discovery;
+    auto presenceSlice = sliceManager.presence;
+    auto storiesSlice = sliceManager.stories;
+    auto uploadsSlice = sliceManager.uploads;
+    auto playlistSlice = sliceManager.playlists;
+    auto challengeSlice = sliceManager.challenge;
+    auto soundSlice = sliceManager.sounds;
+    auto draftSlice = sliceManager.draft;
+    auto followersSlice = sliceManager.followers;
+
+    // Build composite AppState from all slices
+    AppState combinedState;
+    combinedState.auth = authSlice->getState();
+    combinedState.posts = postSlice->getState();
+    combinedState.user = userSlice->getState();
+    combinedState.chat = chatSlice->getState();
+    combinedState.notifications = notifSlice->getState();
+    combinedState.search = searchSlice->getState();
+    combinedState.comments = commentsSlice->getState();
+    combinedState.discovery = discoverSlice->getState();
+    combinedState.presence = presenceSlice->getState();
+    combinedState.stories = storiesSlice->getState();
+    combinedState.uploads = uploadsSlice->getState();
+    combinedState.playlists = playlistSlice->getState();
+    combinedState.challenges = challengeSlice->getState();
+    combinedState.sounds = soundSlice->getState();
+    combinedState.drafts = draftSlice->getState();
+    combinedState.followers = followersSlice->getState();
+
+    return AppStoreQueries(combinedState);
+  }
 
   /**
    * Get EntityStore instance for direct normalized access to all cached models.

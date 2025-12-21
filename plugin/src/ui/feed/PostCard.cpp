@@ -1585,16 +1585,22 @@ void PostCard::subscribeToAppStore() {
   juce::String postId = postPtr->id;
   juce::Component::SafePointer<PostCard> safeThis(this);
 
-  storeUnsubscriber = appStore->subscribeToFeed([safeThis, postId](const PostsState &postsState) {
+  // Use Query Layer for decoupled state access
+  // Queries provide a typed interface instead of navigating nested state structure
+  storeUnsubscriber = appStore->subscribeToFeed([safeThis, postId](const PostsState & /*postsState*/) {
     if (safeThis == nullptr || postId.isEmpty())
       return;
 
-    juce::MessageManager::callAsync([safeThis, postId, postsState]() {
+    juce::MessageManager::callAsync([safeThis, postId]() {
       if (safeThis == nullptr)
         return;
 
-      const auto &currentFeed = postsState.getCurrentFeed();
-      for (const auto &feedPost : currentFeed->posts) {
+      // Use queries instead of directly accessing state structure
+      auto queries = safeThis->appStore->queries();
+      auto currentFeedPosts = queries.getCurrentFeedPosts();
+
+      // Search for updated post data
+      for (const auto &feedPost : currentFeedPosts) {
         if (feedPost->id == postId) {
           if (safeThis == nullptr)
             return;

@@ -11,7 +11,7 @@ void AppStore::loadNotifications() {
     return;
   }
 
-  auto notificationSlice = sliceManager.getNotificationSlice();
+  auto notificationSlice = sliceManager.notifications;
   NotificationState loadingState = notificationSlice->getState();
   loadingState.isLoading = true;
   notificationSlice->setState(loadingState);
@@ -60,7 +60,7 @@ void AppStore::loadMoreNotifications() {
     return;
   }
 
-  auto notificationSlice = sliceManager.getNotificationSlice();
+  auto notificationSlice = sliceManager.notifications;
   const auto &currentState = notificationSlice->getState();
   if (currentState.notifications.empty()) {
     return;
@@ -104,7 +104,7 @@ void AppStore::markNotificationsAsRead() {
     return;
   }
 
-  auto notificationSlice = sliceManager.getNotificationSlice();
+  auto notificationSlice = sliceManager.notifications;
 
   networkClient->markNotificationsRead([notificationSlice](Outcome<juce::var> result) {
     if (result.isOk()) {
@@ -133,7 +133,7 @@ void AppStore::markNotificationsAsSeen() {
     return;
   }
 
-  auto notificationSlice = sliceManager.getNotificationSlice();
+  auto notificationSlice = sliceManager.notifications;
 
   networkClient->markNotificationsSeen([notificationSlice](Outcome<juce::var> result) {
     if (result.isOk()) {

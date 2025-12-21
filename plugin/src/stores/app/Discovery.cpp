@@ -18,7 +18,7 @@ void AppStore::loadTrendingUsersAndCache(int limit) {
   Log::info("AppStore", "Loading trending users");
 
   // Redux: Create new DiscoveryState with loading indicator
-  auto discoverySlice = sliceManager.getDiscoverySlice();
+  auto discoverySlice = sliceManager.discovery;
   Stores::DiscoveryState newState = discoverySlice->getState();
   newState.isTrendingLoading = true;
   newState.discoveryError = "";
@@ -26,7 +26,7 @@ void AppStore::loadTrendingUsersAndCache(int limit) {
 
   // Network request to fetch trending users
   networkClient->getTrendingUsers(limit, [this](Outcome<juce::var> result) {
-    auto discoverySlice = sliceManager.getDiscoverySlice();
+    auto discoverySlice = sliceManager.discovery;
 
     if (result.isError()) {
       // Redux: Create new state with error
@@ -96,7 +96,7 @@ void AppStore::loadFeaturedProducersAndCache(int limit) {
   Log::info("AppStore", "Loading featured producers");
 
   // Redux: Create new DiscoveryState with loading indicator
-  auto discoverySlice = sliceManager.getDiscoverySlice();
+  auto discoverySlice = sliceManager.discovery;
   Stores::DiscoveryState newState = discoverySlice->getState();
   newState.isFeaturedLoading = true;
   newState.discoveryError = "";
@@ -104,7 +104,7 @@ void AppStore::loadFeaturedProducersAndCache(int limit) {
 
   // Network request to fetch featured producers
   networkClient->getFeaturedProducers(limit, [this](Outcome<juce::var> result) {
-    auto discoverySlice = sliceManager.getDiscoverySlice();
+    auto discoverySlice = sliceManager.discovery;
 
     if (result.isError()) {
       // Redux: Create new state with error
@@ -174,7 +174,7 @@ void AppStore::loadSuggestedUsersAndCache(int limit) {
   Log::info("AppStore", "Loading suggested users");
 
   // Redux: Create new DiscoveryState with loading indicator
-  auto discoverySlice = sliceManager.getDiscoverySlice();
+  auto discoverySlice = sliceManager.discovery;
   Stores::DiscoveryState newState = discoverySlice->getState();
   newState.isSuggestedLoading = true;
   newState.discoveryError = "";
@@ -182,7 +182,7 @@ void AppStore::loadSuggestedUsersAndCache(int limit) {
 
   // Network request to fetch suggested users
   networkClient->getSuggestedUsers(limit, [this](Outcome<juce::var> result) {
-    auto discoverySlice = sliceManager.getDiscoverySlice();
+    auto discoverySlice = sliceManager.discovery;
 
     if (result.isError()) {
       // Redux: Create new state with error

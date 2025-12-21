@@ -27,9 +27,11 @@ add_library(SidechainNetwork STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/api/PlaylistClient.cpp
     # Store implementations
     ${CMAKE_CURRENT_SOURCE_DIR}/../stores/AppStore.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../stores/Store.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../stores/StateSlice.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../stores/CacheWarmer.h
+    # Query layer
+    ${CMAKE_CURRENT_SOURCE_DIR}/../stores/queries/AppStoreQueries.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/Queries.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/AppState.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/Base.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/Auth.cpp

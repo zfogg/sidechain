@@ -17,9 +17,9 @@ void AppStore::loadChannels() {
 }
 
 void AppStore::selectChannel(const juce::String &channelId) {
-  ChatState newState = sliceManager.getChatSlice()->getState();
+  ChatState newState = sliceManager.chat->getState();
   newState.currentChannelId = channelId;
-  sliceManager.getChatSlice()->setState(newState);
+  sliceManager.chat->setState(newState);
 }
 
 void AppStore::loadMessages(const juce::String &channelId, int limit) {
@@ -65,7 +65,7 @@ void AppStore::sendMessage(const juce::String &channelId, const juce::String &te
   Log::info("AppStore::sendMessage - ✓ channelId and text are valid");
 
   // Verify channel exists in state
-  const auto &chatState = sliceManager.getChatSlice()->getState();
+  const auto &chatState = sliceManager.chat->getState();
   auto channelIt = chatState.channels.find(channelId);
   if (channelIt == chatState.channels.end()) {
     Log::error("AppStore::sendMessage - ERROR: Channel not found in state: " + channelId);
@@ -80,8 +80,8 @@ void AppStore::sendMessage(const juce::String &channelId, const juce::String &te
 
   Log::info("AppStore::sendMessage - Creating message object");
 
-  juce::String userId = sliceManager.getUserSlice()->getState().userId;
-  juce::String username = sliceManager.getUserSlice()->getState().username;
+  juce::String userId = sliceManager.user->getState().userId;
+  juce::String username = sliceManager.user->getState().username;
 
   Log::info("AppStore::sendMessage - ✓ Setting properties - userId: " + userId + ", username: " + username);
 
@@ -104,18 +104,18 @@ void AppStore::sendMessage(const juce::String &channelId, const juce::String &te
         if (!result.isOk()) {
           Log::error("AppStore::sendMessage - ERROR: Failed to send message to Stream.io: " + result.getError());
           // Still add to local state for optimistic UI
-          ChatState errorState = sliceManager.getChatSlice()->getState();
+          ChatState errorState = sliceManager.chat->getState();
           auto channelIterator = errorState.channels.find(channelId);
           if (channelIterator != errorState.channels.end()) {
             channelIterator->second.messages.push_back(msg);
           }
-          sliceManager.getChatSlice()->setState(errorState);
+          sliceManager.chat->setState(errorState);
           return;
         }
 
         Log::info("AppStore::sendMessage - ✓ Message successfully sent to Stream.io");
         // Message was sent successfully, add to local state
-        ChatState successState = sliceManager.getChatSlice()->getState();
+        ChatState successState = sliceManager.chat->getState();
         auto channelIterator = successState.channels.find(channelId);
         if (channelIterator != successState.channels.end()) {
           channelIterator->second.messages.push_back(msg);
@@ -123,7 +123,7 @@ void AppStore::sendMessage(const juce::String &channelId, const juce::String &te
         } else {
           Log::error("AppStore::sendMessage callback - ERROR: Channel disappeared from state!");
         }
-        sliceManager.getChatSlice()->setState(successState);
+        sliceManager.chat->setState(successState);
       });
 }
 
@@ -145,7 +145,7 @@ void AppStore::editMessage(const juce::String &channelId, const juce::String &me
 
         Log::info("AppStore::editMessage - Message updated successfully");
 
-        ChatState newState = sliceManager.getChatSlice()->getState();
+        ChatState newState = sliceManager.chat->getState();
         auto channelIt = newState.channels.find(channelId);
         if (channelIt != newState.channels.end()) {
           for (auto &msg : channelIt->second.messages) {
@@ -154,7 +154,7 @@ void AppStore::editMessage(const juce::String &channelId, const juce::String &me
               // TODO: Implement proper message update in Message model
               msg->text = newText;
               Log::info("AppStore::editMessage - Updated message in state");
-              sliceManager.getChatSlice()->setState(newState);
+              sliceManager.chat->setState(newState);
               return;
             }
           }
@@ -180,7 +180,7 @@ void AppStore::deleteMessage(const juce::String &channelId, const juce::String &
 
         Log::info("AppStore::deleteMessage - Message deleted successfully");
 
-        ChatState newState = sliceManager.getChatSlice()->getState();
+        ChatState newState = sliceManager.chat->getState();
         auto channelIt = newState.channels.find(channelId);
         if (channelIt != newState.channels.end()) {
           auto &messages = channelIt->second.messages;
@@ -188,7 +188,7 @@ void AppStore::deleteMessage(const juce::String &channelId, const juce::String &
             if (*it && (*it)->id == messageId) {
               messages.erase(it);
               Log::info("AppStore::deleteMessage - Removed message from state");
-              sliceManager.getChatSlice()->setState(newState);
+              sliceManager.chat->setState(newState);
               return;
             }
           }
@@ -254,12 +254,12 @@ void AppStore::handleTypingStart(const juce::String &userId) {
 void AppStore::addChannelToState(const juce::String &channelId, const juce::String &channelName) {
   Log::info("AppStore::addChannelToState: Adding channel " + channelId);
 
-  ChatState newState = sliceManager.getChatSlice()->getState();
+  ChatState newState = sliceManager.chat->getState();
   ChannelState channelState;
   channelState.id = channelId;
   channelState.name = channelName;
   newState.channels[channelId] = channelState;
-  sliceManager.getChatSlice()->setState(newState);
+  sliceManager.chat->setState(newState);
 }
 
 void AppStore::addMessageToChannel(const juce::String &channelId, const juce::String &messageId,
@@ -267,7 +267,7 @@ void AppStore::addMessageToChannel(const juce::String &channelId, const juce::St
                                    const juce::String &createdAt) {
   Log::info("AppStore::addMessageToChannel: Adding message " + messageId + " to channel " + channelId);
 
-  ChatState newState = sliceManager.getChatSlice()->getState();
+  ChatState newState = sliceManager.chat->getState();
   auto channelIt = newState.channels.find(channelId);
   if (channelIt != newState.channels.end()) {
     // Create Message object
@@ -284,7 +284,7 @@ void AppStore::addMessageToChannel(const juce::String &channelId, const juce::St
   } else {
     Log::warn("AppStore::addMessageToChannel: Channel not found in state - " + channelId);
   }
-  sliceManager.getChatSlice()->setState(newState);
+  sliceManager.chat->setState(newState);
 }
 
 } // namespace Stores

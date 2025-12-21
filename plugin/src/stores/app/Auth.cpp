@@ -6,20 +6,20 @@ namespace Stores {
 
 void AppStore::login(const juce::String &email, const juce::String &password) {
   if (!networkClient) {
-    AuthState errorState = sliceManager.getAuthSlice()->getState();
+    AuthState errorState = sliceManager.auth->getState();
     errorState.authError = "Network client not initialized";
-    sliceManager.getAuthSlice()->setState(errorState);
+    sliceManager.auth->setState(errorState);
     return;
   }
 
   // Optimistic update: show loading
-  AuthState loadingState = sliceManager.getAuthSlice()->getState();
+  AuthState loadingState = sliceManager.auth->getState();
   loadingState.isAuthenticating = true;
   loadingState.authError = "";
-  sliceManager.getAuthSlice()->setState(loadingState);
+  sliceManager.auth->setState(loadingState);
 
   networkClient->loginWithTwoFactor(email, password, [this, email](NetworkClient::LoginResult result) {
-    auto authSlice = sliceManager.getAuthSlice();
+    auto authSlice = sliceManager.auth;
 
     if (!result.success) {
       AuthState errorState = authSlice->getState();
@@ -67,21 +67,21 @@ void AppStore::login(const juce::String &email, const juce::String &password) {
 void AppStore::registerAccount(const juce::String &email, const juce::String &username, const juce::String &password,
                                const juce::String &displayName) {
   if (!networkClient) {
-    AuthState errorState = sliceManager.getAuthSlice()->getState();
+    AuthState errorState = sliceManager.auth->getState();
     errorState.authError = "Network client not initialized";
-    sliceManager.getAuthSlice()->setState(errorState);
+    sliceManager.auth->setState(errorState);
     return;
   }
 
-  AuthState loadingState = sliceManager.getAuthSlice()->getState();
+  AuthState loadingState = sliceManager.auth->getState();
   loadingState.isAuthenticating = true;
   loadingState.authError = "";
-  sliceManager.getAuthSlice()->setState(loadingState);
+  sliceManager.auth->setState(loadingState);
 
   networkClient->registerAccount(
       email, username, password, displayName,
       [this, email, username, displayName](Outcome<std::pair<juce::String, juce::String>> result) {
-        auto authSlice = sliceManager.getAuthSlice();
+        auto authSlice = sliceManager.auth;
 
         if (!result.isOk()) {
           AuthState errorState = authSlice->getState();
@@ -111,7 +111,7 @@ void AppStore::registerAccount(const juce::String &email, const juce::String &us
 }
 
 void AppStore::verify2FA(const juce::String &code) {
-  auto authSlice = sliceManager.getAuthSlice();
+  auto authSlice = sliceManager.auth;
   auto currentAuth = authSlice->getState();
 
   if (!networkClient) {
@@ -162,7 +162,7 @@ void AppStore::verify2FA(const juce::String &code) {
 }
 
 void AppStore::requestPasswordReset(const juce::String &email) {
-  auto authSlice = sliceManager.getAuthSlice();
+  auto authSlice = sliceManager.auth;
 
   if (!networkClient) {
     AuthState errorState = authSlice->getState();
@@ -194,7 +194,7 @@ void AppStore::requestPasswordReset(const juce::String &email) {
 }
 
 void AppStore::resetPassword(const juce::String &token, const juce::String &newPassword) {
-  auto authSlice = sliceManager.getAuthSlice();
+  auto authSlice = sliceManager.auth;
 
   if (!networkClient) {
     AuthState errorState = authSlice->getState();
@@ -208,7 +208,7 @@ void AppStore::resetPassword(const juce::String &token, const juce::String &newP
   authSlice->setState(resetState);
 
   networkClient->resetPassword(token, newPassword, [this](Outcome<juce::var> result) {
-    auto authSlicePtr = sliceManager.getAuthSlice();
+    auto authSlicePtr = sliceManager.auth;
 
     if (!result.isOk()) {
       AuthState errorState = authSlicePtr->getState();
@@ -228,8 +228,8 @@ void AppStore::resetPassword(const juce::String &token, const juce::String &newP
 }
 
 void AppStore::logout() {
-  auto authSlice = sliceManager.getAuthSlice();
-  auto userSlice = sliceManager.getUserSlice();
+  auto authSlice = sliceManager.auth;
+  auto userSlice = sliceManager.user;
 
   // Stop token refresh timer
   stopTokenRefreshTimer();
@@ -253,16 +253,16 @@ void AppStore::logout() {
 }
 
 void AppStore::setAuthToken(const juce::String &token) {
-  AuthState newState = sliceManager.getAuthSlice()->getState();
+  AuthState newState = sliceManager.auth->getState();
   newState.authToken = token;
   if (!token.isEmpty()) {
     newState.isLoggedIn = true;
   }
-  sliceManager.getAuthSlice()->setState(newState);
+  sliceManager.auth->setState(newState);
 }
 
 void AppStore::refreshAuthToken() {
-  auto authSlice = sliceManager.getAuthSlice();
+  auto authSlice = sliceManager.auth;
   auto currentAuth = authSlice->getState();
 
   if (!networkClient) {
@@ -328,7 +328,7 @@ void AppStore::stopTokenRefreshTimer() {
 }
 
 void AppStore::checkAndRefreshToken() {
-  auto authSlice = sliceManager.getAuthSlice();
+  auto authSlice = sliceManager.auth;
   auto currentAuth = authSlice->getState();
 
   // Only refresh if logged in and token needs refresh
