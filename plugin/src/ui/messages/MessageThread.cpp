@@ -57,20 +57,57 @@ void MessageThread::addReaction(const juce::String &, const juce::String &) {}
 void MessageThread::removeReaction(const juce::String &, const juce::String &) {}
 void MessageThread::toggleReaction(const juce::String &, const juce::String &) {}
 
-bool MessageThread::hasUserReacted([[maybe_unused]] const StreamChatClient::Message &message,
-                                   [[maybe_unused]] const juce::String &reactionType) const {
-  // TODO: implement
+bool MessageThread::hasUserReacted(const StreamChatClient::Message &message,
+                                   const juce::String &reactionType) const {
+  // Check if current user has reacted with this reaction type
+  // Reactions structure: { "👍": ["user1", "user2"], "❤️": ["user3"] }
+  if (!message.reactions.isObject()) {
+    return false;
+  }
+
+  auto reactionArray = message.reactions.getProperty(reactionType, juce::var());
+  if (!reactionArray.isArray()) {
+    return false;
+  }
+
+  // Check if currentUserId is in the reaction array
+  for (int i = 0; i < reactionArray.size(); ++i) {
+    if (reactionArray[i].toString() == currentUserId) {
+      return true;
+    }
+  }
+
   return false;
 }
-int MessageThread::getReactionCount([[maybe_unused]] const StreamChatClient::Message &message,
-                                    [[maybe_unused]] const juce::String &reactionType) const {
-  // TODO: implement
-  return 0;
+int MessageThread::getReactionCount(const StreamChatClient::Message &message,
+                                    const juce::String &reactionType) const {
+  // Return count of users who reacted with this reaction type
+  if (!message.reactions.isObject()) {
+    return 0;
+  }
+
+  auto reactionArray = message.reactions.getProperty(reactionType, juce::var());
+  if (!reactionArray.isArray()) {
+    return 0;
+  }
+
+  return reactionArray.size();
 }
 std::vector<juce::String>
-MessageThread::getReactionTypes([[maybe_unused]] const StreamChatClient::Message &message) const {
-  // TODO: implement
-  return {};
+MessageThread::getReactionTypes(const StreamChatClient::Message &message) const {
+  // Return all reaction types (emoji) on this message
+  std::vector<juce::String> types;
+
+  if (!message.reactions.isObject()) {
+    return types;
+  }
+
+  // Iterate through all properties in the reactions object to get reaction types
+  for (const auto &key : message.reactions.getDynamicObject()->getProperties().getAllKeys()) {
+    types.push_back(key.toString());
+  }
+
+  return types;
 }
 
 juce::Rectangle<int> MessageThread::getBackButtonBounds() const {
@@ -93,9 +130,17 @@ juce::Rectangle<int> MessageThread::getAudioButtonBounds() const {
   int inputAreaY = getHeight() - INPUT_HEIGHT;
   return juce::Rectangle<int>(getWidth() - (BUTTON_SIZE * 2) - (PADDING * 2), inputAreaY + PADDING, BUTTON_SIZE, BUTTON_SIZE);
 }
-juce::Rectangle<int> MessageThread::getMessageBounds([[maybe_unused]] const StreamChatClient::Message &message) const {
-  // TODO: implement
-  return {};
+juce::Rectangle<int> MessageThread::getMessageBounds(const StreamChatClient::Message &message) const {
+  // Placeholder: Return bounds for message in the messages area
+  // In a full implementation, this would track actual message positions from layout
+  constexpr int PADDING = MESSAGE_BUBBLE_PADDING;
+  int messagesAreaY = HEADER_HEIGHT + MESSAGE_TOP_PADDING;
+  int messagesAreaHeight = getHeight() - HEADER_HEIGHT - INPUT_HEIGHT;
+
+  // Return a default bounds that spans the messages area width
+  // Actual height/position would require full message layout tracking
+  return juce::Rectangle<int>(PADDING, messagesAreaY, getWidth() - (PADDING * 2),
+                              MESSAGE_BUBBLE_MIN_HEIGHT);
 }
 juce::Rectangle<int> MessageThread::getHeaderMenuButtonBounds() const {
   // Menu button in top-right corner of header
@@ -105,13 +150,17 @@ juce::Rectangle<int> MessageThread::getHeaderMenuButtonBounds() const {
 }
 juce::Rectangle<int>
 MessageThread::getSharedPostBounds([[maybe_unused]] const StreamChatClient::Message &message) const {
-  // TODO: implement
-  return {};
+  // Post preview bounds within message bubble
+  constexpr int PADDING = 10;
+  constexpr int PREVIEW_HEIGHT = 100;
+  return juce::Rectangle<int>(PADDING, PADDING, MESSAGE_MAX_WIDTH - (PADDING * 2), PREVIEW_HEIGHT);
 }
 juce::Rectangle<int>
 MessageThread::getSharedStoryBounds([[maybe_unused]] const StreamChatClient::Message &message) const {
-  // TODO: implement
-  return {};
+  // Story preview bounds within message bubble (square thumbnail for story)
+  constexpr int PADDING = 10;
+  constexpr int PREVIEW_SIZE = 80;
+  return juce::Rectangle<int>(PADDING, PADDING, PREVIEW_SIZE, PREVIEW_SIZE);
 }
 juce::Rectangle<int> MessageThread::getReplyPreviewBounds() const {
   // Reply preview area above the input field
