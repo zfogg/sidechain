@@ -214,9 +214,47 @@ void AppStore::loadMoreArchivedPosts() {
   loadingState.archivedPosts.isLoading = true;
   sliceManager.posts->setState(loadingState);
 
-  // TODO: Implement archived posts loading via AppStore
-  // networkClient->getArchivedPosts(20, currentState.archivedPosts.offset,
-  // [this](Outcome<juce::var> result) { handleArchivedPostsLoaded(result); });
+  // Fetch archived posts from NetworkClient
+  int offset = currentState.archivedPosts.offset + currentState.archivedPosts.posts.size();
+  networkClient->getArchivedPosts(20, offset, [this, offset](Outcome<juce::var> result) {
+    if (!result.isOk()) {
+      Util::logError("AppStore", "Failed to load archived posts: " + result.getError());
+      PostsState errorState = sliceManager.posts->getState();
+      errorState.archivedPosts.isLoading = false;
+      errorState.archivedPosts.error = result.getError();
+      sliceManager.posts->setState(errorState);
+      return;
+    }
+
+    // Parse the response
+    const auto &data = result.getValue();
+    if (!data.isArray()) {
+      Util::logError("AppStore", "Invalid archived posts response format");
+      PostsState errorState = sliceManager.posts->getState();
+      errorState.archivedPosts.isLoading = false;
+      sliceManager.posts->setState(errorState);
+      return;
+    }
+
+    // Update state with fetched archived posts
+    PostsState newState = sliceManager.posts->getState();
+    newState.archivedPosts.isLoading = false;
+
+    // Parse each archived post from the response
+    for (int i = 0; i < data.size(); ++i) {
+      auto post = FeedPost::fromJSON(data[i]);
+      if (post) {
+        newState.archivedPosts.posts.push_back(post);
+      }
+    }
+
+    // Update pagination info
+    newState.archivedPosts.offset = offset;
+    newState.archivedPosts.hasMore = (data.size() >= 20); // Has more if got full page
+
+    sliceManager.posts->setState(newState);
+    Util::logDebug("AppStore", "Loaded " + juce::String(data.size()) + " archived posts");
+  });
 }
 
 void AppStore::restorePost(const juce::String &postId) {

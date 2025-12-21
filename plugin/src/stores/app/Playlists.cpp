@@ -120,8 +120,28 @@ void AppStore::createPlaylist(const juce::String &name, const juce::String &desc
 }
 
 void AppStore::deletePlaylist(const juce::String &playlistId) {
+  if (!networkClient) {
+    Util::logError("AppStore", "Cannot delete playlist - network client not set");
+    return;
+  }
+
   Util::logInfo("AppStore", "Deleting playlist: " + playlistId);
-  // TODO: Implement playlist deletion via NetworkClient
+
+  // Optimistically remove from state
+  PlaylistsState currentState = sliceManager.playlists->getState();
+  auto it = std::find_if(currentState.playlists.begin(), currentState.playlists.end(),
+                         [&playlistId](const auto &p) { return p->id == playlistId; });
+
+  if (it != currentState.playlists.end()) {
+    currentState.playlists.erase(it);
+    sliceManager.playlists->setState(currentState);
+    Util::logInfo("AppStore", "Playlist removed from local state");
+  }
+
+  // Make API call to delete on server
+  // NOTE: NetworkClient doesn't have deletePlaylist yet - this is a placeholder
+  // TODO(Backend): Implement DELETE /playlists/{id} endpoint
+  Util::logWarn("AppStore", "NOTE: Server-side playlist deletion not yet implemented in NetworkClient");
 }
 
 void AppStore::addPostToPlaylist(const juce::String &postId, const juce::String &playlistId) {

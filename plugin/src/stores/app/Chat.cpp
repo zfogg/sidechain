@@ -150,16 +150,25 @@ void AppStore::editMessage(const juce::String &channelId, const juce::String &me
         if (channelIt != newState.channels.end()) {
           for (auto &msg : channelIt->second.messages) {
             if (msg && msg->id == messageId) {
-              // For now, create a new message with the updated text
-              // TODO: Implement proper message update in Message model
+              // Properly update the message model with new text and mark as edited
               msg->text = newText;
-              Log::info("AppStore::editMessage - Updated message in state");
+
+              // Add edit timestamp to extraData
+              if (!msg->extraData.isObject()) {
+                msg->extraData = juce::var(juce::DynamicObject::create());
+              }
+              auto *obj = msg->extraData.getDynamicObject();
+              if (obj) {
+                obj->setProperty("edited_at", juce::var(juce::Time::getCurrentTime().toISO8601(true)));
+              }
+
+              Log::info("AppStore::editMessage - Updated message in state with ID: " + messageId);
               sliceManager.chat->setState(newState);
               return;
             }
           }
         }
-        Log::warn("AppStore::editMessage - Message not found in state");
+        Log::warn("AppStore::editMessage - Message not found in state for ID: " + messageId);
       });
 }
 
