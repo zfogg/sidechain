@@ -125,9 +125,19 @@ public:
   }
 
   /**
-   * Update entity in place
+   * FIX #2: WARNING - NOT IMMUTABLE
+   * Update entity in place (BREAKS IMMUTABILITY GUARANTEE)
+   *
+   * IMPORTANT: This method mutates shared entity in-place, which violates the immutability contract.
+   * Use only for performance-critical code where creating new entities is too expensive.
+   * Alternative: Create new entity and call set(id, newEntity) instead.
+   *
    * Applies updater function to existing entity (if found)
    * Notifies observers after update
+   *
+   * @param id Entity ID to update
+   * @param updater Function that mutates entity in-place
+   * @return true if entity found and updated, false if not found or expired
    */
   template <typename Updater> bool update(const juce::String &id, Updater &&updater) {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -137,7 +147,7 @@ public:
       return false;
     }
 
-    // Apply update
+    // IMMUTABILITY WARNING: This mutates shared entity. All observers receive the mutated entity.
     updater(*it->second);
     timestamps_[id] = juce::Time::currentTimeMillis();
 
@@ -354,9 +364,18 @@ public:
   // Optimistic updates
 
   /**
-   * Start optimistic update
+   * FIX #2: WARNING - NOT IMMUTABLE
+   * Start optimistic update (BREAKS IMMUTABILITY GUARANTEE)
+   *
+   * IMPORTANT: This method mutates shared entity in-place, which violates the immutability contract.
+   * Use only for optimistic updates where rollback snapshot is needed.
+   * Alternative: Create new entity and call set(id, newEntity) instead.
+   *
    * Saves current state as snapshot for potential rollback
    * Updates entity immediately
+   *
+   * @param id Entity ID to update optimistically
+   * @param updater Function that mutates entity in-place
    */
   template <typename Updater> void optimisticUpdate(const juce::String &id, Updater &&updater) {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -369,7 +388,7 @@ public:
     // Save snapshot (deep copy of the entity)
     optimisticSnapshots_[id] = std::make_shared<T>(*it->second);
 
-    // Apply optimistic update
+    // IMMUTABILITY WARNING: This mutates shared entity. All observers receive the mutated entity.
     updater(*it->second);
     timestamps_[id] = juce::Time::currentTimeMillis();
 
