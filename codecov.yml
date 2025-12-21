@@ -166,7 +166,8 @@ component_management:
     - component_id: plugin_core
       name: "Plugin Core"
       paths:
-        - "plugin/src/**/*"
+        - "plugin/src/**/*.cpp"
+        - "plugin/src/**/*.h"
       statuses:
         - type: project
           target: 60%
@@ -177,7 +178,7 @@ component_management:
     - component_id: plugin_network
       name: "Plugin Network"
       paths:
-        - "plugin/src/network/NetworkClient.*"
+        - "plugin/src/network/**/*"
       statuses:
         - type: project
           target: 70%
@@ -186,13 +187,30 @@ component_management:
     - component_id: plugin_ui
       name: "Plugin UI"
       paths:
-        - "plugin/src/core/PluginEditor.*"
         - "plugin/src/ui/**/*"
       statuses:
         - type: project
           target: 60%
           threshold: 10%
           informational: true
+
+    - component_id: plugin_models
+      name: "Plugin Models"
+      paths:
+        - "plugin/src/models/**/*"
+      statuses:
+        - type: project
+          target: 50%
+          threshold: 5%
+
+    - component_id: plugin_stores
+      name: "Plugin State Management"
+      paths:
+        - "plugin/src/stores/**/*"
+      statuses:
+        - type: project
+          target: 60%
+          threshold: 5%
 
 comment:
   layout: "header, diff, flags, components, footer"
@@ -216,12 +234,12 @@ ignore:
 flags:
   backend:
     paths:
-      - "backend/"
+      - "backend/**/*"
     carryforward: false
   plugin:
     paths:
-      - "plugin/src/"
-      - "plugin/tests/"
+      - "plugin/src/**/*"
+      - "plugin/tests/**/*"
     carryforward: false
 
 github_checks:

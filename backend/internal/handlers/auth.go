@@ -262,7 +262,7 @@ func (h *AuthHandlers) GoogleCallback(c *gin.Context) {
 		}
 
 		// Otherwise show error page to browser (VST flow)
-		errorHTML := fmt.Sprintf(`
+		errorHTML := `
 <!DOCTYPE html>
 <html>
 <head>
@@ -279,11 +279,11 @@ func (h *AuthHandlers) GoogleCallback(c *gin.Context) {
 	<div class="container">
 		<h1>Authentication Failed</h1>
 		<p>There was an error logging in with Google.</p>
-		<div class="error">%s</div>
+		<div class="error">` + html.EscapeString(err.Error()) + `</div>
 		<p>Please try again or use a different login method.</p>
 	</div>
 </body>
-</html>`, html.EscapeString(err.Error()))
+</html>`
 		c.Header("Content-Type", "text/html; charset=utf-8")
 		c.String(http.StatusInternalServerError, errorHTML)
 		return
@@ -429,7 +429,7 @@ func (h *AuthHandlers) DiscordCallback(c *gin.Context) {
 		}
 
 		// Otherwise show error page to browser (VST flow)
-		errorHTML := fmt.Sprintf(`
+		errorHTML := `
 <!DOCTYPE html>
 <html>
 <head>
@@ -446,11 +446,11 @@ func (h *AuthHandlers) DiscordCallback(c *gin.Context) {
 	<div class="container">
 		<h1>Authentication Failed</h1>
 		<p>There was an error logging in with Discord.</p>
-		<div class="error">%s</div>
+		<div class="error">` + html.EscapeString(err.Error()) + `</div>
 		<p>Please try again or use a different login method.</p>
 	</div>
 </body>
-</html>`, html.EscapeString(err.Error()))
+</html>`
 		c.Header("Content-Type", "text/html; charset=utf-8")
 		c.String(http.StatusInternalServerError, errorHTML)
 		return
