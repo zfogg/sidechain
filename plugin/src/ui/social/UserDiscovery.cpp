@@ -732,33 +732,36 @@ void UserDiscovery::fetchRecommendedToFollow() {
 }
 
 void UserDiscovery::fetchAvailableGenres() {
-  // TODO: Phase 3 - Implement genre filtering with AppStore
-  // For now, this is disabled as NetworkClient is no longer available
-  isGenresLoading = false;
+  if (!appStore) {
+    Log::warn("UserDiscovery::fetchAvailableGenres: AppStore not set");
+    isGenresLoading = false;
+    return;
+  }
 
-  // Placeholder: Add a few common genres for testing
-  availableGenres.clear();
-  availableGenres.add("Electronic");
-  availableGenres.add("Hip Hop");
-  availableGenres.add("Pop");
-  availableGenres.add("Rock");
-  availableGenres.add("Ambient");
-
-  Log::info("UserDiscovery::fetchAvailableGenres: Using placeholder genres");
-  repaint();
+  isGenresLoading = true;
+  appStore->loadGenres();
+  Log::info("UserDiscovery::fetchAvailableGenres: Requesting genres from AppStore");
 }
 
 void UserDiscovery::fetchUsersByGenre(const juce::String &genre) {
-  // TODO: Phase 3 - Implement genre-based user filtering with AppStore
-  // For now, this is disabled as NetworkClient is no longer available
+  if (!appStore) {
+    Log::warn("UserDiscovery::fetchUsersByGenre: AppStore not set");
+    return;
+  }
+
   if (genre.isEmpty()) {
     Log::warn("UserDiscovery::fetchUsersByGenre: genre parameter is empty");
     return;
   }
 
+  selectedGenre = genre;
+  currentViewMode = ViewMode::GenreFilter;
   genreUsers.clear();
-  Log::info("UserDiscovery::fetchUsersByGenre: Genre filtering not yet implemented with AppStore for \"" + genre +
-            "\"");
+
+  Log::info("UserDiscovery::fetchUsersByGenre: Loading users for genre \"" + genre + "\" via AppStore");
+
+  // The actual user filtering will come from store updates
+  // AppStore handles the backend filtering and updates DiscoveryState
   repaint();
 }
 

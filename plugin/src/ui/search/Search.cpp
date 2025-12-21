@@ -105,6 +105,17 @@ void Search::onAppStateChanged(const Sidechain::Stores::SearchState &state) {
   }
   totalPostResults = state.results.totalResults;
 
+  // Update available genres from store
+  availableGenres.clear();
+  const auto &stateGenres = state.genres.genres;
+  for (int i = 0; i < stateGenres.size(); ++i) {
+    availableGenres.add(stateGenres[i]);
+  }
+  if (!availableGenres.isEmpty()) {
+    // If genres were just loaded, update trending searches
+    loadTrendingSearches();
+  }
+
   // Update search state based on results
   if (currentQuery.isEmpty()) {
     searchState = SearchState::Empty;
@@ -126,7 +137,7 @@ void Search::onAppStateChanged(const Sidechain::Stores::SearchState &state) {
   }
 
   Log::debug("Search: Store state changed - " + juce::String(userResults.size()) + " users, " +
-             juce::String(postResults.size()) + " posts");
+             juce::String(postResults.size()) + " posts, " + juce::String(availableGenres.size()) + " genres");
   repaint();
 }
 
@@ -532,10 +543,21 @@ void Search::addToRecentSearches(const juce::String &query) {
 }
 
 void Search::loadTrendingSearches() {
-  // Load trending search terms (using placeholder data for now)
-  // TODO: Phase 4 - Implement trending searches via AppStore
-  trendingSearches = {"electronic", "hip-hop", "techno",    "house", "trap",
-                      "ambient",    "lofi",    "synthwave", "dnb",   "jungle"};
+  // Load trending search terms via available genres or fallback
+  if (availableGenres.isEmpty()) {
+    // Use hardcoded fallback if genres not loaded yet
+    trendingSearches = {"electronic", "hip-hop", "techno",    "house", "trap",
+                        "ambient",    "lofi",    "synthwave", "dnb",   "jungle"};
+  } else {
+    // Use available genres as trending searches
+    trendingSearches.clear();
+    // Add top 10 genres as trending searches
+    for (int i = 0; i < juce::jmin(10, availableGenres.size()); ++i) {
+      trendingSearches.add(availableGenres[i].toLowerCase());
+    }
+  }
+
+  Log::info("Search::loadTrendingSearches: Loaded " + juce::String(trendingSearches.size()) + " trending searches");
 }
 
 void Search::useGenresAsTrendingFallback() {
@@ -554,8 +576,17 @@ void Search::useGenresAsTrendingFallback() {
 
 void Search::loadAvailableGenres() {
   // Load available genres via AppStore
-  // TODO: Phase 4 - Implement via appStore->loadGenres()
-  availableGenres = {"Electronic", "Hip-Hop", "House", "Techno", "Ambient", "Trap", "Dubstep", "DNB", "Jungle", "Lofi"};
+  if (!appStore) {
+    Log::warn("Search::loadAvailableGenres: AppStore not set");
+    // Fallback to hardcoded genres
+    availableGenres = {"Electronic", "Hip-Hop", "House", "Techno", "Ambient",
+                       "Trap",       "Dubstep", "DNB",   "Jungle", "Lofi"};
+    return;
+  }
+
+  Log::info("Search::loadAvailableGenres: Loading genres from AppStore");
+  appStore->loadGenres();
+  // Genres will be synced via onAppStateChanged callback
 }
 
 void Search::applyFilters() {
