@@ -326,10 +326,10 @@ void MessageThread::drawSharedPostPreview(juce::Graphics &g, const StreamChatCli
   juce::String postTitle = message.extraData.getProperty("post_title", "").toString();
   juce::String artistName = message.extraData.getProperty("artist_name", "").toString();
 
-  // Draw icon
+  // Draw icon (♪ music note)
   auto iconBounds = bounds.removeFromLeft(bounds.getHeight()).reduced(8);
   g.setColour(juce::Colour(0xff555555));
-  g.drawText("🎵", iconBounds, juce::Justification::centred);
+  g.drawText(juce::String::fromUTF8("\xe2\x99\xaa"), iconBounds, juce::Justification::centred);
 
   // Draw title and artist
   auto textBounds = bounds.reduced(8, 4);
@@ -430,8 +430,8 @@ void MessageThread::drawHeader(juce::Graphics &g) {
     }
   }
 
-  // Menu button bounds
+  // Menu button bounds (⋮ vertical ellipsis)
   auto menuButtonBounds = getHeaderMenuButtonBounds();
   g.setColour(juce::Colour(0xff666666));
-  g.drawText("⋮", menuButtonBounds, juce::Justification::centred);
+  g.drawText(juce::String::fromUTF8("\xe2\x8b\xae"), menuButtonBounds, juce::Justification::centred);
 }
