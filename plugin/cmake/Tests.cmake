@@ -7,7 +7,21 @@ if(SIDECHAIN_BUILD_TESTS)
     # Enable CTest
     enable_testing()
 
-    # Fetch Catch2
+    # Fetch Catch2 WITHOUT coverage instrumentation
+    # Save and disable coverage flags before fetching Catch2 (external dependency)
+    set(SAVED_CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    set(SAVED_CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
+    set(SAVED_CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS}")
+
+    if(SIDECHAIN_ENABLE_COVERAGE)
+        # Temporarily disable coverage for external dependency
+        string(REPLACE "--coverage" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+        string(REPLACE "-fprofile-arcs" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+        string(REPLACE "-ftest-coverage" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+        string(REPLACE "--coverage" "" CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
+        string(REPLACE "--coverage" "" CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS}")
+    endif()
+
     include(FetchContent)
     FetchContent_Declare(
         Catch2
@@ -16,6 +30,13 @@ if(SIDECHAIN_BUILD_TESTS)
         GIT_SHALLOW TRUE
     )
     FetchContent_MakeAvailable(Catch2)
+
+    # Restore coverage flags after Catch2 is fetched
+    if(SIDECHAIN_ENABLE_COVERAGE)
+        set(CMAKE_CXX_FLAGS "${SAVED_CMAKE_CXX_FLAGS}")
+        set(CMAKE_EXE_LINKER_FLAGS "${SAVED_CMAKE_EXE_LINKER_FLAGS}")
+        set(CMAKE_SHARED_LINKER_FLAGS "${SAVED_CMAKE_SHARED_LINKER_FLAGS}")
+    endif()
 
     # Include Catch2's CMake helpers
     list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)

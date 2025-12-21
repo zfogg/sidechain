@@ -135,9 +135,25 @@ endif()
 include(cmake/Options.cmake)
 include(cmake/CompilerFlags.cmake)
 include(cmake/Dependencies.cmake)
+include(cmake/JUCECache.cmake)  # Must come after Dependencies.cmake
 include(cmake/Install.cmake)
 include(cmake/CPUCores.cmake)
 include(cmake/Linting.cmake)
+
+#==============================================================================
+# Global Coverage Configuration
+#==============================================================================
+# Apply coverage flags globally when SIDECHAIN_ENABLE_COVERAGE is set
+# This ensures ALL plugin source files have coverage instrumentation
+# Catch2 (external dependency) will temporarily have coverage flags disabled
+if(SIDECHAIN_ENABLE_COVERAGE)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        # Apply coverage flags to all compilation targets (unless disabled per-target)
+        add_compile_options(--coverage -fprofile-arcs -ftest-coverage)
+        add_link_options(--coverage)
+        message(STATUS "Code coverage enabled for plugin build")
+    endif()
+endif()
 
 #==============================================================================
 # Build formats configuration
@@ -212,6 +228,10 @@ endif()
 # Generate the header - this creates JuceLibraryCode directory with JuceHeader.h
 juce_generate_juce_header(SidechainJuceHeaderHelper)
 
+# Note: Do NOT apply caching to SidechainJuceHeaderHelper
+# This is a lightweight helper target only used to generate JuceHeader.h
+# Applying caching would create duplicate symbols during linking
+
 # Create an interface library to propagate the include directory
 add_library(SidechainJuceHeader INTERFACE)
 target_include_directories(SidechainJuceHeader INTERFACE
@@ -224,18 +244,42 @@ target_include_directories(SidechainJuceHeader INTERFACE
 add_dependencies(SidechainJuceHeader SidechainJuceHeaderHelper)
 
 #==============================================================================
-# Global Coverage Configuration
+# Save and clear INTERFACE_SOURCES from JUCE modules for cached object usage
+# We save them first so SidechainJuceHeaderHelper can restore and use them
 #==============================================================================
-# Apply coverage flags globally when SIDECHAIN_ENABLE_COVERAGE is set
-# This ensures ALL compiled object files have coverage instrumentation,
-# allowing lcov to capture coverage for the entire linked executable
-if(SIDECHAIN_ENABLE_COVERAGE)
-    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-        # Apply coverage flags to all compilation targets
-        add_compile_options(--coverage -fprofile-arcs -ftest-coverage)
-        add_link_options(--coverage)
+set(JUCE_SAVED_SOURCES "")
+foreach(MODULE IN LISTS JUCE_MODULES_TO_CACHE)
+    if(TARGET juce::${MODULE})
+        # juce:: targets are ALIASes - get the real target
+        get_target_property(REAL_TARGET juce::${MODULE} ALIASED_TARGET)
+
+        if(REAL_TARGET)
+            # Save original INTERFACE_SOURCES
+            get_target_property(ORIGINAL_SOURCES ${REAL_TARGET} INTERFACE_SOURCES)
+            set_property(GLOBAL PROPERTY JUCE_ORIGINAL_SOURCES_${MODULE} "${ORIGINAL_SOURCES}")
+
+            # Remove INTERFACE_SOURCES to prevent libraries from compiling JUCE
+            # Libraries will use pre-compiled cached objects instead
+            set_target_properties(${REAL_TARGET} PROPERTIES INTERFACE_SOURCES "")
+            message(STATUS "  Cleared INTERFACE_SOURCES for ${MODULE}")
+        endif()
     endif()
-endif()
+endforeach()
+
+# Restore INTERFACE_SOURCES for SidechainJuceHeaderHelper so it can compile JUCE
+foreach(MODULE IN LISTS JUCE_MODULES_TO_CACHE)
+    if(TARGET juce::${MODULE})
+        get_target_property(REAL_TARGET juce::${MODULE} ALIASED_TARGET)
+        if(REAL_TARGET AND TARGET SidechainJuceHeaderHelper)
+            get_property(ORIGINAL_SOURCES GLOBAL PROPERTY JUCE_ORIGINAL_SOURCES_${MODULE})
+            if(ORIGINAL_SOURCES)
+                # Manually add the saved sources back to SidechainJuceHeaderHelper
+                # This allows it to compile JUCE normally while libraries use cache
+                target_sources(SidechainJuceHeaderHelper PRIVATE ${ORIGINAL_SOURCES})
+            endif()
+        endif()
+    endif()
+endforeach()
 
 #==============================================================================
 # Build libraries in dependency order (4-library architecture)
