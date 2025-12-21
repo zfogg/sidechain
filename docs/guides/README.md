@@ -6,7 +6,7 @@ Step-by-step guides for common tasks and operations.
 
 ### [DI Container Integration](DI_CONTAINER_INTEGRATION.md)
 
-Step-by-step instructions for integrating the DI container into `cmd/server/main.go`:
+Step-by-step instructions for integrating the DI kernel into `cmd/server/main.go`:
 
 1. Create container after services are initialized
 2. Register all services using fluent API
@@ -56,7 +56,7 @@ Validation report for distributed tracing implementation:
 
 1. **Creating a Container**
 ```go
-container := container.New()
+container := kernel.New()
 container.
     WithDB(db).
     WithStreamClient(stream).
@@ -112,7 +112,7 @@ span.End()
 
 1. Create handler struct that embeds container
 2. Implement handler methods accessing container services
-3. Register in main.go with appContainer
+3. Register in main.go with appKernel
 4. Write tests using MockContainer
 
 See: [DI Container Overview](../architecture/DI_CONTAINER_OVERVIEW.md#testing-with-dicontainer)

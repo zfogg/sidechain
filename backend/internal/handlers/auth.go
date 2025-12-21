@@ -15,8 +15,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/zfogg/sidechain/backend/internal/container"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/kernel"
 	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
 )
@@ -36,7 +36,7 @@ type OAuthSession struct {
 // AuthHandlers wraps auth functionality and provides HTTP handlers.
 // Uses dependency injection via container for all service dependencies.
 type AuthHandlers struct {
-	container *container.Container
+	kernel *kernel.Kernel
 	// OAuth session storage for polling (in-memory, thread-safe)
 	oauthSessions map[string]*OAuthSession
 	oauthMutex    sync.RWMutex
@@ -44,9 +44,9 @@ type AuthHandlers struct {
 
 // NewAuthHandlers creates a new auth handlers instance.
 // All dependencies are accessed through the container.
-func NewAuthHandlers(c *container.Container) *AuthHandlers {
+func NewAuthHandlers(c *kernel.Kernel) *AuthHandlers {
 	ah := &AuthHandlers{
-		container:     c,
+		kernel:        c,
 		oauthSessions: make(map[string]*OAuthSession),
 	}
 
@@ -91,7 +91,7 @@ func (h *AuthHandlers) SetEmailService(service *email.EmailService) {
 // Register handles user registration
 // POST /api/v1/auth/register
 func (h *AuthHandlers) Register(c *gin.Context) {
-	if h.container.Auth() == nil {
+	if h.kernel.Auth() == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "auth_service_not_configured"})
 		return
 	}
@@ -102,7 +102,7 @@ func (h *AuthHandlers) Register(c *gin.Context) {
 		return
 	}
 
-	authResp, err := h.container.Auth().RegisterNativeUser(req)
+	authResp, err := h.kernel.Auth().RegisterNativeUser(req)
 	if err != nil {
 		if err == auth.ErrUserExists {
 			c.JSON(http.StatusConflict, gin.H{"error": "user_exists"})
@@ -117,10 +117,10 @@ func (h *AuthHandlers) Register(c *gin.Context) {
 	}
 
 	// Index new user in Elasticsearch
-	if h.container.Search() != nil {
+	if h.kernel.Search() != nil {
 		go func() {
 			userDoc := search.UserToSearchDoc(authResp.User)
-			if err := h.container.Search().IndexUser(c.Request.Context(), authResp.User.ID, userDoc); err != nil {
+			if err := h.kernel.Search().IndexUser(c.Request.Context(), authResp.User.ID, userDoc); err != nil {
 				// Log but don't fail - search is non-critical
 				fmt.Printf("Warning: Failed to index user %s in Elasticsearch: %v\n", authResp.User.ID, err)
 			}
@@ -140,7 +140,7 @@ func (h *AuthHandlers) Register(c *gin.Context) {
 // POST /api/v1/auth/login
 // If 2FA is enabled, returns requires_2fa: true instead of token
 func (h *AuthHandlers) Login(c *gin.Context) {
-	if h.container.Auth() == nil {
+	if h.kernel.Auth() == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "auth_service_not_configured"})
 		return
 	}
@@ -151,7 +151,7 @@ func (h *AuthHandlers) Login(c *gin.Context) {
 		return
 	}
 
-	authResp, err := h.container.Auth().LoginNativeUser(req)
+	authResp, err := h.kernel.Auth().LoginNativeUser(req)
 	if err != nil {
 		if err == auth.ErrUserNotFound || err == auth.ErrInvalidCredentials {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid_credentials"})
@@ -184,7 +184,7 @@ func (h *AuthHandlers) Login(c *gin.Context) {
 // GoogleOAuth initiates Google OAuth flow
 // GET /api/v1/auth/google?session_id=...&state=...&redirect_uri=...
 func (h *AuthHandlers) GoogleOAuth(c *gin.Context) {
-	if h.container.Auth() == nil {
+	if h.kernel.Auth() == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "auth_service_not_configured"})
 		return
 	}
@@ -209,14 +209,14 @@ func (h *AuthHandlers) GoogleOAuth(c *gin.Context) {
 		state = url.QueryEscape(string(stateJSON))
 	}
 
-	oauthURL := h.container.Auth().GetGoogleOAuthURL(state)
+	oauthURL := h.kernel.Auth().GetGoogleOAuthURL(state)
 	c.Redirect(http.StatusTemporaryRedirect, oauthURL)
 }
 
 // GoogleCallback handles Google OAuth callback
 // GET /api/v1/auth/google/callback?code=...&state=...
 func (h *AuthHandlers) GoogleCallback(c *gin.Context) {
-	if h.container.Auth() == nil {
+	if h.kernel.Auth() == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "auth_service_not_configured"})
 		return
 	}
@@ -228,7 +228,7 @@ func (h *AuthHandlers) GoogleCallback(c *gin.Context) {
 	}
 
 	// Handle Google OAuth callback
-	authResp, err := h.container.Auth().HandleGoogleCallback(code)
+	authResp, err := h.kernel.Auth().HandleGoogleCallback(code)
 	if err != nil {
 		// Extract redirect_uri if present
 		stateParam := c.Query("state")
@@ -351,7 +351,7 @@ func (h *AuthHandlers) GoogleCallback(c *gin.Context) {
 // DiscordOAuth initiates Discord OAuth flow
 // GET /api/v1/auth/discord?session_id=...&state=...&redirect_uri=...
 func (h *AuthHandlers) DiscordOAuth(c *gin.Context) {
-	if h.container.Auth() == nil {
+	if h.kernel.Auth() == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "auth_service_not_configured"})
 		return
 	}
@@ -376,14 +376,14 @@ func (h *AuthHandlers) DiscordOAuth(c *gin.Context) {
 		state = url.QueryEscape(string(stateJSON))
 	}
 
-	oauthURL := h.container.Auth().GetDiscordOAuthURL(state)
+	oauthURL := h.kernel.Auth().GetDiscordOAuthURL(state)
 	c.Redirect(http.StatusTemporaryRedirect, oauthURL)
 }
 
 // DiscordCallback handles Discord OAuth callback
 // GET /api/v1/auth/discord/callback?code=...&state=...
 func (h *AuthHandlers) DiscordCallback(c *gin.Context) {
-	if h.container.Auth() == nil {
+	if h.kernel.Auth() == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "auth_service_not_configured"})
 		return
 	}
@@ -395,7 +395,7 @@ func (h *AuthHandlers) DiscordCallback(c *gin.Context) {
 	}
 
 	// Handle Discord OAuth callback
-	authResp, err := h.container.Auth().HandleDiscordCallback(code)
+	authResp, err := h.kernel.Auth().HandleDiscordCallback(code)
 	if err != nil {
 		// Extract redirect_uri if present
 		stateParam := c.Query("state")
@@ -588,7 +588,7 @@ func (h *AuthHandlers) Me(c *gin.Context) {
 // POST /api/v1/auth/refresh
 // Accepts current valid token, returns new token with extended expiry
 func (h *AuthHandlers) RefreshToken(c *gin.Context) {
-	if h.container.Auth() == nil {
+	if h.kernel.Auth() == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "auth_service_not_configured"})
 		return
 	}
@@ -613,7 +613,7 @@ func (h *AuthHandlers) RefreshToken(c *gin.Context) {
 	}
 
 	// Validate current token (even if expired, we check it was valid)
-	user, err := h.container.Auth().ValidateToken(token)
+	user, err := h.kernel.Auth().ValidateToken(token)
 	if err != nil {
 		// Token is invalid or malformed (not just expired)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid_token", "message": err.Error()})
@@ -628,7 +628,7 @@ func (h *AuthHandlers) RefreshToken(c *gin.Context) {
 	}
 
 	// Generate new token with extended expiry
-	authResp, err := h.container.Auth().GenerateTokenForUser(user)
+	authResp, err := h.kernel.Auth().GenerateTokenForUser(user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "token_generation_failed", "message": err.Error()})
 		return
@@ -650,7 +650,7 @@ func (h *AuthHandlers) GetStreamToken(c *gin.Context) {
 		return
 	}
 
-	if h.container.Stream() == nil {
+	if h.kernel.Stream() == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "stream_client_not_configured"})
 		return
 	}
@@ -667,14 +667,14 @@ func (h *AuthHandlers) GetStreamToken(c *gin.Context) {
 	streamUserID := user.ID
 
 	// Create user in getstream.io if needed
-	if err := h.container.Stream().CreateUser(streamUserID, user.Username); err != nil {
+	if err := h.kernel.Stream().CreateUser(streamUserID, user.Username); err != nil {
 		// Log but continue - user might already exist
 		fmt.Printf("[Auth] Warning: failed to create getstream.io user: %v\n", err)
 	}
 
 	// Generate token (24 hour expiration)
 	expiration := time.Now().Add(24 * time.Hour)
-	token, err := h.container.Stream().CreateToken(streamUserID, expiration)
+	token, err := h.kernel.Stream().CreateToken(streamUserID, expiration)
 	if err != nil {
 		fmt.Printf("[Auth] Error creating Stream token: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "token_generation_failed", "message": err.Error()})
@@ -710,7 +710,7 @@ func (h *AuthHandlers) SyncUserToStream(c *gin.Context) {
 		return
 	}
 
-	if h.container.Stream() == nil {
+	if h.kernel.Stream() == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "stream_client_not_configured"})
 		return
 	}
@@ -738,7 +738,7 @@ func (h *AuthHandlers) SyncUserToStream(c *gin.Context) {
 	}
 
 	// Create/sync user in getstream.io with admin credentials
-	if err := h.container.Stream().CreateUser(user.ID, user.Username); err != nil {
+	if err := h.kernel.Stream().CreateUser(user.ID, user.Username); err != nil {
 		// Log the error but check if it's a "user already exists" error (which is OK)
 		fmt.Printf("[Auth] Warning: failed to sync user to getstream.io: %v\n", err)
 		// We don't return an error here - the user might already exist in Stream Chat
@@ -763,7 +763,7 @@ func (h *AuthHandlers) UploadProfilePicture(c *gin.Context) {
 		return
 	}
 
-	if h.container.S3() == nil {
+	if h.kernel.S3() == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "uploader_not_configured"})
 		return
 	}
@@ -775,7 +775,7 @@ func (h *AuthHandlers) UploadProfilePicture(c *gin.Context) {
 	}
 	defer file.Close()
 
-	result, err := h.container.S3().UploadProfilePicture(context.Background(), file, header, userID.(string))
+	result, err := h.kernel.S3().UploadProfilePicture(context.Background(), file, header, userID.(string))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "upload_failed", "message": err.Error()})
 		return
@@ -800,7 +800,7 @@ func (h *AuthHandlers) UploadProfilePicture(c *gin.Context) {
 		customData["daw_preference"] = user.DAWPreference
 		customData["is_private"] = user.IsPrivate
 
-		if err := h.container.Stream().UpdateUserProfile(user.StreamUserID, user.Username, customData); err != nil {
+		if err := h.kernel.Stream().UpdateUserProfile(user.StreamUserID, user.Username, customData); err != nil {
 			logger.WarnWithFields("Failed to sync profile picture to Stream.io", err)
 		}
 	}()
@@ -892,13 +892,13 @@ func (h *AuthHandlers) AuthMiddleware() gin.HandlerFunc {
 		}
 
 		// Validate token using auth service
-		if h.container.Auth() == nil {
+		if h.kernel.Auth() == nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "auth_service_not_configured"})
 			c.Abort()
 			return
 		}
 
-		user, err := h.container.Auth().ValidateToken(tokenString)
+		user, err := h.kernel.Auth().ValidateToken(tokenString)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid_token", "message": err.Error()})
 			c.Abort()
@@ -934,13 +934,13 @@ func (h *AuthHandlers) AuthMiddlewareOptional() gin.HandlerFunc {
 		}
 
 		// Validate token using auth service
-		if h.container.Auth() == nil {
+		if h.kernel.Auth() == nil {
 			// Auth service not configured - continue without validation
 			c.Next()
 			return
 		}
 
-		user, err := h.container.Auth().ValidateToken(tokenString)
+		user, err := h.kernel.Auth().ValidateToken(tokenString)
 		if err != nil {
 			// Invalid token but don't reject - log and continue
 			// User context won't be set, so handlers can check with c.GetString("user_id")
@@ -958,7 +958,7 @@ func (h *AuthHandlers) AuthMiddlewareOptional() gin.HandlerFunc {
 // RequestPasswordReset creates a password reset token
 // POST /api/v1/auth/reset-password
 func (h *AuthHandlers) RequestPasswordReset(c *gin.Context) {
-	if h.container.Auth() == nil {
+	if h.kernel.Auth() == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "auth_service_not_configured"})
 		return
 	}
@@ -972,7 +972,7 @@ func (h *AuthHandlers) RequestPasswordReset(c *gin.Context) {
 	}
 
 	// Create reset token (don't reveal if user exists for security)
-	token, err := h.container.Auth().RequestPasswordReset(req.Email)
+	token, err := h.kernel.Auth().RequestPasswordReset(req.Email)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "reset_request_failed", "message": err.Error()})
 		return
@@ -1021,7 +1021,7 @@ func (h *AuthHandlers) RequestPasswordReset(c *gin.Context) {
 // ResetPassword validates token and updates password
 // POST /api/v1/auth/reset-password/confirm
 func (h *AuthHandlers) ResetPassword(c *gin.Context) {
-	if h.container.Auth() == nil {
+	if h.kernel.Auth() == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "auth_service_not_configured"})
 		return
 	}
@@ -1035,7 +1035,7 @@ func (h *AuthHandlers) ResetPassword(c *gin.Context) {
 		return
 	}
 
-	err := h.container.Auth().ResetPassword(req.Token, req.NewPassword)
+	err := h.kernel.Auth().ResetPassword(req.Token, req.NewPassword)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "reset_failed", "message": err.Error()})
 		return

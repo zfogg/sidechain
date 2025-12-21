@@ -58,9 +58,9 @@ func (h *Handlers) ArchivePost(c *gin.Context) {
 	}
 
 	// Re-sync to Gorse to hide archived post
-	if h.container.Gorse() != nil {
+	if h.kernel.Gorse() != nil {
 		go func() {
-			if err := h.container.Gorse().SyncItem(postID); err != nil {
+			if err := h.kernel.Gorse().SyncItem(postID); err != nil {
 				fmt.Printf("Warning: Failed to sync archived post to Gorse: %v\n", err)
 			}
 		}()
@@ -119,9 +119,9 @@ func (h *Handlers) UnarchivePost(c *gin.Context) {
 	}
 
 	// Re-sync to Gorse to show unarchived post
-	if h.container.Gorse() != nil {
+	if h.kernel.Gorse() != nil {
 		go func() {
-			if err := h.container.Gorse().SyncItem(postID); err != nil {
+			if err := h.kernel.Gorse().SyncItem(postID); err != nil {
 				fmt.Printf("Warning: Failed to sync unarchived post to Gorse: %v\n", err)
 			}
 		}()

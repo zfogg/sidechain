@@ -165,7 +165,7 @@ func (h *Handlers) GetTimeline(c *gin.Context) {
 	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
 	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
-	activities, err := h.container.Stream().GetUserTimeline(userID, limit, offset)
+	activities, err := h.kernel.Stream().GetUserTimeline(userID, limit, offset)
 	if err != nil {
 		util.RespondInternalError(c, "Failed to get timeline")
 		return
@@ -212,7 +212,7 @@ func (h *Handlers) GetGlobalFeed(c *gin.Context) {
 	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
 	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
-	activities, err := h.container.Stream().GetGlobalFeed(limit, offset)
+	activities, err := h.kernel.Stream().GetGlobalFeed(limit, offset)
 	if err != nil {
 		util.RespondInternalError(c, "Failed to get global feed")
 		return
@@ -337,7 +337,7 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 		}
 	}
 
-	if err := h.container.Stream().CreateLoopActivity(userID, activity); err != nil {
+	if err := h.kernel.Stream().CreateLoopActivity(userID, activity); err != nil {
 		util.RespondInternalError(c, "Failed to create post")
 		return
 	}
@@ -362,7 +362,7 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 	}
 
 	// Broadcast feed invalidation for real-time updates + Activity broadcast
-	if h.container.WebSocket() != nil {
+	if h.kernel.WebSocket() != nil {
 		go func() {
 			// Fetch user details for activity broadcast
 			var user models.User
@@ -384,21 +384,21 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 					Genre:       req.Genre,
 					FeedTypes:   []string{"global", "trending", "timeline"},
 				}
-				h.container.WebSocket().BroadcastActivity(activityPayload)
+				h.kernel.WebSocket().BroadcastActivity(activityPayload)
 			}
 
 			// Also broadcast feed invalidation for clients that prefer to refetch
-			h.container.WebSocket().BroadcastFeedInvalidation("global", "new_post")
-			h.container.WebSocket().BroadcastFeedInvalidation("trending", "new_post")
-			h.container.WebSocket().BroadcastFeedInvalidation("timeline", "new_post")
+			h.kernel.WebSocket().BroadcastFeedInvalidation("global", "new_post")
+			h.kernel.WebSocket().BroadcastFeedInvalidation("trending", "new_post")
+			h.kernel.WebSocket().BroadcastFeedInvalidation("timeline", "new_post")
 
 			// Notify followers that user posted something
-			h.container.WebSocket().BroadcastTimelineUpdate(userID, "user_activity", 1)
+			h.kernel.WebSocket().BroadcastTimelineUpdate(userID, "user_activity", 1)
 		}()
 	}
 
 	// Index post to Elasticsearch
-	if h.container.Search() != nil {
+	if h.kernel.Search() != nil {
 		go func() {
 			// Fetch user for indexing
 			var user models.User
@@ -416,7 +416,7 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 					"comment_count": 0,
 					"created_at":    time.Now().UTC(),
 				}
-				if err := h.container.Search().IndexPost(c.Request.Context(), postID, postDoc); err != nil {
+				if err := h.kernel.Search().IndexPost(c.Request.Context(), postID, postDoc); err != nil {
 					fmt.Printf("Warning: Failed to index post %s in Elasticsearch: %v\n", postID, err)
 				}
 			}
@@ -448,7 +448,7 @@ func (h *Handlers) GetEnrichedTimeline(c *gin.Context) {
 	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
 	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
-	activities, err := h.container.Stream().GetEnrichedTimeline(currentUser.StreamUserID, limit, offset)
+	activities, err := h.kernel.Stream().GetEnrichedTimeline(currentUser.StreamUserID, limit, offset)
 	if err != nil {
 		util.RespondInternalError(c, "Failed to get timeline")
 		return
@@ -515,7 +515,7 @@ func (h *Handlers) GetEnrichedTimeline(c *gin.Context) {
 	for i, activity := range activities {
 		// Build activity map directly from struct fields to avoid flattening Extra map
 		activityMap := gin.H{
-			"id":                activity.ID,
+			"id":                 activity.ID,
 			"stream_activity_id": activity.StreamActivityID,
 			"actor":              activity.Actor,
 			"verb":               activity.Verb,
@@ -575,7 +575,7 @@ func (h *Handlers) GetEnrichedTimeline(c *gin.Context) {
 			}
 
 			var err error
-			isFollowing, err = h.container.Stream().CheckIsFollowing(currentUser.ID, posterUserID)
+			isFollowing, err = h.kernel.Stream().CheckIsFollowing(currentUser.ID, posterUserID)
 
 			if err != nil {
 				logger.Log.Warn("Failed to check follow status",
@@ -676,8 +676,8 @@ func (h *Handlers) getFallbackFeed(userID string, limit int) []map[string]interf
 	}
 
 	// Try Gorse recommendations first
-	if h.container.Gorse() != nil {
-		scores, err := h.container.Gorse().GetForYouFeed(userID, limit, 0)
+	if h.kernel.Gorse() != nil {
+		scores, err := h.kernel.Gorse().GetForYouFeed(userID, limit, 0)
 		if err == nil && len(scores) > 0 {
 			// Collect user IDs and batch fetch user data
 			userIDSet := make(map[string]bool)
@@ -856,14 +856,14 @@ func (h *Handlers) GetUnifiedTimeline(c *gin.Context) {
 	}
 
 	// Get the stream client as concrete type for timeline service
-	streamClient, ok := h.container.Stream().(*stream.Client)
+	streamClient, ok := h.kernel.Stream().(*stream.Client)
 	if !ok {
 		util.RespondInternalError(c, "Failed to get stream client")
 		return
 	}
 
 	// Create timeline service and get unified timeline
-	timelineSvc := timeline.NewService(streamClient, h.container.Gorse())
+	timelineSvc := timeline.NewService(streamClient, h.kernel.Gorse())
 	resp, err := timelineSvc.GetTimeline(context.Background(), currentUser.ID, limit, offset)
 	if err != nil {
 		util.RespondInternalError(c, "Failed to get timeline")
@@ -933,7 +933,7 @@ func (h *Handlers) GetUnifiedTimeline(c *gin.Context) {
 		if posterUserID != currentUser.ID && posterUserID != "" && item.User != nil && item.User.ID != "" {
 			// Query follow state using DATABASE IDs - no caching to ensure fresh data
 			var err error
-			isFollowing, err = h.container.Stream().CheckIsFollowing(currentUser.ID, item.User.ID)
+			isFollowing, err = h.kernel.Stream().CheckIsFollowing(currentUser.ID, item.User.ID)
 
 			if err != nil {
 
@@ -989,7 +989,7 @@ func (h *Handlers) GetEnrichedGlobalFeed(c *gin.Context) {
 	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
 	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
-	activities, err := h.container.Stream().GetEnrichedGlobalFeed(limit, offset)
+	activities, err := h.kernel.Stream().GetEnrichedGlobalFeed(limit, offset)
 	if err != nil {
 		util.RespondInternalError(c, "Failed to get global feed")
 		return
@@ -999,7 +999,7 @@ func (h *Handlers) GetEnrichedGlobalFeed(c *gin.Context) {
 	enrichedActivities := make([]interface{}, len(activities))
 	for i, activity := range activities {
 		activityMap := gin.H{
-			"id":                activity.ID,
+			"id":                 activity.ID,
 			"stream_activity_id": activity.StreamActivityID,
 			"actor":              activity.Actor,
 			"verb":               activity.Verb,
@@ -1050,13 +1050,13 @@ func (h *Handlers) GetAggregatedTimeline(c *gin.Context) {
 	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
 	// Use database-backed timeline service instead of Stream.io
-	streamClient, ok := h.container.Stream().(*stream.Client)
+	streamClient, ok := h.kernel.Stream().(*stream.Client)
 	if !ok {
 		util.RespondInternalError(c, "Failed to get stream client")
 		return
 	}
 
-	timelineSvc := timeline.NewService(streamClient, h.container.Gorse())
+	timelineSvc := timeline.NewService(streamClient, h.kernel.Gorse())
 	timelineResp, err := timelineSvc.GetTimeline(context.Background(), currentUser.ID, limit, offset)
 	if err != nil {
 		util.RespondInternalError(c, "Failed to get aggregated timeline")
@@ -1140,7 +1140,7 @@ func (h *Handlers) GetTrendingFeed(c *gin.Context) {
 	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
 	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
-	resp, err := h.container.Stream().GetTrendingFeed(limit, offset)
+	resp, err := h.kernel.Stream().GetTrendingFeed(limit, offset)
 	if err != nil {
 		util.RespondInternalError(c, "Failed to get trending feed")
 		return
@@ -1222,7 +1222,7 @@ func (h *Handlers) GetTrendingFeedGrouped(c *gin.Context) {
 	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
 	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
-	resp, err := h.container.Stream().GetTrendingFeed(limit, offset)
+	resp, err := h.kernel.Stream().GetTrendingFeed(limit, offset)
 	if err != nil {
 		util.RespondInternalError(c, "Failed to get trending feed")
 		return
@@ -1252,7 +1252,7 @@ func (h *Handlers) GetUserActivitySummary(c *gin.Context) {
 		}
 	}
 
-	resp, err := h.container.Stream().GetUserActivitySummary(user.StreamUserID, limit)
+	resp, err := h.kernel.Stream().GetUserActivitySummary(user.StreamUserID, limit)
 	if err != nil {
 		util.RespondInternalError(c, "failed_to_get_activity_summary", err.Error())
 		return
@@ -1299,16 +1299,16 @@ func (h *Handlers) DeletePost(c *gin.Context) {
 
 	// Delete from Stream.io if it has a stream activity ID
 	// Remove from origin feed (user feed) - this will cascade to all other feeds
-	if h.container.Stream() != nil && post.StreamActivityID != "" {
-		if err := h.container.Stream().DeleteLoopActivity(post.UserID, post.StreamActivityID); err != nil {
+	if h.kernel.Stream() != nil && post.StreamActivityID != "" {
+		if err := h.kernel.Stream().DeleteLoopActivity(post.UserID, post.StreamActivityID); err != nil {
 			// Log but don't fail - post is already deleted in database
 			fmt.Printf("Failed to delete Stream.io activity: %v\n", err)
 		}
 	}
 
 	// Delete post from Elasticsearch index
-	if h.container.Search() != nil {
-		if err := h.container.Search().DeletePost(c.Request.Context(), post.ID); err != nil {
+	if h.kernel.Search() != nil {
+		if err := h.kernel.Search().DeletePost(c.Request.Context(), post.ID); err != nil {
 			// Log but don't fail - post is already deleted in database
 			fmt.Printf("Warning: Failed to delete post %s from Elasticsearch: %v\n", post.ID, err)
 		}
@@ -1412,9 +1412,9 @@ func (h *Handlers) DownloadPost(c *gin.Context) {
 	database.DB.First(&post, "id = ?", postID)
 
 	// Real-time Gorse feedback sync
-	if h.container.Gorse() != nil {
+	if h.kernel.Gorse() != nil {
 		go func() {
-			if err := h.container.Gorse().SyncFeedback(userID, postID, "download"); err != nil {
+			if err := h.kernel.Gorse().SyncFeedback(userID, postID, "download"); err != nil {
 				fmt.Printf("Warning: Failed to sync download to Gorse: %v\n", err)
 			}
 		}()
@@ -1562,14 +1562,14 @@ func (h *Handlers) TrackPlay(c *gin.Context) {
 	}
 
 	// Sync post engagement metrics to Elasticsearch asynchronously
-	if h.container.Search() != nil {
+	if h.kernel.Search() != nil {
 		go func() {
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 
 			var updatedPost models.AudioPost
 			if err := database.DB.Select("like_count", "play_count", "comment_count").First(&updatedPost, "id = ?", postID).Error; err == nil {
-				if err := h.container.Search().UpdatePostEngagement(ctx, postID, updatedPost.LikeCount, updatedPost.PlayCount, updatedPost.CommentCount); err != nil {
+				if err := h.kernel.Search().UpdatePostEngagement(ctx, postID, updatedPost.LikeCount, updatedPost.PlayCount, updatedPost.CommentCount); err != nil {
 					logger.WarnWithFields("Failed to update post engagement in Elasticsearch after play", err)
 				}
 			}
@@ -1578,13 +1578,13 @@ func (h *Handlers) TrackPlay(c *gin.Context) {
 
 	// Real-time Gorse feedback sync
 	// Completed plays are stronger signals (like), partial plays are weaker (view)
-	if h.container.Gorse() != nil {
+	if h.kernel.Gorse() != nil {
 		go func() {
 			feedbackType := "view"
 			if req.Completed {
 				feedbackType = "like" // Completed play = stronger signal
 			}
-			if err := h.container.Gorse().SyncFeedback(currentUser.ID, postID, feedbackType); err != nil {
+			if err := h.kernel.Gorse().SyncFeedback(currentUser.ID, postID, feedbackType); err != nil {
 				fmt.Printf("Warning: Failed to sync play to Gorse: %v\n", err)
 			}
 		}()
@@ -1632,9 +1632,9 @@ func (h *Handlers) ViewPost(c *gin.Context) {
 
 	// Real-time Gorse feedback sync
 	// View events are important for understanding user behavior even if they don't play
-	if h.container.Gorse() != nil {
+	if h.kernel.Gorse() != nil {
 		go func() {
-			if err := h.container.Gorse().SyncFeedback(currentUser.ID, postID, "view"); err != nil {
+			if err := h.kernel.Gorse().SyncFeedback(currentUser.ID, postID, "view"); err != nil {
 				fmt.Printf("Warning: Failed to sync view to Gorse: %v\n", err)
 			}
 		}()

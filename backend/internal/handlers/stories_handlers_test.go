@@ -217,7 +217,7 @@ func (suite *HandlersTestSuite) TestGetStoriesFiltersExpired() {
 	t := suite.T()
 
 	// Create one active story and one expired story
-	suite.createTestStory(suite.testUser.ID, 30.0, time.Now().UTC().Add(24*time.Hour))  // Active
+	suite.createTestStory(suite.testUser.ID, 30.0, time.Now().UTC().Add(24*time.Hour)) // Active
 	suite.createTestStory(suite.testUser.ID, 25.0, time.Now().UTC().Add(-1*time.Hour)) // Expired
 
 	req, _ := http.NewRequest("GET", "/api/stories", nil)

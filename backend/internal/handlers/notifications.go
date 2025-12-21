@@ -18,7 +18,7 @@ func (h *Handlers) GetNotifications(c *gin.Context) {
 	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
 	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
-	notifs, err := h.container.Stream().GetNotifications(currentUser.StreamUserID, limit, offset)
+	notifs, err := h.kernel.Stream().GetNotifications(currentUser.StreamUserID, limit, offset)
 	if err != nil {
 		util.RespondInternalError(c, "failed_to_get_notifications", err.Error())
 		return
@@ -44,7 +44,7 @@ func (h *Handlers) GetNotificationCounts(c *gin.Context) {
 		return
 	}
 
-	unseen, unread, err := h.container.Stream().GetNotificationCounts(currentUser.StreamUserID)
+	unseen, unread, err := h.kernel.Stream().GetNotificationCounts(currentUser.StreamUserID)
 	if err != nil {
 		util.RespondInternalError(c, "failed_to_get_notification_counts", err.Error())
 		return
@@ -64,7 +64,7 @@ func (h *Handlers) MarkNotificationsRead(c *gin.Context) {
 		return
 	}
 
-	if err := h.container.Stream().MarkNotificationsRead(currentUser.StreamUserID); err != nil {
+	if err := h.kernel.Stream().MarkNotificationsRead(currentUser.StreamUserID); err != nil {
 		util.RespondInternalError(c, "failed_to_mark_read", err.Error())
 		return
 	}
@@ -83,7 +83,7 @@ func (h *Handlers) MarkNotificationsSeen(c *gin.Context) {
 		return
 	}
 
-	if err := h.container.Stream().MarkNotificationsSeen(currentUser.StreamUserID); err != nil {
+	if err := h.kernel.Stream().MarkNotificationsSeen(currentUser.StreamUserID); err != nil {
 		util.RespondInternalError(c, "failed_to_mark_seen", err.Error())
 		return
 	}

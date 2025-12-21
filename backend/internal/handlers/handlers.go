@@ -1,6 +1,6 @@
 package handlers
 
-import "github.com/zfogg/sidechain/backend/internal/container"
+import "github.com/zfogg/sidechain/backend/internal/kernel"
 
 // TODO: - Comprehensive backend test coverage needed
 // TODO: -30 - Add tests for all feed endpoints (GetTimeline, GetGlobalFeed, CreatePost, etc.)
@@ -13,19 +13,19 @@ import "github.com/zfogg/sidechain/backend/internal/container"
 // Handlers contains all HTTP handlers for the API.
 // Uses dependency injection via container for all service dependencies.
 type Handlers struct {
-	container *container.Container
+	kernel *kernel.Kernel
 }
 
 // NewHandlers creates a new handlers instance with dependency injection.
 // All service dependencies are accessed through the container.
-func NewHandlers(c *container.Container) *Handlers {
+func NewHandlers(c *kernel.Kernel) *Handlers {
 	return &Handlers{
-		container: c,
+		kernel: c,
 	}
 }
 
 // Container returns the underlying dependency injection container.
 // Used for testing and access to all services.
-func (h *Handlers) Container() *container.Container {
-	return h.container
+func (h *Handlers) Kernel() *kernel.Kernel {
+	return h.kernel
 }

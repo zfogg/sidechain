@@ -42,10 +42,10 @@ type Enable2FARequest struct {
 
 // Enable2FAResponse contains the OTP setup data
 type Enable2FAResponse struct {
-	Type        string   `json:"type"`         // "totp" or "hotp"
-	Secret      string   `json:"secret"`       // Base32-encoded secret for manual entry
-	QRCodeURL   string   `json:"qr_code_url"`  // otpauth:// URL for QR code
-	BackupCodes []string `json:"backup_codes"` // One-time backup codes
+	Type        string   `json:"type"`              // "totp" or "hotp"
+	Secret      string   `json:"secret"`            // Base32-encoded secret for manual entry
+	QRCodeURL   string   `json:"qr_code_url"`       // otpauth:// URL for QR code
+	BackupCodes []string `json:"backup_codes"`      // One-time backup codes
 	Counter     uint64   `json:"counter,omitempty"` // Initial counter for HOTP
 }
 
@@ -417,12 +417,12 @@ func (h *AuthHandlers) Verify2FALogin(c *gin.Context) {
 	}
 
 	// Generate auth token
-	if h.container.Auth() == nil {
+	if h.kernel.Auth() == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Auth service not configured"})
 		return
 	}
 
-	authResp, err := h.container.Auth().GenerateTokenForUser(&user)
+	authResp, err := h.kernel.Auth().GenerateTokenForUser(&user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return

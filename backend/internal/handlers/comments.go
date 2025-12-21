@@ -48,8 +48,8 @@ func (h *Handlers) CreateComment(c *gin.Context) {
 			return
 		case models.CommentAudienceFollowers:
 			// Check if the commenter follows the post owner
-			if h.container.Stream() != nil {
-				isFollowing, err := h.container.Stream().CheckIsFollowing(userID, post.UserID)
+			if h.kernel.Stream() != nil {
+				isFollowing, err := h.kernel.Stream().CheckIsFollowing(userID, post.UserID)
 				if err != nil || !isFollowing {
 					util.RespondForbidden(c, "Only followers can comment on this post")
 					return
@@ -90,11 +90,11 @@ func (h *Handlers) CreateComment(c *gin.Context) {
 	}
 
 	// Sync post engagement metrics to Elasticsearch
-	if h.container.Search() != nil {
+	if h.kernel.Search() != nil {
 		go func() {
 			var updatedPost models.AudioPost
 			if err := database.DB.Select("like_count", "play_count", "comment_count").First(&updatedPost, "id = ?", postID).Error; err == nil {
-				h.container.Search().UpdatePostEngagement(c.Request.Context(), postID, updatedPost.LikeCount, updatedPost.PlayCount, updatedPost.CommentCount)
+				h.kernel.Search().UpdatePostEngagement(c.Request.Context(), postID, updatedPost.LikeCount, updatedPost.PlayCount, updatedPost.CommentCount)
 			}
 		}()
 	}
@@ -111,7 +111,7 @@ func (h *Handlers) CreateComment(c *gin.Context) {
 		go h.notifyCommentOnPost(comment, post)
 
 		// Send WebSocket notification to post owner and broadcast metrics
-		if h.container.WebSocket() != nil {
+		if h.kernel.WebSocket() != nil {
 			go func() {
 				var commenter models.User
 				if err := database.DB.First(&commenter, "id = ?", userID).Error; err == nil {
@@ -129,10 +129,10 @@ func (h *Handlers) CreateComment(c *gin.Context) {
 						Body:        req.Content,
 						CreatedAt:   comment.CreatedAt.UnixMilli(),
 					}
-					h.container.WebSocket().NotifyNewComment(post.UserID, payload)
+					h.kernel.WebSocket().NotifyNewComment(post.UserID, payload)
 
 					// Broadcast updated comment count to all viewers
-					h.container.WebSocket().BroadcastCommentCountUpdate(postID, post.CommentCount+1)
+					h.kernel.WebSocket().BroadcastCommentCountUpdate(postID, post.CommentCount+1)
 				}
 			}()
 		}
@@ -354,11 +354,11 @@ func (h *Handlers) DeleteComment(c *gin.Context) {
 	database.DB.Model(&models.AudioPost{}).Where("id = ?", comment.PostID).UpdateColumn("comment_count", gorm.Expr("GREATEST(comment_count - 1, 0)"))
 
 	// Sync post engagement metrics to Elasticsearch (comment_count only)
-	if h.container.Search() != nil {
+	if h.kernel.Search() != nil {
 		go func() {
 			var post models.AudioPost
 			if err := database.DB.Select("like_count", "play_count", "comment_count").First(&post, "id = ?", comment.PostID).Error; err == nil {
-				h.container.Search().UpdatePostEngagement(c.Request.Context(), post.ID, post.LikeCount, post.PlayCount, post.CommentCount)
+				h.kernel.Search().UpdatePostEngagement(c.Request.Context(), post.ID, post.LikeCount, post.PlayCount, post.CommentCount)
 			}
 		}()
 	}
@@ -389,8 +389,8 @@ func (h *Handlers) LikeComment(c *gin.Context) {
 	}
 
 	// Add reaction via Stream.io if comment has a stream activity ID
-	if h.container.Stream() != nil && comment.StreamActivityID != "" {
-		err := h.container.Stream().AddReactionWithEmoji("like", userID, comment.StreamActivityID, "")
+	if h.kernel.Stream() != nil && comment.StreamActivityID != "" {
+		err := h.kernel.Stream().AddReactionWithEmoji("like", userID, comment.StreamActivityID, "")
 		if err != nil {
 			// Log but don't fail - update local count anyway
 			logger.WarnWithFields("Failed to add Stream.io reaction", err)
@@ -402,7 +402,7 @@ func (h *Handlers) LikeComment(c *gin.Context) {
 	}
 
 	// Send WebSocket notification to comment owner
-	if h.container.WebSocket() != nil {
+	if h.kernel.WebSocket() != nil {
 		go func() {
 			var liker models.User
 			var post models.AudioPost
@@ -415,7 +415,7 @@ func (h *Handlers) LikeComment(c *gin.Context) {
 						Username:  liker.Username,
 						LikeCount: comment.LikeCount + 1,
 					}
-					h.container.WebSocket().NotifyCommentLike(comment.UserID, payload)
+					h.kernel.WebSocket().NotifyCommentLike(comment.UserID, payload)
 				}
 			}
 		}()
@@ -454,7 +454,7 @@ func (h *Handlers) UnlikeComment(c *gin.Context) {
 
 	// Send WebSocket notification to comment owner
 	userID, ok := util.GetUserIDFromContext(c)
-	if ok && h.container.WebSocket() != nil {
+	if ok && h.kernel.WebSocket() != nil {
 		go func() {
 			var unliker models.User
 			if err := database.DB.First(&unliker, "id = ?", userID).Error; err == nil {
@@ -465,7 +465,7 @@ func (h *Handlers) UnlikeComment(c *gin.Context) {
 					Username:  unliker.Username,
 					LikeCount: newCount,
 				}
-				h.container.WebSocket().NotifyCommentUnlike(comment.UserID, payload)
+				h.kernel.WebSocket().NotifyCommentUnlike(comment.UserID, payload)
 			}
 		}()
 	}
@@ -501,8 +501,8 @@ func (h *Handlers) processMentions(commentID string, usernames []string, authorI
 		database.DB.Create(&mention)
 
 		// Send notification via Stream.io
-		if h.container.Stream() != nil {
-			h.container.Stream().NotifyMention(authorID, user.ID, postID, commentID)
+		if h.kernel.Stream() != nil {
+			h.kernel.Stream().NotifyMention(authorID, user.ID, postID, commentID)
 		}
 
 		// Mark notification as sent
@@ -513,7 +513,7 @@ func (h *Handlers) processMentions(commentID string, usernames []string, authorI
 
 // notifyCommentOnPost sends a notification to the post owner when someone comments
 func (h *Handlers) notifyCommentOnPost(comment models.Comment, post models.AudioPost) {
-	if h.container.Stream() == nil {
+	if h.kernel.Stream() == nil {
 		return
 	}
 
@@ -523,7 +523,7 @@ func (h *Handlers) notifyCommentOnPost(comment models.Comment, post models.Audio
 
 	// NotifyComment(actorUserID, targetUserID, loopID, commentText)
 	// Pass a preview of the comment content for the notification
-	h.container.Stream().NotifyComment(comment.UserID, post.UserID, post.ID, comment.Content)
+	h.kernel.Stream().NotifyComment(comment.UserID, post.UserID, post.ID, comment.Content)
 }
 
 // ReportComment reports a comment for moderation
@@ -595,7 +595,6 @@ func (h *Handlers) ReportComment(c *gin.Context) {
 // search, webhooks, export, performance, anti-abuse, notifications,
 // accessibility, localization) are documented in common_todos.go.
 // See that file for shared TODO items.
-
 
 // TODO: PROFESSIONAL-5.1 - Implement comment threading improvements
 // - Support unlimited nesting levels (currently only 1 level)

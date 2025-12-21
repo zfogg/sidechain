@@ -4,22 +4,22 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/zfogg/sidechain/backend/internal/container"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/kernel"
 	"github.com/zfogg/sidechain/backend/internal/models"
 )
 
 // SoundHandlers handles Sound-related API endpoints.
 // Uses dependency injection via container for service dependencies.
 type SoundHandlers struct {
-	container *container.Container
+	kernel *kernel.Kernel
 }
 
 // NewSoundHandlers creates a new SoundHandlers instance.
 // All dependencies are accessed through the container.
-func NewSoundHandlers(c *container.Container) *SoundHandlers {
+func NewSoundHandlers(c *kernel.Kernel) *SoundHandlers {
 	return &SoundHandlers{
-		container: c,
+		kernel: c,
 	}
 }
 

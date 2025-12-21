@@ -139,8 +139,8 @@ func (h *Handlers) AcceptFollowRequest(c *gin.Context) {
 
 	// Create the follow relationship via Stream.io
 	// Use database IDs (not Stream IDs) to match CheckIsFollowing behavior
-	if h.container.Stream() != nil {
-		if err := h.container.Stream().FollowUser(request.RequesterID, currentUser.ID); err != nil {
+	if h.kernel.Stream() != nil {
+		if err := h.kernel.Stream().FollowUser(request.RequesterID, currentUser.ID); err != nil {
 			tx.Rollback()
 			util.RespondInternalError(c, "follow_failed", "Failed to create follow relationship")
 			return
@@ -150,26 +150,26 @@ func (h *Handlers) AcceptFollowRequest(c *gin.Context) {
 	tx.Commit()
 
 	// Sync follow event to Gorse for recommendations (async, don't block response)
-	if h.container.Gorse() != nil {
+	if h.kernel.Gorse() != nil {
 		go func() {
-			if err := h.container.Gorse().SyncFollowEvent(request.RequesterID, currentUser.ID); err != nil {
+			if err := h.kernel.Gorse().SyncFollowEvent(request.RequesterID, currentUser.ID); err != nil {
 				log.Printf("Warning: failed to sync follow to Gorse: %v", err)
 			}
 		}()
 	}
 
 	// Send notification to requester that their follow request was accepted
-	if h.container.Stream() != nil {
+	if h.kernel.Stream() != nil {
 		go func() {
-			if err := h.container.Stream().NotifyFollowRequestAccepted(currentUser.ID, request.RequesterID); err != nil {
+			if err := h.kernel.Stream().NotifyFollowRequestAccepted(currentUser.ID, request.RequesterID); err != nil {
 				log.Printf("Warning: failed to send follow request accepted notification: %v", err)
 			}
 		}()
 	}
 
 	// Send WebSocket notification for real-time update
-	if h.container.WebSocket() != nil {
-		h.container.WebSocket().NotifyFollowRequestAccepted(request.RequesterID, currentUser.ID, currentUser.Username)
+	if h.kernel.WebSocket() != nil {
+		h.kernel.WebSocket().NotifyFollowRequestAccepted(request.RequesterID, currentUser.ID, currentUser.Username)
 	}
 
 	c.JSON(http.StatusOK, gin.H{

@@ -22,10 +22,10 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/cache"
 	"github.com/zfogg/sidechain/backend/internal/challenges"
 	"github.com/zfogg/sidechain/backend/internal/config"
-	"github.com/zfogg/sidechain/backend/internal/container"
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/email"
 	"github.com/zfogg/sidechain/backend/internal/handlers"
+	"github.com/zfogg/sidechain/backend/internal/kernel"
 	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/metrics"
 	"github.com/zfogg/sidechain/backend/internal/middleware"
@@ -566,10 +566,10 @@ func main() {
 	// ============================================================
 	// SETUP DEPENDENCY INJECTION CONTAINER
 	// ============================================================
-	appContainer := container.New()
+	appKernel := kernel.New()
 
 	// Register all services in the container
-	appContainer.
+	appKernel.
 		WithDB(database.DB).
 		WithLogger(logger.Log).
 		WithStreamClient(streamClient).
@@ -581,32 +581,32 @@ func main() {
 
 	// Register optional services
 	if redisClient != nil {
-		appContainer.WithCache(redisClient)
+		appKernel.WithCache(redisClient)
 	}
 	if s3Uploader != nil {
-		appContainer.WithS3Uploader(s3Uploader)
+		appKernel.WithS3Uploader(s3Uploader)
 	}
 	if baseSearchClient != nil {
-		appContainer.WithSearchClient(baseSearchClient)
+		appKernel.WithSearchClient(baseSearchClient)
 	}
 	if gorseClient != nil {
-		appContainer.WithGorseClient(gorseClient)
+		appKernel.WithGorseClient(gorseClient)
 	}
 	if waveformGenerator != nil {
-		appContainer.WithWaveformGenerator(waveformGenerator)
+		appKernel.WithWaveformGenerator(waveformGenerator)
 	}
 	if waveformStorage != nil {
-		appContainer.WithWaveformStorage(waveformStorage)
+		appKernel.WithWaveformStorage(waveformStorage)
 	}
 
 	// Validate container has all required dependencies
-	if err := appContainer.Validate(); err != nil {
+	if err := appKernel.Validate(); err != nil {
 		logger.FatalWithFields("Container validation failed", err)
 	}
 	logger.Log.Info("✅ Dependency injection container initialized")
 
 	// Register cleanup hooks for graceful shutdown
-	appContainer.
+	appKernel.
 		OnCleanup(func(ctx context.Context) error {
 			if audioProcessor != nil {
 				audioProcessor.Stop()
@@ -621,8 +621,8 @@ func main() {
 		})
 
 	// Initialize handlers with dependency injection container
-	h := handlers.NewHandlers(appContainer)
-	authHandlers := handlers.NewAuthHandlers(appContainer)
+	h := handlers.NewHandlers(appKernel)
+	authHandlers := handlers.NewAuthHandlers(appKernel)
 
 	// Initialize Prometheus metrics
 	metrics.Initialize()
@@ -1078,7 +1078,7 @@ func main() {
 		}
 
 		// Error tracking routes
-		errorTrackingHandler := handlers.NewErrorTrackingHandler(appContainer)
+		errorTrackingHandler := handlers.NewErrorTrackingHandler(appKernel)
 		errors := api.Group("/errors")
 		{
 			errors.Use(authHandlers.AuthMiddleware())
@@ -1186,7 +1186,7 @@ func main() {
 		}
 
 		// Sound routes
-		soundHandlers := handlers.NewSoundHandlers(appContainer)
+		soundHandlers := handlers.NewSoundHandlers(appKernel)
 		sounds := api.Group("/sounds")
 		{
 			// Public: Get trending sounds
@@ -1261,7 +1261,7 @@ func main() {
 	defer cancel()
 
 	// Cleanup application services via DI container
-	if err := appContainer.Cleanup(ctx); err != nil {
+	if err := appKernel.Cleanup(ctx); err != nil {
 		logger.Log.Error("Error during application cleanup", zap.Error(err))
 	}
 

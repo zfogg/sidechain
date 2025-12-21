@@ -141,7 +141,7 @@ func (h *Handlers) GetMutedUsers(c *gin.Context) {
 	var totalCount int64
 	if err := database.DB.Model(&models.MutedUser{}).Where("user_id = ?", userID).Count(&totalCount).Error; err != nil {
 		logger.WarnWithFields("Failed to count muted users for "+userID, err)
-		totalCount = 0  // Default to 0 on error
+		totalCount = 0 // Default to 0 on error
 	}
 
 	// Transform to response format

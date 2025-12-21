@@ -8,8 +8,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/zfogg/sidechain/backend/internal/container"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/kernel"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"gorm.io/gorm"
 )
@@ -17,14 +17,14 @@ import (
 // ErrorTrackingHandler handles error tracking endpoints.
 // Uses dependency injection via container for service dependencies.
 type ErrorTrackingHandler struct {
-	container *container.Container
+	kernel *kernel.Kernel
 }
 
 // NewErrorTrackingHandler creates a new error tracking handler.
 // All dependencies are accessed through the container.
-func NewErrorTrackingHandler(c *container.Container) *ErrorTrackingHandler {
+func NewErrorTrackingHandler(c *kernel.Kernel) *ErrorTrackingHandler {
 	return &ErrorTrackingHandler{
-		container: c,
+		kernel: c,
 	}
 }
 

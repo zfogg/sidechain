@@ -247,7 +247,7 @@ func (h *Handlers) CreateStory(c *gin.Context) {
 	}
 
 	// Upload audio file to S3 using the audio processor
-	audioURL, err := h.container.AudioProcessor().UploadStoryAudio(context.Background(), audioData, currentUser.ID, file.Filename)
+	audioURL, err := h.kernel.AudioProcessor().UploadStoryAudio(context.Background(), audioData, currentUser.ID, file.Filename)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   "upload_failed",
@@ -258,15 +258,15 @@ func (h *Handlers) CreateStory(c *gin.Context) {
 
 	// Generate and upload waveform PNG
 	var waveformURL string
-	if h.container.WaveformGenerator() != nil && h.container.WaveformStorage() != nil {
+	if h.kernel.WaveformGenerator() != nil && h.kernel.WaveformStorage() != nil {
 		// Generate waveform from audio data
-		waveformPNG, err := h.container.WaveformGenerator().GenerateFromWAV(bytes.NewReader(audioData))
+		waveformPNG, err := h.kernel.WaveformGenerator().GenerateFromWAV(bytes.NewReader(audioData))
 		if err != nil {
 			// Log error but don't fail the request - waveform is optional
 			fmt.Printf("Warning: Failed to generate waveform for story %s: %v\n", currentUser.ID, err)
 		} else {
 			// Upload waveform to S3
-			waveformURL, err = h.container.WaveformStorage().UploadWaveform(waveformPNG, currentUser.ID, "story-"+currentUser.ID)
+			waveformURL, err = h.kernel.WaveformStorage().UploadWaveform(waveformPNG, currentUser.ID, "story-"+currentUser.ID)
 			if err != nil {
 				// Log error but don't fail the request
 				fmt.Printf("Warning: Failed to upload waveform for story %s: %v\n", currentUser.ID, err)
@@ -339,7 +339,7 @@ func (h *Handlers) CreateStory(c *gin.Context) {
 	}
 
 	// Index story to Elasticsearch
-	if h.container.Search() != nil {
+	if h.kernel.Search() != nil {
 		go func() {
 			storyDoc := map[string]interface{}{
 				"id":         story.ID,
@@ -348,7 +348,7 @@ func (h *Handlers) CreateStory(c *gin.Context) {
 				"created_at": story.CreatedAt,
 				"expires_at": story.ExpiresAt,
 			}
-			if err := h.container.Search().IndexStory(c.Request.Context(), story.ID, storyDoc); err != nil {
+			if err := h.kernel.Search().IndexStory(c.Request.Context(), story.ID, storyDoc); err != nil {
 				fmt.Printf("Warning: Failed to index story %s in Elasticsearch: %v\n", story.ID, err)
 			}
 		}()
@@ -381,8 +381,8 @@ func (h *Handlers) GetStories(c *gin.Context) {
 
 	// Get list of followed user IDs from getstream.io
 	var followedUserIDs []string
-	if h.container.Stream() != nil {
-		following, err := h.container.Stream().GetFollowing(currentUser.ID, 100, 0)
+	if h.kernel.Stream() != nil {
+		following, err := h.kernel.Stream().GetFollowing(currentUser.ID, 100, 0)
 		if err == nil {
 			for _, f := range following {
 				followedUserIDs = append(followedUserIDs, f.UserID)
@@ -481,8 +481,8 @@ func (h *Handlers) DeleteStory(c *gin.Context) {
 	database.DB.Where("story_id = ?", storyID).Delete(&models.StoryView{})
 
 	// Delete audio file from S3 if URL is present
-	if story.AudioURL != "" && h.container.AudioProcessor() != nil {
-		if err := h.container.AudioProcessor().DeleteStoryAudio(context.Background(), story.AudioURL); err != nil {
+	if story.AudioURL != "" && h.kernel.AudioProcessor() != nil {
+		if err := h.kernel.AudioProcessor().DeleteStoryAudio(context.Background(), story.AudioURL); err != nil {
 			// Log but don't fail - database cleanup is more important
 			fmt.Printf("Warning: Failed to delete audio from S3 for story %s: %v\n", story.ID, err)
 		}
@@ -498,8 +498,8 @@ func (h *Handlers) DeleteStory(c *gin.Context) {
 	}
 
 	// Delete story from Elasticsearch index
-	if h.container.Search() != nil {
-		if err := h.container.Search().DeleteStory(c.Request.Context(), story.ID); err != nil {
+	if h.kernel.Search() != nil {
+		if err := h.kernel.Search().DeleteStory(c.Request.Context(), story.ID); err != nil {
 			// Log but don't fail - story is already deleted in database
 			fmt.Printf("Warning: Failed to delete story %s from Elasticsearch: %v\n", story.ID, err)
 		}

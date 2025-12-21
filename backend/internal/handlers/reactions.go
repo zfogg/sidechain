@@ -18,7 +18,6 @@ import (
 // search, webhooks, export, performance, anti-abuse) are documented in
 // common_todos.go. See that file for shared TODO items.
 
-
 // TODO: PROFESSIONAL-3.1 - Add reaction management endpoints
 // - GET /api/v1/posts/:id/reactions - Get all reactions on a post
 // - DELETE /api/v1/reactions/:id - Remove a specific reaction
@@ -180,7 +179,7 @@ func (h *Handlers) EmojiReact(c *gin.Context) {
 	}
 
 	// Add the emoji reaction
-	if err := h.container.Stream().AddReactionWithEmoji(reactionType, userID, activityID, req.Emoji); err != nil {
+	if err := h.kernel.Stream().AddReactionWithEmoji(reactionType, userID, activityID, req.Emoji); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to add emoji reaction"})
 		return
 	}

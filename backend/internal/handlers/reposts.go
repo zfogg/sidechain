@@ -115,7 +115,7 @@ func (h *Handlers) CreateRepost(c *gin.Context) {
 	}
 
 	// Add activity to stream feed
-	if err := h.container.Stream().CreateLoopActivity(userID, activity); err != nil {
+	if err := h.kernel.Stream().CreateLoopActivity(userID, activity); err != nil {
 		// Log error but don't fail - the repost is saved in DB
 		// Feed sync can happen later
 		c.JSON(http.StatusCreated, gin.H{
@@ -135,11 +135,11 @@ func (h *Handlers) CreateRepost(c *gin.Context) {
 	}
 
 	// Send notification to original post owner via GetStream.io
-	if h.container.Stream() != nil && post.UserID != userID {
+	if h.kernel.Stream() != nil && post.UserID != userID {
 		// Get target user's StreamUserID for notification
 		var targetUser models.User
 		if err := database.DB.First(&targetUser, "id = ?", post.UserID).Error; err == nil && targetUser.StreamUserID != "" {
-			h.container.Stream().NotifyRepost(userID, targetUser.StreamUserID, postID)
+			h.kernel.Stream().NotifyRepost(userID, targetUser.StreamUserID, postID)
 		}
 	}
 
@@ -187,9 +187,9 @@ func (h *Handlers) UndoRepost(c *gin.Context) {
 	database.DB.Model(&models.AudioPost{}).Where("id = ?", postID).UpdateColumn("repost_count", gorm.Expr("GREATEST(repost_count - 1, 0)"))
 
 	// Remove activity from stream feed if we have the activity ID
-	if repost.StreamActivityID != "" && h.container.Stream() != nil {
+	if repost.StreamActivityID != "" && h.kernel.Stream() != nil {
 		// Note: Stream.io activity removal would go here if implemented
-		// h.container.Stream().DeleteLoopActivity(userID, repost.StreamActivityID)
+		// h.kernel.Stream().DeleteLoopActivity(userID, repost.StreamActivityID)
 	}
 
 	c.JSON(http.StatusOK, gin.H{

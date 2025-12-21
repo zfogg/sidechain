@@ -176,7 +176,7 @@ func ParseMIDIFile(data []byte) (*models.MIDIData, error) {
 
 	result := &models.MIDIData{
 		Events:        make([]models.MIDIEvent, 0),
-		Tempo:         120, // Default
+		Tempo:         120,         // Default
 		TimeSignature: []int{4, 4}, // Default
 	}
 

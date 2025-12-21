@@ -20,7 +20,7 @@ Instead of passing 10+ individual service parameters to each handler, the `Conta
 ### Creating a Container
 
 ```go
-container := container.New()
+container := kernel.New()
 
 // Register services using fluent API
 container.
@@ -59,7 +59,7 @@ func NewHandlers(
 
 **After** (New pattern with container):
 ```go
-func NewHandlers(container *container.Container) *Handlers {
+func NewHandlers(container *kernel.Kernel) *Handlers {
     return &Handlers{
         container: container,
     }
@@ -69,7 +69,7 @@ func NewHandlers(container *container.Container) *Handlers {
 Handler struct:
 ```go
 type Handlers struct {
-    container *container.Container
+    container *kernel.Kernel
 }
 
 func (h *Handlers) GetUser(c *gin.Context) {
@@ -181,7 +181,7 @@ Validate that all required dependencies are registered:
 ```go
 if err := container.Validate(); err != nil {
     // Returns InitializationError with list of missing dependencies
-    log.Fatal("Container validation failed:", err)
+    log.Fatal("Kernel validation failed:", err)
 }
 ```
 
@@ -209,8 +209,8 @@ func setupContainer(
     authService *auth.Service,
     s3Uploader *storage.S3Uploader,
     audioProcessor *audio.Processor,
-) *container.Container {
-    c := container.New()
+) *kernel.Kernel {
+    c := kernel.New()
 
     c.
         WithDB(db).
@@ -227,7 +227,7 @@ func setupContainer(
     })
 
     if err := c.Validate(); err != nil {
-        log.Fatal("Container validation failed:", err)
+        log.Fatal("Kernel validation failed:", err)
     }
 
     return c
@@ -279,12 +279,12 @@ if db == nil {
 
 ### Step 1: Create Container
 ```go
-appContainer := container.New()
+appKernel := kernel.New()
 ```
 
 ### Step 2: Register Services
 ```go
-appContainer.
+appKernel.
     WithDB(database.DB).
     WithStreamClient(streamClient).
     // ... register all services
@@ -296,7 +296,7 @@ appContainer.
 func NewHandlers(db *gorm.DB, stream stream.StreamClientInterface, ...) *Handlers
 
 // New:
-func NewHandlers(c *container.Container) *Handlers {
+func NewHandlers(c *kernel.Kernel) *Handlers {
     return &Handlers{container: c}
 }
 ```

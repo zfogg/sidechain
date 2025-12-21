@@ -8,7 +8,7 @@ A comprehensive dependency injection (DI) container system has been implemented 
 
 ### 1. Core Container System
 
-**File: `internal/container/container.go` (750+ lines)**
+**File: `internal/kernel/container.go` (750+ lines)**
 
 - `Container` struct - Central registry for all application services
 - Thread-safe access using `sync.RWMutex`
@@ -24,7 +24,7 @@ A comprehensive dependency injection (DI) container system has been implemented 
 
 ### 2. Error Handling
 
-**File: `internal/container/errors.go` (50 lines)**
+**File: `internal/kernel/errors.go` (50 lines)**
 
 - `InitializationError` - Reports missing dependencies
 - `DependencyNotFoundError` - Reports missing services
@@ -32,7 +32,7 @@ A comprehensive dependency injection (DI) container system has been implemented 
 
 ### 3. Testing Support
 
-**File: `internal/container/mock.go` (150+ lines)**
+**File: `internal/kernel/mock.go` (150+ lines)**
 
 - `MockContainer` - Testing-focused container
 - `MinimalMock()` - Fast unit tests with minimal setup
@@ -42,7 +42,7 @@ A comprehensive dependency injection (DI) container system has been implemented 
 
 ### 4. Handlers Refactored
 
-All handlers updated to use DI container:
+All handlers updated to use DI kernel:
 
 | Handler | Before | After |
 |---------|--------|-------|
@@ -60,9 +60,9 @@ All handlers updated to use DI container:
 ### 5. Documentation
 
 **Files Created:**
-- ✅ `internal/container/README.md` - Quick start and usage guide
-- ✅ `internal/container/INTEGRATION_GUIDE.md` - Integration steps for main.go
-- ✅ `internal/container/IMPLEMENTATION_SUMMARY.md` - This file
+- ✅ `internal/kernel/README.md` - Quick start and usage guide
+- ✅ `internal/kernel/INTEGRATION_GUIDE.md` - Integration steps for main.go
+- ✅ `internal/kernel/IMPLEMENTATION_SUMMARY.md` - This file
 
 ## Services Managed by Container
 
@@ -121,7 +121,7 @@ main.go
 main.go
 ├── Create all services normally
 │
-└── container.New()
+└── kernel.New()
     ├── WithDB(db)
     ├── WithLogger(logger)
     ├── WithCache(redis)
@@ -146,7 +146,7 @@ handlers.NewSoundHandler(container)
 ### 1. Production Setup
 
 ```go
-container := container.New()
+container := kernel.New()
 container.
     WithDB(db).
     WithLogger(logger).
@@ -239,7 +239,7 @@ if err := container.Validate(); err != nil {
 
 To complete the integration in main.go:
 
-- [ ] Import `github.com/zfogg/sidechain/backend/internal/container`
+- [ ] Import `github.com/zfogg/sidechain/backend/internal/kernel`
 - [ ] Create container after all services are initialized
 - [ ] Register all services using `With*` methods
 - [ ] Call `container.Validate()` after setup
@@ -338,9 +338,9 @@ Possible future improvements:
 
 ## References
 
-- **Source Code**: `internal/container/*.go`
+- **Source Code**: `internal/kernel/*.go`
 - **Examples**: `internal/handlers/*.go`
-- **Documentation**: `internal/container/*.md`
+- **Documentation**: `internal/kernel/*.md`
 - **Tests**: See handler tests for usage examples
 
 ## Questions & Answers
@@ -380,7 +380,7 @@ A: Yes, all operations use sync.RWMutex for thread-safe access.
 
 ## Conclusion
 
-The DI container implementation provides a solid foundation for dependency management in the Sidechain backend. It improves code maintainability, testability, and lifecycle management while adding minimal complexity.
+The DI kernel implementation provides a solid foundation for dependency management in the Sidechain backend. It improves code maintainability, testability, and lifecycle management while adding minimal complexity.
 
 The system is production-ready and can be integrated into main.go following the provided integration guide.
 

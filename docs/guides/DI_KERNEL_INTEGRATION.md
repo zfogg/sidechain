@@ -1,10 +1,10 @@
 # DI Container Integration Guide
 
-This guide explains how to integrate the DI container into the main.go server setup.
+This guide explains how to integrate the DI kernel into the main.go server setup.
 
 ## Current Status: Handlers Updated ✅
 
-All handlers have been refactored to use the DI container:
+All handlers have been refactored to use the DI kernel:
 - ✅ `Handlers` - Main handlers
 - ✅ `AuthHandlers` - Auth handlers
 - ✅ `ErrorTrackingHandler` - Error tracking
@@ -19,11 +19,11 @@ In `cmd/server/main.go`, after all services are initialized:
 ```go
 // ... existing service initialization code ...
 
-// Create the dependency injection container
-appContainer := container.New()
+// Create the dependency injection kernel
+appKernel := kernel.New()
 
 // Register all services
-appContainer.
+appKernel.
     WithDB(database.DB).
     WithLogger(logger.Log).
     WithCache(redisClient).
@@ -38,8 +38,8 @@ appContainer.
     WithAlertEvaluator(alertEvaluator)
 
 // Validate container
-if err := appContainer.Validate(); err != nil {
-    logger.FatalWithFields("Container validation failed", err)
+if err := appKernel.Validate(); err != nil {
+    logger.FatalWithFields("Kernel validation failed", err)
 }
 ```
 
@@ -49,7 +49,7 @@ Register cleanup functions for graceful shutdown:
 
 ```go
 // Register cleanup hooks in FIFO order (they'll be called in LIFO order)
-appContainer.
+appKernel.
     OnCleanup(func(ctx context.Context) error {
         if audioProcessor != nil {
             return audioProcessor.Stop(ctx)
@@ -91,10 +91,10 @@ handlers.SetAlertEvaluator(alertEvaluator)
 **After:**
 ```go
 // Create handlers with container
-h := handlers.NewHandlers(appContainer)
-authHandlers := handlers.NewAuthHandlers(appContainer)
-errorTrackingHandler := handlers.NewErrorTrackingHandler(appContainer)
-soundHandlers := handlers.NewSoundHandlers(appContainer)
+h := handlers.NewHandlers(appKernel)
+authHandlers := handlers.NewAuthHandlers(appKernel)
+errorTrackingHandler := handlers.NewErrorTrackingHandler(appKernel)
+soundHandlers := handlers.NewSoundHandlers(appKernel)
 ```
 
 ### Step 4: Update Graceful Shutdown
@@ -134,7 +134,7 @@ go func() {
     ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
     defer cancel()
 
-    if err := appContainer.Cleanup(ctx); err != nil {
+    if err := appKernel.Cleanup(ctx); err != nil {
         logger.Log.Error("Cleanup error", zap.Error(err))
     }
 
@@ -160,7 +160,7 @@ authGroup := api.Group("/auth")
 }
 
 // User routes
-userGroup := api.Group("/users", middleware.AuthRequired(appContainer))
+userGroup := api.Group("/users", middleware.AuthRequired(appKernel))
 {
     userGroup.GET("/me", h.GetMe)
     userGroup.PUT("/profile", h.UpdateUserProfile)
@@ -182,7 +182,7 @@ If any middleware needs access to the container:
 
 ```go
 // Example: Auth middleware that uses container
-func AuthRequired(c *container.Container) gin.HandlerFunc {
+func AuthRequired(c *kernel.Kernel) gin.HandlerFunc {
     return func(ctx *gin.Context) {
         authService := c.Auth()
 
@@ -208,11 +208,11 @@ func AuthRequired(c *container.Container) gin.HandlerFunc {
 4. ✅ `internal/handlers/sounds.go` - Updated to use container
 
 ### Files Created:
-1. ✅ `internal/container/container.go` - Main container implementation
-2. ✅ `internal/container/errors.go` - Error types
-3. ✅ `internal/container/mock.go` - Testing utilities
-4. ✅ `internal/container/README.md` - Container documentation
-5. ✅ `internal/container/INTEGRATION_GUIDE.md` - This file
+1. ✅ `internal/kernel/container.go` - Main container implementation
+2. ✅ `internal/kernel/errors.go` - Error types
+3. ✅ `internal/kernel/mock.go` - Testing utilities
+4. ✅ `internal/kernel/README.md` - Container documentation
+5. ✅ `internal/kernel/INTEGRATION_GUIDE.md` - This file
 
 ## Manual Integration in main.go
 
@@ -224,48 +224,48 @@ To complete the integration, edit `cmd/server/main.go`:
 // ============================================================
 // SETUP DEPENDENCY INJECTION CONTAINER
 // ============================================================
-appContainer := container.New()
+appKernel := kernel.New()
 
 // Register all services
-appContainer.
+appKernel.
     WithDB(database.DB).
     WithLogger(logger.Log)
 
 if redisClient != nil {
-    appContainer.WithCache(redisClient)
+    appKernel.WithCache(redisClient)
 }
 
-appContainer.
+appKernel.
     WithStreamClient(streamClient).
     WithAuthService(authService)
 
 if s3Uploader != nil {
-    appContainer.WithS3Uploader(s3Uploader)
+    appKernel.WithS3Uploader(s3Uploader)
 }
 
-appContainer.
+appKernel.
     WithAudioProcessor(audioProcessor)
 
 if baseSearchClient != nil {
-    appContainer.WithSearchClient(baseSearchClient)
+    appKernel.WithSearchClient(baseSearchClient)
 }
 
 if gorseClient != nil {
-    appContainer.WithGorseClient(gorseClient)
+    appKernel.WithGorseClient(gorseClient)
 }
 
-appContainer.
+appKernel.
     WithWebSocketHandler(wsHandler).
     WithAlertManager(alertManager).
     WithAlertEvaluator(alertEvaluator)
 
 // Validate container
-if err := appContainer.Validate(); err != nil {
-    logger.FatalWithFields("Container validation failed", err)
+if err := appKernel.Validate(); err != nil {
+    logger.FatalWithFields("Kernel validation failed", err)
 }
 
 // Register cleanup hooks
-appContainer.
+appKernel.
     OnCleanup(func(ctx context.Context) error {
         audioProcessor.Stop()
         return nil
@@ -298,10 +298,10 @@ handlers.SetAlertEvaluator(alertEvaluator)
 
 **After:**
 ```go
-h := handlers.NewHandlers(appContainer)
-authHandlers := handlers.NewAuthHandlers(appContainer)
-errorTrackingHandler := handlers.NewErrorTrackingHandler(appContainer)
-soundHandlers := handlers.NewSoundHandlers(appContainer)
+h := handlers.NewHandlers(appKernel)
+authHandlers := handlers.NewAuthHandlers(appKernel)
+errorTrackingHandler := handlers.NewErrorTrackingHandler(appKernel)
+soundHandlers := handlers.NewSoundHandlers(appKernel)
 ```
 
 ### Location: Update Graceful Shutdown (around line 1000)
@@ -334,7 +334,7 @@ go func() {
     ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
     defer cancel()
 
-    if err := appContainer.Cleanup(ctx); err != nil {
+    if err := appKernel.Cleanup(ctx); err != nil {
         logger.Log.Error("Cleanup error", zap.Error(err))
     }
 

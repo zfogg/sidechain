@@ -102,7 +102,7 @@ func (h *Handlers) ResolveAlert(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Alert resolved",
+		"message":  "Alert resolved",
 		"alert_id": alertID,
 	})
 }
@@ -132,14 +132,14 @@ func (h *Handlers) CreateRule(c *gin.Context) {
 	}
 
 	var req struct {
-		Name        string    `json:"name" binding:"required"`
-		Type        alerts.AlertType `json:"type" binding:"required"`
-		Enabled     bool      `json:"enabled"`
+		Name        string            `json:"name" binding:"required"`
+		Type        alerts.AlertType  `json:"type" binding:"required"`
+		Enabled     bool              `json:"enabled"`
 		Level       alerts.AlertLevel `json:"level" binding:"required"`
-		Condition   string    `json:"condition" binding:"required"`
-		Threshold   float64   `json:"threshold" binding:"required"`
-		Duration    int       `json:"duration_sec" binding:"required"`
-		CooldownSec int       `json:"cooldown_sec" binding:"required"`
+		Condition   string            `json:"condition" binding:"required"`
+		Threshold   float64           `json:"threshold" binding:"required"`
+		Duration    int               `json:"duration_sec" binding:"required"`
+		CooldownSec int               `json:"cooldown_sec" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {

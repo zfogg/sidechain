@@ -42,22 +42,22 @@ func (h *Handlers) FollowUser(c *gin.Context) {
 	_, span := telemetry.GetBusinessEvents().TraceFollowUser(c.Request.Context(), userID, req.TargetUserID)
 	defer span.End()
 
-	if err := h.container.Stream().FollowUser(userID, req.TargetUserID); err != nil {
+	if err := h.kernel.Stream().FollowUser(userID, req.TargetUserID); err != nil {
 		util.RespondInternalError(c, "follow_failed", "Failed to follow user")
 		return
 	}
 
 	// Real-time Gorse feedback sync
-	if h.container.Gorse() != nil {
+	if h.kernel.Gorse() != nil {
 		go func() {
-			if err := h.container.Gorse().SyncFollowEvent(userID, req.TargetUserID); err != nil {
+			if err := h.kernel.Gorse().SyncFollowEvent(userID, req.TargetUserID); err != nil {
 				fmt.Printf("Warning: Failed to sync follow to Gorse: %v\n", err)
 			}
 		}()
 	}
 
 	// Send real-time WebSocket notification to the target user
-	if h.container.WebSocket() != nil {
+	if h.kernel.WebSocket() != nil {
 		// Fetch follower and followee info for the notification
 		var follower, followee models.User
 		database.DB.First(&follower, "id = ?", userID)
@@ -65,7 +65,7 @@ func (h *Handlers) FollowUser(c *gin.Context) {
 
 		// Get updated follower count for the target user
 		followerCount := 0
-		if stats, err := h.container.Stream().GetFollowStats(req.TargetUserID); err == nil {
+		if stats, err := h.kernel.Stream().GetFollowStats(req.TargetUserID); err == nil {
 			followerCount = stats.FollowerCount
 		}
 
@@ -84,7 +84,7 @@ func (h *Handlers) FollowUser(c *gin.Context) {
 			followerAvatar = follower.OAuthProfilePictureURL
 		}
 
-		h.container.WebSocket().NotifyFollow(req.TargetUserID, &websocket.FollowPayload{
+		h.kernel.WebSocket().NotifyFollow(req.TargetUserID, &websocket.FollowPayload{
 			FollowerID:     userID,
 			FollowerName:   followerName,
 			FollowerAvatar: followerAvatar,
@@ -98,7 +98,7 @@ func (h *Handlers) FollowUser(c *gin.Context) {
 		// This prevents race conditions where the feed refetches before Stream.io has updated
 		go func() {
 			time.Sleep(2 * time.Second) // Give Stream.io time to propagate
-			h.container.WebSocket().BroadcastFeedInvalidation("timeline", "follow")
+			h.kernel.WebSocket().BroadcastFeedInvalidation("timeline", "follow")
 		}()
 	}
 
@@ -125,15 +125,15 @@ func (h *Handlers) UnfollowUser(c *gin.Context) {
 		return
 	}
 
-	if err := h.container.Stream().UnfollowUser(userID, req.TargetUserID); err != nil {
+	if err := h.kernel.Stream().UnfollowUser(userID, req.TargetUserID); err != nil {
 		util.RespondInternalError(c, "unfollow_failed", "Failed to unfollow user")
 		return
 	}
 
 	// Real-time Gorse feedback removal
-	if h.container.Gorse() != nil {
+	if h.kernel.Gorse() != nil {
 		go func() {
-			if err := h.container.Gorse().RemoveFollowEvent(userID, req.TargetUserID); err != nil {
+			if err := h.kernel.Gorse().RemoveFollowEvent(userID, req.TargetUserID); err != nil {
 				fmt.Printf("Warning: Failed to remove follow from Gorse: %v\n", err)
 			}
 		}()
@@ -174,32 +174,32 @@ func (h *Handlers) LikePost(c *gin.Context) {
 
 	// Use emoji reaction if provided, otherwise default like
 	if req.Emoji != "" {
-		if err := h.container.Stream().AddReactionWithEmoji("like", userID, activityID, req.Emoji); err != nil {
+		if err := h.kernel.Stream().AddReactionWithEmoji("like", userID, activityID, req.Emoji); err != nil {
 			util.RespondInternalError(c, "reaction_failed", "Failed to add emoji reaction")
 			return
 		}
 	} else {
-		if err := h.container.Stream().AddReaction("like", userID, activityID); err != nil {
+		if err := h.kernel.Stream().AddReaction("like", userID, activityID); err != nil {
 			util.RespondInternalError(c, "like_failed", "Failed to like post")
 			return
 		}
 	}
 
 	// Real-time Gorse feedback sync
-	if h.container.Gorse() != nil {
+	if h.kernel.Gorse() != nil {
 		go func() {
-			if err := h.container.Gorse().SyncFeedback(userID, req.ActivityID, "like"); err != nil {
+			if err := h.kernel.Gorse().SyncFeedback(userID, req.ActivityID, "like"); err != nil {
 				fmt.Printf("Warning: Failed to sync like to Gorse: %v\n", err)
 			}
 		}()
 	}
 
 	// Update post engagement metrics in Elasticsearch (partial update - more efficient)
-	if h.container.Search() != nil {
+	if h.kernel.Search() != nil {
 		go func() {
 			var post models.AudioPost
 			if err := database.DB.Select("id", "like_count", "play_count", "comment_count").Where("stream_activity_id = ?", req.ActivityID).First(&post).Error; err == nil {
-				if err := h.container.Search().UpdatePostEngagement(c.Request.Context(), post.ID, post.LikeCount, post.PlayCount, post.CommentCount); err != nil {
+				if err := h.kernel.Search().UpdatePostEngagement(c.Request.Context(), post.ID, post.LikeCount, post.PlayCount, post.CommentCount); err != nil {
 					logger.WarnWithFields("Failed to update post engagement in Elasticsearch after like", err)
 				}
 			}
@@ -207,7 +207,7 @@ func (h *Handlers) LikePost(c *gin.Context) {
 	}
 
 	// Send WebSocket notification to post owner and broadcast to all viewers
-	if h.container.WebSocket() != nil {
+	if h.kernel.WebSocket() != nil {
 		go func() {
 			var post models.AudioPost
 			var user models.User
@@ -220,10 +220,10 @@ func (h *Handlers) LikePost(c *gin.Context) {
 						LikeCount: post.LikeCount,
 						Emoji:     req.Emoji,
 					}
-					h.container.WebSocket().NotifyLike(post.UserID, payload)
+					h.kernel.WebSocket().NotifyLike(post.UserID, payload)
 
 					// Broadcast updated like count to all viewers
-					h.container.WebSocket().BroadcastLikeCountUpdate(post.ID, post.LikeCount)
+					h.kernel.WebSocket().BroadcastLikeCountUpdate(post.ID, post.LikeCount)
 				}
 			}
 		}()
@@ -264,17 +264,17 @@ func (h *Handlers) UnlikePost(c *gin.Context) {
 	}
 
 	// Remove the like reaction using activity ID and user ID
-	if err := h.container.Stream().RemoveReactionByActivityAndUser(activityID, userID, "like"); err != nil {
+	if err := h.kernel.Stream().RemoveReactionByActivityAndUser(activityID, userID, "like"); err != nil {
 		util.RespondInternalError(c, "unlike_failed", "Failed to unlike post: "+err.Error())
 		return
 	}
 
 	// Update post engagement metrics in Elasticsearch (partial update - more efficient)
-	if h.container.Search() != nil {
+	if h.kernel.Search() != nil {
 		go func() {
 			var post models.AudioPost
 			if err := database.DB.Select("id", "like_count", "play_count", "comment_count").Where("stream_activity_id = ?", activityID).First(&post).Error; err == nil {
-				if err := h.container.Search().UpdatePostEngagement(c.Request.Context(), post.ID, post.LikeCount, post.PlayCount, post.CommentCount); err != nil {
+				if err := h.kernel.Search().UpdatePostEngagement(c.Request.Context(), post.ID, post.LikeCount, post.PlayCount, post.CommentCount); err != nil {
 					logger.WarnWithFields("Failed to update post engagement in Elasticsearch after unlike", err)
 				}
 			}
@@ -293,7 +293,7 @@ func (h *Handlers) UnlikePost(c *gin.Context) {
 func (h *Handlers) GetUserProfile(c *gin.Context) {
 	targetParam := c.Param("id")
 	currentUserID := c.GetString("user_id") // May be empty if not authenticated
-	fmt.Printf("🔍 GetUserProfile: targetParam=%s currentUserID=%s stream=%v\n", targetParam, currentUserID, h.container.Stream() != nil)
+	fmt.Printf("🔍 GetUserProfile: targetParam=%s currentUserID=%s stream=%v\n", targetParam, currentUserID, h.kernel.Stream() != nil)
 
 	// Fetch user from database - accept ID, stream_user_id, or username
 	// Cast id to text to avoid UUID type comparison errors with usernames
@@ -308,8 +308,8 @@ func (h *Handlers) GetUserProfile(c *gin.Context) {
 	// Fetch follow stats from Stream.io (source of truth)
 	var followStats *stream.FollowStats
 	var followStatsErr error
-	if h.container.Stream() != nil {
-		followStats, followStatsErr = h.container.Stream().GetFollowStats(user.StreamUserID)
+	if h.kernel.Stream() != nil {
+		followStats, followStatsErr = h.kernel.Stream().GetFollowStats(user.StreamUserID)
 		if followStatsErr != nil {
 			// Log but don't fail - use cached values from DB
 			fmt.Printf("Warning: Failed to get follow stats from Stream.io: %v\n", followStatsErr)
@@ -335,14 +335,14 @@ func (h *Handlers) GetUserProfile(c *gin.Context) {
 	// Use database IDs (NOT Stream IDs) to match FollowUser behavior
 	var isFollowing bool
 	var isFollowedBy bool
-	if currentUserID != "" && currentUserID != user.ID && h.container.Stream() != nil {
+	if currentUserID != "" && currentUserID != user.ID && h.kernel.Stream() != nil {
 		fmt.Printf("🔍 GetUserProfile: Checking if %s follows %s\n", currentUserID, user.ID)
 		var err error
-		isFollowing, err = h.container.Stream().CheckIsFollowing(currentUserID, user.ID)
+		isFollowing, err = h.kernel.Stream().CheckIsFollowing(currentUserID, user.ID)
 		if err != nil {
 			fmt.Printf("⚠️ GetUserProfile: Failed to check isFollowing: %v\n", err)
 		}
-		isFollowedBy, err = h.container.Stream().CheckIsFollowing(user.ID, currentUserID)
+		isFollowedBy, err = h.kernel.Stream().CheckIsFollowing(user.ID, currentUserID)
 		if err != nil {
 			fmt.Printf("⚠️ GetUserProfile: Failed to check isFollowedBy: %v\n", err)
 		}
@@ -442,9 +442,9 @@ func (h *Handlers) GetMyProfile(c *gin.Context) {
 
 	// Fetch follow stats from Stream.io
 	var followStats *stream.FollowStats
-	if h.container.Stream() != nil {
+	if h.kernel.Stream() != nil {
 		var err error
-		followStats, err = h.container.Stream().GetFollowStats(currentUser.StreamUserID)
+		followStats, err = h.kernel.Stream().GetFollowStats(currentUser.StreamUserID)
 		if err != nil {
 			log.Printf("GetMyProfile: Failed to get follow stats from Stream.io (using DB fallback): %v", err)
 		}
@@ -636,8 +636,8 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 	database.DB.First(currentUser, "id = ?", currentUser.ID)
 
 	// Sync user to Elasticsearch (async)
-	if h.container.Search() != nil {
-		h.container.Search().SyncUserFollowerCountAsync(currentUser.ID, currentUser.FollowerCount)
+	if h.kernel.Search() != nil {
+		h.kernel.Search().SyncUserFollowerCountAsync(currentUser.ID, currentUser.FollowerCount)
 		// Re-index user with updated profile data
 		go func() {
 			userDoc := map[string]interface{}{
@@ -649,7 +649,7 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 				"follower_count": currentUser.FollowerCount,
 				"created_at":     currentUser.CreatedAt,
 			}
-			if err := h.container.Search().IndexUser(context.Background(), currentUser.ID, userDoc); err != nil {
+			if err := h.kernel.Search().IndexUser(context.Background(), currentUser.ID, userDoc); err != nil {
 				fmt.Printf("Warning: Failed to update user in Elasticsearch: %v\n", err)
 			}
 		}()
@@ -657,21 +657,21 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 
 	// Re-sync user to Gorse when profile changes
 	// This updates recommendation preferences and user-as-item for follow recommendations
-	if h.container.Gorse() != nil {
+	if h.kernel.Gorse() != nil {
 		go func() {
 			userID := currentUser.ID
 			// Sync user (for recommendation preferences like genre, DAW)
-			if err := h.container.Gorse().SyncUser(userID); err != nil {
+			if err := h.kernel.Gorse().SyncUser(userID); err != nil {
 				fmt.Printf("Warning: Failed to sync user %s to Gorse: %v\n", userID, err)
 			}
 			// Sync user-as-item (for follow recommendations - privacy, follower count, etc.)
-			if err := h.container.Gorse().SyncUserAsItem(userID); err != nil {
+			if err := h.kernel.Gorse().SyncUserAsItem(userID); err != nil {
 				fmt.Printf("Warning: Failed to sync user-as-item %s to Gorse: %v\n", userID, err)
 			}
 		}()
 	}
 
-	if h.container.Stream() != nil {
+	if h.kernel.Stream() != nil {
 		go func() {
 			customData := make(map[string]interface{})
 			customData["display_name"] = currentUser.DisplayName
@@ -681,7 +681,7 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 			customData["daw_preference"] = currentUser.DAWPreference
 			customData["is_private"] = currentUser.IsPrivate
 
-			if err := h.container.Stream().UpdateUserProfile(currentUser.StreamUserID, currentUser.Username, customData); err != nil {
+			if err := h.kernel.Stream().UpdateUserProfile(currentUser.StreamUserID, currentUser.Username, customData); err != nil {
 				logger.WarnWithFields("Failed to sync user profile to Stream.io", err)
 			}
 		}()
@@ -773,7 +773,7 @@ func (h *Handlers) ChangeUsername(c *gin.Context) {
 	}
 
 	// Sync to Elasticsearch (username change)
-	if h.container.Search() != nil {
+	if h.kernel.Search() != nil {
 		go func() {
 			userDoc := map[string]interface{}{
 				"id":             currentUser.ID,
@@ -784,27 +784,27 @@ func (h *Handlers) ChangeUsername(c *gin.Context) {
 				"follower_count": currentUser.FollowerCount,
 				"created_at":     currentUser.CreatedAt,
 			}
-			if err := h.container.Search().IndexUser(context.Background(), currentUser.ID, userDoc); err != nil {
+			if err := h.kernel.Search().IndexUser(context.Background(), currentUser.ID, userDoc); err != nil {
 				fmt.Printf("Warning: Failed to update username in Elasticsearch: %v\n", err)
 			}
 		}()
 	}
 
-	if h.container.Stream() != nil {
+	if h.kernel.Stream() != nil {
 		go func() {
 			customData := make(map[string]interface{})
 			customData["display_name"] = currentUser.DisplayName
 			customData["bio"] = currentUser.Bio
 			customData["profile_picture_url"] = currentUser.ProfilePictureURL
-			if err := h.container.Stream().UpdateUserProfile(currentUser.StreamUserID, newUsername, customData); err != nil {
+			if err := h.kernel.Stream().UpdateUserProfile(currentUser.StreamUserID, newUsername, customData); err != nil {
 				logger.WarnWithFields("Failed to sync username change to Stream.io", err)
 			}
 		}()
 	}
 
-	if h.container.Gorse() != nil {
+	if h.kernel.Gorse() != nil {
 		go func() {
-			if err := h.container.Gorse().SyncUser(currentUser.ID); err != nil {
+			if err := h.kernel.Gorse().SyncUser(currentUser.ID); err != nil {
 				logger.WarnWithFields("Failed to sync username change to Gorse", err)
 			}
 		}()
@@ -838,7 +838,7 @@ func (h *Handlers) GetUserFollowers(c *gin.Context) {
 	}
 
 	// Get followers from Stream.io
-	followers, err := h.container.Stream().GetFollowers(user.StreamUserID, limit, offset)
+	followers, err := h.kernel.Stream().GetFollowers(user.StreamUserID, limit, offset)
 	if err != nil {
 		util.RespondInternalError(c, "failed_to_get_followers", err.Error())
 		return
@@ -891,7 +891,7 @@ func (h *Handlers) GetUserFollowing(c *gin.Context) {
 
 	// Get following from Stream.io
 	// Use database ID (not StreamUserID) to match CheckIsFollowing behavior
-	following, err := h.container.Stream().GetFollowing(user.ID, limit, offset)
+	following, err := h.kernel.Stream().GetFollowing(user.ID, limit, offset)
 	if err != nil {
 		util.RespondInternalError(c, "failed_to_get_following", err.Error())
 		return
@@ -947,9 +947,9 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 	if user.IsPrivate && currentUserID != user.ID {
 		// Not viewing own profile - check if following
 		canView := false
-		if currentUserID != "" && h.container.Stream() != nil {
+		if currentUserID != "" && h.kernel.Stream() != nil {
 			// Check if current user follows this private account
-			isFollowing, _ := h.container.Stream().CheckIsFollowing(currentUserID, user.StreamUserID)
+			isFollowing, _ := h.kernel.Stream().CheckIsFollowing(currentUserID, user.StreamUserID)
 			canView = isFollowing
 		}
 
@@ -985,9 +985,9 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 	// Check if current user is following this profile owner
 	// All posts on a user profile are by the same user, so we check once
 	isFollowingUser := false
-	if currentUserID != "" && currentUserID != user.ID && h.container.Stream() != nil {
+	if currentUserID != "" && currentUserID != user.ID && h.kernel.Stream() != nil {
 		var err error
-		isFollowingUser, err = h.container.Stream().CheckIsFollowing(currentUserID, user.StreamUserID)
+		isFollowingUser, err = h.kernel.Stream().CheckIsFollowing(currentUserID, user.StreamUserID)
 		if err != nil {
 			log.Printf("GetUserPosts: Failed to check follow status from Stream.io: %v", err)
 		}
@@ -998,7 +998,7 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 
 	// Get enriched activities from Stream.io
 	// Note: Posts are created using user.ID, so we must query with user.ID (not StreamUserID)
-	activities, err := h.container.Stream().GetEnrichedUserFeed(user.ID, limit, offset)
+	activities, err := h.kernel.Stream().GetEnrichedUserFeed(user.ID, limit, offset)
 	if err != nil {
 		// Log the error but try database fallback
 		log.Printf("Stream.io GetEnrichedUserFeed error (will try DB fallback): %v", err)
@@ -1222,15 +1222,15 @@ func (h *Handlers) FollowUserByID(c *gin.Context) {
 
 	// Public account - follow directly via Stream.io
 	// Use database IDs (not Stream IDs) to match CheckIsFollowing behavior
-	if err := h.container.Stream().FollowUser(currentUser.ID, targetUser.ID); err != nil {
+	if err := h.kernel.Stream().FollowUser(currentUser.ID, targetUser.ID); err != nil {
 		util.RespondInternalError(c, "follow_failed", err.Error())
 		return
 	}
 
 	// Sync follow event to Gorse for recommendations (async, don't block response)
-	if h.container.Gorse() != nil {
+	if h.kernel.Gorse() != nil {
 		go func() {
-			if err := h.container.Gorse().SyncFollowEvent(currentUser.ID, targetUser.ID); err != nil {
+			if err := h.kernel.Gorse().SyncFollowEvent(currentUser.ID, targetUser.ID); err != nil {
 				log.Printf("Warning: failed to sync follow to Gorse: %v", err)
 			}
 		}()
@@ -1263,15 +1263,15 @@ func (h *Handlers) UnfollowUserByID(c *gin.Context) {
 
 	// Unfollow via Stream.io
 	// Use database IDs (not Stream IDs) to match CheckIsFollowing behavior
-	if err := h.container.Stream().UnfollowUser(currentUser.ID, targetUser.ID); err != nil {
+	if err := h.kernel.Stream().UnfollowUser(currentUser.ID, targetUser.ID); err != nil {
 		util.RespondInternalError(c, "unfollow_failed", err.Error())
 		return
 	}
 
 	// Remove follow event from Gorse for recommendations (async, don't block response)
-	if h.container.Gorse() != nil {
+	if h.kernel.Gorse() != nil {
 		go func() {
-			if err := h.container.Gorse().RemoveFollowEvent(currentUser.ID, targetUser.ID); err != nil {
+			if err := h.kernel.Gorse().RemoveFollowEvent(currentUser.ID, targetUser.ID); err != nil {
 				log.Printf("Warning: failed to remove follow from Gorse: %v", err)
 			}
 		}()

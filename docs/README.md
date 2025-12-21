@@ -6,7 +6,7 @@ Complete documentation for the Sidechain VST plugin and Go backend.
 
 ### Dependency Injection (DI) Container
 
-The backend uses a centralized DI container for managing service dependencies.
+The backend uses a centralized DI kernel for managing service dependencies.
 
 - **Overview**: [DI Container Overview](architecture/DI_CONTAINER_OVERVIEW.md) - Quick start, patterns, testing
 - **Implementation**: [DI Container Implementation](architecture/DI_CONTAINER_IMPLEMENTATION.md) - Architecture, technical details, benefits
@@ -40,7 +40,7 @@ The backend uses OpenTelemetry with Tempo for distributed tracing across service
 
 ```go
 // Create and register services
-container := container.New()
+container := kernel.New()
 container.
     WithDB(db).
     WithLogger(logger).
@@ -137,13 +137,13 @@ make test-backend    # Run tests
 
 ### Adding New Handler
 
-1. Create handler with DI container dependency:
+1. Create handler with DI kernel dependency:
 ```go
 type MyHandlers struct {
-    container *container.Container
+    container *kernel.Kernel
 }
 
-func NewMyHandlers(c *container.Container) *MyHandlers {
+func NewMyHandlers(c *kernel.Kernel) *MyHandlers {
     return &MyHandlers{container: c}
 }
 ```
@@ -159,7 +159,7 @@ func (h *MyHandlers) HandleRequest(c *gin.Context) {
 
 3. Register in main.go:
 ```go
-myHandlers := NewMyHandlers(appContainer)
+myHandlers := NewMyHandlers(appKernel)
 ```
 
 ### Tracing a Handler
@@ -325,7 +325,7 @@ ELASTICSEARCH_URL=https://es.prod.internal
 ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 defer cancel()
 
-if err := appContainer.Cleanup(ctx); err != nil {
+if err := appKernel.Cleanup(ctx); err != nil {
     logger.Error("Cleanup failed", err)
 }
 ```

@@ -67,9 +67,9 @@ func (h *Handlers) trackSearchQuery(c *gin.Context, entityType string, query str
 	// Non-blocking analytics tracking
 	go func() {
 		userID := c.GetString("user_id")
-		if h.container.Search() != nil {
+		if h.kernel.Search() != nil {
 			// Delegate to search client for potential Elasticsearch analytics indexing
-			h.container.Search().TrackSearchQuery(c.Request.Context(), query, resultCount, filters)
+			h.kernel.Search().TrackSearchQuery(c.Request.Context(), query, resultCount, filters)
 		}
 
 		// Log for debugging
@@ -89,7 +89,7 @@ func (h *Handlers) enrichUsersWithFollowState(currentUserID string, users []mode
 		isFollowing := false
 		if currentUserID != "" && user.ID != "" && user.ID != currentUserID {
 			var err error
-			isFollowing, err = h.container.Stream().CheckIsFollowing(currentUserID, user.ID)
+			isFollowing, err = h.kernel.Stream().CheckIsFollowing(currentUserID, user.ID)
 
 			if err != nil {
 
@@ -148,8 +148,8 @@ func (h *Handlers) SearchUsers(c *gin.Context) {
 	usingFallback := false
 
 	// Try Elasticsearch first
-	if h.container.Search() != nil {
-		searchResult, err := h.container.Search().SearchUsers(c.Request.Context(), query, limit, offset)
+	if h.kernel.Search() != nil {
+		searchResult, err := h.kernel.Search().SearchUsers(c.Request.Context(), query, limit, offset)
 		if err == nil && searchResult != nil {
 			// Batch load user IDs from ES results (avoid N+1 queries)
 			userIDs := make([]string, 0, len(searchResult.Users))
@@ -216,7 +216,7 @@ func (h *Handlers) SearchUsers(c *gin.Context) {
 
 		// User is private - only show if current user follows them
 		if currentUserID != "" {
-			isFollowing, err := h.container.Stream().CheckIsFollowing(currentUserID, user.ID)
+			isFollowing, err := h.kernel.Stream().CheckIsFollowing(currentUserID, user.ID)
 
 			if err != nil {
 
@@ -322,7 +322,7 @@ func (h *Handlers) SearchPosts(c *gin.Context) {
 	usingFallback := false
 
 	// Try Elasticsearch first
-	if h.container.Search() != nil {
+	if h.kernel.Search() != nil {
 		searchParams := search.SearchPostsParams{
 			Query:  query,
 			Genre:  genres,
@@ -333,7 +333,7 @@ func (h *Handlers) SearchPosts(c *gin.Context) {
 			Offset: offset,
 		}
 
-		searchResult, err := h.container.Search().SearchPosts(c.Request.Context(), searchParams)
+		searchResult, err := h.kernel.Search().SearchPosts(c.Request.Context(), searchParams)
 		if err == nil && searchResult != nil {
 			// Convert search results back to AudioPost models with user data
 			posts = make([]models.AudioPost, 0, len(searchResult.Posts))
@@ -415,7 +415,7 @@ func (h *Handlers) SearchPosts(c *gin.Context) {
 					filteredPosts = append(filteredPosts, post)
 				} else {
 					// Check if current user follows this private user
-					isFollowing, err := h.container.Stream().CheckIsFollowing(currentUserID, post.UserID)
+					isFollowing, err := h.kernel.Stream().CheckIsFollowing(currentUserID, post.UserID)
 
 					if err != nil {
 
@@ -440,20 +440,20 @@ func (h *Handlers) SearchPosts(c *gin.Context) {
 
 	// Format response
 	type PostResponse struct {
-		ID            string                 `json:"id"`
-		UserID        string                 `json:"user_id"`
-		User          map[string]interface{} `json:"user"`
-		Filename      string                 `json:"filename"`
-		AudioURL      string                 `json:"audio_url"`
-		WaveformURL   string                 `json:"waveform_url,omitempty"`
-		Genre         []string               `json:"genre"`
-		BPM           int                    `json:"bpm"`
-		Key           string                 `json:"key"`
-		DAW           string                 `json:"daw"`
-		LikeCount     int                    `json:"like_count"`
-		PlayCount     int                    `json:"play_count"`
-		CommentCount  int                    `json:"comment_count"`
-		CreatedAt     time.Time              `json:"created_at"`
+		ID           string                 `json:"id"`
+		UserID       string                 `json:"user_id"`
+		User         map[string]interface{} `json:"user"`
+		Filename     string                 `json:"filename"`
+		AudioURL     string                 `json:"audio_url"`
+		WaveformURL  string                 `json:"waveform_url,omitempty"`
+		Genre        []string               `json:"genre"`
+		BPM          int                    `json:"bpm"`
+		Key          string                 `json:"key"`
+		DAW          string                 `json:"daw"`
+		LikeCount    int                    `json:"like_count"`
+		PlayCount    int                    `json:"play_count"`
+		CommentCount int                    `json:"comment_count"`
+		CreatedAt    time.Time              `json:"created_at"`
 	}
 
 	postResponses := make([]PostResponse, 0, len(posts))
@@ -564,7 +564,7 @@ func (h *Handlers) SearchStories(c *gin.Context) {
 	usingFallback := false
 
 	// Try Elasticsearch first
-	if h.container.Search() != nil {
+	if h.kernel.Search() != nil {
 		esParams := search.SearchStoriesParams{
 			Query:    query,
 			DateFrom: dateFrom,
@@ -572,7 +572,7 @@ func (h *Handlers) SearchStories(c *gin.Context) {
 			Limit:    limit,
 			Offset:   offset,
 		}
-		if esResults, err := h.container.Search().SearchStories(c.Request.Context(), esParams); err == nil && esResults != nil && len(esResults.Stories) > 0 {
+		if esResults, err := h.kernel.Search().SearchStories(c.Request.Context(), esParams); err == nil && esResults != nil && len(esResults.Stories) > 0 {
 			// Convert ES results back to models for consistency
 			for _, hit := range esResults.Stories {
 				// We'll fetch the full story from DB for complete data
@@ -627,7 +627,7 @@ func (h *Handlers) SearchStories(c *gin.Context) {
 		// Story creator is private - only show if current user follows them
 		if story.User.ID != "" && story.User.IsPrivate {
 			if currentUserID != "" {
-				isFollowing, err := h.container.Stream().CheckIsFollowing(currentUserID, story.UserID)
+				isFollowing, err := h.kernel.Stream().CheckIsFollowing(currentUserID, story.UserID)
 
 				if err != nil {
 
@@ -719,9 +719,9 @@ func (h *Handlers) AutocompleteUsers(c *gin.Context) {
 	var suggestions []string
 
 	// Try Elasticsearch completion suggester first
-	if h.container.Search() != nil {
+	if h.kernel.Search() != nil {
 		var err error
-		suggestions, err = h.container.Search().SuggestUsers(c.Request.Context(), query, limit)
+		suggestions, err = h.kernel.Search().SuggestUsers(c.Request.Context(), query, limit)
 		if err != nil {
 			logger.WarnWithFields("SuggestUsernames: Elasticsearch suggestion failed (using DB fallback): %v", err)
 		}
@@ -766,8 +766,8 @@ func (h *Handlers) AutocompleteGenres(c *gin.Context) {
 	usingFallback := false
 
 	// Try Elasticsearch first
-	if h.container.Search() != nil {
-		if esGenres, err := h.container.Search().AutocompleteGenres(c.Request.Context(), query, limit); err == nil && len(esGenres) > 0 {
+	if h.kernel.Search() != nil {
+		if esGenres, err := h.kernel.Search().AutocompleteGenres(c.Request.Context(), query, limit); err == nil && len(esGenres) > 0 {
 			genres = esGenres
 		} else {
 			usingFallback = true
@@ -831,17 +831,17 @@ func (h *Handlers) AdvancedSearch(c *gin.Context) {
 	}
 
 	response := gin.H{
-		"query":  query,
-		"type":   searchType,
-		"limit":  limit,
-		"offset": offset,
-		"results": gin.H{},
+		"query":               query,
+		"type":                searchType,
+		"limit":               limit,
+		"offset":              offset,
+		"results":             gin.H{},
 		"using_elasticsearch": false,
 	}
 
 	// Try Elasticsearch first
 	var esResults *search.AdvancedSearchResults
-	if h.container.Search() != nil {
+	if h.kernel.Search() != nil {
 		// Parse search types
 		var types []string
 		if searchType != "all" {
@@ -854,7 +854,7 @@ func (h *Handlers) AdvancedSearch(c *gin.Context) {
 			Limit:  limit,
 			Offset: offset,
 		}
-		esResults = h.container.Search().AdvancedSearch(c.Request.Context(), searchParams)
+		esResults = h.kernel.Search().AdvancedSearch(c.Request.Context(), searchParams)
 		response["using_elasticsearch"] = true
 	}
 
@@ -865,13 +865,13 @@ func (h *Handlers) AdvancedSearch(c *gin.Context) {
 			userResults := make([]gin.H, 0, len(esResults.Users.Users))
 			for _, user := range esResults.Users.Users {
 				userResults = append(userResults, gin.H{
-					"id":              user.ID,
-					"username":        user.Username,
-					"display_name":    user.DisplayName,
-					"bio":             user.Bio,
-					"genre":           user.Genre,
-					"follower_count":  user.FollowerCount,
-					"score":           user.Score,
+					"id":             user.ID,
+					"username":       user.Username,
+					"display_name":   user.DisplayName,
+					"bio":            user.Bio,
+					"genre":          user.Genre,
+					"follower_count": user.FollowerCount,
+					"score":          user.Score,
 				})
 			}
 			response["results"].(gin.H)["users"] = userResults
@@ -902,12 +902,12 @@ func (h *Handlers) AdvancedSearch(c *gin.Context) {
 			storyResults := make([]gin.H, 0, len(esResults.Stories.Stories))
 			for _, story := range esResults.Stories.Stories {
 				storyResults = append(storyResults, gin.H{
-					"id":        story.ID,
-					"user_id":   story.UserID,
-					"username":  story.Username,
+					"id":         story.ID,
+					"user_id":    story.UserID,
+					"username":   story.Username,
 					"created_at": story.CreatedAt,
 					"expires_at": story.ExpiresAt,
-					"score":     story.Score,
+					"score":      story.Score,
 				})
 			}
 			response["results"].(gin.H)["stories"] = storyResults
@@ -991,7 +991,7 @@ func (h *Handlers) GetTrendingUsers(c *gin.Context) {
 		isFollowing := false
 		if currentUserID != "" && user.ID != "" && user.ID != currentUserID {
 			var err error
-			isFollowing, err = h.container.Stream().CheckIsFollowing(currentUserID, user.ID)
+			isFollowing, err = h.kernel.Stream().CheckIsFollowing(currentUserID, user.ID)
 
 			if err != nil {
 
@@ -1070,7 +1070,7 @@ func (h *Handlers) GetFeaturedProducers(c *gin.Context) {
 		isFollowing := false
 		if currentUserID != "" && user.ID != "" && user.ID != currentUserID {
 			var err error
-			isFollowing, err = h.container.Stream().CheckIsFollowing(currentUserID, user.ID)
+			isFollowing, err = h.kernel.Stream().CheckIsFollowing(currentUserID, user.ID)
 
 			if err != nil {
 
@@ -1146,7 +1146,7 @@ func (h *Handlers) GetUsersByGenre(c *gin.Context) {
 		isFollowing := false
 		if currentUserID != "" && user.ID != "" && user.ID != currentUserID {
 			var err error
-			isFollowing, err = h.container.Stream().CheckIsFollowing(currentUserID, user.ID)
+			isFollowing, err = h.kernel.Stream().CheckIsFollowing(currentUserID, user.ID)
 
 			if err != nil {
 
@@ -1193,7 +1193,7 @@ func (h *Handlers) GetSuggestedUsers(c *gin.Context) {
 
 	// Get who the current user follows
 	// Use database ID (NOT Stream ID) to match FollowUser behavior
-	following, err := h.container.Stream().GetFollowing(currentUser.ID, 100, 0)
+	following, err := h.kernel.Stream().GetFollowing(currentUser.ID, 100, 0)
 	if err != nil {
 		util.RespondInternalError(c, "failed_to_get_following", err.Error())
 		return
@@ -1257,7 +1257,7 @@ func (h *Handlers) GetSuggestedUsers(c *gin.Context) {
 		isFollowing := false
 		if u.ID != "" && u.ID != currentUser.ID {
 			var err error
-			isFollowing, err = h.container.Stream().CheckIsFollowing(currentUser.ID, u.ID)
+			isFollowing, err = h.kernel.Stream().CheckIsFollowing(currentUser.ID, u.ID)
 
 			if err != nil {
 
@@ -1391,7 +1391,7 @@ func (h *Handlers) GetSimilarUsers(c *gin.Context) {
 		isFollowing := false
 		if currentUserID != "" && u.ID != "" && u.ID != currentUserID {
 			var err error
-			isFollowing, err = h.container.Stream().CheckIsFollowing(currentUserID, u.ID)
+			isFollowing, err = h.kernel.Stream().CheckIsFollowing(currentUserID, u.ID)
 
 			if err != nil {
 
@@ -1485,4 +1485,3 @@ func (h *Handlers) GetAvailableKeys(c *gin.Context) {
 		},
 	})
 }
-

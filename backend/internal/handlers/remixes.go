@@ -20,7 +20,6 @@ import (
 // Allows users to remix MIDI and/or audio from posts and stories.
 // Creates a chain of remixes showing the creative lineage.
 
-
 // CreateRemixPost creates a new post that remixes content from another post or story
 // POST /api/v1/posts/:id/remix (remix a post)
 // POST /api/v1/stories/:id/remix (remix a story)
@@ -43,11 +42,11 @@ func (h *Handlers) CreateRemixPost(c *gin.Context) {
 	}
 
 	var req struct {
-		AudioURL  string `json:"audio_url" binding:"required"`
-		BPM       int    `json:"bpm"`
-		Key       string `json:"key"`
-		DAW       string `json:"daw"`
-		Genre     []string `json:"genre"`
+		AudioURL string   `json:"audio_url" binding:"required"`
+		BPM      int      `json:"bpm"`
+		Key      string   `json:"key"`
+		DAW      string   `json:"daw"`
+		Genre    []string `json:"genre"`
 		// What content was remixed
 		RemixType string `json:"remix_type" binding:"required"` // "audio", "midi", "both"
 		// Optional: New MIDI data created for the remix
@@ -202,15 +201,15 @@ func (h *Handlers) CreateRemixPost(c *gin.Context) {
 
 	// Create activity in getstream.io
 	activity := &stream.Activity{
-		Actor:        "user:" + userID,
-		Verb:         "remixed",
-		Object:       "loop:" + postID,
-		ForeignID:    "loop:" + postID,
-		AudioURL:     req.AudioURL,
-		BPM:          req.BPM,
-		Key:          req.Key,
-		DAW:          req.DAW,
-		Genre:        req.Genre,
+		Actor:     "user:" + userID,
+		Verb:      "remixed",
+		Object:    "loop:" + postID,
+		ForeignID: "loop:" + postID,
+		AudioURL:  req.AudioURL,
+		BPM:       req.BPM,
+		Key:       req.Key,
+		DAW:       req.DAW,
+		Genre:     req.Genre,
 		Extra: map[string]interface{}{
 			"remix_of_post_id":  remixOfPostID,
 			"remix_of_story_id": remixOfStoryID,
@@ -228,7 +227,7 @@ func (h *Handlers) CreateRemixPost(c *gin.Context) {
 		activity.Extra["source_midi_pattern_id"] = *sourceMIDIPatternID
 	}
 
-	if err := h.container.Stream().CreateLoopActivity(userID, activity); err != nil {
+	if err := h.kernel.Stream().CreateLoopActivity(userID, activity); err != nil {
 		// Log but don't fail - post is already created
 		// TODO: Queue for retry
 	}
@@ -530,9 +529,9 @@ func (h *Handlers) GetRemixSource(c *gin.Context) {
 				"tempo":          story.MIDIPattern.Tempo,
 				"time_signature": story.MIDIPattern.TimeSignature,
 			}
-// // 		} else if story.MIDIData != nil {
-// // 			// Legacy: Use embedded MIDI data
-// // 			response["midi_data"] = story.MIDIData
+			// // 		} else if story.MIDIData != nil {
+			// // 			// Legacy: Use embedded MIDI data
+			// // 			response["midi_data"] = story.MIDIData
 		}
 	}
 
