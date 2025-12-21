@@ -196,12 +196,12 @@ template <typename T> std::optional<juce::File> FileCache<T>::getFile(const T &v
 
   auto cachedFile = cacheDir.getChildFile(it->second.filename);
   if (!cachedFile.exists()) {
-    readLock.exit();
+    // Lock releases automatically when exiting scope
     removeFile(value);
     return std::nullopt;
   }
 
-  readLock.exit();
+  // Lock releases automatically when exiting scope
 
   // Update access time with write lock
   {
