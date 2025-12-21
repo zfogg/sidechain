@@ -74,24 +74,34 @@ MessageThread::getReactionTypes([[maybe_unused]] const StreamChatClient::Message
 }
 
 juce::Rectangle<int> MessageThread::getBackButtonBounds() const {
-  // TODO: implement
-  return {};
+  // Back button in top-left corner of header
+  constexpr int BUTTON_SIZE = 40;
+  constexpr int PADDING = 10;
+  return juce::Rectangle<int>(PADDING, PADDING, BUTTON_SIZE, BUTTON_SIZE);
 }
 juce::Rectangle<int> MessageThread::getSendButtonBounds() const {
-  // TODO: implement
-  return {};
+  // Send button in bottom-right corner of input area
+  constexpr int BUTTON_SIZE = 40;
+  constexpr int PADDING = 10;
+  int inputAreaY = getHeight() - INPUT_HEIGHT;
+  return juce::Rectangle<int>(getWidth() - BUTTON_SIZE - PADDING, inputAreaY + PADDING, BUTTON_SIZE, BUTTON_SIZE);
 }
 juce::Rectangle<int> MessageThread::getAudioButtonBounds() const {
-  // TODO: implement
-  return {};
+  // Audio button to the left of send button
+  constexpr int BUTTON_SIZE = 40;
+  constexpr int PADDING = 10;
+  int inputAreaY = getHeight() - INPUT_HEIGHT;
+  return juce::Rectangle<int>(getWidth() - (BUTTON_SIZE * 2) - (PADDING * 2), inputAreaY + PADDING, BUTTON_SIZE, BUTTON_SIZE);
 }
 juce::Rectangle<int> MessageThread::getMessageBounds([[maybe_unused]] const StreamChatClient::Message &message) const {
   // TODO: implement
   return {};
 }
 juce::Rectangle<int> MessageThread::getHeaderMenuButtonBounds() const {
-  // TODO: implement
-  return {};
+  // Menu button in top-right corner of header
+  constexpr int BUTTON_SIZE = 40;
+  constexpr int PADDING = 10;
+  return juce::Rectangle<int>(getWidth() - BUTTON_SIZE - PADDING, PADDING, BUTTON_SIZE, BUTTON_SIZE);
 }
 juce::Rectangle<int>
 MessageThread::getSharedPostBounds([[maybe_unused]] const StreamChatClient::Message &message) const {
@@ -104,12 +114,17 @@ MessageThread::getSharedStoryBounds([[maybe_unused]] const StreamChatClient::Mes
   return {};
 }
 juce::Rectangle<int> MessageThread::getReplyPreviewBounds() const {
-  // TODO: implement
-  return {};
+  // Reply preview area above the input field
+  constexpr int PADDING = 10;
+  int replyAreaY = getHeight() - INPUT_HEIGHT - REPLY_PREVIEW_HEIGHT;
+  return juce::Rectangle<int>(PADDING, replyAreaY, getWidth() - (PADDING * 2), REPLY_PREVIEW_HEIGHT);
 }
 juce::Rectangle<int> MessageThread::getCancelReplyButtonBounds() const {
-  // TODO: implement
-  return {};
+  // Cancel button in top-right corner of reply preview area
+  constexpr int BUTTON_SIZE = 30;
+  constexpr int PADDING = 5;
+  int replyAreaY = getHeight() - INPUT_HEIGHT - REPLY_PREVIEW_HEIGHT;
+  return juce::Rectangle<int>(getWidth() - BUTTON_SIZE - PADDING, replyAreaY + PADDING, BUTTON_SIZE, BUTTON_SIZE);
 }
 
 void MessageThread::leaveGroup() {}
@@ -154,15 +169,16 @@ int MessageThread::calculateMessageHeight(const StreamChatClient::Message &messa
   return height;
 }
 int MessageThread::calculateTotalMessagesHeight() {
-  // TODO: Sum all message heights in current view
+  // Sum all message heights in current view
+  // Messages are stored in ChatState - this will be properly integrated
+  // when ChatState is cached during onAppStateChanged
   int totalHeight = 0;
-  // This will be populated when messages are loaded from state
+  // For now, return 0 - will be populated with proper ChatState integration
   return totalHeight;
 }
-bool MessageThread::isOwnMessage(const StreamChatClient::Message &) const {
+bool MessageThread::isOwnMessage(const StreamChatClient::Message &message) const {
   // Check if message author is current user by comparing user IDs
-  // TODO: Get current user ID from AppStore when available
-  return false;
+  return message.userId == currentUserId;
 }
 
 juce::String MessageThread::getReplyToMessageId(const StreamChatClient::Message &message) const {

@@ -94,8 +94,20 @@ void AppStore::searchUsers(const juce::String &query) {
       if (data.hasProperty("users") && data.getProperty("users", juce::var()).isArray()) {
         auto usersArray = data.getProperty("users", juce::var());
         for (int i = 0; i < usersArray.size(); ++i) {
-          // TODO: Add User::fromJson implementation and parse users
-          // For now, skip user parsing
+          try {
+            auto userJson = usersArray[i];
+            // Convert juce::var to nlohmann::json for SerializableModel
+            auto jsonStr = juce::JSON::toString(userJson);
+            auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+
+            // Use SerializableModel to deserialize
+            auto userResult = Sidechain::SerializableModel<Sidechain::User>::createFromJson(jsonObj);
+            if (userResult.isOk()) {
+              usersList.push_back(std::make_shared<Sidechain::User>(*userResult.getValue()));
+            }
+          } catch (const std::exception &e) {
+            Util::logDebug("AppStore", "Failed to parse search result user: " + juce::String(e.what()));
+          }
         }
       }
 
