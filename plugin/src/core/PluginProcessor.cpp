@@ -45,12 +45,22 @@ SidechainAudioProcessor::~SidechainAudioProcessor() {
   Log::debug("SidechainAudioProcessor: Destroying");
 
   // Save drafts and flush all caches to persistent storage before shutdown
-  Sidechain::Stores::AppStore::getInstance().saveDrafts();
-  Sidechain::Stores::AppStore::getInstance().flushCaches();
+  try {
+    Sidechain::Stores::AppStore::getInstance().saveDrafts();
+    Sidechain::Stores::AppStore::getInstance().flushCaches();
+  } catch (const std::exception &e) {
+    // Don't throw in destructor - just log and continue
+    // (AppStore singleton may already be partially destroyed)
+  }
 
   // Shutdown logging last to ensure all log messages are written
   // and to prevent JUCE leak detector warnings for FileOutputStream
-  Log::shutdown();
+  try {
+    Log::shutdown();
+  } catch (const std::exception &e) {
+    // Ignore exceptions from Log::shutdown in destructor
+    // Destructors should never throw
+  }
 }
 
 // ==============================================================================
