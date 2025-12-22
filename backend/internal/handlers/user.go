@@ -337,11 +337,11 @@ func (h *Handlers) GetUserProfile(c *gin.Context) {
 		var err error
 		isFollowing, err = h.stream.CheckIsFollowing(currentUserID, user.ID)
 		if err != nil {
-			logger.Log.Warn("Failed to check isFollowing", zap.Error(err), zap.String("current_user_id", currentUserID), zap.String("target_user_id", user.ID))
+			logger.WarnWithFields("Failed to check isFollowing for user profile", err)
 		}
 		isFollowedBy, err = h.stream.CheckIsFollowing(user.ID, currentUserID)
 		if err != nil {
-			logger.Log.Warn("Failed to check isFollowedBy", zap.Error(err), zap.String("target_user_id", user.ID), zap.String("current_user_id", currentUserID))
+			logger.WarnWithFields("Failed to check isFollowedBy for user profile", err)
 		}
 	}
 

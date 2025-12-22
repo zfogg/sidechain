@@ -59,7 +59,7 @@ void AppStore::createComment(const juce::String &postId, const juce::String &con
   networkClient->createComment(postId, content, parentId, [this, postId](Outcome<juce::var> result) {
     auto slice = sliceManager.comments;
     if (!slice) {
-      Util::logError("AppStore", "Comments slice is null in createComment callback");
+      Util::logError("AppStore", "Cannot update comments state - comments slice is null");
       return;
     }
 
@@ -67,6 +67,7 @@ void AppStore::createComment(const juce::String &postId, const juce::String &con
       try {
         auto resultVar = result.getValue();
         auto resultStr = juce::JSON::toString(resultVar);
+
         auto json = nlohmann::json::parse(resultStr.toStdString());
 
         // Extract comment object from response wrapper ({"comment": {...}})
