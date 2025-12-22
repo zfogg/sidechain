@@ -1,12 +1,15 @@
 #include "../AppStore.h"
+#include "../util/StoreUtils.h"
 #include "../../util/logging/Logger.h"
 
 namespace Sidechain {
 namespace Stores {
 
+using Utils::JsonArrayParser;
+using Utils::NetworkClientGuard;
+
 void AppStore::searchPosts(const juce::String &query) {
-  if (!networkClient) {
-    Util::logError("AppStore", "Cannot search posts - network client not set");
+  if (!NetworkClientGuard::check(networkClient.get(), "search posts")) {
     return;
   }
 
@@ -29,34 +32,20 @@ void AppStore::searchPosts(const juce::String &query) {
   networkClient->searchPosts(query, currentGenre, 0, 200, "", 20, 0, [this, query](Outcome<juce::var> result) {
     if (result.isOk()) {
       const auto data = result.getValue();
-      std::vector<std::shared_ptr<Sidechain::FeedPost>> postsList;
+      auto postsArray = data.getProperty("posts", juce::var());
 
-      if (data.hasProperty("posts") && data.getProperty("posts", juce::var()).isArray()) {
-        auto postsArray = data.getProperty("posts", juce::var());
-        for (int i = 0; i < postsArray.size(); ++i) {
-          try {
-            auto jsonStr = juce::JSON::toString(postsArray[i]);
-            auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
-            auto postResult = Sidechain::SerializableModel<Sidechain::FeedPost>::createFromJson(jsonObj);
-            if (postResult.isOk()) {
-              auto post = *postResult.getValue();
-              postsList.push_back(std::make_shared<Sidechain::FeedPost>(post));
-            }
-          } catch (const std::exception &) {
-            // Skip invalid posts
-          }
-        }
-      }
+      // Use JsonArrayParser
+      auto postsList = JsonArrayParser<FeedPost>::parse(postsArray, "search posts");
 
       SearchState successState = sliceManager.search->getState();
-      successState.results.posts = postsList;
+      successState.results.posts = std::move(postsList);
       successState.results.isSearching = false;
       successState.results.totalResults =
-          static_cast<int>(data.getProperty("total_count", static_cast<juce::var>(static_cast<int>(postsList.size()))));
-      successState.results.hasMoreResults = postsList.size() < static_cast<size_t>(successState.results.totalResults);
-      successState.results.offset = static_cast<int>(postsList.size());
+          static_cast<int>(data.getProperty("total_count", static_cast<juce::var>(static_cast<int>(successState.results.posts.size()))));
+      successState.results.hasMoreResults = successState.results.posts.size() < static_cast<size_t>(successState.results.totalResults);
+      successState.results.offset = static_cast<int>(successState.results.posts.size());
       successState.results.searchError = "";
-      Util::logInfo("AppStore", "Search found " + juce::String(postsList.size()) +
+      Util::logInfo("AppStore", "Search found " + juce::String(successState.results.posts.size()) +
                                     " posts for: " + successState.results.searchQuery);
       sliceManager.search->setState(successState);
     } else {
@@ -70,8 +59,7 @@ void AppStore::searchPosts(const juce::String &query) {
 }
 
 void AppStore::searchUsers(const juce::String &query) {
-  if (!networkClient) {
-    Util::logError("AppStore", "Cannot search users - network client not set");
+  if (!NetworkClientGuard::check(networkClient.get(), "search users")) {
     return;
   }
 
@@ -89,35 +77,18 @@ void AppStore::searchUsers(const juce::String &query) {
   networkClient->searchUsers(query, 20, 0, [this, query](Outcome<juce::var> result) {
     if (result.isOk()) {
       const auto data = result.getValue();
-      std::vector<std::shared_ptr<Sidechain::User>> usersList;
+      auto usersArray = data.getProperty("users", juce::var());
 
-      if (data.hasProperty("users") && data.getProperty("users", juce::var()).isArray()) {
-        auto usersArray = data.getProperty("users", juce::var());
-        for (int i = 0; i < usersArray.size(); ++i) {
-          try {
-            auto userJson = usersArray[i];
-            // Convert juce::var to nlohmann::json for SerializableModel
-            auto jsonStr = juce::JSON::toString(userJson);
-            auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
-
-            // Use SerializableModel to deserialize
-            auto userResult = Sidechain::SerializableModel<Sidechain::User>::createFromJson(jsonObj);
-            if (userResult.isOk()) {
-              usersList.push_back(std::make_shared<Sidechain::User>(*userResult.getValue()));
-            }
-          } catch (const std::exception &e) {
-            Util::logDebug("AppStore", "Failed to parse search result user: " + juce::String(e.what()));
-          }
-        }
-      }
+      // Use JsonArrayParser
+      auto usersList = JsonArrayParser<User>::parse(usersArray, "search users");
 
       SearchState successState = sliceManager.search->getState();
-      successState.results.users = usersList;
+      successState.results.users = std::move(usersList);
       successState.results.isSearching = false;
       successState.results.totalResults =
-          static_cast<int>(data.getProperty("total_count", static_cast<juce::var>(static_cast<int>(usersList.size()))));
+          static_cast<int>(data.getProperty("total_count", static_cast<juce::var>(static_cast<int>(successState.results.users.size()))));
       successState.results.searchError = "";
-      Util::logInfo("AppStore", "User search found " + juce::String(usersList.size()) + " users");
+      Util::logInfo("AppStore", "User search found " + juce::String(successState.results.users.size()) + " users");
       sliceManager.search->setState(successState);
     } else {
       SearchState errorState = sliceManager.search->getState();
@@ -135,7 +106,7 @@ void AppStore::loadMoreSearchResults() {
     return;
   }
 
-  if (!networkClient) {
+  if (!NetworkClientGuard::checkSilent(networkClient.get())) {
     return;
   }
 
@@ -145,31 +116,16 @@ void AppStore::loadMoreSearchResults() {
                                currentState.results.offset, [this](Outcome<juce::var> result) {
                                  if (result.isOk()) {
                                    const auto data = result.getValue();
-                                   std::vector<std::shared_ptr<Sidechain::FeedPost>> newPosts;
+                                   auto postsArray = data.getProperty("posts", juce::var());
 
-                                   if (data.hasProperty("posts") && data.getProperty("posts", juce::var()).isArray()) {
-                                     auto postsArray = data.getProperty("posts", juce::var());
-                                     for (int i = 0; i < postsArray.size(); ++i) {
-                                       try {
-                                         auto jsonStr = juce::JSON::toString(postsArray[i]);
-                                         auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
-                                         auto postResult =
-                                             Sidechain::SerializableModel<Sidechain::FeedPost>::createFromJson(jsonObj);
-                                         if (postResult.isOk()) {
-                                           auto post = *postResult.getValue();
-                                           newPosts.push_back(std::make_shared<Sidechain::FeedPost>(post));
-                                         }
-                                       } catch (const std::exception &) {
-                                         // Skip invalid posts
-                                       }
-                                     }
-                                   }
+                                   // Use JsonArrayParser
+                                   auto newPosts = JsonArrayParser<FeedPost>::parse(postsArray, "search more posts");
 
                                    SearchState moreState = sliceManager.search->getState();
                                    for (const auto &post : newPosts) {
                                      moreState.results.posts.push_back(post);
                                    }
-                                   moreState.results.offset += newPosts.size();
+                                   moreState.results.offset += static_cast<int>(newPosts.size());
                                    sliceManager.search->setState(moreState);
                                  }
                                });

@@ -1,13 +1,16 @@
 #include "../AppStore.h"
+#include "../util/StoreUtils.h"
 #include "../../util/logging/Logger.h"
 #include <nlohmann/json.hpp>
 
 namespace Sidechain {
 namespace Stores {
 
+using Utils::JsonArrayParser;
+using Utils::NetworkClientGuard;
+
 void AppStore::loadFeaturedSounds() {
-  if (!networkClient) {
-    Util::logError("AppStore", "Cannot load featured sounds - network client not set");
+  if (!NetworkClientGuard::check(networkClient.get(), "load featured sounds")) {
     return;
   }
 
@@ -18,28 +21,15 @@ void AppStore::loadFeaturedSounds() {
   networkClient->getTrendingSounds(20, [this](Outcome<juce::var> result) {
     if (result.isOk()) {
       const auto data = result.getValue();
-      std::vector<std::shared_ptr<Sidechain::Sound>> soundsList;
 
-      if (data.isArray()) {
-        for (int i = 0; i < data.size(); ++i) {
-          try {
-            auto jsonStr = juce::JSON::toString(data[i]);
-            auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
-            auto soundResult = Sidechain::Sound::createFromJson(jsonObj);
-            if (soundResult.isOk()) {
-              soundsList.push_back(soundResult.getValue());
-            }
-          } catch (...) {
-            // Skip invalid items
-          }
-        }
-      }
+      // Use JsonArrayParser
+      auto soundsList = JsonArrayParser<Sound>::parse(data, "featured sounds");
 
       SoundState successState = sliceManager.sounds->getState();
-      successState.featuredSounds = soundsList;
+      successState.featuredSounds = std::move(soundsList);
       successState.isFeaturedLoading = false;
       successState.soundError = "";
-      Util::logInfo("AppStore", "Loaded " + juce::String(soundsList.size()) + " featured sounds");
+      Util::logInfo("AppStore", "Loaded " + juce::String(successState.featuredSounds.size()) + " featured sounds");
       sliceManager.sounds->setState(successState);
     } else {
       SoundState errorState = sliceManager.sounds->getState();
@@ -52,8 +42,7 @@ void AppStore::loadFeaturedSounds() {
 }
 
 void AppStore::loadRecentSounds() {
-  if (!networkClient) {
-    Util::logError("AppStore", "Cannot load recent sounds - network client not set");
+  if (!NetworkClientGuard::check(networkClient.get(), "load recent sounds")) {
     return;
   }
 
@@ -65,29 +54,16 @@ void AppStore::loadRecentSounds() {
   networkClient->searchSounds("", 20, [this](Outcome<juce::var> result) {
     if (result.isOk()) {
       const auto data = result.getValue();
-      std::vector<std::shared_ptr<Sidechain::Sound>> soundsList;
 
-      if (data.isArray()) {
-        for (int i = 0; i < data.size(); ++i) {
-          try {
-            auto jsonStr = juce::JSON::toString(data[i]);
-            auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
-            auto soundResult = Sidechain::Sound::createFromJson(jsonObj);
-            if (soundResult.isOk()) {
-              soundsList.push_back(soundResult.getValue());
-            }
-          } catch (...) {
-            // Skip invalid items
-          }
-        }
-      }
+      // Use JsonArrayParser
+      auto soundsList = JsonArrayParser<Sound>::parse(data, "recent sounds");
 
       SoundState recentState = sliceManager.sounds->getState();
-      recentState.recentSounds = soundsList;
+      recentState.recentSounds = std::move(soundsList);
       recentState.isLoading = false;
       recentState.soundError = "";
-      recentState.recentOffset = static_cast<int>(soundsList.size());
-      Util::logInfo("AppStore", "Loaded " + juce::String(soundsList.size()) + " recent sounds");
+      recentState.recentOffset = static_cast<int>(recentState.recentSounds.size());
+      Util::logInfo("AppStore", "Loaded " + juce::String(recentState.recentSounds.size()) + " recent sounds");
       sliceManager.sounds->setState(recentState);
     } else {
       SoundState recentErrorState = sliceManager.sounds->getState();
@@ -99,7 +75,7 @@ void AppStore::loadRecentSounds() {
 }
 
 void AppStore::loadMoreSounds() {
-  if (!networkClient) {
+  if (!NetworkClientGuard::checkSilent(networkClient.get())) {
     return;
   }
 
@@ -112,28 +88,15 @@ void AppStore::loadMoreSounds() {
   networkClient->searchSounds("", 20, [this](Outcome<juce::var> result) {
     if (result.isOk()) {
       const auto data = result.getValue();
-      std::vector<std::shared_ptr<Sidechain::Sound>> newSounds;
 
-      if (data.isArray()) {
-        for (int i = 0; i < data.size(); ++i) {
-          try {
-            auto jsonStr = juce::JSON::toString(data[i]);
-            auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
-            auto soundResult = Sidechain::Sound::createFromJson(jsonObj);
-            if (soundResult.isOk()) {
-              newSounds.push_back(soundResult.getValue());
-            }
-          } catch (...) {
-            // Skip invalid items
-          }
-        }
-      }
+      // Use JsonArrayParser
+      auto newSounds = JsonArrayParser<Sound>::parse(data, "more sounds");
 
       SoundState moreState = sliceManager.sounds->getState();
       for (const auto &sound : newSounds) {
         moreState.recentSounds.push_back(sound);
       }
-      moreState.recentOffset += newSounds.size();
+      moreState.recentOffset += static_cast<int>(newSounds.size());
       sliceManager.sounds->setState(moreState);
     }
   });
