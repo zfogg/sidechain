@@ -1263,7 +1263,9 @@ void CommentsPanel::onAppStateChanged(const Sidechain::Stores::CommentsState &st
     Log::info("CommentsPanel::onAppStateChanged: GOT " + juce::String(postComments.size()) +
               " comments from AppStore for post: " + currentPostId);
     comments = postComments;
-    totalCommentCount = state.totalCountByPostId.at(currentPostId.toStdString());
+    // Safely access totalCountByPostId to avoid std::out_of_range exception
+    auto countIt = state.totalCountByPostId.find(currentPostId.toStdString());
+    totalCommentCount = (countIt != state.totalCountByPostId.end()) ? countIt->second : static_cast<int>(postComments.size());
     isLoading = false;
     errorMessage.clear();
     Log::info("CommentsPanel::onAppStateChanged: Calling updateCommentsList() to render comments");

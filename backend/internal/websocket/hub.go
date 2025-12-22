@@ -381,23 +381,29 @@ func (h *Hub) shutdown() {
 		Payload:   map[string]interface{}{"event": "server_shutdown"},
 		Timestamp: FlexibleTime{Time: time.Now().UTC()},
 	}
-	data, _ := json.Marshal(shutdownMsg)
+	data, err := json.Marshal(shutdownMsg)
+	if err != nil {
+		log.Printf("Error marshaling shutdown message: %v", err)
+		data = []byte(`{"type":"system","payload":{"event":"server_shutdown"}}`)
+	}
 
+	connectionCount := len(h.allClients)
 	for client := range h.allClients {
-		// Try to send shutdown message
+		// Try to send shutdown message (non-blocking)
 		select {
 		case client.send <- data:
 		default:
 		}
-		// Close the send channel
-		close(client.send)
+		// Note: Don't close channels here - let unregisterClient handle cleanup
+		// to avoid double-close panics. The client's writePump will exit when
+		// the connection closes.
 	}
 
 	// Clear all maps
 	h.clients = make(map[string]map[*Client]struct{})
 	h.allClients = make(map[*Client]struct{})
 
-	log.Printf("🔌 Closed %d connections during shutdown", h.metrics.ActiveConnections.Load())
+	log.Printf("🔌 Closed %d connections during shutdown", connectionCount)
 }
 
 // SetRateLimitConfig updates the rate limiting configuration

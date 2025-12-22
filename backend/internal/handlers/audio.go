@@ -168,7 +168,9 @@ func (h *Handlers) UploadAudio(c *gin.Context) {
 
 	err = database.DB.Create(audioPost).Error
 	if err != nil {
-		os.Remove(tempFilePath)
+		if removeErr := os.Remove(tempFilePath); removeErr != nil {
+			log.Printf("Warning: Failed to clean up temp file %s: %v", tempFilePath, removeErr)
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   "database_failed",
 			"message": "Failed to save audio post",
@@ -179,9 +181,13 @@ func (h *Handlers) UploadAudio(c *gin.Context) {
 	// Submit to background processing queue with postID so it can update the record
 	job, err := h.audioProcessor.SubmitProcessingJob(currentUser.ID, audioPost.ID, tempFilePath, file.Filename, metadata)
 	if err != nil {
-		os.Remove(tempFilePath)
+		if removeErr := os.Remove(tempFilePath); removeErr != nil {
+			log.Printf("Warning: Failed to clean up temp file %s: %v", tempFilePath, removeErr)
+		}
 		// Update the post to failed status
-		database.DB.Model(audioPost).Update("processing_status", "failed")
+		if updateErr := database.DB.Model(audioPost).Update("processing_status", "failed").Error; updateErr != nil {
+			log.Printf("Warning: Failed to update post status to failed: %v", updateErr)
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   "queue_failed",
 			"message": "Failed to queue audio for processing",
