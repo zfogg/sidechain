@@ -11,7 +11,7 @@ rm plugin.log 2>/dev/null || true
 make plugin-fast
 
 # Start plugin in background, capturing output to plugin.log
-./plugin/build/src/core/Sidechain_artefacts/Debug/Standalone/Sidechain > plugin.log 2>&1 &
+./plugin/build/src/core/Sidechain_artefacts/Debug/Standalone/Sidechain.app/Contents/MacOS/Sidechain > plugin.log 2>&1 &
 PLUGIN_PID=$!
 
 # Wait for it to start

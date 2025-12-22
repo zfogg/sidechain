@@ -113,7 +113,7 @@ plugin: $(BUILD_DIR)/CMakeCache.txt
 $(BUILD_DIR)/CMakeCache.txt: plugin/CMakeLists.txt
 	@echo "🔄 Configuring CMake build for $(PLATFORM) ($(CMAKE_BUILD_TYPE))..."
 	@mkdir -p $(BUILD_DIR)
-	@cmake --preset $(CMAKE_PRESET) -S plugin -B $(BUILD_DIR) -DCMAKE_EXPORT_COMPILE_COMMANDS=ON $(if $(SIDECHAIN_BUILD_STANDALONE),-DSIDECHAIN_BUILD_STANDALONE=ON,)
+	@cmake --preset $(CMAKE_PRESET) -S plugin -B $(BUILD_DIR) -DCMAKE_EXPORT_COMPILE_COMMANDS=ON $(if $(SIDECHAIN_BUILD_STANDALONE),-DSIDECHAIN_BUILD_STANDALONE=ON,) $(if $(SIDECHAIN_BUILD_AU),-DSIDECHAIN_BUILD_AU=ON,)
 	@echo "✅ CMake configuration complete"
 	@if [ -f "$(BUILD_DIR)/compile_commands.json" ]; then \
 		ln -sf "$(BUILD_DIR)/compile_commands.json" compile_commands.json 2>/dev/null || true; \
@@ -123,7 +123,7 @@ $(BUILD_DIR)/CMakeCache.txt: plugin/CMakeLists.txt
 # Explicit plugin-configure target for manual reconfiguration
 plugin-configure:
 	@echo "🔄 Configuring CMake build for $(PLATFORM) ($(CMAKE_BUILD_TYPE))..."
-	@cmake --preset $(CMAKE_PRESET) -S plugin -B $(BUILD_DIR) -DCMAKE_EXPORT_COMPILE_COMMANDS=ON $(if $(SIDECHAIN_BUILD_STANDALONE),-DSIDECHAIN_BUILD_STANDALONE=ON,)
+	@cmake --preset $(CMAKE_PRESET) -S plugin -B $(BUILD_DIR) -DCMAKE_EXPORT_COMPILE_COMMANDS=ON $(if $(SIDECHAIN_BUILD_STANDALONE),-DSIDECHAIN_BUILD_STANDALONE=ON,) $(if $(SIDECHAIN_BUILD_AU),-DSIDECHAIN_BUILD_AU=ON,)
 	@echo "✅ CMake configuration complete"
 	@if [ -f "$(BUILD_DIR)/compile_commands.json" ]; then \
 		ln -sf "$(BUILD_DIR)/compile_commands.json" compile_commands.json 2>/dev/null || true; \
@@ -234,10 +234,15 @@ plugin-install: plugin
 	@rm -rf "$(PLUGIN_INSTALL_DIR)/Sidechain.vst3"
 	@cp -r "$(PLUGIN_OUTPUT)" "$(PLUGIN_INSTALL_DIR)/"
 ifeq ($(PLATFORM),macos)
-	@echo "📦 Installing AU plugin to $(AU_INSTALL_DIR)..."
-	@mkdir -p "$(AU_INSTALL_DIR)"
-	@rm -rf "$(AU_INSTALL_DIR)/Sidechain.component"
-	@cp -r "$(AU_OUTPUT)" "$(AU_INSTALL_DIR)/"
+	@if [ -d "$(AU_OUTPUT)" ]; then \
+		echo "📦 Installing AU plugin to $(AU_INSTALL_DIR)..."; \
+		mkdir -p "$(AU_INSTALL_DIR)"; \
+		rm -rf "$(AU_INSTALL_DIR)/Sidechain.component"; \
+		cp -r "$(AU_OUTPUT)" "$(AU_INSTALL_DIR)/"; \
+		echo "✅ AU plugin installed"; \
+	else \
+		echo "⏭️  AU not built (enable with SIDECHAIN_BUILD_AU=ON)"; \
+	fi
 endif
 	@echo "✅ Plugin(s) installed successfully"
 
@@ -377,6 +382,7 @@ help:
 	@echo "  backend-dev           - Run backend in Docker (builds & deploys with latest code)"
 	@echo "  plugin                - Build VST plugin via CMake"
 	@echo "  plugin-fast           - Build VST plugin (skip reconfigure)"
+	@echo "  plugin-configure      - Reconfigure CMake build"
 	@echo "  plugin-rebuild        - Rebuild plugin only (keep cached deps)"
 	@echo "  plugin-install        - Install plugin to system directory"
 	@echo "  plugin-clean          - Clean plugin build files"
@@ -395,8 +401,9 @@ help:
 	@echo "  help                  - Show this help message"
 	@echo ""
 	@echo "Build options:"
-	@echo "  make CMAKE_BUILD_TYPE=Release - Build release version"
-	@echo "  make SIDECHAIN_BUILD_STANDALONE=ON - Build Standalone app (in addition to VST3/AU)"
+	@echo "  make CMAKE_BUILD_TYPE=Release        - Build release version"
+	@echo "  make SIDECHAIN_BUILD_STANDALONE=ON   - Build Standalone app (in addition to VST3)"
+	@echo "  make SIDECHAIN_BUILD_AU=ON           - Build AU format on macOS (default: VST3 only)"
 	@echo ""
 	@echo "Quick start:"
 	@echo "  make              # Build everything"
