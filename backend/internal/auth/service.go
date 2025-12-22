@@ -166,7 +166,10 @@ func (s *Service) LoginNativeUser(req LoginRequest) (*AuthResponse, error) {
 	// Update last active
 	now := time.Now()
 	user.LastActiveAt = &now
-	database.DB.Save(&user)
+	if err := database.DB.Save(&user).Error; err != nil {
+		// Log but don't fail authentication - this is a non-critical update
+		logger.ErrorWithFields("Failed to update last active time for user", err)
+	}
 
 	return s.generateAuthResponse(&user)
 }
