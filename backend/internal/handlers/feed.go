@@ -1153,8 +1153,15 @@ func (h *Handlers) GetTrendingFeed(c *gin.Context) {
 	for i, activity := range activities {
 		// Convert to map
 		activityMap := make(map[string]interface{})
-		activityBytes, _ := json.Marshal(activity)
-		json.Unmarshal(activityBytes, &activityMap)
+		activityBytes, err := json.Marshal(activity)
+		if err != nil {
+			logger.Log.Warn("Failed to marshal activity", zap.Int("index", i), zap.Error(err))
+			continue
+		}
+		if err := json.Unmarshal(activityBytes, &activityMap); err != nil {
+			logger.Log.Warn("Failed to unmarshal activity", zap.Int("index", i), zap.Error(err))
+			continue
+		}
 
 		// Extract user ID from actor ("user:uuid")
 		if actor, ok := activityMap["actor"].(string); ok && len(actor) > 5 {

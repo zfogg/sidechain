@@ -167,6 +167,10 @@ private:
   // Thread safety
   juce::CriticalSection bufferLock;
 
+  // Flag to prevent use-after-free in async callbacks
+  // Shared between the object and any pending async callbacks
+  std::shared_ptr<std::atomic<bool>> aliveFlag = std::make_shared<std::atomic<bool>>(true);
+
   // Progress timer
   class ProgressTimer : public juce::Timer {
   public:

@@ -727,8 +727,6 @@ func (c *Client) GetFollowStats(userID string) (*FollowStats, error) {
 		FollowingCount: followingData.Results.Following.Count,
 	}
 
-	fmt.Printf("?? Follow stats for %s: %d followers, %d following\n",
-		userID, result.FollowerCount, result.FollowingCount)
 	return result, nil
 }
 
