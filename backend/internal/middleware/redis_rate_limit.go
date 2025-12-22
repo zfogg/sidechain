@@ -56,7 +56,7 @@ func RedisRateLimitMiddleware(maxRequests int, window time.Duration) gin.Handler
 				zap.Int64("current_requests", val),
 			)
 			c.JSON(429, gin.H{
-				"error": "rate limit exceeded",
+				"error":       "rate limit exceeded",
 				"retry_after": window.Seconds(),
 			})
 			c.Abort()
@@ -64,11 +64,25 @@ func RedisRateLimitMiddleware(maxRequests int, window time.Duration) gin.Handler
 		}
 
 		// Increment counter
-		newVal, _ := redisClient.IncrBy(ctx, key, 1)
+		newVal, err := redisClient.IncrBy(ctx, key, 1)
+		if err != nil {
+			logger.Log.Error("Rate limit increment failed - rejecting request for security",
+				zap.String("client_ip", clientIP),
+				zap.Error(err),
+			)
+			c.JSON(503, gin.H{"error": "Service temporarily unavailable"})
+			c.Abort()
+			return
+		}
 
 		// Set expiration on first request in this window
 		if newVal == 1 {
-			redisClient.Expire(ctx, key, window)
+			if err := redisClient.Expire(ctx, key, window); err != nil {
+				logger.Log.Warn("Failed to set rate limit expiration",
+					zap.String("client_ip", clientIP),
+					zap.Error(err),
+				)
+			}
 		}
 
 		c.Next()

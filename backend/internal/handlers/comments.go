@@ -147,8 +147,14 @@ func (h *Handlers) CreateComment(c *gin.Context) {
 // GET /api/v1/posts/:id/comments
 func (h *Handlers) GetComments(c *gin.Context) {
 	postID := c.Param("id")
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	if err != nil || limit <= 0 {
+		limit = 20
+	}
+	offset, err := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	if err != nil || offset < 0 {
+		offset = 0
+	}
 	parentID := c.Query("parent_id") // Optional: get replies to specific comment
 
 	if limit > 100 {
@@ -191,7 +197,9 @@ func (h *Handlers) GetComments(c *gin.Context) {
 	} else {
 		countQuery = countQuery.Where("parent_id IS NULL")
 	}
-	countQuery.Count(&total)
+	if err := countQuery.Count(&total).Error; err != nil {
+		logger.WarnWithFields("Failed to count comments for post "+postID, err)
+	}
 
 	// For top-level comments, also get reply counts
 	if parentID == "" {
@@ -218,8 +226,14 @@ func (h *Handlers) GetComments(c *gin.Context) {
 // GET /api/v1/comments/:id/replies
 func (h *Handlers) GetCommentReplies(c *gin.Context) {
 	commentID := c.Param("id")
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	if err != nil || limit <= 0 {
+		limit = 20
+	}
+	offset, err := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	if err != nil || offset < 0 {
+		offset = 0
+	}
 
 	if limit > 100 {
 		limit = 100
@@ -247,7 +261,9 @@ func (h *Handlers) GetCommentReplies(c *gin.Context) {
 	}
 
 	var total int64
-	database.DB.Model(&models.Comment{}).Where("parent_id = ? AND is_deleted = false", commentID).Count(&total)
+	if err := database.DB.Model(&models.Comment{}).Where("parent_id = ? AND is_deleted = false", commentID).Count(&total).Error; err != nil {
+		logger.WarnWithFields("Failed to count replies for comment "+commentID, err)
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"replies": replies,
@@ -351,7 +367,9 @@ func (h *Handlers) DeleteComment(c *gin.Context) {
 	}
 
 	// Decrement post comment count
-	database.DB.Model(&models.AudioPost{}).Where("id = ?", comment.PostID).UpdateColumn("comment_count", gorm.Expr("GREATEST(comment_count - 1, 0)"))
+	if err := database.DB.Model(&models.AudioPost{}).Where("id = ?", comment.PostID).UpdateColumn("comment_count", gorm.Expr("GREATEST(comment_count - 1, 0)")).Error; err != nil {
+		logger.WarnWithFields("Failed to decrement comment count for post "+comment.PostID, err)
+	}
 
 	// Sync post engagement metrics to Elasticsearch (comment_count only)
 	if h.search != nil {
@@ -603,7 +621,6 @@ func (h *Handlers) ReportComment(c *gin.Context) {
 // search, webhooks, export, performance, anti-abuse, notifications,
 // accessibility, localization) are documented in common_todos.go.
 // See that file for shared TODO items.
-
 
 // TODO: PROFESSIONAL-5.1 - Implement comment threading improvements
 // - Support unlimited nesting levels (currently only 1 level)

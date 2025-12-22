@@ -21,9 +21,9 @@ func runFFmpegNormalize(ctx context.Context, inputPath, outputPath string) error
 
 		// MP3 encoding settings optimized for music streaming
 		"-codec:a", "libmp3lame",
-		"-b:a", "128k",  // 128kbps for good quality/size balance
-		"-ar", "44100",  // Standard sample rate
-		"-ac", "2",      // Stereo
+		"-b:a", "128k", // 128kbps for good quality/size balance
+		"-ar", "44100", // Standard sample rate
+		"-ac", "2", // Stereo
 
 		// Quality settings
 		"-q:a", "2", // High quality VBR
@@ -52,11 +52,11 @@ func generateWaveformPNG(ctx context.Context, audioPath string) (string, error) 
 	// Use FFmpeg to extract raw audio samples for waveform
 	cmd := exec.CommandContext(ctx, "ffmpeg",
 		"-i", audioPath,
-		"-ac", "1",           // Convert to mono
-		"-ar", "4000",        // Low sample rate for peak extraction
-		"-f", "f32le",        // 32-bit float little endian
+		"-ac", "1", // Convert to mono
+		"-ar", "4000", // Low sample rate for peak extraction
+		"-f", "f32le", // 32-bit float little endian
 		"-acodec", "pcm_f32le",
-		"-",                  // Output to stdout
+		"-", // Output to stdout
 	)
 
 	var stdout bytes.Buffer
@@ -192,7 +192,9 @@ func extractAudioDuration(ctx context.Context, audioPath string) (float64, error
 
 	// Parse duration string to float
 	var duration float64
-	fmt.Sscanf(result.Format.Duration, "%f", &duration)
+	if _, err := fmt.Sscanf(result.Format.Duration, "%f", &duration); err != nil {
+		return 0, fmt.Errorf("failed to parse duration '%s': %w", result.Format.Duration, err)
+	}
 
 	return duration, nil
 }
@@ -215,7 +217,9 @@ func CheckFFmpegAvailable() error {
 	cmd = exec.Command("ffmpeg", "-codecs")
 	var stdout bytes.Buffer
 	cmd.Stdout = &stdout
-	cmd.Run()
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to check ffmpeg codecs: %w", err)
+	}
 
 	if !bytes.Contains(stdout.Bytes(), []byte("libmp3lame")) {
 		return fmt.Errorf("libmp3lame codec not found - ensure ffmpeg was built with LAME support")
