@@ -293,7 +293,6 @@ func (h *Handlers) UnlikePost(c *gin.Context) {
 func (h *Handlers) GetUserProfile(c *gin.Context) {
 	targetParam := c.Param("id")
 	currentUserID := c.GetString("user_id") // May be empty if not authenticated
-	fmt.Printf("🔍 GetUserProfile: targetParam=%s currentUserID=%s stream=%v\n", targetParam, currentUserID, h.stream != nil)
 
 	// Fetch user from database - accept ID, stream_user_id, or username
 	// Cast id to text to avoid UUID type comparison errors with usernames
@@ -303,7 +302,6 @@ func (h *Handlers) GetUserProfile(c *gin.Context) {
 			return
 		}
 	}
-	fmt.Printf("🔍 GetUserProfile: Found user %s (ID=%s)\n", user.Username, user.ID)
 
 	// Fetch follow stats from Stream.io (source of truth)
 	var followStats *stream.FollowStats
@@ -336,17 +334,15 @@ func (h *Handlers) GetUserProfile(c *gin.Context) {
 	var isFollowing bool
 	var isFollowedBy bool
 	if currentUserID != "" && currentUserID != user.ID && h.stream != nil {
-		fmt.Printf("🔍 GetUserProfile: Checking if %s follows %s\n", currentUserID, user.ID)
 		var err error
 		isFollowing, err = h.stream.CheckIsFollowing(currentUserID, user.ID)
 		if err != nil {
-			fmt.Printf("⚠️ GetUserProfile: Failed to check isFollowing: %v\n", err)
+			logger.WarnWithFields("Failed to check isFollowing for user profile", err)
 		}
 		isFollowedBy, err = h.stream.CheckIsFollowing(user.ID, currentUserID)
 		if err != nil {
-			fmt.Printf("⚠️ GetUserProfile: Failed to check isFollowedBy: %v\n", err)
+			logger.WarnWithFields("Failed to check isFollowedBy for user profile", err)
 		}
-		fmt.Printf("📊 GetUserProfile: isFollowing=%v isFollowedBy=%v\n", isFollowing, isFollowedBy)
 	}
 
 	// Check for pending follow request if account is private
