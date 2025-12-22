@@ -95,7 +95,9 @@ func (h *Handlers) GetMIDIPattern(c *gin.Context) {
 	// Check permissions: must be public or owned by requesting user
 	var userIDStr string
 	if userID != nil {
-		userIDStr = userID.(string)
+		if s, ok := userID.(string); ok {
+			userIDStr = s
+		}
 	}
 	if !pattern.IsPublic && pattern.UserID != userIDStr {
 		util.RespondForbidden(c, "access_denied")
@@ -135,7 +137,9 @@ func (h *Handlers) GetMIDIPatternFile(c *gin.Context) {
 	// Check permissions
 	var userIDStr string
 	if userID != nil {
-		userIDStr = userID.(string)
+		if s, ok := userID.(string); ok {
+			userIDStr = s
+		}
 	}
 	if !pattern.IsPublic && pattern.UserID != userIDStr {
 		util.RespondForbidden(c, "access_denied")

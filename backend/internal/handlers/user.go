@@ -60,8 +60,12 @@ func (h *Handlers) FollowUser(c *gin.Context) {
 	if h.wsHandler != nil {
 		// Fetch follower and followee info for the notification
 		var follower, followee models.User
-		database.DB.First(&follower, "id = ?", userID)
-		database.DB.First(&followee, "id = ?", req.TargetUserID)
+		if err := database.DB.First(&follower, "id = ?", userID).Error; err != nil {
+			logger.WarnWithFields("Failed to fetch follower for notification", err)
+		}
+		if err := database.DB.First(&followee, "id = ?", req.TargetUserID).Error; err != nil {
+			logger.WarnWithFields("Failed to fetch followee for notification", err)
+		}
 
 		// Get updated follower count for the target user
 		followerCount := 0
@@ -629,7 +633,9 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 	}
 
 	// Reload user
-	database.DB.First(currentUser, "id = ?", currentUser.ID)
+	if err := database.DB.First(currentUser, "id = ?", currentUser.ID).Error; err != nil {
+		logger.WarnWithFields("Failed to reload user after update", err)
+	}
 
 	// Sync user to Elasticsearch (async)
 	if h.search != nil {

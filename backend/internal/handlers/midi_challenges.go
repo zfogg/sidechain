@@ -213,7 +213,13 @@ func (h *Handlers) CreateMIDIChallengeEntry(c *gin.Context) {
 		entry.PostID = req.PostID
 		// Get audio URL from post
 		var post models.AudioPost
-		database.DB.First(&post, "id = ?", *req.PostID)
+		if err := database.DB.First(&post, "id = ?", *req.PostID).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error":   "post_not_found",
+				"message": "Referenced post not found",
+			})
+			return
+		}
 		entry.AudioURL = post.AudioURL
 		// Link MIDI if post has it
 		if post.MIDIPatternID != nil {
@@ -372,7 +378,9 @@ func (h *Handlers) VoteMIDIChallengeEntry(c *gin.Context) {
 	}
 
 	// Update entry vote count
-	database.DB.Model(&entry).Update("vote_count", gorm.Expr("vote_count + 1"))
+	if err := database.DB.Model(&entry).Update("vote_count", gorm.Expr("vote_count + 1")).Error; err != nil {
+		logger.WarnWithFields("Failed to update vote count for entry", err)
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Vote recorded successfully",

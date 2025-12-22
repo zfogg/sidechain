@@ -126,7 +126,8 @@ func (h *Handlers) DownloadProjectFile(c *gin.Context) {
 	}
 
 	// Check access
-	if !projectFile.IsPublic && (userID == nil || projectFile.UserID != userID.(string)) {
+	userIDStr, _ := userID.(string)
+	if !projectFile.IsPublic && (userID == nil || projectFile.UserID != userIDStr) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "access_denied"})
 		return
 	}

@@ -26,7 +26,9 @@ func CorrelationMiddleware() gin.HandlerFunc {
 		if correlationID == "" {
 			// Fall back to request ID if correlation ID not provided
 			if reqID, exists := c.Get("request_id"); exists {
-				correlationID = reqID.(string)
+				if s, ok := reqID.(string); ok {
+					correlationID = s
+				}
 			}
 		}
 
