@@ -8,10 +8,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/metrics"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/recommendations"
 	"github.com/zfogg/sidechain/backend/internal/util"
+	"go.uber.org/zap"
 )
 
 // trackImpression records that a recommendation was shown to a user
@@ -28,7 +30,7 @@ func trackImpression(userID, postID, source string, position int, score float64,
 	// Async write - don't block the request
 	go func() {
 		if err := database.DB.Create(&impression).Error; err != nil {
-			fmt.Printf("Warning: Failed to track impression: %v\n", err)
+			logger.Log.Warn("Failed to track impression", zap.Error(err))
 		}
 	}()
 }
@@ -54,7 +56,9 @@ func trackImpressions(userID, source string, scores []recommendations.PostScore)
 	// Async batch insert - don't block the request
 	go func() {
 		if err := database.DB.CreateInBatches(&impressions, 100).Error; err != nil {
-			fmt.Printf("Warning: Failed to track %d impressions: %v\n", len(impressions), err)
+			logger.Log.Warn("Failed to track impressions",
+				zap.Int("count", len(impressions)),
+				zap.Error(err))
 		}
 	}()
 }
@@ -399,7 +403,7 @@ func (h *Handlers) NotInterestedInPost(c *gin.Context) {
 	if h.gorse != nil {
 		go func() {
 			if err := h.gorse.SyncFeedback(userID, postID, "dislike"); err != nil {
-				fmt.Printf("Warning: Failed to sync dislike to Gorse: %v\n", err)
+				logger.Log.Warn("Failed to sync dislike to Gorse", zap.Error(err))
 			}
 		}()
 	}
@@ -428,7 +432,7 @@ func (h *Handlers) SkipPost(c *gin.Context) {
 	if h.gorse != nil {
 		go func() {
 			if err := h.gorse.SyncFeedback(userID, postID, "skip"); err != nil {
-				fmt.Printf("Warning: Failed to sync skip to Gorse: %v\n", err)
+				logger.Log.Warn("Failed to sync skip to Gorse", zap.Error(err))
 			}
 		}()
 	}
@@ -457,7 +461,7 @@ func (h *Handlers) HidePost(c *gin.Context) {
 	if h.gorse != nil {
 		go func() {
 			if err := h.gorse.SyncFeedback(userID, postID, "hide"); err != nil {
-				fmt.Printf("Warning: Failed to sync hide to Gorse: %v\n", err)
+				logger.Log.Warn("Failed to sync hide to Gorse", zap.Error(err))
 			}
 		}()
 	}
@@ -888,7 +892,7 @@ func (h *Handlers) TrackRecommendationClick(c *gin.Context) {
 	if h.gorse != nil && req.Completed {
 		go func() {
 			if err := h.gorse.SyncFeedback(userID, req.PostID, "like"); err != nil {
-				fmt.Printf("Warning: Failed to sync completed play to Gorse: %v\n", err)
+				logger.Log.Warn("Failed to sync completed play to Gorse", zap.Error(err))
 			}
 		}()
 	}

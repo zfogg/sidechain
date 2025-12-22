@@ -7,9 +7,11 @@ import (
 	"time"
 
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/recommendations"
 	"github.com/zfogg/sidechain/backend/internal/stream"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -76,7 +78,7 @@ func (s *Service) GetTimeline(ctx context.Context, userID string, limit, offset 
 	mutedUserIDs, err := s.getMutedUserIDs(userID)
 	if err != nil {
 		// Log but continue - don't break timeline if mute lookup fails
-		fmt.Printf("⚠️ Failed to get muted users: %v\n", err)
+		logger.Log.Warn("Failed to get muted users", zap.Error(err))
 		mutedUserIDs = []string{}
 	}
 	mutedUserSet := make(map[string]bool, len(mutedUserIDs))
@@ -125,29 +127,31 @@ func (s *Service) GetTimeline(ctx context.Context, userID string, limit, offset 
 		result := <-resultsChan
 		if result.err != nil {
 			// Log but continue - we don't want one source failure to break the timeline
-			fmt.Printf("⚠️ Timeline source %s failed: %v\n", result.source, result.err)
+			logger.Log.Warn("Timeline source failed",
+				zap.String("source", result.source),
+				zap.Error(result.err))
 			continue
 		}
 
 		switch result.source {
 		case "following":
 			followingCount = len(result.items)
-			fmt.Printf("📊 Timeline: following posts = %d\n", followingCount)
+			logger.Log.Debug("Timeline: following posts fetched", zap.Int("count", followingCount))
 		case "gorse":
 			gorseCount = len(result.items)
-			fmt.Printf("📊 Timeline: gorse recommendations = %d\n", gorseCount)
+			logger.Log.Debug("Timeline: gorse recommendations fetched", zap.Int("count", gorseCount))
 		case "trending":
 			trendingCount = len(result.items)
-			fmt.Printf("📊 Timeline: trending posts = %d\n", trendingCount)
+			logger.Log.Debug("Timeline: trending posts fetched", zap.Int("count", trendingCount))
 		case "recent":
 			recentCount = len(result.items)
-			fmt.Printf("📊 Timeline: recent posts = %d\n", recentCount)
+			logger.Log.Debug("Timeline: recent posts fetched", zap.Int("count", recentCount))
 		}
 
 		allItems = append(allItems, result.items...)
 	}
 
-	fmt.Printf("📊 Timeline: allItems count after collection = %d\n", len(allItems))
+	logger.Log.Debug("Timeline: allItems count after collection", zap.Int("count", len(allItems)))
 
 	// Deduplicate by post ID
 	seen := make(map[string]bool)
@@ -158,7 +162,7 @@ func (s *Service) GetTimeline(ctx context.Context, userID string, limit, offset 
 			uniqueItems = append(uniqueItems, item)
 		}
 	}
-	fmt.Printf("📊 Timeline: uniqueItems after dedup = %d\n", len(uniqueItems))
+	logger.Log.Debug("Timeline: uniqueItems after dedup", zap.Int("count", len(uniqueItems)))
 
 	// Filter out posts from muted users
 	filteredItems := make([]TimelineItem, 0, len(uniqueItems))
@@ -172,11 +176,15 @@ func (s *Service) GetTimeline(ctx context.Context, userID string, limit, offset 
 		}
 		filteredItems = append(filteredItems, item)
 	}
-	fmt.Printf("📊 Timeline: filteredItems after mute filtering = %d\n", len(filteredItems))
+	logger.Log.Debug("Timeline: filteredItems after mute filtering", zap.Int("count", len(filteredItems)))
 
 	// Rank and sort items
 	rankedItems := s.rankItems(filteredItems, userID)
-	fmt.Printf("📊 Timeline: rankedItems after ranking = %d, limit=%d, offset=%d, hasMore=%v\n", len(rankedItems), limit, offset, (offset+limit) < len(rankedItems))
+	logger.Log.Debug("Timeline: rankedItems after ranking",
+		zap.Int("count", len(rankedItems)),
+		zap.Int("limit", limit),
+		zap.Int("offset", offset),
+		zap.Bool("has_more", (offset+limit) < len(rankedItems)))
 
 	// Apply pagination
 	start := offset

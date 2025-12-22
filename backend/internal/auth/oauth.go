@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -15,6 +14,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
+	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"
 )
@@ -57,13 +57,15 @@ type DiscordUserInfo struct {
 
 // HandleGoogleCallback processes Google OAuth callback
 func (s *Service) HandleGoogleCallback(code string) (*AuthResponse, error) {
-	log.Printf("[OAuth/Service] HandleGoogleCallback: Starting token exchange")
+	logger.Log.Debug("HandleGoogleCallback: Starting token exchange")
 	userInfo, err := s.getGoogleUserInfo(code)
 	if err != nil {
-		log.Printf("[OAuth/Service] HandleGoogleCallback: Failed to get user info: %v", err)
+		logger.Log.Warn("HandleGoogleCallback: Failed to get user info", zap.Error(err))
 		return nil, fmt.Errorf("failed to get Google user info: %w", err)
 	}
-	log.Printf("[OAuth/Service] HandleGoogleCallback: Got user info - email: %s, name: %s", userInfo.Email, userInfo.Name)
+	logger.Log.Debug("HandleGoogleCallback: Got user info",
+		zap.String("email", userInfo.Email),
+		zap.String("name", userInfo.Name))
 
 	return s.findOrCreateUserFromOAuth("google", userInfo)
 }
@@ -80,7 +82,9 @@ func (s *Service) HandleDiscordCallback(code string) (*AuthResponse, error) {
 
 // findOrCreateUserFromOAuth implements email-based account unification
 func (s *Service) findOrCreateUserFromOAuth(provider string, userInfo *OAuthUserInfo) (*AuthResponse, error) {
-	log.Printf("[OAuth/Service] findOrCreateUserFromOAuth: Looking up OAuth account - provider: %s, providerUserID: %s", provider, userInfo.ID)
+	logger.Log.Debug("findOrCreateUserFromOAuth: Looking up OAuth account",
+		zap.String("provider", provider),
+		zap.String("provider_user_id", userInfo.ID))
 
 	// First, check if this OAuth account is already linked
 	var existingOAuth models.OAuthProvider
@@ -88,29 +92,32 @@ func (s *Service) findOrCreateUserFromOAuth(provider string, userInfo *OAuthUser
 		Preload("User").First(&existingOAuth).Error
 
 	if err == nil {
-		log.Printf("[OAuth/Service] findOrCreateUserFromOAuth: Found existing OAuth link for user: %s", existingOAuth.User.Username)
+		logger.Log.Debug("findOrCreateUserFromOAuth: Found existing OAuth link for user",
+			zap.String("username", existingOAuth.User.Username))
 		// OAuth account already linked - update tokens and return existing user
 		s.updateOAuthTokens(&existingOAuth, userInfo)
 		return s.generateAuthResponse(&existingOAuth.User)
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-		log.Printf("[OAuth/Service] findOrCreateUserFromOAuth: Database error checking OAuth: %v", err)
+		logger.Log.Warn("findOrCreateUserFromOAuth: Database error checking OAuth", zap.Error(err))
 		return nil, fmt.Errorf("database error checking OAuth: %w", err)
 	}
 
-	log.Printf("[OAuth/Service] findOrCreateUserFromOAuth: No existing OAuth link, checking by email: %s", userInfo.Email)
+	logger.Log.Debug("findOrCreateUserFromOAuth: No existing OAuth link, checking by email",
+		zap.String("email", userInfo.Email))
 
 	// Check if user exists by email (account unification)
 	existingUser, err := s.FindUserByEmail(userInfo.Email)
 	if err == nil {
-		log.Printf("[OAuth/Service] findOrCreateUserFromOAuth: Found existing user by email: %s, linking OAuth", existingUser.Username)
+		logger.Log.Debug("findOrCreateUserFromOAuth: Found existing user by email, linking OAuth",
+			zap.String("username", existingUser.Username))
 		// User exists with this email - link OAuth to existing account
 		return s.linkOAuthToExistingUser(existingUser, provider, userInfo)
 	} else if !errors.Is(err, ErrUserNotFound) {
-		log.Printf("[OAuth/Service] findOrCreateUserFromOAuth: Database error finding user: %v", err)
+		logger.Log.Warn("findOrCreateUserFromOAuth: Database error finding user", zap.Error(err))
 		return nil, fmt.Errorf("database error finding user: %w", err)
 	}
 
-	log.Printf("[OAuth/Service] findOrCreateUserFromOAuth: No existing user, creating new account")
+	logger.Log.Debug("findOrCreateUserFromOAuth: No existing user, creating new account")
 	// No existing user - create new account with OAuth
 	return s.createUserWithOAuth(provider, userInfo)
 }
@@ -227,7 +234,7 @@ func (s *Service) createUserWithOAuth(provider string, userInfo *OAuthUserInfo) 
 	if s.streamClient != nil {
 		if err := s.streamClient.CreateUser(user.StreamUserID, user.Username); err != nil {
 			// Log but don't fail registration - getstream.io user can be created later
-			fmt.Printf("Warning: failed to create getstream.io user: %v\n", err)
+			logger.WarnWithFields("Failed to create getstream.io user", err)
 		}
 	}
 
@@ -236,38 +243,42 @@ func (s *Service) createUserWithOAuth(provider string, userInfo *OAuthUserInfo) 
 
 // getGoogleUserInfo fetches user info from Google OAuth
 func (s *Service) getGoogleUserInfo(code string) (*OAuthUserInfo, error) {
-	log.Printf("[OAuth/Service] getGoogleUserInfo: Exchanging authorization code for token")
+	logger.Log.Debug("getGoogleUserInfo: Exchanging authorization code for token")
 	token, err := s.googleConfig.Exchange(context.Background(), code)
 	if err != nil {
-		log.Printf("[OAuth/Service] getGoogleUserInfo: Token exchange failed: %v", err)
+		logger.Log.Warn("getGoogleUserInfo: Token exchange failed", zap.Error(err))
 		return nil, fmt.Errorf("failed to exchange code: %w", err)
 	}
-	log.Printf("[OAuth/Service] getGoogleUserInfo: Token exchange successful, fetching user info")
+	logger.Log.Debug("getGoogleUserInfo: Token exchange successful, fetching user info")
 
 	client := s.googleConfig.Client(context.Background(), token)
 	resp, err := client.Get("https://openidconnect.googleapis.com/v1/userinfo")
 	if err != nil {
-		log.Printf("[OAuth/Service] getGoogleUserInfo: Failed to fetch user info: %v", err)
+		logger.Log.Warn("getGoogleUserInfo: Failed to fetch user info", zap.Error(err))
 		return nil, fmt.Errorf("failed to get user info: %w", err)
 	}
 	defer resp.Body.Close()
 
-	log.Printf("[OAuth/Service] getGoogleUserInfo: User info response status: %d", resp.StatusCode)
+	logger.Log.Debug("getGoogleUserInfo: User info response received",
+		zap.Int("status_code", resp.StatusCode))
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Printf("[OAuth/Service] getGoogleUserInfo: Failed to read response body: %v", err)
+		logger.Log.Warn("getGoogleUserInfo: Failed to read response body", zap.Error(err))
 		return nil, fmt.Errorf("failed to read response: %w", err)
 	}
 
 	var googleUser GoogleUserInfo
 	err = json.Unmarshal(body, &googleUser)
 	if err != nil {
-		log.Printf("[OAuth/Service] getGoogleUserInfo: Failed to parse JSON: %v", err)
+		logger.Log.Warn("getGoogleUserInfo: Failed to parse JSON", zap.Error(err))
 		return nil, fmt.Errorf("failed to parse user info: %w", err)
 	}
 
-	log.Printf("[OAuth/Service] getGoogleUserInfo: Parsed user - sub: %s, email: %s, name: %s", googleUser.Sub, googleUser.Email, googleUser.Name)
+	logger.Log.Debug("getGoogleUserInfo: Parsed user",
+		zap.String("sub", googleUser.Sub),
+		zap.String("email", googleUser.Email),
+		zap.String("name", googleUser.Name))
 
 	// Extract token expiry time
 	var tokenExpiry *time.Time

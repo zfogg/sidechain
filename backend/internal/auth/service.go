@@ -11,6 +11,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/stream"
+	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"
@@ -227,13 +228,16 @@ func (s *Service) generateAuthResponse(user *models.User) (*AuthResponse, error)
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	fmt.Printf("[AUTH] Signing token for user %s with secret length: %d\n", user.Username, len(s.jwtSecret))
+	logger.Log.Debug("Signing token for user",
+		zap.String("username", user.Username),
+		zap.Int("secret_length", len(s.jwtSecret)))
 	tokenString, err := token.SignedString(s.jwtSecret)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sign token: %w", err)
 	}
 
-	fmt.Printf("[AUTH] Token signed successfully: %.50s... (len=%d)\n", tokenString, len(tokenString))
+	logger.Log.Debug("Token signed successfully",
+		zap.Int("token_length", len(tokenString)))
 	return &AuthResponse{
 		Token:     tokenString,
 		User:      *user,
@@ -356,7 +360,7 @@ func (s *Service) ResetPassword(token, newPassword string) error {
 	resetToken.Used = true
 	if err := database.DB.Save(&resetToken).Error; err != nil {
 		// Log but don't fail - password is already updated
-		fmt.Printf("Warning: failed to mark reset token as used: %v\n", err)
+		logger.WarnWithFields("Failed to mark reset token as used", err)
 	}
 
 	return nil
