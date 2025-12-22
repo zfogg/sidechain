@@ -1409,7 +1409,9 @@ func (h *Handlers) DownloadPost(c *gin.Context) {
 	}
 
 	// Reload post to get updated download count
-	database.DB.First(&post, "id = ?", postID)
+	if err := database.DB.First(&post, "id = ?", postID).Error; err != nil {
+		logger.WarnWithFields("Failed to reload post after download count increment", err)
+	}
 
 	// Real-time Gorse feedback sync
 	if h.gorse != nil {
@@ -1423,7 +1425,9 @@ func (h *Handlers) DownloadPost(c *gin.Context) {
 	// Generate filename: {username}_{title}_{bpm}bpm.mp3
 	// For now, use a simple format since we don't have title field
 	var user models.User
-	database.DB.First(&user, "id = ?", post.UserID)
+	if err := database.DB.First(&user, "id = ?", post.UserID).Error; err != nil {
+		logger.WarnWithFields("Failed to fetch user for download filename", err)
+	}
 	username := user.Username
 	if username == "" {
 		username = "user"

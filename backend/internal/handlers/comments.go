@@ -498,7 +498,10 @@ func (h *Handlers) processMentions(commentID string, usernames []string, authorI
 			CommentID:       commentID,
 			MentionedUserID: user.ID,
 		}
-		database.DB.Create(&mention)
+		if err := database.DB.Create(&mention).Error; err != nil {
+			logger.WarnWithFields("Failed to create mention record", err)
+			continue
+		}
 
 		// Send notification via Stream.io
 		if h.stream != nil {
@@ -507,7 +510,9 @@ func (h *Handlers) processMentions(commentID string, usernames []string, authorI
 
 		// Mark notification as sent
 		mention.NotificationSent = true
-		database.DB.Save(&mention)
+		if err := database.DB.Save(&mention).Error; err != nil {
+			logger.WarnWithFields("Failed to update mention notification status", err)
+		}
 	}
 }
 
@@ -519,7 +524,10 @@ func (h *Handlers) notifyCommentOnPost(comment models.Comment, post models.Audio
 
 	// Get commenter info for the notification
 	var commenter models.User
-	database.DB.First(&commenter, "id = ?", comment.UserID)
+	if err := database.DB.First(&commenter, "id = ?", comment.UserID).Error; err != nil {
+		logger.WarnWithFields("Failed to fetch commenter for notification", err)
+		return
+	}
 
 	// NotifyComment(actorUserID, targetUserID, loopID, commentText)
 	// Pass a preview of the comment content for the notification

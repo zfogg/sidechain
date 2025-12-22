@@ -63,7 +63,9 @@ func (h *Handlers) UpdateActivityStatusSettings(c *gin.Context) {
 	}
 
 	// Reload user to get updated values
-	database.DB.First(&currentUser, "id = ?", currentUser.ID)
+	if err := database.DB.First(&currentUser, "id = ?", currentUser.ID).Error; err != nil {
+		logger.WarnWithFields("Failed to reload user after activity status update", err)
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":               "success",
