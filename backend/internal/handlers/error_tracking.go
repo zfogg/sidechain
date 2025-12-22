@@ -143,7 +143,9 @@ func (h *ErrorTrackingHandler) GetErrorStats(c *gin.Context) {
 
 	hours := 24 // Default to last 24 hours
 	if h, ok := c.GetQuery("hours"); ok {
-		fmt.Sscanf(h, "%d", &hours)
+		if _, err := fmt.Sscanf(h, "%d", &hours); err != nil {
+			hours = 24 // Reset to default if parsing fails
+		}
 		if hours < 1 {
 			hours = 1
 		}

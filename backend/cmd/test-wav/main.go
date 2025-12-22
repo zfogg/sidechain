@@ -14,9 +14,15 @@ import (
 
 func main() {
 	// Download first post's audio
-	resp, _ := http.Get("https://sidechain-media.s3.us-east-1.amazonaws.com/uploads/b3516927-1e37-40b9-a6d6-d83ea3517ca4/93cf4f27-a59c-42af-a8e6-2a7158c3ad31.mp3")
-	audioData, _ := io.ReadAll(resp.Body)
-	resp.Body.Close()
+	resp, err := http.Get("https://sidechain-media.s3.us-east-1.amazonaws.com/uploads/b3516927-1e37-40b9-a6d6-d83ea3517ca4/93cf4f27-a59c-42af-a8e6-2a7158c3ad31.mp3")
+	if err != nil {
+		log.Fatalf("Failed to download audio: %v", err)
+	}
+	defer resp.Body.Close()
+	audioData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatalf("Failed to read response body: %v", err)
+	}
 
 	fmt.Printf("Downloaded %d bytes\n", len(audioData))
 
@@ -33,12 +39,16 @@ func main() {
 	cmd.Stdin = bytes.NewReader(audioData)
 	var stdout bytes.Buffer
 	cmd.Stdout = &stdout
-	cmd.Run()
+	if err := cmd.Run(); err != nil {
+		log.Fatalf("Failed to convert audio: %v", err)
+	}
 
 	fmt.Printf("Converted to %d bytes WAV\n", stdout.Len())
 
 	// Save to file
-	os.WriteFile("/tmp/test.wav", stdout.Bytes(), 0644)
+	if err := os.WriteFile("/tmp/test.wav", stdout.Bytes(), 0644); err != nil {
+		log.Fatalf("Failed to save WAV file: %v", err)
+	}
 	fmt.Println("Saved to /tmp/test.wav")
 
 	// Try to decode
