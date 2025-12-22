@@ -318,15 +318,18 @@ void StreamChatClient::queryChannels(ChannelsCallback callback, int limit, int o
         if (response.isObject()) {
           auto channelsArray = response.getProperty("channels", juce::var());
           if (channelsArray.isArray()) {
-            Log::debug("StreamChatClient: Found channels array with " + juce::String(channelsArray.getArray()->size()) +
-                       " channels");
-            // Note: Stream.io queryChannels doesn't return member data in the
-            // list response, so we can't filter by members. Just return all
-            // channels - the API already restricts access to channels the user
-            // has permission to view.
-            for (int i = 0; i < channelsArray.getArray()->size(); i++) {
-              auto channelData = channelsArray.getArray()->getReference(i);
-              channels.push_back(parseChannel(channelData));
+            auto *arr = channelsArray.getArray();
+            if (arr != nullptr) {
+              Log::debug("StreamChatClient: Found channels array with " + juce::String(arr->size()) +
+                         " channels");
+              // Note: Stream.io queryChannels doesn't return member data in the
+              // list response, so we can't filter by members. Just return all
+              // channels - the API already restricts access to channels the user
+              // has permission to view.
+              for (int i = 0; i < arr->size(); i++) {
+                auto channelData = arr->getReference(i);
+                channels.push_back(parseChannel(channelData));
+              }
             }
           } else {
             Log::debug("StreamChatClient: No 'channels' property in response "
@@ -516,9 +519,12 @@ void StreamChatClient::searchMessages(const juce::String &query, const juce::var
         if (response.isObject()) {
           auto results = response.getProperty("results", juce::var());
           if (results.isArray()) {
-            for (int i = 0; i < results.getArray()->size(); i++) {
-              auto messageData = results.getArray()->getReference(i);
-              messages.push_back(parseMessage(messageData));
+            auto *arr = results.getArray();
+            if (arr != nullptr) {
+              for (int i = 0; i < arr->size(); i++) {
+                auto messageData = arr->getReference(i);
+                messages.push_back(parseMessage(messageData));
+              }
             }
           }
         }
@@ -565,9 +571,12 @@ void StreamChatClient::queryPresence(const std::vector<juce::String> &userIds, P
         if (response.isObject()) {
           auto usersArray = response.getProperty("users", juce::var());
           if (usersArray.isArray()) {
-            for (int i = 0; i < usersArray.getArray()->size(); i++) {
-              auto userData = usersArray.getArray()->getReference(i);
-              presenceList.push_back(parsePresence(userData));
+            auto *arr = usersArray.getArray();
+            if (arr != nullptr) {
+              for (int i = 0; i < arr->size(); i++) {
+                auto userData = arr->getReference(i);
+                presenceList.push_back(parsePresence(userData));
+              }
             }
           }
         }

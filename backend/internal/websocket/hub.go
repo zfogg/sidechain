@@ -222,13 +222,14 @@ func (h *Hub) broadcastMessage(message *Message) {
 
 // sendToUser sends a message to all connections for a specific user
 func (h *Hub) sendToUser(userID string, message *Message) {
-	// Marshal message outside the lock to avoid holding the lock during JSON encoding
+	// Marshal message before acquiring lock to minimize lock hold time
 	data, err := json.Marshal(message)
 	if err != nil {
 		log.Printf("Error marshaling unicast message: %v", err)
 		return
 	}
 
+	// Make a copy of clients under lock to avoid TOCTOU race condition
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 
@@ -238,6 +239,11 @@ func (h *Hub) sendToUser(userID string, message *Message) {
 	}
 
 	for client := range clients {
+		clientsCopy = append(clientsCopy, client)
+	}
+	h.mu.RUnlock()
+
+	for _, client := range clientsCopy {
 		select {
 		case client.send <- data:
 			h.metrics.MessagesSent.Add(1)

@@ -128,7 +128,10 @@ func (c *GorseRESTClient) SyncUser(userID string) error {
 		Comment: fmt.Sprintf("%s - %s", user.Username, user.DisplayName),
 	}
 
-	_, err := c.makeRequest(context.Background(), "POST", "/api/user", gorseUser)
+	resp, err := c.makeRequest(context.Background(), "POST", "/api/user", gorseUser)
+	if resp != nil {
+		resp.Body.Close()
+	}
 	return err
 }
 
@@ -169,7 +172,10 @@ func (c *GorseRESTClient) SyncItem(postID string) error {
 		Comment:    fmt.Sprintf("%s - %s", post.User.Username, post.DAW),
 	}
 
-	_, err := c.makeRequest(context.Background(), "POST", "/api/item", gorseItem)
+	resp, err := c.makeRequest(context.Background(), "POST", "/api/item", gorseItem)
+	if resp != nil {
+		resp.Body.Close()
+	}
 	return err
 }
 
@@ -184,7 +190,10 @@ func (c *GorseRESTClient) SyncFeedback(userID, postID, feedbackType string) erro
 		},
 	}
 
-	_, err := c.makeRequest(context.Background(), "POST", "/api/feedback", feedback)
+	resp, err := c.makeRequest(context.Background(), "POST", "/api/feedback", feedback)
+	if resp != nil {
+		resp.Body.Close()
+	}
 	return err
 }
 
@@ -372,7 +381,10 @@ func (c *GorseRESTClient) BatchSyncUsers() error {
 		})
 	}
 
-	_, err := c.makeRequest(context.Background(), "POST", "/api/users", gorseUsers)
+	resp, err := c.makeRequest(context.Background(), "POST", "/api/users", gorseUsers)
+	if resp != nil {
+		resp.Body.Close()
+	}
 	return err
 }
 
@@ -416,7 +428,10 @@ func (c *GorseRESTClient) BatchSyncItems() error {
 		})
 	}
 
-	_, err := c.makeRequest(context.Background(), "POST", "/api/items", gorseItems)
+	resp, err := c.makeRequest(context.Background(), "POST", "/api/items", gorseItems)
+	if resp != nil {
+		resp.Body.Close()
+	}
 	return err
 }
 
@@ -450,7 +465,10 @@ func (c *GorseRESTClient) BatchSyncFeedback() error {
 			})
 		}
 
-		_, err := c.makeRequest(context.Background(), "POST", "/api/feedback", feedbacks)
+		resp, err := c.makeRequest(context.Background(), "POST", "/api/feedback", feedbacks)
+		if resp != nil {
+			resp.Body.Close()
+		}
 		if err != nil {
 			return fmt.Errorf("failed to sync feedback batch: %w", err)
 		}
@@ -498,7 +516,10 @@ func (c *GorseRESTClient) SyncUserAsItem(userID string) error {
 		Comment:    fmt.Sprintf("@%s - %s", user.Username, user.DisplayName),
 	}
 
-	_, err := c.makeRequest(context.Background(), "POST", "/api/item", gorseItem)
+	resp, err := c.makeRequest(context.Background(), "POST", "/api/item", gorseItem)
+	if resp != nil {
+		resp.Body.Close()
+	}
 	return err
 }
 
@@ -514,7 +535,10 @@ func (c *GorseRESTClient) SyncFollowEvent(followerID, followeeID string) error {
 		},
 	}
 
-	_, err := c.makeRequest(context.Background(), "POST", "/api/feedback", feedback)
+	resp, err := c.makeRequest(context.Background(), "POST", "/api/feedback", feedback)
+	if resp != nil {
+		resp.Body.Close()
+	}
 	return err
 }
 
@@ -523,7 +547,10 @@ func (c *GorseRESTClient) SyncFollowEvent(followerID, followeeID string) error {
 func (c *GorseRESTClient) RemoveFollowEvent(followerID, followeeID string) error {
 	endpoint := fmt.Sprintf("/api/feedback/%s/%s/%s",
 		FeedbackTypeFollow, followerID, UserItemPrefix+followeeID)
-	_, err := c.makeRequest(context.Background(), "DELETE", endpoint, nil)
+	resp, err := c.makeRequest(context.Background(), "DELETE", endpoint, nil)
+	if resp != nil {
+		resp.Body.Close()
+	}
 	// Ignore errors - feedback might not exist
 	if err != nil {
 		// Log but don't fail - the feedback might not exist
@@ -681,7 +708,10 @@ func (c *GorseRESTClient) BatchSyncUserItems() error {
 			end = len(gorseItems)
 		}
 
-		_, err := c.makeRequest(context.Background(), "POST", "/api/items", gorseItems[i:end])
+		resp, err := c.makeRequest(context.Background(), "POST", "/api/items", gorseItems[i:end])
+		if resp != nil {
+			resp.Body.Close()
+		}
 		if err != nil {
 			return fmt.Errorf("failed to sync user items batch: %w", err)
 		}
@@ -726,7 +756,10 @@ func (c *GorseRESTClient) BatchSyncFollowsFromList(follows []struct {
 			})
 		}
 
-		_, err := c.makeRequest(context.Background(), "POST", "/api/feedback", feedbacks)
+		resp, err := c.makeRequest(context.Background(), "POST", "/api/feedback", feedbacks)
+		if resp != nil {
+			resp.Body.Close()
+		}
 		if err != nil {
 			return fmt.Errorf("failed to sync follow batch: %w", err)
 		}
