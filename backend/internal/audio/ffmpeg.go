@@ -254,7 +254,10 @@ func extractFloat(json, key string) float64 {
 	}
 
 	valueStr := json[start : start+end]
-	value, _ := strconv.ParseFloat(valueStr, 64)
+	value, err := strconv.ParseFloat(valueStr, 64)
+	if err != nil {
+		return 0
+	}
 	return value
 }
 
@@ -276,7 +279,9 @@ func CheckFFmpegInstallation() error {
 	cmd = exec.Command("ffmpeg", "-codecs")
 	var stdout bytes.Buffer
 	cmd.Stdout = &stdout
-	cmd.Run()
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to check ffmpeg codecs: %w", err)
+	}
 
 	if !strings.Contains(stdout.String(), "libmp3lame") {
 		return fmt.Errorf("libmp3lame codec not found - install with: brew install ffmpeg --with-lame")

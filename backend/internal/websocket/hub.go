@@ -231,13 +231,13 @@ func (h *Hub) sendToUser(userID string, message *Message) {
 
 	// Make a copy of clients under lock to avoid TOCTOU race condition
 	h.mu.RLock()
+	defer h.mu.RUnlock()
+
 	clients, ok := h.clients[userID]
 	if !ok || len(clients) == 0 {
-		h.mu.RUnlock()
 		return
 	}
-	// Copy client pointers to slice to iterate safely after releasing lock
-	clientsCopy := make([]*Client, 0, len(clients))
+
 	for client := range clients {
 		clientsCopy = append(clientsCopy, client)
 	}

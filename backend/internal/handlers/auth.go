@@ -817,7 +817,9 @@ func (h *AuthHandlers) UploadProfilePicture(c *gin.Context) {
 	}
 
 	// Update user's profile picture URL in database (user-uploaded picture)
-	database.DB.Model(&models.User{}).Where("id = ?", userID).Update("profile_picture_url", result.URL)
+	if err := database.DB.Model(&models.User{}).Where("id = ?", userID).Update("profile_picture_url", result.URL).Error; err != nil {
+		logger.WarnWithFields("Failed to update profile picture URL for user "+userID.(string), err)
+	}
 
 	// Sync profile picture to Stream.io
 	go func() {

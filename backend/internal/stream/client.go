@@ -706,11 +706,21 @@ func (c *Client) GetFollowStats(userID string) (*FollowStats, error) {
 	// Extract counts via JSON marshaling since SDK fields are unexported
 	var followerData, followingData followStatsJSON
 
-	followerJSON, _ := json.Marshal(stats)
-	json.Unmarshal(followerJSON, &followerData)
+	followerJSON, err := json.Marshal(stats)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal follower stats: %w", err)
+	}
+	if err := json.Unmarshal(followerJSON, &followerData); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal follower stats: %w", err)
+	}
 
-	followingJSON, _ := json.Marshal(followingStats)
-	json.Unmarshal(followingJSON, &followingData)
+	followingJSON, err := json.Marshal(followingStats)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal following stats: %w", err)
+	}
+	if err := json.Unmarshal(followingJSON, &followingData); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal following stats: %w", err)
+	}
 
 	result := &FollowStats{
 		FollowerCount:  followerData.Results.Followers.Count,

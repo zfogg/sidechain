@@ -326,7 +326,8 @@ void AppStore::toggleLike(const juce::String &postId) {
     for (auto &post : feedState.posts) {
       if (post->id == postId) {
         post->isLiked = !post->isLiked;
-        post->likeCount += post->isLiked ? 1 : -1;
+        // BUG FIX: Prevent negative like counts
+        post->likeCount = post->isLiked ? post->likeCount + 1 : std::max(0, post->likeCount - 1);
       }
     }
   }
@@ -334,14 +335,16 @@ void AppStore::toggleLike(const juce::String &postId) {
   for (auto &post : newState.savedPosts.posts) {
     if (post->id == postId) {
       post->isLiked = !post->isLiked;
-      post->likeCount += post->isLiked ? 1 : -1;
+      // BUG FIX: Prevent negative like counts
+      post->likeCount = post->isLiked ? post->likeCount + 1 : std::max(0, post->likeCount - 1);
     }
   }
 
   for (auto &post : newState.archivedPosts.posts) {
     if (post->id == postId) {
       post->isLiked = !post->isLiked;
-      post->likeCount += post->isLiked ? 1 : -1;
+      // BUG FIX: Prevent negative like counts
+      post->likeCount = post->isLiked ? post->likeCount + 1 : std::max(0, post->likeCount - 1);
     }
   }
   sliceManager.posts->setState(newState);
@@ -390,7 +393,8 @@ void AppStore::toggleSave(const juce::String &postId) {
     for (auto &post : feedState.posts) {
       if (post->id == postId) {
         post->isSaved = !post->isSaved;
-        post->saveCount += post->isSaved ? 1 : -1;
+        // BUG FIX: Prevent negative save counts
+        post->saveCount = post->isSaved ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
       }
     }
   }
@@ -398,14 +402,16 @@ void AppStore::toggleSave(const juce::String &postId) {
   for (auto &post : newState.savedPosts.posts) {
     if (post->id == postId) {
       post->isSaved = !post->isSaved;
-      post->saveCount += post->isSaved ? 1 : -1;
+      // BUG FIX: Prevent negative save counts
+      post->saveCount = post->isSaved ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
     }
   }
 
   for (auto &post : newState.archivedPosts.posts) {
     if (post->id == postId) {
       post->isSaved = !post->isSaved;
-      post->saveCount += post->isSaved ? 1 : -1;
+      // BUG FIX: Prevent negative save counts
+      post->saveCount = post->isSaved ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
     }
   }
   sliceManager.posts->setState(newState);
@@ -454,7 +460,8 @@ void AppStore::toggleRepost(const juce::String &postId) {
     for (auto &post : feedState.posts) {
       if (post->id == postId) {
         post->isReposted = !post->isReposted;
-        post->repostCount += post->isReposted ? 1 : -1;
+        // BUG FIX: Prevent negative repost counts
+        post->repostCount = post->isReposted ? post->repostCount + 1 : std::max(0, post->repostCount - 1);
       }
     }
   }
@@ -462,14 +469,16 @@ void AppStore::toggleRepost(const juce::String &postId) {
   for (auto &post : newState.savedPosts.posts) {
     if (post->id == postId) {
       post->isReposted = !post->isReposted;
-      post->repostCount += post->isReposted ? 1 : -1;
+      // BUG FIX: Prevent negative repost counts
+      post->repostCount = post->isReposted ? post->repostCount + 1 : std::max(0, post->repostCount - 1);
     }
   }
 
   for (auto &post : newState.archivedPosts.posts) {
     if (post->id == postId) {
       post->isReposted = !post->isReposted;
-      post->repostCount += post->isReposted ? 1 : -1;
+      // BUG FIX: Prevent negative repost counts
+      post->repostCount = post->isReposted ? post->repostCount + 1 : std::max(0, post->repostCount - 1);
     }
   }
   sliceManager.posts->setState(newState);
@@ -1118,7 +1127,8 @@ rxcpp::observable<int> AppStore::likePostObservable(const juce::String &postId) 
       for (auto &post : feedState.posts) {
         if (post->id == postId) {
           post->isLiked = !post->isLiked;
-          post->likeCount += post->isLiked ? 1 : -1;
+          // BUG FIX: Prevent negative like counts
+          post->likeCount = post->isLiked ? post->likeCount + 1 : std::max(0, post->likeCount - 1);
         }
       }
     }
@@ -1142,7 +1152,8 @@ rxcpp::observable<int> AppStore::likePostObservable(const juce::String &postId) 
             for (auto &post : feedState.posts) {
               if (post->id == postId) {
                 post->isLiked = previousState;
-                post->likeCount += previousState ? 1 : -1;
+                // BUG FIX: Prevent negative like counts on rollback
+                post->likeCount = previousState ? post->likeCount + 1 : std::max(0, post->likeCount - 1);
               }
             }
           }
@@ -1165,7 +1176,8 @@ rxcpp::observable<int> AppStore::likePostObservable(const juce::String &postId) 
             for (auto &post : feedState.posts) {
               if (post->id == postId) {
                 post->isLiked = previousState;
-                post->likeCount += previousState ? 1 : -1;
+                // BUG FIX: Prevent negative like counts on rollback
+                post->likeCount = previousState ? post->likeCount + 1 : std::max(0, post->likeCount - 1);
               }
             }
           }
@@ -1210,7 +1222,8 @@ rxcpp::observable<int> AppStore::toggleSaveObservable(const juce::String &postId
       for (auto &post : feedState.posts) {
         if (post->id == postId) {
           post->isSaved = !post->isSaved;
-          post->saveCount += post->isSaved ? 1 : -1;
+          // BUG FIX: Prevent negative save counts
+          post->saveCount = post->isSaved ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
         }
       }
     }
@@ -1218,14 +1231,16 @@ rxcpp::observable<int> AppStore::toggleSaveObservable(const juce::String &postId
     for (auto &post : newState.savedPosts.posts) {
       if (post->id == postId) {
         post->isSaved = !post->isSaved;
-        post->saveCount += post->isSaved ? 1 : -1;
+        // BUG FIX: Prevent negative save counts
+        post->saveCount = post->isSaved ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
       }
     }
 
     for (auto &post : newState.archivedPosts.posts) {
       if (post->id == postId) {
         post->isSaved = !post->isSaved;
-        post->saveCount += post->isSaved ? 1 : -1;
+        // BUG FIX: Prevent negative save counts
+        post->saveCount = post->isSaved ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
       }
     }
     sliceManager.posts->setState(newState);
@@ -1247,20 +1262,23 @@ rxcpp::observable<int> AppStore::toggleSaveObservable(const juce::String &postId
             for (auto &post : feedState.posts) {
               if (post->id == postId) {
                 post->isSaved = previousState;
-                post->saveCount += previousState ? 1 : -1;
+                // BUG FIX: Prevent negative save counts on rollback
+                post->saveCount = previousState ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
               }
             }
           }
           for (auto &post : rollbackState.savedPosts.posts) {
             if (post->id == postId) {
               post->isSaved = previousState;
-              post->saveCount += previousState ? 1 : -1;
+              // BUG FIX: Prevent negative save counts on rollback
+              post->saveCount = previousState ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
             }
           }
           for (auto &post : rollbackState.archivedPosts.posts) {
             if (post->id == postId) {
               post->isSaved = previousState;
-              post->saveCount += previousState ? 1 : -1;
+              // BUG FIX: Prevent negative save counts on rollback
+              post->saveCount = previousState ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
             }
           }
           sliceManager.posts->setState(rollbackState);
@@ -1281,20 +1299,23 @@ rxcpp::observable<int> AppStore::toggleSaveObservable(const juce::String &postId
             for (auto &post : feedState.posts) {
               if (post->id == postId) {
                 post->isSaved = previousState;
-                post->saveCount += previousState ? 1 : -1;
+                // BUG FIX: Prevent negative save counts on rollback
+                post->saveCount = previousState ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
               }
             }
           }
           for (auto &post : rollbackState.savedPosts.posts) {
             if (post->id == postId) {
               post->isSaved = previousState;
-              post->saveCount += previousState ? 1 : -1;
+              // BUG FIX: Prevent negative save counts on rollback
+              post->saveCount = previousState ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
             }
           }
           for (auto &post : rollbackState.archivedPosts.posts) {
             if (post->id == postId) {
               post->isSaved = previousState;
-              post->saveCount += previousState ? 1 : -1;
+              // BUG FIX: Prevent negative save counts on rollback
+              post->saveCount = previousState ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
             }
           }
           sliceManager.posts->setState(rollbackState);

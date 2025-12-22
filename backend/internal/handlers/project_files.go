@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/util"
 )
@@ -133,7 +134,9 @@ func (h *Handlers) DownloadProjectFile(c *gin.Context) {
 	}
 
 	// Increment download count
-	database.DB.Model(&projectFile).Update("download_count", projectFile.DownloadCount+1)
+	if err := database.DB.Model(&projectFile).Update("download_count", projectFile.DownloadCount+1).Error; err != nil {
+		logger.WarnWithFields("Failed to increment download count for project file "+projectFileID, err)
+	}
 
 	// Set content-disposition header for download
 	c.Header("Content-Disposition", "attachment; filename=\""+projectFile.Filename+"\"")
