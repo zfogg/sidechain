@@ -357,7 +357,9 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 		StreamActivityID: activity.ID, // Store the Stream activity ID for likes/reactions
 	}
 	if err := database.DB.Create(post).Error; err != nil {
-		fmt.Printf("Warning: Failed to save AudioPost %s to database: %v\n", postID, err)
+		logger.Log.Warn("Failed to save AudioPost to database",
+			zap.String("post_id", postID),
+			zap.Error(err))
 		// Don't fail the request - the Stream activity was created successfully
 	}
 
@@ -417,7 +419,9 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 					"created_at":    time.Now().UTC(),
 				}
 				if err := h.search.IndexPost(c.Request.Context(), postID, postDoc); err != nil {
-					fmt.Printf("Warning: Failed to index post %s in Elasticsearch: %v\n", postID, err)
+					logger.Log.Warn("Failed to index post in Elasticsearch",
+						zap.String("post_id", postID),
+						zap.Error(err))
 				}
 			}
 		}()
@@ -1299,7 +1303,7 @@ func (h *Handlers) DeletePost(c *gin.Context) {
 	if h.stream != nil && post.StreamActivityID != "" {
 		if err := h.stream.DeleteLoopActivity(post.UserID, post.StreamActivityID); err != nil {
 			// Log but don't fail - post is already deleted in database
-			fmt.Printf("Failed to delete Stream.io activity: %v\n", err)
+			logger.Log.Warn("Failed to delete Stream.io activity", zap.Error(err))
 		}
 	}
 
@@ -1307,7 +1311,9 @@ func (h *Handlers) DeletePost(c *gin.Context) {
 	if h.search != nil {
 		if err := h.search.DeletePost(c.Request.Context(), post.ID); err != nil {
 			// Log but don't fail - post is already deleted in database
-			fmt.Printf("Warning: Failed to delete post %s from Elasticsearch: %v\n", post.ID, err)
+			logger.Log.Warn("Failed to delete post from Elasticsearch",
+				zap.String("post_id", post.ID),
+				zap.Error(err))
 		}
 	}
 
@@ -1414,7 +1420,7 @@ func (h *Handlers) DownloadPost(c *gin.Context) {
 	if h.gorse != nil {
 		go func() {
 			if err := h.gorse.SyncFeedback(userID, postID, "download"); err != nil {
-				fmt.Printf("Warning: Failed to sync download to Gorse: %v\n", err)
+				logger.Log.Warn("Failed to sync download to Gorse", zap.Error(err))
 			}
 		}()
 	}
@@ -1586,7 +1592,7 @@ func (h *Handlers) TrackPlay(c *gin.Context) {
 				feedbackType = "like" // Completed play = stronger signal
 			}
 			if err := h.gorse.SyncFeedback(currentUser.ID, postID, feedbackType); err != nil {
-				fmt.Printf("Warning: Failed to sync play to Gorse: %v\n", err)
+				logger.Log.Warn("Failed to sync play to Gorse", zap.Error(err))
 			}
 		}()
 	}
@@ -1636,7 +1642,7 @@ func (h *Handlers) ViewPost(c *gin.Context) {
 	if h.gorse != nil {
 		go func() {
 			if err := h.gorse.SyncFeedback(currentUser.ID, postID, "view"); err != nil {
-				fmt.Printf("Warning: Failed to sync view to Gorse: %v\n", err)
+				logger.Log.Warn("Failed to sync view to Gorse", zap.Error(err))
 			}
 		}()
 	}

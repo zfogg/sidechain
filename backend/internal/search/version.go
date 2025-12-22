@@ -5,6 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
+	"github.com/zfogg/sidechain/backend/internal/logger"
 )
 
 // IndexVersion tracks the current schema version
@@ -120,6 +122,6 @@ func (c *Client) BackfillAllIndices(ctx context.Context) error {
 	// Query all posts from database
 	// This is a simplified version - real implementation would use database.DB
 	// For now, just log that backfill is needed
-	fmt.Println("ℹ️ Backfill would reindex all posts from database to Elasticsearch")
+	logger.Log.Info("Backfill would reindex all posts from database to Elasticsearch")
 	return nil
 }

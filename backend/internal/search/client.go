@@ -9,7 +9,9 @@ import (
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v9"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/metrics"
+	"go.uber.org/zap"
 )
 
 // Index names
@@ -1118,7 +1120,10 @@ func (c *Client) executeStorySearch(ctx context.Context, query map[string]interf
 func (c *Client) TrackSearchQuery(ctx context.Context, query string, resultCount int, filters map[string]interface{}) error {
 	// In a production system, you'd index this to a separate "search_analytics" index
 	// For now, we'll just log it - can be expanded later
-	fmt.Printf("🔍 Search query tracked: query='%s', results=%d, filters=%v\n", query, resultCount, filters)
+	logger.Log.Debug("Search query tracked",
+		zap.String("query", query),
+		zap.Int("results", resultCount),
+		zap.Any("filters", filters))
 	return nil
 }
 
@@ -1208,7 +1213,9 @@ func (c *Client) SyncEngagementMetricsAsync(postID string, likeCount, playCount,
 		defer cancel()
 
 		if err := c.UpdatePostEngagement(ctx, postID, likeCount, playCount, commentCount); err != nil {
-			fmt.Printf("⚠️  Failed to sync engagement metrics for post %s: %v\n", postID, err)
+			logger.Log.Warn("Failed to sync engagement metrics for post",
+				zap.String("post_id", postID),
+				zap.Error(err))
 		}
 	}()
 }
@@ -1221,7 +1228,9 @@ func (c *Client) SyncUserFollowerCountAsync(userID string, followerCount int) {
 		defer cancel()
 
 		if err := c.UpdateUserFollowerCount(ctx, userID, followerCount); err != nil {
-			fmt.Printf("⚠️  Failed to sync follower count for user %s: %v\n", userID, err)
+			logger.Log.Warn("Failed to sync follower count for user",
+				zap.String("user_id", userID),
+				zap.Error(err))
 		}
 	}()
 }
