@@ -208,7 +208,7 @@ func (suite *HandlersTestSuite) TestGetAvailableGenres() {
 			StreamUserID: fmt.Sprintf("stream_genre_%d_%d", i, time.Now().UnixNano()),
 		}
 		require.NoError(t, suite.db.Create(user).Error)
-		suite.db.Exec("UPDATE users SET genre = '"+g+"' WHERE id = ?", user.ID)
+		suite.db.Exec("UPDATE users SET genre = ? WHERE id = ?", g, user.ID)
 	}
 
 	req, _ := http.NewRequest("GET", "/api/discover/genres", nil)
