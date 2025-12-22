@@ -105,6 +105,89 @@ void drawOutlineButton(juce::Graphics &g, juce::Rectangle<int> bounds, const juc
 }
 
 // ==============================================================================
+// Avatar Drawing
+
+void drawCircularAvatar(juce::Graphics &g, juce::Rectangle<int> bounds, const juce::Image &image,
+                        juce::Colour placeholderColor, juce::Colour borderColor, float borderWidth) {
+  if (image.isValid()) {
+    // Draw the image clipped to a circle
+    juce::Path circlePath;
+    circlePath.addEllipse(bounds.toFloat());
+
+    g.saveState();
+    g.reduceClipRegion(circlePath);
+
+    // Scale and draw the image to fit the bounds
+    auto scaledImage = image.rescaled(bounds.getWidth(), bounds.getHeight(), juce::Graphics::highResamplingQuality);
+    g.drawImageAt(scaledImage, bounds.getX(), bounds.getY());
+
+    g.restoreState();
+  } else {
+    // Draw placeholder circle
+    g.setColour(placeholderColor);
+    g.fillEllipse(bounds.toFloat());
+  }
+
+  // Draw border (only if not transparent)
+  if (borderColor.getAlpha() > 0) {
+    g.setColour(borderColor);
+    g.drawEllipse(bounds.toFloat(), borderWidth);
+  }
+}
+
+void drawOnlineIndicator(juce::Graphics &g, juce::Rectangle<int> avatarBounds, bool isOnline, bool isInStudio,
+                         juce::Colour backgroundColor, int indicatorSize) {
+  if (!isOnline && !isInStudio) {
+    return;
+  }
+
+  const int borderWidth = 2;
+
+  // Position at bottom-right of avatar
+  auto indicatorBounds =
+      juce::Rectangle<int>(avatarBounds.getRight() - indicatorSize + 2, avatarBounds.getBottom() - indicatorSize + 2,
+                           indicatorSize, indicatorSize)
+          .toFloat();
+
+  // Draw dark border (matches card background)
+  g.setColour(backgroundColor);
+  g.fillEllipse(indicatorBounds);
+
+  // Draw indicator (cyan for in_studio, green for just online)
+  auto innerBounds = indicatorBounds.reduced(static_cast<float>(borderWidth));
+  // In-studio: cyan (#00D4FF), Online: green (#00D464)
+  g.setColour(isInStudio ? juce::Colour(0xFF00D4FF) : juce::Colour(0xFF00D464));
+  g.fillEllipse(innerBounds);
+}
+
+// ==============================================================================
+// Follow Button Drawing
+
+void drawFollowButton(juce::Graphics &g, juce::Rectangle<int> bounds, bool isFollowing, juce::Colour followColor,
+                      juce::Colour followTextColor, juce::Colour followingTextColor, juce::Colour borderColor,
+                      float cornerRadius) {
+  juce::String buttonText = isFollowing ? "Following" : "Follow";
+
+  if (isFollowing) {
+    // Following state: transparent background with border
+    g.setColour(borderColor);
+    g.drawRoundedRectangle(bounds.toFloat(), cornerRadius, 1.0f);
+
+    g.setColour(followingTextColor);
+    g.setFont(11.0f);
+    g.drawText(buttonText, bounds, juce::Justification::centred);
+  } else {
+    // Not following: filled button
+    g.setColour(followColor);
+    g.fillRoundedRectangle(bounds.toFloat(), cornerRadius);
+
+    g.setColour(followTextColor);
+    g.setFont(11.0f);
+    g.drawText(buttonText, bounds, juce::Justification::centred);
+  }
+}
+
+// ==============================================================================
 // Icon Drawing
 
 void drawIconButton(juce::Graphics &g, juce::Rectangle<int> bounds, juce::Colour bgColor, bool isHovered) {

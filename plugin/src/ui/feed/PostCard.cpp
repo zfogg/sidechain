@@ -195,47 +195,12 @@ void PostCard::drawBackground(juce::Graphics &g) {
 }
 
 void PostCard::drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds) {
-  // Draw avatar image or placeholder
-  if (avatarImage.isValid()) {
-    // Draw the image clipped to a circle
-    juce::Path circlePath;
-    circlePath.addEllipse(bounds.toFloat());
+  // Draw circular avatar with border using utility
+  UIHelpers::drawCircularAvatar(g, bounds, avatarImage, SidechainColors::surface(), SidechainColors::border());
 
-    g.saveState();
-    g.reduceClipRegion(circlePath);
-    // Scale and draw the image to fit the bounds
-    auto scaledImage =
-        avatarImage.rescaled(bounds.getWidth(), bounds.getHeight(), juce::Graphics::highResamplingQuality);
-    g.drawImageAt(scaledImage, bounds.getX(), bounds.getY());
-    g.restoreState();
-  } else {
-    // Draw colored circle placeholder
-    g.setColour(SidechainColors::surface());
-    g.fillEllipse(bounds.toFloat());
-  }
-
-  // Avatar border
-  g.setColour(SidechainColors::border());
-  g.drawEllipse(bounds.toFloat(), 1.0f);
-
-  // Draw online indicator (green/cyan dot in bottom-right corner)
+  // Draw online indicator if applicable
   if (postPtr && (postPtr->isOnline || postPtr->isInStudio)) {
-    const int indicatorSize = 14;
-    const int borderWidth = 2;
-
-    // Position at bottom-right of avatar
-    auto indicatorBounds = juce::Rectangle<int>(bounds.getRight() - indicatorSize + 2,
-                                                bounds.getBottom() - indicatorSize + 2, indicatorSize, indicatorSize)
-                               .toFloat();
-
-    // Draw dark border (matches card background)
-    g.setColour(SidechainColors::background());
-    g.fillEllipse(indicatorBounds);
-
-    // Draw indicator (cyan for in_studio, green for just online)
-    auto innerBounds = indicatorBounds.reduced(borderWidth);
-    g.setColour(postPtr->isInStudio ? SidechainColors::inStudioIndicator() : SidechainColors::onlineIndicator());
-    g.fillEllipse(innerBounds);
+    UIHelpers::drawOnlineIndicator(g, bounds, postPtr->isOnline, postPtr->isInStudio, SidechainColors::background());
   }
 }
 
@@ -286,35 +251,9 @@ void PostCard::drawFollowButton(juce::Graphics &g, juce::Rectangle<int> bounds) 
   if (postPtr->isOwnPost)
     return;
 
-  // Button text based on follow state
-  juce::String buttonText = postPtr->isFollowing ? "Following" : "Follow";
-
-  // Colors based on state
-  juce::Colour bgColor, textColor, borderColor;
-  if (postPtr->isFollowing) {
-    // Following state: subtle outline button
-    bgColor = juce::Colour::fromRGBA(0, 0, 0, 0);
-    textColor = SidechainColors::textSecondary();
-    borderColor = SidechainColors::border();
-  } else {
-    // Not following: prominent filled button
-    bgColor = SidechainColors::follow();
-    textColor = SidechainColors::textPrimary();
-    borderColor = SidechainColors::follow();
-  }
-
-  // Draw button background
-  g.setColour(bgColor);
-  g.fillRoundedRectangle(bounds.toFloat(), 4.0f);
-
-  // Draw border
-  g.setColour(borderColor);
-  g.drawRoundedRectangle(bounds.toFloat(), 4.0f, 1.0f);
-
-  // Draw text
-  g.setColour(textColor);
-  g.setFont(11.0f);
-  g.drawText(buttonText, bounds, juce::Justification::centred);
+  // Use UIHelpers for consistent follow button styling
+  UIHelpers::drawFollowButton(g, bounds, postPtr->isFollowing, SidechainColors::follow(), SidechainColors::textPrimary(),
+                              SidechainColors::textSecondary(), SidechainColors::border());
 }
 
 void PostCard::drawWaveform(juce::Graphics &g, juce::Rectangle<int> bounds) {

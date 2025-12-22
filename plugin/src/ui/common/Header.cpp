@@ -260,21 +260,14 @@ void Header::drawCircularProfilePic(juce::Graphics &g, juce::Rectangle<int> boun
     g.drawEllipse(bounds.toFloat().expanded(2.0f), 2.5f);
   }
 
-  // If we have a cached profile image, draw it
+  // If we have a cached profile image, draw it using utility
   if (cachedProfileImage.isValid()) {
     Log::info("Header: Drawing profile photo from S3 - size: " + juce::String(cachedProfileImage.getWidth()) + "x" +
               juce::String(cachedProfileImage.getHeight()) + " into bounds: " + juce::String(bounds.getWidth()) + "x" +
               juce::String(bounds.getHeight()) + ", URL: " + profilePicUrl);
-    // Create a circular mask and draw the image scaled to fit
-    juce::Path circlePath;
-    circlePath.addEllipse(bounds.toFloat());
-    g.saveState();
-    g.reduceClipRegion(circlePath);
-    // Scale and draw the image to fit the bounds
-    auto scaledImage =
-        cachedProfileImage.rescaled(bounds.getWidth(), bounds.getHeight(), juce::Graphics::highResamplingQuality);
-    g.drawImageAt(scaledImage, bounds.getX(), bounds.getY());
-    g.restoreState();
+    // Draw avatar without border (border is handled separately for story highlight case)
+    UIHelpers::drawCircularAvatar(g, bounds, cachedProfileImage, SidechainColors::primary(),
+                                  juce::Colours::transparentBlack);
   } else {
     // Use reactive observable to load profile image (with caching)
     if (appStore && profilePicUrl.isNotEmpty()) {
@@ -297,9 +290,8 @@ void Header::drawCircularProfilePic(juce::Graphics &g, juce::Rectangle<int> boun
               });
     }
 
-    // Draw placeholder circle (will be replaced with actual image when loaded)
-    g.setColour(SidechainColors::primary());
-    g.fillEllipse(bounds.toFloat());
+    // Draw placeholder using utility
+    UIHelpers::drawCircularAvatar(g, bounds, juce::Image(), SidechainColors::primary(), juce::Colours::transparentBlack);
   }
 
   // Border (only if no story highlight)
