@@ -48,6 +48,9 @@ type AuthHandlers struct {
 	// OAuth session storage for polling (in-memory, thread-safe)
 	oauthSessions map[string]*OAuthSession
 	oauthMutex    sync.RWMutex
+	// Shutdown context for cleanup goroutine
+	shutdownCtx    context.Context
+	shutdownCancel context.CancelFunc
 }
 
 // NewAuthHandlers creates a new auth handlers instance
@@ -58,12 +61,15 @@ func NewAuthHandlers(authService *auth.Service, uploader storage.ProfilePictureU
 		// For now, we'll need to pass it separately or extract from env
 		jwtSecret = []byte("default-secret") // This should come from config
 	}
+	ctx, cancel := context.WithCancel(context.Background())
 	ah := &AuthHandlers{
-		authService:   authService,
-		uploader:      uploader,
-		stream:        streamClient,
-		jwtSecret:     jwtSecret,
-		oauthSessions: make(map[string]*OAuthSession),
+		authService:    authService,
+		uploader:       uploader,
+		stream:         streamClient,
+		jwtSecret:      jwtSecret,
+		oauthSessions:  make(map[string]*OAuthSession),
+		shutdownCtx:    ctx,
+		shutdownCancel: cancel,
 	}
 
 	// Start cleanup goroutine to remove expired sessions
@@ -77,15 +83,28 @@ func (h *AuthHandlers) cleanupExpiredSessions() {
 	ticker := time.NewTicker(1 * time.Minute) // Run every minute
 	defer ticker.Stop()
 
-	for range ticker.C {
-		now := time.Now()
-		h.oauthMutex.Lock()
-		for sessionID, session := range h.oauthSessions {
-			if now.After(session.ExpiresAt) {
-				delete(h.oauthSessions, sessionID)
+	for {
+		select {
+		case <-h.shutdownCtx.Done():
+			// Graceful shutdown requested
+			return
+		case <-ticker.C:
+			now := time.Now()
+			h.oauthMutex.Lock()
+			for sessionID, session := range h.oauthSessions {
+				if now.After(session.ExpiresAt) {
+					delete(h.oauthSessions, sessionID)
+				}
 			}
+			h.oauthMutex.Unlock()
 		}
-		h.oauthMutex.Unlock()
+	}
+}
+
+// Shutdown gracefully stops the auth handlers cleanup goroutine
+func (h *AuthHandlers) Shutdown() {
+	if h.shutdownCancel != nil {
+		h.shutdownCancel()
 	}
 }
 

@@ -106,8 +106,10 @@ void AppStore::switchFeedType(FeedType feedType) {
   sliceManager.posts->setState(newState);
 
   // Load the new feed if not already loaded
+  // Use .find() instead of [] to avoid implicitly creating empty map entries
   auto currentState = sliceManager.posts->getState();
-  if (currentState.feeds[feedType].posts.empty()) {
+  auto feedIt = currentState.feeds.find(feedType);
+  if (feedIt == currentState.feeds.end() || feedIt->second.posts.empty()) {
     loadFeed(feedType, false);
   }
 }
