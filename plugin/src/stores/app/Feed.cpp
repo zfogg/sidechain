@@ -1,8 +1,14 @@
 #include "../AppStore.h"
+#include "../util/StoreUtils.h"
+#include "../util/PostInteractionHelper.h"
 #include "../../util/logging/Logger.h"
 
 namespace Sidechain {
 namespace Stores {
+
+using Utils::JsonArrayParser;
+using Utils::PostInteractionHelper;
+using Utils::NetworkClientGuard;
 
 // ==============================================================================
 // Helper Functions
@@ -302,205 +308,54 @@ void AppStore::restorePost(const juce::String &postId) {
 // Post Interactions
 
 void AppStore::toggleLike(const juce::String &postId) {
-  if (!networkClient) {
+  if (!NetworkClientGuard::checkSilent(networkClient.get())) {
     return;
   }
 
-  // Check current like state to determine whether to like or unlike
-  auto currentPostsState = sliceManager.posts->getState();
-  bool isCurrentlyLiked = false;
+  auto config = PostInteractionHelper::createLikeConfig(
+      [this](const juce::String &id, bool wasLiked, std::function<void(Outcome<juce::var>)> callback) {
+        if (wasLiked) {
+          networkClient->unlikePost(id, callback);
+        } else {
+          networkClient->likePost(id, "", callback);
+        }
+      });
 
-  for (const auto &[feedType, feedState] : currentPostsState.feeds) {
-    for (const auto &post : feedState.posts) {
-      if (post->id == postId) {
-        isCurrentlyLiked = post->isLiked;
-        break;
-      }
-    }
-  }
-
-  // Optimistic update
-  PostsState newState = sliceManager.posts->getState();
-  // Update all occurrences of the post across all feeds
-  for (auto &[feedType, feedState] : newState.feeds) {
-    for (auto &post : feedState.posts) {
-      if (post->id == postId) {
-        post->isLiked = !post->isLiked;
-        // BUG FIX: Prevent negative like counts
-        post->likeCount = post->isLiked ? post->likeCount + 1 : std::max(0, post->likeCount - 1);
-      }
-    }
-  }
-
-  for (auto &post : newState.savedPosts.posts) {
-    if (post->id == postId) {
-      post->isLiked = !post->isLiked;
-      // BUG FIX: Prevent negative like counts
-      post->likeCount = post->isLiked ? post->likeCount + 1 : std::max(0, post->likeCount - 1);
-    }
-  }
-
-  for (auto &post : newState.archivedPosts.posts) {
-    if (post->id == postId) {
-      post->isLiked = !post->isLiked;
-      // BUG FIX: Prevent negative like counts
-      post->likeCount = post->isLiked ? post->likeCount + 1 : std::max(0, post->likeCount - 1);
-    }
-  }
-  sliceManager.posts->setState(newState);
-
-  // Send to server - like or unlike based on previous state
-  if (isCurrentlyLiked) {
-    networkClient->unlikePost(postId, [](Outcome<juce::var> result) {
-      if (!result.isOk()) {
-        Util::logError("AppStore", "Failed to unlike post: " + result.getError());
-      } else {
-        // Invalidate feed caches on successful like/unlike
-      }
-    });
-  } else {
-    networkClient->likePost(postId, "", [](Outcome<juce::var> result) {
-      if (!result.isOk()) {
-        Util::logError("AppStore", "Failed to like post: " + result.getError());
-      } else {
-        // Invalidate feed caches on successful like/unlike
-      }
-    });
-  }
+  PostInteractionHelper::performToggle(sliceManager.posts, postId, config);
 }
 
 void AppStore::toggleSave(const juce::String &postId) {
-  if (!networkClient) {
+  if (!NetworkClientGuard::checkSilent(networkClient.get())) {
     return;
   }
 
-  // Check current save state
-  auto currentPostsState = sliceManager.posts->getState();
-  bool isCurrentlySaved = false;
+  auto config = PostInteractionHelper::createSaveConfig(
+      [this](const juce::String &id, bool wasSaved, std::function<void(Outcome<juce::var>)> callback) {
+        if (wasSaved) {
+          networkClient->unsavePost(id, callback);
+        } else {
+          networkClient->savePost(id, callback);
+        }
+      });
 
-  for (const auto &[feedType, feedState] : currentPostsState.feeds) {
-    for (const auto &post : feedState.posts) {
-      if (post->id == postId) {
-        isCurrentlySaved = post->isSaved;
-        break;
-      }
-    }
-  }
-
-  // Optimistic update
-  PostsState newState = sliceManager.posts->getState();
-  for (auto &[feedType, feedState] : newState.feeds) {
-    for (auto &post : feedState.posts) {
-      if (post->id == postId) {
-        post->isSaved = !post->isSaved;
-        // BUG FIX: Prevent negative save counts
-        post->saveCount = post->isSaved ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
-      }
-    }
-  }
-
-  for (auto &post : newState.savedPosts.posts) {
-    if (post->id == postId) {
-      post->isSaved = !post->isSaved;
-      // BUG FIX: Prevent negative save counts
-      post->saveCount = post->isSaved ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
-    }
-  }
-
-  for (auto &post : newState.archivedPosts.posts) {
-    if (post->id == postId) {
-      post->isSaved = !post->isSaved;
-      // BUG FIX: Prevent negative save counts
-      post->saveCount = post->isSaved ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
-    }
-  }
-  sliceManager.posts->setState(newState);
-
-  // Send to server
-  if (isCurrentlySaved) {
-    networkClient->unsavePost(postId, [](Outcome<juce::var> result) {
-      if (!result.isOk()) {
-        Util::logError("AppStore", "Failed to unsave post: " + result.getError());
-      } else {
-        // Invalidate feed caches on successful save/unsave
-      }
-    });
-  } else {
-    networkClient->savePost(postId, [](Outcome<juce::var> result) {
-      if (!result.isOk()) {
-        Util::logError("AppStore", "Failed to save post: " + result.getError());
-      } else {
-        // Invalidate feed caches on successful save/unsave
-      }
-    });
-  }
+  PostInteractionHelper::performToggle(sliceManager.posts, postId, config);
 }
 
 void AppStore::toggleRepost(const juce::String &postId) {
-  if (!networkClient) {
+  if (!NetworkClientGuard::checkSilent(networkClient.get())) {
     return;
   }
 
-  // Check current repost state
-  auto currentPostsState = sliceManager.posts->getState();
-  bool isCurrentlyReposted = false;
+  auto config = PostInteractionHelper::createRepostConfig(
+      [this](const juce::String &id, bool wasReposted, std::function<void(Outcome<juce::var>)> callback) {
+        if (wasReposted) {
+          networkClient->undoRepost(id, callback);
+        } else {
+          networkClient->repostPost(id, "", callback);
+        }
+      });
 
-  for (const auto &[feedType, feedState] : currentPostsState.feeds) {
-    for (const auto &post : feedState.posts) {
-      if (post->id == postId) {
-        isCurrentlyReposted = post->isReposted;
-        break;
-      }
-    }
-  }
-
-  // Optimistic update
-  PostsState newState = sliceManager.posts->getState();
-  for (auto &[feedType, feedState] : newState.feeds) {
-    for (auto &post : feedState.posts) {
-      if (post->id == postId) {
-        post->isReposted = !post->isReposted;
-        // BUG FIX: Prevent negative repost counts
-        post->repostCount = post->isReposted ? post->repostCount + 1 : std::max(0, post->repostCount - 1);
-      }
-    }
-  }
-
-  for (auto &post : newState.savedPosts.posts) {
-    if (post->id == postId) {
-      post->isReposted = !post->isReposted;
-      // BUG FIX: Prevent negative repost counts
-      post->repostCount = post->isReposted ? post->repostCount + 1 : std::max(0, post->repostCount - 1);
-    }
-  }
-
-  for (auto &post : newState.archivedPosts.posts) {
-    if (post->id == postId) {
-      post->isReposted = !post->isReposted;
-      // BUG FIX: Prevent negative repost counts
-      post->repostCount = post->isReposted ? post->repostCount + 1 : std::max(0, post->repostCount - 1);
-    }
-  }
-  sliceManager.posts->setState(newState);
-
-  // Send to server
-  if (isCurrentlyReposted) {
-    networkClient->undoRepost(postId, [](Outcome<juce::var> result) {
-      if (!result.isOk()) {
-        Util::logError("AppStore", "Failed to undo repost: " + result.getError());
-      } else {
-        // Invalidate feed caches on successful repost/undo repost
-      }
-    });
-  } else {
-    networkClient->repostPost(postId, "", [](Outcome<juce::var> result) {
-      if (!result.isOk()) {
-        Util::logError("AppStore", "Failed to repost: " + result.getError());
-      } else {
-        // Invalidate feed caches on successful repost/undo repost
-      }
-    });
-  }
+  PostInteractionHelper::performToggle(sliceManager.posts, postId, config);
 }
 
 void AppStore::addReaction(const juce::String &postId, const juce::String &emoji) {
@@ -517,79 +372,51 @@ void AppStore::addReaction(const juce::String &postId, const juce::String &emoji
 }
 
 void AppStore::toggleFollow(const juce::String &postId, bool willFollow) {
-  if (!networkClient) {
+  if (!NetworkClientGuard::checkSilent(networkClient.get())) {
     return;
   }
 
-  // Extract user ID and current follow state from post
-  auto currentPostsState = sliceManager.posts->getState();
-  juce::String userId;
-  bool previousFollowState = false;
+  using Utils::FollowHelper;
 
-  for (const auto &[feedType, feedState] : currentPostsState.feeds) {
-    for (const auto &post : feedState.posts) {
-      if (post->id == postId) {
-        userId = post->userId;
-        previousFollowState = post->isFollowing;
-        break;
-      }
-    }
+  // Find user ID and current follow state
+  auto currentState = sliceManager.posts->getState();
+  auto userInfo = FollowHelper::findUserAndFollowState(currentState, postId);
+
+  if (!userInfo.has_value()) {
+    return;
   }
 
-  if (userId.isNotEmpty()) {
-    // Apply optimistic update - toggle follow state immediately
-    PostsState newState = sliceManager.posts->getState();
-    for (auto &[feedType, feedState] : newState.feeds) {
-      for (auto &post : feedState.posts) {
-        if (post->id == postId) {
-          post->isFollowing = willFollow;
-        }
-      }
-    }
-    sliceManager.posts->setState(newState);
+  auto [userId, previousFollowState] = *userInfo;
+  if (userId.isEmpty()) {
+    return;
+  }
 
-    Util::logDebug("AppStore", "Follow post optimistic update: " + postId + " - " +
-                                   juce::String(willFollow ? "follow" : "unfollow"));
+  // Apply optimistic update
+  PostsState newState = sliceManager.posts->getState();
+  FollowHelper::updateFollowState(newState, postId, willFollow);
+  sliceManager.posts->setState(newState);
 
-    if (willFollow) {
-      networkClient->followUser(userId, [this, postId, previousFollowState](Outcome<juce::var> result) {
-        if (result.isOk()) {
-          Util::logInfo("AppStore", "User followed successfully: " + postId);
-          // Invalidate feed caches on successful follow
-        } else {
-          Util::logError("AppStore", "Failed to follow user: " + result.getError());
-          // Rollback optimistic update on error
-          PostsState rollbackState = sliceManager.posts->getState();
-          for (auto &[feedType, feedState] : rollbackState.feeds) {
-            for (auto &post : feedState.posts) {
-              if (post->id == postId) {
-                post->isFollowing = previousFollowState;
-              }
-            }
-          }
-          sliceManager.posts->setState(rollbackState);
-        }
-      });
+  Util::logDebug("AppStore",
+                 "Follow post optimistic update: " + postId + " - " + (willFollow ? "follow" : "unfollow"));
+
+  // Define rollback callback
+  auto rollbackOnError = [this, postId, previousFollowState](Outcome<juce::var> result) {
+    if (!result.isOk()) {
+      Util::logError("AppStore", "Failed to " + juce::String(previousFollowState ? "unfollow" : "follow") +
+                                     " user: " + result.getError());
+      PostsState rollbackState = sliceManager.posts->getState();
+      FollowHelper::updateFollowState(rollbackState, postId, previousFollowState);
+      sliceManager.posts->setState(rollbackState);
     } else {
-      networkClient->unfollowUser(userId, [this, postId, previousFollowState](Outcome<juce::var> result) {
-        if (result.isOk()) {
-          Util::logInfo("AppStore", "User unfollowed successfully: " + postId);
-          // Invalidate feed caches on successful unfollow
-        } else {
-          Util::logError("AppStore", "Failed to unfollow user: " + result.getError());
-          // Rollback optimistic update on error
-          PostsState rollbackState = sliceManager.posts->getState();
-          for (auto &[feedType, feedState] : rollbackState.feeds) {
-            for (auto &post : feedState.posts) {
-              if (post->id == postId) {
-                post->isFollowing = previousFollowState;
-              }
-            }
-          }
-          sliceManager.posts->setState(rollbackState);
-        }
-      });
+      Util::logInfo("AppStore", "User " + juce::String(previousFollowState ? "unfollowed" : "followed") +
+                                    " successfully: " + postId);
     }
+  };
+
+  if (willFollow) {
+    networkClient->followUser(userId, rollbackOnError);
+  } else {
+    networkClient->unfollowUser(userId, rollbackOnError);
   }
 }
 
@@ -618,19 +445,14 @@ void AppStore::toggleMute(const juce::String &userId, bool willMute) {
 }
 
 void AppStore::togglePin(const juce::String &postId, bool pinned) {
-  if (!networkClient) {
+  if (!NetworkClientGuard::checkSilent(networkClient.get())) {
     return;
   }
 
   // Update UI optimistically
   PostsState newState = sliceManager.posts->getState();
-  for (auto &[feedType, feedState] : newState.feeds) {
-    for (auto &post : feedState.posts) {
-      if (post->id == postId) {
-        post->isPinned = pinned;
-      }
-    }
-  }
+  PostInteractionHelper::updatePostAcrossCollections(newState, postId,
+                                                     [pinned](std::shared_ptr<FeedPost> &post) { post->isPinned = pinned; });
   sliceManager.posts->setState(newState);
 
   // Call actual API to persist pin/unpin state
@@ -837,38 +659,21 @@ void AppStore::handleSavedPostsLoaded(Outcome<juce::var> result) {
     return;
   }
 
-  juce::Array<FeedPost> loadedPosts;
-  for (int i = 0; i < postsArray.size(); ++i) {
-    try {
-      auto jsonStr = juce::JSON::toString(postsArray[i]);
-      auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
-      auto postResult = SerializableModel<FeedPost>::createFromJson(jsonObj);
-      if (postResult.isOk()) {
-        auto post = *postResult.getValue();
-        if (post.isValid()) {
-          loadedPosts.add(post);
-        }
-      }
-    } catch (const std::exception &) {
-      // Skip invalid posts
-    }
-  }
+  // Use JsonArrayParser with validation
+  auto loadedPosts = JsonArrayParser<FeedPost>::parseWithValidation(
+      postsArray, [](const FeedPost &post) { return post.isValid(); }, "saved posts");
 
   PostsState successState = sliceManager.posts->getState();
-  // Convert juce::Array<FeedPost> to vector<shared_ptr<FeedPost>>
-  successState.savedPosts.posts.clear();
-  for (const auto &post : loadedPosts) {
-    successState.savedPosts.posts.push_back(std::make_shared<FeedPost>(post));
-  }
+  successState.savedPosts.posts = std::move(loadedPosts);
   successState.savedPosts.isLoading = false;
   successState.savedPosts.totalCount = totalCount;
-  successState.savedPosts.offset += loadedPosts.size();
+  successState.savedPosts.offset += static_cast<int>(successState.savedPosts.posts.size());
   successState.savedPosts.hasMore = successState.savedPosts.offset < totalCount;
   successState.savedPosts.error = "";
-  successState.savedPosts.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
+  successState.savedPosts.lastUpdated = Utils::StateHelpers::now();
   sliceManager.posts->setState(successState);
 
-  Util::logDebug("AppStore", "Loaded " + juce::String(loadedPosts.size()) + " saved posts");
+  Util::logDebug("AppStore", "Loaded " + juce::String(successState.savedPosts.posts.size()) + " saved posts");
 }
 
 void AppStore::handleArchivedPostsLoaded(Outcome<juce::var> result) {
@@ -900,38 +705,21 @@ void AppStore::handleArchivedPostsLoaded(Outcome<juce::var> result) {
     return;
   }
 
-  juce::Array<FeedPost> loadedPosts;
-  for (int i = 0; i < postsArray.size(); ++i) {
-    try {
-      auto jsonStr = juce::JSON::toString(postsArray[i]);
-      auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
-      auto postResult = SerializableModel<FeedPost>::createFromJson(jsonObj);
-      if (postResult.isOk()) {
-        auto post = *postResult.getValue();
-        if (post.isValid()) {
-          loadedPosts.add(post);
-        }
-      }
-    } catch (const std::exception &) {
-      // Skip invalid posts
-    }
-  }
+  // Use JsonArrayParser with validation
+  auto loadedPosts = JsonArrayParser<FeedPost>::parseWithValidation(
+      postsArray, [](const FeedPost &post) { return post.isValid(); }, "archived posts");
 
   PostsState successState = sliceManager.posts->getState();
-  // Convert juce::Array<FeedPost> to vector<shared_ptr<FeedPost>>
-  successState.archivedPosts.posts.clear();
-  for (const auto &post : loadedPosts) {
-    successState.archivedPosts.posts.push_back(std::make_shared<FeedPost>(post));
-  }
+  successState.archivedPosts.posts = std::move(loadedPosts);
   successState.archivedPosts.isLoading = false;
   successState.archivedPosts.totalCount = totalCount;
-  successState.archivedPosts.offset += loadedPosts.size();
+  successState.archivedPosts.offset += static_cast<int>(successState.archivedPosts.posts.size());
   successState.archivedPosts.hasMore = successState.archivedPosts.offset < totalCount;
   successState.archivedPosts.error = "";
-  successState.archivedPosts.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
+  successState.archivedPosts.lastUpdated = Utils::StateHelpers::now();
   sliceManager.posts->setState(successState);
 
-  Util::logDebug("AppStore", "Loaded " + juce::String(loadedPosts.size()) + " archived posts");
+  Util::logDebug("AppStore", "Loaded " + juce::String(successState.archivedPosts.posts.size()) + " archived posts");
 }
 
 bool AppStore::isCurrentFeedCached() const {
@@ -990,22 +778,13 @@ FeedResponse AppStore::parseJsonResponse(const juce::var &json) {
     response.hasMore = metaObj.getProperty("has_more", false);
   }
 
-  if (postsArray.isArray()) {
-    for (int i = 0; i < postsArray.size(); ++i) {
-      try {
-        auto jsonStr = juce::JSON::toString(postsArray[i]);
-        auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
-        auto result = SerializableModel<FeedPost>::createFromJson(jsonObj);
-        if (result.isOk()) {
-          auto post = *result.getValue();
-          if (post.isValid()) {
-            response.posts.add(post);
-          }
-        }
-      } catch (const std::exception &) {
-        // Skip invalid posts
-      }
-    }
+  // Use JsonArrayParser with validation
+  auto parsedPosts = JsonArrayParser<FeedPost>::parseWithValidation(
+      postsArray, [](const FeedPost &post) { return post.isValid(); }, "feed");
+
+  // Convert to juce::Array for FeedResponse
+  for (const auto &postPtr : parsedPosts) {
+    response.posts.add(*postPtr);
   }
 
   Util::logDebug("AppStore", "Parsed " + juce::String(response.posts.size()) + " posts from feed response");
