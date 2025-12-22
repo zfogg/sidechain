@@ -100,6 +100,7 @@ private:
   HoverState hoverState;
   bool isReply = false;
   Sidechain::Stores::AppStore *appStore = nullptr;
+  juce::Image cachedAvatarImage; // Cached avatar image to avoid subscribing in paint()
 
   // ==============================================================================
   // Drawing methods

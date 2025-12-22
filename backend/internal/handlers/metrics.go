@@ -123,7 +123,25 @@ func (h *Handlers) GetAllMetrics(c *gin.Context) {
 // ResetMetrics resets all metrics (admin only)
 // POST /api/v1/metrics/reset
 func (h *Handlers) ResetMetrics(c *gin.Context) {
-	// TODO: Add admin check here
+	// BUG FIX: Added admin check - this endpoint was accessible to any authenticated user
+	userID, ok := util.GetUserIDFromContext(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	// Check if user is admin
+	var user models.User
+	if err := database.DB.Where("id = ?", userID).First(&user).Error; err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user_not_found"})
+		return
+	}
+
+	if !user.IsAdmin {
+		c.JSON(http.StatusForbidden, gin.H{"error": "admin_access_required"})
+		return
+	}
+
 	metrics.GetManager().ResetAll()
 
 	c.JSON(http.StatusOK, gin.H{

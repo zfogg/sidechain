@@ -41,12 +41,14 @@ CommentRow::CommentRow() {
 // ==============================================================================
 void CommentRow::setComment(const std::shared_ptr<Sidechain::Comment> &comment) {
   commentPtr = comment;
+  cachedAvatarImage = juce::Image(); // Clear cached image
 
   if (!commentPtr) {
     return;
   }
 
   // Fetch avatar image via AppStore reactive observable (with caching)
+  // This subscription happens once when the comment is set, not on every paint
   if (commentPtr->userAvatarUrl.isNotEmpty() && appStore) {
     juce::Component::SafePointer<CommentRow> safeThis(this);
     appStore->loadImageObservable(commentPtr->userAvatarUrl)
@@ -54,8 +56,10 @@ void CommentRow::setComment(const std::shared_ptr<Sidechain::Comment> &comment) 
             [safeThis](const juce::Image &image) {
               if (safeThis == nullptr)
                 return;
-              if (image.isValid())
+              if (image.isValid()) {
+                safeThis->cachedAvatarImage = image;
                 safeThis->repaint();
+              }
             },
             [safeThis](std::exception_ptr) {
               if (safeThis == nullptr)
@@ -69,12 +73,14 @@ void CommentRow::setComment(const std::shared_ptr<Sidechain::Comment> &comment) 
 
 void CommentRow::setComment(const Sidechain::Comment &comment) {
   commentPtr = std::make_shared<Sidechain::Comment>(comment);
+  cachedAvatarImage = juce::Image(); // Clear cached image
 
   if (!commentPtr) {
     return;
   }
 
   // Fetch avatar image via AppStore reactive observable (with caching)
+  // This subscription happens once when the comment is set, not on every paint
   if (commentPtr->userAvatarUrl.isNotEmpty() && appStore) {
     juce::Component::SafePointer<CommentRow> safeThis(this);
     appStore->loadImageObservable(commentPtr->userAvatarUrl)
@@ -82,8 +88,10 @@ void CommentRow::setComment(const Sidechain::Comment &comment) {
             [safeThis](const juce::Image &image) {
               if (safeThis == nullptr)
                 return;
-              if (image.isValid())
+              if (image.isValid()) {
+                safeThis->cachedAvatarImage = image;
                 safeThis->repaint();
+              }
             },
             [safeThis](std::exception_ptr) {
               if (safeThis == nullptr)
@@ -129,31 +137,31 @@ void CommentRow::paint(juce::Graphics &g) {
 }
 
 void CommentRow::drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds) {
-  // Use reactive observable for image loading (with caching)
-  if (appStore && commentPtr && commentPtr->userAvatarUrl.isNotEmpty()) {
-    juce::Component::SafePointer<CommentRow> safeThis(this);
-    appStore->loadImageObservable(commentPtr->userAvatarUrl)
-        .subscribe(
-            [safeThis](const juce::Image &image) {
-              if (safeThis == nullptr)
-                return;
-              if (image.isValid())
-                safeThis->repaint();
-            },
-            [safeThis](std::exception_ptr) {
-              if (safeThis == nullptr)
-                return;
-              Log::warn("Comment: Failed to load avatar in paint");
-            });
+  // Draw the cached avatar image if available, otherwise draw a placeholder
+  // BUG FIX: Removed subscribe() call that was causing memory leak by creating
+  // new subscriptions on every paint. Image is now loaded once in setComment().
+  if (cachedAvatarImage.isValid()) {
+    // Draw the cached avatar image clipped to a circle
+    juce::Path clipPath;
+    clipPath.addEllipse(bounds.toFloat());
+    g.saveState();
+    g.reduceClipRegion(clipPath);
+    g.drawImage(cachedAvatarImage, bounds.toFloat(),
+                juce::RectanglePlacement::centred | juce::RectanglePlacement::fillDestination);
+    g.restoreState();
+
+    // Avatar border
+    g.setColour(SidechainColors::border());
+    g.drawEllipse(bounds.toFloat(), 1.0f);
+  } else {
+    // Draw placeholder circle (will be replaced with actual image when loaded)
+    g.setColour(SidechainColors::surface());
+    g.fillEllipse(bounds.toFloat());
+
+    // Avatar border
+    g.setColour(SidechainColors::border());
+    g.drawEllipse(bounds.toFloat(), 1.0f);
   }
-
-  // Draw placeholder circle (will be replaced with actual image when loaded)
-  g.setColour(SidechainColors::surface());
-  g.fillEllipse(bounds.toFloat());
-
-  // Avatar border
-  g.setColour(SidechainColors::border());
-  g.drawEllipse(bounds.toFloat(), 1.0f);
 }
 
 void CommentRow::drawUserInfo(juce::Graphics &g, juce::Rectangle<int> bounds) {
@@ -1124,12 +1132,20 @@ void CommentsPanel::showMentionAutocomplete(const juce::String &query) {
   juce::String searchQuery = query.isEmpty() ? "" : query;
   auto &storeRef = AppStore::getInstance();
 
+  // BUG FIX: Use SafePointer to prevent use-after-free if panel is destroyed
+  // while async search is in progress
+  juce::Component::SafePointer<CommentsPanel> safeThis(this);
+
   storeRef.searchUsersObservable(searchQuery)
       .subscribe(
-          [this](const juce::Array<juce::var> &users) {
+          [safeThis](const juce::Array<juce::var> &users) {
+            // Check if component still exists
+            if (safeThis == nullptr)
+              return;
+
             // On next - users found
-            mentionSuggestions.clear();
-            mentionUserIds.clear();
+            safeThis->mentionSuggestions.clear();
+            safeThis->mentionUserIds.clear();
 
             for (const auto &user : users) {
               if (user.isObject()) {
@@ -1137,25 +1153,29 @@ void CommentsPanel::showMentionAutocomplete(const juce::String &query) {
                 juce::String userId = user.getProperty("id", "").toString();
 
                 if (username.isNotEmpty() && userId.isNotEmpty()) {
-                  mentionSuggestions.add(username);
-                  mentionUserIds.add(userId);
+                  safeThis->mentionSuggestions.add(username);
+                  safeThis->mentionUserIds.add(userId);
                 }
               }
             }
 
-            if (mentionSuggestions.size() > 0) {
-              selectedMentionIndex = 0;
-              mentionAutocompletePanel->setVisible(true);
-              resized(); // Update panel position
-              repaint();
+            if (safeThis->mentionSuggestions.size() > 0) {
+              safeThis->selectedMentionIndex = 0;
+              safeThis->mentionAutocompletePanel->setVisible(true);
+              safeThis->resized(); // Update panel position
+              safeThis->repaint();
             } else {
-              hideMentionAutocomplete();
+              safeThis->hideMentionAutocomplete();
             }
           },
-          [this](std::exception_ptr) {
+          [safeThis](std::exception_ptr) {
+            // Check if component still exists
+            if (safeThis == nullptr)
+              return;
+
             // On error - hide mention panel
             Log::error("CommentsPanel: Search users failed");
-            hideMentionAutocomplete();
+            safeThis->hideMentionAutocomplete();
           });
 }
 
