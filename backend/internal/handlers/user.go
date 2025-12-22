@@ -310,7 +310,7 @@ func (h *Handlers) GetUserProfile(c *gin.Context) {
 		followStats, followStatsErr = h.stream.GetFollowStats(user.StreamUserID)
 		if followStatsErr != nil {
 			// Log but don't fail - use cached values from DB
-			fmt.Printf("Warning: Failed to get follow stats from Stream.io: %v\n", followStatsErr)
+			logger.Log.Warn("Failed to get follow stats from Stream.io", zap.Error(followStatsErr), zap.String("user_id", user.ID))
 		}
 	}
 

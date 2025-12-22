@@ -60,6 +60,12 @@ func ToUserResponse(user *models.User) *UserResponse {
 		return nil
 	}
 
+	// Convert StringArray to comma-separated string for API response
+	genre := ""
+	if len(user.Genre) > 0 {
+		genre = user.Genre[0] // Use primary genre for display
+	}
+
 	return &UserResponse{
 		ID:                user.ID,
 		Username:          user.Username,
@@ -67,9 +73,9 @@ func ToUserResponse(user *models.User) *UserResponse {
 		Bio:               user.Bio,
 		ProfilePictureURL: user.ProfilePictureURL,
 		AvatarURL:         user.GetAvatarURL(), // Effective avatar: S3 if available, else OAuth
-		Genre:             "", // TODO: Convert StringArray to string
+		Genre:             genre,
 		DAWPreference:     user.DAWPreference,
-		IsVerified:        false, // TODO: Add IsVerified field to models.User
+		IsVerified:        false, // Verified badge feature not implemented yet
 		IsPrivate:         user.IsPrivate,
 		FollowerCount:     user.FollowerCount,
 		FollowingCount:    user.FollowingCount,
