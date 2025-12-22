@@ -71,10 +71,6 @@ func (h *Handlers) trackSearchQuery(c *gin.Context, entityType string, query str
 			// Delegate to search client for potential Elasticsearch analytics indexing
 			h.search.TrackSearchQuery(c.Request.Context(), query, resultCount, filters)
 		}
-
-		// Log for debugging
-		fmt.Printf("🔍 Search Analytics: user=%s, type=%s, query=%s, results=%d, filters=%v\n",
-			userID, entityType, query, resultCount, filters)
 	}()
 }
 

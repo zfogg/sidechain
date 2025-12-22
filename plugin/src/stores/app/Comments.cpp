@@ -57,28 +57,22 @@ void AppStore::createComment(const juce::String &postId, const juce::String &con
   Util::logInfo("AppStore", "Creating comment on post: " + postId);
 
   networkClient->createComment(postId, content, parentId, [this, postId](Outcome<juce::var> result) {
-    Util::logInfo("AppStore", "DEBUG: createComment CALLBACK FIRED! postId=" + postId);
-
     auto slice = sliceManager.comments;
     if (!slice) {
-      Util::logError("AppStore", "DEBUG: Comments slice is null!");
+      Util::logError("AppStore", "Comments slice is null in createComment callback");
       return;
     }
 
     if (result.isOk()) {
-      Util::logInfo("AppStore", "DEBUG: createComment result.isOk() = TRUE");
       try {
         auto resultVar = result.getValue();
         auto resultStr = juce::JSON::toString(resultVar);
-        Util::logInfo("AppStore", "DEBUG: createComment response string: " + resultStr.substring(0, 200));
-
         auto json = nlohmann::json::parse(resultStr.toStdString());
 
         // Extract comment object from response wrapper ({"comment": {...}})
         nlohmann::json commentJson = json;
         if (json.contains("comment") && json["comment"].is_object()) {
           commentJson = json["comment"];
-          Util::logInfo("AppStore", "DEBUG: Extracted comment from wrapper");
         }
 
         // Normalize comment to model
@@ -93,9 +87,10 @@ void AppStore::createComment(const juce::String &postId, const juce::String &con
           if (commentsIt != newState.commentsByPostId.end()) {
             commentsIt->second.insert(commentsIt->second.begin(), normalizedComment);
             newState.totalCountByPostId[postId.toStdString()]++;
-            Util::logInfo("AppStore", "DEBUG: Added comment to existing post's list");
           } else {
-            Util::logError("AppStore", "DEBUG: Post " + postId + " not found in commentsByPostId map!");
+            Util::logWarning("AppStore", "Post " + postId + " not found in commentsByPostId map, initializing empty list");
+            newState.commentsByPostId[postId.toStdString()] = {normalizedComment};
+            newState.totalCountByPostId[postId.toStdString()] = 1;
           }
           newState.commentsError.clear();
           slice->setState(newState);
@@ -113,7 +108,6 @@ void AppStore::createComment(const juce::String &postId, const juce::String &con
         slice->setState(errorState);
       }
     } else {
-      Util::logError("AppStore", "DEBUG: createComment result.isOk() = FALSE");
       Util::logError("AppStore", "Failed to create comment: " + result.getError());
 
       CommentsState errorState = slice->getState();

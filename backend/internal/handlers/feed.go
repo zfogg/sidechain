@@ -952,15 +952,6 @@ func (h *Handlers) GetUnifiedTimeline(c *gin.Context) {
 		activities = append(activities, activity)
 	}
 
-	// Debug: Log first activity to see what we're returning
-	if len(activities) > 0 {
-		firstActivity := activities[0]
-		if posterID, ok := firstActivity["actor"].(string); ok {
-			fmt.Printf("📤 RESPONSE SAMPLE: actor=%s is_following=%v is_own_post=%v\n",
-				posterID, firstActivity["is_following"], firstActivity["is_own_post"])
-		}
-	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"activities": activities,
 		"meta": gin.H{
@@ -1040,7 +1031,6 @@ func (h *Handlers) GetEnrichedGlobalFeed(c *gin.Context) {
 // GetAggregatedTimeline gets the user's aggregated timeline (grouped by user+day)
 // GET /api/feed/timeline/aggregated
 func (h *Handlers) GetAggregatedTimeline(c *gin.Context) {
-	fmt.Printf("🎯 DEBUG: GetAggregatedTimeline called (NEW CODE)\n")
 	currentUser, ok := util.GetUserFromContext(c)
 	if !ok {
 		return
