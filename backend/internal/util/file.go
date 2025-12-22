@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"io"
 	"mime/multipart"
 	"os"
 	"path/filepath"
@@ -26,11 +27,11 @@ func SaveUploadedFile(file *multipart.FileHeader) (string, error) {
 
 	tempFilePath := filepath.Join(tempDir, uuid.New().String()+filepath.Ext(file.Filename))
 
-	// Read and save file data
+	// Read and save file data using io.ReadFull to ensure complete read
 	fileData := make([]byte, file.Size)
-	_, err = src.Read(fileData)
+	_, err = io.ReadFull(src, fileData)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to read file data: %w", err)
 	}
 
 	err = os.WriteFile(tempFilePath, fileData, 0644)

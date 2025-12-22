@@ -140,8 +140,8 @@ juce::String ToastNotification::getIcon() const {
 // ==============================================================================
 
 ToastManager &ToastManager::getInstance() {
-  static ToastManager *instance = new ToastManager();
-  return *instance;
+  static ToastManager instance;
+  return instance;
 }
 
 ToastManager::ToastManager() {
