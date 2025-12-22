@@ -222,14 +222,7 @@ func (h *Hub) broadcastMessage(message *Message) {
 
 // sendToUser sends a message to all connections for a specific user
 func (h *Hub) sendToUser(userID string, message *Message) {
-	h.mu.RLock()
-	clients, ok := h.clients[userID]
-	h.mu.RUnlock()
-
-	if !ok || len(clients) == 0 {
-		return
-	}
-
+	// Marshal message outside the lock to avoid holding the lock during JSON encoding
 	data, err := json.Marshal(message)
 	if err != nil {
 		log.Printf("Error marshaling unicast message: %v", err)
@@ -238,6 +231,11 @@ func (h *Hub) sendToUser(userID string, message *Message) {
 
 	h.mu.RLock()
 	defer h.mu.RUnlock()
+
+	clients, ok := h.clients[userID]
+	if !ok || len(clients) == 0 {
+		return
+	}
 
 	for client := range clients {
 		select {
