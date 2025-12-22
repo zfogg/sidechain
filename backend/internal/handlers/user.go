@@ -200,10 +200,13 @@ func (h *Handlers) LikePost(c *gin.Context) {
 
 	// Update post engagement metrics in Elasticsearch (partial update - more efficient)
 	if h.search != nil {
+		activityID := req.ActivityID
 		go func() {
 			var post models.AudioPost
-			if err := database.DB.Select("id", "like_count", "play_count", "comment_count").Where("stream_activity_id = ?", req.ActivityID).First(&post).Error; err == nil {
-				if err := h.search.UpdatePostEngagement(c.Request.Context(), post.ID, post.LikeCount, post.PlayCount, post.CommentCount); err != nil {
+			if err := database.DB.Select("id", "like_count", "play_count", "comment_count").Where("stream_activity_id = ?", activityID).First(&post).Error; err == nil {
+				// Use context.Background() for fire-and-forget background operations
+				// The request context may be cancelled after the handler returns
+				if err := h.search.UpdatePostEngagement(context.Background(), post.ID, post.LikeCount, post.PlayCount, post.CommentCount); err != nil {
 					logger.WarnWithFields("Failed to update post engagement in Elasticsearch after like", err)
 				}
 			}
@@ -278,7 +281,9 @@ func (h *Handlers) UnlikePost(c *gin.Context) {
 		go func() {
 			var post models.AudioPost
 			if err := database.DB.Select("id", "like_count", "play_count", "comment_count").Where("stream_activity_id = ?", activityID).First(&post).Error; err == nil {
-				if err := h.search.UpdatePostEngagement(c.Request.Context(), post.ID, post.LikeCount, post.PlayCount, post.CommentCount); err != nil {
+				// Use context.Background() for fire-and-forget background operations
+				// The request context may be cancelled after the handler returns
+				if err := h.search.UpdatePostEngagement(context.Background(), post.ID, post.LikeCount, post.PlayCount, post.CommentCount); err != nil {
 					logger.WarnWithFields("Failed to update post engagement in Elasticsearch after unlike", err)
 				}
 			}
@@ -1103,7 +1108,7 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 	// Enrich activities with is_following state and user avatar
 	// All posts from Stream.io are by the same user (profile owner), so apply to all
 	log.Printf("GetUserPosts: Enriching %d activities from Stream.io with is_following=%v", len(activities), isFollowingUser)
-	enrichedActivities := make([]gin.H, len(activities))
+	enrichedActivities := make([]gin.H, 0, len(activities))
 	for i, activity := range activities {
 		// Convert EnrichedActivity to map using JSON marshal/unmarshal
 		// This preserves all fields from the enriched activity
@@ -1127,7 +1132,7 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 		activityMap["user_avatar_url"] = streamAvatarURL
 		activityMap["profile_picture_url"] = user.ProfilePictureURL
 
-		enrichedActivities[i] = activityMap
+		enrichedActivities = append(enrichedActivities, activityMap)
 	}
 
 	log.Printf("GetUserPosts: Returning %d posts with is_following=%v", len(enrichedActivities), isFollowingUser)
