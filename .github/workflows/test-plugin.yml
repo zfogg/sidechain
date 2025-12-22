@@ -159,9 +159,11 @@ jobs:
       - name: Run Tests
         run: |
           cd plugin/build
-          # Create test-results directory for Catch2 JUnit output
+          # Create test-results directory for CTest JUnit output
           mkdir -p test-results
-          ctest --output-on-failure -C Debug --output-junit test-results.xml
+          # Use CTest's native --output-junit instead of Catch2's junit reporter
+          # which generates invalid XML. CTest will create individual .xml files per test
+          ctest --output-on-failure -C Debug --output-junit test-results
 
       - name: Save Build Cache
         if: always()

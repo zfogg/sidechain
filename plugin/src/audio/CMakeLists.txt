@@ -51,6 +51,11 @@ target_link_libraries(SidechainAudio PUBLIC
     juce::juce_dsp
 )
 
+# Apply JUCE object caching to use pre-compiled JUCE modules
+if(COMMAND juce_link_cached)
+    juce_link_cached(SidechainAudio)
+endif()
+
 # Link libkeyfinder if available
 if(SIDECHAIN_HAS_KEYFINDER)
     target_link_libraries(SidechainAudio PRIVATE keyfinder)

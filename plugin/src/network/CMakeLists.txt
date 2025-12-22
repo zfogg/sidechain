@@ -92,6 +92,11 @@ target_link_libraries(SidechainNetwork PUBLIC
     juce::juce_recommended_warning_flags
 )
 
+# Apply JUCE object caching to use pre-compiled JUCE modules
+if(COMMAND juce_link_cached)
+    juce_link_cached(SidechainNetwork)
+endif()
+
 # External dependencies (optional)
 if(SIDECHAIN_HAS_ASIO)
     target_link_libraries(SidechainNetwork PRIVATE asio)

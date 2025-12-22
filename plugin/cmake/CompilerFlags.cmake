@@ -174,6 +174,9 @@ function(suppress_juce_warnings target_name)
             -Wno-unnecessary-virtual-specifier          # JUCE VST3
             -Wno-nan-infinity-disabled                  # Audio processing math
             -Wno-missing-designated-field-initializers  # JUCE designated init patterns
+            -Wno-missing-braces                                                                                                                                                                                                          
+            -Wno-missing-field-initializers                                                                                                                                                                                              
+            -Wno-unnecessary-virtual-specifier
         )
     elseif(MSVC)
         target_compile_options(${target_name} PRIVATE

@@ -171,6 +171,11 @@ target_link_libraries(SidechainUI PUBLIC
     juce::juce_recommended_warning_flags
 )
 
+# Apply JUCE object caching to use pre-compiled JUCE modules
+if(COMMAND juce_link_cached)
+    juce_link_cached(SidechainUI)
+endif()
+
 # GTK and WebKit include directories (required by juce_gui_extra on Linux)
 if(UNIX AND NOT APPLE)
     find_package(PkgConfig REQUIRED)

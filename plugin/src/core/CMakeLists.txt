@@ -65,8 +65,9 @@ target_sources(Sidechain PRIVATE
 )
 
 # Preprocessor definitions
+# Use PRIVATE to prevent propagation to test targets which define their own values
 target_compile_definitions(Sidechain
-    PUBLIC
+    PRIVATE
         JUCE_WEB_BROWSER=0
         JUCE_USE_CURL=1  # Enable curl for HTTPS audio downloads
         JUCE_VST3_CAN_REPLACE_VST2=0
@@ -116,18 +117,21 @@ target_link_libraries(Sidechain
         juce::juce_recommended_warning_flags
 )
 
-# Don't treat warnings as errors (the codebase has some warnings to fix later)
-# Also suppress JUCE audio_plugin_client warnings that we can't control
-if(MSVC)
-    target_compile_options(Sidechain PRIVATE /W3)
-else()
-    target_compile_options(Sidechain PRIVATE
-        -Wall
-        -Wno-unused-parameter
-        -Wno-deprecated-declarations
-        -Wno-missing-braces              # JUCE audio_plugin_client macros
-        -Wno-missing-field-initializers  # JUCE audio_plugin_client macros
-    )
+# Suppress JUCE warnings in plugin format targets (VST3, Standalone, etc.)
+# juce_add_plugin() creates sub-targets like Sidechain_VST3, Sidechain_Standalone
+# that compile JUCE audio_plugin_client sources. Apply suppressions to those targets.
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+    # Use generator expression to add flags after targets are created
+    # Apply to all Sidechain format targets created by juce_add_plugin()
+    foreach(format_target IN ITEMS Sidechain_VST3 Sidechain_Standalone Sidechain_AU Sidechain_AAX)
+        if(TARGET ${format_target})
+            target_compile_options(${format_target} PRIVATE
+                -Wno-missing-braces
+                -Wno-missing-field-initializers
+                -Wno-unnecessary-virtual-specifier
+            )
+        endif()
+    endforeach()
 endif()
 
 # Platform-specific link libraries
@@ -147,6 +151,13 @@ endif()
 # Link websocketpp if available (already linked via SidechainNetwork, but keep for compatibility)
 if(SIDECHAIN_HAS_WEBSOCKETPP)
     message(STATUS "Sidechain will link with websocketpp for WebSocket support")
+endif()
+
+# Apply JUCE object caching to plugin target (if enabled)
+# juce_add_plugin() creates multiple targets: Sidechain_VST3, Sidechain_Standalone, Sidechain_All
+# We apply caching to the shared library target
+if(COMMAND juce_link_cached)
+    juce_link_cached(Sidechain)
 endif()
 
 # Copy AudioPluginHost to bin/ after build (Sidechain_All is created by juce_add_plugin)

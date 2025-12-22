@@ -38,6 +38,24 @@ if(SIDECHAIN_BUILD_TESTS)
         set(CMAKE_SHARED_LINKER_FLAGS "${SAVED_CMAKE_SHARED_LINKER_FLAGS}")
     endif()
 
+    # Mark Catch2 includes as SYSTEM to suppress warnings from external headers
+    if(TARGET Catch2)
+        get_target_property(CATCH2_INCLUDE_DIRS Catch2 INTERFACE_INCLUDE_DIRECTORIES)
+        if(CATCH2_INCLUDE_DIRS)
+            set_target_properties(Catch2 PROPERTIES
+                INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${CATCH2_INCLUDE_DIRS}"
+            )
+        endif()
+    endif()
+    if(TARGET Catch2WithMain)
+        get_target_property(CATCH2_MAIN_INCLUDE_DIRS Catch2WithMain INTERFACE_INCLUDE_DIRECTORIES)
+        if(CATCH2_MAIN_INCLUDE_DIRS)
+            set_target_properties(Catch2WithMain PROPERTIES
+                INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${CATCH2_MAIN_INCLUDE_DIRS}"
+            )
+        endif()
+    endif()
+
     # Include Catch2's CMake helpers
     list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
     include(CTest)
@@ -82,9 +100,9 @@ if(SIDECHAIN_BUILD_TESTS)
 
     target_compile_definitions(SidechainTestLib PUBLIC
         JUCE_WEB_BROWSER=0
-        JUCE_USE_CURL=0
         JUCE_VST3_CAN_REPLACE_VST2=0
-        JUCE_STANDALONE_APPLICATION=1
+        # JUCE_STANDALONE_APPLICATION is automatically defined by JUCE build system
+        # JUCE_USE_CURL is inherited from Sidechain target (no need to redefine)
     )
 
     # Link against modular libraries instead of duplicating sources
@@ -175,11 +193,11 @@ if(SIDECHAIN_BUILD_TESTS)
     )
 
     # Register tests with CTest
+    # NOTE: Do NOT use Catch2's REPORTER junit - it generates invalid XML
+    # CTest's --output-junit flag (used in CI) generates valid JUnit XML
     catch_discover_tests(SidechainTests
-        REPORTER junit
         OUTPUT_DIR ${CMAKE_BINARY_DIR}/test-results
-        OUTPUT_PREFIX "test-"
-        OUTPUT_SUFFIX ".xml"
+        TEST_PREFIX "catch_"
     )
 
     # Custom target for running tests with coverage

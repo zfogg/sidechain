@@ -378,7 +378,7 @@ TEST_CASE_METHOD(PostCardTestFixture, "PostCard error handling in callbacks", "[
     Sidechain::FeedPost originalPost = *card.getPost();
 
     // Callback doesn't update (simulating error/network failure)
-    card.onLikeToggled = [](const Sidechain::FeedPost &post, bool liked) {
+    card.onLikeToggled = []([[maybe_unused]] const Sidechain::FeedPost &post, [[maybe_unused]] bool liked) {
       // Do nothing - simulates error/network failure
       // In real app, would show error toast
     };

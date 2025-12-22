@@ -56,6 +56,17 @@ cmake --build --preset default
 
 **Generator Note**: The Makefile automatically detects and uses Ninja if available for faster parallel builds. CMake presets also default to Ninja. If you run `cmake` directly, specify `-G Ninja` or use a preset.
 
+**JUCE Object Caching**: The build system pre-compiles JUCE modules to `.cache/cmake/Debug/juce_objects/` instead of `plugin/build/`. This means:
+- JUCE object files survive `rm -rf plugin/build`
+- Rebuilding after deleting build/ is much faster (only your code recompiles)
+- Combined with ccache, you get two layers of caching
+
+**Cache Optimization Tips**:
+1. ccache is already enabled and provides 50-70% hit rate
+2. Increase ccache size for better caching: `ccache -M 10G`
+3. Check cache stats: `ccache -s`
+4. Avoid deleting `plugin/build/` during development - use `make plugin-fast` instead
+
 ### Backend (Go)
 ```bash
 # Build backend
