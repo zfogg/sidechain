@@ -40,6 +40,13 @@ func (h *ErrorTrackingHandler) RecordErrors(c *gin.Context) {
 		})
 		return
 	}
+	userIDStr, ok := userID.(string)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "invalid_user_id",
+		})
+		return
+	}
 
 	if len(req.Errors) == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -66,7 +73,7 @@ func (h *ErrorTrackingHandler) RecordErrors(c *gin.Context) {
 		}
 
 		// Check if similar error exists in last 1 hour
-		existing := h.findSimilarError(userID.(string), errPayload.Message, errPayload.Source)
+		existing := h.findSimilarError(userIDStr, errPayload.Message, errPayload.Source)
 
 		if existing != nil {
 			// Update existing error
@@ -86,7 +93,7 @@ func (h *ErrorTrackingHandler) RecordErrors(c *gin.Context) {
 
 			errorLog := &models.ErrorLog{
 				ID:          uuid.New().String(),
-				UserID:      userID.(string),
+				UserID:      userIDStr,
 				Source:      errPayload.Source,
 				Severity:    errPayload.Severity,
 				Message:     errPayload.Message,
@@ -113,7 +120,7 @@ func (h *ErrorTrackingHandler) RecordErrors(c *gin.Context) {
 		"total_count":    len(req.Errors),
 	})
 
-	log.Printf("Recorded %d/%d errors for user %s", recordedCount, len(req.Errors), userID)
+	log.Printf("Recorded %d/%d errors for user %s", recordedCount, len(req.Errors), userIDStr)
 }
 
 // GetErrorStats returns error statistics for the authenticated user
@@ -123,6 +130,13 @@ func (h *ErrorTrackingHandler) GetErrorStats(c *gin.Context) {
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": "not_authenticated",
+		})
+		return
+	}
+	userIDStr, ok := userID.(string)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "invalid_user_id",
 		})
 		return
 	}
@@ -150,7 +164,7 @@ func (h *ErrorTrackingHandler) GetErrorStats(c *gin.Context) {
 	// Total error count
 	if err := database.DB.
 		Model(&models.ErrorLog{}).
-		Where("user_id = ? AND created_at >= ?", userID, sinceTime).
+		Where("user_id = ? AND created_at >= ?", userIDStr, sinceTime).
 		Count(&stats.TotalErrors).Error; err != nil {
 		log.Printf("Failed to count total errors: %v", err)
 	}
@@ -163,7 +177,7 @@ func (h *ErrorTrackingHandler) GetErrorStats(c *gin.Context) {
 	if err := database.DB.
 		Model(&models.ErrorLog{}).
 		Select("severity, COUNT(*) as count").
-		Where("user_id = ? AND created_at >= ?", userID, sinceTime).
+		Where("user_id = ? AND created_at >= ?", userIDStr, sinceTime).
 		Group("severity").
 		Scan(&severityStats).Error; err == nil {
 		for _, s := range severityStats {
@@ -179,7 +193,7 @@ func (h *ErrorTrackingHandler) GetErrorStats(c *gin.Context) {
 	if err := database.DB.
 		Model(&models.ErrorLog{}).
 		Select("source, COUNT(*) as count").
-		Where("user_id = ? AND created_at >= ?", userID, sinceTime).
+		Where("user_id = ? AND created_at >= ?", userIDStr, sinceTime).
 		Group("source").
 		Scan(&sourceStats).Error; err == nil {
 		for _, s := range sourceStats {
@@ -190,7 +204,7 @@ func (h *ErrorTrackingHandler) GetErrorStats(c *gin.Context) {
 	// Top errors (most frequent)
 	var topErrors []models.ErrorLog
 	if err := database.DB.
-		Where("user_id = ? AND created_at >= ?", userID, sinceTime).
+		Where("user_id = ? AND created_at >= ?", userIDStr, sinceTime).
 		Order("occurrences DESC").
 		Limit(10).
 		Find(&topErrors).Error; err == nil {
@@ -205,7 +219,7 @@ func (h *ErrorTrackingHandler) GetErrorStats(c *gin.Context) {
 	}
 
 	// Error trend (hourly)
-	if err := h.getErrorTrend(userID.(string), hours, stats); err != nil {
+	if err := h.getErrorTrend(userIDStr, hours, stats); err != nil {
 		log.Printf("Failed to get error trend: %v", err)
 	}
 

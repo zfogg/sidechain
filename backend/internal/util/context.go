@@ -16,7 +16,12 @@ func GetUserFromContext(c *gin.Context) (*models.User, bool) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not authenticated"})
 		return nil, false
 	}
-	return user.(*models.User), true
+	userPtr, ok := user.(*models.User)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user data in context"})
+		return nil, false
+	}
+	return userPtr, true
 }
 
 // GetUserIDFromContext extracts the user ID from the Gin context.
@@ -28,5 +33,10 @@ func GetUserIDFromContext(c *gin.Context) (string, bool) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return "", false
 	}
-	return userID.(string), true
+	userIDStr, ok := userID.(string)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user ID in context"})
+		return "", false
+	}
+	return userIDStr, true
 }

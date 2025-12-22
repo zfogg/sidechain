@@ -5,6 +5,7 @@ import (
 	"net/mail"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/zfogg/sidechain/backend/internal/models"
@@ -122,10 +123,10 @@ func ValidateUsername(username string) error {
 // ValidateString validates a string length
 func ValidateString(value, fieldName string, minLen, maxLen int) error {
 	if minLen > 0 && len(value) < minLen {
-		return errors.New(fieldName + " must be at least " + string(rune(minLen)) + " characters")
+		return errors.New(fieldName + " must be at least " + strconv.Itoa(minLen) + " characters")
 	}
 	if maxLen > 0 && len(value) > maxLen {
-		return errors.New(fieldName + " must be at most " + string(rune(maxLen)) + " characters")
+		return errors.New(fieldName + " must be at most " + strconv.Itoa(maxLen) + " characters")
 	}
 	return nil
 }
@@ -133,10 +134,10 @@ func ValidateString(value, fieldName string, minLen, maxLen int) error {
 // ValidateRange validates a numeric range
 func ValidateRange(value int, fieldName string, min, max int) error {
 	if value < min {
-		return errors.New(fieldName + " must be at least " + string(rune(min)))
+		return errors.New(fieldName + " must be at least " + strconv.Itoa(min))
 	}
 	if value > max {
-		return errors.New(fieldName + " must be at most " + string(rune(max)))
+		return errors.New(fieldName + " must be at most " + strconv.Itoa(max))
 	}
 	return nil
 }

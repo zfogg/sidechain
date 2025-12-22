@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -319,7 +320,9 @@ func (h *Handlers) Disable2FA(c *gin.Context) {
 			if valid {
 				verified = true
 				// Update counter
-				database.DB.Model(&user).Update("two_factor_counter", newCounter)
+				if err := database.DB.Model(&user).Update("two_factor_counter", newCounter).Error; err != nil {
+					log.Printf("Failed to update 2FA counter for user %s: %v", user.ID, err)
+				}
 			}
 		} else {
 			if totp.Validate(req.Code, *user.TwoFactorSecret) {
@@ -401,7 +404,9 @@ func (h *AuthHandlers) Verify2FALogin(c *gin.Context) {
 		valid, newCounter = verifyHOTPWithLookAhead(*user.TwoFactorSecret, req.Code, counter, hotpLookAhead)
 		if valid {
 			// Update counter
-			database.DB.Model(&user).Update("two_factor_counter", newCounter)
+			if err := database.DB.Model(&user).Update("two_factor_counter", newCounter).Error; err != nil {
+				log.Printf("Failed to update 2FA counter for user %s: %v", user.ID, err)
+			}
 		}
 	} else {
 		// TOTP verification (default)
@@ -473,7 +478,9 @@ func (h *Handlers) RegenerateBackupCodes(c *gin.Context) {
 		var newCounter uint64
 		valid, newCounter = verifyHOTPWithLookAhead(*user.TwoFactorSecret, req.Code, counter, hotpLookAhead)
 		if valid {
-			database.DB.Model(&user).Update("two_factor_counter", newCounter)
+			if err := database.DB.Model(&user).Update("two_factor_counter", newCounter).Error; err != nil {
+				log.Printf("Failed to update 2FA counter for user %s: %v", user.ID, err)
+			}
 		}
 	} else {
 		valid = totp.Validate(req.Code, *user.TwoFactorSecret)
@@ -567,9 +574,16 @@ func verifyAndConsumeBackupCode(user *models.User, code string) bool {
 			hashedCodes = append(hashedCodes[:i], hashedCodes[i+1:]...)
 
 			// Save updated codes
-			updatedJSON, _ := json.Marshal(hashedCodes)
+			updatedJSON, err := json.Marshal(hashedCodes)
+			if err != nil {
+				log.Printf("Failed to marshal updated backup codes for user %s: %v", user.ID, err)
+				return false
+			}
 			updatedStr := string(updatedJSON)
-			database.DB.Model(user).Update("backup_codes", updatedStr)
+			if err := database.DB.Model(user).Update("backup_codes", updatedStr).Error; err != nil {
+				log.Printf("Failed to update backup codes for user %s: %v", user.ID, err)
+				return false
+			}
 
 			return true
 		}
