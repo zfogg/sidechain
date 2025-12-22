@@ -1108,8 +1108,15 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 		// Convert EnrichedActivity to map using JSON marshal/unmarshal
 		// This preserves all fields from the enriched activity
 		var activityMap map[string]interface{}
-		activityBytes, _ := json.Marshal(activity)
-		json.Unmarshal(activityBytes, &activityMap)
+		activityBytes, err := json.Marshal(activity)
+		if err != nil {
+			log.Printf("GetUserPosts: Failed to marshal activity %d: %v", i, err)
+			continue
+		}
+		if err := json.Unmarshal(activityBytes, &activityMap); err != nil {
+			log.Printf("GetUserPosts: Failed to unmarshal activity %d: %v", i, err)
+			continue
+		}
 
 		// Add is_following to the activity
 		activityMap["is_following"] = isFollowingUser

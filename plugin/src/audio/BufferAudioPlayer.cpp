@@ -13,6 +13,9 @@ BufferAudioPlayer::BufferAudioPlayer() {
 BufferAudioPlayer::~BufferAudioPlayer() {
   Log::debug("BufferAudioPlayer: Destroying");
 
+  // CRITICAL: Mark as destroyed to prevent use-after-free in pending async callbacks
+  aliveFlag->store(false, std::memory_order_release);
+
   // CRITICAL: Stop timer BEFORE destroying anything
   if (progressTimer)
     progressTimer->stopTimer();
@@ -249,7 +252,14 @@ void BufferAudioPlayer::processBlock(juce::AudioBuffer<float> &buffer, int numSa
   // Check if playback has ended
   if (newPos >= totalSamples) {
     // Schedule end-of-playback handling on message thread
-    juce::MessageManager::callAsync([this]() {
+    // Capture aliveFlag by value (shared_ptr) to check if object still exists
+    auto flagCopy = aliveFlag;
+    juce::MessageManager::callAsync([this, flagCopy]() {
+      // Check if object was destroyed before this callback ran
+      if (!flagCopy->load(std::memory_order_acquire)) {
+        return;
+      }
+
       Log::info("BufferAudioPlayer: Playback finished");
 
       if (onPlaybackFinished)

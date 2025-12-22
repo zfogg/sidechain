@@ -31,6 +31,9 @@ HttpAudioPlayer::HttpAudioPlayer() {
 HttpAudioPlayer::~HttpAudioPlayer() {
   Log::debug("HttpAudioPlayer: Destroying");
 
+  // CRITICAL: Mark as destroyed to prevent use-after-free in pending async callbacks
+  aliveFlag->store(false, std::memory_order_release);
+
   // CRITICAL: Stop timer BEFORE destroying anything
   if (progressTimer)
     progressTimer->stopTimer();
@@ -274,7 +277,14 @@ void HttpAudioPlayer::processBlock(juce::AudioBuffer<float> &buffer, int numSamp
     auto *reader = readerSource->getAudioFormatReader();
     if (reader != nullptr && readerSource->getNextReadPosition() >= reader->lengthInSamples) {
       // Schedule end-of-playback handling on message thread
-      juce::MessageManager::callAsync([this]() {
+      // Capture aliveFlag by value (shared_ptr) to check if object still exists
+      auto flagCopy = aliveFlag;
+      juce::MessageManager::callAsync([this, flagCopy]() {
+        // Check if object was destroyed before this callback ran
+        if (!flagCopy->load(std::memory_order_acquire)) {
+          return;
+        }
+
         juce::String finishedPostId = currentPostId;
         Log::info("HttpAudioPlayer: Playback finished - post: " + finishedPostId);
 
@@ -479,7 +489,14 @@ void HttpAudioPlayer::downloadAudio(const juce::String &postId, const juce::Stri
     }
 
     // Back to message thread
-    juce::MessageManager::callAsync([this, postId, audioData = std::move(data), success]() mutable {
+    // Capture aliveFlag by value (shared_ptr) to check if object still exists
+    auto flagCopy = aliveFlag;
+    juce::MessageManager::callAsync([this, flagCopy, postId, audioData = std::move(data), success]() mutable {
+      // Check if object was destroyed before this callback ran
+      if (!flagCopy->load(std::memory_order_acquire)) {
+        return;
+      }
+
       Log::debug("HttpAudioPlayer: MessageManager callback - post: " + postId +
                  ", success: " + juce::String(success ? "true" : "false"));
 
