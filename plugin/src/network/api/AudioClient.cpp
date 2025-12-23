@@ -6,6 +6,7 @@
 #include "../../audio/KeyDetector.h"
 #include "../../util/Async.h"
 #include "../../util/Constants.h"
+#include "../../util/Json.h"
 #include "../../util/Log.h"
 #include "../NetworkClient.h"
 #include "Common.h"
@@ -120,9 +121,9 @@ void NetworkClient::uploadAudio(const juce::String &recordingId, const juce::Aud
     juce::String audioUrl;
 
     if (result.data.isObject()) {
-      audioUrl = result.data.getProperty("audio_url", "").toString();
+      audioUrl = Json::getString(result.data, "audio_url");
       if (audioUrl.isEmpty())
-        audioUrl = result.data.getProperty("url", "").toString();
+        audioUrl = Json::getString(result.data, "url");
     }
 
     if (callback) {
@@ -266,21 +267,21 @@ void NetworkClient::uploadAudioWithMetadata(const juce::AudioBuffer<float> &audi
     // Check for error messages in response body (even if HTTP status is 200)
     if (result.data.isObject()) {
       // Check if response contains an error
-      if (result.data.hasProperty("error")) {
-        juce::String errorMsg = result.data.getProperty("error", "").toString();
-        juce::String message = result.data.getProperty("message", "").toString();
+      if (Json::hasKey(result.data, "error")) {
+        juce::String errorMsg = Json::getString(result.data, "error");
+        juce::String message = Json::getString(result.data, "message");
         if (errorMsg.isNotEmpty() || message.isNotEmpty()) {
           success = false;
           Log::warn("Upload response contains error: " + (errorMsg.isNotEmpty() ? errorMsg : message));
         }
       }
 
-      audioUrl = result.data.getProperty("audio_url", "").toString();
+      audioUrl = Json::getString(result.data, "audio_url");
       if (audioUrl.isEmpty())
-        audioUrl = result.data.getProperty("url", "").toString();
-      audioPostId = result.data.getProperty("id", "").toString();
+        audioUrl = Json::getString(result.data, "url");
+      audioPostId = Json::getString(result.data, "id");
       if (audioPostId.isEmpty())
-        audioPostId = result.data.getProperty("post_id", "").toString();
+        audioPostId = Json::getString(result.data, "post_id");
     }
 
     // If success is true but audioUrl is empty, treat as failure
@@ -325,9 +326,9 @@ void NetworkClient::uploadAudioWithMetadata(const juce::AudioBuffer<float> &audi
         if (projectUploadResult.success) {
           juce::String fileUrl;
           if (projectUploadResult.data.isObject()) {
-            fileUrl = projectUploadResult.data.getProperty("url", "").toString();
+            fileUrl = Json::getString(projectUploadResult.data, "url");
             if (fileUrl.isEmpty())
-              fileUrl = projectUploadResult.data.getProperty("file_url", "").toString();
+              fileUrl = Json::getString(projectUploadResult.data, "file_url");
           }
 
           if (fileUrl.isNotEmpty()) {

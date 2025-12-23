@@ -5,6 +5,7 @@
 
 #include "../../util/Async.h"
 #include "../../util/Constants.h"
+#include "../../util/Json.h"
 #include "../../util/Log.h"
 #include "../NetworkClient.h"
 #include "Common.h"
@@ -26,8 +27,8 @@ void NetworkClient::getComments(const juce::String &postId, int limit, int offse
     juce::var comments;
 
     if (result.isSuccess() && result.data.isObject()) {
-      comments = result.data.getProperty("comments", juce::var());
-      totalCount = static_cast<int>(result.data.getProperty("total_count", 0));
+      comments = Json::getArray(result.data, "comments");
+      totalCount = Json::getInt(result.data, "total_count");
     }
 
     juce::MessageManager::callAsync([callback, result, comments, totalCount]() {
@@ -97,8 +98,8 @@ void NetworkClient::getCommentReplies(const juce::String &commentId, int limit, 
     juce::var replies;
 
     if (result.isSuccess() && result.data.isObject()) {
-      replies = result.data.getProperty("replies", juce::var());
-      totalCount = static_cast<int>(result.data.getProperty("total_count", 0));
+      replies = Json::getArray(result.data, "replies");
+      totalCount = Json::getInt(result.data, "total_count");
     }
 
     juce::MessageManager::callAsync([callback, result, replies, totalCount]() {

@@ -5,6 +5,7 @@
 
 #include "../../util/Async.h"
 #include "../../util/Constants.h"
+#include "../../util/Json.h"
 #include "../../util/Log.h"
 #include "../NetworkClient.h"
 #include "Common.h"
@@ -436,9 +437,9 @@ void NetworkClient::uploadProjectFile(const juce::File &projectFile, const juce:
     // Get CDN URL from response
     juce::String fileUrl;
     if (uploadResult.data.isObject()) {
-      fileUrl = uploadResult.data.getProperty("url", "").toString();
+      fileUrl = Json::getString(uploadResult.data, "url");
       if (fileUrl.isEmpty())
-        fileUrl = uploadResult.data.getProperty("file_url", "").toString();
+        fileUrl = Json::getString(uploadResult.data, "file_url");
     }
 
     if (fileUrl.isEmpty()) {
@@ -470,7 +471,7 @@ void NetworkClient::uploadProjectFile(const juce::File &projectFile, const juce:
         if (recordResult.success) {
           juce::String projectFileId;
           if (recordResult.data.isObject())
-            projectFileId = recordResult.data.getProperty("id", "").toString();
+            projectFileId = Json::getString(recordResult.data, "id");
           callback(Outcome<juce::String>::ok(projectFileId));
         } else {
           callback(Outcome<juce::String>::error(recordResult.getUserFriendlyError()));
