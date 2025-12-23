@@ -119,8 +119,7 @@ void NetworkClient::likePost(const juce::String &activityId, const juce::String 
   }
 
   Async::runVoid([this, activityId, emoji, callback]() {
-    juce::var data = juce::var(new juce::DynamicObject());
-    data.getDynamicObject()->setProperty("activity_id", activityId);
+    auto data = createJsonObject({{"activity_id", activityId}});
     if (!emoji.isEmpty())
       data.getDynamicObject()->setProperty("emoji", emoji);
 
@@ -184,9 +183,7 @@ void NetworkClient::reportPost(const juce::String &postId, const juce::String &r
   }
 
   Async::runVoid([this, postId, reason, description, callback]() {
-    juce::var data = juce::var(new juce::DynamicObject());
-    data.getDynamicObject()->setProperty("post_id", postId);
-    data.getDynamicObject()->setProperty("reason", reason);
+    auto data = createJsonObject({{"post_id", postId}, {"reason", reason}});
     if (!description.isEmpty())
       data.getDynamicObject()->setProperty("description", description);
 

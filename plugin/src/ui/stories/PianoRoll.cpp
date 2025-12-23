@@ -1,18 +1,22 @@
 #include "PianoRoll.h"
 #include "../../util/Colors.h"
+#include "../../util/Json.h"
 #include "../../util/Log.h"
 
 namespace PianoRollColors {
+// Colors that don't have direct equivalents in SidechainColors
 const juce::Colour background(0xff1a1a2e);
 const juce::Colour gridLine(0xff2d2d44);
 const juce::Colour gridLineBeat(0xff3d3d54);
 const juce::Colour whiteKey(0xffe8e8e8);
 const juce::Colour blackKey(0xff2a2a3a);
-const juce::Colour keyBorder(0xff404050);
-const juce::Colour noteDefault(0xff7c4dff);
 const juce::Colour noteActive(0xffb388ff);
 const juce::Colour playhead(0xffff5252);
-const juce::Colour textPrimary(0xff888888);
+
+// Use SidechainColors for common colors
+inline juce::Colour keyBorder() { return SidechainColors::border(); }
+inline juce::Colour noteDefault() { return SidechainColors::getMidiNoteColor(0); }
+inline juce::Colour textPrimary() { return SidechainColors::textSecondary(); }
 } // namespace PianoRollColors
 
 // ==============================================================================
@@ -75,12 +79,13 @@ void PianoRoll::setMIDIData(const juce::var &midiData) {
   }
 
   // Get total duration
-  totalDuration = static_cast<double>(midiData.getProperty("total_time", 0.0));
-  tempo = static_cast<double>(midiData.getProperty("tempo", 120.0));
+  totalDuration = Json::getDouble(midiData, "total_time", 0.0);
+  tempo = Json::getDouble(midiData, "tempo", 120.0);
 
   // Parse events
-  if (midiData.hasProperty("events")) {
-    parseMIDIEvents(midiData["events"]);
+  auto events = Json::getArray(midiData, "events");
+  if (Json::isArray(events)) {
+    parseMIDIEvents(events);
   }
 
   // Auto-adjust note range based on content
@@ -148,13 +153,13 @@ void PianoRoll::drawPianoKeys(juce::Graphics &g) {
     }
 
     // Key border
-    g.setColour(PianoRollColors::keyBorder);
+    g.setColour(PianoRollColors::keyBorder());
     g.drawHorizontalLine(static_cast<int>(y + keyHeight), static_cast<float>(pianoKeyArea.getX()),
                          static_cast<float>(pianoKeyArea.getRight()));
 
     // Note name for C notes
     if (note % 12 == 0) {
-      g.setColour(PianoRollColors::textPrimary);
+      g.setColour(PianoRollColors::textPrimary());
       g.setFont(9.0f);
       g.drawText(getNoteName(note), keyBounds.reduced(2.0f), juce::Justification::centredLeft);
     }
@@ -379,18 +384,19 @@ juce::Colour PianoRoll::getNoteColor(const Note &note) const {
   if (showVelocity) {
     // Interpolate color based on velocity
     float velocityNorm = static_cast<float>(note.velocity) / 127.0f;
-    return PianoRollColors::noteDefault.interpolatedWith(PianoRollColors::noteActive, velocityNorm);
+    return PianoRollColors::noteDefault().interpolatedWith(PianoRollColors::noteActive, velocityNorm);
   }
 
-  return PianoRollColors::noteDefault;
+  return PianoRollColors::noteDefault();
 }
 
 juce::Colour PianoRoll::getChannelColor(int channel) const {
+  // Use centralized MIDI note colors from SidechainColors
   return SidechainColors::getMidiNoteColor(channel);
 }
 
 void PianoRoll::parseMIDIEvents(const juce::var &events) {
-  if (!events.isArray())
+  if (!Json::isArray(events))
     return;
 
   // Track active notes: (channel << 8 | note) -> Note with start time set
@@ -398,11 +404,11 @@ void PianoRoll::parseMIDIEvents(const juce::var &events) {
 
   auto *eventsArray = events.getArray();
   for (const auto &eventVar : *eventsArray) {
-    double time = static_cast<double>(eventVar["time"]);
-    juce::String type = eventVar["type"].toString();
-    int noteNum = static_cast<int>(eventVar["note"]);
-    int velocity = static_cast<int>(eventVar["velocity"]);
-    int channel = static_cast<int>(eventVar["channel"]);
+    double time = Json::getDouble(eventVar, "time", 0.0);
+    juce::String type = Json::getString(eventVar, "type");
+    int noteNum = Json::getInt(eventVar, "note", 0);
+    int velocity = Json::getInt(eventVar, "velocity", 0);
+    int channel = Json::getInt(eventVar, "channel", 0);
 
     int noteKey = (channel << 8) | noteNum;
 

@@ -1,4 +1,6 @@
 #include "MessageThread.h"
+#include "../../util/Colors.h"
+#include "../../util/Json.h"
 #include "../../util/Log.h"
 #include "AudioSnippetRecorder.h"
 #include "UserPickerDialog.h"
@@ -20,7 +22,7 @@ MessageThread::~MessageThread() {
 }
 
 void MessageThread::paint(juce::Graphics &g) {
-  g.fillAll(juce::Colour(0xff1a1a1a));
+  g.fillAll(SidechainColors::background());
   drawHeader(g);
   drawMessages(g);
   drawTypingIndicator(g);
@@ -68,7 +70,7 @@ void MessageThread::drawTypingIndicator(juce::Graphics &g) {
   // Draw typing indicator with animated dots
   auto typingBounds = juce::Rectangle<int>(12, typingY, getWidth() - 24, 30);
 
-  g.setColour(juce::Colour(0xff888888));
+  g.setColour(SidechainColors::textSecondary());
   g.setFont(juce::Font(juce::FontOptions().withHeight(12.0f)));
 
   // Build typing user names
@@ -299,7 +301,7 @@ void MessageThread::drawAudioAttachment(juce::Graphics &g, const StreamChatClien
   // - Progress bar (center)
   // - Duration label (right)
 
-  g.setColour(juce::Colour(0xff333333));
+  g.setColour(SidechainColors::backgroundLighter());
   g.fillRoundedRectangle(bounds.toFloat(), 6.0f);
 
   constexpr int BUTTON_SIZE = 30;
@@ -323,13 +325,13 @@ void MessageThread::drawAudioAttachment(juce::Graphics &g, const StreamChatClien
     playPath.closeSubPath();
   }
 
-  g.setColour(juce::Colour(0xffffffff));
+  g.setColour(SidechainColors::textPrimary());
   auto transform = juce::AffineTransform::scale(1.2f);
   g.fillPath(playPath, transform);
 
   // Progress bar
   auto progressBounds = bounds.removeFromLeft(bounds.getWidth() - 50);
-  g.setColour(juce::Colour(0xff555555));
+  g.setColour(SidechainColors::surface());
   g.fillRoundedRectangle(progressBounds.reduced(2).toFloat(), 3.0f);
 
   // Playback progress
@@ -337,21 +339,23 @@ void MessageThread::drawAudioAttachment(juce::Graphics &g, const StreamChatClien
   if (displayProgress > 0.0) {
     auto fillBounds = progressBounds.reduced(2);
     fillBounds.setWidth(static_cast<int>(fillBounds.getWidth() * displayProgress));
-    g.setColour(juce::Colour(0xff1DB954)); // Spotify green
+    g.setColour(SidechainColors::success());
     g.fillRoundedRectangle(fillBounds.toFloat(), 3.0f);
   }
 
   // Format duration from message attachment duration field
   juce::String durationStr = "0:00";
-  if (message.extraData.isObject() && message.extraData.hasProperty("audio_duration")) {
-    double durationSeconds = static_cast<double>(message.extraData["audio_duration"]);
-    int minutes = static_cast<int>(durationSeconds) / 60;
-    int seconds = static_cast<int>(durationSeconds) % 60;
-    durationStr = juce::String::formatted("%d:%02d", minutes, seconds);
+  if (message.extraData.isObject()) {
+    double durationSeconds = Json::getDouble(message.extraData, "audio_duration", 0.0);
+    if (durationSeconds > 0) {
+      int minutes = static_cast<int>(durationSeconds) / 60;
+      int seconds = static_cast<int>(durationSeconds) % 60;
+      durationStr = juce::String::formatted("%d:%02d", minutes, seconds);
+    }
   }
 
   // Duration label
-  g.setColour(juce::Colour(0xffcccccc));
+  g.setColour(SidechainColors::textSecondary());
   g.setFont(juce::Font(juce::FontOptions().withHeight(10.0f)));
   g.drawText(durationStr, bounds, juce::Justification::centredRight);
 }
@@ -565,35 +569,35 @@ bool MessageThread::hasSharedStory(const StreamChatClient::Message &message) con
 void MessageThread::drawSharedPostPreview(juce::Graphics &g, const StreamChatClient::Message &message,
                                           juce::Rectangle<int> bounds) {
   // Draw post preview within bounds - includes thumbnail, title, artist
-  if (!message.extraData.hasProperty("post_id")) {
+  if (!Json::hasKey(message.extraData, "post_id")) {
     return;
   }
 
   // Background
-  g.setColour(juce::Colour(0xff2a2a2a));
+  g.setColour(SidechainColors::backgroundLight());
   g.fillRect(bounds);
 
   // Border
-  g.setColour(juce::Colour(0xff444444));
+  g.setColour(SidechainColors::border());
   g.drawRect(bounds, 1);
 
   // Extract post data from extraData
-  juce::String postId = message.extraData.getProperty("post_id", "").toString();
-  juce::String postTitle = message.extraData.getProperty("post_title", "").toString();
-  juce::String artistName = message.extraData.getProperty("artist_name", "").toString();
+  juce::String postId = Json::getString(message.extraData, "post_id");
+  juce::String postTitle = Json::getString(message.extraData, "post_title");
+  juce::String artistName = Json::getString(message.extraData, "artist_name");
 
   // Draw icon (♪ music note)
   auto iconBounds = bounds.removeFromLeft(bounds.getHeight()).reduced(8);
-  g.setColour(juce::Colour(0xff555555));
+  g.setColour(SidechainColors::textMuted());
   g.drawText(juce::String::fromUTF8("\xe2\x99\xaa"), iconBounds, juce::Justification::centred);
 
   // Draw title and artist
   auto textBounds = bounds.reduced(8, 4);
-  g.setColour(juce::Colours::white);
+  g.setColour(SidechainColors::textPrimary());
   g.setFont(juce::Font(juce::FontOptions().withHeight(13.0f).withStyle("Bold")));
   g.drawText(postTitle.isEmpty() ? "Post" : postTitle, textBounds.removeFromTop(14), juce::Justification::topLeft);
 
-  g.setColour(juce::Colour(0xffaaaaaa));
+  g.setColour(SidechainColors::textSecondary());
   g.setFont(juce::Font(juce::FontOptions().withHeight(11.0f)));
   g.drawText(artistName.isEmpty() ? "Unknown Artist" : artistName, textBounds, juce::Justification::topLeft);
 }
@@ -601,25 +605,24 @@ void MessageThread::drawSharedPostPreview(juce::Graphics &g, const StreamChatCli
 void MessageThread::drawSharedStoryPreview(juce::Graphics &g, const StreamChatClient::Message &message,
                                            juce::Rectangle<int> bounds) {
   // Draw story preview within bounds - includes thumbnail with story gradient
-  if (!message.extraData.hasProperty("story_id")) {
+  if (!Json::hasKey(message.extraData, "story_id")) {
     return;
   }
 
-  // Background with gradient
-  g.setGradientFill(juce::ColourGradient(juce::Colour(0xff5500ff), bounds.getTopLeft().toFloat(),
-                                         juce::Colour(0xff0099ff), bounds.getBottomRight().toFloat(), false));
+  // Background with gradient using SidechainColors
+  g.setGradientFill(SidechainColors::primaryGradient(bounds.getTopLeft().toFloat(), bounds.getBottomRight().toFloat()));
   g.fillRect(bounds);
 
   // Border
-  g.setColour(juce::Colour(0xffffffff));
+  g.setColour(SidechainColors::textPrimary());
   g.drawRect(bounds, 2);
 
   // Extract story data
-  juce::String storyId = message.extraData.getProperty("story_id", "").toString();
-  juce::String storyAuthor = message.extraData.getProperty("story_author", "").toString();
+  juce::String storyId = Json::getString(message.extraData, "story_id");
+  juce::String storyAuthor = Json::getString(message.extraData, "story_author");
 
   // Draw story label
-  g.setColour(juce::Colours::white);
+  g.setColour(SidechainColors::textPrimary());
   g.setFont(juce::Font(juce::FontOptions().withHeight(12.0f).withStyle("Bold")));
   g.drawText("Story", bounds.reduced(8), juce::Justification::topLeft);
 
@@ -631,7 +634,7 @@ void MessageThread::drawSharedStoryPreview(juce::Graphics &g, const StreamChatCl
 }
 
 int MessageThread::getSharedContentHeight(const StreamChatClient::Message &message) const {
-  if (message.extraData.hasProperty("post_id") || message.extraData.hasProperty("story_id")) {
+  if (Json::hasKey(message.extraData, "post_id") || Json::hasKey(message.extraData, "story_id")) {
     return 100; // Standard preview height
   }
   return 0;
@@ -654,22 +657,22 @@ void MessageThread::drawHeader(juce::Graphics &g) {
   auto headerBounds = juce::Rectangle<int>(0, 0, getWidth(), HEADER_HEIGHT);
 
   // Background
-  g.setColour(juce::Colour(0xff0a0a0a));
+  g.setColour(SidechainColors::background().darker(0.2f));
   g.fillRect(headerBounds);
 
   // Border
-  g.setColour(juce::Colour(0xff333333));
+  g.setColour(SidechainColors::borderSubtle());
   g.drawLine(0.0f, static_cast<float>(HEADER_HEIGHT), static_cast<float>(getWidth()), static_cast<float>(HEADER_HEIGHT),
              1.0f);
 
   // Back button bounds
   auto backButtonBounds = getBackButtonBounds();
-  g.setColour(juce::Colour(0xff666666));
+  g.setColour(SidechainColors::textMuted());
   g.drawText("<", backButtonBounds, juce::Justification::centred);
 
   // Channel name/info
   auto nameBounds = headerBounds.reduced(50, 0);
-  g.setColour(juce::Colours::white);
+  g.setColour(SidechainColors::textPrimary());
   g.setFont(juce::Font(juce::FontOptions().withHeight(16.0f).withStyle("Bold")));
   g.drawText(channelName, nameBounds, juce::Justification::centredLeft);
 
@@ -678,7 +681,7 @@ void MessageThread::drawHeader(juce::Graphics &g) {
     const auto &chatState = appStore->getChatState();
     auto channelIt = chatState.channels.find(channelId);
     if (channelIt != chatState.channels.end() && !channelIt->second.usersTyping.empty()) {
-      g.setColour(juce::Colour(0xff888888));
+      g.setColour(SidechainColors::textSecondary());
       g.setFont(juce::Font(juce::FontOptions().withHeight(12.0f)));
       g.drawText("typing...", nameBounds.withTop(nameBounds.getCentreY()), juce::Justification::centredLeft);
     }
@@ -686,6 +689,6 @@ void MessageThread::drawHeader(juce::Graphics &g) {
 
   // Menu button bounds (⋮ vertical ellipsis)
   auto menuButtonBounds = getHeaderMenuButtonBounds();
-  g.setColour(juce::Colour(0xff666666));
+  g.setColour(SidechainColors::textMuted());
   g.drawText(juce::String::fromUTF8("\xe2\x8b\xae"), menuButtonBounds, juce::Justification::centred);
 }

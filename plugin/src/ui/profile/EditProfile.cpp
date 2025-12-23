@@ -2,6 +2,7 @@
 #include "../../security/InputValidation.h"
 
 #include "../../util/Log.h"
+#include "../../util/StringUtils.h"
 #include "../../util/Validate.h"
 
 // ==============================================================================
@@ -388,9 +389,8 @@ void EditProfile::drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds) {
     juce::String initial = "?";
     if (appStore) {
       const auto &state = appStore->getUserState();
-      initial = state.displayName.isEmpty()
-                    ? (state.username.isEmpty() ? "?" : state.username.substring(0, 1).toUpperCase())
-                    : state.displayName.substring(0, 1).toUpperCase();
+      juce::String nameForInitials = state.displayName.isEmpty() ? state.username : state.displayName;
+      initial = StringUtils::getInitials(nameForInitials, 1);
     }
     g.drawText(initial, bounds, juce::Justification::centred);
   }

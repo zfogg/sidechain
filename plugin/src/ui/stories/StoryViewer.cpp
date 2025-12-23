@@ -4,6 +4,7 @@
 #include "../../util/DAWProjectFolder.h"
 #include "../../util/Log.h"
 #include "../../util/Result.h"
+#include "../../util/StringUtils.h"
 #include "../../util/WaveformGenerator.h"
 #include <JuceHeader.h>
 
@@ -371,8 +372,7 @@ void StoryViewer::drawHeader(juce::Graphics &g) {
   // Initial
   g.setColour(StoryViewerColors::textPrimary);
   g.setFont(juce::Font(juce::FontOptions().withHeight(16.0f).withStyle("Bold")));
-  juce::String initial = story->username.isNotEmpty() ? story->username.substring(0, 1).toUpperCase() : "?";
-  g.drawText(initial, avatarBounds, juce::Justification::centred);
+  g.drawText(StringUtils::getInitials(story->username, 1), avatarBounds, juce::Justification::centred);
 
   bounds.removeFromLeft(10);
 

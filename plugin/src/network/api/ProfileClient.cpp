@@ -110,8 +110,7 @@ void NetworkClient::changeUsername(const juce::String &newUsername, ResponseCall
   }
 
   Async::runVoid([this, newUsername, callback]() {
-    juce::var data = juce::var(new juce::DynamicObject());
-    data.getDynamicObject()->setProperty("username", newUsername);
+    auto data = createJsonObject({{"username", newUsername}});
 
     auto result = makeRequestWithRetry(buildApiPath("/users/username"), "PUT", data, true);
     Log::debug("Change username response: " + juce::JSON::toString(result.data));

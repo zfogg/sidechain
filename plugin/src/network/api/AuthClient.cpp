@@ -16,11 +16,8 @@ void NetworkClient::registerAccount(const juce::String &email, const juce::Strin
                                     const juce::String &password, const juce::String &displayName,
                                     AuthenticationCallback callback) {
   Async::runVoid([this, email, username, password, displayName, callback]() {
-    juce::var registerData = juce::var(new juce::DynamicObject());
-    registerData.getDynamicObject()->setProperty("email", email);
-    registerData.getDynamicObject()->setProperty("username", username);
-    registerData.getDynamicObject()->setProperty("password", password);
-    registerData.getDynamicObject()->setProperty("display_name", displayName);
+    auto registerData =
+        createJsonObject({{"email", email}, {"username", username}, {"password", password}, {"display_name", displayName}});
 
     auto response = makeRequest(buildApiPath("/auth/register"), "POST", registerData, false);
 
@@ -64,9 +61,7 @@ void NetworkClient::registerAccount(const juce::String &email, const juce::Strin
 void NetworkClient::loginAccount(const juce::String &email, const juce::String &password,
                                  AuthenticationCallback callback) {
   Async::runVoid([this, email, password, callback]() {
-    juce::var loginData = juce::var(new juce::DynamicObject());
-    loginData.getDynamicObject()->setProperty("email", email);
-    loginData.getDynamicObject()->setProperty("password", password);
+    auto loginData = createJsonObject({{"email", email}, {"password", password}});
 
     auto response = makeRequest(buildApiPath("/auth/login"), "POST", loginData, false);
 
@@ -125,8 +120,7 @@ void NetworkClient::setAuthenticationCallback(AuthenticationCallback callback) {
 
 void NetworkClient::requestPasswordReset(const juce::String &email, ResponseCallback callback) {
   Async::runVoid([this, email, callback]() {
-    juce::var resetData = juce::var(new juce::DynamicObject());
-    resetData.getDynamicObject()->setProperty("email", email);
+    auto resetData = createJsonObject({{"email", email}});
 
     auto result = makeRequestWithRetry(buildApiPath("/auth/reset-password"), "POST", resetData, false);
     Log::debug("Password reset request response: " + juce::JSON::toString(result.data));
@@ -143,9 +137,7 @@ void NetworkClient::requestPasswordReset(const juce::String &email, ResponseCall
 void NetworkClient::resetPassword(const juce::String &token, const juce::String &newPassword,
                                   ResponseCallback callback) {
   Async::runVoid([this, token, newPassword, callback]() {
-    juce::var resetData = juce::var(new juce::DynamicObject());
-    resetData.getDynamicObject()->setProperty("token", token);
-    resetData.getDynamicObject()->setProperty("new_password", newPassword);
+    auto resetData = createJsonObject({{"token", token}, {"new_password", newPassword}});
 
     auto result = makeRequestWithRetry(buildApiPath("/auth/reset-password/confirm"), "POST", resetData, false);
     Log::debug("Password reset confirm response: " + juce::JSON::toString(result.data));
@@ -165,9 +157,7 @@ void NetworkClient::resetPassword(const juce::String &token, const juce::String 
 void NetworkClient::loginWithTwoFactor(const juce::String &email, const juce::String &password,
                                        LoginCallback callback) {
   Async::runVoid([this, email, password, callback]() {
-    juce::var loginData = juce::var(new juce::DynamicObject());
-    loginData.getDynamicObject()->setProperty("email", email);
-    loginData.getDynamicObject()->setProperty("password", password);
+    auto loginData = createJsonObject({{"email", email}, {"password", password}});
 
     auto response = makeRequest(buildApiPath("/auth/login"), "POST", loginData, false);
 
@@ -216,9 +206,7 @@ void NetworkClient::loginWithTwoFactor(const juce::String &email, const juce::St
 void NetworkClient::verify2FALogin(const juce::String &userId, const juce::String &code,
                                    AuthenticationCallback callback) {
   Async::runVoid([this, userId, code, callback]() {
-    juce::var verifyData = juce::var(new juce::DynamicObject());
-    verifyData.getDynamicObject()->setProperty("user_id", userId);
-    verifyData.getDynamicObject()->setProperty("code", code);
+    auto verifyData = createJsonObject({{"user_id", userId}, {"code", code}});
 
     auto response = makeRequest(buildApiPath("/auth/2fa/login"), "POST", verifyData, false);
 
@@ -283,9 +271,7 @@ void NetworkClient::get2FAStatus(TwoFactorStatusCallback callback) {
 
 void NetworkClient::enable2FA(const juce::String &password, const juce::String &type, TwoFactorSetupCallback callback) {
   Async::runVoid([this, password, type, callback]() {
-    juce::var enableData = juce::var(new juce::DynamicObject());
-    enableData.getDynamicObject()->setProperty("password", password);
-    enableData.getDynamicObject()->setProperty("type", type);
+    auto enableData = createJsonObject({{"password", password}, {"type", type}});
 
     auto result = makeRequestWithRetry(buildApiPath("/auth/2fa/enable"), "POST", enableData, true);
 
@@ -320,8 +306,7 @@ void NetworkClient::enable2FA(const juce::String &password, const juce::String &
 
 void NetworkClient::verify2FASetup(const juce::String &code, ResponseCallback callback) {
   Async::runVoid([this, code, callback]() {
-    juce::var verifyData = juce::var(new juce::DynamicObject());
-    verifyData.getDynamicObject()->setProperty("code", code);
+    auto verifyData = createJsonObject({{"code", code}});
 
     auto result = makeRequestWithRetry(buildApiPath("/auth/2fa/verify"), "POST", verifyData, true);
 
@@ -364,8 +349,7 @@ void NetworkClient::disable2FA(const juce::String &codeOrPassword, ResponseCallb
 
 void NetworkClient::regenerateBackupCodes(const juce::String &code, ResponseCallback callback) {
   Async::runVoid([this, code, callback]() {
-    juce::var regenData = juce::var(new juce::DynamicObject());
-    regenData.getDynamicObject()->setProperty("code", code);
+    auto regenData = createJsonObject({{"code", code}});
 
     auto result = makeRequestWithRetry(buildApiPath("/auth/2fa/backup-codes"), "POST", regenData, true);
 
@@ -388,8 +372,7 @@ void NetworkClient::regenerateBackupCodes(const juce::String &code, ResponseCall
 void NetworkClient::refreshAuthToken(const juce::String &currentToken, AuthenticationCallback callback) {
   Async::runVoid([this, currentToken, callback]() {
     // Create request with current token in Authorization header
-    juce::var refreshData = juce::var(new juce::DynamicObject());
-    refreshData.getDynamicObject()->setProperty("token", currentToken);
+    auto refreshData = createJsonObject({{"token", currentToken}});
 
     // Don't use current authToken for this request - use the provided token
     auto tempToken = authToken;

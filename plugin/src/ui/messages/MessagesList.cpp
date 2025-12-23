@@ -4,6 +4,7 @@
 #include "../../util/Log.h"
 #include "../../util/Result.h"
 #include "../../util/StringFormatter.h"
+#include "../../util/StringUtils.h"
 
 // ==============================================================================
 MessagesList::MessagesList(Sidechain::Stores::AppStore *store)
@@ -447,7 +448,7 @@ void MessagesList::drawChannelItem(juce::Graphics &g, const StreamChatClient::Ch
   if (isGroup) {
     // Group avatar - show first letter of name or "G" for group
     juce::String channelName = getChannelName(channel);
-    juce::String initial = channelName.isNotEmpty() ? channelName.substring(0, 1).toUpperCase() : "G";
+    juce::String initial = channelName.isNotEmpty() ? StringUtils::getInitials(channelName, 1) : "G";
     g.setColour(SidechainColors::softBlue());
     g.fillEllipse(static_cast<float>(avatarX), static_cast<float>(avatarY), static_cast<float>(avatarSize),
                   static_cast<float>(avatarSize));

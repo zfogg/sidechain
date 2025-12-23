@@ -1,16 +1,19 @@
 #include "NoteWaterfall.h"
 #include "../../util/Colors.h"
+#include "../../util/Json.h"
 #include "../../util/Log.h"
 
 namespace WaterfallColors {
+// Colors that don't have direct equivalents in SidechainColors
 const juce::Colour background(0xff0d0d1a);
 const juce::Colour gridLine(0xff1a1a2e);
-const juce::Colour noteDefault(0xff7c4dff);
 const juce::Colour noteActive(0xffb388ff);
-const juce::Colour glowActive(0x807c4dff);
 const juce::Colour keyIndicator(0xff2a2a3a);
 const juce::Colour keyIndicatorBlack(0xff1a1a2a);
-const juce::Colour textDim(0xff444444);
+
+// Use SidechainColors for MIDI note colors
+inline juce::Colour noteDefault() { return SidechainColors::getMidiNoteColor(0); }
+inline juce::Colour textDim() { return SidechainColors::textMuted(); }
 } // namespace WaterfallColors
 
 // ==============================================================================
@@ -64,12 +67,13 @@ void NoteWaterfall::setMIDIData(const juce::var &midiData) {
   }
 
   // Get total duration
-  totalDuration = static_cast<double>(midiData.getProperty("total_time", 0.0));
-  tempo = static_cast<double>(midiData.getProperty("tempo", 120.0));
+  totalDuration = Json::getDouble(midiData, "total_time", 0.0);
+  tempo = Json::getDouble(midiData, "tempo", 120.0);
 
   // Parse events
-  if (midiData.hasProperty("events")) {
-    parseMIDIEvents(midiData["events"]);
+  auto events = Json::getArray(midiData, "events");
+  if (Json::isArray(events)) {
+    parseMIDIEvents(events);
   }
 
   // Auto-adjust note range based on content
@@ -138,7 +142,7 @@ void NoteWaterfall::drawBackground(juce::Graphics &g) {
 
   // Horizontal "catch line" near bottom where notes land
   float catchLineY = static_cast<float>(bounds.getHeight()) * 0.9f;
-  g.setColour(WaterfallColors::noteDefault.withAlpha(0.3f));
+  g.setColour(WaterfallColors::noteDefault().withAlpha(0.3f));
   g.drawHorizontalLine(static_cast<int>(catchLineY), 0.0f, static_cast<float>(bounds.getRight()));
 }
 
@@ -169,7 +173,7 @@ void NoteWaterfall::drawKeyIndicators(juce::Graphics &g) {
 
     // Note name for C notes
     if (noteNum % 12 == 0) {
-      g.setColour(WaterfallColors::textDim);
+      g.setColour(WaterfallColors::textDim());
       g.setFont(8.0f);
       g.drawText(getNoteName(noteNum), keyBounds, juce::Justification::centred);
     }
@@ -332,18 +336,19 @@ juce::Colour NoteWaterfall::getNoteColor(const Note &note) const {
   if (showVelocity) {
     // Interpolate color based on velocity (brighter = louder)
     float velocityNorm = static_cast<float>(note.velocity) / 127.0f;
-    return WaterfallColors::noteDefault.interpolatedWith(WaterfallColors::noteActive, velocityNorm);
+    return WaterfallColors::noteDefault().interpolatedWith(WaterfallColors::noteActive, velocityNorm);
   }
 
-  return WaterfallColors::noteDefault;
+  return WaterfallColors::noteDefault();
 }
 
 juce::Colour NoteWaterfall::getChannelColor(int channel) const {
+  // Use centralized MIDI note colors from SidechainColors
   return SidechainColors::getMidiNoteColor(channel);
 }
 
 void NoteWaterfall::parseMIDIEvents(const juce::var &events) {
-  if (!events.isArray())
+  if (!Json::isArray(events))
     return;
 
   // Track active notes: (channel << 8 | note) -> Note with start time set
@@ -351,11 +356,11 @@ void NoteWaterfall::parseMIDIEvents(const juce::var &events) {
 
   auto *eventsArray = events.getArray();
   for (const auto &eventVar : *eventsArray) {
-    double time = static_cast<double>(eventVar["time"]);
-    juce::String type = eventVar["type"].toString();
-    int noteNum = static_cast<int>(eventVar["note"]);
-    int velocity = static_cast<int>(eventVar["velocity"]);
-    int channel = static_cast<int>(eventVar["channel"]);
+    double time = Json::getDouble(eventVar, "time", 0.0);
+    juce::String type = Json::getString(eventVar, "type");
+    int noteNum = Json::getInt(eventVar, "note", 0);
+    int velocity = Json::getInt(eventVar, "velocity", 0);
+    int channel = Json::getInt(eventVar, "channel", 0);
 
     int noteKey = (channel << 8) | noteNum;
 

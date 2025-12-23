@@ -223,27 +223,16 @@ void Profile::setProfile(const UserProfile &newProfile) {
     Log::debug("Profile::setProfile: Avatar URL available for user: " + profile.id + ", URL: " + profile.avatarUrl);
 
     if (appStore != nullptr) {
-      juce::Component::SafePointer<Profile> safeThis(this);
       Log::info("Profile::setProfile: Loading avatar image from AppStore - URL: " + profile.avatarUrl);
-      appStore->loadImageObservable(profile.avatarUrl)
-          .subscribe(
-              [safeThis](const juce::Image &image) {
-                if (safeThis == nullptr)
-                  return;
-                if (image.isValid()) {
-                  Log::info("Profile::setProfile: Avatar image loaded successfully - size: " +
-                            juce::String(image.getWidth()) + "x" + juce::String(image.getHeight()));
-                  safeThis->avatarImage = image;
-                  safeThis->repaint();
-                } else {
-                  Log::warn("Profile::setProfile: Avatar image is invalid");
-                }
-              },
-              [safeThis](std::exception_ptr) {
-                if (safeThis == nullptr)
-                  return;
-                Log::warn("Profile::setProfile: Failed to load avatar image");
-              });
+      UIHelpers::loadImageAsync<Profile>(
+          this, appStore, profile.avatarUrl,
+          [](Profile *comp, const juce::Image &image) {
+            Log::info("Profile::setProfile: Avatar image loaded successfully - size: " +
+                      juce::String(image.getWidth()) + "x" + juce::String(image.getHeight()));
+            comp->avatarImage = image;
+            comp->repaint();
+          },
+          [](Profile *) { Log::warn("Profile::setProfile: Failed to load avatar image"); }, "Profile");
     } else {
       Log::warn("Profile::setProfile: AppStore is null, cannot load avatar image");
     }

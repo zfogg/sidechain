@@ -4,6 +4,7 @@
 #include "../../util/Colors.h"
 #include "../../util/Json.h"
 #include "../../util/Log.h"
+#include "../../util/StringUtils.h"
 
 // ==============================================================================
 SelectHighlightDialog::SelectHighlightDialog() {
@@ -132,8 +133,7 @@ void SelectHighlightDialog::drawHighlightItem(juce::Graphics &g, const Sidechain
     g.fillEllipse(imageBounds.toFloat());
     g.setColour(SidechainColors::textPrimary());
     g.setFont(juce::Font(juce::FontOptions().withHeight(18.0f)).boldened());
-    juce::String initial = highlight.name.isNotEmpty() ? highlight.name.substring(0, 1).toUpperCase() : "?";
-    g.drawText(initial, imageBounds, juce::Justification::centred);
+    g.drawText(StringUtils::getInitials(highlight.name, 1), imageBounds, juce::Justification::centred);
   }
 
   // Text content
