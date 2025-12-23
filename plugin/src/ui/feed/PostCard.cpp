@@ -78,26 +78,15 @@ void PostCard::setPost(const std::shared_ptr<Sidechain::FeedPost> &newPost) {
   avatarImage = juce::Image(); // Clear previous image
   if (postPtr->userAvatarUrl.isNotEmpty() && appStore) {
     Log::debug("PostCard: Loading avatar from URL: " + postPtr->userAvatarUrl);
-    juce::Component::SafePointer<PostCard> safeThisAvatar(this);
-    appStore->loadImageObservable(postPtr->userAvatarUrl)
-        .subscribe(
-            [safeThisAvatar](const juce::Image &image) {
-              if (safeThisAvatar == nullptr)
-                return;
-              if (image.isValid()) {
-                Log::debug("PostCard: Avatar image loaded successfully - size: " + juce::String(image.getWidth()) +
-                           "x" + juce::String(image.getHeight()));
-                safeThisAvatar->avatarImage = image;
-                safeThisAvatar->repaint();
-              } else {
-                Log::warn("PostCard: Avatar image is invalid");
-              }
-            },
-            [safeThisAvatar](std::exception_ptr) {
-              if (safeThisAvatar == nullptr)
-                return;
-              Log::warn("PostCard: Failed to load avatar image");
-            });
+    UIHelpers::loadImageAsync<PostCard>(
+        this, appStore, postPtr->userAvatarUrl,
+        [](PostCard *comp, const juce::Image &image) {
+          Log::debug("PostCard: Avatar image loaded successfully - size: " + juce::String(image.getWidth()) + "x" +
+                     juce::String(image.getHeight()));
+          comp->avatarImage = image;
+          comp->repaint();
+        },
+        [](PostCard *) { Log::warn("PostCard: Failed to load avatar image"); }, "PostCard");
   }
 
   // Load waveform image from CDN

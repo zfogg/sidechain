@@ -1,6 +1,7 @@
 #include "ProfileSetup.h"
 #include "../../util/Colors.h"
 #include "../../util/Log.h"
+#include "../../util/StringUtils.h"
 #include <thread>
 
 ProfileSetup::ProfileSetup(Sidechain::Stores::AppStore *store)
@@ -243,8 +244,7 @@ void ProfileSetup::drawCircularProfilePic(juce::Graphics &g, juce::Rectangle<int
 
     g.setColour(SidechainColors::textMuted());
     g.setFont(36.0f);
-    juce::String initials = username.substring(0, 2).toUpperCase();
-    g.drawText(initials, bounds, juce::Justification::centred);
+    g.drawText(StringUtils::getInitials(username), bounds, juce::Justification::centred);
   }
 
   // Border
