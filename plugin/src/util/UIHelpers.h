@@ -99,6 +99,57 @@ void drawOutlineButton(juce::Graphics &g, juce::Rectangle<int> bounds, const juc
                        float cornerRadius = 6.0f);
 
 // ==========================================================================
+// Avatar Drawing
+
+/**
+ * Draw a circular avatar image with optional border.
+ * If the image is invalid, draws a placeholder circle with the given color.
+ *
+ * @param g              Graphics context
+ * @param bounds         Rectangle to draw the avatar in
+ * @param image          The avatar image to draw (can be invalid for placeholder)
+ * @param placeholderColor Color for the placeholder circle if image is invalid
+ * @param borderColor    Border color (use transparent for no border)
+ * @param borderWidth    Border thickness (default 1.0f)
+ */
+void drawCircularAvatar(juce::Graphics &g, juce::Rectangle<int> bounds, const juce::Image &image,
+                        juce::Colour placeholderColor, juce::Colour borderColor = juce::Colours::transparentBlack,
+                        float borderWidth = 1.0f);
+
+/**
+ * Draw an online/in-studio status indicator dot.
+ * Typically positioned at the bottom-right of an avatar.
+ *
+ * @param g              Graphics context
+ * @param avatarBounds   The avatar bounds (indicator will be positioned relative to this)
+ * @param isOnline       Whether the user is online
+ * @param isInStudio     Whether the user is in studio (takes precedence for color)
+ * @param backgroundColor Background color for the indicator border (usually card background)
+ * @param indicatorSize  Size of the indicator (default 14)
+ */
+void drawOnlineIndicator(juce::Graphics &g, juce::Rectangle<int> avatarBounds, bool isOnline, bool isInStudio,
+                         juce::Colour backgroundColor, int indicatorSize = 14);
+
+// ==========================================================================
+// Follow Button Drawing
+
+/**
+ * Draw a follow/following button with consistent styling.
+ *
+ * @param g              Graphics context
+ * @param bounds         Button bounds
+ * @param isFollowing    Current follow state
+ * @param followColor    Color for the "Follow" state button
+ * @param followTextColor Text color for "Follow" state
+ * @param followingTextColor Text color for "Following" state
+ * @param borderColor    Border color for "Following" state
+ * @param cornerRadius   Corner radius (default 4.0f)
+ */
+void drawFollowButton(juce::Graphics &g, juce::Rectangle<int> bounds, bool isFollowing, juce::Colour followColor,
+                      juce::Colour followTextColor, juce::Colour followingTextColor, juce::Colour borderColor,
+                      float cornerRadius = 4.0f);
+
+// ==========================================================================
 // Icon Drawing
 
 /**

@@ -89,28 +89,12 @@ void UserCard::drawBackground(juce::Graphics &g) {
 void UserCard::drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds) {
   auto avatarArea = bounds.withSizeKeepingCentre(AVATAR_SIZE, AVATAR_SIZE);
 
-  g.setColour(Colors::badge);
-  g.fillEllipse(avatarArea.toFloat());
+  // Draw circular avatar placeholder (no cached image available in this component)
+  UIHelpers::drawCircularAvatar(g, avatarArea, juce::Image(), Colors::badge, juce::Colours::transparentBlack);
 
-  // Draw online indicator (green/cyan dot in bottom-right corner)
+  // Draw online indicator if applicable
   if (user.isOnline || user.isInStudio) {
-    const int indicatorSize = 14;
-    const int borderWidth = 2;
-
-    // Position at bottom-right of avatar
-    auto indicatorBounds =
-        juce::Rectangle<int>(avatarArea.getRight() - indicatorSize + 2, avatarArea.getBottom() - indicatorSize + 2,
-                             indicatorSize, indicatorSize)
-            .toFloat();
-
-    // Draw dark border (matches card background)
-    g.setColour(Colors::background);
-    g.fillEllipse(indicatorBounds);
-
-    // Draw indicator (cyan for in_studio, green for just online)
-    auto innerBounds = indicatorBounds.reduced(borderWidth);
-    g.setColour(user.isInStudio ? Colors::inStudioIndicator : Colors::onlineIndicator);
-    g.fillEllipse(innerBounds);
+    UIHelpers::drawOnlineIndicator(g, avatarArea, user.isOnline, user.isInStudio, Colors::background);
   }
 }
 

@@ -92,19 +92,14 @@ void FollowUserRow::paint(juce::Graphics &g) {
         });
   }
 
-  // Fallback: colored circle with user initials
+  // Draw circular avatar placeholder with initials
+  UIHelpers::drawCircularAvatar(g, avatarBounds, juce::Image(), SidechainColors::surface(), SidechainColors::border());
+
+  // Draw initials on top of placeholder
   juce::String initials = StringUtils::getInitials(name);
-
-  g.setColour(SidechainColors::surface());
-  g.fillEllipse(avatarBounds.toFloat());
-
   g.setColour(SidechainColors::textPrimary());
   g.setFont(juce::Font(juce::FontOptions().withHeight(static_cast<float>(avatarBounds.getHeight()) * 0.4f)).boldened());
   g.drawText(initials, avatarBounds, juce::Justification::centred);
-
-  // Avatar border
-  g.setColour(SidechainColors::border());
-  g.drawEllipse(avatarBounds.toFloat(), 1.0f);
 
   // User info
   int textX = avatarBounds.getRight() + 12;

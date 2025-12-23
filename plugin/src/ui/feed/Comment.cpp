@@ -137,31 +137,10 @@ void CommentRow::paint(juce::Graphics &g) {
 }
 
 void CommentRow::drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds) {
-  // Draw the cached avatar image if available, otherwise draw a placeholder
+  // Draw circular avatar with border using utility
   // BUG FIX: Removed subscribe() call that was causing memory leak by creating
   // new subscriptions on every paint. Image is now loaded once in setComment().
-  if (cachedAvatarImage.isValid()) {
-    // Draw the cached avatar image clipped to a circle
-    juce::Path clipPath;
-    clipPath.addEllipse(bounds.toFloat());
-    g.saveState();
-    g.reduceClipRegion(clipPath);
-    g.drawImage(cachedAvatarImage, bounds.toFloat(),
-                juce::RectanglePlacement::centred | juce::RectanglePlacement::fillDestination);
-    g.restoreState();
-
-    // Avatar border
-    g.setColour(SidechainColors::border());
-    g.drawEllipse(bounds.toFloat(), 1.0f);
-  } else {
-    // Draw placeholder circle (will be replaced with actual image when loaded)
-    g.setColour(SidechainColors::surface());
-    g.fillEllipse(bounds.toFloat());
-
-    // Avatar border
-    g.setColour(SidechainColors::border());
-    g.drawEllipse(bounds.toFloat(), 1.0f);
-  }
+  UIHelpers::drawCircularAvatar(g, bounds, cachedAvatarImage, SidechainColors::surface(), SidechainColors::border());
 }
 
 void CommentRow::drawUserInfo(juce::Graphics &g, juce::Rectangle<int> bounds) {
