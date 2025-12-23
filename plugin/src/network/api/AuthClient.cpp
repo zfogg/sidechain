@@ -4,6 +4,7 @@
 // ==============================================================================
 
 #include "../../util/Async.h"
+#include "../../util/Json.h"
 #include "../../util/Log.h"
 #include "../NetworkClient.h"
 #include "Common.h"
@@ -24,14 +25,14 @@ void NetworkClient::registerAccount(const juce::String &email, const juce::Strin
     bool success = false;
 
     if (response.isObject()) {
-      auto authData = response.getProperty("auth", juce::var());
+      auto authData = Json::getObject(response, "auth");
       if (authData.isObject()) {
-        token = authData.getProperty("token", "").toString();
-        auto user = authData.getProperty("user", juce::var());
+        token = Json::getString(authData, "token");
+        auto user = Json::getObject(authData, "user");
 
         if (!token.isEmpty() && user.isObject()) {
-          userId = user.getProperty("id", "").toString();
-          responseUsername = user.getProperty("username", "").toString();
+          userId = Json::getString(user, "id");
+          responseUsername = Json::getString(user, "username");
           success = true;
         }
       }
@@ -68,14 +69,14 @@ void NetworkClient::loginAccount(const juce::String &email, const juce::String &
     bool success = false;
 
     if (response.isObject()) {
-      auto authData = response.getProperty("auth", juce::var());
+      auto authData = Json::getObject(response, "auth");
       if (authData.isObject()) {
-        token = authData.getProperty("token", "").toString();
-        auto user = authData.getProperty("user", juce::var());
+        token = Json::getString(authData, "token");
+        auto user = Json::getObject(authData, "user");
 
         if (!token.isEmpty() && user.isObject()) {
-          userId = user.getProperty("id", "").toString();
-          username = user.getProperty("username", "").toString();
+          userId = Json::getString(user, "id");
+          username = Json::getString(user, "username");
           success = true;
         }
       }
@@ -84,11 +85,11 @@ void NetworkClient::loginAccount(const juce::String &email, const juce::String &
     // Extract email_verified status separately
     bool emailVerified = true;
     if (response.isObject()) {
-      auto authData = response.getProperty("auth", juce::var());
+      auto authData = Json::getObject(response, "auth");
       if (authData.isObject()) {
-        auto user = authData.getProperty("user", juce::var());
+        auto user = Json::getObject(authData, "user");
         if (user.isObject()) {
-          emailVerified = user.getProperty("email_verified", true).operator bool();
+          emailVerified = Json::getBool(user, "email_verified", true);
         }
       }
     }
@@ -164,22 +165,22 @@ void NetworkClient::loginWithTwoFactor(const juce::String &email, const juce::St
 
     if (response.isObject()) {
       // Check if 2FA is required
-      if (response.getProperty("requires_2fa", false).operator bool()) {
+      if (Json::getBool(response, "requires_2fa")) {
         result.requires2FA = true;
-        result.userId = response.getProperty("user_id", "").toString();
-        result.twoFactorType = response.getProperty("two_factor_type", "totp").toString();
+        result.userId = Json::getString(response, "user_id");
+        result.twoFactorType = Json::getString(response, "two_factor_type", "totp");
         Log::info("Login requires 2FA verification (type: " + result.twoFactorType + ")");
       } else {
         // Normal login success
-        auto authData = response.getProperty("auth", juce::var());
+        auto authData = Json::getObject(response, "auth");
         if (authData.isObject()) {
-          result.token = authData.getProperty("token", "").toString();
-          auto user = authData.getProperty("user", juce::var());
+          result.token = Json::getString(authData, "token");
+          auto user = Json::getObject(authData, "user");
 
           if (!result.token.isEmpty() && user.isObject()) {
             result.success = true;
-            result.userId = user.getProperty("id", "").toString();
-            result.username = user.getProperty("username", "").toString();
+            result.userId = Json::getString(user, "id");
+            result.username = Json::getString(user, "username");
           }
         }
       }
@@ -213,14 +214,14 @@ void NetworkClient::verify2FALogin(const juce::String &userId, const juce::Strin
     bool success = false;
 
     if (response.isObject()) {
-      auto authData = response.getProperty("auth", juce::var());
+      auto authData = Json::getObject(response, "auth");
       if (authData.isObject()) {
-        token = authData.getProperty("token", "").toString();
-        auto user = authData.getProperty("user", juce::var());
+        token = Json::getString(authData, "token");
+        auto user = Json::getObject(authData, "user");
 
         if (!token.isEmpty() && user.isObject()) {
-          returnedUserId = user.getProperty("id", "").toString();
-          username = user.getProperty("username", "").toString();
+          returnedUserId = Json::getString(user, "id");
+          username = Json::getString(user, "username");
           success = true;
         }
       }
@@ -252,9 +253,9 @@ void NetworkClient::get2FAStatus(TwoFactorStatusCallback callback) {
     bool success = false;
 
     if (result.success && result.data.isObject()) {
-      status.enabled = result.data.getProperty("enabled", false).operator bool();
-      status.type = result.data.getProperty("type", "").toString();
-      status.backupCodesRemaining = static_cast<int>(result.data.getProperty("backup_codes_remaining", 0));
+      status.enabled = Json::getBool(result.data, "enabled");
+      status.type = Json::getString(result.data, "type");
+      status.backupCodesRemaining = Json::getInt(result.data, "backup_codes_remaining");
       success = true;
     }
 
@@ -278,12 +279,12 @@ void NetworkClient::enable2FA(const juce::String &password, const juce::String &
     bool success = false;
 
     if (result.success && result.data.isObject()) {
-      setup.type = result.data.getProperty("type", "totp").toString();
-      setup.secret = result.data.getProperty("secret", "").toString();
-      setup.qrCodeUrl = result.data.getProperty("qr_code_url", "").toString();
-      setup.counter = static_cast<uint64_t>(result.data.getProperty("counter", 0).operator int64());
+      setup.type = Json::getString(result.data, "type", "totp");
+      setup.secret = Json::getString(result.data, "secret");
+      setup.qrCodeUrl = Json::getString(result.data, "qr_code_url");
+      setup.counter = static_cast<uint64_t>(Json::getInt64(result.data, "counter"));
 
-      auto codes = result.data.getProperty("backup_codes", juce::var());
+      auto codes = Json::getArray(result.data, "backup_codes");
       if (codes.isArray()) {
         for (int i = 0; i < codes.size(); ++i) {
           setup.backupCodes.add(codes[i].toString());
@@ -388,11 +389,11 @@ void NetworkClient::refreshAuthToken(const juce::String &currentToken, Authentic
     bool success = false;
 
     if (result.success && result.data.isObject()) {
-      newToken = result.data.getProperty("token", "").toString();
-      auto user = result.data.getProperty("user", juce::var());
+      newToken = Json::getString(result.data, "token");
+      auto user = Json::getObject(result.data, "user");
 
       if (!newToken.isEmpty() && user.isObject()) {
-        userId = user.getProperty("id", "").toString();
+        userId = Json::getString(user, "id");
         success = true;
       }
     }
@@ -409,9 +410,9 @@ void NetworkClient::refreshAuthToken(const juce::String &currentToken, Authentic
       } else {
         juce::String errorMsg = "Token refresh failed";
         if (result.data.isObject()) {
-          auto error = result.data.getProperty("error", juce::var());
-          if (error.isString() && !error.toString().isEmpty()) {
-            errorMsg = error.toString();
+          auto error = Json::getString(result.data, "error");
+          if (!error.isEmpty()) {
+            errorMsg = error;
           }
         }
 

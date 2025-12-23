@@ -6,6 +6,7 @@
 #include "NetworkClient.h"
 #include "../util/Async.h"
 #include "../util/HttpErrorHandler.h"
+#include "../util/Json.h"
 #include "../util/Log.h"
 #include "../util/Result.h"
 #include "../util/error/ErrorTracking.h"
@@ -30,10 +31,10 @@ static Outcome<juce::var> requestResultToOutcome(const NetworkClient::RequestRes
   // This handles cases where HTTP status parsing fails and defaults to 200, but response is actually an error
   bool hasErrorInBody = false;
   if (result.data.isObject()) {
-    auto error = result.data.getProperty("error", juce::var());
-    hasErrorInBody = error.isString() && error.toString().isNotEmpty();
+    auto error = Json::getString(result.data, "error");
+    hasErrorInBody = !error.isEmpty();
     if (hasErrorInBody) {
-      Log::debug("requestResultToOutcome: Detected error in response body: " + error.toString());
+      Log::debug("requestResultToOutcome: Detected error in response body: " + error);
     }
   }
 
@@ -57,20 +58,21 @@ static Outcome<juce::var> requestResultToOutcome(const NetworkClient::RequestRes
 juce::String NetworkClient::RequestResult::getUserFriendlyError() const {
   // Try to extract error message from JSON response
   if (data.isObject()) {
-    // Check common error field names
-    auto error = data.getProperty("error", juce::var());
-    if (error.isString())
-      return error.toString();
+    // Check common error field names - first try string error
+    auto errorStr = Json::getString(data, "error");
+    if (!errorStr.isEmpty())
+      return errorStr;
 
-    auto message = data.getProperty("message", juce::var());
-    if (message.isString())
-      return message.toString();
+    auto message = Json::getString(data, "message");
+    if (!message.isEmpty())
+      return message;
 
     // Nested error object
-    if (error.isObject()) {
-      auto errorMsg = error.getProperty("message", juce::var());
-      if (errorMsg.isString())
-        return errorMsg.toString();
+    auto errorObj = Json::getObject(data, "error");
+    if (errorObj.isObject()) {
+      auto errorMsg = Json::getString(errorObj, "message");
+      if (!errorMsg.isEmpty())
+        return errorMsg;
     }
   }
 
@@ -671,8 +673,8 @@ juce::String NetworkClient::buildApiPath(const char *path) {
 
 void NetworkClient::handleAuthResponse(const juce::var &response) {
   if (response.isObject()) {
-    auto token = response.getProperty("token", "").toString();
-    auto userId = response.getProperty("user_id", "").toString();
+    auto token = Json::getString(response, "token");
+    auto userId = Json::getString(response, "user_id");
 
     if (!token.isEmpty() && !userId.isEmpty()) {
       setAuthToken(token);
@@ -1255,7 +1257,7 @@ NetworkClient::parseFeedPostsResponse(const juce::var &response) {
   // Response should be an array of FeedPost objects
   if (!response.isArray()) {
     return Outcome<std::vector<std::shared_ptr<Sidechain::FeedPost>>>::error(
-        "Expected array response, got " + response.getProperty("type", juce::var()).toString());
+        "Expected array response, got " + Json::getString(response, "type", "unknown"));
   }
 
   // Convert juce::var array to nlohmann::json array

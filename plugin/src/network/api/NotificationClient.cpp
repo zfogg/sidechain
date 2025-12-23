@@ -4,6 +4,7 @@
 // ==============================================================================
 
 #include "../../util/Async.h"
+#include "../../util/Json.h"
 #include "../../util/Log.h"
 #include "../NetworkClient.h"
 #include "Common.h"
@@ -26,9 +27,9 @@ void NetworkClient::getNotifications(int limit, int offset, NotificationCallback
     juce::var groups;
 
     if (result.success && result.data.isObject()) {
-      unseen = static_cast<int>(result.data.getProperty("unseen", 0));
-      unread = static_cast<int>(result.data.getProperty("unread", 0));
-      groups = result.data.getProperty("groups", juce::var());
+      unseen = Json::getInt(result.data, "unseen");
+      unread = Json::getInt(result.data, "unread");
+      groups = Json::getArray(result.data, "groups");
     }
 
     juce::MessageManager::callAsync([callback, result, groups, unseen, unread]() {
@@ -56,8 +57,8 @@ void NetworkClient::getNotificationCounts(std::function<void(int unseen, int unr
     int unread = 0;
 
     if (result.success && result.data.isObject()) {
-      unseen = static_cast<int>(result.data.getProperty("unseen", 0));
-      unread = static_cast<int>(result.data.getProperty("unread", 0));
+      unseen = Json::getInt(result.data, "unseen");
+      unread = Json::getInt(result.data, "unread");
     }
 
     juce::MessageManager::callAsync([callback, unseen, unread]() { callback(unseen, unread); });
@@ -99,7 +100,7 @@ void NetworkClient::getFollowRequestCount(std::function<void(int count)> callbac
 
     int count = 0;
     if (result.success && result.data.isObject()) {
-      count = static_cast<int>(result.data.getProperty("count", 0));
+      count = Json::getInt(result.data, "count");
     }
 
     juce::MessageManager::callAsync([callback, count]() { callback(count); });

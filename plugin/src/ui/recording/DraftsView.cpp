@@ -1,6 +1,7 @@
 #include "DraftsView.h"
 #include "../../util/Colors.h"
 #include "../../util/Log.h"
+#include "../../util/Time.h"
 #include "Upload.h" // For key/genre names
 
 // ==============================================================================
@@ -178,7 +179,7 @@ void DraftsView::drawDraftCard(juce::Graphics &g, const juce::var &draft, juce::
   auto duration = static_cast<float>(draft.getProperty("duration_ms", 0.0));
   juce::Time updated = juce::Time::fromISO8601(draft.getProperty("updated_at", "").toString());
   juce::String durationStr = juce::String(static_cast<int>(duration / 1000.0f)) + "s";
-  juce::String info = durationStr + " | " + formatRelativeTime(updated);
+  juce::String info = durationStr + " | " + Sidechain::TimeUtils::formatTimeAgo(updated);
   g.drawText(info, x, y + 24, contentWidth, 18, juce::Justification::centredLeft);
 
   // BPM and Key
@@ -497,22 +498,3 @@ void DraftsView::discardRecoveryDraft() {
   repaint();
 }
 
-juce::String DraftsView::formatRelativeTime(const juce::Time &time) const {
-  auto now = juce::Time::getCurrentTime();
-  auto diff = now - time;
-
-  int minutes = static_cast<int>(diff.inMinutes());
-  int hours = static_cast<int>(diff.inHours());
-  int days = static_cast<int>(diff.inDays());
-
-  if (minutes < 1)
-    return "Just now";
-  if (minutes < 60)
-    return juce::String(minutes) + " min ago";
-  if (hours < 24)
-    return juce::String(hours) + " hour" + (hours != 1 ? "s" : "") + " ago";
-  if (days < 7)
-    return juce::String(days) + " day" + (days != 1 ? "s" : "") + " ago";
-
-  return time.toString(true, false);
-}
