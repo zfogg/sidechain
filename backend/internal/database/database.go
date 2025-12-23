@@ -2,16 +2,17 @@ package database
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"time"
 
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/metrics"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/telemetry"
+	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
+	gormlogger "gorm.io/gorm/logger"
 )
 
 // DB holds the database connection
@@ -34,9 +35,9 @@ func Initialize() error {
 	}
 
 	// Configure GORM logger
-	gormLogger := logger.Default
+	gormLogger := gormlogger.Default
 	if os.Getenv("ENVIRONMENT") == "development" {
-		gormLogger = logger.Default.LogMode(logger.Info)
+		gormLogger = gormlogger.Default.LogMode(gormlogger.Info)
 	}
 
 	// Open database connection
@@ -68,13 +69,13 @@ func Initialize() error {
 	// Register OpenTelemetry tracing plugin (if enabled)
 	if os.Getenv("OTEL_ENABLED") == "true" {
 		if err := db.Use(telemetry.GORMTracingPlugin()); err != nil {
-			log.Printf("⚠️  Failed to register GORM tracing plugin: %v", err)
+			logger.Log.Warn("Failed to register GORM tracing plugin", zap.Error(err))
 		} else {
-			log.Println("✅ OpenTelemetry GORM tracing plugin registered")
+			logger.Log.Info("OpenTelemetry GORM tracing plugin registered")
 		}
 	}
 
-	log.Println("✅ Database connected successfully")
+	logger.Log.Info("Database connected successfully")
 
 	return nil
 }
@@ -88,7 +89,7 @@ func Migrate() error {
 	// Enable UUID extension for PostgreSQL
 	err := DB.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"").Error
 	if err != nil {
-		log.Printf("Warning: Could not create uuid-ossp extension: %v", err)
+		logger.Log.Warn("Could not create uuid-ossp extension", zap.Error(err))
 	}
 
 	// Run manual migrations before AutoMigrate
@@ -144,7 +145,7 @@ func Migrate() error {
 		return fmt.Errorf("failed to create indexes: %w", err)
 	}
 
-	log.Println("✅ Database migrations completed")
+	logger.Log.Info("Database migrations completed")
 	return nil
 }
 
@@ -156,7 +157,7 @@ func execIndex(sql string) {
 		if len(sql) > 80 {
 			truncatedSQL = sql[:80] + "..."
 		}
-		log.Printf("Warning: Failed to create index: %v (SQL: %s)", err, truncatedSQL)
+		logger.Log.Warn("Failed to create index", zap.Error(err), zap.String("sql", truncatedSQL))
 	}
 }
 
@@ -388,12 +389,12 @@ func runManualMigrations() {
 	`).Scan(&columnExists)
 
 	if columnExists {
-		log.Println("📦 Running migration: Rename avatar_url to oauth_profile_picture_url")
+		logger.Log.Info("Running migration: Rename avatar_url to oauth_profile_picture_url")
 		err := DB.Exec("ALTER TABLE users RENAME COLUMN avatar_url TO oauth_profile_picture_url").Error
 		if err != nil {
-			log.Printf("Warning: Could not rename avatar_url column: %v", err)
+			logger.Log.Warn("Could not rename avatar_url column", zap.Error(err))
 		} else {
-			log.Println("✅ Renamed avatar_url to oauth_profile_picture_url")
+			logger.Log.Info("Renamed avatar_url to oauth_profile_picture_url")
 		}
 	}
 
@@ -406,12 +407,12 @@ func runManualMigrations() {
 	`).Scan(&columnExists)
 
 	if columnExists {
-		log.Println("📦 Running migration: Rename avatar_url to oauth_profile_picture_url in oauth_providers")
+		logger.Log.Info("Running migration: Rename avatar_url to oauth_profile_picture_url in oauth_providers")
 		err := DB.Exec("ALTER TABLE oauth_providers RENAME COLUMN avatar_url TO oauth_profile_picture_url").Error
 		if err != nil {
-			log.Printf("Warning: Could not rename avatar_url column in oauth_providers: %v", err)
+			logger.Log.Warn("Could not rename avatar_url column in oauth_providers", zap.Error(err))
 		} else {
-			log.Println("✅ Renamed avatar_url to oauth_profile_picture_url in oauth_providers")
+			logger.Log.Info("Renamed avatar_url to oauth_profile_picture_url in oauth_providers")
 		}
 	}
 
@@ -421,12 +422,12 @@ func runManualMigrations() {
 	DB.Model(&models.AudioPost{}).Where("filename IS NULL OR filename = ''").Count(&emptyFilenameCount)
 
 	if emptyFilenameCount > 0 {
-		log.Printf("📦 Running migration: Populating %d empty filenames in audio_posts", emptyFilenameCount)
+		logger.Log.Info("Running migration: Populating empty filenames in audio_posts", zap.Int64("count", emptyFilenameCount))
 		err := DB.Exec("UPDATE audio_posts SET filename = original_filename WHERE filename IS NULL OR filename = ''").Error
 		if err != nil {
-			log.Printf("Warning: Could not populate filenames in audio_posts: %v", err)
+			logger.Log.Warn("Could not populate filenames in audio_posts", zap.Error(err))
 		} else {
-			log.Printf("✅ Populated %d filenames in audio_posts", emptyFilenameCount)
+			logger.Log.Info("Populated filenames in audio_posts", zap.Int64("count", emptyFilenameCount))
 		}
 	}
 
@@ -435,12 +436,12 @@ func runManualMigrations() {
 	DB.Model(&models.Story{}).Where("(filename IS NULL OR filename = '') AND audio_url IS NOT NULL AND audio_url != ''").Count(&emptyStoryFilenameCount)
 
 	if emptyStoryFilenameCount > 0 {
-		log.Printf("📦 Running migration: Populating %d empty filenames in stories", emptyStoryFilenameCount)
+		logger.Log.Info("Running migration: Populating empty filenames in stories", zap.Int64("count", emptyStoryFilenameCount))
 		err := DB.Exec("UPDATE stories SET filename = 'story_audio.mp3' WHERE (filename IS NULL OR filename = '') AND audio_url IS NOT NULL AND audio_url != ''").Error
 		if err != nil {
-			log.Printf("Warning: Could not populate filenames in stories: %v", err)
+			logger.Log.Warn("Could not populate filenames in stories", zap.Error(err))
 		} else {
-			log.Printf("✅ Populated %d filenames in stories", emptyStoryFilenameCount)
+			logger.Log.Info("Populated filenames in stories", zap.Int64("count", emptyStoryFilenameCount))
 		}
 	}
 
@@ -450,7 +451,7 @@ func runManualMigrations() {
 	DB.Model(&models.AudioPost{}).Where("audio_url LIKE 'https://cdn.sidechain.app/%'").Count(&fakeCdnCount)
 
 	if fakeCdnCount > 0 {
-		log.Printf("📦 Running migration: Replacing %d fake CDN URLs with real test audio", fakeCdnCount)
+		logger.Log.Info("Running migration: Replacing fake CDN URLs with real test audio", zap.Int64("count", fakeCdnCount))
 
 		// Working test audio URLs (verified HTTP 200, kozco.com)
 		testAudioURLs := []string{
@@ -475,14 +476,14 @@ func runManualMigrations() {
 			DB.Model(&post).Update("audio_url", audioURL)
 		}
 
-		log.Printf("✅ Replaced %d fake CDN URLs with real test audio", fakeCdnCount)
+		logger.Log.Info("Replaced fake CDN URLs with real test audio", zap.Int64("count", fakeCdnCount))
 	}
 
 	// Replace broken freesound.org URLs with working kozco.com URLs
 	var brokenCount int64
 	DB.Model(&models.AudioPost{}).Where("audio_url LIKE 'https://cdn.freesound.org/%'").Count(&brokenCount)
 	if brokenCount > 0 {
-		log.Printf("📦 Running migration: Replacing %d broken freesound.org URLs with working audio", brokenCount)
+		logger.Log.Info("Running migration: Replacing broken freesound.org URLs with working audio", zap.Int64("count", brokenCount))
 
 		workingAudioURLs := []string{
 			"https://www.kozco.com/tech/piano2.wav",
@@ -505,7 +506,7 @@ func runManualMigrations() {
 			DB.Model(&post).Update("audio_url", audioURL)
 		}
 
-		log.Printf("✅ Replaced %d broken URLs with working audio", brokenCount)
+		logger.Log.Info("Replaced broken URLs with working audio", zap.Int64("count", brokenCount))
 	}
 }
 

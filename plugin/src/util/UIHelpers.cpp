@@ -1,6 +1,7 @@
 #include "UIHelpers.h"
 #include "../stores/AppStore.h"
 #include "Log.h"
+#include "StringUtils.h"
 
 namespace UIHelpers {
 
@@ -160,6 +161,23 @@ void drawOnlineIndicator(juce::Graphics &g, juce::Rectangle<int> avatarBounds, b
   // In-studio: cyan (#00D4FF), Online: green (#00D464)
   g.setColour(isInStudio ? juce::Colour(0xFF00D4FF) : juce::Colour(0xFF00D464));
   g.fillEllipse(innerBounds);
+}
+
+void drawAvatarWithInitials(juce::Graphics &g, juce::Rectangle<int> bounds, const juce::Image &image,
+                            const juce::String &name, juce::Colour placeholderColor, juce::Colour initialsColor,
+                            juce::Colour borderColor, float borderWidth) {
+  // Draw circular avatar with border
+  drawCircularAvatar(g, bounds, image, placeholderColor, borderColor, borderWidth);
+
+  // If no valid image, draw initials on top of placeholder
+  if (!image.isValid() && name.isNotEmpty()) {
+    juce::String initials = StringUtils::getInitials(name);
+    // Calculate font size proportional to avatar size (roughly 40% of height)
+    float fontSize = static_cast<float>(bounds.getHeight()) * 0.4f;
+    g.setColour(initialsColor);
+    g.setFont(juce::Font(juce::FontOptions().withHeight(fontSize).withStyle("Bold")));
+    g.drawText(initials, bounds, juce::Justification::centred);
+  }
 }
 
 // ==============================================================================

@@ -16,6 +16,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/search"
 	"github.com/zfogg/sidechain/backend/internal/telemetry"
 	"github.com/zfogg/sidechain/backend/internal/util"
+	"go.uber.org/zap"
 )
 
 // ============================================================================
@@ -66,7 +67,7 @@ import (
 func (h *Handlers) trackSearchQuery(c *gin.Context, entityType string, query string, resultCount int, filters map[string]interface{}) {
 	// Non-blocking analytics tracking
 	go func() {
-		userID := c.GetString("user_id")
+		// userID available for future analytics: c.GetString("user_id")
 		if h.search != nil {
 			// Delegate to search client for potential Elasticsearch analytics indexing
 			h.search.TrackSearchQuery(c.Request.Context(), query, resultCount, filters)
@@ -174,7 +175,7 @@ func (h *Handlers) SearchUsers(c *gin.Context) {
 		} else {
 			// Log warning and fall back to PostgreSQL
 			if err != nil {
-				fmt.Printf("Warning: Elasticsearch search failed, falling back to PostgreSQL: %v\n", err)
+				logger.Warn("Elasticsearch search failed, falling back to PostgreSQL", zap.Error(err))
 			}
 			usingFallback = true
 		}
@@ -343,7 +344,7 @@ func (h *Handlers) SearchPosts(c *gin.Context) {
 		} else {
 			// Log warning and fall back to PostgreSQL
 			if err != nil {
-				fmt.Printf("Warning: Elasticsearch search failed, falling back to PostgreSQL: %v\n", err)
+				logger.Warn("Elasticsearch search failed, falling back to PostgreSQL", zap.Error(err))
 			}
 			usingFallback = true
 		}

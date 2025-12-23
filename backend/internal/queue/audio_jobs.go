@@ -3,7 +3,6 @@ package queue
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"runtime"
 	"sync"
@@ -12,8 +11,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/fingerprint"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/storage"
+	"go.uber.org/zap"
 )
 
 // AudioJob represents an audio processing job
@@ -71,7 +72,7 @@ func NewAudioQueue(s3Uploader *storage.S3Uploader) *AudioQueue {
 
 	tempDir := "/tmp/sidechain_audio"
 	if err := os.MkdirAll(tempDir, 0755); err != nil {
-		log.Printf("Warning: Failed to create temp directory %s: %v", tempDir, err)
+		logger.Log.Warn("Failed to create temp directory", zap.String("temp_dir", tempDir), zap.Error(err))
 	}
 
 	return &AudioQueue{
@@ -93,7 +94,7 @@ func (q *AudioQueue) SetPostCompleteCallback(callback func(postID string)) {
 
 // Start begins processing jobs with worker pool
 func (q *AudioQueue) Start() {
-	log.Printf("🎵 Starting audio queue with %d workers", q.workers)
+	logger.Log.Info("Starting audio queue", zap.Int("workers", q.workers))
 
 	for i := 0; i < q.workers; i++ {
 		go q.worker(i)
@@ -167,20 +168,20 @@ func (q *AudioQueue) WaitForJobCompletion(jobID string, timeout time.Duration) e
 
 // worker processes audio jobs from the queue
 func (q *AudioQueue) worker(workerID int) {
-	log.Printf("🔧 Audio worker %d started", workerID)
+	logger.Log.Info("Audio worker started", zap.Int("worker_id", workerID))
 
 	for {
 		select {
 		case job := <-q.jobs:
 			if job == nil {
-				log.Printf("🔧 Audio worker %d shutting down", workerID)
+				logger.Log.Info("Audio worker shutting down", zap.Int("worker_id", workerID))
 				return
 			}
 
 			q.processJob(workerID, job)
 
 		case <-q.ctx.Done():
-			log.Printf("🔧 Audio worker %d shutting down", workerID)
+			logger.Log.Info("Audio worker shutting down", zap.Int("worker_id", workerID))
 			return
 		}
 	}
@@ -188,7 +189,7 @@ func (q *AudioQueue) worker(workerID int) {
 
 // processJob handles the actual audio processing with FFmpeg
 func (q *AudioQueue) processJob(workerID int, job *AudioJob) {
-	log.Printf("🔧 Worker %d processing job %s (file: %s)", workerID, job.ID, job.Filename)
+	logger.Log.Info("Worker processing job", zap.Int("worker_id", workerID), zap.String("job_id", job.ID), zap.String("filename", job.Filename))
 	startTime := time.Now()
 
 	// Update job status to processing
@@ -206,7 +207,7 @@ func (q *AudioQueue) processJob(workerID int, job *AudioJob) {
 	processedAudio, err := q.processAudioWithFFmpeg(ctx, job)
 	if err != nil {
 		errMsg := fmt.Sprintf("FFmpeg processing failed: %v", err)
-		log.Printf("❌ Worker %d job %s failed: %s", workerID, job.ID, errMsg)
+		logger.Log.Error("Worker job failed", zap.Int("worker_id", workerID), zap.String("job_id", job.ID), zap.String("error", errMsg))
 		q.updateJobStatus(job.ID, "failed", nil, &errMsg)
 		q.updateAudioPostStatus(job.PostID, "failed")
 		q.signalCompletion(job.ID)
@@ -217,7 +218,7 @@ func (q *AudioQueue) processJob(workerID int, job *AudioJob) {
 	audioResult, err := q.s3Uploader.UploadAudio(ctx, processedAudio.Data, job.UserID, job.Filename)
 	if err != nil {
 		errMsg := fmt.Sprintf("S3 audio upload failed: %v", err)
-		log.Printf("❌ Worker %d job %s failed: %s", workerID, job.ID, errMsg)
+		logger.Log.Error("Worker job failed", zap.Int("worker_id", workerID), zap.String("job_id", job.ID), zap.String("error", errMsg))
 		q.updateJobStatus(job.ID, "failed", nil, &errMsg)
 		q.updateAudioPostStatus(job.PostID, "failed")
 		q.signalCompletion(job.ID)
@@ -230,7 +231,7 @@ func (q *AudioQueue) processJob(workerID int, job *AudioJob) {
 		waveformResult, err := q.s3Uploader.UploadWaveform(ctx, []byte(processedAudio.WaveformPNG), audioResult.Key)
 		if err != nil {
 			// Non-fatal - log and continue
-			log.Printf("⚠️ Worker %d job %s: waveform upload failed: %v", workerID, job.ID, err)
+			logger.Log.Warn("Waveform upload failed", zap.Int("worker_id", workerID), zap.String("job_id", job.ID), zap.Error(err))
 		} else {
 			waveformURL = waveformResult.URL
 		}
@@ -247,7 +248,7 @@ func (q *AudioQueue) processJob(workerID int, job *AudioJob) {
 	err = q.updateAudioPostComplete(job.PostID, result)
 	if err != nil {
 		errMsg := fmt.Sprintf("Database update failed: %v", err)
-		log.Printf("❌ Worker %d job %s failed: %s", workerID, job.ID, errMsg)
+		logger.Log.Error("Worker job failed", zap.Int("worker_id", workerID), zap.String("job_id", job.ID), zap.String("error", errMsg))
 		q.updateJobStatus(job.ID, "failed", nil, &errMsg)
 		q.updateAudioPostStatus(job.PostID, "failed")
 		q.signalCompletion(job.ID)
@@ -261,8 +262,7 @@ func (q *AudioQueue) processJob(workerID int, job *AudioJob) {
 	q.updateJobStatus(job.ID, "complete", result, nil)
 
 	elapsed := time.Since(startTime)
-	log.Printf("✅ Worker %d completed job %s in %v (duration: %.1fs, size: %d bytes)",
-		workerID, job.ID, elapsed, processedAudio.Duration, audioResult.Size)
+	logger.Log.Info("Worker completed job", zap.Int("worker_id", workerID), zap.String("job_id", job.ID), zap.Duration("elapsed", elapsed), zap.Float64("duration", processedAudio.Duration), zap.Int64("size", audioResult.Size))
 
 	// Trigger post indexing callback
 	if q.onPostComplete != nil {
@@ -299,7 +299,7 @@ func (q *AudioQueue) processAudioWithFFmpeg(ctx context.Context, job *AudioJob) 
 	waveformPNG, err := generateWaveformPNG(ctx, outputPath)
 	if err != nil {
 		// Non-fatal, continue without waveform
-		log.Printf("⚠️ Waveform generation failed: %v", err)
+		logger.Log.Warn("Waveform generation failed", zap.Error(err))
 		waveformPNG = ""
 	}
 
@@ -307,7 +307,7 @@ func (q *AudioQueue) processAudioWithFFmpeg(ctx context.Context, job *AudioJob) 
 	duration, err := extractAudioDuration(ctx, outputPath)
 	if err != nil {
 		// Use default if extraction fails
-		log.Printf("⚠️ Duration extraction failed: %v", err)
+		logger.Log.Warn("Duration extraction failed", zap.Error(err))
 		duration = 0
 	}
 
@@ -318,7 +318,7 @@ func (q *AudioQueue) processAudioWithFFmpeg(ctx context.Context, job *AudioJob) 
 	fingerprintCancel()
 	if err != nil {
 		// Non-fatal - fingerprinting failure shouldn't block upload
-		log.Printf("⚠️ Audio fingerprinting failed: %v", err)
+		logger.Log.Warn("Audio fingerprinting failed", zap.Error(err))
 	}
 
 	// Step 5: Read processed file

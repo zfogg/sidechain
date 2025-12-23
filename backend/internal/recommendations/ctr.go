@@ -2,9 +2,10 @@ package recommendations
 
 import (
 	"fmt"
-	"log"
 	"time"
 
+	"github.com/zfogg/sidechain/backend/internal/logger"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -70,17 +71,22 @@ func LogCTRMetrics(db *gorm.DB) error {
 		return err
 	}
 
-	log.Println("📊 CTR Metrics (Last 24 Hours):")
-	log.Println("─────────────────────────────────────────────────")
+	logger.Log.Info("CTR Metrics (Last 24 Hours)")
+	logger.Log.Info("-----------------------------------------------")
 	for _, m := range metrics {
 		if m.Impressions > 0 {
-			log.Printf("  %s: %.2f%% (%d clicks / %d impressions)",
-				m.Source, m.CTR, m.Clicks, m.Impressions)
+			logger.Log.Info("CTR metric",
+				zap.String("source", m.Source),
+				zap.Float64("ctr", m.CTR),
+				zap.Int64("clicks", m.Clicks),
+				zap.Int64("impressions", m.Impressions))
 		} else {
-			log.Printf("  %s: No impressions", m.Source)
+			logger.Log.Info("CTR metric",
+				zap.String("source", m.Source),
+				zap.String("status", "No impressions"))
 		}
 	}
-	log.Println("─────────────────────────────────────────────────")
+	logger.Log.Info("-----------------------------------------------")
 
 	return nil
 }

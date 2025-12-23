@@ -2,14 +2,15 @@ package handlers
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -60,7 +61,7 @@ func (h *ErrorTrackingHandler) RecordErrors(c *gin.Context) {
 	for _, errPayload := range req.Errors {
 		// Validate required fields
 		if errPayload.Message == "" {
-			log.Printf("Skipping error with empty message")
+			logger.Log.Debug("Skipping error with empty message")
 			continue
 		}
 
@@ -80,7 +81,7 @@ func (h *ErrorTrackingHandler) RecordErrors(c *gin.Context) {
 			existing.Occurrences += errPayload.Occurrences
 			existing.LastSeen = time.Now()
 			if err := database.DB.Save(existing).Error; err != nil {
-				log.Printf("Failed to update error log: %v", err)
+				logger.Warn("Failed to update error log", zap.Error(err))
 				continue
 			}
 			recordedCount++
@@ -107,7 +108,7 @@ func (h *ErrorTrackingHandler) RecordErrors(c *gin.Context) {
 			}
 
 			if err := database.DB.Create(errorLog).Error; err != nil {
-				log.Printf("Failed to create error log: %v", err)
+				logger.Warn("Failed to create error log", zap.Error(err))
 				continue
 			}
 			recordedCount++
@@ -120,7 +121,10 @@ func (h *ErrorTrackingHandler) RecordErrors(c *gin.Context) {
 		"total_count":    len(req.Errors),
 	})
 
-	log.Printf("Recorded %d/%d errors for user %s", recordedCount, len(req.Errors), userIDStr)
+	logger.Log.Info("Recorded errors for user",
+		zap.Int("recorded_count", recordedCount),
+		zap.Int("total_count", len(req.Errors)),
+		zap.String("user_id", userIDStr))
 }
 
 // GetErrorStats returns error statistics for the authenticated user
@@ -168,7 +172,7 @@ func (h *ErrorTrackingHandler) GetErrorStats(c *gin.Context) {
 		Model(&models.ErrorLog{}).
 		Where("user_id = ? AND created_at >= ?", userIDStr, sinceTime).
 		Count(&stats.TotalErrors).Error; err != nil {
-		log.Printf("Failed to count total errors: %v", err)
+		logger.Warn("Failed to count total errors", zap.Error(err))
 	}
 
 	// Errors by severity
@@ -222,7 +226,7 @@ func (h *ErrorTrackingHandler) GetErrorStats(c *gin.Context) {
 
 	// Error trend (hourly)
 	if err := h.getErrorTrend(userIDStr, hours, stats); err != nil {
-		log.Printf("Failed to get error trend: %v", err)
+		logger.Warn("Failed to get error trend", zap.Error(err))
 	}
 
 	// Calculate average
@@ -316,7 +320,7 @@ func (h *ErrorTrackingHandler) findSimilarError(userID, message, source string) 
 		return nil
 	}
 	if err != nil {
-		log.Printf("Error finding similar error: %v", err)
+		logger.Warn("Error finding similar error", zap.Error(err))
 		return nil
 	}
 	return &errorLog

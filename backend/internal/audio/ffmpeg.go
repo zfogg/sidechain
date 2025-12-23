@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -12,6 +11,8 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/zfogg/sidechain/backend/internal/logger"
+	"go.uber.org/zap"
 )
 
 // FFmpegProcessor handles audio processing with FFmpeg
@@ -23,7 +24,7 @@ type FFmpegProcessor struct {
 func NewFFmpegProcessor() *FFmpegProcessor {
 	tempDir := "/tmp/sidechain_audio"
 	if err := os.MkdirAll(tempDir, 0755); err != nil {
-		log.Printf("Warning: Failed to create temp directory %s: %v", tempDir, err)
+		logger.Log.Warn("Failed to create temp directory", zap.String("dir", tempDir), zap.Error(err))
 	}
 
 	return &FFmpegProcessor{

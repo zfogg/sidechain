@@ -1,13 +1,14 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/util"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -61,7 +62,7 @@ func (h *Handlers) ArchivePost(c *gin.Context) {
 	if h.gorse != nil {
 		go func() {
 			if err := h.gorse.SyncItem(postID); err != nil {
-				fmt.Printf("Warning: Failed to sync archived post to Gorse: %v\n", err)
+				logger.Warn("Failed to sync archived post to Gorse", zap.String("post_id", postID), zap.Error(err))
 			}
 		}()
 	}
@@ -122,7 +123,7 @@ func (h *Handlers) UnarchivePost(c *gin.Context) {
 	if h.gorse != nil {
 		go func() {
 			if err := h.gorse.SyncItem(postID); err != nil {
-				fmt.Printf("Warning: Failed to sync unarchived post to Gorse: %v\n", err)
+				logger.Warn("Failed to sync unarchived post to Gorse", zap.String("post_id", postID), zap.Error(err))
 			}
 		}()
 	}

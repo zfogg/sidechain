@@ -20,10 +20,7 @@ FollowUserRow::FollowUserRow() {
   setSize(400, ROW_HEIGHT);
 
   // Set up hover state - triggers visual feedback on hover
-  hoverState.onHoverChanged = [this]([[maybe_unused]] bool hovered) {
-    // Repaint to show/hide hover effects (highlight, follow button)
-    repaint();
-  };
+  hoverState.onHoverChanged = [this](bool /*hovered*/) { repaint(); };
 }
 
 void FollowUserRow::setUser(const std::shared_ptr<const Sidechain::User> &user) {
@@ -74,32 +71,12 @@ void FollowUserRow::paint(juce::Graphics &g) {
   juce::String username(userPtr->username);
   juce::String name = !displayName.isEmpty() ? displayName : username;
 
-  // Use reactive observable for image loading (with caching)
-  if (appStore && userPtr->avatarUrl.isNotEmpty()) {
-    juce::String avatarUrl(userPtr->avatarUrl);
-    juce::Component::SafePointer<FollowUserRow> safeThis(this);
-    appStore->loadImageObservable(avatarUrl).subscribe(
-        [safeThis](const juce::Image &image) {
-          if (safeThis == nullptr)
-            return;
-          if (image.isValid())
-            safeThis->repaint();
-        },
-        [safeThis](std::exception_ptr) {
-          if (safeThis == nullptr)
-            return;
-          Log::warn("FollowersList: Failed to load avatar in paint");
-        });
-  }
+  // NOTE: Image loading is handled in setUser() - not in paint()
+  // to avoid creating new subscriptions on every repaint
 
-  // Draw circular avatar placeholder with initials
-  UIHelpers::drawCircularAvatar(g, avatarBounds, juce::Image(), SidechainColors::surface(), SidechainColors::border());
-
-  // Draw initials on top of placeholder
-  juce::String initials = StringUtils::getInitials(name);
-  g.setColour(SidechainColors::textPrimary());
-  g.setFont(juce::Font(juce::FontOptions().withHeight(static_cast<float>(avatarBounds.getHeight()) * 0.4f)).boldened());
-  g.drawText(initials, avatarBounds, juce::Justification::centred);
+  // Draw circular avatar with initials fallback
+  UIHelpers::drawAvatarWithInitials(g, avatarBounds, juce::Image(), name, SidechainColors::surface(),
+                                    SidechainColors::textPrimary(), SidechainColors::border());
 
   // User info
   int textX = avatarBounds.getRight() + 12;
