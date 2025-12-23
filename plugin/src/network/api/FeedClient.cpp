@@ -25,18 +25,7 @@ void NetworkClient::getGlobalFeed(int limit, int offset, FeedCallback callback) 
 
     if (callback) {
       juce::MessageManager::callAsync([callback, response]() {
-        // Check for error field in response
-        if (response.isObject() && response.hasProperty("error")) {
-          juce::String errorMsg = response["error"].toString();
-          juce::String fullMsg = errorMsg;
-          if (response.hasProperty("message"))
-            fullMsg = response["message"].toString();
-          callback(Outcome<juce::var>::error(fullMsg));
-        } else if (response.isObject() || response.isArray()) {
-          callback(Outcome<juce::var>::ok(response));
-        } else {
-          callback(Outcome<juce::var>::error("Invalid feed response"));
-        }
+        callback(parseJsonResponse(response, "Invalid feed response"));
       });
     }
   });
@@ -56,18 +45,7 @@ void NetworkClient::getTimelineFeed(int limit, int offset, FeedCallback callback
 
     if (callback) {
       juce::MessageManager::callAsync([callback, response]() {
-        // Check for error field in response
-        if (response.isObject() && response.hasProperty("error")) {
-          juce::String errorMsg = response["error"].toString();
-          juce::String fullMsg = errorMsg;
-          if (response.hasProperty("message"))
-            fullMsg = response["message"].toString();
-          callback(Outcome<juce::var>::error(fullMsg));
-        } else if (response.isObject() || response.isArray()) {
-          callback(Outcome<juce::var>::ok(response));
-        } else {
-          callback(Outcome<juce::var>::error("Invalid feed response"));
-        }
+        callback(parseJsonResponse(response, "Invalid feed response"));
       });
     }
   });
@@ -86,18 +64,7 @@ void NetworkClient::getTrendingFeed(int limit, int offset, FeedCallback callback
 
     if (callback) {
       juce::MessageManager::callAsync([callback, response]() {
-        // Check for error field in response
-        if (response.isObject() && response.hasProperty("error")) {
-          juce::String errorMsg = response["error"].toString();
-          juce::String fullMsg = errorMsg;
-          if (response.hasProperty("message"))
-            fullMsg = response["message"].toString();
-          callback(Outcome<juce::var>::error(fullMsg));
-        } else if (response.isObject() || response.isArray()) {
-          callback(Outcome<juce::var>::ok(response));
-        } else {
-          callback(Outcome<juce::var>::error("Invalid feed response"));
-        }
+        callback(parseJsonResponse(response, "Invalid feed response"));
       });
     }
   });
@@ -118,18 +85,7 @@ void NetworkClient::getForYouFeed(int limit, int offset, FeedCallback callback) 
 
     if (callback) {
       juce::MessageManager::callAsync([callback, response]() {
-        // Check for error field in response
-        if (response.isObject() && response.hasProperty("error")) {
-          juce::String errorMsg = response["error"].toString();
-          juce::String fullMsg = errorMsg;
-          if (response.hasProperty("message"))
-            fullMsg = response["message"].toString();
-          callback(Outcome<juce::var>::error(fullMsg));
-        } else if (response.isObject() || response.isArray()) {
-          callback(Outcome<juce::var>::ok(response));
-        } else {
-          callback(Outcome<juce::var>::error("Invalid feed response"));
-        }
+        callback(parseJsonResponse(response, "Invalid feed response"));
       });
     }
   });
@@ -149,18 +105,7 @@ void NetworkClient::getSimilarPosts(const juce::String &postId, int limit, FeedC
 
     if (callback) {
       juce::MessageManager::callAsync([callback, response]() {
-        // Check for error field in response
-        if (response.isObject() && response.hasProperty("error")) {
-          juce::String errorMsg = response["error"].toString();
-          juce::String fullMsg = errorMsg;
-          if (response.hasProperty("message"))
-            fullMsg = response["message"].toString();
-          callback(Outcome<juce::var>::error(fullMsg));
-        } else if (response.isObject() || response.isArray()) {
-          callback(Outcome<juce::var>::ok(response));
-        } else {
-          callback(Outcome<juce::var>::error("Invalid feed response"));
-        }
+        callback(parseJsonResponse(response, "Invalid feed response"));
       });
     }
   });
@@ -198,9 +143,7 @@ void NetworkClient::unlikePost(const juce::String &activityId, ResponseCallback 
   }
 
   Async::runVoid([this, activityId, callback]() {
-    juce::var data = juce::var(new juce::DynamicObject());
-    data.getDynamicObject()->setProperty("activity_id", activityId);
-
+    auto data = createJsonObject({{"activity_id", activityId}});
     auto result = makeRequestWithRetry(buildApiPath("/feed/unlike"), "POST", data, true);
 
     if (callback) {
@@ -327,10 +270,7 @@ void NetworkClient::createRemixPost(const juce::String &sourcePostId, const juce
   }
 
   Async::runVoid([this, sourcePostId, remixType, callback]() {
-    juce::var data = juce::var(new juce::DynamicObject());
-    data.getDynamicObject()->setProperty("source_post_id", sourcePostId);
-    data.getDynamicObject()->setProperty("remix_type", remixType);
-
+    auto data = createJsonObject({{"source_post_id", sourcePostId}, {"remix_type", remixType}});
     auto result = makeRequestWithRetry(buildApiPath("/remixes"), "POST", data, true);
 
     if (callback) {

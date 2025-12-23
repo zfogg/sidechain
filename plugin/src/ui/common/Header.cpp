@@ -33,25 +33,15 @@ void Header::setUserInfo(const juce::String &user, const juce::String &picUrl) {
   // Fetch avatar image via AppStore reactive observable (with caching)
   if (picUrl.isNotEmpty() && appStore) {
     Log::info("Header::setUserInfo: Loading profile image from AppStore - URL: " + picUrl);
-    juce::Component::SafePointer<Header> safeThis(this);
-    appStore->loadImageObservable(picUrl).subscribe(
-        [safeThis](const juce::Image &image) {
-          if (safeThis == nullptr)
-            return;
-          if (image.isValid()) {
-            Log::info("Header: Profile image loaded successfully - size: " + juce::String(image.getWidth()) + "x" +
-                      juce::String(image.getHeight()));
-            safeThis->cachedProfileImage = image;
-            safeThis->repaint();
-          } else {
-            Log::warn("Header: Profile image is invalid");
-          }
+    UIHelpers::loadImageAsync<Header>(
+        this, appStore, picUrl,
+        [](Header *comp, const juce::Image &image) {
+          Log::info("Header: Profile image loaded successfully - size: " + juce::String(image.getWidth()) + "x" +
+                    juce::String(image.getHeight()));
+          comp->cachedProfileImage = image;
+          comp->repaint();
         },
-        [safeThis](std::exception_ptr) {
-          if (safeThis == nullptr)
-            return;
-          Log::warn("Header: Failed to load profile image");
-        });
+        [](Header *) { Log::warn("Header: Profile image is invalid or failed to load"); }, "Header");
   } else {
     Log::warn(
         "Header::setUserInfo: Not loading image - picUrl empty: " + juce::String(picUrl.isEmpty() ? "YES" : "NO") +
@@ -269,25 +259,16 @@ void Header::drawCircularProfilePic(juce::Graphics &g, juce::Rectangle<int> boun
     UIHelpers::drawCircularAvatar(g, bounds, cachedProfileImage, SidechainColors::primary(),
                                   juce::Colours::transparentBlack);
   } else {
-    // Use reactive observable to load profile image (with caching)
+    // Use loadImageAsync to load profile image (with caching)
     if (appStore && profilePicUrl.isNotEmpty()) {
-      juce::Component::SafePointer<Header> safeThis(this);
-      appStore->loadImageObservable(profilePicUrl)
-          .subscribe(
-              [safeThis](const juce::Image &image) {
-                if (safeThis == nullptr)
-                  return;
-                if (image.isValid()) {
-                  Log::debug("Header: Image loaded from observable, triggering repaint");
-                  safeThis->cachedProfileImage = image;
-                  safeThis->repaint();
-                }
-              },
-              [safeThis](std::exception_ptr) {
-                if (safeThis == nullptr)
-                  return;
-                Log::warn("Header: Failed to load profile image in paint");
-              });
+      UIHelpers::loadImageAsync<Header>(
+          const_cast<Header *>(this), appStore, profilePicUrl,
+          [](Header *comp, const juce::Image &image) {
+            Log::debug("Header: Image loaded from observable, triggering repaint");
+            comp->cachedProfileImage = image;
+            comp->repaint();
+          },
+          [](Header *) { Log::warn("Header: Failed to load profile image in paint"); }, "Header");
     }
 
     // Draw placeholder using utility
