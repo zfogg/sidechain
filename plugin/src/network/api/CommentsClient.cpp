@@ -55,9 +55,7 @@ void NetworkClient::createComment(const juce::String &postId, const juce::String
   Async::runVoid([this, postId, content, parentId, callback]() {
     Log::info("NetworkClient::createComment: ASYNC BLOCK RUNNING - About to make request");
 
-    juce::var data = juce::var(new juce::DynamicObject());
-    data.getDynamicObject()->setProperty("content", content);
-
+    auto data = createJsonObject({{"content", content}});
     if (parentId.isNotEmpty())
       data.getDynamicObject()->setProperty("parent_id", parentId);
 
@@ -119,8 +117,7 @@ void NetworkClient::updateComment(const juce::String &commentId, const juce::Str
   }
 
   Async::runVoid([this, commentId, content, callback]() {
-    juce::var data = juce::var(new juce::DynamicObject());
-    data.getDynamicObject()->setProperty("content", content);
+    auto data = createJsonObject({{"content", content}});
 
     juce::String endpoint = buildApiPath("/comments") + "/" + commentId;
     auto result = makeRequestWithRetry(endpoint, "PUT", data, true);
@@ -208,13 +205,9 @@ void NetworkClient::reportComment(const juce::String &commentId, const juce::Str
 
   Async::runVoid([this, commentId, reason, description, callback]() {
     juce::String endpoint = buildApiPath("/comments") + "/" + commentId + "/report";
-    juce::var data = juce::var(new juce::DynamicObject());
-    auto *obj = data.getDynamicObject();
-    if (obj != nullptr) {
-      obj->setProperty("reason", reason);
-      if (description.isNotEmpty())
-        obj->setProperty("description", description);
-    }
+    auto data = createJsonObject({{"reason", reason}});
+    if (description.isNotEmpty())
+      data.getDynamicObject()->setProperty("description", description);
 
     auto result = makeRequestWithRetry(endpoint, "POST", data, true);
     Log::debug("Report comment response: " + juce::JSON::toString(result.data));
