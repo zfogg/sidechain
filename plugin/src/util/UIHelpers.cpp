@@ -1,4 +1,6 @@
 #include "UIHelpers.h"
+#include "../stores/AppStore.h"
+#include "Log.h"
 #include "StringUtils.h"
 
 namespace UIHelpers {
@@ -372,6 +374,27 @@ void drawTooltip(juce::Graphics &g, juce::Rectangle<int> bounds, const juce::Str
   g.setColour(textColor);
   g.setFont(12.0f);
   g.drawText(text, bounds.reduced(6, 2), juce::Justification::centred);
+}
+
+// ==============================================================================
+// Async Image Loading
+
+void loadImageAsyncImpl(juce::Component *component, Sidechain::Stores::AppStore *appStore, const juce::String &imageUrl,
+                        std::function<void(const juce::Image &)> onSuccess, std::function<void()> onError,
+                        const juce::String &logContext) {
+  if (component == nullptr || appStore == nullptr || imageUrl.isEmpty())
+    return;
+
+  appStore->loadImageObservable(imageUrl).subscribe(
+      [onSuccess](const juce::Image &image) {
+        if (onSuccess)
+          onSuccess(image);
+      },
+      [onError, logContext](std::exception_ptr) {
+        Log::warn(logContext + ": Failed to load image");
+        if (onError)
+          onError();
+      });
 }
 
 } // namespace UIHelpers

@@ -30,6 +30,21 @@ CommentRow::CommentRow() {
 }
 
 // ==============================================================================
+void CommentRow::loadAvatarImage() {
+  if (!commentPtr || commentPtr->userAvatarUrl.isEmpty() || !appStore) {
+    return;
+  }
+
+  // Use UIHelpers::loadImageAsync to handle SafePointer pattern
+  UIHelpers::loadImageAsync<CommentRow>(
+      this, appStore, commentPtr->userAvatarUrl,
+      [](CommentRow *comp, const juce::Image &image) {
+        comp->cachedAvatarImage = image;
+        comp->repaint();
+      },
+      [](CommentRow *) { Log::warn("CommentRow: Failed to load avatar image"); }, "CommentRow");
+}
+
 void CommentRow::setComment(const std::shared_ptr<Sidechain::Comment> &comment) {
   commentPtr = comment;
   cachedAvatarImage = juce::Image(); // Clear cached image
@@ -38,27 +53,7 @@ void CommentRow::setComment(const std::shared_ptr<Sidechain::Comment> &comment) 
     return;
   }
 
-  // Fetch avatar image via AppStore reactive observable (with caching)
-  // This subscription happens once when the comment is set, not on every paint
-  if (commentPtr->userAvatarUrl.isNotEmpty() && appStore) {
-    juce::Component::SafePointer<CommentRow> safeThis(this);
-    appStore->loadImageObservable(commentPtr->userAvatarUrl)
-        .subscribe(
-            [safeThis](const juce::Image &image) {
-              if (safeThis == nullptr)
-                return;
-              if (image.isValid()) {
-                safeThis->cachedAvatarImage = image;
-                safeThis->repaint();
-              }
-            },
-            [safeThis](std::exception_ptr) {
-              if (safeThis == nullptr)
-                return;
-              Log::warn("CommentRow: Failed to load avatar image");
-            });
-  }
-
+  loadAvatarImage();
   repaint();
 }
 
@@ -70,27 +65,7 @@ void CommentRow::setComment(const Sidechain::Comment &comment) {
     return;
   }
 
-  // Fetch avatar image via AppStore reactive observable (with caching)
-  // This subscription happens once when the comment is set, not on every paint
-  if (commentPtr->userAvatarUrl.isNotEmpty() && appStore) {
-    juce::Component::SafePointer<CommentRow> safeThis(this);
-    appStore->loadImageObservable(commentPtr->userAvatarUrl)
-        .subscribe(
-            [safeThis](const juce::Image &image) {
-              if (safeThis == nullptr)
-                return;
-              if (image.isValid()) {
-                safeThis->cachedAvatarImage = image;
-                safeThis->repaint();
-              }
-            },
-            [safeThis](std::exception_ptr) {
-              if (safeThis == nullptr)
-                return;
-              Log::warn("CommentRow: Failed to load avatar image");
-            });
-  }
-
+  loadAvatarImage();
   repaint();
 }
 
