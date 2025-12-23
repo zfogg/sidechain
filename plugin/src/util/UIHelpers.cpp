@@ -320,6 +320,25 @@ int getTextWidth(const juce::Font &font, const juce::String &text) {
 }
 
 // ==============================================================================
+// Toggle Button Styling
+
+void styleToggleButton(juce::ToggleButton &toggle, const juce::String &label, juce::Colour textColor,
+                       juce::Colour tickColor, juce::Colour disabledColor) {
+  toggle.setButtonText(label);
+  toggle.setColour(juce::ToggleButton::textColourId, textColor);
+  toggle.setColour(juce::ToggleButton::tickColourId, tickColor);
+  toggle.setColour(juce::ToggleButton::tickDisabledColourId, disabledColor);
+}
+
+void setupToggleButton(juce::ToggleButton &toggle, const juce::String &label, juce::Colour textColor,
+                       juce::Colour tickColor, juce::Colour disabledColor, bool initialState,
+                       std::function<void()> onClick) {
+  styleToggleButton(toggle, label, textColor, tickColor, disabledColor);
+  toggle.setToggleState(initialState, juce::dontSendNotification);
+  toggle.onClick = std::move(onClick);
+}
+
+// ==============================================================================
 // Shadow/Effects
 
 void drawDropShadow(juce::Graphics &g, juce::Rectangle<int> bounds, juce::Colour shadowColor, int radius,

@@ -3,6 +3,7 @@
 #include "../../stores/AppStore.h"
 #include "../../util/Log.h"
 #include "../../util/Result.h"
+#include "../../util/UIHelpers.h"
 
 // ==============================================================================
 ActivityStatusSettings::ActivityStatusSettings(AppStore *store)
@@ -27,22 +28,17 @@ void ActivityStatusSettings::onAppStateChanged(const UserState & /*state*/) {
 
 // ==============================================================================
 void ActivityStatusSettings::setupToggles() {
-  auto styleToggle = [this](juce::ToggleButton &toggle, const juce::String &label) {
-    toggle.setButtonText(label);
-    toggle.setColour(juce::ToggleButton::textColourId, Colors::textPrimary);
-    toggle.setColour(juce::ToggleButton::tickColourId, Colors::accent);
-    toggle.setColour(juce::ToggleButton::tickDisabledColourId, Colors::textSecondary);
-    toggle.setToggleState(true, juce::dontSendNotification);
-    toggle.onClick = [this, &toggle]() { handleToggleChange(&toggle); };
-    addAndMakeVisible(toggle);
+  // Helper to create and configure a toggle with UIHelpers
+  auto createToggle = [this](std::unique_ptr<juce::ToggleButton> &toggle, const juce::String &label) {
+    toggle = std::make_unique<juce::ToggleButton>();
+    UIHelpers::setupToggleButton(*toggle, label, Colors::textPrimary, Colors::accent, Colors::textSecondary, true,
+                                 [this, &toggle]() { handleToggleChange(toggle.get()); });
+    addAndMakeVisible(toggle.get());
   };
 
-  // Create toggle buttons
-  showActivityStatusToggle = std::make_unique<juce::ToggleButton>();
-  styleToggle(*showActivityStatusToggle, "Show Activity Status");
-
-  showLastActiveToggle = std::make_unique<juce::ToggleButton>();
-  styleToggle(*showLastActiveToggle, "Show Last Active Time");
+  // Create toggle buttons using UIHelpers
+  createToggle(showActivityStatusToggle, "Show Activity Status");
+  createToggle(showLastActiveToggle, "Show Last Active Time");
 
   // Close button
   closeButton = std::make_unique<juce::TextButton>("Close");

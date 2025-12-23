@@ -3,6 +3,7 @@
 #include "../../stores/AppStore.h"
 #include "../../util/Log.h"
 #include "../../util/Result.h"
+#include "../../util/UIHelpers.h"
 
 // ==============================================================================
 NotificationSettings::NotificationSettings(AppStore *store)
@@ -31,44 +32,26 @@ void NotificationSettings::onAppStateChanged(const UserState &state) {
 
 // ==============================================================================
 void NotificationSettings::setupToggles() {
-  auto styleToggle = [this](juce::ToggleButton &toggle, const juce::String &label) {
-    toggle.setButtonText(label);
-    toggle.setColour(juce::ToggleButton::textColourId, Colors::textPrimary);
-    toggle.setColour(juce::ToggleButton::tickColourId, Colors::accent);
-    toggle.setColour(juce::ToggleButton::tickDisabledColourId, Colors::textSecondary);
-    toggle.setToggleState(true, juce::dontSendNotification);
-    toggle.onClick = [this, &toggle]() { handleToggleChange(&toggle); };
-    addAndMakeVisible(toggle);
+  // Helper to create and configure a toggle with UIHelpers
+  auto createToggle = [this](std::unique_ptr<juce::ToggleButton> &toggle, const juce::String &label) {
+    toggle = std::make_unique<juce::ToggleButton>();
+    UIHelpers::setupToggleButton(*toggle, label, Colors::textPrimary, Colors::accent, Colors::textSecondary, true,
+                                 [this, &toggle]() { handleToggleChange(toggle.get()); });
+    addAndMakeVisible(toggle.get());
   };
 
-  // Create toggle buttons
-  likesToggle = std::make_unique<juce::ToggleButton>();
-  styleToggle(*likesToggle, "Likes");
-
-  commentsToggle = std::make_unique<juce::ToggleButton>();
-  styleToggle(*commentsToggle, "Comments");
-
-  followsToggle = std::make_unique<juce::ToggleButton>();
-  styleToggle(*followsToggle, "New Followers");
-
-  mentionsToggle = std::make_unique<juce::ToggleButton>();
-  styleToggle(*mentionsToggle, "Mentions");
-
-  dmsToggle = std::make_unique<juce::ToggleButton>();
-  styleToggle(*dmsToggle, "Direct Messages");
-
-  storiesToggle = std::make_unique<juce::ToggleButton>();
-  styleToggle(*storiesToggle, "Stories");
-
-  repostsToggle = std::make_unique<juce::ToggleButton>();
-  styleToggle(*repostsToggle, "Reposts");
-
-  challengesToggle = std::make_unique<juce::ToggleButton>();
-  styleToggle(*challengesToggle, "MIDI Challenges");
+  // Create toggle buttons using UIHelpers
+  createToggle(likesToggle, "Likes");
+  createToggle(commentsToggle, "Comments");
+  createToggle(followsToggle, "New Followers");
+  createToggle(mentionsToggle, "Mentions");
+  createToggle(dmsToggle, "Direct Messages");
+  createToggle(storiesToggle, "Stories");
+  createToggle(repostsToggle, "Reposts");
+  createToggle(challengesToggle, "MIDI Challenges");
 
   // Plugin settings (local)
-  osNotificationsToggle = std::make_unique<juce::ToggleButton>();
-  styleToggle(*osNotificationsToggle, "Show Desktop Notifications");
+  createToggle(osNotificationsToggle, "Show Desktop Notifications");
 
   // Close button
   closeButton = std::make_unique<juce::TextButton>("Close");

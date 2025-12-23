@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include <functional>
 
 // ==============================================================================
 /**
@@ -216,6 +217,38 @@ void drawTruncatedText(juce::Graphics &g, const juce::String &text, juce::Rectan
  */
 int getTextWidth(const juce::Graphics &g, const juce::String &text);
 int getTextWidth(const juce::Font &font, const juce::String &text);
+
+// ==========================================================================
+// Toggle Button Styling
+
+/**
+ * Style a toggle button with consistent colors and appearance.
+ * Sets text color, tick color, and disabled tick color.
+ *
+ * @param toggle       The toggle button to style
+ * @param label        The button text label
+ * @param textColor    Text color for the label
+ * @param tickColor    Color when toggle is checked
+ * @param disabledColor Color when toggle is disabled/unchecked
+ */
+void styleToggleButton(juce::ToggleButton &toggle, const juce::String &label, juce::Colour textColor,
+                       juce::Colour tickColor, juce::Colour disabledColor);
+
+/**
+ * Style and configure a toggle button with click handler.
+ * Combines styling with toggle state and callback setup.
+ *
+ * @param toggle        The toggle button to style
+ * @param label         The button text label
+ * @param textColor     Text color for the label
+ * @param tickColor     Color when toggle is checked
+ * @param disabledColor Color when toggle is disabled/unchecked
+ * @param initialState  Initial toggle state
+ * @param onClick       Callback when toggle is clicked
+ */
+void setupToggleButton(juce::ToggleButton &toggle, const juce::String &label, juce::Colour textColor,
+                       juce::Colour tickColor, juce::Colour disabledColor, bool initialState,
+                       std::function<void()> onClick);
 
 // ==========================================================================
 // Shadow/Effects
