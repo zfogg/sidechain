@@ -1,5 +1,6 @@
 #include "StoryViewer.h"
 #include "../../network/NetworkClient.h"
+#include "../../util/Colors.h"
 #include "../../util/DAWProjectFolder.h"
 #include "../../util/Log.h"
 #include "../../util/Result.h"
@@ -630,11 +631,11 @@ void StoryViewer::drawAudioDownloadButton(juce::Graphics &g) {
     return;
 
   // Button background - blue tint for audio download
-  g.setColour(juce::Colour(0xff2196F3).withAlpha(0.3f));
+  g.setColour(SidechainColors::link().withAlpha(0.3f));
   g.fillRoundedRectangle(audioDownloadButtonArea.toFloat(), 8.0f);
 
   // Button border
-  g.setColour(juce::Colour(0xff2196F3).withAlpha(0.7f));
+  g.setColour(SidechainColors::link().withAlpha(0.7f));
   g.drawRoundedRectangle(audioDownloadButtonArea.toFloat(), 8.0f, 1.0f);
 
   // Button text
@@ -652,11 +653,11 @@ void StoryViewer::drawDeleteButton(juce::Graphics &g) {
     return;
 
   // Button background - red tint for delete action
-  g.setColour(juce::Colour(0xFFFF4757).withAlpha(0.3f)); // Red tint for delete
+  g.setColour(SidechainColors::buttonDanger().withAlpha(0.3f));
   g.fillRoundedRectangle(deleteButtonArea.toFloat(), 8.0f);
 
   // Button border
-  g.setColour(juce::Colour(0xFFFF4757).withAlpha(0.7f));
+  g.setColour(SidechainColors::buttonDanger().withAlpha(0.7f));
   g.drawRoundedRectangle(deleteButtonArea.toFloat(), 8.0f, 1.0f);
 
   // Button text
@@ -674,11 +675,11 @@ void StoryViewer::drawHighlightButton(juce::Graphics &g) {
     return;
 
   // Button background - cyan/accent color for highlight action
-  g.setColour(juce::Colour(0xff00d4ff).withAlpha(0.3f));
+  g.setColour(SidechainColors::inStudioIndicator().withAlpha(0.3f));
   g.fillRoundedRectangle(highlightButtonArea.toFloat(), 8.0f);
 
   // Button border
-  g.setColour(juce::Colour(0xff00d4ff).withAlpha(0.7f));
+  g.setColour(SidechainColors::inStudioIndicator().withAlpha(0.7f));
   g.drawRoundedRectangle(highlightButtonArea.toFloat(), 8.0f, 1.0f);
 
   // Button text
@@ -696,11 +697,11 @@ void StoryViewer::drawRemixButton(juce::Graphics &g) {
     return;
 
   // Button background - accent color for remix action
-  g.setColour(juce::Colour(0xff4CAF50).withAlpha(0.3f)); // Green tint for remix
+  g.setColour(SidechainColors::onlineIndicator().withAlpha(0.3f));
   g.fillRoundedRectangle(remixButtonArea.toFloat(), 8.0f);
 
   // Button border
-  g.setColour(juce::Colour(0xff4CAF50).withAlpha(0.7f));
+  g.setColour(SidechainColors::onlineIndicator().withAlpha(0.7f));
   g.drawRoundedRectangle(remixButtonArea.toFloat(), 8.0f, 1.0f);
 
   // Button text - show what can be remixed

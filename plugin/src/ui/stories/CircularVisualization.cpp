@@ -1,4 +1,5 @@
 #include "CircularVisualization.h"
+#include "../../util/Colors.h"
 #include "../../util/Log.h"
 
 namespace CircularColors {
@@ -9,20 +10,6 @@ const juce::Colour sweepGlow(0x40ff5252);
 const juce::Colour noteDefault(0xff7c4dff);
 const juce::Colour noteActive(0xffb388ff);
 const juce::Colour centerText(0xff666666);
-
-// Channel colors for multi-channel visualization
-const juce::Colour channelColors[] = {
-    juce::Colour(0xff7c4dff), // Purple
-    juce::Colour(0xff00bcd4), // Cyan
-    juce::Colour(0xff4caf50), // Green
-    juce::Colour(0xffffc107), // Amber
-    juce::Colour(0xffe91e63), // Pink
-    juce::Colour(0xff2196f3), // Blue
-    juce::Colour(0xffff5722), // Deep Orange
-    juce::Colour(0xff9c27b0), // Purple
-    juce::Colour(0xff00e676), // Light Green
-    juce::Colour(0xffff9800), // Orange
-};
 } // namespace CircularColors
 
 // ==============================================================================
@@ -365,8 +352,7 @@ juce::Colour CircularVisualization::getNoteColor(const Note &note) const {
 }
 
 juce::Colour CircularVisualization::getChannelColor(int channel) const {
-  int numColors = sizeof(CircularColors::channelColors) / sizeof(CircularColors::channelColors[0]);
-  return CircularColors::channelColors[channel % numColors];
+  return SidechainColors::getMidiNoteColor(channel);
 }
 
 void CircularVisualization::parseMIDIEvents(const juce::var &events) {

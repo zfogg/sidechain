@@ -1,5 +1,6 @@
 #include "StreamChatClient.h"
 #include "../util/Async.h"
+#include "../util/Json.h"
 #include "../util/Log.h"
 #include "../util/OSNotification.h"
 #include "../util/Result.h"
@@ -38,9 +39,9 @@ void StreamChatClient::fetchToken(const juce::String &backendAuthTokenParam, Tok
         if (responseOutcome.isOk()) {
           auto response = responseOutcome.getValue();
           if (response.isObject()) {
-            auto authToken = response.getProperty("token", "").toString();
-            auto streamApiKey = response.getProperty("api_key", "").toString();
-            auto streamUserId = response.getProperty("user_id", "").toString();
+            auto authToken = Json::getString(response, "token");
+            auto streamApiKey = Json::getString(response, "api_key");
+            auto streamUserId = Json::getString(response, "user_id");
 
             if (!authToken.isEmpty() && !streamApiKey.isEmpty() && !streamUserId.isEmpty()) {
               setToken(authToken, streamApiKey, streamUserId);
@@ -794,19 +795,19 @@ StreamChatClient::Channel StreamChatClient::parseChannel(const juce::var &channe
   Channel channel;
 
   if (channelData.isObject()) {
-    channel.id = channelData.getProperty("id", "").toString();
-    channel.type = channelData.getProperty("type", "").toString();
-    channel.members = channelData.getProperty("members", juce::var());
+    channel.id = Json::getString(channelData, "id");
+    channel.type = Json::getString(channelData, "type");
+    channel.members = Json::getArray(channelData, "members");
 
-    auto data = channelData.getProperty("data", juce::var());
+    auto data = Json::getObject(channelData, "data");
     if (data.isObject()) {
-      channel.name = data.getProperty("name", "").toString();
+      channel.name = Json::getString(data, "name");
       channel.extraData = data;
     }
 
-    channel.lastMessage = channelData.getProperty("last_message", juce::var());
-    channel.unreadCount = channelData.getProperty("unread_count", 0).operator int();
-    channel.lastMessageAt = channelData.getProperty("last_message_at", "").toString();
+    channel.lastMessage = Json::getObject(channelData, "last_message");
+    channel.unreadCount = Json::getInt(channelData, "unread_count");
+    channel.lastMessageAt = Json::getString(channelData, "last_message_at");
   }
 
   return channel;
@@ -816,17 +817,18 @@ StreamChatClient::Message StreamChatClient::parseMessage(const juce::var &messag
   Message message;
 
   if (messageData.isObject()) {
-    message.id = messageData.getProperty("id", "").toString();
-    message.text = messageData.getProperty("text", "").toString();
-    message.createdAt = messageData.getProperty("created_at", "").toString();
-    message.reactions = messageData.getProperty("reactions", juce::var());
-    message.extraData = messageData.getProperty("extra_data", juce::var());
-    message.isDeleted = messageData.getProperty("deleted_at", juce::var()).isString();
+    message.id = Json::getString(messageData, "id");
+    message.text = Json::getString(messageData, "text");
+    message.createdAt = Json::getString(messageData, "created_at");
+    message.reactions = Json::getObject(messageData, "reactions");
+    message.extraData = Json::getObject(messageData, "extra_data");
+    message.isDeleted = Json::hasKey(messageData, "deleted_at") &&
+                        messageData.getProperty("deleted_at", juce::var()).isString();
 
-    auto user = messageData.getProperty("user", juce::var());
+    auto user = Json::getObject(messageData, "user");
     if (user.isObject()) {
-      message.userId = user.getProperty("id", "").toString();
-      message.userName = user.getProperty("name", "").toString();
+      message.userId = Json::getString(user, "id");
+      message.userName = Json::getString(user, "name");
     }
   }
 
@@ -837,10 +839,10 @@ StreamChatClient::UserPresence StreamChatClient::parsePresence(const juce::var &
   UserPresence presence;
 
   if (userData.isObject()) {
-    presence.userId = userData.getProperty("id", "").toString();
-    presence.online = userData.getProperty("online", false).operator bool();
-    presence.lastActive = userData.getProperty("last_active", "").toString();
-    presence.status = userData.getProperty("status", "").toString();
+    presence.userId = Json::getString(userData, "id");
+    presence.online = Json::getBool(userData, "online");
+    presence.lastActive = Json::getString(userData, "last_active");
+    presence.status = Json::getString(userData, "status");
   }
 
   return presence;
@@ -1415,13 +1417,13 @@ void StreamChatClient::handleWebSocketMessage(const juce::String &message) {
 }
 
 void StreamChatClient::parseWebSocketEvent(const juce::var &event) {
-  auto eventType = event.getProperty("type", "").toString();
+  auto eventType = Json::getString(event, "type");
 
   if (eventType == "message.new") {
-    auto messageData = event.getProperty("message", juce::var());
+    auto messageData = Json::getObject(event, "message");
     if (messageData.isObject()) {
       auto message = parseMessage(messageData);
-      auto channelId = event.getProperty("channel_id", "").toString();
+      auto channelId = Json::getString(event, "channel_id");
 
       // Show OS notification for messages from other users (GetStream.io Chat
       // notifications)
@@ -1459,9 +1461,9 @@ void StreamChatClient::parseWebSocketEvent(const juce::var &event) {
       }
     }
   } else if (eventType == "typing.start" || eventType == "typing.stop") {
-    auto userData = event.getProperty("user", juce::var());
+    auto userData = Json::getObject(event, "user");
     if (userData.isObject() && typingCallback) {
-      auto userId = userData.getProperty("id", "").toString();
+      auto userId = Json::getString(userData, "id");
       bool isTyping = eventType == "typing.start";
       juce::MessageManager::callAsync([this, userId, isTyping]() {
         if (typingCallback)
@@ -1469,7 +1471,7 @@ void StreamChatClient::parseWebSocketEvent(const juce::var &event) {
       });
     }
   } else if (eventType == "user.presence.changed") {
-    auto userData = event.getProperty("user", juce::var());
+    auto userData = Json::getObject(event, "user");
     if (userData.isObject() && presenceChangedCallback) {
       auto presence = parsePresence(userData);
       juce::MessageManager::callAsync([this, presence]() {

@@ -1,4 +1,5 @@
 #include "NoteWaterfall.h"
+#include "../../util/Colors.h"
 #include "../../util/Log.h"
 
 namespace WaterfallColors {
@@ -10,20 +11,6 @@ const juce::Colour glowActive(0x807c4dff);
 const juce::Colour keyIndicator(0xff2a2a3a);
 const juce::Colour keyIndicatorBlack(0xff1a1a2a);
 const juce::Colour textDim(0xff444444);
-
-// Channel colors for multi-channel visualization
-const juce::Colour channelColors[] = {
-    juce::Colour(0xff7c4dff), // Purple
-    juce::Colour(0xff00bcd4), // Cyan
-    juce::Colour(0xff4caf50), // Green
-    juce::Colour(0xffffc107), // Amber
-    juce::Colour(0xffe91e63), // Pink
-    juce::Colour(0xff2196f3), // Blue
-    juce::Colour(0xffff5722), // Deep Orange
-    juce::Colour(0xff9c27b0), // Purple
-    juce::Colour(0xff00e676), // Light Green
-    juce::Colour(0xffff9800), // Orange
-};
 } // namespace WaterfallColors
 
 // ==============================================================================
@@ -352,8 +339,7 @@ juce::Colour NoteWaterfall::getNoteColor(const Note &note) const {
 }
 
 juce::Colour NoteWaterfall::getChannelColor(int channel) const {
-  int numColors = sizeof(WaterfallColors::channelColors) / sizeof(WaterfallColors::channelColors[0]);
-  return WaterfallColors::channelColors[channel % numColors];
+  return SidechainColors::getMidiNoteColor(channel);
 }
 
 void NoteWaterfall::parseMIDIEvents(const juce::var &events) {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../network/NetworkClient.h"
+#include "../../util/Colors.h"
 #include <JuceHeader.h>
 
 // ==============================================================================
@@ -38,16 +39,16 @@ public:
 
     switch (status) {
     case NetworkClient::ConnectionStatus::Connected:
-      mainColor = juce::Colour(0xff00c853); // Material green
+      mainColor = SidechainColors::onlineIndicator();
       glowColor = mainColor.withAlpha(0.4f);
       break;
     case NetworkClient::ConnectionStatus::Connecting:
-      mainColor = juce::Colour(0xffffd600); // Material amber
+      mainColor = SidechainColors::warning();
       glowColor = mainColor.withAlpha(0.4f);
       break;
     case NetworkClient::ConnectionStatus::Disconnected:
     default:
-      mainColor = juce::Colour(0xffff1744); // Material red
+      mainColor = SidechainColors::buttonDanger();
       glowColor = mainColor.withAlpha(0.4f);
       break;
     }
