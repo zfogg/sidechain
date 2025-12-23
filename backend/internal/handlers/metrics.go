@@ -1,15 +1,16 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/metrics"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/util"
+	"go.uber.org/zap"
 )
 
 // TrackPostClick records a user's click/view on a post
@@ -49,7 +50,7 @@ func (h *Handlers) TrackPostClick(c *gin.Context) {
 	}
 
 	if err := database.DB.Create(&click).Error; err != nil {
-		fmt.Printf("Error saving click record: %v\n", err)
+		logger.Warn("Error saving click record", zap.Error(err))
 		// Don't fail the request - just log the error
 	}
 
@@ -57,7 +58,7 @@ func (h *Handlers) TrackPostClick(c *gin.Context) {
 	if userID != "" && h.gorse != nil {
 		go func() {
 			if err := h.gorse.SyncFeedback(userID, postID, "click"); err != nil {
-				fmt.Printf("Warning: Failed to sync click to Gorse: %v\n", err)
+				logger.Warn("Failed to sync click to Gorse", zap.Error(err))
 			}
 		}()
 	}
@@ -85,7 +86,7 @@ func (h *Handlers) GetPostMetrics(c *gin.Context) {
 	if err := database.DB.Model(&models.PostClick{}).
 		Where("post_id = ?", postID).
 		Count(&clickCount).Error; err != nil {
-		fmt.Printf("Error counting clicks: %v\n", err)
+		logger.Warn("Error counting clicks", zap.Error(err))
 		clickCount = 0
 	}
 

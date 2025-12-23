@@ -7,7 +7,6 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -17,8 +16,10 @@ import (
 	"github.com/pquerna/otp/hotp"
 	"github.com/pquerna/otp/totp"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/util"
+	"go.uber.org/zap"
 )
 
 const (
@@ -321,7 +322,7 @@ func (h *Handlers) Disable2FA(c *gin.Context) {
 				verified = true
 				// Update counter
 				if err := database.DB.Model(&user).Update("two_factor_counter", newCounter).Error; err != nil {
-					log.Printf("Failed to update 2FA counter for user %s: %v", user.ID, err)
+					logger.Warn("Failed to update 2FA counter for user", zap.String("user_id", user.ID), zap.Error(err))
 				}
 			}
 		} else {
@@ -405,7 +406,7 @@ func (h *AuthHandlers) Verify2FALogin(c *gin.Context) {
 		if valid {
 			// Update counter
 			if err := database.DB.Model(&user).Update("two_factor_counter", newCounter).Error; err != nil {
-				log.Printf("Failed to update 2FA counter for user %s: %v", user.ID, err)
+				logger.Warn("Failed to update 2FA counter for user", zap.String("user_id", user.ID), zap.Error(err))
 			}
 		}
 	} else {
@@ -479,7 +480,7 @@ func (h *Handlers) RegenerateBackupCodes(c *gin.Context) {
 		valid, newCounter = verifyHOTPWithLookAhead(*user.TwoFactorSecret, req.Code, counter, hotpLookAhead)
 		if valid {
 			if err := database.DB.Model(&user).Update("two_factor_counter", newCounter).Error; err != nil {
-				log.Printf("Failed to update 2FA counter for user %s: %v", user.ID, err)
+				logger.Warn("Failed to update 2FA counter for user", zap.String("user_id", user.ID), zap.Error(err))
 			}
 		}
 	} else {
@@ -576,12 +577,12 @@ func verifyAndConsumeBackupCode(user *models.User, code string) bool {
 			// Save updated codes
 			updatedJSON, err := json.Marshal(hashedCodes)
 			if err != nil {
-				log.Printf("Failed to marshal updated backup codes for user %s: %v", user.ID, err)
+				logger.Warn("Failed to marshal updated backup codes for user", zap.String("user_id", user.ID), zap.Error(err))
 				return false
 			}
 			updatedStr := string(updatedJSON)
 			if err := database.DB.Model(user).Update("backup_codes", updatedStr).Error; err != nil {
-				log.Printf("Failed to update backup codes for user %s: %v", user.ID, err)
+				logger.Warn("Failed to update backup codes for user", zap.String("user_id", user.ID), zap.Error(err))
 				return false
 			}
 

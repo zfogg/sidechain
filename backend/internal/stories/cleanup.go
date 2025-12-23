@@ -3,12 +3,13 @@ package stories
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
+	"go.uber.org/zap"
 )
 
 // FileDeleter interface for deleting files from storage
@@ -38,13 +39,13 @@ func NewCleanupService(fileDeleter FileDeleter, interval time.Duration) *Cleanup
 
 // Start begins the periodic cleanup process
 func (s *CleanupService) Start() {
-	log.Println("🧹 Starting story cleanup service")
+	logger.Log.Info("Starting story cleanup service")
 	go s.run()
 }
 
 // Stop stops the cleanup service
 func (s *CleanupService) Stop() {
-	log.Println("🧹 Stopping story cleanup service")
+	logger.Log.Info("Stopping story cleanup service")
 	s.cancel()
 }
 
@@ -70,21 +71,21 @@ func (s *CleanupService) run() {
 // cleanupExpiredStories deletes expired stories and their associated data
 func (s *CleanupService) cleanupExpiredStories() {
 	startTime := time.Now()
-	log.Println("🧹 Starting story cleanup...")
+	logger.Log.Info("Starting story cleanup...")
 
 	// Find all expired stories
 	var expiredStories []models.Story
 	if err := database.DB.Where("expires_at < ?", time.Now().UTC()).Find(&expiredStories).Error; err != nil {
-		log.Printf("❌ Failed to query expired stories: %v", err)
+		logger.Log.Error("Failed to query expired stories", zap.Error(err))
 		return
 	}
 
 	if len(expiredStories) == 0 {
-		log.Println("✅ No expired stories to clean up")
+		logger.Log.Info("No expired stories to clean up")
 		return
 	}
 
-	log.Printf("🗑️ Found %d expired stories to delete", len(expiredStories))
+	logger.Log.Info("Found expired stories to delete", zap.Int("count", len(expiredStories)))
 
 	deletedCount := 0
 	audioDeletedCount := 0
@@ -102,7 +103,7 @@ func (s *CleanupService) cleanupExpiredStories() {
 			// URL format: https://cdn.example.com/audio/2024/12/user123/file.mp3
 			// We need to extract the path after the base URL
 			if err := s.deleteAudioFromS3(story.AudioURL); err != nil {
-				log.Printf("⚠️ Warning: Failed to delete audio from S3 for story %s: %v", story.ID, err)
+				logger.Log.Warn("Failed to delete audio from S3 for story", zap.String("story_id", story.ID), zap.Error(err))
 				// Continue anyway - database cleanup is more important
 			} else {
 				audioDeletedCount++
@@ -111,7 +112,7 @@ func (s *CleanupService) cleanupExpiredStories() {
 
 		// Delete the story record
 		if err := database.DB.Delete(&story).Error; err != nil {
-			log.Printf("❌ Failed to delete story %s: %v", story.ID, err)
+			logger.Log.Error("Failed to delete story", zap.String("story_id", story.ID), zap.Error(err))
 			errors++
 			continue
 		}
@@ -120,8 +121,7 @@ func (s *CleanupService) cleanupExpiredStories() {
 	}
 
 	duration := time.Since(startTime)
-	log.Printf("✅ Story cleanup completed: %d stories deleted, %d audio files deleted, %d views deleted, %d errors (took %v)",
-		deletedCount, audioDeletedCount, viewDeletedCount, errors, duration)
+	logger.Log.Info("Story cleanup completed", zap.Int("stories_deleted", deletedCount), zap.Int("audio_files_deleted", audioDeletedCount), zap.Int("views_deleted", viewDeletedCount), zap.Int("errors", errors), zap.Duration("duration", duration))
 }
 
 // deleteAudioFromS3 deletes an audio file from S3 storage

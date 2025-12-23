@@ -14,6 +14,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/util"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -263,13 +264,13 @@ func (h *Handlers) CreateStory(c *gin.Context) {
 		waveformPNG, err := h.waveformGenerator.GenerateFromWAV(bytes.NewReader(audioData))
 		if err != nil {
 			// Log error but don't fail the request - waveform is optional
-			fmt.Printf("Warning: Failed to generate waveform for story %s: %v\n", currentUser.ID, err)
+			logger.Warn("Failed to generate waveform for story", zap.String("user_id", currentUser.ID), zap.Error(err))
 		} else {
 			// Upload waveform to S3
 			waveformURL, err = h.waveformStorage.UploadWaveform(waveformPNG, currentUser.ID, "story-"+currentUser.ID)
 			if err != nil {
 				// Log error but don't fail the request
-				fmt.Printf("Warning: Failed to upload waveform for story %s: %v\n", currentUser.ID, err)
+				logger.Warn("Failed to upload waveform for story", zap.String("user_id", currentUser.ID), zap.Error(err))
 			}
 		}
 	}
@@ -349,7 +350,7 @@ func (h *Handlers) CreateStory(c *gin.Context) {
 				"expires_at": story.ExpiresAt,
 			}
 			if err := h.search.IndexStory(c.Request.Context(), story.ID, storyDoc); err != nil {
-				fmt.Printf("Warning: Failed to index story %s in Elasticsearch: %v\n", story.ID, err)
+				logger.Warn("Failed to index story in Elasticsearch", zap.String("story_id", story.ID), zap.Error(err))
 			}
 		}()
 	}
@@ -484,7 +485,7 @@ func (h *Handlers) DeleteStory(c *gin.Context) {
 	if story.AudioURL != "" && h.audioProcessor != nil {
 		if err := h.audioProcessor.DeleteStoryAudio(context.Background(), story.AudioURL); err != nil {
 			// Log but don't fail - database cleanup is more important
-			fmt.Printf("Warning: Failed to delete audio from S3 for story %s: %v\n", story.ID, err)
+			logger.Warn("Failed to delete audio from S3 for story", zap.String("story_id", story.ID), zap.Error(err))
 		}
 	}
 
@@ -501,7 +502,7 @@ func (h *Handlers) DeleteStory(c *gin.Context) {
 	if h.search != nil {
 		if err := h.search.DeleteStory(c.Request.Context(), story.ID); err != nil {
 			// Log but don't fail - story is already deleted in database
-			fmt.Printf("Warning: Failed to delete story %s from Elasticsearch: %v\n", story.ID, err)
+			logger.Warn("Failed to delete story from Elasticsearch", zap.String("story_id", story.ID), zap.Error(err))
 		}
 	}
 

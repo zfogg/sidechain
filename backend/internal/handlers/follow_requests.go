@@ -1,13 +1,14 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/util"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -153,7 +154,10 @@ func (h *Handlers) AcceptFollowRequest(c *gin.Context) {
 	if h.gorse != nil {
 		go func() {
 			if err := h.gorse.SyncFollowEvent(request.RequesterID, currentUser.ID); err != nil {
-				log.Printf("Warning: failed to sync follow to Gorse: %v", err)
+				logger.Warn("Failed to sync follow to Gorse",
+					zap.String("requester_id", request.RequesterID),
+					zap.String("target_id", currentUser.ID),
+					zap.Error(err))
 			}
 		}()
 	}
@@ -162,7 +166,10 @@ func (h *Handlers) AcceptFollowRequest(c *gin.Context) {
 	if h.stream != nil {
 		go func() {
 			if err := h.stream.NotifyFollowRequestAccepted(currentUser.ID, request.RequesterID); err != nil {
-				log.Printf("Warning: failed to send follow request accepted notification: %v", err)
+				logger.Warn("Failed to send follow request accepted notification",
+					zap.String("target_id", currentUser.ID),
+					zap.String("requester_id", request.RequesterID),
+					zap.Error(err))
 			}
 		}()
 	}

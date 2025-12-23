@@ -115,7 +115,9 @@ func validateElasticsearch(ctx context.Context) error {
 	}
 
 	// Test the connection
-	res, err := client.Info(ctx)
+	res, err := client.Info(
+		client.Info.WithContext(ctx),
+	)
 	if err != nil {
 		return fmt.Errorf("failed to connect to Elasticsearch: %w", err)
 	}

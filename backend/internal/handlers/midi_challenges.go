@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -10,7 +9,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/zfogg/sidechain/backend/internal/challenges"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -470,7 +471,9 @@ func (h *Handlers) CreateMIDIChallenge(c *gin.Context) {
 	go func() {
 		if err := challenges.NotifyAllUsersAboutNewChallenge(h.stream, challenge.ID, challenge.Title); err != nil {
 			// Log error but don't fail the request
-			log.Printf("⚠️ Failed to notify users about new challenge %s: %v", challenge.ID, err)
+			logger.Warn("Failed to notify users about new challenge",
+				zap.String("challenge_id", challenge.ID),
+				zap.Error(err))
 		}
 	}()
 

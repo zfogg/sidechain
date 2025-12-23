@@ -6,10 +6,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/zfogg/sidechain/backend/internal/logger"
+	"go.uber.org/zap"
 )
 
 // Hub maintains the set of active clients and broadcasts messages to clients.
@@ -111,7 +113,7 @@ func (h *Hub) RegisterHandler(msgType string, handler MessageHandler) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	h.handlers[msgType] = handler
-	log.Printf("📨 Registered handler for message type: %s", msgType)
+	logger.Log.Info("Registered handler for message type", zap.String("type", msgType))
 }
 
 // GetHandler returns the handler for a message type
@@ -124,12 +126,12 @@ func (h *Hub) GetHandler(msgType string) (MessageHandler, bool) {
 
 // Run starts the hub's main event loop
 func (h *Hub) Run() {
-	log.Println("🔌 WebSocket hub starting...")
+	logger.Log.Info("WebSocket hub starting")
 
 	for {
 		select {
 		case <-h.ctx.Done():
-			log.Println("🔌 WebSocket hub shutting down...")
+			logger.Log.Info("WebSocket hub shutting down")
 			h.shutdown()
 			return
 
@@ -166,7 +168,9 @@ func (h *Hub) registerClient(client *Client) {
 	h.metrics.TotalConnections.Add(1)
 	h.metrics.ActiveConnections.Add(1)
 
-	log.Printf("✅ Client connected: user=%s, active=%d", client.UserID, h.metrics.ActiveConnections.Load())
+	logger.Log.Info("Client connected",
+		zap.String("user", client.UserID),
+		zap.Int64("active", h.metrics.ActiveConnections.Load()))
 }
 
 // unregisterClient removes a client from the hub
@@ -191,7 +195,9 @@ func (h *Hub) unregisterClient(client *Client) {
 		// Update metrics
 		h.metrics.ActiveConnections.Add(-1)
 
-		log.Printf("❌ Client disconnected: user=%s, active=%d", client.UserID, h.metrics.ActiveConnections.Load())
+		logger.Log.Info("Client disconnected",
+			zap.String("user", client.UserID),
+			zap.Int64("active", h.metrics.ActiveConnections.Load()))
 	}
 }
 
@@ -202,7 +208,7 @@ func (h *Hub) broadcastMessage(message *Message) {
 
 	data, err := json.Marshal(message)
 	if err != nil {
-		log.Printf("Error marshaling broadcast message: %v", err)
+		logger.Log.Error("Error marshaling broadcast message", zap.Error(err))
 		return
 	}
 
@@ -225,19 +231,19 @@ func (h *Hub) sendToUser(userID string, message *Message) {
 	// Marshal message before acquiring lock to minimize lock hold time
 	data, err := json.Marshal(message)
 	if err != nil {
-		log.Printf("Error marshaling unicast message: %v", err)
+		logger.Log.Error("Error marshaling unicast message", zap.Error(err))
 		return
 	}
 
 	// Make a copy of clients under lock to avoid TOCTOU race condition
 	h.mu.RLock()
-	defer h.mu.RUnlock()
-
 	clients, ok := h.clients[userID]
 	if !ok || len(clients) == 0 {
+		h.mu.RUnlock()
 		return
 	}
 
+	clientsCopy := make([]*Client, 0, len(clients))
 	for client := range clients {
 		clientsCopy = append(clientsCopy, client)
 	}
@@ -353,7 +359,7 @@ func (m MetricsSnapshot) String() string {
 
 // Shutdown gracefully shuts down the hub
 func (h *Hub) Shutdown(ctx context.Context) error {
-	log.Println("🔌 Initiating WebSocket hub shutdown...")
+	logger.Log.Info("Initiating WebSocket hub shutdown")
 
 	// Cancel the hub's context to stop the main loop
 	h.cancel()
@@ -367,7 +373,7 @@ func (h *Hub) Shutdown(ctx context.Context) error {
 
 	select {
 	case <-done:
-		log.Println("🔌 WebSocket hub shutdown complete")
+		logger.Log.Info("WebSocket hub shutdown complete")
 		return nil
 	case <-ctx.Done():
 		return fmt.Errorf("shutdown timeout: %w", ctx.Err())
@@ -387,7 +393,7 @@ func (h *Hub) shutdown() {
 	}
 	data, err := json.Marshal(shutdownMsg)
 	if err != nil {
-		log.Printf("Error marshaling shutdown message: %v", err)
+		logger.Log.Error("Error marshaling shutdown message", zap.Error(err))
 		data = []byte(`{"type":"system","payload":{"event":"server_shutdown"}}`)
 	}
 
@@ -407,7 +413,7 @@ func (h *Hub) shutdown() {
 	h.clients = make(map[string]map[*Client]struct{})
 	h.allClients = make(map[*Client]struct{})
 
-	log.Printf("🔌 Closed %d connections during shutdown", connectionCount)
+	logger.Log.Info("Closed connections during shutdown", zap.Int("count", connectionCount))
 }
 
 // SetRateLimitConfig updates the rate limiting configuration
