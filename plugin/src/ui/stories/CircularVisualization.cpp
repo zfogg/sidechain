@@ -1,28 +1,19 @@
 #include "CircularVisualization.h"
+#include "../../util/Colors.h"
+#include "../../util/Json.h"
 #include "../../util/Log.h"
 
 namespace CircularColors {
+// Colors that don't have direct equivalents in SidechainColors
 const juce::Colour background(0xff0a0a14);
 const juce::Colour ringLine(0xff1a1a2e);
 const juce::Colour sweepLine(0xffff5252);
 const juce::Colour sweepGlow(0x40ff5252);
-const juce::Colour noteDefault(0xff7c4dff);
 const juce::Colour noteActive(0xffb388ff);
-const juce::Colour centerText(0xff666666);
 
-// Channel colors for multi-channel visualization
-const juce::Colour channelColors[] = {
-    juce::Colour(0xff7c4dff), // Purple
-    juce::Colour(0xff00bcd4), // Cyan
-    juce::Colour(0xff4caf50), // Green
-    juce::Colour(0xffffc107), // Amber
-    juce::Colour(0xffe91e63), // Pink
-    juce::Colour(0xff2196f3), // Blue
-    juce::Colour(0xffff5722), // Deep Orange
-    juce::Colour(0xff9c27b0), // Purple
-    juce::Colour(0xff00e676), // Light Green
-    juce::Colour(0xffff9800), // Orange
-};
+// Use SidechainColors for common colors
+inline juce::Colour noteDefault() { return SidechainColors::getMidiNoteColor(0); }
+inline juce::Colour centerText() { return SidechainColors::textMuted(); }
 } // namespace CircularColors
 
 // ==============================================================================
@@ -89,12 +80,13 @@ void CircularVisualization::setMIDIData(const juce::var &midiData) {
   }
 
   // Get total duration
-  totalDuration = static_cast<double>(midiData.getProperty("total_time", 0.0));
-  tempo = static_cast<double>(midiData.getProperty("tempo", 120.0));
+  totalDuration = Json::getDouble(midiData, "total_time", 0.0);
+  tempo = Json::getDouble(midiData, "tempo", 120.0);
 
   // Parse events
-  if (midiData.hasProperty("events")) {
-    parseMIDIEvents(midiData["events"]);
+  auto events = Json::getArray(midiData, "events");
+  if (Json::isArray(events)) {
+    parseMIDIEvents(events);
   }
 
   // Auto-adjust note range based on content
@@ -308,7 +300,7 @@ void CircularVisualization::drawCenterInfo(juce::Graphics &g) {
   seconds = seconds % 60;
   juce::String timeStr = juce::String::formatted("%d:%02d", minutes, seconds);
 
-  g.setColour(CircularColors::centerText);
+  g.setColour(CircularColors::centerText());
   g.setFont(centerSize * 0.4f);
   g.drawText(timeStr, centerBounds, juce::Justification::centred);
 
@@ -321,7 +313,7 @@ void CircularVisualization::drawCenterInfo(juce::Graphics &g) {
 
     auto totalBounds = centerBounds.translated(0, centerSize * 0.4f);
     g.setFont(centerSize * 0.25f);
-    g.setColour(CircularColors::centerText.darker(0.3f));
+    g.setColour(CircularColors::centerText().darker(0.3f));
     g.drawText(totalStr, totalBounds, juce::Justification::centred);
   }
 }
@@ -358,19 +350,19 @@ juce::Colour CircularVisualization::getNoteColor(const Note &note) const {
   if (showVelocity) {
     // Interpolate color based on velocity
     float velocityNorm = static_cast<float>(note.velocity) / 127.0f;
-    return CircularColors::noteDefault.interpolatedWith(CircularColors::noteActive, velocityNorm);
+    return CircularColors::noteDefault().interpolatedWith(CircularColors::noteActive, velocityNorm);
   }
 
-  return CircularColors::noteDefault;
+  return CircularColors::noteDefault();
 }
 
 juce::Colour CircularVisualization::getChannelColor(int channel) const {
-  int numColors = sizeof(CircularColors::channelColors) / sizeof(CircularColors::channelColors[0]);
-  return CircularColors::channelColors[channel % numColors];
+  // Use centralized MIDI note colors from SidechainColors
+  return SidechainColors::getMidiNoteColor(channel);
 }
 
 void CircularVisualization::parseMIDIEvents(const juce::var &events) {
-  if (!events.isArray())
+  if (!Json::isArray(events))
     return;
 
   // Track active notes: (channel << 8 | note) -> Note with start time set
@@ -378,11 +370,11 @@ void CircularVisualization::parseMIDIEvents(const juce::var &events) {
 
   auto *eventsArray = events.getArray();
   for (const auto &eventVar : *eventsArray) {
-    double time = static_cast<double>(eventVar["time"]);
-    juce::String type = eventVar["type"].toString();
-    int noteNum = static_cast<int>(eventVar["note"]);
-    int velocity = static_cast<int>(eventVar["velocity"]);
-    int channel = static_cast<int>(eventVar["channel"]);
+    double time = Json::getDouble(eventVar, "time", 0.0);
+    juce::String type = Json::getString(eventVar, "type");
+    int noteNum = Json::getInt(eventVar, "note", 0);
+    int velocity = Json::getInt(eventVar, "velocity", 0);
+    int channel = Json::getInt(eventVar, "channel", 0);
 
     int noteKey = (channel << 8) | noteNum;
 
