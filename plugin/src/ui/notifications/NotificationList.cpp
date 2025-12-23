@@ -148,16 +148,7 @@ NotificationRow::NotificationRow() {
   setSize(NotificationList::PREFERRED_WIDTH, ROW_HEIGHT);
 
   // Set up hover state - triggers visual feedback on hover
-  hoverState.onHoverChanged = [this](bool hovered) {
-    // Repaint to show/hide row highlight effects
-    if (hovered) {
-      // Show hover effects (row highlight, action buttons)
-      repaint();
-    } else {
-      // Hide hover effects when mouse leaves
-      repaint();
-    }
-  };
+  hoverState.onHoverChanged = [this](bool /*hovered*/) { repaint(); };
 }
 
 void NotificationRow::setNotification(const NotificationItem &notif) {
