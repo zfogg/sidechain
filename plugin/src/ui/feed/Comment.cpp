@@ -26,16 +26,7 @@ CommentRow::CommentRow() {
   setSize(400, ROW_HEIGHT);
 
   // Set up hover state - triggers visual feedback on mouse enter/leave
-  hoverState.onHoverChanged = [this](bool hovered) {
-    // Repaint to show/hide hover effects (highlight, action buttons)
-    if (hovered) {
-      // Show hover effects (background highlight, action buttons)
-      repaint();
-    } else {
-      // Hide hover effects when mouse leaves
-      repaint();
-    }
-  };
+  hoverState.onHoverChanged = [this](bool /*hovered*/) { repaint(); };
 }
 
 // ==============================================================================

@@ -18,16 +18,7 @@ PostCard::PostCard(Sidechain::Stores::AppStore *store) : AppStoreComponent(nullp
   setSize(600, CARD_HEIGHT);
 
   // Set up hover state - triggers visual updates and shows action buttons
-  hoverState.onHoverChanged = [this](bool hovered) {
-    // Use hovered state to control visibility of hover effects
-    if (hovered) {
-      // Show hover effects: highlight, action buttons, and interactive elements
-      repaint();
-    } else {
-      // Hide hover effects when mouse leaves
-      repaint();
-    }
-  };
+  hoverState.onHoverChanged = [this](bool /*hovered*/) { repaint(); };
 
   // Set up long-press detector for emoji reactions
   longPressDetector.onLongPress = [this]() { showEmojiReactionsPanel(); };

@@ -130,6 +130,24 @@ void drawCircularAvatar(juce::Graphics &g, juce::Rectangle<int> bounds, const ju
 void drawOnlineIndicator(juce::Graphics &g, juce::Rectangle<int> avatarBounds, bool isOnline, bool isInStudio,
                          juce::Colour backgroundColor, int indicatorSize = 14);
 
+/**
+ * Draw a circular avatar with initials fallback.
+ * If the image is invalid, draws initials on a colored placeholder.
+ * Combines drawCircularAvatar + initials drawing into a single call.
+ *
+ * @param g              Graphics context
+ * @param bounds         Rectangle to draw the avatar in
+ * @param image          The avatar image to draw (can be invalid for initials fallback)
+ * @param name           Name to generate initials from
+ * @param placeholderColor Color for the placeholder circle if image is invalid
+ * @param initialsColor  Color for the initials text
+ * @param borderColor    Border color (use transparent for no border)
+ * @param borderWidth    Border thickness (default 1.0f)
+ */
+void drawAvatarWithInitials(juce::Graphics &g, juce::Rectangle<int> bounds, const juce::Image &image,
+                            const juce::String &name, juce::Colour placeholderColor, juce::Colour initialsColor,
+                            juce::Colour borderColor = juce::Colours::transparentBlack, float borderWidth = 1.0f);
+
 // ==========================================================================
 // Follow Button Drawing
 
