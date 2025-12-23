@@ -3,12 +3,13 @@ package challenges
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/stream"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -37,13 +38,13 @@ func NewNotificationService(streamClient stream.StreamClientInterface, interval 
 
 // Start begins the periodic notification checking process
 func (s *NotificationService) Start() {
-	log.Println("🔔 Starting MIDI challenge notification service")
+	logger.Log.Info("Starting MIDI challenge notification service")
 	go s.run()
 }
 
 // Stop stops the notification service
 func (s *NotificationService) Stop() {
-	log.Println("🔔 Stopping MIDI challenge notification service")
+	logger.Log.Info("Stopping MIDI challenge notification service")
 	s.cancel()
 }
 
@@ -70,7 +71,7 @@ func (s *NotificationService) run() {
 // checkNotifications checks for all types of challenge notifications
 func (s *NotificationService) checkNotifications() {
 	startTime := time.Now()
-	log.Println("🔔 Checking MIDI challenge notifications...")
+	logger.Log.Info("Checking MIDI challenge notifications...")
 
 	// Check for approaching deadlines (24 hours before)
 	s.checkApproachingDeadlines()
@@ -82,7 +83,7 @@ func (s *NotificationService) checkNotifications() {
 	s.checkEndedPhaseTransitions()
 
 	duration := time.Since(startTime)
-	log.Printf("✅ MIDI challenge notification check completed (took %v)", duration)
+	logger.Log.Info("MIDI challenge notification check completed", zap.Duration("duration", duration))
 }
 
 // checkApproachingDeadlines checks for challenges with deadlines approaching (24 hours)
@@ -94,7 +95,7 @@ func (s *NotificationService) checkApproachingDeadlines() {
 	var challenges []models.MIDIChallenge
 	if err := database.DB.Where("end_date > ? AND end_date <= ?", now, deadlineThreshold).
 		Find(&challenges).Error; err != nil {
-		log.Printf("❌ Failed to query challenges with approaching deadlines: %v", err)
+		logger.Log.Error("Failed to query challenges with approaching deadlines", zap.Error(err))
 		return
 	}
 
@@ -116,9 +117,9 @@ func (s *NotificationService) checkApproachingDeadlines() {
 		if err := s.notifyParticipants(&challenge, func(userID, streamUserID string) error {
 			return s.streamClient.NotifyChallengeDeadline(streamUserID, challenge.ID, challenge.Title, hoursRemaining)
 		}); err != nil {
-			log.Printf("⚠️ Failed to notify participants about approaching deadline for challenge %s: %v", challenge.ID, err)
+			logger.Log.Warn("Failed to notify participants about approaching deadline", zap.String("challenge_id", challenge.ID), zap.Error(err))
 		} else {
-			log.Printf("✅ Notified participants about approaching deadline for challenge %s (%d hours remaining)", challenge.ID, hoursRemaining)
+			logger.Log.Info("Notified participants about approaching deadline", zap.String("challenge_id", challenge.ID), zap.Int("hours_remaining", hoursRemaining))
 			s.lastCheckedChallengeID[challenge.ID] = now
 		}
 	}
@@ -135,7 +136,7 @@ func (s *NotificationService) checkVotingPhaseTransitions() {
 	var challenges []models.MIDIChallenge
 	if err := database.DB.Where("end_date <= ? AND end_date > ? AND voting_end_date > ?", now, votingWindowStart, now).
 		Find(&challenges).Error; err != nil {
-		log.Printf("❌ Failed to query challenges entering voting phase: %v", err)
+		logger.Log.Error("Failed to query challenges entering voting phase", zap.Error(err))
 		return
 	}
 
@@ -150,9 +151,9 @@ func (s *NotificationService) checkVotingPhaseTransitions() {
 		if err := s.notifyParticipants(&challenge, func(userID, streamUserID string) error {
 			return s.streamClient.NotifyChallengeVotingOpen(streamUserID, challenge.ID, challenge.Title)
 		}); err != nil {
-			log.Printf("⚠️ Failed to notify participants about voting phase for challenge %s: %v", challenge.ID, err)
+			logger.Log.Warn("Failed to notify participants about voting phase", zap.String("challenge_id", challenge.ID), zap.Error(err))
 		} else {
-			log.Printf("✅ Notified participants about voting phase for challenge %s", challenge.ID)
+			logger.Log.Info("Notified participants about voting phase", zap.String("challenge_id", challenge.ID))
 			s.lastCheckedChallengeID["voting_"+challenge.ID] = now
 		}
 	}
@@ -168,7 +169,7 @@ func (s *NotificationService) checkEndedPhaseTransitions() {
 	var challenges []models.MIDIChallenge
 	if err := database.DB.Where("voting_end_date <= ? AND voting_end_date > ?", now, endedWindowStart).
 		Find(&challenges).Error; err != nil {
-		log.Printf("❌ Failed to query challenges that ended: %v", err)
+		logger.Log.Error("Failed to query challenges that ended", zap.Error(err))
 		return
 	}
 
@@ -202,9 +203,9 @@ func (s *NotificationService) checkEndedPhaseTransitions() {
 				rank,
 			)
 		}); err != nil {
-			log.Printf("⚠️ Failed to notify participants about challenge end for challenge %s: %v", challenge.ID, err)
+			logger.Log.Warn("Failed to notify participants about challenge end", zap.String("challenge_id", challenge.ID), zap.Error(err))
 		} else {
-			log.Printf("✅ Notified participants about challenge end for challenge %s (winner: %s)", challenge.ID, winnerUsername)
+			logger.Log.Info("Notified participants about challenge end", zap.String("challenge_id", challenge.ID), zap.String("winner_username", winnerUsername))
 			s.lastCheckedChallengeID["ended_"+challenge.ID] = now
 		}
 	}
@@ -225,18 +226,18 @@ func (s *NotificationService) notifyParticipants(challenge *models.MIDIChallenge
 	for _, entry := range entries {
 		var user models.User
 		if err := database.DB.First(&user, "id = ?", entry.UserID).Error; err != nil {
-			log.Printf("⚠️ User %s not found for challenge notification", entry.UserID)
+			logger.Log.Warn("User not found for challenge notification", zap.String("user_id", entry.UserID))
 			errors++
 			continue
 		}
 
 		if user.StreamUserID == "" {
-			log.Printf("⚠️ User %s has no StreamUserID, skipping notification", entry.UserID)
+			logger.Log.Warn("User has no StreamUserID, skipping notification", zap.String("user_id", entry.UserID))
 			continue
 		}
 
 		if err := notifyFunc(user.ID, user.StreamUserID); err != nil {
-			log.Printf("⚠️ Failed to notify user %s: %v", user.ID, err)
+			logger.Log.Warn("Failed to notify user", zap.String("user_id", user.ID), zap.Error(err))
 			errors++
 			continue
 		}
@@ -244,7 +245,7 @@ func (s *NotificationService) notifyParticipants(challenge *models.MIDIChallenge
 		successes++
 	}
 
-	log.Printf("📬 Notified %d participants for challenge %s (%d errors)", successes, challenge.ID, errors)
+	logger.Log.Info("Notified participants for challenge", zap.Int("successes", successes), zap.String("challenge_id", challenge.ID), zap.Int("errors", errors))
 	return nil
 }
 
@@ -270,7 +271,7 @@ func (s *NotificationService) notifyParticipantsWithRanking(challenge *models.MI
 	for _, entry := range entries {
 		var user models.User
 		if err := database.DB.First(&user, "id = ?", entry.UserID).Error; err != nil {
-			log.Printf("⚠️ User %s not found for challenge notification", entry.UserID)
+			logger.Log.Warn("User not found for challenge notification", zap.String("user_id", entry.UserID))
 			errors++
 			continue
 		}
@@ -281,7 +282,7 @@ func (s *NotificationService) notifyParticipantsWithRanking(challenge *models.MI
 
 		rank := ranking[user.ID]
 		if err := notifyFunc(user.ID, user.StreamUserID, rank); err != nil {
-			log.Printf("⚠️ Failed to notify user %s: %v", user.ID, err)
+			logger.Log.Warn("Failed to notify user", zap.String("user_id", user.ID), zap.Error(err))
 			errors++
 			continue
 		}
@@ -289,14 +290,14 @@ func (s *NotificationService) notifyParticipantsWithRanking(challenge *models.MI
 		successes++
 	}
 
-	log.Printf("📬 Notified %d participants with rankings for challenge %s (%d errors)", successes, challenge.ID, errors)
+	logger.Log.Info("Notified participants with rankings for challenge", zap.Int("successes", successes), zap.String("challenge_id", challenge.ID), zap.Int("errors", errors))
 	return nil
 }
 
 // NotifyAllUsersAboutNewChallenge sends notification to all users about a new challenge
 // This should be called immediately when a challenge is created
 func NotifyAllUsersAboutNewChallenge(streamClient stream.StreamClientInterface, challengeID, challengeTitle string) error {
-	log.Printf("🔔 Notifying all users about new challenge: %s", challengeTitle)
+	logger.Log.Info("Notifying all users about new challenge", zap.String("challenge_title", challengeTitle))
 
 	// Get all users with stream IDs (in batches to avoid memory issues)
 	batchSize := 100
@@ -323,7 +324,7 @@ func NotifyAllUsersAboutNewChallenge(streamClient stream.StreamClientInterface, 
 		// Notify each user
 		for _, user := range users {
 			if err := streamClient.NotifyChallengeCreated(user.StreamUserID, challengeID, challengeTitle); err != nil {
-				log.Printf("⚠️ Failed to notify user %s about new challenge: %v", user.ID, err)
+				logger.Log.Warn("Failed to notify user about new challenge", zap.String("user_id", user.ID), zap.Error(err))
 				errors++
 				continue
 			}
@@ -334,13 +335,13 @@ func NotifyAllUsersAboutNewChallenge(streamClient stream.StreamClientInterface, 
 
 		// Log progress for large batches
 		if offset%1000 == 0 {
-			log.Printf("📬 Notified %d users so far...", totalNotified)
+			logger.Log.Info("Notified users so far...", zap.Int("total_notified", totalNotified))
 		}
 
 		// Small delay to avoid overwhelming the notification system
 		time.Sleep(100 * time.Millisecond)
 	}
 
-	log.Printf("✅ Notified %d users about new challenge %s (%d errors)", totalNotified, challengeID, errors)
+	logger.Log.Info("Notified users about new challenge", zap.Int("total_notified", totalNotified), zap.String("challenge_id", challengeID), zap.Int("errors", errors))
 	return nil
 }

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"log"
 	"mime/multipart"
 	"os"
 	"os/exec"
@@ -17,6 +16,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/queue"
 	"github.com/zfogg/sidechain/backend/internal/storage"
+	"go.uber.org/zap"
 )
 
 // Processor handles audio upload and processing pipeline
@@ -35,7 +35,7 @@ func (p *Processor) SetPostCompleteCallback(callback func(postID string)) {
 func NewProcessor(s3Uploader *storage.S3Uploader) *Processor {
 	tempDir := "/tmp/sidechain_audio"
 	if err := os.MkdirAll(tempDir, 0755); err != nil {
-		log.Printf("Warning: Failed to create temp directory %s: %v", tempDir, err)
+		logger.Log.Warn("Failed to create temp directory", zap.String("dir", tempDir), zap.Error(err))
 	}
 
 	// Create the audio queue with S3 uploader for background processing
@@ -149,7 +149,7 @@ func (p *Processor) ProcessUpload(ctx context.Context, file *multipart.FileHeade
 	waveformResult, err := p.s3Uploader.UploadWaveform(ctx, []byte(waveformSVG), uploadResult.Key)
 	if err != nil {
 		// Non-fatal error - audio upload succeeded but waveform failed
-		logger.WarnWithFields("Failed to upload waveform visualization", err)
+		logger.Log.Warn("Failed to upload waveform visualization", zap.Error(err))
 		waveformSVG = "" // Use empty string if upload failed
 	}
 

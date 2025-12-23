@@ -247,7 +247,7 @@ func (h *Handlers) GetCommentReplies(c *gin.Context) {
 	}
 
 	var replies []models.Comment
-	err := database.DB.
+	err = database.DB.
 		Preload("User").
 		Where("parent_id = ? AND is_deleted = false", commentID).
 		Order("created_at ASC").

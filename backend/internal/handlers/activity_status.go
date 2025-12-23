@@ -5,7 +5,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/util"
+	"go.uber.org/zap"
 )
 
 // GetActivityStatusSettings gets the current user's activity status privacy settings
@@ -64,7 +66,7 @@ func (h *Handlers) UpdateActivityStatusSettings(c *gin.Context) {
 
 	// Reload user to get updated values
 	if err := database.DB.First(&currentUser, "id = ?", currentUser.ID).Error; err != nil {
-		logger.WarnWithFields("Failed to reload user after activity status update", err)
+		logger.Log.Warn("Failed to reload user after activity status update", zap.Error(err))
 	}
 
 	c.JSON(http.StatusOK, gin.H{

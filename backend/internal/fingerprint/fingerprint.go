@@ -8,14 +8,15 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"log"
 	"math"
 	"math/cmplx"
 	"os/exec"
 	"sort"
 
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
+	"go.uber.org/zap"
 )
 
 // FingerprintConfig contains configuration for audio fingerprinting
@@ -403,7 +404,7 @@ func (fp *AudioFingerprinter) FingerprintAndMatch(ctx context.Context, audioPath
 	// Search for matching sounds
 	matchedSound, confidence, err := fp.findMatchingSound(fingerprint)
 	if err != nil {
-		log.Printf("Warning: fingerprint matching failed: %v", err)
+		logger.Log.Warn("Fingerprint matching failed", zap.Error(err))
 		// Continue even if matching fails
 	}
 
@@ -438,7 +439,7 @@ func (fp *AudioFingerprinter) FingerprintAndMatch(ctx context.Context, audioPath
 			AudioPostID: &postID,
 		}
 		if err := database.DB.Create(soundUsage).Error; err != nil {
-			log.Printf("Warning: failed to create sound usage record: %v", err)
+			logger.Log.Warn("Failed to create sound usage record", zap.Error(err))
 		}
 
 		// Increment usage count
@@ -487,7 +488,7 @@ func (fp *AudioFingerprinter) FingerprintAndMatch(ctx context.Context, audioPath
 			AudioPostID: &postID,
 		}
 		if err := database.DB.Create(soundUsage).Error; err != nil {
-			log.Printf("Warning: failed to create sound usage record: %v", err)
+			logger.Log.Warn("Failed to create sound usage record", zap.Error(err))
 		}
 	}
 
@@ -530,7 +531,7 @@ func ProcessPostFingerprint(ctx context.Context, audioPath, postID, userID strin
 
 	result, err := fingerprinter.FingerprintAndMatch(ctx, audioPath, postID, userID)
 	if err != nil {
-		log.Printf("Warning: fingerprinting failed for post %s: %v", postID, err)
+		logger.Log.Warn("Fingerprinting failed for post", zap.String("post_id", postID), zap.Error(err))
 		// Mark as failed but don't block the upload
 		if database.DB != nil {
 			database.DB.Create(&models.AudioFingerprint{
@@ -542,8 +543,7 @@ func ProcessPostFingerprint(ctx context.Context, audioPath, postID, userID strin
 		return nil // Don't fail the whole upload
 	}
 
-	log.Printf("✅ Fingerprinting complete for post %s: isNewSound=%v, confidence=%.2f",
-		postID, result.IsNewSound, result.MatchConfidence)
+	logger.Log.Info("Fingerprinting complete for post", zap.String("post_id", postID), zap.Bool("is_new_sound", result.IsNewSound), zap.Float64("match_confidence", result.MatchConfidence))
 
 	return nil
 }

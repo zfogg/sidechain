@@ -103,6 +103,10 @@ private:
   juce::Image cachedAvatarImage; // Cached avatar image to avoid subscribing in paint()
 
   // ==============================================================================
+  // Image loading helper
+  void loadAvatarImage();
+
+  // ==============================================================================
   // Drawing methods
   void drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds);
   void drawUserInfo(juce::Graphics &g, juce::Rectangle<int> bounds);

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -13,7 +12,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
+	"go.uber.org/zap"
 )
 
 // Handler handles WebSocket HTTP upgrade requests
@@ -36,7 +37,7 @@ func (h *Handler) HandleWebSocketHTTP(w http.ResponseWriter, r *http.Request) {
 	// Extract and validate JWT token from query param or header
 	user, err := h.authenticateHTTPRequest(r)
 	if err != nil {
-		log.Printf("WebSocket auth failed: %v", err)
+		logger.Log.Warn("WebSocket auth failed", zap.Error(err))
 		http.Error(w, `{"error":"authentication_failed","message":"`+err.Error()+`"}`, http.StatusUnauthorized)
 		return
 	}
@@ -47,7 +48,7 @@ func (h *Handler) HandleWebSocketHTTP(w http.ResponseWriter, r *http.Request) {
 		CompressionMode:    websocket.CompressionDisabled,
 	})
 	if err != nil {
-		log.Printf("WebSocket upgrade failed: %v", err)
+		logger.Log.Error("WebSocket upgrade failed", zap.Error(err))
 		return
 	}
 
@@ -102,12 +103,15 @@ func (h *Handler) authenticateHTTPRequest(r *http.Request) (*models.User, error)
 	}
 
 	if tokenString == "" {
-		log.Printf("[WS] No token provided in request")
+		logger.Log.Warn("No token provided in WebSocket request")
 		return nil, errors.New("no token provided")
 	}
 
 	// Log token length for debugging (don't log full token for security)
-	log.Printf("[WS] Authenticating with token (len=%d, prefix=%.10s...)", len(tokenString), tokenString)
+	logger.Log.Debug("Authenticating WebSocket with token",
+		zap.Int("token_length", len(tokenString)),
+		zap.String("token_prefix", tokenString[:min(10, len(tokenString))]))
+
 
 	// Parse and validate the token
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -118,14 +122,15 @@ func (h *Handler) authenticateHTTPRequest(r *http.Request) (*models.User, error)
 	})
 
 	if err != nil {
-		log.Printf("[WS] JWT parse error: %v", err)
-		log.Printf("[WS] Token string (first 100 chars): %.100s", tokenString)
-		log.Printf("[WS] JWT secret length at validation: %d", len(h.jwtSecret))
+		logger.Log.Warn("JWT parse error",
+			zap.Error(err),
+			zap.String("token_prefix", tokenString[:min(100, len(tokenString))]),
+			zap.Int("secret_length", len(h.jwtSecret)))
 		return nil, fmt.Errorf("jwt parse failed: %w", err)
 	}
 
 	if !token.Valid {
-		log.Printf("JWT invalid: claims=%v", token.Claims)
+		logger.Log.Warn("JWT invalid", zap.Any("claims", token.Claims))
 		return nil, errors.New("jwt not valid")
 	}
 
@@ -136,14 +141,16 @@ func (h *Handler) authenticateHTTPRequest(r *http.Request) (*models.User, error)
 
 	userID, ok := claims["user_id"].(string)
 	if !ok {
-		log.Printf("user_id not in token claims: %v", claims)
+		logger.Log.Warn("user_id not in token claims", zap.Any("claims", claims))
 		return nil, errors.New("user_id not found in token")
 	}
 
 	// Look up user in database
 	var user models.User
 	if err := database.DB.First(&user, "id = ?", userID).Error; err != nil {
-		log.Printf("user not found in database: id=%s, error=%v", userID, err)
+		logger.Log.Warn("User not found in database",
+			zap.String("user_id", userID),
+			zap.Error(err))
 		return nil, fmt.Errorf("user not found: %w", err)
 	}
 
@@ -313,7 +320,7 @@ func (h *Handler) RegisterDefaultHandlers() {
 		return nil
 	})
 
-	log.Println("📨 Registered default WebSocket message handlers")
+	logger.Log.Info("Registered default WebSocket message handlers")
 }
 
 // NotifyNewPost sends a new post notification to followers

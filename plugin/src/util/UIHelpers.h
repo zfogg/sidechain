@@ -3,6 +3,11 @@
 #include <JuceHeader.h>
 #include <functional>
 
+// Forward declarations
+namespace Sidechain::Stores {
+class AppStore;
+}
+
 // ==============================================================================
 /**
  * UIHelpers - Common UI drawing utilities
@@ -21,6 +26,13 @@
  *   // Truncate text with ellipsis
  *   auto truncated = UIHelpers::truncateWithEllipsis("Very long text...", font,
  * 100);
+ *
+ *   // Load image asynchronously with SafePointer pattern
+ *   UIHelpers::loadImageAsync(this, appStore, imageUrl,
+ *       [](MyComponent* comp, const juce::Image& img) {
+ *           comp->cachedImage = img;
+ *           comp->repaint();
+ *       });
  */
 namespace UIHelpers {
 // ==========================================================================
@@ -130,6 +142,24 @@ void drawCircularAvatar(juce::Graphics &g, juce::Rectangle<int> bounds, const ju
  */
 void drawOnlineIndicator(juce::Graphics &g, juce::Rectangle<int> avatarBounds, bool isOnline, bool isInStudio,
                          juce::Colour backgroundColor, int indicatorSize = 14);
+
+/**
+ * Draw a circular avatar with initials fallback.
+ * If the image is invalid, draws initials on a colored placeholder.
+ * Combines drawCircularAvatar + initials drawing into a single call.
+ *
+ * @param g              Graphics context
+ * @param bounds         Rectangle to draw the avatar in
+ * @param image          The avatar image to draw (can be invalid for initials fallback)
+ * @param name           Name to generate initials from
+ * @param placeholderColor Color for the placeholder circle if image is invalid
+ * @param initialsColor  Color for the initials text
+ * @param borderColor    Border color (use transparent for no border)
+ * @param borderWidth    Border thickness (default 1.0f)
+ */
+void drawAvatarWithInitials(juce::Graphics &g, juce::Rectangle<int> bounds, const juce::Image &image,
+                            const juce::String &name, juce::Colour placeholderColor, juce::Colour initialsColor,
+                            juce::Colour borderColor = juce::Colours::transparentBlack, float borderWidth = 1.0f);
 
 // ==========================================================================
 // Follow Button Drawing
@@ -269,4 +299,71 @@ void drawDropShadow(juce::Graphics &g, juce::Rectangle<int> bounds, juce::Colour
 void drawTooltip(juce::Graphics &g, juce::Rectangle<int> bounds, const juce::String &text, juce::Colour bgColor,
                  juce::Colour textColor);
 
+// ==========================================================================
+// Async Image Loading
+
+/**
+ * Load an image asynchronously using the SafePointer pattern.
+ * This eliminates the common boilerplate of creating SafePointer, subscribing
+ * to the observable, and checking for null in callbacks.
+ *
+ * Usage:
+ *   UIHelpers::loadImageAsync(this, appStore, avatarUrl,
+ *       [](CommentRow* comp, const juce::Image& img) {
+ *           comp->cachedAvatarImage = img;
+ *           comp->repaint();
+ *       },
+ *       [](CommentRow* comp) {
+ *           Log::warn("Failed to load avatar");
+ *       });
+ *
+ * @tparam ComponentType The type of component (must be a juce::Component subclass)
+ * @param component      Pointer to the component requesting the image
+ * @param appStore       AppStore instance for image loading
+ * @param imageUrl       URL of the image to load
+ * @param onSuccess      Callback when image loads successfully (receives component and image)
+ * @param onError        Optional callback when loading fails (receives component)
+ * @param logContext     Optional context string for error logging
+ */
+template <typename ComponentType>
+void loadImageAsync(ComponentType *component, Sidechain::Stores::AppStore *appStore, const juce::String &imageUrl,
+                    std::function<void(ComponentType *, const juce::Image &)> onSuccess,
+                    std::function<void(ComponentType *)> onError = nullptr,
+                    const juce::String &logContext = "UIHelpers");
+
+// Non-template declaration for implementation in .cpp file
+void loadImageAsyncImpl(juce::Component *component, Sidechain::Stores::AppStore *appStore, const juce::String &imageUrl,
+                        std::function<void(const juce::Image &)> onSuccess, std::function<void()> onError,
+                        const juce::String &logContext);
+
 } // namespace UIHelpers
+
+// Template implementation (must be in header)
+template <typename ComponentType>
+void UIHelpers::loadImageAsync(ComponentType *component, Sidechain::Stores::AppStore *appStore,
+                               const juce::String &imageUrl,
+                               std::function<void(ComponentType *, const juce::Image &)> onSuccess,
+                               std::function<void(ComponentType *)> onError, const juce::String &logContext) {
+  if (component == nullptr || appStore == nullptr || imageUrl.isEmpty())
+    return;
+
+  juce::Component::SafePointer<ComponentType> safeThis(component);
+
+  auto successWrapper = [safeThis, onSuccess](const juce::Image &image) {
+    if (safeThis == nullptr)
+      return;
+    if (image.isValid() && onSuccess) {
+      onSuccess(safeThis.getComponent(), image);
+    }
+  };
+
+  auto errorWrapper = [safeThis, onError]() {
+    if (safeThis == nullptr)
+      return;
+    if (onError) {
+      onError(safeThis.getComponent());
+    }
+  };
+
+  loadImageAsyncImpl(component, appStore, imageUrl, successWrapper, errorWrapper, logContext);
+}

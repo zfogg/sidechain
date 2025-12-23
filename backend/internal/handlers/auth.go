@@ -23,6 +23,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/search"
 	"github.com/zfogg/sidechain/backend/internal/storage"
 	"github.com/zfogg/sidechain/backend/internal/stream"
+	"go.uber.org/zap"
 )
 
 // Note: Password reset endpoints are implemented (RequestPasswordReset, ResetPassword)
@@ -157,7 +158,7 @@ func (h *AuthHandlers) Register(c *gin.Context) {
 			userDoc := search.UserToSearchDoc(authResp.User)
 			if err := h.search.IndexUser(c.Request.Context(), authResp.User.ID, userDoc); err != nil {
 				// Log but don't fail - search is non-critical
-				fmt.Printf("Warning: Failed to index user %s in Elasticsearch: %v\n", authResp.User.ID, err)
+				logger.Log.Warn("Failed to index user in Elasticsearch", zap.String("user_id", authResp.User.ID), zap.Error(err))
 			}
 		}()
 	}
@@ -704,14 +705,14 @@ func (h *AuthHandlers) GetStreamToken(c *gin.Context) {
 	// Create user in getstream.io if needed
 	if err := h.stream.CreateUser(streamUserID, user.Username); err != nil {
 		// Log but continue - user might already exist
-		fmt.Printf("[Auth] Warning: failed to create getstream.io user: %v\n", err)
+		logger.Log.Warn("Failed to create getstream.io user", zap.Error(err))
 	}
 
 	// Generate token (24 hour expiration)
 	expiration := time.Now().Add(24 * time.Hour)
 	token, err := h.stream.CreateToken(streamUserID, expiration)
 	if err != nil {
-		fmt.Printf("[Auth] Error creating Stream token: %v\n", err)
+		logger.Log.Error("Error creating Stream token", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "token_generation_failed", "message": err.Error()})
 		return
 	}
@@ -723,7 +724,7 @@ func (h *AuthHandlers) GetStreamToken(c *gin.Context) {
 		return
 	}
 
-	fmt.Printf("[Auth] Generated Stream token for user:%s (userID=%s)\n", user.Username, streamUserID)
+	logger.Log.Debug("Generated Stream token", zap.String("username", user.Username), zap.String("user_id", streamUserID))
 
 	c.JSON(http.StatusOK, gin.H{
 		"token":      token,
@@ -775,12 +776,12 @@ func (h *AuthHandlers) SyncUserToStream(c *gin.Context) {
 	// Create/sync user in getstream.io with admin credentials
 	if err := h.stream.CreateUser(user.ID, user.Username); err != nil {
 		// Log the error but check if it's a "user already exists" error (which is OK)
-		fmt.Printf("[Auth] Warning: failed to sync user to getstream.io: %v\n", err)
+		logger.Log.Warn("Failed to sync user to getstream.io", zap.Error(err))
 		// We don't return an error here - the user might already exist in Stream Chat
 		// Continue and return success since the user is now syncable
 	}
 
-	fmt.Printf("[Auth] Successfully synced user:%s (userID=%s) to getstream.io\n", user.Username, user.ID)
+	logger.Log.Info("Successfully synced user to getstream.io", zap.String("username", user.Username), zap.String("user_id", user.ID))
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
@@ -1022,7 +1023,7 @@ func (h *AuthHandlers) RequestPasswordReset(c *gin.Context) {
 			err := h.emailService.SendPasswordResetEmail(c.Request.Context(), req.Email, token.Token)
 			if err != nil {
 				// Log error but don't fail the request (security: don't reveal if email was sent)
-				fmt.Printf("Warning: Failed to send password reset email to %s: %v\n", req.Email, err)
+				logger.Log.Warn("Failed to send password reset email", zap.String("email", req.Email), zap.Error(err))
 				// In development, still return token for testing
 				if os.Getenv("ENVIRONMENT") == "development" {
 					c.JSON(http.StatusOK, gin.H{
