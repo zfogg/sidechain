@@ -20,8 +20,7 @@ void NetworkClient::followUser(const juce::String &userId, ResponseCallback call
   }
 
   Async::runVoid([this, userId, callback]() {
-    juce::var data = juce::var(new juce::DynamicObject());
-    data.getDynamicObject()->setProperty("target_user_id", userId);
+    auto data = createJsonObject({{"target_user_id", userId}});
 
     auto result = makeRequestWithRetry(buildApiPath("/social/follow"), "POST", data, true);
     Log::debug("Follow response: " + juce::JSON::toString(result.data));
@@ -43,8 +42,7 @@ void NetworkClient::unfollowUser(const juce::String &userId, ResponseCallback ca
   }
 
   Async::runVoid([this, userId, callback]() {
-    juce::var data = juce::var(new juce::DynamicObject());
-    data.getDynamicObject()->setProperty("target_user_id", userId);
+    auto data = createJsonObject({{"target_user_id", userId}});
 
     auto result = makeRequestWithRetry(buildApiPath("/social/unfollow"), "POST", data, true);
     Log::debug("Unfollow response: " + juce::JSON::toString(result.data));
@@ -66,8 +64,7 @@ void NetworkClient::blockUser(const juce::String &userId, ResponseCallback callb
   }
 
   Async::runVoid([this, userId, callback]() {
-    juce::var data = juce::var(new juce::DynamicObject());
-    data.getDynamicObject()->setProperty("target_user_id", userId);
+    auto data = createJsonObject({{"target_user_id", userId}});
 
     auto result = makeRequestWithRetry(buildApiPath("/social/block"), "POST", data, true);
     Log::debug("Block response: " + juce::JSON::toString(result.data));
@@ -89,8 +86,7 @@ void NetworkClient::unblockUser(const juce::String &userId, ResponseCallback cal
   }
 
   Async::runVoid([this, userId, callback]() {
-    juce::var data = juce::var(new juce::DynamicObject());
-    data.getDynamicObject()->setProperty("target_user_id", userId);
+    auto data = createJsonObject({{"target_user_id", userId}});
 
     auto result = makeRequestWithRetry(buildApiPath("/social/unblock"), "POST", data, true);
     Log::debug("Unblock response: " + juce::JSON::toString(result.data));
@@ -112,8 +108,7 @@ void NetworkClient::trackPlay(const juce::String &activityId, ResponseCallback c
   }
 
   Async::runVoid([this, activityId, callback]() {
-    juce::var data = juce::var(new juce::DynamicObject());
-    data.getDynamicObject()->setProperty("activity_id", activityId);
+    auto data = createJsonObject({{"activity_id", activityId}});
 
     auto result = makeRequestWithRetry(buildApiPath("/social/play"), "POST", data, true);
     Log::debug("Track play response: " + juce::JSON::toString(result.data));
@@ -143,9 +138,7 @@ void NetworkClient::trackListenDuration(const juce::String &activityId, double d
   }
 
   Async::runVoid([this, activityId, durationSeconds, callback]() {
-    juce::var data = juce::var(new juce::DynamicObject());
-    data.getDynamicObject()->setProperty("activity_id", activityId);
-    data.getDynamicObject()->setProperty("duration", durationSeconds);
+    auto data = createJsonObject({{"activity_id", activityId}, {"duration", durationSeconds}});
 
     auto result = makeRequestWithRetry(buildApiPath("/social/listen-duration"), "POST", data, true);
     Log::debug("Track listen duration response: " + juce::JSON::toString(result.data));
@@ -492,8 +485,7 @@ void NetworkClient::updatePinOrder(const juce::String &postId, int order, Respon
   }
 
   Async::runVoid([this, postId, order, callback]() {
-    juce::var data = juce::var(new juce::DynamicObject());
-    data.getDynamicObject()->setProperty("order", order);
+    auto data = createJsonObject({{"order", order}});
 
     juce::String endpoint = "/api/v1/posts/" + postId + "/pin-order";
     auto result = makeRequestWithRetry(endpoint, "PUT", data, true);
@@ -632,8 +624,7 @@ void NetworkClient::toggleLike(const juce::String &postId, bool shouldLike, Resp
   if (callback == nullptr)
     return;
 
-  juce::var data(new juce::DynamicObject());
-  data.getDynamicObject()->setProperty("activity_id", postId);
+  auto data = createJsonObject({{"activity_id", postId}});
 
   juce::String method = shouldLike ? "POST" : "DELETE";
 
@@ -679,9 +670,7 @@ void NetworkClient::addEmojiReaction(const juce::String &postId, const juce::Str
   if (callback == nullptr)
     return;
 
-  juce::var data(new juce::DynamicObject());
-  data.getDynamicObject()->setProperty("activity_id", postId);
-  data.getDynamicObject()->setProperty("emoji", emoji);
+  auto data = createJsonObject({{"activity_id", postId}, {"emoji", emoji}});
 
   Async::runVoid([this, data, callback]() {
     auto result = makeRequestWithRetry("/api/v1/social/react", "POST", data, true);

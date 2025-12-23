@@ -23,20 +23,9 @@ void UserCard::setUser(const DiscoveredUser &newUser) {
 
   // Fetch avatar image via AppStore reactive observable (with caching)
   if (user.avatarUrl.isNotEmpty() && appStore) {
-    juce::Component::SafePointer<UserCard> safeThis(this);
-    appStore->loadImageObservable(user.avatarUrl)
-        .subscribe(
-            [safeThis](const juce::Image &image) {
-              if (safeThis == nullptr)
-                return;
-              if (image.isValid())
-                safeThis->repaint();
-            },
-            [safeThis](std::exception_ptr) {
-              if (safeThis == nullptr)
-                return;
-              Log::warn("UserCard: Failed to load avatar image");
-            });
+    UIHelpers::loadImageAsync<UserCard>(
+        this, appStore, user.avatarUrl, [](UserCard *comp, const juce::Image &) { comp->repaint(); },
+        [](UserCard *) { Log::warn("UserCard: Failed to load avatar image"); }, "UserCard");
   }
 
   repaint();

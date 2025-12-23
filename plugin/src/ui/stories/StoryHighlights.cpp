@@ -3,6 +3,7 @@
 // For ImageLoader namespace
 #include "../../util/Json.h"
 #include "../../util/Log.h"
+#include "../../util/StringUtils.h"
 
 // ==============================================================================
 StoryHighlights::StoryHighlights(Sidechain::Stores::AppStore *store)
@@ -150,8 +151,7 @@ void StoryHighlights::drawHighlight(juce::Graphics &g, const Sidechain::StoryHig
     g.fillEllipse(imageBounds);
     g.setColour(Colors::textPrimary);
     g.setFont(juce::Font(juce::FontOptions().withHeight(20.0f)).boldened());
-    juce::String initial = highlight.name.isNotEmpty() ? highlight.name.substring(0, 1).toUpperCase() : "?";
-    g.drawText(initial, imageBounds.toNearestInt(), juce::Justification::centred);
+    g.drawText(StringUtils::getInitials(highlight.name, 1), imageBounds.toNearestInt(), juce::Justification::centred);
 
     // Load image if not already loading
     if (appStore && !highlight.getCoverUrl().isEmpty() && coverImages.find(highlight.id) == coverImages.end()) {

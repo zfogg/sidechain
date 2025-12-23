@@ -3,6 +3,7 @@
 #include "../../util/Async.h"
 #include "../../util/Log.h"
 #include "../../util/Result.h"
+#include "../../util/StringUtils.h"
 
 namespace StoryFeedColors {
 const juce::Colour background(0xff1a1a2e);
@@ -329,8 +330,7 @@ void StoriesFeed::drawStoryCircle(juce::Graphics &g, juce::Rectangle<int> bounds
   // Initials
   g.setColour(StoryFeedColors::textPrimary);
   g.setFont(juce::FontOptions(18.0f).withStyle("Bold"));
-  juce::String initial = userStories.username.isNotEmpty() ? userStories.username.substring(0, 1).toUpperCase() : "?";
-  g.drawText(initial, circleBounds, juce::Justification::centred);
+  g.drawText(StringUtils::getInitials(userStories.username, 1), circleBounds, juce::Justification::centred);
 
   // Story count badge (if multiple stories)
   if (userStories.stories.size() > 1) {

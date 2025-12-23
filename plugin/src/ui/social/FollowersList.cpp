@@ -32,20 +32,9 @@ void FollowUserRow::setUser(const std::shared_ptr<const Sidechain::User> &user) 
 
   // Fetch avatar image via AppStore reactive observable (with caching)
   if (appStore && userPtr->avatarUrl.isNotEmpty()) {
-    juce::Component::SafePointer<FollowUserRow> safeThis(this);
-    appStore->loadImageObservable(userPtr->avatarUrl)
-        .subscribe(
-            [safeThis](const juce::Image &image) {
-              if (safeThis == nullptr)
-                return;
-              if (image.isValid())
-                safeThis->repaint();
-            },
-            [safeThis](std::exception_ptr) {
-              if (safeThis == nullptr)
-                return;
-              Log::warn("FollowersList: Failed to load user avatar");
-            });
+    UIHelpers::loadImageAsync<FollowUserRow>(
+        this, appStore, userPtr->avatarUrl, [](FollowUserRow *comp, const juce::Image &) { comp->repaint(); },
+        [](FollowUserRow *) { Log::warn("FollowersList: Failed to load user avatar"); }, "FollowersList");
   }
   repaint();
 }
