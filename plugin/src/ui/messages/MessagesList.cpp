@@ -109,7 +109,7 @@ void MessagesList::onAppStateChanged(const Sidechain::Stores::ChatState &state) 
 }
 
 void MessagesList::paint(juce::Graphics &g) {
-  g.fillAll(juce::Colour(0xff1a1a1a));
+  g.fillAll(SidechainColors::background());
 
   // Always draw header with "New Message" button
   drawHeader(g);
@@ -390,11 +390,11 @@ void MessagesList::timerCallback() {
 // ==============================================================================
 void MessagesList::drawHeader(juce::Graphics &g) {
   // Header background - slightly lighter than content area
-  g.setColour(juce::Colour(0xff2a2a2a));
+  g.setColour(SidechainColors::backgroundLight());
   g.fillRect(0, 0, getWidth(), HEADER_HEIGHT);
 
   // Draw "Messages" title on the left
-  g.setColour(juce::Colours::white);
+  g.setColour(SidechainColors::textPrimary());
   g.setFont(juce::FontOptions(20.0f).withStyle("Bold"));
   g.drawText("Messages", 15, 0, 200, HEADER_HEIGHT, juce::Justification::centredLeft);
 
@@ -402,11 +402,11 @@ void MessagesList::drawHeader(juce::Graphics &g) {
   auto newMessageBounds = getNewMessageButtonBounds();
 
   // Blue filled circle
-  g.setColour(juce::Colour(0xff4a9eff));
+  g.setColour(SidechainColors::primary());
   g.fillEllipse(newMessageBounds.toFloat());
 
   // White plus sign
-  g.setColour(juce::Colours::white);
+  g.setColour(SidechainColors::textPrimary());
   auto center = newMessageBounds.getCentre();
   int plusSize = 14;
   g.drawLine(static_cast<float>(center.x - plusSize / 2), static_cast<float>(center.y),
@@ -415,7 +415,7 @@ void MessagesList::drawHeader(juce::Graphics &g) {
              static_cast<float>(center.y + plusSize / 2), 2.5f);
 
   // Draw bottom border
-  g.setColour(juce::Colour(0xff3a3a3a));
+  g.setColour(SidechainColors::borderSubtle());
   g.drawHorizontalLine(HEADER_HEIGHT - 1, 0.0f, static_cast<float>(getWidth()));
 }
 
@@ -456,7 +456,7 @@ void MessagesList::drawChannelItem(juce::Graphics &g, const StreamChatClient::Ch
     g.drawText(initial, avatarX, avatarY, avatarSize, avatarSize, juce::Justification::centred);
   } else {
     // Direct message avatar placeholder
-    g.setColour(juce::Colour(0xff4a4a4a));
+    g.setColour(SidechainColors::surface());
     g.fillEllipse(static_cast<float>(avatarX), static_cast<float>(avatarY), static_cast<float>(avatarSize),
                   static_cast<float>(avatarSize));
 
@@ -653,7 +653,7 @@ void MessagesList::drawEmptyState(juce::Graphics &g) {
 }
 
 void MessagesList::drawErrorState(juce::Graphics &g) {
-  g.setColour(juce::Colour(0xffff4444));
+  g.setColour(SidechainColors::error());
   g.setFont(16.0f);
   g.drawText("Error: " + errorMessage, getLocalBounds(), juce::Justification::centred);
 }

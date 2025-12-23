@@ -3,6 +3,7 @@
 #include "../../models/FeedPost.h"
 #include "../../models/Sound.h"
 #include "../../stores/AppStore.h"
+#include "../../util/Colors.h"
 #include "../common/AppStoreComponent.h"
 #include <JuceHeader.h>
 
@@ -103,18 +104,20 @@ private:
   static constexpr int PADDING = 16;
 
   // ==========================================================================
-  // Colors
+  // Colors - using centralized SidechainColors
   struct Colors {
-    static inline juce::Colour background{0xff1a1a1e};
-    static inline juce::Colour cardBg{0xff252529};
-    static inline juce::Colour cardBgHover{0xff2d2d32};
-    static inline juce::Colour textPrimary{0xffffffff};
-    static inline juce::Colour textSecondary{0xffa0a0a0};
-    static inline juce::Colour accent{0xff00d4ff};
-    static inline juce::Colour accentHover{0xff00b8e0};
-    static inline juce::Colour playButton{0xff00d4ff};
-    static inline juce::Colour soundIcon{0xffff6b6b};     // Coral for sound icon
-    static inline juce::Colour trendingBadge{0xffffd93d}; // Gold for trending
+    static inline juce::Colour background = SidechainColors::background();
+    static inline juce::Colour cardBg = SidechainColors::backgroundLight();
+    static inline juce::Colour cardBgHover = SidechainColors::backgroundLighter();
+    static inline juce::Colour textPrimary = SidechainColors::textPrimary();
+    static inline juce::Colour textSecondary = SidechainColors::textSecondary();
+    static inline juce::Colour accent = SidechainColors::link();
+    static inline juce::Colour accentHover = SidechainColors::link().darker(0.15f);
+    static inline juce::Colour playButton = SidechainColors::link();
+    static inline juce::Colour soundIcon = SidechainColors::coralPink();
+    static inline juce::Colour trendingBadge = SidechainColors::warning();
+    static inline juce::Colour separator = SidechainColors::border();
+    static inline juce::Colour errorText = SidechainColors::error();
   };
 
   // ==========================================================================

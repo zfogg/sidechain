@@ -1,5 +1,6 @@
 #include "StreamChatClient.h"
 #include "../util/Async.h"
+#include "../util/Json.h"
 #include "../util/Log.h"
 #include "../util/OSNotification.h"
 #include "../util/Result.h"
@@ -38,9 +39,9 @@ void StreamChatClient::fetchToken(const juce::String &backendAuthTokenParam, Tok
         if (responseOutcome.isOk()) {
           auto response = responseOutcome.getValue();
           if (response.isObject()) {
-            auto authToken = response.getProperty("token", "").toString();
-            auto streamApiKey = response.getProperty("api_key", "").toString();
-            auto streamUserId = response.getProperty("user_id", "").toString();
+            auto authToken = Json::getString(response, "token");
+            auto streamApiKey = Json::getString(response, "api_key");
+            auto streamUserId = Json::getString(response, "user_id");
 
             if (!authToken.isEmpty() && !streamApiKey.isEmpty() && !streamUserId.isEmpty()) {
               setToken(authToken, streamApiKey, streamUserId);
@@ -176,12 +177,12 @@ void StreamChatClient::createDirectChannel(const juce::String &targetUserId,
 
         // Response from stream.io has channel wrapped in "channel" property
         juce::var channelData = response;
-        if (response.isObject() && response.hasProperty("channel")) {
-          channelData = response.getProperty("channel", juce::var());
+        if (response.isObject() && Json::hasKey(response, "channel")) {
+          channelData = Json::getObject(response, "channel");
         }
 
-        if (channelData.isObject() && channelData.hasProperty("id")) {
-          Log::debug("StreamChatClient: Direct channel created: " + channelData.getProperty("id", "").toString());
+        if (channelData.isObject() && Json::hasKey(channelData, "id")) {
+          Log::debug("StreamChatClient: Direct channel created: " + Json::getString(channelData, "id"));
           return parseChannel(channelData);
         }
 
@@ -241,12 +242,12 @@ void StreamChatClient::createGroupChannel(const juce::String &channelId, const j
 
         // Response from stream.io has channel wrapped in "channel" property
         juce::var channelData = response;
-        if (response.isObject() && response.hasProperty("channel")) {
-          channelData = response.getProperty("channel", juce::var());
+        if (response.isObject() && Json::hasKey(response, "channel")) {
+          channelData = Json::getObject(response, "channel");
         }
 
-        if (channelData.isObject() && channelData.hasProperty("id")) {
-          Log::debug("StreamChatClient: Group channel created: " + channelData.getProperty("id", "").toString());
+        if (channelData.isObject() && Json::hasKey(channelData, "id")) {
+          Log::debug("StreamChatClient: Group channel created: " + Json::getString(channelData, "id"));
           return parseChannel(channelData);
         }
 
@@ -316,8 +317,8 @@ void StreamChatClient::queryChannels(ChannelsCallback callback, int limit, int o
         std::vector<Channel> channels;
 
         if (response.isObject()) {
-          auto channelsArray = response.getProperty("channels", juce::var());
-          if (channelsArray.isArray()) {
+          auto channelsArray = Json::getArray(response, "channels");
+          if (Json::isArray(channelsArray)) {
             auto *arr = channelsArray.getArray();
             if (arr != nullptr) {
               Log::debug("StreamChatClient: Found channels array with " + juce::String(arr->size()) +
@@ -392,11 +393,11 @@ void StreamChatClient::sendMessage(const juce::String &channelType, const juce::
         Log::debug("StreamChatClient::sendMessage - response: " + juce::JSON::toString(response));
 
         if (response.isObject()) {
-          auto messageData = response.getProperty("message", juce::var());
+          auto messageData = Json::getObject(response, "message");
           if (messageData.isObject()) {
             Log::debug("StreamChatClient::sendMessage - message sent "
                        "successfully with ID: " +
-                       messageData.getProperty("id", "").toString());
+                       Json::getString(messageData, "id"));
             return parseMessage(messageData);
           }
         }
@@ -517,8 +518,8 @@ void StreamChatClient::searchMessages(const juce::String &query, const juce::var
         std::vector<Message> messages;
 
         if (response.isObject()) {
-          auto results = response.getProperty("results", juce::var());
-          if (results.isArray()) {
+          auto results = Json::getArray(response, "results");
+          if (Json::isArray(results)) {
             auto *arr = results.getArray();
             if (arr != nullptr) {
               for (int i = 0; i < arr->size(); i++) {
@@ -569,8 +570,8 @@ void StreamChatClient::queryPresence(const std::vector<juce::String> &userIds, P
         std::vector<UserPresence> presenceList;
 
         if (response.isObject()) {
-          auto usersArray = response.getProperty("users", juce::var());
-          if (usersArray.isArray()) {
+          auto usersArray = Json::getArray(response, "users");
+          if (Json::isArray(usersArray)) {
             auto *arr = usersArray.getArray();
             if (arr != nullptr) {
               for (int i = 0; i < arr->size(); i++) {
@@ -794,19 +795,19 @@ StreamChatClient::Channel StreamChatClient::parseChannel(const juce::var &channe
   Channel channel;
 
   if (channelData.isObject()) {
-    channel.id = channelData.getProperty("id", "").toString();
-    channel.type = channelData.getProperty("type", "").toString();
-    channel.members = channelData.getProperty("members", juce::var());
+    channel.id = Json::getString(channelData, "id");
+    channel.type = Json::getString(channelData, "type");
+    channel.members = Json::getArray(channelData, "members");
 
-    auto data = channelData.getProperty("data", juce::var());
+    auto data = Json::getObject(channelData, "data");
     if (data.isObject()) {
-      channel.name = data.getProperty("name", "").toString();
+      channel.name = Json::getString(data, "name");
       channel.extraData = data;
     }
 
-    channel.lastMessage = channelData.getProperty("last_message", juce::var());
-    channel.unreadCount = channelData.getProperty("unread_count", 0).operator int();
-    channel.lastMessageAt = channelData.getProperty("last_message_at", "").toString();
+    channel.lastMessage = Json::getObject(channelData, "last_message");
+    channel.unreadCount = Json::getInt(channelData, "unread_count", 0);
+    channel.lastMessageAt = Json::getString(channelData, "last_message_at");
   }
 
   return channel;
@@ -816,17 +817,17 @@ StreamChatClient::Message StreamChatClient::parseMessage(const juce::var &messag
   Message message;
 
   if (messageData.isObject()) {
-    message.id = messageData.getProperty("id", "").toString();
-    message.text = messageData.getProperty("text", "").toString();
-    message.createdAt = messageData.getProperty("created_at", "").toString();
-    message.reactions = messageData.getProperty("reactions", juce::var());
-    message.extraData = messageData.getProperty("extra_data", juce::var());
-    message.isDeleted = messageData.getProperty("deleted_at", juce::var()).isString();
+    message.id = Json::getString(messageData, "id");
+    message.text = Json::getString(messageData, "text");
+    message.createdAt = Json::getString(messageData, "created_at");
+    message.reactions = Json::getObject(messageData, "reactions");
+    message.extraData = Json::getObject(messageData, "extra_data");
+    message.isDeleted = Json::hasKey(messageData, "deleted_at") && Json::getString(messageData, "deleted_at").isNotEmpty();
 
-    auto user = messageData.getProperty("user", juce::var());
+    auto user = Json::getObject(messageData, "user");
     if (user.isObject()) {
-      message.userId = user.getProperty("id", "").toString();
-      message.userName = user.getProperty("name", "").toString();
+      message.userId = Json::getString(user, "id");
+      message.userName = Json::getString(user, "name");
     }
   }
 
@@ -837,10 +838,10 @@ StreamChatClient::UserPresence StreamChatClient::parsePresence(const juce::var &
   UserPresence presence;
 
   if (userData.isObject()) {
-    presence.userId = userData.getProperty("id", "").toString();
-    presence.online = userData.getProperty("online", false).operator bool();
-    presence.lastActive = userData.getProperty("last_active", "").toString();
-    presence.status = userData.getProperty("status", "").toString();
+    presence.userId = Json::getString(userData, "id");
+    presence.online = Json::getBool(userData, "online", false);
+    presence.lastActive = Json::getString(userData, "last_active");
+    presence.status = Json::getString(userData, "status");
   }
 
   return presence;
@@ -873,7 +874,7 @@ void StreamChatClient::getChannel(const juce::String &channelType, const juce::S
         auto response = makeStreamRequest(endpoint, "GET", juce::var());
 
         if (response.isObject()) {
-          auto channelData = response.getProperty("channel", juce::var());
+          auto channelData = Json::getObject(response, "channel");
           if (channelData.isObject()) {
             return parseChannel(channelData);
           }
@@ -905,7 +906,7 @@ void StreamChatClient::deleteChannel(const juce::String &channelType, const juce
 
         auto response = makeStreamRequest(endpoint, "DELETE", juce::var());
 
-        return response.isObject() && !response.getProperty("channel", juce::var()).isVoid();
+        return response.isObject() && Json::hasKey(response, "channel");
       },
       [callback](bool success) {
         if (callback) {
@@ -946,7 +947,7 @@ void StreamChatClient::addMembers(const juce::String &channelType, const juce::S
 
         auto response = makeStreamRequest(endpoint, "POST", requestData);
 
-        return response.isObject() && !response.getProperty("channel", juce::var()).isVoid();
+        return response.isObject() && Json::hasKey(response, "channel");
       },
       [callback](bool success) {
         if (callback) {
@@ -981,7 +982,7 @@ void StreamChatClient::removeMembers(const juce::String &channelType, const juce
 
         auto response = makeStreamRequest(endpoint, "POST", requestData);
 
-        return response.isObject() && !response.getProperty("channel", juce::var()).isVoid();
+        return response.isObject() && Json::hasKey(response, "channel");
       },
       [callback](bool success) {
         if (callback) {
@@ -1034,7 +1035,7 @@ void StreamChatClient::updateChannel(const juce::String &channelType, const juce
         auto response = makeStreamRequest(endpoint, "POST", requestData);
 
         if (response.isObject()) {
-          auto channelData = response.getProperty("channel", juce::var());
+          auto channelData = Json::getObject(response, "channel");
           if (channelData.isObject()) {
             return parseChannel(channelData);
           }
@@ -1078,7 +1079,7 @@ void StreamChatClient::updateMessage(const juce::String &channelType, const juce
         auto response = makeStreamRequest(endpoint, "POST", requestData);
 
         if (response.isObject()) {
-          auto messageData = response.getProperty("message", juce::var());
+          auto messageData = Json::getObject(response, "message");
           if (messageData.isObject()) {
             return parseMessage(messageData);
           }
@@ -1110,7 +1111,7 @@ void StreamChatClient::deleteMessage(const juce::String &channelType, const juce
 
         auto response = makeStreamRequest(endpoint, "DELETE", juce::var());
 
-        return response.isObject() && !response.getProperty("message", juce::var()).isVoid();
+        return response.isObject() && Json::hasKey(response, "message");
       },
       [callback](bool success) {
         if (callback) {
@@ -1144,7 +1145,7 @@ void StreamChatClient::addReaction(const juce::String &channelType, const juce::
 
         auto response = makeStreamRequest(endpoint, "POST", requestData);
 
-        return response.isObject() && !response.getProperty("message", juce::var()).isVoid();
+        return response.isObject() && Json::hasKey(response, "message");
       },
       [callback](bool success) {
         if (callback) {
@@ -1172,7 +1173,7 @@ void StreamChatClient::removeReaction(const juce::String &channelType, const juc
 
         auto response = makeStreamRequest(endpoint, "DELETE", juce::var());
 
-        return response.isObject() && !response.getProperty("message", juce::var()).isVoid();
+        return response.isObject() && Json::hasKey(response, "message");
       },
       [callback](bool success) {
         if (callback) {
@@ -1232,7 +1233,7 @@ void StreamChatClient::updateStatus(const juce::String &status, const juce::var 
 
         auto response = makeStreamRequest(endpoint, "POST", requestData);
 
-        return response.isObject() && !response.getProperty("user", juce::var()).isVoid();
+        return response.isObject() && Json::hasKey(response, "user");
       },
       [callback](bool success) {
         if (callback) {
@@ -1415,13 +1416,13 @@ void StreamChatClient::handleWebSocketMessage(const juce::String &message) {
 }
 
 void StreamChatClient::parseWebSocketEvent(const juce::var &event) {
-  auto eventType = event.getProperty("type", "").toString();
+  auto eventType = Json::getString(event, "type");
 
   if (eventType == "message.new") {
-    auto messageData = event.getProperty("message", juce::var());
+    auto messageData = Json::getObject(event, "message");
     if (messageData.isObject()) {
       auto message = parseMessage(messageData);
-      auto channelId = event.getProperty("channel_id", "").toString();
+      auto channelId = Json::getString(event, "channel_id");
 
       // Show OS notification for messages from other users (GetStream.io Chat
       // notifications)
@@ -1459,9 +1460,9 @@ void StreamChatClient::parseWebSocketEvent(const juce::var &event) {
       }
     }
   } else if (eventType == "typing.start" || eventType == "typing.stop") {
-    auto userData = event.getProperty("user", juce::var());
+    auto userData = Json::getObject(event, "user");
     if (userData.isObject() && typingCallback) {
-      auto userId = userData.getProperty("id", "").toString();
+      auto userId = Json::getString(userData, "id");
       bool isTyping = eventType == "typing.start";
       juce::MessageManager::callAsync([this, userId, isTyping]() {
         if (typingCallback)
@@ -1469,7 +1470,7 @@ void StreamChatClient::parseWebSocketEvent(const juce::var &event) {
       });
     }
   } else if (eventType == "user.presence.changed") {
-    auto userData = event.getProperty("user", juce::var());
+    auto userData = Json::getObject(event, "user");
     if (userData.isObject() && presenceChangedCallback) {
       auto presence = parsePresence(userData);
       juce::MessageManager::callAsync([this, presence]() {
@@ -1556,9 +1557,9 @@ void StreamChatClient::uploadAudioSnippet(const juce::AudioBuffer<float> &audioB
           if (responseOutcome.isOk()) {
             auto response = responseOutcome.getValue();
             if (response.isObject()) {
-              auto audioUrl = response.getProperty("audio_url", "").toString();
+              auto audioUrl = Json::getString(response, "audio_url");
               if (audioUrl.isEmpty())
-                audioUrl = response.getProperty("url", "").toString();
+                audioUrl = Json::getString(response, "url");
 
               if (!audioUrl.isEmpty()) {
                 AudioSnippetResult result;

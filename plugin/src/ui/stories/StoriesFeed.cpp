@@ -1,19 +1,26 @@
 #include "StoriesFeed.h"
 #include "../../network/NetworkClient.h"
 #include "../../util/Async.h"
+#include "../../util/Colors.h"
 #include "../../util/Log.h"
 #include "../../util/Result.h"
 
 namespace StoryFeedColors {
+// Story-specific colors (unique to this visualization)
 const juce::Colour background(0xff1a1a2e);
-const juce::Colour surface(0xff25253a);
 const juce::Colour ringUnviewed(0xff7c4dff); // Purple gradient ring
 const juce::Colour ringViewed(0xff4a4a5a);   // Gray ring for viewed
 const juce::Colour createBg(0xff2d2d44);
 const juce::Colour createPlus(0xff7c4dff);
-const juce::Colour textPrimary(0xffffffff);
-const juce::Colour textSecondary(0xffb0b0b0);
-const juce::Colour badgeRed(0xffe53935);
+// Gradient colors for unviewed ring
+const juce::Colour gradientStart(0xff9c27b0); // Purple
+const juce::Colour gradientEnd(0xff2196f3);   // Blue
+
+// Use SidechainColors for common text/UI colors
+inline juce::Colour surface() { return SidechainColors::backgroundLight(); }
+inline juce::Colour textPrimary() { return SidechainColors::textPrimary(); }
+inline juce::Colour textSecondary() { return SidechainColors::textSecondary(); }
+inline juce::Colour badgeRed() { return SidechainColors::error(); }
 } // namespace StoryFeedColors
 
 // ==============================================================================
@@ -268,13 +275,13 @@ void StoriesFeed::drawCreateStoryCircle(juce::Graphics &g, juce::Rectangle<int> 
   g.setColour(StoryFeedColors::createPlus);
   g.fillEllipse(plusBounds);
 
-  g.setColour(StoryFeedColors::textPrimary);
+  g.setColour(StoryFeedColors::textPrimary());
   g.setFont(juce::FontOptions(16.0f).withStyle("Bold"));
   g.drawText("+", plusBounds.toNearestInt(), juce::Justification::centred);
 
   // "Your Story" label
   auto labelBounds = bounds.removeFromTop(LABEL_HEIGHT);
-  g.setColour(StoryFeedColors::textSecondary);
+  g.setColour(StoryFeedColors::textSecondary());
   g.setFont(10.0f);
   g.drawText("Your Story", labelBounds, juce::Justification::centredTop);
 }
@@ -289,8 +296,8 @@ void StoriesFeed::drawStoryCircle(juce::Graphics &g, juce::Rectangle<int> bounds
   // Draw ring (purple gradient if unviewed, gray if viewed)
   if (userStories.hasUnviewed) {
     // Purple gradient ring
-    juce::ColourGradient gradient(juce::Colour(0xff9c27b0), center.x, center.y - outerRadius, juce::Colour(0xff2196f3),
-                                  center.x, center.y + outerRadius, false);
+    juce::ColourGradient gradient(StoryFeedColors::gradientStart, center.x, center.y - outerRadius,
+                                  StoryFeedColors::gradientEnd, center.x, center.y + outerRadius, false);
     g.setGradientFill(gradient);
   } else {
     g.setColour(StoryFeedColors::ringViewed);
@@ -323,11 +330,11 @@ void StoriesFeed::drawStoryCircle(juce::Graphics &g, juce::Rectangle<int> bounds
   }
 
   // Placeholder avatar (will be replaced with actual image when loaded)
-  g.setColour(StoryFeedColors::surface);
+  g.setColour(StoryFeedColors::surface());
   g.fillEllipse(center.x - innerRadius, center.y - innerRadius, innerRadius * 2, innerRadius * 2);
 
   // Initials
-  g.setColour(StoryFeedColors::textPrimary);
+  g.setColour(StoryFeedColors::textPrimary());
   g.setFont(juce::FontOptions(18.0f).withStyle("Bold"));
   juce::String initial = userStories.username.isNotEmpty() ? userStories.username.substring(0, 1).toUpperCase() : "?";
   g.drawText(initial, circleBounds, juce::Justification::centred);
@@ -337,17 +344,17 @@ void StoriesFeed::drawStoryCircle(juce::Graphics &g, juce::Rectangle<int> bounds
     float badgeSize = 18.0f;
     auto badgeBounds = juce::Rectangle<float>(center.x + innerRadius - badgeSize * 0.5f,
                                               center.y - innerRadius - badgeSize * 0.3f, badgeSize, badgeSize);
-    g.setColour(StoryFeedColors::badgeRed);
+    g.setColour(StoryFeedColors::badgeRed());
     g.fillEllipse(badgeBounds);
 
-    g.setColour(StoryFeedColors::textPrimary);
+    g.setColour(StoryFeedColors::textPrimary());
     g.setFont(10.0f);
     g.drawText(juce::String(userStories.stories.size()), badgeBounds.toNearestInt(), juce::Justification::centred);
   }
 
   // Username label
   auto labelBounds = bounds.removeFromTop(LABEL_HEIGHT);
-  g.setColour(StoryFeedColors::textSecondary);
+  g.setColour(StoryFeedColors::textSecondary());
   g.setFont(10.0f);
 
   juce::String displayName = userStories.username;

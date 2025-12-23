@@ -70,7 +70,7 @@ void SoundPage::paint(juce::Graphics &g) {
   drawSoundInfo(g, infoBounds);
 
   // Draw separator
-  g.setColour(juce::Colour(0xff3a3a3e));
+  g.setColour(Colors::separator);
   g.fillRect(contentBounds.removeFromTop(1));
 
   contentBounds.removeFromTop(PADDING);
@@ -370,7 +370,7 @@ void SoundPage::drawHeader(juce::Graphics &g) {
   g.fillRect(bounds);
 
   // Bottom border
-  g.setColour(juce::Colour(0xff3a3a3e));
+  g.setColour(Colors::separator);
   g.fillRect(bounds.removeFromBottom(1));
 
   // Back button
@@ -537,7 +537,7 @@ void SoundPage::drawLoadingState(juce::Graphics &g, juce::Rectangle<int> bounds)
 }
 
 void SoundPage::drawErrorState(juce::Graphics &g, juce::Rectangle<int> bounds) {
-  g.setColour(juce::Colour(0xffff4757));
+  g.setColour(Colors::errorText);
   g.setFont(juce::FontOptions().withHeight(16.0f));
   g.drawText(errorMessage, bounds, juce::Justification::centred);
 }
