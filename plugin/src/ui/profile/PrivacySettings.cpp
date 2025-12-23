@@ -3,6 +3,7 @@
 #include "../../stores/AppStore.h"
 #include "../../util/Log.h"
 #include "../../util/Result.h"
+#include "../../util/UIHelpers.h"
 
 // ==============================================================================
 PrivacySettings::PrivacySettings(AppStore *store)
@@ -27,19 +28,12 @@ void PrivacySettings::onAppStateChanged(const UserState & /*state*/) {
 
 // ==============================================================================
 void PrivacySettings::setupToggle() {
-  auto styleToggle = [this](juce::ToggleButton &toggle, const juce::String &label) {
-    toggle.setButtonText(label);
-    toggle.setColour(juce::ToggleButton::textColourId, Colors::textPrimary);
-    toggle.setColour(juce::ToggleButton::tickColourId, Colors::accent);
-    toggle.setColour(juce::ToggleButton::tickDisabledColourId, Colors::textSecondary);
-    toggle.setToggleState(false, juce::dontSendNotification);
-    toggle.onClick = [this, &toggle]() { handleToggleChange(&toggle); };
-    addAndMakeVisible(toggle);
-  };
-
-  // Create toggle button
+  // Create toggle button using UIHelpers
   privateAccountToggle = std::make_unique<juce::ToggleButton>();
-  styleToggle(*privateAccountToggle, "Make Account Private");
+  UIHelpers::setupToggleButton(*privateAccountToggle, "Make Account Private", Colors::textPrimary, Colors::accent,
+                               Colors::textSecondary, false,
+                               [this]() { handleToggleChange(privateAccountToggle.get()); });
+  addAndMakeVisible(privateAccountToggle.get());
 
   // Close button
   closeButton = std::make_unique<juce::TextButton>("Close");
