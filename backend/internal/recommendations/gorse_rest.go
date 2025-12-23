@@ -10,7 +10,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -554,7 +556,10 @@ func (c *GorseRESTClient) RemoveFollowEvent(followerID, followeeID string) error
 	// Ignore errors - feedback might not exist
 	if err != nil {
 		// Log but don't fail - the feedback might not exist
-		fmt.Printf("Warning: failed to remove follow feedback: %v\n", err)
+		logger.Warn("Failed to remove follow feedback",
+			zap.Error(err),
+			zap.String("follower_id", followerID),
+			zap.String("followee_id", followeeID))
 	}
 	return nil
 }

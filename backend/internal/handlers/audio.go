@@ -12,6 +12,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/util"
+	"go.uber.org/zap"
 )
 
 // UploadAudio handles audio file uploads with async processing
@@ -169,7 +170,7 @@ func (h *Handlers) UploadAudio(c *gin.Context) {
 	err = database.DB.Create(audioPost).Error
 	if err != nil {
 		if removeErr := os.Remove(tempFilePath); removeErr != nil {
-			log.Printf("Warning: Failed to clean up temp file %s: %v", tempFilePath, removeErr)
+			logger.Warn("Failed to clean up temp file", zap.String("file_path", tempFilePath), zap.Error(removeErr))
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   "database_failed",
@@ -182,11 +183,11 @@ func (h *Handlers) UploadAudio(c *gin.Context) {
 	job, err := h.audioProcessor.SubmitProcessingJob(currentUser.ID, audioPost.ID, tempFilePath, file.Filename, metadata)
 	if err != nil {
 		if removeErr := os.Remove(tempFilePath); removeErr != nil {
-			log.Printf("Warning: Failed to clean up temp file %s: %v", tempFilePath, removeErr)
+			logger.Warn("Failed to clean up temp file", zap.String("file_path", tempFilePath), zap.Error(removeErr))
 		}
 		// Update the post to failed status
 		if updateErr := database.DB.Model(audioPost).Update("processing_status", "failed").Error; updateErr != nil {
-			log.Printf("Warning: Failed to update post status to failed: %v", updateErr)
+			logger.Warn("Failed to update post status to failed", zap.Error(updateErr))
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   "queue_failed",

@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"sync"
 	"time"
 
 	"github.com/coder/websocket"
 	"github.com/coder/websocket/wsjson"
+	"github.com/zfogg/sidechain/backend/internal/logger"
+	"go.uber.org/zap"
 )
 
 const (
@@ -149,10 +150,10 @@ func (c *Client) ReadPump() {
 		if err != nil {
 			if websocket.CloseStatus(err) == websocket.StatusNormalClosure ||
 				websocket.CloseStatus(err) == websocket.StatusGoingAway {
-				log.Printf("Client %s disconnected normally", c.UserID)
+				logger.Log.Info("Client disconnected normally", zap.String("user", c.UserID))
 			} else if c.ctx.Err() == nil {
 				// Only log errors if we're not shutting down
-				log.Printf("Read error for client %s: %v", c.UserID, err)
+				logger.Log.Error("Read error for client", zap.String("user", c.UserID), zap.Error(err))
 				c.hub.metrics.Errors.Add(1)
 			}
 			return
@@ -171,7 +172,9 @@ func (c *Client) ReadPump() {
 		// Parse the message
 		var message Message
 		if err := json.Unmarshal(data, &message); err != nil {
-			log.Printf("WebSocket: JSON parse error from user %s: %v", c.UserID, err)
+			logger.Log.Warn("WebSocket JSON parse error",
+				zap.String("user", c.UserID),
+				zap.Error(err))
 			c.SendError("invalid_json", "Failed to parse message")
 			continue
 		}
@@ -208,7 +211,7 @@ func (c *Client) WritePump() {
 			cancel()
 
 			if err != nil {
-				log.Printf("Write error for client %s: %v", c.UserID, err)
+				logger.Log.Error("Write error for client", zap.String("user", c.UserID), zap.Error(err))
 				c.hub.metrics.Errors.Add(1)
 				return
 			}
@@ -224,7 +227,7 @@ func (c *Client) WritePump() {
 			cancel()
 
 			if err != nil {
-				log.Printf("Ping failed for client %s: %v", c.UserID, err)
+				logger.Log.Warn("Ping failed for client", zap.String("user", c.UserID), zap.Error(err))
 				return
 			}
 		}
@@ -253,14 +256,18 @@ func (c *Client) handleMessage(message *Message) {
 	// Check for registered handler
 	if handler, ok := c.hub.GetHandler(message.Type); ok {
 		if err := handler(c, message); err != nil {
-			log.Printf("Handler error for %s: %v", message.Type, err)
+			logger.Log.Error("Handler error",
+				zap.String("type", message.Type),
+				zap.Error(err))
 			c.SendError("handler_error", fmt.Sprintf("Failed to process %s", message.Type))
 		}
 		return
 	}
 
 	// Unknown message type
-	log.Printf("Unknown message type from %s: %s", c.UserID, message.Type)
+	logger.Log.Warn("Unknown message type",
+		zap.String("user", c.UserID),
+		zap.String("type", message.Type))
 	c.SendError("unknown_type", fmt.Sprintf("Unknown message type: %s", message.Type))
 }
 

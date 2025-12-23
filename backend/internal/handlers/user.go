@@ -3,8 +3,6 @@ package handlers
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	"log"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -19,6 +17,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/telemetry"
 	"github.com/zfogg/sidechain/backend/internal/util"
 	"github.com/zfogg/sidechain/backend/internal/websocket"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -51,7 +50,7 @@ func (h *Handlers) FollowUser(c *gin.Context) {
 	if h.gorse != nil {
 		go func() {
 			if err := h.gorse.SyncFollowEvent(userID, req.TargetUserID); err != nil {
-				fmt.Printf("Warning: Failed to sync follow to Gorse: %v\n", err)
+				logger.Log.Warn("Failed to sync follow to Gorse", zap.Error(err), zap.String("user_id", userID), zap.String("target_user_id", req.TargetUserID))
 			}
 		}()
 	}
@@ -138,7 +137,7 @@ func (h *Handlers) UnfollowUser(c *gin.Context) {
 	if h.gorse != nil {
 		go func() {
 			if err := h.gorse.RemoveFollowEvent(userID, req.TargetUserID); err != nil {
-				fmt.Printf("Warning: Failed to remove follow from Gorse: %v\n", err)
+				logger.Log.Warn("Failed to remove follow from Gorse", zap.Error(err), zap.String("user_id", userID), zap.String("target_user_id", req.TargetUserID))
 			}
 		}()
 	}
@@ -193,7 +192,7 @@ func (h *Handlers) LikePost(c *gin.Context) {
 	if h.gorse != nil {
 		go func() {
 			if err := h.gorse.SyncFeedback(userID, req.ActivityID, "like"); err != nil {
-				fmt.Printf("Warning: Failed to sync like to Gorse: %v\n", err)
+				logger.Log.Warn("Failed to sync like to Gorse", zap.Error(err), zap.String("user_id", userID), zap.String("activity_id", req.ActivityID))
 			}
 		}()
 	}
@@ -451,7 +450,7 @@ func (h *Handlers) GetMyProfile(c *gin.Context) {
 		var err error
 		followStats, err = h.stream.GetFollowStats(currentUser.StreamUserID)
 		if err != nil {
-			log.Printf("GetMyProfile: Failed to get follow stats from Stream.io (using DB fallback): %v", err)
+			logger.Log.Debug("Failed to get follow stats from Stream.io, using DB fallback", zap.Error(err), zap.String("stream_user_id", currentUser.StreamUserID))
 		}
 	}
 
@@ -657,7 +656,7 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 				"created_at":     currentUser.CreatedAt,
 			}
 			if err := h.search.IndexUser(context.Background(), currentUser.ID, userDoc); err != nil {
-				fmt.Printf("Warning: Failed to update user in Elasticsearch: %v\n", err)
+				logger.Log.Warn("Failed to update user in Elasticsearch", zap.Error(err), zap.String("user_id", currentUser.ID))
 			}
 		}()
 	}
@@ -669,11 +668,11 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 			userID := currentUser.ID
 			// Sync user (for recommendation preferences like genre, DAW)
 			if err := h.gorse.SyncUser(userID); err != nil {
-				fmt.Printf("Warning: Failed to sync user %s to Gorse: %v\n", userID, err)
+				logger.Log.Warn("Failed to sync user to Gorse", zap.Error(err), zap.String("user_id", userID))
 			}
 			// Sync user-as-item (for follow recommendations - privacy, follower count, etc.)
 			if err := h.gorse.SyncUserAsItem(userID); err != nil {
-				fmt.Printf("Warning: Failed to sync user-as-item %s to Gorse: %v\n", userID, err)
+				logger.Log.Warn("Failed to sync user-as-item to Gorse", zap.Error(err), zap.String("user_id", userID))
 			}
 		}()
 	}
@@ -792,7 +791,7 @@ func (h *Handlers) ChangeUsername(c *gin.Context) {
 				"created_at":     currentUser.CreatedAt,
 			}
 			if err := h.search.IndexUser(context.Background(), currentUser.ID, userDoc); err != nil {
-				fmt.Printf("Warning: Failed to update username in Elasticsearch: %v\n", err)
+				logger.Log.Warn("Failed to update username in Elasticsearch", zap.Error(err), zap.String("user_id", currentUser.ID))
 			}
 		}()
 	}
@@ -996,11 +995,11 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 		var err error
 		isFollowingUser, err = h.stream.CheckIsFollowing(currentUserID, user.StreamUserID)
 		if err != nil {
-			log.Printf("GetUserPosts: Failed to check follow status from Stream.io: %v", err)
+			logger.Log.Debug("Failed to check follow status from Stream.io", zap.Error(err), zap.String("current_user_id", currentUserID), zap.String("target_user_id", user.ID))
 		}
-		log.Printf("GetUserPosts: currentUserID=%s, targetUserID=%s, isFollowing=%v", currentUserID, user.ID, isFollowingUser)
+		logger.Log.Debug("Follow status check completed", zap.String("current_user_id", currentUserID), zap.String("target_user_id", user.ID), zap.Bool("is_following", isFollowingUser))
 	} else {
-		log.Printf("GetUserPosts: Skipping follow check - currentUserID=%s, targetUserID=%s, ownProfile=%v", currentUserID, user.ID, currentUserID == user.ID)
+		logger.Log.Debug("Skipping follow check", zap.String("current_user_id", currentUserID), zap.String("target_user_id", user.ID), zap.Bool("own_profile", currentUserID == user.ID))
 	}
 
 	// Get enriched activities from Stream.io
@@ -1008,12 +1007,12 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 	activities, err := h.stream.GetEnrichedUserFeed(user.ID, limit, offset)
 	if err != nil {
 		// Log the error but try database fallback
-		log.Printf("Stream.io GetEnrichedUserFeed error (will try DB fallback): %v", err)
+		logger.Log.Debug("Stream.io GetEnrichedUserFeed error, will try DB fallback", zap.Error(err), zap.String("user_id", user.ID))
 	}
 
 	// If Stream.io returns empty or errored, fall back to database
 	if len(activities) == 0 {
-		log.Printf("GetUserPosts: Using database fallback (Stream.io returned %d activities, err=%v)", len(activities), err)
+		logger.Log.Debug("Using database fallback", zap.Int("stream_activities_count", len(activities)), zap.Error(err), zap.String("user_id", user.ID))
 		var audioPosts []models.AudioPost
 		if err := database.DB.
 			Where("user_id = ? AND is_public = ? AND is_archived = ?", user.ID, true, false).
@@ -1080,7 +1079,7 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 			}
 		}
 
-		log.Printf("GetUserPosts: Returning %d posts from database with is_following=%v", len(dbPosts), isFollowingUser)
+		logger.Log.Debug("Returning posts from database", zap.Int("post_count", len(dbPosts)), zap.Bool("is_following", isFollowingUser))
 		c.JSON(http.StatusOK, gin.H{
 			"posts": dbPosts,
 			"user": gin.H{
@@ -1107,7 +1106,7 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 
 	// Enrich activities with is_following state and user avatar
 	// All posts from Stream.io are by the same user (profile owner), so apply to all
-	log.Printf("GetUserPosts: Enriching %d activities from Stream.io with is_following=%v", len(activities), isFollowingUser)
+	logger.Log.Debug("Enriching activities from Stream.io", zap.Int("activity_count", len(activities)), zap.Bool("is_following", isFollowingUser))
 	enrichedActivities := make([]gin.H, 0, len(activities))
 	for i, activity := range activities {
 		// Convert EnrichedActivity to map using JSON marshal/unmarshal
@@ -1115,11 +1114,11 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 		var activityMap map[string]interface{}
 		activityBytes, err := json.Marshal(activity)
 		if err != nil {
-			log.Printf("GetUserPosts: Failed to marshal activity %d: %v", i, err)
+			logger.Log.Debug("Failed to marshal activity", zap.Int("activity_index", i), zap.Error(err))
 			continue
 		}
 		if err := json.Unmarshal(activityBytes, &activityMap); err != nil {
-			log.Printf("GetUserPosts: Failed to unmarshal activity %d: %v", i, err)
+			logger.Log.Debug("Failed to unmarshal activity", zap.Int("activity_index", i), zap.Error(err))
 			continue
 		}
 
@@ -1135,7 +1134,7 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 		enrichedActivities = append(enrichedActivities, activityMap)
 	}
 
-	log.Printf("GetUserPosts: Returning %d posts with is_following=%v", len(enrichedActivities), isFollowingUser)
+	logger.Log.Debug("Returning posts from Stream.io", zap.Int("post_count", len(enrichedActivities)), zap.Bool("is_following", isFollowingUser))
 
 	c.JSON(http.StatusOK, gin.H{
 		"posts": enrichedActivities,
@@ -1245,7 +1244,7 @@ func (h *Handlers) FollowUserByID(c *gin.Context) {
 	if h.gorse != nil {
 		go func() {
 			if err := h.gorse.SyncFollowEvent(currentUser.ID, targetUser.ID); err != nil {
-				log.Printf("Warning: failed to sync follow to Gorse: %v", err)
+				logger.Log.Warn("Failed to sync follow to Gorse", zap.Error(err), zap.String("user_id", currentUser.ID), zap.String("target_user_id", targetUser.ID))
 			}
 		}()
 	}
@@ -1286,7 +1285,7 @@ func (h *Handlers) UnfollowUserByID(c *gin.Context) {
 	if h.gorse != nil {
 		go func() {
 			if err := h.gorse.RemoveFollowEvent(currentUser.ID, targetUser.ID); err != nil {
-				log.Printf("Warning: failed to remove follow from Gorse: %v", err)
+				logger.Log.Warn("Failed to remove follow from Gorse", zap.Error(err), zap.String("user_id", currentUser.ID), zap.String("target_user_id", targetUser.ID))
 			}
 		}()
 	}

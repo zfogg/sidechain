@@ -8,9 +8,11 @@ import (
 
 	chat "github.com/GetStream/stream-chat-go/v5"
 	"github.com/brianvoe/gofakeit/v7"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/recommendations"
 	"github.com/zfogg/sidechain/backend/internal/stream"
+	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -43,7 +45,7 @@ func (s *Seeder) SetStreamClient(sc *stream.Client) {
 // Now creates 10x more data for better recommendation testing
 func (s *Seeder) SeedDev() error {
 	log := func(msg string) {
-		fmt.Printf("  %s\n", msg)
+		logger.Log.Info(msg)
 	}
 
 	log("Creating users...")
@@ -91,7 +93,7 @@ func (s *Seeder) SeedDev() error {
 			return fmt.Errorf("failed to seed conversations: %w", err)
 		}
 	} else {
-		log("⚠️  Stream.io client not configured - skipping conversation seeding")
+		log("Stream.io client not configured - skipping conversation seeding")
 	}
 
 	// Sync to Gorse if client is available
@@ -101,7 +103,7 @@ func (s *Seeder) SeedDev() error {
 			return fmt.Errorf("failed to sync to Gorse: %w", err)
 		}
 	} else {
-		log("⚠️  Gorse client not configured - skipping recommendation sync")
+		log("Gorse client not configured - skipping recommendation sync")
 	}
 
 	return nil
@@ -110,7 +112,7 @@ func (s *Seeder) SeedDev() error {
 // SeedTest seeds the test database with minimal data
 func (s *Seeder) SeedTest() error {
 	log := func(msg string) {
-		fmt.Printf("  %s\n", msg)
+		logger.Log.Info(msg)
 	}
 
 	log("Creating test users...")
@@ -165,7 +167,9 @@ func (s *Seeder) SeedTest() error {
 		// Create Stream.io user if client is available
 		if s.streamClient != nil {
 			if err := s.streamClient.CreateUser(user.ID, user.Username); err != nil {
-				fmt.Printf("    ⚠️  Failed to create Stream.io user for %s: %v\n", spec.username, err)
+				logger.Log.Warn("Failed to create Stream.io user",
+					zap.String("username", spec.username),
+					zap.Error(err))
 			} else {
 				// Sync user profile data to Stream.io
 				customData := make(map[string]interface{})
@@ -176,7 +180,9 @@ func (s *Seeder) SeedTest() error {
 				customData["daw_preference"] = user.DAWPreference
 
 				if err := s.streamClient.UpdateUserProfile(user.ID, user.Username, customData); err != nil {
-					fmt.Printf("    ⚠️  Failed to sync profile data to Stream.io for %s: %v\n", spec.username, err)
+					logger.Log.Warn("Failed to sync profile data to Stream.io",
+						zap.String("username", spec.username),
+						zap.Error(err))
 				}
 			}
 		}
@@ -203,7 +209,7 @@ func (s *Seeder) SeedTest() error {
 	if s.streamClient != nil {
 		log("Creating test conversations in getstream.io...")
 		if err := s.seedConversations(users); err != nil {
-			log(fmt.Sprintf("⚠️  Failed to seed test conversations: %v", err))
+			logger.Log.Warn("Failed to seed test conversations", zap.Error(err))
 			// Don't fail the entire seed process if conversations fail
 		}
 	}
@@ -261,7 +267,9 @@ func (s *Seeder) seedUsers(count int) ([]models.User, error) {
 		if err := s.db.Find(&users).Error; err != nil {
 			return nil, err
 		}
-		fmt.Printf("    Found %d existing users (including %d seed users), skipping creation\n", len(users), seedUserCount)
+		logger.Log.Info("Found existing users, skipping creation",
+			zap.Int("total_users", len(users)),
+			zap.Int64("seed_users", seedUserCount))
 		return users, nil
 	}
 
@@ -337,7 +345,9 @@ func (s *Seeder) seedUsers(count int) ([]models.User, error) {
 
 			if err := s.streamClient.UpdateUserProfile(user.ID, user.Username, customData); err != nil {
 				// Log but don't fail - Stream.io might not be configured
-				fmt.Printf("    ⚠️  Failed to sync profile data to Stream.io for %s: %v\n", user.Username, err)
+				logger.Log.Warn("Failed to sync profile data to Stream.io",
+					zap.String("username", user.Username),
+					zap.Error(err))
 			}
 		}
 
@@ -347,7 +357,9 @@ func (s *Seeder) seedUsers(count int) ([]models.User, error) {
 	// Include existing (non-seed) users in the return list for post assignment
 	users = append(users, existingUsers...)
 
-	fmt.Printf("    Created %d new seed users, total %d users available\n", count, len(users))
+	logger.Log.Info("Created new seed users",
+		zap.Int("new_users", count),
+		zap.Int("total_users", len(users)))
 	return users, nil
 }
 
@@ -447,7 +459,9 @@ func (s *Seeder) seedAudioPosts(users []models.User, count int) ([]models.AudioP
 			}
 			if err := s.streamClient.CreateLoopActivity(user.ID, activity); err != nil {
 				// Log but don't fail - Stream.io might not be configured in test environment
-				fmt.Printf("    ⚠️  Failed to create Stream.io activity for post %s: %v\n", post.ID, err)
+				logger.Log.Warn("Failed to create Stream.io activity for post",
+					zap.String("post_id", post.ID),
+					zap.Error(err))
 			} else {
 				// Update post with Stream activity ID
 				post.StreamActivityID = activity.ID
@@ -487,7 +501,9 @@ func (s *Seeder) seedAudioPosts(users []models.User, count int) ([]models.AudioP
 		}
 	}
 
-	fmt.Printf("    Created %d audio posts across %d users\n", len(posts), len(users))
+	logger.Log.Info("Created audio posts",
+		zap.Int("post_count", len(posts)),
+		zap.Int("user_count", len(users)))
 	return posts, nil
 }
 
@@ -579,7 +595,9 @@ func (s *Seeder) seedAudioPostsWithVariedDistribution(users []models.User, total
 			}
 			if err := s.streamClient.CreateLoopActivity(user.ID, activity); err != nil {
 				// Log but don't fail - Stream.io might not be configured in test environment
-				fmt.Printf("    ⚠️  Failed to create Stream.io activity for post %s: %v\n", post.ID, err)
+				logger.Log.Warn("Failed to create Stream.io activity for post",
+					zap.String("post_id", post.ID),
+					zap.Error(err))
 			} else {
 				// Update post with Stream activity ID
 				post.StreamActivityID = activity.ID
@@ -674,11 +692,9 @@ func (s *Seeder) seedAudioPostsWithVariedDistribution(users []models.User, total
 		postsCreated++
 	}
 
-	fmt.Printf("    Created %d audio posts with varied distribution:\n", len(posts))
-	fmt.Printf("      - Power users (10%%): ~20-50 posts each\n")
-	fmt.Printf("      - Active users (30%%): ~5-15 posts each\n")
-	fmt.Printf("      - Moderate users (40%%): ~2-5 posts each\n")
-	fmt.Printf("      - Lurkers (20%%): ~0-2 posts each\n")
+	logger.Log.Info("Created audio posts with varied distribution",
+		zap.Int("total_posts", len(posts)),
+		zap.String("distribution", "Power users (10%): ~20-50 posts, Active (30%): ~5-15 posts, Moderate (40%): ~2-5 posts, Lurkers (20%): ~0-2 posts"))
 	return posts, nil
 }
 
@@ -740,7 +756,7 @@ func (s *Seeder) seedComments(users []models.User, posts []models.AudioPost, cou
 		s.db.Model(&post).Update("comment_count", gorm.Expr("comment_count + 1"))
 	}
 
-	fmt.Printf("    Created %d comments\n", count)
+	logger.Log.Info("Created comments", zap.Int("count", count))
 	return nil
 }
 
@@ -807,7 +823,7 @@ func (s *Seeder) seedHashtags(posts []models.AudioPost) error {
 		}
 	}
 
-	fmt.Printf("    Created and linked hashtags\n")
+	logger.Log.Info("Created and linked hashtags")
 	return nil
 }
 
@@ -844,7 +860,7 @@ func (s *Seeder) seedPlayHistory(users []models.User, posts []models.AudioPost, 
 		s.db.Model(&post).Update("play_count", gorm.Expr("play_count + 1"))
 	}
 
-	fmt.Printf("    Created %d play history records\n", count)
+	logger.Log.Info("Created play history records", zap.Int("count", count))
 	return nil
 }
 
@@ -917,7 +933,7 @@ func (s *Seeder) seedUserPreferences(users []models.User) error {
 		}
 	}
 
-	fmt.Printf("    Created user preferences\n")
+	logger.Log.Info("Created user preferences")
 	return nil
 }
 
@@ -954,7 +970,7 @@ func (s *Seeder) seedDevices(users []models.User, count int) error {
 		}
 	}
 
-	fmt.Printf("    Created %d devices\n", count)
+	logger.Log.Info("Created devices", zap.Int("count", count))
 	return nil
 }
 */
@@ -1088,7 +1104,10 @@ func (s *Seeder) seedConversations(users []models.User) error {
 		groupCreated++
 	}
 
-	fmt.Printf("    Created %d direct conversations and %d group conversations (failed: %d)\n", dmCreated, groupCreated, failed)
+	logger.Log.Info("Created conversations",
+		zap.Int("direct_conversations", dmCreated),
+		zap.Int("group_conversations", groupCreated),
+		zap.Int("failed", failed))
 	return nil
 }
 
@@ -1117,19 +1136,23 @@ func (s *Seeder) syncToGorse(users []models.User, posts []models.AudioPost) erro
 	}
 
 	// Sync users
-	fmt.Printf("      Syncing %d users to Gorse...\n", len(users))
+	logger.Log.Info("Syncing users to Gorse", zap.Int("user_count", len(users)))
 	for _, user := range users {
 		if err := s.gorse.SyncUser(user.ID); err != nil {
-			fmt.Printf("      ⚠️  Failed to sync user %s: %v\n", user.ID, err)
+			logger.Log.Warn("Failed to sync user to Gorse",
+				zap.String("user_id", user.ID),
+				zap.Error(err))
 			// Continue syncing others even if one fails
 		}
 	}
 
 	// Sync posts (items)
-	fmt.Printf("      Syncing %d posts to Gorse...\n", len(posts))
+	logger.Log.Info("Syncing posts to Gorse", zap.Int("post_count", len(posts)))
 	for _, post := range posts {
 		if err := s.gorse.SyncItem(post.ID); err != nil {
-			fmt.Printf("      ⚠️  Failed to sync post %s: %v\n", post.ID, err)
+			logger.Log.Warn("Failed to sync post to Gorse",
+				zap.String("post_id", post.ID),
+				zap.Error(err))
 			// Continue syncing others even if one fails
 		}
 	}
@@ -1140,7 +1163,7 @@ func (s *Seeder) syncToGorse(users []models.User, posts []models.AudioPost) erro
 		return fmt.Errorf("failed to fetch play history: %w", err)
 	}
 
-	fmt.Printf("      Syncing %d feedback events to Gorse...\n", len(playHistory))
+	logger.Log.Info("Syncing feedback events to Gorse", zap.Int("event_count", len(playHistory)))
 	for _, play := range playHistory {
 		feedbackType := "view"
 		if play.Completed {
@@ -1148,7 +1171,10 @@ func (s *Seeder) syncToGorse(users []models.User, posts []models.AudioPost) erro
 		}
 
 		if err := s.gorse.SyncFeedback(play.UserID, play.PostID, feedbackType); err != nil {
-			fmt.Printf("      ⚠️  Failed to sync feedback for user %s, post %s: %v\n", play.UserID, play.PostID, err)
+			logger.Log.Warn("Failed to sync feedback to Gorse",
+				zap.String("user_id", play.UserID),
+				zap.String("post_id", play.PostID),
+				zap.Error(err))
 			// Continue syncing others even if one fails
 		}
 	}
@@ -1157,7 +1183,7 @@ func (s *Seeder) syncToGorse(users []models.User, posts []models.AudioPost) erro
 	// Find all posts with like_count > 0 and create like feedback
 	// Note: In production, we'd track individual likes in a separate table
 	// For seed data, we'll create synthetic like feedback based on like_count
-	fmt.Printf("      Generating like feedback from post engagement...\n")
+	logger.Log.Info("Generating like feedback from post engagement")
 	likeCount := 0
 	for _, post := range posts {
 		if post.LikeCount > 0 {
@@ -1183,11 +1209,12 @@ func (s *Seeder) syncToGorse(users []models.User, posts []models.AudioPost) erro
 			}
 		}
 	}
-	fmt.Printf("      Generated %d like feedback events\n", likeCount)
+	logger.Log.Info("Generated like feedback events", zap.Int("count", likeCount))
 
-	fmt.Printf("    ✅ Gorse sync complete!\n")
-	fmt.Printf("    📊 Summary: %d users, %d posts, %d+ feedback events\n",
-		len(users), len(posts), len(playHistory)+likeCount)
+	logger.Log.Info("Gorse sync complete",
+		zap.Int("users", len(users)),
+		zap.Int("posts", len(posts)),
+		zap.Int("feedback_events", len(playHistory)+likeCount))
 
 	return nil
 }
