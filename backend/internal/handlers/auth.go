@@ -58,9 +58,13 @@ type AuthHandlers struct {
 func NewAuthHandlers(authService *auth.Service, uploader storage.ProfilePictureUploader, streamClient *stream.Client) *AuthHandlers {
 	var jwtSecret []byte
 	if authService != nil {
-		// Extract JWT secret from auth service if possible
-		// For now, we'll need to pass it separately or extract from env
-		jwtSecret = []byte("default-secret") // This should come from config
+		// Load JWT secret from environment variable
+		secret := os.Getenv("JWT_SECRET")
+		if secret == "" {
+			// Fatal error if JWT secret is not configured
+			logger.Log.Fatal("JWT_SECRET environment variable is not set - authentication will fail")
+		}
+		jwtSecret = []byte(secret)
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	ah := &AuthHandlers{

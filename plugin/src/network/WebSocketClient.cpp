@@ -17,7 +17,9 @@ WebSocketClient::~WebSocketClient() {
 
 // ==============================================================================
 void WebSocketClient::connect() {
-  if (state.load() == ConnectionState::Connected || state.load() == ConnectionState::Connecting) {
+  // Load state once to avoid race condition (TOCTOU between multiple load() calls)
+  auto currentState = state.load();
+  if (currentState == ConnectionState::Connected || currentState == ConnectionState::Connecting) {
     Log::debug("WebSocket: Already connected or connecting");
     return;
   }
@@ -86,7 +88,10 @@ void WebSocketClient::setConfig(const Config &newConfig) {
 bool WebSocketClient::send(const juce::var &message) {
   juce::String json = juce::JSON::toString(message);
 
-  if (state.load() != ConnectionState::Connected || !connectionActive.load()) {
+  // Load state once to avoid race condition between state and connectionActive checks
+  auto currentState = state.load();
+  auto isConnectionActive = connectionActive.load();
+  if (currentState != ConnectionState::Connected || !isConnectionActive) {
     queueMessage(message);
     Log::debug("WebSocket: Message queued (not connected)");
     return false;
@@ -294,11 +299,14 @@ void WebSocketClient::attemptConnection() {
       wait(100);
       waited += 100;
 
-      if (state.load() == ConnectionState::Connected) {
+      // Load state once to avoid race condition between multiple load() calls
+      auto currentState = state.load();
+      auto isConnectionActive = connectionActive.load();
+      if (currentState == ConnectionState::Connected) {
         // Connection successful, enter heartbeat/maintenance loop
         connectionLoop();
         return;
-      } else if (state.load() == ConnectionState::Disconnected && !connectionActive.load()) {
+      } else if (currentState == ConnectionState::Disconnected && !isConnectionActive) {
         // Connection failed, will reconnect
         return;
       }

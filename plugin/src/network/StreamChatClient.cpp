@@ -71,7 +71,7 @@ void StreamChatClient::setToken(const juce::String &token, const juce::String &k
 
   // Build WebSocket URL:
   // wss://chat.stream-io-api.com/?api_key={key}&authorization={token}&user_id={userId}
-  wsUrl = "wss:// chat.stream-io-api.com/?api_key=" + apiKey + "&authorization=" + token + "&user_id=" + userId;
+  wsUrl = "wss://chat.stream-io-api.com/?api_key=" + apiKey + "&authorization=" + token + "&user_id=" + userId;
 
   Log::info("StreamChatClient token set for user: " + userId + ", API key configured");
 }
