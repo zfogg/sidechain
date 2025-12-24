@@ -7,9 +7,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/stream"
 	"github.com/zfogg/sidechain/backend/internal/util"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -229,8 +231,13 @@ func (h *Handlers) CreateRemixPost(c *gin.Context) {
 	}
 
 	if err := h.stream.CreateLoopActivity(userID, activity); err != nil {
-		// Log but don't fail - post is already created
-		// TODO: Queue for retry
+		// Log error but don't fail - post is already created
+		// TODO: Queue failed activity for retry using work queue (Redis/database)
+		logger.Log.Error("Failed to create remix activity, post created but feed won't show activity",
+			zap.String("user_id", userID),
+			zap.String("post_id", postID),
+			zap.Error(err),
+		)
 	}
 
 	c.JSON(http.StatusCreated, gin.H{

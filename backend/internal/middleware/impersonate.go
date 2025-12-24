@@ -5,7 +5,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
+	"go.uber.org/zap"
 )
 
 // AdminImpersonationMiddleware checks if an admin is trying to impersonate another user
@@ -62,8 +64,14 @@ func AdminImpersonationMiddleware() gin.HandlerFunc {
 		c.Set("is_admin", impersonatedUser.IsAdmin)
 
 		// Log impersonation for audit trail
-		// TODO: Implement audit logging for admin actions
-		// logger.Info("Admin impersonation", "admin_id", authenticatedUserID, "impersonated_user_id", impersonatedUser.ID)
+		logger.Log.Info("Admin impersonation initiated",
+			zap.String("admin_id", authenticatedUserID.(string)),
+			zap.String("admin_email", authenticatedUser.Email),
+			zap.String("impersonated_user_id", impersonatedUser.ID),
+			zap.String("impersonated_user_email", impersonatedUser.Email),
+			zap.String("request_method", c.Request.Method),
+			zap.String("request_path", c.Request.URL.Path),
+		)
 
 		c.Next()
 	}

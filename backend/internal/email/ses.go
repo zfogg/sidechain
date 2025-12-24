@@ -3,6 +3,7 @@ package email
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -20,7 +21,10 @@ type EmailService struct {
 
 // NewEmailService creates a new email service using AWS SES
 func NewEmailService(region, fromEmail, fromName, baseURL string) (*EmailService, error) {
-	cfg, err := config.LoadDefaultConfig(context.TODO(),
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	cfg, err := config.LoadDefaultConfig(ctx,
 		config.WithRegion(region),
 	)
 	if err != nil {
