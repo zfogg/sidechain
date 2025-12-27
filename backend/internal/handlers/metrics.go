@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -57,7 +58,9 @@ func (h *Handlers) TrackPostClick(c *gin.Context) {
 	// Optionally sync to Gorse as feedback if user is authenticated
 	if userID != "" && h.gorse != nil {
 		go func() {
-			if err := h.gorse.SyncFeedback(userID, postID, "click"); err != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := h.gorse.SyncFeedbackWithContext(ctx, userID, postID, "click"); err != nil {
 				logger.Warn("Failed to sync click to Gorse", zap.Error(err))
 			}
 		}()

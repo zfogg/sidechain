@@ -784,6 +784,11 @@ juce::String StreamChatClient::generateDirectChannelId(const juce::String &userI
 
   // Shorten the combined ID to stay under 64 character limit for stream.io
   // Take first 30 chars from each user ID, separated by underscore
+  if (ids.size() < 2) {
+    Log::error("StreamChatClient: Not enough user IDs to create channel (got " + juce::String(ids.size()) + ")");
+    return "";
+  }
+
   juce::String id1 = ids[0].substring(0, 30);
   juce::String id2 = ids[1].substring(0, 30);
   juce::String channelId = id1 + "_" + id2;

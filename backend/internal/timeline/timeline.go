@@ -465,19 +465,19 @@ func abs(x float64) float64 {
 	return x
 }
 
-// SyncUserToGorse syncs a user to Gorse for recommendations
-func (s *Service) SyncUserToGorse(userID string) error {
-	return s.gorseClient.SyncUser(userID)
+// SyncUserToGorseWithContext syncs a user to Gorse for recommendations with context
+func (s *Service) SyncUserToGorseWithContext(ctx context.Context, userID string) error {
+	return s.gorseClient.SyncUserWithContext(ctx, userID)
 }
 
-// SyncPostToGorse syncs a post to Gorse for recommendations
-func (s *Service) SyncPostToGorse(postID string) error {
-	return s.gorseClient.SyncItem(postID)
+// SyncPostToGorseWithContext syncs a post to Gorse for recommendations with context
+func (s *Service) SyncPostToGorseWithContext(ctx context.Context, postID string) error {
+	return s.gorseClient.SyncItemWithContext(ctx, postID)
 }
 
-// RecordInteraction records a user interaction with a post to Gorse
-func (s *Service) RecordInteraction(userID, postID, interactionType string) error {
-	return s.gorseClient.SyncFeedback(userID, postID, interactionType)
+// RecordInteractionWithContext records a user interaction with a post to Gorse with context
+func (s *Service) RecordInteractionWithContext(ctx context.Context, userID, postID, interactionType string) error {
+	return s.gorseClient.SyncFeedbackWithContext(ctx, userID, postID, interactionType)
 }
 
 // getMutedUserIDs returns the IDs of users that the given user has muted

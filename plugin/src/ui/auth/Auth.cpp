@@ -924,9 +924,11 @@ void Auth::handleLogin() {
   if (!validationResult.isValid()) {
     // Show first validation error
     auto errors = validationResult.getErrors();
-    if (errors.size() > 0) {
-      auto firstKey = errors.getAllKeys()[0];
-      auto firstError = errors.getAllValues()[0];
+    auto keys = errors.getAllKeys();
+    auto values = errors.getAllValues();
+    if (errors.size() > 0 && keys.size() > 0 && values.size() > 0) {
+      auto firstKey = keys[0];
+      auto firstError = values[0];
 
       Log::warn("Auth: Login validation failed - " + firstKey + ": " + firstError);
 
@@ -1166,9 +1168,11 @@ void Auth::handleSignup() {
   if (!validationResult.isValid()) {
     // Show first validation error
     auto errors = validationResult.getErrors();
-    if (errors.size() > 0) {
-      auto firstKey = errors.getAllKeys()[0];
-      auto firstError = errors.getAllValues()[0];
+    auto keys = errors.getAllKeys();
+    auto values = errors.getAllValues();
+    if (errors.size() > 0 && keys.size() > 0 && values.size() > 0) {
+      auto firstKey = keys[0];
+      auto firstError = values[0];
 
       Log::warn("Auth: Signup validation failed - " + firstKey + ": " + firstError);
 

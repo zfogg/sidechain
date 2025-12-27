@@ -111,8 +111,8 @@ func (c *GorseRESTClient) makeRequest(ctx context.Context, method, endpoint stri
 	return resp, nil
 }
 
-// SyncUser syncs a user to Gorse
-func (c *GorseRESTClient) SyncUser(userID string) error {
+// SyncUserWithContext syncs a user to Gorse with request context
+func (c *GorseRESTClient) SyncUserWithContext(ctx context.Context, userID string) error {
 	var user models.User
 	if err := c.db.First(&user, "id = ?", userID).Error; err != nil {
 		return fmt.Errorf("user not found: %w", err)
@@ -130,15 +130,15 @@ func (c *GorseRESTClient) SyncUser(userID string) error {
 		Comment: fmt.Sprintf("%s - %s", user.Username, user.DisplayName),
 	}
 
-	resp, err := c.makeRequest(context.Background(), "POST", "/api/user", gorseUser)
+	resp, err := c.makeRequest(ctx, "POST", "/api/user", gorseUser)
 	if resp != nil {
 		resp.Body.Close()
 	}
 	return err
 }
 
-// SyncItem syncs a post (item) to Gorse
-func (c *GorseRESTClient) SyncItem(postID string) error {
+// SyncItemWithContext syncs a post (item) to Gorse with request context
+func (c *GorseRESTClient) SyncItemWithContext(ctx context.Context, postID string) error {
 	var post models.AudioPost
 	if err := c.db.Preload("User").First(&post, "id = ?", postID).Error; err != nil {
 		return fmt.Errorf("post not found: %w", err)
@@ -174,15 +174,15 @@ func (c *GorseRESTClient) SyncItem(postID string) error {
 		Comment:    fmt.Sprintf("%s - %s", post.User.Username, post.DAW),
 	}
 
-	resp, err := c.makeRequest(context.Background(), "POST", "/api/item", gorseItem)
+	resp, err := c.makeRequest(ctx, "POST", "/api/item", gorseItem)
 	if resp != nil {
 		resp.Body.Close()
 	}
 	return err
 }
 
-// SyncFeedback syncs user interactions to Gorse
-func (c *GorseRESTClient) SyncFeedback(userID, postID, feedbackType string) error {
+// SyncFeedbackWithContext syncs user interactions to Gorse with request context
+func (c *GorseRESTClient) SyncFeedbackWithContext(ctx context.Context, userID, postID, feedbackType string) error {
 	feedback := []GorseFeedback{
 		{
 			FeedbackType: feedbackType,
@@ -192,20 +192,20 @@ func (c *GorseRESTClient) SyncFeedback(userID, postID, feedbackType string) erro
 		},
 	}
 
-	resp, err := c.makeRequest(context.Background(), "POST", "/api/feedback", feedback)
+	resp, err := c.makeRequest(ctx, "POST", "/api/feedback", feedback)
 	if resp != nil {
 		resp.Body.Close()
 	}
 	return err
 }
 
-// GetForYouFeed returns personalized recommendations for a user
-func (c *GorseRESTClient) GetForYouFeed(userID string, limit, offset int) ([]PostScore, error) {
+// GetForYouFeedWithContext returns personalized recommendations for a user with request context
+func (c *GorseRESTClient) GetForYouFeedWithContext(ctx context.Context, userID string, limit, offset int) ([]PostScore, error) {
 	// Gorse GetRecommend endpoint: GET /api/recommend/{user-id}?n={n}
 	// Note: Gorse doesn't support offset parameter, so we fetch more and slice
 	totalLimit := limit + offset
 	endpoint := fmt.Sprintf("/api/recommend/%s?n=%d", userID, totalLimit)
-	resp, err := c.makeRequest(context.Background(), "GET", endpoint, nil)
+	resp, err := c.makeRequest(ctx, "GET", endpoint, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get recommendations: %w", err)
 	}
@@ -258,11 +258,11 @@ func (c *GorseRESTClient) GetForYouFeed(userID string, limit, offset int) ([]Pos
 	return scores, nil
 }
 
-// GetSimilarPosts returns posts similar to a given post
-func (c *GorseRESTClient) GetSimilarPosts(postID string, limit int) ([]models.AudioPost, error) {
+// GetSimilarPostsWithContext returns posts similar to a given post with request context
+func (c *GorseRESTClient) GetSimilarPostsWithContext(ctx context.Context, postID string, limit int) ([]models.AudioPost, error) {
 	// Gorse GetNeighbors endpoint: GET /api/item/{item-id}/neighbors?n={n}
 	endpoint := fmt.Sprintf("/api/item/%s/neighbors?n=%d", postID, limit)
-	resp, err := c.makeRequest(context.Background(), "GET", endpoint, nil)
+	resp, err := c.makeRequest(ctx, "GET", endpoint, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get similar posts: %w", err)
 	}
@@ -295,11 +295,11 @@ func (c *GorseRESTClient) GetSimilarPosts(postID string, limit int) ([]models.Au
 	return posts, nil
 }
 
-// GetSimilarUsers returns users with similar taste
-func (c *GorseRESTClient) GetSimilarUsers(userID string, limit int) ([]models.User, error) {
+// GetSimilarUsersWithContext returns users with similar taste with request context
+func (c *GorseRESTClient) GetSimilarUsersWithContext(ctx context.Context, userID string, limit int) ([]models.User, error) {
 	// Use Gorse's user neighbors endpoint: GET /api/user/{user-id}/neighbors?n={n}
 	endpoint := fmt.Sprintf("/api/user/%s/neighbors?n=%d", userID, limit)
-	resp, err := c.makeRequest(context.Background(), "GET", endpoint, nil)
+	resp, err := c.makeRequest(ctx, "GET", endpoint, nil)
 	if err != nil {
 		// If user has no neighbors, return empty
 		return []models.User{}, nil

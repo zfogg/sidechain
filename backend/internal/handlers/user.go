@@ -190,7 +190,9 @@ func (h *Handlers) LikePost(c *gin.Context) {
 	// Real-time Gorse feedback sync
 	if h.gorse != nil {
 		go func() {
-			if err := h.gorse.SyncFeedback(userID, req.ActivityID, "like"); err != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := h.gorse.SyncFeedbackWithContext(ctx, userID, req.ActivityID, "like"); err != nil {
 				logger.Log.Warn("Failed to sync like to Gorse", zap.Error(err), zap.String("user_id", userID), zap.String("activity_id", req.ActivityID))
 			}
 		}()
@@ -664,9 +666,11 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 	// This updates recommendation preferences and user-as-item for follow recommendations
 	if h.gorse != nil {
 		go func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
 			userID := currentUser.ID
 			// Sync user (for recommendation preferences like genre, DAW)
-			if err := h.gorse.SyncUser(userID); err != nil {
+			if err := h.gorse.SyncUserWithContext(ctx, userID); err != nil {
 				logger.Log.Warn("Failed to sync user to Gorse", zap.Error(err), zap.String("user_id", userID))
 			}
 			// Sync user-as-item (for follow recommendations - privacy, follower count, etc.)
@@ -809,7 +813,9 @@ func (h *Handlers) ChangeUsername(c *gin.Context) {
 
 	if h.gorse != nil {
 		go func() {
-			if err := h.gorse.SyncUser(currentUser.ID); err != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := h.gorse.SyncUserWithContext(ctx, currentUser.ID); err != nil {
 				logger.WarnWithFields("Failed to sync username change to Gorse", err)
 			}
 		}()
