@@ -670,14 +670,6 @@ func (p *AudioPost) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
-// TODO: Device type is not defined - remove this hook or define Device struct
-// func (d *Device) BeforeCreate(tx *gorm.DB) error {
-// if d.ID == "" {
-// d.ID = generateUUID
-// }
-// return nil
-// }
-
 func (c *Comment) BeforeCreate(tx *gorm.DB) error {
 	if c.ID == "" {
 		c.ID = generateUUID()

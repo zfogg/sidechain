@@ -937,43 +937,6 @@ func (s *Seeder) seedUserPreferences(users []models.User) error {
 	return nil
 }
 
-// seedDevices creates device records
-// seedDevices is disabled - Device model not defined
-// TODO: Either define Device model in models package or remove this seeding function
-/*
-func (s *Seeder) seedDevices(users []models.User, count int) error {
-	if len(users) == 0 {
-		return nil
-	}
-
-	platforms := []string{"macOS", "Windows", "Linux"}
-	daws := []string{"Ableton Live", "FL Studio", "Logic Pro", "Pro Tools", "Cubase", "Studio One"}
-	dawVersions := []string{"11.0", "12.0", "13.0", "2024.1", "2024.2"}
-
-	for i := 0; i < count; i++ {
-		user := users[rand.Intn(len(users))]
-
-		device := models.Device{
-			UserID:            &user.ID,
-			DeviceFingerprint: gofakeit.UUID(),
-			Platform:          platforms[rand.Intn(len(platforms))],
-			DAW:               daws[rand.Intn(len(daws))],
-			DAWVersion:        dawVersions[rand.Intn(len(dawVersions))],
-			IsActive:          true,
-		}
-
-		lastUsed := gofakeit.DateRange(time.Now().AddDate(0, 0, -7), time.Now())
-		device.LastUsedAt = &lastUsed
-
-		if err := s.db.Create(&device).Error; err != nil {
-			return fmt.Errorf("failed to create device: %w", err)
-		}
-	}
-
-	logger.Log.Info("Created devices", zap.Int("count", count))
-	return nil
-}
-*/
 
 // seedConversations creates direct message and group conversations in getstream.io
 func (s *Seeder) seedConversations(users []models.User) error {

@@ -381,5 +381,9 @@ private:
   std::atomic<bool> synthUnlocked{false};
   std::atomic<bool> synthEnabled{false};
 
+  // Performance monitoring (audio thread, reset every 1000 calls)
+  std::atomic<int> processBlockCallCount{0};
+  std::atomic<double> processBlockTotalMs{0.0};
+
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SidechainAudioProcessor)
 };

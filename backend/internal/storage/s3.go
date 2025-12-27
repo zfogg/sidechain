@@ -34,7 +34,10 @@ type UploadResult struct {
 
 // NewS3Uploader creates a new S3 uploader
 func NewS3Uploader(region, bucket, baseURL string) (*S3Uploader, error) {
-	cfg, err := config.LoadDefaultConfig(context.TODO(),
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	cfg, err := config.LoadDefaultConfig(ctx,
 		config.WithRegion(region),
 	)
 	if err != nil {

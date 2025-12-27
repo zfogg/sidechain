@@ -235,8 +235,6 @@ void SidechainAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer, juc
   // Aggregated performance monitoring
   // Record per-block timing but only report every 1000 calls to avoid audio
   // thread blocking
-  static int processBlockCallCount = 0;
-  static double processBlockTotalMs = 0.0;
   auto processBlockStartTime = juce::Time::getMillisecondCounterHiRes();
 
   auto totalNumInputChannels = getTotalNumInputChannels();
@@ -306,16 +304,18 @@ void SidechainAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer, juc
   // Record aggregated timing
   // Only report every 1000 calls to minimize audio thread overhead
   auto processBlockElapsedMs = juce::Time::getMillisecondCounterHiRes() - processBlockStartTime;
-  processBlockTotalMs += processBlockElapsedMs;
-  processBlockCallCount++;
+  auto totalMs = processBlockTotalMs.load() + processBlockElapsedMs;
+  processBlockTotalMs.store(totalMs);
+  auto callCount = processBlockCallCount.load() + 1;
+  processBlockCallCount.store(callCount);
 
-  if (processBlockCallCount >= 1000) {
-    auto avgMs = processBlockTotalMs / processBlockCallCount;
+  if (callCount >= 1000) {
+    auto avgMs = totalMs / callCount;
     using namespace Sidechain::Util::Profiling;
     PerformanceMonitor::getInstance()->record("audio::process_block", avgMs,
                                               10.0); // Warn if > 10ms
-    processBlockCallCount = 0;
-    processBlockTotalMs = 0.0;
+    processBlockCallCount.store(0);
+    processBlockTotalMs.store(0.0);
   }
 }
 
