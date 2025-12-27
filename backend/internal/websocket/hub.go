@@ -235,21 +235,18 @@ func (h *Hub) sendToUser(userID string, message *Message) {
 		return
 	}
 
-	// Make a copy of clients under lock to avoid TOCTOU race condition
+	// BUG FIX: Hold lock throughout the send loop to prevent race condition
+	// where clients are unregistered and their send channels closed between
+	// when we check if they exist and when we send to them.
 	h.mu.RLock()
+	defer h.mu.RUnlock()
+
 	clients, ok := h.clients[userID]
 	if !ok || len(clients) == 0 {
-		h.mu.RUnlock()
 		return
 	}
 
-	clientsCopy := make([]*Client, 0, len(clients))
 	for client := range clients {
-		clientsCopy = append(clientsCopy, client)
-	}
-	h.mu.RUnlock()
-
-	for _, client := range clientsCopy {
 		select {
 		case client.send <- data:
 			h.metrics.MessagesSent.Add(1)

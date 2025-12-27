@@ -23,10 +23,13 @@
 // Check at runtime since we want to compile on older SDKs too
 static bool isWindows10OrLater() {
   // Use RtlGetVersion to get accurate version (GetVersionEx lies on Win10+)
-  using RtlGetVersionPtr = LONG(WINAPI *)(PRTL_OSVERSIONINFOW);
+  typedef LONG(WINAPI *RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
   HMODULE ntdll = GetModuleHandleW(L"ntdll.dll");
   if (ntdll) {
-    auto rtlGetVersion = reinterpret_cast<RtlGetVersionPtr>(GetProcAddress(ntdll, "RtlGetVersion"));
+    // BUG FIX: Use C-style cast instead of reinterpret_cast for Windows API
+    // function pointers. This is the standard pattern for dynamic function loading
+    // from DLLs and properly handles calling convention conversions.
+    auto rtlGetVersion = (RtlGetVersionPtr)GetProcAddress(ntdll, "RtlGetVersion");
     if (rtlGetVersion) {
       RTL_OSVERSIONINFOW osvi = {};
       osvi.dwOSVersionInfoSize = sizeof(osvi);

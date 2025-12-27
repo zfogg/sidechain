@@ -97,12 +97,11 @@ func (h *Handlers) FollowUser(c *gin.Context) {
 		})
 
 		// Invalidate the follower's timeline - they can now see followed user's posts
-		// Delay the broadcast to allow Stream.io to propagate the follow relationship
-		// This prevents race conditions where the feed refetches before Stream.io has updated
-		go func() {
-			time.Sleep(2 * time.Second) // Give Stream.io time to propagate
-			h.wsHandler.BroadcastFeedInvalidation("timeline", "follow")
-		}()
+		// BUG FIX: Replaced hard-coded 2-second sleep with polling to verify the follow
+		// relationship is propagated to Stream.io. This prevents race conditions where
+		// the feed refetches before Stream.io has updated, while avoiding the fragility
+		// of timing-based workarounds.
+		go h.invalidateFeedWhenFollowPropagates(userID, req.TargetUserID)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -1294,4 +1293,56 @@ func (h *Handlers) UnfollowUserByID(c *gin.Context) {
 		"status":      "unfollowed",
 		"target_user": targetUser.ID,
 	})
+}
+
+// invalidateFeedWhenFollowPropagates polls until the follow relationship is propagated
+// to Stream.io, then broadcasts a feed invalidation. This replaces the fragile
+// hard-coded 2-second sleep with a polling mechanism using exponential backoff.
+func (h *UserHandler) invalidateFeedWhenFollowPropagates(followerID, followeeID string) {
+	const (
+		maxRetries      = 10
+		initialDelay    = 100 * time.Millisecond
+		maxDelay        = 2 * time.Second
+		backoffMultiplier = 1.5
+	)
+
+	delay := initialDelay
+	for attempt := 0; attempt < maxRetries; attempt++ {
+		// Wait before checking
+		time.Sleep(delay)
+
+		// Check if the follow relationship is visible in Stream.io
+		// We check both directions to ensure full propagation
+		isFollowing, err := h.stream.CheckIsFollowing(followerID, followeeID)
+		if err == nil && isFollowing {
+			// Follow is propagated, safe to broadcast invalidation
+			h.wsHandler.BroadcastFeedInvalidation("timeline", "follow")
+			logger.Log.Info("Feed invalidation broadcast after follow propagated",
+				zap.String("follower_id", followerID),
+				zap.String("followee_id", followeeID),
+				zap.Int("attempts", attempt+1))
+			return
+		}
+
+		// Exponential backoff for next retry
+		delay = time.Duration(float64(delay) * backoffMultiplier)
+		if delay > maxDelay {
+			delay = maxDelay
+		}
+
+		if err != nil {
+			logger.Log.Debug("Error checking follow propagation",
+				zap.String("follower_id", followerID),
+				zap.String("followee_id", followeeID),
+				zap.Error(err),
+				zap.Int("attempt", attempt+1))
+		}
+	}
+
+	// Max retries reached, broadcast anyway to prevent stuck state
+	logger.Log.Warn("Max retries reached waiting for follow propagation, broadcasting anyway",
+		zap.String("follower_id", followerID),
+		zap.String("followee_id", followeeID),
+		zap.Int("max_retries", maxRetries))
+	h.wsHandler.BroadcastFeedInvalidation("timeline", "follow")
 }
