@@ -17,6 +17,10 @@
 #pragma comment(lib, "crypt32.lib")
 #endif
 
+#ifdef JUCE_LINUX
+#include <sys/stat.h>
+#endif
+
 namespace Sidechain {
 namespace Security {
 
@@ -313,10 +317,26 @@ bool SecureTokenStore::hasTokenWindows(const juce::String &key) {
 #ifdef JUCE_LINUX
 
 bool SecureTokenStore::saveTokenLinux(const juce::String &key, const juce::String &token) {
-  // For Linux, we use file-based storage as a fallback
-  // A full implementation would use libsecret for DBus communication
+  // WARNING: Linux uses file-based storage as this is a VST plugin limitation.
+  // Tokens are stored in the application data directory with restricted permissions.
+  // For production deployments, consider using a secure credential manager or
+  // environment-based authentication instead of file-based token storage.
+  juce::Logger::writeToLog(
+      "WARNING: Storing authentication tokens in file system (Linux fallback). "
+      "Consider using environment variables or a credential manager for production use.");
+
   auto filepath = getTokenFilePath(key);
-  return filepath.replaceWithText(token);
+  if (!filepath.replaceWithText(token))
+    return false;
+
+  // Restrict file permissions to owner read/write only (0600)
+  // This is the best we can do for file-based storage security
+#ifdef __linux__
+  const char *nativePath = filepath.getFullPathName().toRawUTF8();
+  chmod(nativePath, S_IRUSR | S_IWUSR); // 0600: owner read/write only
+#endif
+
+  return true;
 }
 
 std::optional<juce::String> SecureTokenStore::loadTokenLinux(const juce::String &key) {

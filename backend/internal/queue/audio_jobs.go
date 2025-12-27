@@ -53,7 +53,8 @@ type AudioQueue struct {
 	s3Uploader *storage.S3Uploader
 	tempDir    string
 
-	// Callback for post indexing
+	// Callback for post indexing (protected by callbackMux to prevent data races)
+	callbackMux    sync.RWMutex
 	onPostComplete func(postID string)
 
 	// For testing: channels to signal job completion
@@ -89,6 +90,8 @@ func NewAudioQueue(s3Uploader *storage.S3Uploader) *AudioQueue {
 
 // SetPostCompleteCallback sets a callback function to be called when a post processing completes
 func (q *AudioQueue) SetPostCompleteCallback(callback func(postID string)) {
+	q.callbackMux.Lock()
+	defer q.callbackMux.Unlock()
 	q.onPostComplete = callback
 }
 
@@ -265,8 +268,11 @@ func (q *AudioQueue) processJob(workerID int, job *AudioJob) {
 	logger.Log.Info("Worker completed job", zap.Int("worker_id", workerID), zap.String("job_id", job.ID), zap.Duration("elapsed", elapsed), zap.Float64("duration", processedAudio.Duration), zap.Int64("size", audioResult.Size))
 
 	// Trigger post indexing callback
-	if q.onPostComplete != nil {
-		go q.onPostComplete(job.PostID)
+	q.callbackMux.RLock()
+	callback := q.onPostComplete
+	q.callbackMux.RUnlock()
+	if callback != nil {
+		go callback(job.PostID)
 	}
 
 	q.signalCompletion(job.ID)

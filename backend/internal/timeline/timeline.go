@@ -119,12 +119,23 @@ func (s *Service) GetTimeline(ctx context.Context, userID string, limit, offset 
 		resultsChan <- sourceResult{items: items, source: "recent", err: err}
 	}()
 
-	// Collect all results
+	// Collect all results with context timeout to prevent deadlock
 	allItems := make([]TimelineItem, 0, fetchLimit*4)
 	var followingCount, gorseCount, trendingCount, recentCount int
 
 	for i := 0; i < 4; i++ {
-		result := <-resultsChan
+		var result sourceResult
+
+		// Use select with context to prevent hanging if a goroutine panics or blocks
+		select {
+		case result = <-resultsChan:
+			// Result received successfully
+		case <-ctx.Done():
+			// Context cancelled/timed out - log and skip remaining results
+			logger.Log.Warn("Timeline context cancelled before collecting all sources", zap.Int("results_collected", i), zap.Int("expected", 4))
+			goto finishCollection
+		}
+
 		if result.err != nil {
 			// Log but continue - we don't want one source failure to break the timeline
 			logger.Log.Warn("Timeline source failed",
@@ -151,6 +162,7 @@ func (s *Service) GetTimeline(ctx context.Context, userID string, limit, offset 
 		allItems = append(allItems, result.items...)
 	}
 
+finishCollection:
 	logger.Log.Debug("Timeline: allItems count after collection", zap.Int("count", len(allItems)))
 
 	// Deduplicate by post ID
