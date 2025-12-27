@@ -100,7 +100,9 @@ func (h *Handlers) CreateComment(c *gin.Context) {
 	}
 
 	// Load the user for response
-	database.DB.Preload("User").First(&comment, "id = ?", comment.ID)
+	if err := database.DB.Preload("User").First(&comment, "id = ?", comment.ID).Error; err != nil {
+		logger.WarnWithFields("Failed to load comment with user for post "+postID, err)
+	}
 
 	// Extract mentions and create notifications
 	mentions := util.ExtractMentions(req.Content)
@@ -329,7 +331,9 @@ func (h *Handlers) UpdateComment(c *gin.Context) {
 	}
 
 	// Reload with user
-	database.DB.Preload("User").First(&comment, "id = ?", comment.ID)
+	if err := database.DB.Preload("User").First(&comment, "id = ?", comment.ID).Error; err != nil {
+		logger.WarnWithFields("Failed to reload comment with user for ID "+comment.ID, err)
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"comment": comment,

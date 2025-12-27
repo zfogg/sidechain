@@ -131,7 +131,9 @@ func (h *Handlers) CreateRepost(c *gin.Context) {
 	// Update stream activity ID if available
 	if activity.ID != "" {
 		repost.StreamActivityID = activity.ID
-		database.DB.Model(&repost).UpdateColumn("stream_activity_id", activity.ID)
+		if err := database.DB.Model(&repost).UpdateColumn("stream_activity_id", activity.ID).Error; err != nil {
+			logger.WarnWithFields("Failed to update stream activity ID for repost "+repost.ID, err)
+		}
 	}
 
 	// Send notification to original post owner via GetStream.io
@@ -184,7 +186,9 @@ func (h *Handlers) UndoRepost(c *gin.Context) {
 	}
 
 	// Decrement repost count on the original post
-	database.DB.Model(&models.AudioPost{}).Where("id = ?", postID).UpdateColumn("repost_count", gorm.Expr("GREATEST(repost_count - 1, 0)"))
+	if err := database.DB.Model(&models.AudioPost{}).Where("id = ?", postID).UpdateColumn("repost_count", gorm.Expr("GREATEST(repost_count - 1, 0)")).Error; err != nil {
+		logger.WarnWithFields("Failed to decrement repost count for post "+postID, err)
+	}
 
 	// Remove activity from stream feed if we have the activity ID
 	if repost.StreamActivityID != "" && h.stream != nil {
@@ -238,7 +242,10 @@ func (h *Handlers) GetReposts(c *gin.Context) {
 
 	// Get total count
 	var totalCount int64
-	database.DB.Model(&models.Repost{}).Where("original_post_id = ?", postID).Count(&totalCount)
+	if err := database.DB.Model(&models.Repost{}).Where("original_post_id = ?", postID).Count(&totalCount).Error; err != nil {
+		logger.WarnWithFields("Failed to count reposts for post "+postID, err)
+		totalCount = int64(len(reposts))
+	}
 
 	// Transform to response format
 	repostList := make([]gin.H, len(reposts))
@@ -329,7 +336,10 @@ func (h *Handlers) GetUserReposts(c *gin.Context) {
 
 	// Get total count
 	var totalCount int64
-	database.DB.Model(&models.Repost{}).Where("user_id = ?", targetUserID).Count(&totalCount)
+	if err := database.DB.Model(&models.Repost{}).Where("user_id = ?", targetUserID).Count(&totalCount).Error; err != nil {
+		logger.WarnWithFields("Failed to count reposts for user "+targetUserID, err)
+		totalCount = int64(len(reposts))
+	}
 
 	// Transform to response format
 	repostList := make([]gin.H, len(reposts))

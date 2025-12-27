@@ -417,9 +417,8 @@ bool OSNotification::show(const juce::String &title, const juce::String &message
 #endif
   } else {
     // Call from message thread asynchronously
-    bool result = false;
     juce::MessageManager::callAsync(
-        [title, message, subtitle, sound, &result]() { result = show(title, message, subtitle, sound); });
-    return result;
+        [title, message, subtitle, sound]() { show(title, message, subtitle, sound); });
+    return true; // Return true because we successfully queued the operation
   }
 }

@@ -196,8 +196,10 @@ func (h *Handlers) CreateRemixPost(c *gin.Context) {
 
 	// Update remix count on source
 	if remixOfPostID != nil {
-		database.DB.Model(&models.AudioPost{}).Where("id = ?", *remixOfPostID).
-			UpdateColumn("remix_count", gorm.Expr("remix_count + 1"))
+		if err := database.DB.Model(&models.AudioPost{}).Where("id = ?", *remixOfPostID).
+			UpdateColumn("remix_count", gorm.Expr("remix_count + 1")).Error; err != nil {
+			logger.WarnWithFields("Failed to increment remix count for post "+*remixOfPostID, err)
+		}
 	}
 
 	// Create activity in getstream.io
@@ -367,11 +369,16 @@ func (h *Handlers) GetPostRemixes(c *gin.Context) {
 	var remixes []models.AudioPost
 	var total int64
 
-	database.DB.Model(&models.AudioPost{}).Where("remix_of_post_id = ?", postID).Count(&total)
-	database.DB.Preload("User").Where("remix_of_post_id = ?", postID).
+	if err := database.DB.Model(&models.AudioPost{}).Where("remix_of_post_id = ?", postID).Count(&total).Error; err != nil {
+		logger.WarnWithFields("Failed to count remixes for post "+postID, err)
+		total = 0
+	}
+	if err := database.DB.Preload("User").Where("remix_of_post_id = ?", postID).
 		Order("created_at DESC").
 		Limit(limit).Offset(offset).
-		Find(&remixes)
+		Find(&remixes).Error; err != nil {
+		logger.WarnWithFields("Failed to find remixes for post "+postID, err)
+	}
 
 	results := make([]gin.H, len(remixes))
 	for i, remix := range remixes {
@@ -418,11 +425,16 @@ func (h *Handlers) GetStoryRemixes(c *gin.Context) {
 	var remixes []models.AudioPost
 	var total int64
 
-	database.DB.Model(&models.AudioPost{}).Where("remix_of_story_id = ?", storyID).Count(&total)
-	database.DB.Preload("User").Where("remix_of_story_id = ?", storyID).
+	if err := database.DB.Model(&models.AudioPost{}).Where("remix_of_story_id = ?", storyID).Count(&total).Error; err != nil {
+		logger.WarnWithFields("Failed to count remixes for story "+storyID, err)
+		total = 0
+	}
+	if err := database.DB.Preload("User").Where("remix_of_story_id = ?", storyID).
 		Order("created_at DESC").
 		Limit(limit).Offset(offset).
-		Find(&remixes)
+		Find(&remixes).Error; err != nil {
+		logger.WarnWithFields("Failed to find remixes for story "+storyID, err)
+	}
 
 	results := make([]gin.H, len(remixes))
 	for i, remix := range remixes {

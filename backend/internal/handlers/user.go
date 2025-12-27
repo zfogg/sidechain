@@ -377,11 +377,17 @@ func (h *Handlers) GetUserProfile(c *gin.Context) {
 
 	// Count posts (exclude archived)
 	var postCount int64
-	database.DB.Model(&models.AudioPost{}).Where("user_id = ? AND is_public = true AND is_archived = false", user.ID).Count(&postCount)
+	if err := database.DB.Model(&models.AudioPost{}).Where("user_id = ? AND is_public = true AND is_archived = false", user.ID).Count(&postCount).Error; err != nil {
+		logger.WarnWithFields("Failed to count posts for user "+user.ID, err)
+		postCount = 0
+	}
 
 	// Fetch story highlights
 	var highlights []models.StoryHighlight
-	database.DB.Where("user_id = ?", user.ID).Order("sort_order ASC, created_at DESC").Find(&highlights)
+	if err := database.DB.Where("user_id = ?", user.ID).Order("sort_order ASC, created_at DESC").Find(&highlights).Error; err != nil {
+		logger.WarnWithFields("Failed to fetch story highlights for user "+user.ID, err)
+		highlights = []models.StoryHighlight{}
+	}
 
 	// avatar_url returns the effective avatar (prefer uploaded, fallback to OAuth)
 	avatarURL := user.ProfilePictureURL
@@ -463,11 +469,17 @@ func (h *Handlers) GetMyProfile(c *gin.Context) {
 
 	// Count posts (exclude archived)
 	var postCount int64
-	database.DB.Model(&models.AudioPost{}).Where("user_id = ? AND is_archived = false", currentUser.ID).Count(&postCount)
+	if err := database.DB.Model(&models.AudioPost{}).Where("user_id = ? AND is_archived = false", currentUser.ID).Count(&postCount).Error; err != nil {
+		logger.WarnWithFields("Failed to count posts for current user "+currentUser.ID, err)
+		postCount = 0
+	}
 
 	// Fetch story highlights
 	var highlights []models.StoryHighlight
-	database.DB.Where("user_id = ?", currentUser.ID).Order("sort_order ASC, created_at DESC").Find(&highlights)
+	if err := database.DB.Where("user_id = ?", currentUser.ID).Order("sort_order ASC, created_at DESC").Find(&highlights).Error; err != nil {
+		logger.WarnWithFields("Failed to fetch story highlights for current user "+currentUser.ID, err)
+		highlights = []models.StoryHighlight{}
+	}
 
 	// avatar_url returns the effective avatar (prefer uploaded, fallback to OAuth)
 	avatarURL := currentUser.ProfilePictureURL

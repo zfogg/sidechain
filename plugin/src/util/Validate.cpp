@@ -250,7 +250,7 @@ juce::String escapeHtml(const juce::String &input) {
       result += "&quot;";
       break;
     case '\'':
-      result += "&# 39;";
+      result += "&#39;";
       break;
     default:
       result += c;

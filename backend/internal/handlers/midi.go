@@ -203,8 +203,13 @@ func (h *Handlers) ListMIDIPatterns(c *gin.Context) {
 	var patterns []models.MIDIPattern
 	var total int64
 
-	query.Model(&models.MIDIPattern{}).Count(&total)
-	query.Limit(limit).Offset(offset).Find(&patterns)
+	if err := query.Model(&models.MIDIPattern{}).Count(&total).Error; err != nil {
+		logger.WarnWithFields("Failed to count MIDI patterns", err)
+		total = 0
+	}
+	if err := query.Limit(limit).Offset(offset).Find(&patterns).Error; err != nil {
+		logger.WarnWithFields("Failed to find MIDI patterns", err)
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"patterns": patterns,
@@ -240,8 +245,14 @@ func (h *Handlers) DeleteMIDIPattern(c *gin.Context) {
 
 	// Check if pattern is referenced by posts or stories
 	var postCount, storyCount int64
-	database.DB.Model(&models.AudioPost{}).Where("midi_pattern_id = ?", patternID).Count(&postCount)
-	database.DB.Model(&models.Story{}).Where("midi_pattern_id = ?", patternID).Count(&storyCount)
+	if err := database.DB.Model(&models.AudioPost{}).Where("midi_pattern_id = ?", patternID).Count(&postCount).Error; err != nil {
+		logger.WarnWithFields("Failed to count posts with MIDI pattern "+patternID, err)
+		postCount = 0
+	}
+	if err := database.DB.Model(&models.Story{}).Where("midi_pattern_id = ?", patternID).Count(&storyCount).Error; err != nil {
+		logger.WarnWithFields("Failed to count stories with MIDI pattern "+patternID, err)
+		storyCount = 0
+	}
 
 	if postCount > 0 || storyCount > 0 {
 		util.RespondError(c, http.StatusConflict, "pattern_in_use", "MIDI pattern is referenced by posts or stories")

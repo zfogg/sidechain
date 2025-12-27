@@ -97,7 +97,9 @@ func (h *Handlers) UnsavePost(c *gin.Context) {
 	}
 
 	// Decrement save count on the post
-	database.DB.Model(&models.AudioPost{}).Where("id = ?", postID).UpdateColumn("save_count", gorm.Expr("GREATEST(save_count - 1, 0)"))
+	if err := database.DB.Model(&models.AudioPost{}).Where("id = ?", postID).UpdateColumn("save_count", gorm.Expr("GREATEST(save_count - 1, 0)")).Error; err != nil {
+		logger.WarnWithFields("Failed to decrement save count for post "+postID, err)
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Post unsaved successfully",
@@ -139,7 +141,10 @@ func (h *Handlers) GetSavedPosts(c *gin.Context) {
 
 	// Get total count
 	var totalCount int64
-	database.DB.Model(&models.SavedPost{}).Where("user_id = ?", userID).Count(&totalCount)
+	if err := database.DB.Model(&models.SavedPost{}).Where("user_id = ?", userID).Count(&totalCount).Error; err != nil {
+		logger.WarnWithFields("Failed to count saved posts for user "+userID, err)
+		totalCount = int64(len(savedPosts))
+	}
 
 	// Transform to response format
 	posts := make([]gin.H, len(savedPosts))
