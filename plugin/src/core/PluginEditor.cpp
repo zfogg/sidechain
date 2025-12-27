@@ -1886,6 +1886,10 @@ void SidechainAudioProcessorEditor::showHighlightStories(const Sidechain::StoryH
 
       if (storiesVar.isArray()) {
         auto *storiesArray = storiesVar.getArray();
+        if (!storiesArray) {
+          Log::warn("PluginEditor: Stories array is null despite isArray() check");
+          return;
+        }
         for (int i = 0; i < storiesArray->size(); ++i) {
           const auto &storyVar = (*storiesArray)[i];
 

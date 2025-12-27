@@ -204,9 +204,12 @@ func (p *Processor) saveTemporaryFile(file *multipart.FileHeader) (string, error
 
 	// Read file data
 	fileData := make([]byte, file.Size)
-	_, err = src.Read(fileData)
+	bytesRead, err := src.Read(fileData)
 	if err != nil {
 		return "", err
+	}
+	if bytesRead != int(file.Size) {
+		return "", fmt.Errorf("incomplete file read: expected %d bytes, got %d", file.Size, bytesRead)
 	}
 
 	// Write to temp file

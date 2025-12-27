@@ -462,15 +462,19 @@ void StreamChatClient::queryMessages(const juce::String &channelType, const juce
 
           if (!messagesVar.isVoid() && messagesVar.isArray()) {
             auto messagesArray = messagesVar.getArray();
-            Log::debug("StreamChatClient::queryMessages - found " + juce::String(messagesArray->size()) + " messages");
+            if (messagesArray == nullptr) {
+              Log::warn("StreamChatClient::queryMessages - getArray() returned null despite isArray() check");
+            } else {
+              Log::debug("StreamChatClient::queryMessages - found " + juce::String(messagesArray->size()) + " messages");
 
-            for (int i = 0; i < messagesArray->size(); i++) {
-              auto messageData = messagesArray->getReference(i);
-              if (messageData.isObject()) {
-                messages.push_back(parseMessage(messageData));
-              } else {
-                Log::warn("StreamChatClient::queryMessages - message at index " + juce::String(i) +
-                          " is not an object");
+              for (int i = 0; i < messagesArray->size(); i++) {
+                auto messageData = messagesArray->getReference(i);
+                if (messageData.isObject()) {
+                  messages.push_back(parseMessage(messageData));
+                } else {
+                  Log::warn("StreamChatClient::queryMessages - message at index " + juce::String(i) +
+                            " is not an object");
+                }
               }
             }
           } else if (messagesVar.isVoid()) {

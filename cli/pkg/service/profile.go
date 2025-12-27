@@ -7,6 +7,7 @@ import (
 	"github.com/zfogg/sidechain/cli/pkg/client"
 	"github.com/zfogg/sidechain/cli/pkg/credentials"
 	"github.com/zfogg/sidechain/cli/pkg/formatter"
+	"github.com/zfogg/sidechain/cli/pkg/logger"
 	"github.com/zfogg/sidechain/cli/pkg/prompter"
 )
 
@@ -26,7 +27,10 @@ func (s *ProfileService) ViewProfile(username string) error {
 	client.Init()
 
 	// Load and set auth token if available
-	creds, _ := credentials.Load()
+	creds, err := credentials.Load()
+	if err != nil {
+		logger.Debug("Failed to load credentials", err)
+	}
 	if creds != nil && creds.IsValid() {
 		client.SetAuthToken(creds.AccessToken)
 	}
@@ -325,7 +329,10 @@ func (s *ProfileService) ListMutedUsers(page int) error {
 func (s *ProfileService) GetFollowers(username string, page int) error {
 	client.Init()
 
-	creds, _ := credentials.Load()
+	creds, err := credentials.Load()
+	if err != nil {
+		logger.Debug("Failed to load credentials", err)
+	}
 	if creds != nil && creds.IsValid() {
 		client.SetAuthToken(creds.AccessToken)
 	}
@@ -370,7 +377,10 @@ func (s *ProfileService) GetFollowers(username string, page int) error {
 func (s *ProfileService) GetFollowing(username string, page int) error {
 	client.Init()
 
-	creds, _ := credentials.Load()
+	creds, err := credentials.Load()
+	if err != nil {
+		logger.Debug("Failed to load credentials", err)
+	}
 	if creds != nil && creds.IsValid() {
 		client.SetAuthToken(creds.AccessToken)
 	}
@@ -415,7 +425,10 @@ func (s *ProfileService) GetFollowing(username string, page int) error {
 func (s *ProfileService) GetActivity(username string) error {
 	client.Init()
 
-	creds, _ := credentials.Load()
+	creds, err := credentials.Load()
+	if err != nil {
+		logger.Debug("Failed to load credentials", err)
+	}
 	if creds != nil && creds.IsValid() {
 		client.SetAuthToken(creds.AccessToken)
 	}
@@ -441,7 +454,10 @@ func (s *ProfileService) GetActivity(username string) error {
 func (s *ProfileService) UploadProfilePicture() error {
 	client.Init()
 
-	creds, _ := credentials.Load()
+	creds, err := credentials.Load()
+	if err != nil {
+		logger.Debug("Failed to load credentials", err)
+	}
 	if creds != nil && creds.IsValid() {
 		client.SetAuthToken(creds.AccessToken)
 	}
