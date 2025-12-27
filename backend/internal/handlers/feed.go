@@ -681,7 +681,7 @@ func (h *Handlers) getFallbackFeed(userID string, limit int) []map[string]interf
 
 	// Try Gorse recommendations first
 	if h.gorse != nil {
-		scores, err := h.gorse.GetForYouFeed(userID, limit, 0)
+		scores, err := h.gorse.GetForYouFeedWithContext(c.Request.Context(), userID, limit, 0)
 		if err == nil && len(scores) > 0 {
 			// Collect user IDs and batch fetch user data
 			userIDSet := make(map[string]bool)
@@ -1419,7 +1419,9 @@ func (h *Handlers) DownloadPost(c *gin.Context) {
 	// Real-time Gorse feedback sync
 	if h.gorse != nil {
 		go func() {
-			if err := h.gorse.SyncFeedback(userID, postID, "download"); err != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := h.gorse.SyncFeedbackWithContext(ctx, userID, postID, "download"); err != nil {
 				logger.Log.Warn("Failed to sync download to Gorse", zap.Error(err))
 			}
 		}()
@@ -1587,11 +1589,13 @@ func (h *Handlers) TrackPlay(c *gin.Context) {
 	// Completed plays are stronger signals (like), partial plays are weaker (view)
 	if h.gorse != nil {
 		go func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
 			feedbackType := "view"
 			if req.Completed {
 				feedbackType = "like" // Completed play = stronger signal
 			}
-			if err := h.gorse.SyncFeedback(currentUser.ID, postID, feedbackType); err != nil {
+			if err := h.gorse.SyncFeedbackWithContext(ctx, currentUser.ID, postID, feedbackType); err != nil {
 				logger.Log.Warn("Failed to sync play to Gorse", zap.Error(err))
 			}
 		}()
@@ -1641,7 +1645,9 @@ func (h *Handlers) ViewPost(c *gin.Context) {
 	// View events are important for understanding user behavior even if they don't play
 	if h.gorse != nil {
 		go func() {
-			if err := h.gorse.SyncFeedback(currentUser.ID, postID, "view"); err != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := h.gorse.SyncFeedbackWithContext(ctx, currentUser.ID, postID, "view"); err != nil {
 				logger.Log.Warn("Failed to sync view to Gorse", zap.Error(err))
 			}
 		}()

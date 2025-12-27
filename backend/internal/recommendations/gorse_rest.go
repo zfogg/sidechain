@@ -111,11 +111,6 @@ func (c *GorseRESTClient) makeRequest(ctx context.Context, method, endpoint stri
 	return resp, nil
 }
 
-// SyncUser syncs a user to Gorse (deprecated: use SyncUserWithContext instead)
-func (c *GorseRESTClient) SyncUser(userID string) error {
-	return c.SyncUserWithContext(context.Background(), userID)
-}
-
 // SyncUserWithContext syncs a user to Gorse with request context
 func (c *GorseRESTClient) SyncUserWithContext(ctx context.Context, userID string) error {
 	var user models.User
@@ -140,11 +135,6 @@ func (c *GorseRESTClient) SyncUserWithContext(ctx context.Context, userID string
 		resp.Body.Close()
 	}
 	return err
-}
-
-// SyncItem syncs a post (item) to Gorse (deprecated: use SyncItemWithContext instead)
-func (c *GorseRESTClient) SyncItem(postID string) error {
-	return c.SyncItemWithContext(context.Background(), postID)
 }
 
 // SyncItemWithContext syncs a post (item) to Gorse with request context
@@ -191,11 +181,6 @@ func (c *GorseRESTClient) SyncItemWithContext(ctx context.Context, postID string
 	return err
 }
 
-// SyncFeedback syncs user interactions to Gorse (deprecated: use SyncFeedbackWithContext instead)
-func (c *GorseRESTClient) SyncFeedback(userID, postID, feedbackType string) error {
-	return c.SyncFeedbackWithContext(context.Background(), userID, postID, feedbackType)
-}
-
 // SyncFeedbackWithContext syncs user interactions to Gorse with request context
 func (c *GorseRESTClient) SyncFeedbackWithContext(ctx context.Context, userID, postID, feedbackType string) error {
 	feedback := []GorseFeedback{
@@ -212,11 +197,6 @@ func (c *GorseRESTClient) SyncFeedbackWithContext(ctx context.Context, userID, p
 		resp.Body.Close()
 	}
 	return err
-}
-
-// GetForYouFeed returns personalized recommendations for a user (deprecated: use GetForYouFeedWithContext instead)
-func (c *GorseRESTClient) GetForYouFeed(userID string, limit, offset int) ([]PostScore, error) {
-	return c.GetForYouFeedWithContext(context.Background(), userID, limit, offset)
 }
 
 // GetForYouFeedWithContext returns personalized recommendations for a user with request context
@@ -278,11 +258,6 @@ func (c *GorseRESTClient) GetForYouFeedWithContext(ctx context.Context, userID s
 	return scores, nil
 }
 
-// GetSimilarPosts returns posts similar to a given post (deprecated: use GetSimilarPostsWithContext instead)
-func (c *GorseRESTClient) GetSimilarPosts(postID string, limit int) ([]models.AudioPost, error) {
-	return c.GetSimilarPostsWithContext(context.Background(), postID, limit)
-}
-
 // GetSimilarPostsWithContext returns posts similar to a given post with request context
 func (c *GorseRESTClient) GetSimilarPostsWithContext(ctx context.Context, postID string, limit int) ([]models.AudioPost, error) {
 	// Gorse GetNeighbors endpoint: GET /api/item/{item-id}/neighbors?n={n}
@@ -318,11 +293,6 @@ func (c *GorseRESTClient) GetSimilarPostsWithContext(ctx context.Context, postID
 	}
 
 	return posts, nil
-}
-
-// GetSimilarUsers returns users with similar taste (deprecated: use GetSimilarUsersWithContext instead)
-func (c *GorseRESTClient) GetSimilarUsers(userID string, limit int) ([]models.User, error) {
-	return c.GetSimilarUsersWithContext(context.Background(), userID, limit)
 }
 
 // GetSimilarUsersWithContext returns users with similar taste with request context

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -109,7 +110,7 @@ func (h *Handlers) GetForYouFeed(c *gin.Context) {
 	} else {
 		// No filters, get general recommendations
 		recommendationType = "for-you"
-		scores, err = recService.GetForYouFeed(userID, limit, offset)
+		scores, err = recService.GetForYouFeedWithContext(c.Request.Context(), userID, limit, offset)
 	}
 
 	if err != nil {
@@ -209,7 +210,7 @@ func (h *Handlers) GetSimilarPosts(c *gin.Context) {
 		posts, err = recService.GetSimilarPostsByGenre(postID, genre, limit)
 	} else {
 		recommendationType = "similar-posts"
-		posts, err = recService.GetSimilarPosts(postID, limit)
+		posts, err = recService.GetSimilarPostsWithContext(c.Request.Context(), postID, limit)
 	}
 
 	if err != nil {
@@ -347,7 +348,7 @@ func (h *Handlers) GetRecommendedUsers(c *gin.Context) {
 	recService := h.gorse
 
 	// Get similar users (using current user's preferences to find similar users)
-	users, err := recService.GetSimilarUsers(currentUserID, limit)
+	users, err := recService.GetSimilarUsersWithContext(c.Request.Context(), currentUserID, limit)
 	if err != nil {
 		// Record Gorse error metric
 		metrics.Get().GorseErrors.WithLabelValues("user_recommendation").Inc()
@@ -402,7 +403,9 @@ func (h *Handlers) NotInterestedInPost(c *gin.Context) {
 	// Send negative feedback to Gorse
 	if h.gorse != nil {
 		go func() {
-			if err := h.gorse.SyncFeedback(userID, postID, "dislike"); err != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := h.gorse.SyncFeedbackWithContext(ctx, userID, postID, "dislike"); err != nil {
 				logger.Log.Warn("Failed to sync dislike to Gorse", zap.Error(err))
 			}
 		}()
@@ -431,7 +434,9 @@ func (h *Handlers) SkipPost(c *gin.Context) {
 	// Send skip feedback to Gorse
 	if h.gorse != nil {
 		go func() {
-			if err := h.gorse.SyncFeedback(userID, postID, "skip"); err != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := h.gorse.SyncFeedbackWithContext(ctx, userID, postID, "skip"); err != nil {
 				logger.Log.Warn("Failed to sync skip to Gorse", zap.Error(err))
 			}
 		}()
@@ -460,7 +465,9 @@ func (h *Handlers) HidePost(c *gin.Context) {
 	// Send hide feedback to Gorse
 	if h.gorse != nil {
 		go func() {
-			if err := h.gorse.SyncFeedback(userID, postID, "hide"); err != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := h.gorse.SyncFeedbackWithContext(ctx, userID, postID, "hide"); err != nil {
 				logger.Log.Warn("Failed to sync hide to Gorse", zap.Error(err))
 			}
 		}()
@@ -701,7 +708,7 @@ func (h *Handlers) GetDiscoveryFeed(c *gin.Context) {
 		res.latest = latest
 
 		// Fetch personalized recommendations
-		personalized, err := recService.GetForYouFeed(userID, personalizedCount, offset)
+		personalized, err := recService.GetForYouFeedWithContext(c.Request.Context(), userID, personalizedCount, offset)
 		if err != nil {
 			res.err = fmt.Errorf("failed to get personalized feed: %w", err)
 			resultChan <- res
@@ -891,7 +898,9 @@ func (h *Handlers) TrackRecommendationClick(c *gin.Context) {
 	// Send to Gorse as stronger signal if they completed playback
 	if h.gorse != nil && req.Completed {
 		go func() {
-			if err := h.gorse.SyncFeedback(userID, req.PostID, "like"); err != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := h.gorse.SyncFeedbackWithContext(ctx, userID, req.PostID, "like"); err != nil {
 				logger.Log.Warn("Failed to sync completed play to Gorse", zap.Error(err))
 			}
 		}()

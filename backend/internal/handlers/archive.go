@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/zfogg/sidechain/backend/internal/database"
@@ -61,7 +63,9 @@ func (h *Handlers) ArchivePost(c *gin.Context) {
 	// Re-sync to Gorse to hide archived post
 	if h.gorse != nil {
 		go func() {
-			if err := h.gorse.SyncItem(postID); err != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := h.gorse.SyncItemWithContext(ctx, postID); err != nil {
 				logger.Warn("Failed to sync archived post to Gorse", zap.String("post_id", postID), zap.Error(err))
 			}
 		}()
@@ -122,7 +126,9 @@ func (h *Handlers) UnarchivePost(c *gin.Context) {
 	// Re-sync to Gorse to show unarchived post
 	if h.gorse != nil {
 		go func() {
-			if err := h.gorse.SyncItem(postID); err != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := h.gorse.SyncItemWithContext(ctx, postID); err != nil {
 				logger.Warn("Failed to sync unarchived post to Gorse", zap.String("post_id", postID), zap.Error(err))
 			}
 		}()
