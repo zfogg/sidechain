@@ -667,7 +667,9 @@ func (h *Handlers) ViewStory(c *gin.Context) {
 		}
 
 		// Increment view count
-		database.DB.Model(&story).Update("view_count", gorm.Expr("view_count + 1"))
+		if err := database.DB.Model(&story).Update("view_count", gorm.Expr("view_count + 1")).Error; err != nil {
+			logger.WarnWithFields("Failed to increment view count for story "+story.ID, err)
+		}
 		story.ViewCount++
 	}
 
@@ -1171,7 +1173,9 @@ func (h *Handlers) AddStoryToHighlight(c *gin.Context) {
 	}
 
 	// Update story count on highlight
-	database.DB.Model(&highlight).Update("story_count", gorm.Expr("story_count + 1"))
+	if err := database.DB.Model(&highlight).Update("story_count", gorm.Expr("story_count + 1")).Error; err != nil {
+		logger.WarnWithFields("Failed to increment story count for highlight "+highlight.ID, err)
+	}
 
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Story added to highlight",
@@ -1216,7 +1220,9 @@ func (h *Handlers) RemoveStoryFromHighlight(c *gin.Context) {
 	}
 
 	// Update story count on highlight
-	database.DB.Model(&highlight).Update("story_count", gorm.Expr("story_count - 1"))
+	if err := database.DB.Model(&highlight).Update("story_count", gorm.Expr("story_count - 1")).Error; err != nil {
+		logger.WarnWithFields("Failed to decrement story count for highlight "+highlight.ID, err)
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Story removed from highlight",
