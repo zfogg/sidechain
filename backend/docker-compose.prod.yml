@@ -193,9 +193,9 @@ services:
     image: grafana/grafana:latest
     container_name: sidechain-grafana
     restart: unless-stopped
-    cpus: 0.25
-    mem_limit: 128m
-    memswap_limit: 128m
+    cpus: 0.5
+    mem_limit: 512m
+    memswap_limit: 512m
     expose:
       - "3000"
     environment:
