@@ -52,32 +52,25 @@ jobs:
           echo "Running services:"
           docker compose ps
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          version: 10
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-          cache-dependency-path: web/pnpm-lock.yaml
+          bun-version: latest
 
       - name: Install web dependencies
         run: |
           cd web
-          pnpm install --frozen-lockfile
+          bun install --frozen-lockfile
 
       - name: Install Playwright browsers
         run: |
           cd web
-          pnpm exec playwright install --with-deps chromium
+          bunx playwright install --with-deps chromium
 
       - name: Run E2E tests
         run: |
           cd web
-          npx playwright test
+          bunx playwright test
         env:
           BACKEND_URL: http://localhost:8787
 

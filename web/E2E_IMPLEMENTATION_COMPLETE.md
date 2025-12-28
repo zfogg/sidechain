@@ -51,9 +51,9 @@ Comprehensive end-to-end testing infrastructure has been successfully implemente
 - Creates sample posts and comments
 - Verifies test users can authenticate
 - Commands:
-  - `npm run test:e2e:seed` - Initialize database
-  - `npm run test:e2e:docker:up` - Start containers
-  - `npm run test:e2e:full` - Complete workflow
+  - `bun run test:e2e:seed` - Initialize database
+  - `bun run test:e2e:docker:up` - Start containers
+  - `bun run test:e2e:full` - Complete workflow
 
 ### 6. **Helper Utilities** ✓
 
@@ -85,14 +85,14 @@ Comprehensive end-to-end testing infrastructure has been successfully implemente
 - ✓ Logout functionality
 
 ### 8. **NPM Scripts** ✓
-- `npm run test:e2e` - Run all E2E tests
-- `npm run test:e2e:ui` - Interactive test UI
-- `npm run test:e2e:debug` - Debugger mode
-- `npm run test:e2e:report` - View test report
-- `npm run test:e2e:seed` - Seed database
-- `npm run test:e2e:docker:up` - Start test infrastructure
-- `npm run test:e2e:docker:down` - Stop test infrastructure
-- `npm run test:e2e:full` - Complete workflow
+- `bun run test:e2e` - Run all E2E tests
+- `bun run test:e2e:ui` - Interactive test UI
+- `bun run test:e2e:debug` - Debugger mode
+- `bun run test:e2e:report` - View test report
+- `bun run test:e2e:seed` - Seed database
+- `bun run test:e2e:docker:up` - Start test infrastructure
+- `bun run test:e2e:docker:down` - Stop test infrastructure
+- `bun run test:e2e:full` - Complete workflow
 
 ### 9. **Comprehensive README** ✓
 - **File**: `e2e/README.md`
@@ -230,44 +230,44 @@ The infrastructure is complete and ready for:
 
 ### Step 1: Start Infrastructure
 ```bash
-npm run test:e2e:docker:up
+bun run test:e2e:docker:up
 # Waits for PostgreSQL, Redis, and backend to be healthy
 ```
 
 ### Step 2: Seed Database
 ```bash
-npm run test:e2e:seed
+bun run test:e2e:seed
 # Runs migrations and seeds 5 test users
 ```
 
 ### Step 3: Run Tests
 ```bash
 # All tests
-npm run test:e2e
+bun run test:e2e
 
 # Or use interactive UI
-npm run test:e2e:ui
+bun run test:e2e:ui
 
 # Or debug
-npm run test:e2e:debug
+bun run test:e2e:debug
 
 # Or specific file
-npm run test:e2e -- e2e/tests/auth/login.spec.ts
+bun run test:e2e -- e2e/tests/auth/login.spec.ts
 ```
 
 ### Step 4: View Results
 ```bash
-npm run test:e2e:report
+bun run test:e2e:report
 ```
 
 ### Step 5: Cleanup
 ```bash
-npm run test:e2e:docker:down
+bun run test:e2e:docker:down
 ```
 
 ### Or Run Everything
 ```bash
-npm run test:e2e:full
+bun run test:e2e:full
 # Automatically: docker up → seed → test → docker down
 ```
 

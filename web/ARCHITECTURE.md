@@ -12,7 +12,7 @@ This is a modern React web frontend for the Sidechain VST plugin built with prod
 - **Real-time**: WebSocket (backend) + getstream.io Chat SDK
 - **Audio**: Howler.js (cross-browser playback)
 - **HTTP**: Axios with Outcome<T> error pattern
-- **Package Manager**: pnpm v9 (locked with corepack)
+- **Package Manager**: Bun v1.x (fast all-in-one runtime, package manager, bundler, and test runner)
 
 ## Architecture Layers
 
@@ -417,8 +417,9 @@ Error boundaries can wrap routes:
 ### Build
 
 ```bash
-pnpm build
+bun run build
 # Creates optimized dist/ with code splitting
+# Bun's built-in bundler provides fast builds
 ```
 
 ### Deploy

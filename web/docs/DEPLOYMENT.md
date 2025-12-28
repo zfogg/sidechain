@@ -200,7 +200,7 @@ For emergency fixes or bypass:
 
 ```bash
 cd web
-pnpm build
+bun run build
 
 # Deploy to staging
 rsync -avz --delete -e "ssh -i ~/.ssh/deploy_key" \
@@ -500,7 +500,7 @@ server {
 
 **Vite Build Output**:
 ```bash
-pnpm build
+bun run build
 ```
 
 Output includes:
@@ -511,7 +511,7 @@ Output includes:
 
 **Analyze Bundle Size**:
 ```bash
-pnpm build -- --analyze
+bun run build -- --analyze
 ```
 
 ### Caching Strategy
@@ -647,7 +647,7 @@ const assetURL = import.meta.env.PROD
 - [ ] All tests passing (`pnpm test:ci`)
 - [ ] Linter passing (`pnpm lint`)
 - [ ] No security warnings (`pnpm audit`)
-- [ ] Build succeeds (`pnpm build`)
+- [ ] Build succeeds (`bun run build`)
 - [ ] Environment variables set
 - [ ] Secrets configured in GitHub
 - [ ] Staging deployment tested

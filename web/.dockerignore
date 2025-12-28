@@ -1,6 +1,6 @@
 node_modules
-pnpm-lock.yaml
 npm-debug.log
+pnpm-lock.yaml
 .git
 .gitignore
 .env
