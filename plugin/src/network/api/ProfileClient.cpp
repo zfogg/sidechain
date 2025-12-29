@@ -7,11 +7,116 @@
 #include "../../util/Constants.h"
 #include "../../util/Log.h"
 #include "../../util/rx/JuceScheduler.h"
+#include "../../models/User.h"
+#include "../../models/FeedPost.h"
 #include "../NetworkClient.h"
 #include "Common.h"
+#include <nlohmann/json.hpp>
 #include <rxcpp/rx.hpp>
 
 using namespace Sidechain::Network::Api;
+
+// ==============================================================================
+// Helper function to parse a single user from JSON response
+static Sidechain::User parseUserFromJson(const juce::var &json) {
+  Sidechain::User user;
+
+  if (!json.isObject()) {
+    return user;
+  }
+
+  try {
+    auto jsonStr = juce::JSON::toString(json);
+    auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+    from_json(jsonObj, user);
+  } catch (const std::exception &e) {
+    Log::warn("ProfileClient: Failed to parse user: " + juce::String(e.what()));
+  }
+
+  return user;
+}
+
+// ==============================================================================
+// Helper function to parse user list response into typed UserResult
+static NetworkClient::UserResult parseUserListResponse(const juce::var &json) {
+  NetworkClient::UserResult result;
+
+  if (!json.isObject()) {
+    return result;
+  }
+
+  // Try "users" first, then "followers", then "following"
+  auto usersArray = json.getProperty("users", juce::var());
+  if (!usersArray.isArray()) {
+    usersArray = json.getProperty("followers", juce::var());
+  }
+  if (!usersArray.isArray()) {
+    usersArray = json.getProperty("following", juce::var());
+  }
+
+  // Extract total and pagination info
+  result.total = static_cast<int>(json.getProperty("total", 0));
+  result.hasMore = json.getProperty("has_more", false);
+
+  // Parse each user
+  if (usersArray.isArray()) {
+    result.users.reserve(static_cast<size_t>(usersArray.size()));
+    for (int i = 0; i < usersArray.size(); ++i) {
+      try {
+        auto jsonStr = juce::JSON::toString(usersArray[i]);
+        auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+        Sidechain::User user;
+        from_json(jsonObj, user);
+        if (user.isValid()) {
+          result.users.push_back(std::move(user));
+        }
+      } catch (const std::exception &e) {
+        Log::warn("ProfileClient: Failed to parse user in list: " + juce::String(e.what()));
+      }
+    }
+  }
+
+  Log::debug("ProfileClient: Parsed " + juce::String(static_cast<int>(result.users.size())) + " users from response");
+  return result;
+}
+
+// ==============================================================================
+// Helper function to parse user posts response into typed FeedResult
+static NetworkClient::FeedResult parseUserPostsResponse(const juce::var &json) {
+  NetworkClient::FeedResult result;
+
+  if (!json.isObject()) {
+    return result;
+  }
+
+  auto postsArray = json.getProperty("posts", juce::var());
+  if (!postsArray.isArray()) {
+    postsArray = json.getProperty("activities", juce::var());
+  }
+
+  result.total = static_cast<int>(json.getProperty("total", 0));
+  result.hasMore = json.getProperty("has_more", false);
+
+  if (postsArray.isArray()) {
+    result.posts.reserve(static_cast<size_t>(postsArray.size()));
+    for (int i = 0; i < postsArray.size(); ++i) {
+      try {
+        auto jsonStr = juce::JSON::toString(postsArray[i]);
+        auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+        Sidechain::FeedPost post;
+        from_json(jsonObj, post);
+        if (post.isValid()) {
+          result.posts.push_back(std::move(post));
+        }
+      } catch (const std::exception &e) {
+        Log::warn("ProfileClient: Failed to parse user post: " + juce::String(e.what()));
+      }
+    }
+  }
+
+  Log::debug("ProfileClient: Parsed " + juce::String(static_cast<int>(result.posts.size())) + " user posts");
+  return result;
+}
 
 // ==============================================================================
 void NetworkClient::uploadProfilePicture(const juce::File &imageFile, ProfilePictureCallback callback) {
@@ -209,8 +314,8 @@ void NetworkClient::getUserPosts(const juce::String &userId, int limit, int offs
 // Reactive Observable Methods
 // ==============================================================================
 
-rxcpp::observable<juce::var> NetworkClient::getUserObservable(const juce::String &userId) {
-  auto source = rxcpp::sources::create<juce::var>([this, userId](auto observer) {
+rxcpp::observable<Sidechain::User> NetworkClient::getUserObservable(const juce::String &userId) {
+  auto source = rxcpp::sources::create<Sidechain::User>([this, userId](auto observer) {
     if (userId.isEmpty()) {
       observer.on_error(std::make_exception_ptr(std::runtime_error("User ID is empty")));
       return;
@@ -218,8 +323,13 @@ rxcpp::observable<juce::var> NetworkClient::getUserObservable(const juce::String
 
     getUser(userId, [observer](Outcome<juce::var> result) {
       if (result.isOk()) {
-        observer.on_next(result.getValue());
-        observer.on_completed();
+        auto user = parseUserFromJson(result.getValue());
+        if (user.isValid()) {
+          observer.on_next(std::move(user));
+          observer.on_completed();
+        } else {
+          observer.on_error(std::make_exception_ptr(std::runtime_error("Failed to parse user")));
+        }
       } else {
         observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
       }
@@ -229,8 +339,9 @@ rxcpp::observable<juce::var> NetworkClient::getUserObservable(const juce::String
   return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
 }
 
-rxcpp::observable<juce::var> NetworkClient::getUserPostsObservable(const juce::String &userId, int limit, int offset) {
-  auto source = rxcpp::sources::create<juce::var>([this, userId, limit, offset](auto observer) {
+rxcpp::observable<NetworkClient::FeedResult> NetworkClient::getUserPostsObservable(const juce::String &userId,
+                                                                                   int limit, int offset) {
+  auto source = rxcpp::sources::create<FeedResult>([this, userId, limit, offset](auto observer) {
     if (userId.isEmpty()) {
       observer.on_error(std::make_exception_ptr(std::runtime_error("User ID is empty")));
       return;
@@ -238,7 +349,8 @@ rxcpp::observable<juce::var> NetworkClient::getUserPostsObservable(const juce::S
 
     getUserPosts(userId, limit, offset, [observer](Outcome<juce::var> result) {
       if (result.isOk()) {
-        observer.on_next(result.getValue());
+        auto feedResult = parseUserPostsResponse(result.getValue());
+        observer.on_next(std::move(feedResult));
         observer.on_completed();
       } else {
         observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
@@ -249,8 +361,9 @@ rxcpp::observable<juce::var> NetworkClient::getUserPostsObservable(const juce::S
   return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
 }
 
-rxcpp::observable<juce::var> NetworkClient::getFollowersObservable(const juce::String &userId, int limit, int offset) {
-  auto source = rxcpp::sources::create<juce::var>([this, userId, limit, offset](auto observer) {
+rxcpp::observable<NetworkClient::UserResult> NetworkClient::getFollowersObservable(const juce::String &userId,
+                                                                                   int limit, int offset) {
+  auto source = rxcpp::sources::create<UserResult>([this, userId, limit, offset](auto observer) {
     if (userId.isEmpty()) {
       observer.on_error(std::make_exception_ptr(std::runtime_error("User ID is empty")));
       return;
@@ -258,7 +371,8 @@ rxcpp::observable<juce::var> NetworkClient::getFollowersObservable(const juce::S
 
     getFollowers(userId, limit, offset, [observer](Outcome<juce::var> result) {
       if (result.isOk()) {
-        observer.on_next(result.getValue());
+        auto userResult = parseUserListResponse(result.getValue());
+        observer.on_next(std::move(userResult));
         observer.on_completed();
       } else {
         observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
@@ -269,8 +383,9 @@ rxcpp::observable<juce::var> NetworkClient::getFollowersObservable(const juce::S
   return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
 }
 
-rxcpp::observable<juce::var> NetworkClient::getFollowingObservable(const juce::String &userId, int limit, int offset) {
-  auto source = rxcpp::sources::create<juce::var>([this, userId, limit, offset](auto observer) {
+rxcpp::observable<NetworkClient::UserResult> NetworkClient::getFollowingObservable(const juce::String &userId,
+                                                                                   int limit, int offset) {
+  auto source = rxcpp::sources::create<UserResult>([this, userId, limit, offset](auto observer) {
     if (userId.isEmpty()) {
       observer.on_error(std::make_exception_ptr(std::runtime_error("User ID is empty")));
       return;
@@ -278,7 +393,8 @@ rxcpp::observable<juce::var> NetworkClient::getFollowingObservable(const juce::S
 
     getFollowing(userId, limit, offset, [observer](Outcome<juce::var> result) {
       if (result.isOk()) {
-        observer.on_next(result.getValue());
+        auto userResult = parseUserListResponse(result.getValue());
+        observer.on_next(std::move(userResult));
         observer.on_completed();
       } else {
         observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
@@ -289,8 +405,8 @@ rxcpp::observable<juce::var> NetworkClient::getFollowingObservable(const juce::S
   return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
 }
 
-rxcpp::observable<juce::var> NetworkClient::changeUsernameObservable(const juce::String &newUsername) {
-  auto source = rxcpp::sources::create<juce::var>([this, newUsername](auto observer) {
+rxcpp::observable<Sidechain::User> NetworkClient::changeUsernameObservable(const juce::String &newUsername) {
+  auto source = rxcpp::sources::create<Sidechain::User>([this, newUsername](auto observer) {
     if (!isAuthenticated()) {
       observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
       return;
@@ -303,7 +419,8 @@ rxcpp::observable<juce::var> NetworkClient::changeUsernameObservable(const juce:
 
     changeUsername(newUsername, [observer](Outcome<juce::var> result) {
       if (result.isOk()) {
-        observer.on_next(result.getValue());
+        auto user = parseUserFromJson(result.getValue());
+        observer.on_next(std::move(user));
         observer.on_completed();
       } else {
         observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));

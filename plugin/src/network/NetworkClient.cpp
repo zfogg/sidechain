@@ -4,6 +4,7 @@
 // ==============================================================================
 
 #include "NetworkClient.h"
+#include "../models/User.h"
 #include "../util/Async.h"
 #include "../util/HttpErrorHandler.h"
 #include "../util/Json.h"
@@ -1252,8 +1253,27 @@ void NetworkClient::updateUserProfile(const juce::String &username, const juce::
 // ==============================================================================
 // User Profile Observable Methods
 
-rxcpp::observable<juce::var> NetworkClient::getCurrentUserObservable() {
-  auto source = rxcpp::sources::create<juce::var>([this](auto observer) {
+// Helper function to parse a single user from JSON response
+static Sidechain::User parseUserFromVar(const juce::var &json) {
+  Sidechain::User user;
+
+  if (!json.isObject()) {
+    return user;
+  }
+
+  try {
+    auto jsonStr = juce::JSON::toString(json);
+    auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+    from_json(jsonObj, user);
+  } catch (const std::exception &e) {
+    Log::warn("NetworkClient: Failed to parse user: " + juce::String(e.what()));
+  }
+
+  return user;
+}
+
+rxcpp::observable<Sidechain::User> NetworkClient::getCurrentUserObservable() {
+  auto source = rxcpp::sources::create<Sidechain::User>([this](auto observer) {
     if (!isAuthenticated()) {
       observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
       return;
@@ -1261,8 +1281,13 @@ rxcpp::observable<juce::var> NetworkClient::getCurrentUserObservable() {
 
     getCurrentUser([observer](Outcome<juce::var> result) {
       if (result.isOk()) {
-        observer.on_next(result.getValue());
-        observer.on_completed();
+        auto user = parseUserFromVar(result.getValue());
+        if (user.isValid()) {
+          observer.on_next(std::move(user));
+          observer.on_completed();
+        } else {
+          observer.on_error(std::make_exception_ptr(std::runtime_error("Failed to parse current user")));
+        }
       } else {
         observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
       }
@@ -1272,10 +1297,10 @@ rxcpp::observable<juce::var> NetworkClient::getCurrentUserObservable() {
   return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
 }
 
-rxcpp::observable<juce::var> NetworkClient::updateUserProfileObservable(const juce::String &username,
-                                                                        const juce::String &displayName,
-                                                                        const juce::String &bio) {
-  auto source = rxcpp::sources::create<juce::var>([this, username, displayName, bio](auto observer) {
+rxcpp::observable<Sidechain::User> NetworkClient::updateUserProfileObservable(const juce::String &username,
+                                                                              const juce::String &displayName,
+                                                                              const juce::String &bio) {
+  auto source = rxcpp::sources::create<Sidechain::User>([this, username, displayName, bio](auto observer) {
     if (!isAuthenticated()) {
       observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
       return;
@@ -1283,7 +1308,8 @@ rxcpp::observable<juce::var> NetworkClient::updateUserProfileObservable(const ju
 
     updateUserProfile(username, displayName, bio, [observer](Outcome<juce::var> result) {
       if (result.isOk()) {
-        observer.on_next(result.getValue());
+        auto user = parseUserFromVar(result.getValue());
+        observer.on_next(std::move(user));
         observer.on_completed();
       } else {
         observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));

@@ -491,13 +491,15 @@ void Search::performSearch() {
   // State updates will come through onAppStateChanged subscription
   if (currentTab == ResultTab::Users) {
     // Use reactive observable for user search (with caching)
+    // Now returns typed std::vector<User>
     juce::Component::SafePointer<Search> safeThis(this);
     appStore->searchUsersObservable(currentQuery)
         .subscribe(
-            [safeThis](const juce::Array<juce::var> &users) {
+            [safeThis](const std::vector<Sidechain::User> &users) {
               if (safeThis == nullptr)
                 return;
-              Log::debug("Search: User search completed with " + juce::String(users.size()) + " results");
+              Log::debug("Search: User search completed with " + juce::String(static_cast<int>(users.size())) +
+                         " results");
             },
             [safeThis](std::exception_ptr) {
               if (safeThis == nullptr)

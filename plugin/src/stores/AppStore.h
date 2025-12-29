@@ -1037,14 +1037,14 @@ public:
    * Search for users by query string with memory caching (Reactive).
    *
    * @param query Search query (username, display name, etc)
-   * @return rxcpp::observable<juce::Array<juce::var>> - emits array of matching users
+   * @return rxcpp::observable<std::vector<User>> - emits typed User vector
    *
    * Caching strategy:
    * - Check memory cache for exact query (2 min TTL)
    * - If miss or expired, fetch from network
    * - Cache result for identical future queries
    */
-  rxcpp::observable<juce::Array<juce::var>> searchUsersObservable(const juce::String &query);
+  rxcpp::observable<std::vector<User>> searchUsersObservable(const juce::String &query);
 
   // ==============================================================================
   // Feed Service Operations (Memory Cache: 30-second TTL for frequent updates)

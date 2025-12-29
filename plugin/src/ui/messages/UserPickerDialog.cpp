@@ -752,29 +752,29 @@ void UserPickerDialog::performSearch(const juce::String &query) {
   auto &appStore = AppStore::getInstance();
 
   // Search users by username or display name via AppStore (with caching)
+  // Now returns typed std::vector<User>
   appStore.searchUsersObservable(currentSearchQuery)
       .subscribe(
-          [safeThis](const juce::Array<juce::var> &users) {
+          [safeThis](const std::vector<Sidechain::User> &users) {
             if (safeThis == nullptr)
               return;
 
             safeThis->isSearching = false;
             safeThis->searchResults.clear();
 
-            for (const auto &userObj : users) {
+            for (const auto &userModel : users) {
               // Skip excluded users
-              juce::String userId = userObj.getProperty("id", "").toString();
-              if (userId.isEmpty() || safeThis->excludedUserIds.contains(userId))
+              if (userModel.id.isEmpty() || safeThis->excludedUserIds.contains(userModel.id))
                 continue;
 
               UserItem user;
-              user.userId = userId;
-              user.username = userObj.getProperty("username", "").toString();
-              user.displayName = userObj.getProperty("display_name", "").toString();
-              user.profilePictureUrl = userObj.getProperty("profile_picture_url", "").toString();
-              user.isFollowing = userObj.getProperty("is_following", false);
-              user.followsMe = userObj.getProperty("follows_me", false);
-              user.isOnline = userObj.getProperty("is_online", false);
+              user.userId = userModel.id;
+              user.username = userModel.username;
+              user.displayName = userModel.displayName;
+              user.profilePictureUrl = userModel.avatarUrl;
+              user.isFollowing = userModel.isFollowing;
+              user.followsMe = userModel.followsYou;
+              user.isOnline = userModel.isOnline;
 
               safeThis->searchResults.push_back(user);
             }

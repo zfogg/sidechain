@@ -2,6 +2,7 @@
 #include "../../util/logging/Logger.h"
 #include "../../util/Async.h"
 #include "../../util/rx/JuceScheduler.h"
+#include "../../models/User.h"
 #include <chrono>
 #include <thread>
 #include <rxcpp/rx.hpp>
@@ -226,25 +227,19 @@ void AppStore::getImage(const juce::String &url, std::function<void(const juce::
 // ==============================================================================
 // Search Operations
 
-rxcpp::observable<juce::Array<juce::var>> AppStore::searchUsersObservable(const juce::String &query) {
+rxcpp::observable<std::vector<User>> AppStore::searchUsersObservable(const juce::String &query) {
   if (!networkClient) {
-    return rxcpp::sources::error<juce::Array<juce::var>>(
+    return rxcpp::sources::error<std::vector<User>>(
         std::make_exception_ptr(std::runtime_error("Network client not initialized")));
   }
 
   if (query.isEmpty()) {
-    return rxcpp::sources::just(juce::Array<juce::var>());
+    return rxcpp::sources::just(std::vector<User>());
   }
 
-  // Use the network client's observable API and transform the result
-  return networkClient->searchUsersObservable(query, 20).map([](const juce::var &data) {
-    juce::Array<juce::var> users;
-    auto usersArray = data.getProperty("users", juce::var());
-    if (usersArray.isArray()) {
-      for (int i = 0; i < usersArray.size(); ++i) {
-        users.add(usersArray[i]);
-      }
-    }
+  // Use the network client's observable API - already returns typed vector
+  return networkClient->searchUsersObservable(query, 20).map([](const std::vector<User> &users) {
+    Util::logInfo("AppStore", "Search returned " + juce::String(static_cast<int>(users.size())) + " users");
     return users;
   });
 }

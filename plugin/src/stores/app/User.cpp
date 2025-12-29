@@ -4,6 +4,7 @@
 #include "../../util/PropertiesFileUtils.h"
 #include "../../util/rx/JuceScheduler.h"
 #include "../../models/User.h"
+#include "../../network/NetworkClient.h"
 #include <rxcpp/rx.hpp>
 #include <nlohmann/json.hpp>
 
@@ -47,11 +48,27 @@ void AppStore::fetchUserProfile(bool forceRefresh) {
   newState.userError = "";
   userState->setState(newState);
 
-  // Use observable API
+  // Use observable API - now returns typed User
   networkClient->getCurrentUserObservable().subscribe(
-      [this](const juce::var &data) {
+      [this](const User &user) {
         Log::debug("fetchUserProfile callback: Success");
-        handleProfileFetchSuccess(data);
+        // Update state directly from typed User
+        auto userSlice = stateManager.user;
+        UserState updatedState = userSlice->getState();
+        updatedState.userId = user.id;
+        updatedState.username = user.username;
+        updatedState.displayName = user.displayName;
+        updatedState.bio = user.bio;
+        updatedState.profilePictureUrl = user.avatarUrl;
+        updatedState.userError = "";
+        updatedState.isFetchingProfile = false;
+        updatedState.lastProfileUpdate = juce::Time::getCurrentTime().toMilliseconds();
+        userSlice->setState(updatedState);
+
+        // Download the profile image if URL is available
+        if (user.avatarUrl.isNotEmpty()) {
+          downloadProfileImage(user.avatarUrl);
+        }
       },
       [this](std::exception_ptr ep) {
         try {
@@ -84,9 +101,9 @@ void AppStore::updateProfile(const juce::String &username, const juce::String &d
     optimisticState.bio = bio;
   userState->setState(optimisticState);
 
-  // Use observable API
+  // Use observable API - now returns typed User
   networkClient->updateUserProfileObservable(username, displayName, bio)
-      .subscribe([](const juce::var &) { Util::logInfo("AppStore", "Profile updated successfully"); },
+      .subscribe([](const User &) { Util::logInfo("AppStore", "Profile updated successfully"); },
                  [userState, previousState](std::exception_ptr ep) {
                    try {
                      std::rethrow_exception(ep);
@@ -214,10 +231,10 @@ void AppStore::changeUsername(const juce::String &newUsername) {
 
   auto userState = stateManager.user;
 
-  // Use observable API
+  // Use observable API - now returns typed User
   networkClient->changeUsernameObservable(newUsername)
       .subscribe(
-          [userState, newUsername](const juce::var &) {
+          [userState, newUsername](const User &) {
             UserState newState = userState->getState();
             newState.username = newUsername;
             userState->setState(newState);
@@ -675,24 +692,14 @@ void AppStore::loadUser(const juce::String &userId, bool forceRefresh) {
 
   Util::logInfo("AppStore", "Loading user: " + userId);
 
-  // Use observable API
+  // Use observable API - now returns typed User
   networkClient->getUserObservable(userId).subscribe(
-      [userId](const juce::var &data) {
-        try {
-          // Convert juce::var to nlohmann::json
-          auto jsonStr = data.toString().toStdString();
-          auto json = nlohmann::json::parse(jsonStr);
-
-          // Normalize user (creates/updates shared_ptr in EntityStore)
-          auto normalized = EntityStore::getInstance().normalizeUser(json);
-          if (normalized) {
-            Util::logInfo("AppStore", "Loaded user: " + userId);
-          } else {
-            Util::logError("AppStore", "Failed to normalize user data for: " + userId);
-          }
-        } catch (const std::exception &e) {
-          Util::logError("AppStore", "Failed to parse user JSON: " + juce::String(e.what()));
-        }
+      [userId](const User &user) {
+        // Store typed user in EntityStore
+        auto &entityStore = EntityStore::getInstance();
+        auto sharedUser = std::make_shared<User>(user);
+        entityStore.users().set(userId, sharedUser);
+        Util::logInfo("AppStore", "Loaded user: " + userId);
       },
       [userId](std::exception_ptr ep) {
         try {
@@ -717,22 +724,18 @@ void AppStore::loadUserPosts(const juce::String &userId, int limit, int offset) 
   Util::logInfo("AppStore", "Loading posts for user: " + userId + " (limit=" + juce::String(limit) +
                                 ", offset=" + juce::String(offset) + ")");
 
-  // Use observable API
+  // Use observable API - now returns typed FeedResult
   networkClient->getUserPostsObservable(userId, limit, offset)
       .subscribe(
-          [userId](const juce::var &postsData) {
-            // Normalize posts
-            if (postsData.isArray()) {
-              std::vector<std::shared_ptr<FeedPost>> normalizedPosts;
-              for (int i = 0; i < postsData.size(); ++i) {
-                // normalizePost expects juce::var
-                if (auto normalized = EntityStore::getInstance().normalizePost(postsData[i])) {
-                  normalizedPosts.push_back(normalized);
-                }
-              }
-              Util::logInfo("AppStore",
-                            "Loaded " + juce::String(normalizedPosts.size()) + " posts for user: " + userId);
+          [userId](const NetworkClient::FeedResult &feedResult) {
+            // Posts are already typed, store them in EntityStore
+            auto &entityStore = EntityStore::getInstance();
+            for (const auto &post : feedResult.posts) {
+              auto sharedPost = std::make_shared<FeedPost>(post);
+              entityStore.posts().set(post.id, sharedPost);
             }
+            Util::logInfo("AppStore", "Loaded " + juce::String(static_cast<int>(feedResult.posts.size())) +
+                                          " posts for user: " + userId);
           },
           [userId](std::exception_ptr ep) {
             try {
@@ -764,58 +767,32 @@ void AppStore::loadFollowers(const juce::String &userId, int limit, int offset) 
                                                   userId.toStdString(), // targetUserId
                                                   FollowersState::Followers));
 
-  // Use observable API
+  // Use observable API - now returns typed UserResult
   networkClient->getFollowersObservable(userId, limit, offset)
       .subscribe(
-          [this](const juce::var &data) {
-            try {
-              auto jsonArray = data.getArray();
-              if (!jsonArray) {
-                throw std::runtime_error("Response is not an array");
-              }
-
-              // Step 1: Normalize JSON to mutable User objects and store in EntityCache
-              std::vector<std::shared_ptr<Sidechain::User>> users;
-              for (int i = 0; i < jsonArray->size(); ++i) {
-                try {
-                  auto jsonStr = (*jsonArray)[i].toString().toStdString();
-                  auto json = nlohmann::json::parse(jsonStr);
-
-                  // Normalize and cache in EntityStore
-                  auto user = EntityStore::getInstance().normalizeUser(json);
-                  if (user) {
-                    users.push_back(user);
-                  }
-                } catch (const std::exception &e) {
-                  Util::logError("AppStore", "Failed to parse follower JSON: " + juce::String(e.what()));
-                }
-              }
-
-              // Step 2: Reducer - Create new immutable FollowersState with loaded users
-              std::vector<std::shared_ptr<const Sidechain::User>> immutableUsers;
-              for (const auto &user : users) {
-                immutableUsers.push_back(std::const_pointer_cast<const Sidechain::User>(user));
-              }
-              auto currentState = stateManager.followers->getState();
-              stateManager.followers->setState(FollowersState(immutableUsers,
-                                                              false,                          // isLoading
-                                                              "",                             // no error
-                                                              static_cast<int>(users.size()), // totalCount
-                                                              currentState.targetUserId, currentState.listType));
-
-              Util::logInfo("AppStore", "Loaded " + juce::String(users.size()) + " followers");
-
-            } catch (const std::exception &e) {
-              // Reducer: Create immutable error state
-              auto error = std::string(e.what());
-              auto currentState = stateManager.followers->getState();
-              stateManager.followers->setState(FollowersState(currentState.users,
-                                                              false, // isLoading
-                                                              error, // errorMessage
-                                                              currentState.totalCount, currentState.targetUserId,
-                                                              currentState.listType));
-              Util::logError("AppStore", "Failed to load followers: " + juce::String(e.what()));
+          [this](const NetworkClient::UserResult &userResult) {
+            // Convert typed users to shared_ptr and store in EntityStore
+            std::vector<std::shared_ptr<Sidechain::User>> users;
+            auto &entityStore = EntityStore::getInstance();
+            for (const auto &user : userResult.users) {
+              auto sharedUser = std::make_shared<User>(user);
+              entityStore.users().set(user.id, sharedUser);
+              users.push_back(sharedUser);
             }
+
+            // Reducer - Create new immutable FollowersState with loaded users
+            std::vector<std::shared_ptr<const Sidechain::User>> immutableUsers;
+            for (const auto &user : users) {
+              immutableUsers.push_back(std::const_pointer_cast<const Sidechain::User>(user));
+            }
+            auto currentState = stateManager.followers->getState();
+            stateManager.followers->setState(FollowersState(immutableUsers,
+                                                            false,            // isLoading
+                                                            "",               // no error
+                                                            userResult.total, // totalCount from response
+                                                            currentState.targetUserId, currentState.listType));
+
+            Util::logInfo("AppStore", "Loaded " + juce::String(static_cast<int>(users.size())) + " followers");
           },
           [this](std::exception_ptr ep) {
             try {
@@ -855,58 +832,32 @@ void AppStore::loadFollowing(const juce::String &userId, int limit, int offset) 
                                                   userId.toStdString(), // targetUserId
                                                   FollowersState::Following));
 
-  // Use observable API
+  // Use observable API - now returns typed UserResult
   networkClient->getFollowingObservable(userId, limit, offset)
       .subscribe(
-          [this](const juce::var &data) {
-            try {
-              auto jsonArray = data.getArray();
-              if (!jsonArray) {
-                throw std::runtime_error("Response is not an array");
-              }
-
-              // Step 1: Normalize JSON to mutable User objects and store in EntityCache
-              std::vector<std::shared_ptr<Sidechain::User>> users;
-              for (int i = 0; i < jsonArray->size(); ++i) {
-                try {
-                  auto jsonStr = (*jsonArray)[i].toString().toStdString();
-                  auto json = nlohmann::json::parse(jsonStr);
-
-                  // Normalize and cache in EntityStore
-                  auto user = EntityStore::getInstance().normalizeUser(json);
-                  if (user) {
-                    users.push_back(user);
-                  }
-                } catch (const std::exception &e) {
-                  Util::logError("AppStore", "Failed to parse following JSON: " + juce::String(e.what()));
-                }
-              }
-
-              // Step 2: Reducer - Create new immutable FollowersState with loaded users
-              std::vector<std::shared_ptr<const Sidechain::User>> immutableUsers;
-              for (const auto &user : users) {
-                immutableUsers.push_back(std::const_pointer_cast<const Sidechain::User>(user));
-              }
-              auto currentState = stateManager.followers->getState();
-              stateManager.followers->setState(FollowersState(immutableUsers,
-                                                              false,                          // isLoading
-                                                              "",                             // no error
-                                                              static_cast<int>(users.size()), // totalCount
-                                                              currentState.targetUserId, currentState.listType));
-
-              Util::logInfo("AppStore", "Loaded " + juce::String(users.size()) + " following");
-
-            } catch (const std::exception &e) {
-              // Reducer: Create error state
-              auto error = std::string(e.what());
-              auto currentState = stateManager.followers->getState();
-              stateManager.followers->setState(FollowersState(currentState.users,
-                                                              false, // isLoading
-                                                              error, // errorMessage
-                                                              currentState.totalCount, currentState.targetUserId,
-                                                              currentState.listType));
-              Util::logError("AppStore", "Failed to load following: " + juce::String(e.what()));
+          [this](const NetworkClient::UserResult &userResult) {
+            // Convert typed users to shared_ptr and store in EntityStore
+            std::vector<std::shared_ptr<Sidechain::User>> users;
+            auto &entityStore = EntityStore::getInstance();
+            for (const auto &user : userResult.users) {
+              auto sharedUser = std::make_shared<User>(user);
+              entityStore.users().set(user.id, sharedUser);
+              users.push_back(sharedUser);
             }
+
+            // Reducer - Create new immutable FollowersState with loaded users
+            std::vector<std::shared_ptr<const Sidechain::User>> immutableUsers;
+            for (const auto &user : users) {
+              immutableUsers.push_back(std::const_pointer_cast<const Sidechain::User>(user));
+            }
+            auto currentState = stateManager.followers->getState();
+            stateManager.followers->setState(FollowersState(immutableUsers,
+                                                            false,            // isLoading
+                                                            "",               // no error
+                                                            userResult.total, // totalCount from response
+                                                            currentState.targetUserId, currentState.listType));
+
+            Util::logInfo("AppStore", "Loaded " + juce::String(static_cast<int>(users.size())) + " following");
           },
           [this](std::exception_ptr ep) {
             try {

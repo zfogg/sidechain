@@ -480,6 +480,13 @@ public:
     bool hasMore = false;                   ///< Whether more posts are available
   };
 
+  /** Result structure for user list queries (typed User with pagination) */
+  struct UserResult {
+    std::vector<Sidechain::User> users; ///< Parsed User objects (value types)
+    int total = 0;                      ///< Total count of users available
+    bool hasMore = false;               ///< Whether more users are available
+  };
+
   /** Get the global feed as an observable
    * @param limit Maximum number of posts to return
    * @param offset Pagination offset
@@ -540,9 +547,9 @@ public:
   /** Search users as an observable
    * @param query Search query string
    * @param limit Maximum number of results
-   * @return Observable that emits user search results on JUCE message thread
+   * @return Observable that emits typed User vector on JUCE message thread
    */
-  rxcpp::observable<juce::var> searchUsersObservable(const juce::String &query, int limit = 20);
+  rxcpp::observable<std::vector<Sidechain::User>> searchUsersObservable(const juce::String &query, int limit = 20);
 
   /** Get notification counts as an observable
    * @return Observable that emits pair of (unseen, unread) counts
@@ -722,39 +729,39 @@ public:
 
   /** Get a user's profile as an observable
    * @param userId The user ID
-   * @return Observable that emits user data
+   * @return Observable that emits typed User on JUCE message thread
    */
-  rxcpp::observable<juce::var> getUserObservable(const juce::String &userId);
+  rxcpp::observable<Sidechain::User> getUserObservable(const juce::String &userId);
 
   /** Get a user's posts as an observable
    * @param userId The user ID
    * @param limit Number of posts to fetch
    * @param offset Pagination offset
-   * @return Observable that emits posts data
+   * @return Observable that emits typed FeedResult on JUCE message thread
    */
-  rxcpp::observable<juce::var> getUserPostsObservable(const juce::String &userId, int limit = 20, int offset = 0);
+  rxcpp::observable<FeedResult> getUserPostsObservable(const juce::String &userId, int limit = 20, int offset = 0);
 
   /** Get a user's followers as an observable
    * @param userId The user ID
    * @param limit Number of followers to fetch
    * @param offset Pagination offset
-   * @return Observable that emits followers data
+   * @return Observable that emits typed UserResult on JUCE message thread
    */
-  rxcpp::observable<juce::var> getFollowersObservable(const juce::String &userId, int limit = 20, int offset = 0);
+  rxcpp::observable<UserResult> getFollowersObservable(const juce::String &userId, int limit = 20, int offset = 0);
 
   /** Get users a user is following as an observable
    * @param userId The user ID
    * @param limit Number of following to fetch
    * @param offset Pagination offset
-   * @return Observable that emits following data
+   * @return Observable that emits typed UserResult on JUCE message thread
    */
-  rxcpp::observable<juce::var> getFollowingObservable(const juce::String &userId, int limit = 20, int offset = 0);
+  rxcpp::observable<UserResult> getFollowingObservable(const juce::String &userId, int limit = 20, int offset = 0);
 
   /** Change username as an observable
    * @param newUsername The new username
-   * @return Observable that emits result on success
+   * @return Observable that emits typed User on success
    */
-  rxcpp::observable<juce::var> changeUsernameObservable(const juce::String &newUsername);
+  rxcpp::observable<Sidechain::User> changeUsernameObservable(const juce::String &newUsername);
 
   /** Upload profile picture as an observable
    * @param imageFile The image file to upload
@@ -763,18 +770,18 @@ public:
   rxcpp::observable<juce::String> uploadProfilePictureObservable(const juce::File &imageFile);
 
   /** Get current user profile as an observable
-   * @return Observable that emits current user data
+   * @return Observable that emits typed User on JUCE message thread
    */
-  rxcpp::observable<juce::var> getCurrentUserObservable();
+  rxcpp::observable<Sidechain::User> getCurrentUserObservable();
 
   /** Update user profile as an observable
    * @param username New username (empty to skip)
    * @param displayName New display name (empty to skip)
    * @param bio New bio (empty to skip)
-   * @return Observable that emits result on success
+   * @return Observable that emits typed User on success
    */
-  rxcpp::observable<juce::var> updateUserProfileObservable(const juce::String &username,
-                                                           const juce::String &displayName, const juce::String &bio);
+  rxcpp::observable<Sidechain::User>
+  updateUserProfileObservable(const juce::String &username, const juce::String &displayName, const juce::String &bio);
 
   // ==========================================================================
   // NOTE: Callback-based like/unlike methods are deprecated. Use observable versions.

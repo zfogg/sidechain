@@ -1083,7 +1083,7 @@ void CommentsPanel::showMentionAutocomplete(const juce::String &query) {
 
   storeRef.searchUsersObservable(searchQuery)
       .subscribe(
-          [safeThis](const juce::Array<juce::var> &users) {
+          [safeThis](const std::vector<Sidechain::User> &users) {
             // Check if component still exists
             if (safeThis == nullptr)
               return;
@@ -1093,14 +1093,9 @@ void CommentsPanel::showMentionAutocomplete(const juce::String &query) {
             safeThis->mentionUserIds.clear();
 
             for (const auto &user : users) {
-              if (user.isObject()) {
-                juce::String username = user.getProperty("username", "").toString();
-                juce::String userId = user.getProperty("id", "").toString();
-
-                if (username.isNotEmpty() && userId.isNotEmpty()) {
-                  safeThis->mentionSuggestions.add(username);
-                  safeThis->mentionUserIds.add(userId);
-                }
+              if (user.username.isNotEmpty() && user.id.isNotEmpty()) {
+                safeThis->mentionSuggestions.add(user.username);
+                safeThis->mentionUserIds.add(user.id);
               }
             }
 
