@@ -1432,6 +1432,7 @@ private:
   // Feed helpers
   void performFetch(FeedType feedType, int limit, int offset);
   void handleFetchSuccess(FeedType feedType, const juce::var &data, int limit, int offset);
+  void handleTypedFetchSuccess(FeedType feedType, const NetworkClient::FeedResult &result, int limit, int offset);
   void handleFetchError(FeedType feedType, const juce::String &error);
   void handleSavedPostsLoaded(Outcome<juce::var> result);
   void handleArchivedPostsLoaded(Outcome<juce::var> result);

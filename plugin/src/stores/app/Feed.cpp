@@ -528,26 +528,8 @@ void AppStore::performFetch(FeedType feedType, int limit, int offset) {
     return;
   }
 
-  // Get the appropriate observable based on feed type
-  rxcpp::observable<juce::var> feedObservable;
-
-  if (feedType == FeedType::Timeline) {
-    Util::logDebug("AppStore", "performFetch: using getTimelineFeedObservable");
-    feedObservable = networkClient->getTimelineFeedObservable(limit, offset);
-  } else if (feedType == FeedType::Trending) {
-    feedObservable = networkClient->getTrendingFeedObservable(limit, offset);
-  } else if (feedType == FeedType::Global) {
-    feedObservable = networkClient->getGlobalFeedObservable(limit, offset);
-  } else if (feedType == FeedType::ForYou) {
-    feedObservable = networkClient->getForYouFeedObservable(limit, offset);
-  } else if (feedType == FeedType::Popular) {
-    feedObservable = networkClient->getPopularFeedObservable(limit, offset);
-  } else if (feedType == FeedType::Latest) {
-    feedObservable = networkClient->getLatestFeedObservable(limit, offset);
-  } else if (feedType == FeedType::Discovery) {
-    feedObservable = networkClient->getDiscoveryFeedObservable(limit, offset);
-  } else if (feedType == FeedType::TimelineAggregated) {
-    // Aggregated feeds still use callbacks as they don't have observable versions yet
+  // Handle aggregated feeds separately (they still use callbacks)
+  if (feedType == FeedType::TimelineAggregated) {
     networkClient->getAggregatedTimeline(limit, offset, [this, feedType, limit, offset](Outcome<juce::var> result) {
       if (result.isOk()) {
         handleFetchSuccess(feedType, result.getValue(), limit, offset);
@@ -576,19 +558,39 @@ void AppStore::performFetch(FeedType feedType, int limit, int offset) {
                                               });
     return;
   } else if (feedType == FeedType::UserActivityAggregated) {
-    // For user activity, we would need the user ID - for now, skip
     Util::logWarning("AppStore", "UserActivityAggregated requires userId - skipping");
     return;
+  }
+
+  // Get the appropriate typed observable based on feed type
+  rxcpp::observable<NetworkClient::FeedResult> feedObservable;
+
+  if (feedType == FeedType::Timeline) {
+    Util::logDebug("AppStore", "performFetch: using getTimelineFeedObservable");
+    feedObservable = networkClient->getTimelineFeedObservable(limit, offset);
+  } else if (feedType == FeedType::Trending) {
+    feedObservable = networkClient->getTrendingFeedObservable(limit, offset);
+  } else if (feedType == FeedType::Global) {
+    feedObservable = networkClient->getGlobalFeedObservable(limit, offset);
+  } else if (feedType == FeedType::ForYou) {
+    feedObservable = networkClient->getForYouFeedObservable(limit, offset);
+  } else if (feedType == FeedType::Popular) {
+    feedObservable = networkClient->getPopularFeedObservable(limit, offset);
+  } else if (feedType == FeedType::Latest) {
+    feedObservable = networkClient->getLatestFeedObservable(limit, offset);
+  } else if (feedType == FeedType::Discovery) {
+    feedObservable = networkClient->getDiscoveryFeedObservable(limit, offset);
   } else {
     Util::logError("AppStore", "Unknown feed type");
     return;
   }
 
-  // Subscribe to the observable
+  // Subscribe to the typed observable
   feedObservable.subscribe(
-      [this, feedType, limit, offset](const juce::var &data) {
-        Log::debug("AppStore: Feed response received via observable, parsing...");
-        handleFetchSuccess(feedType, data, limit, offset);
+      [this, feedType, limit, offset](const NetworkClient::FeedResult &result) {
+        Log::debug("AppStore: Feed response received via observable, got " +
+                   juce::String(static_cast<int>(result.posts.size())) + " typed posts");
+        handleTypedFetchSuccess(feedType, result, limit, offset);
       },
       [this, feedType](std::exception_ptr ep) {
         try {
@@ -691,6 +693,56 @@ void AppStore::handleFetchSuccess(FeedType feedType, const juce::var &data, int 
   } catch (...) {
     Log::error("========== UNKNOWN EXCEPTION in handleFetchSuccess ==========");
     Log::error("Unknown exception in handleFetchSuccess");
+  }
+}
+
+void AppStore::handleTypedFetchSuccess(FeedType feedType, const NetworkClient::FeedResult &result, int limit,
+                                       int offset) {
+  Log::info("========== handleTypedFetchSuccess ENTRY ==========");
+  Log::info("handleTypedFetchSuccess for feedType=" + feedTypeToString(feedType) +
+            ", posts=" + juce::String(static_cast<int>(result.posts.size())));
+
+  try {
+    // Validate response size against requested limit
+    const size_t responseSize = result.posts.size();
+    const size_t expectedLimit = static_cast<size_t>(limit);
+    if (responseSize > expectedLimit) {
+      Log::warn("AppStore: Response size (" + juce::String(static_cast<int>(responseSize)) +
+                ") exceeds requested limit (" + juce::String(limit) + ")");
+    }
+
+    PostsState newState = stateManager.posts->getState();
+    if (newState.feeds.count(feedType) == 0) {
+      newState.feeds[feedType] = FeedState();
+    }
+
+    auto &feedState = newState.feeds[feedType];
+    if (offset == 0) {
+      feedState.posts.clear();
+    }
+
+    // Convert typed FeedPost values to shared_ptr<FeedPost>
+    for (const auto &post : result.posts) {
+      feedState.posts.push_back(std::make_shared<FeedPost>(post));
+    }
+
+    feedState.isLoading = false;
+    feedState.isRefreshing = false;
+    feedState.offset = offset + static_cast<int>(result.posts.size());
+    feedState.total = result.total;
+    feedState.hasMore = result.hasMore;
+    feedState.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
+    feedState.error = "";
+    feedState.isSynced = true;
+    stateManager.posts->setState(newState);
+
+    Log::info("========== handleTypedFetchSuccess COMPLETE ==========");
+    Log::debug("Loaded " + juce::String(static_cast<int>(result.posts.size())) +
+               " posts for feedType=" + feedTypeToString(feedType));
+  } catch (const std::exception &e) {
+    Log::error("========== EXCEPTION in handleTypedFetchSuccess: " + juce::String(e.what()) + " ==========");
+  } catch (...) {
+    Log::error("========== UNKNOWN EXCEPTION in handleTypedFetchSuccess ==========");
   }
 }
 

@@ -473,54 +473,61 @@ public:
     int unread = 0;                                     ///< Count of unread notifications
   };
 
+  /** Result structure for feed queries (typed FeedPost with pagination) */
+  struct FeedResult {
+    std::vector<Sidechain::FeedPost> posts; ///< Parsed FeedPost objects (value types)
+    int total = 0;                          ///< Total count of posts available
+    bool hasMore = false;                   ///< Whether more posts are available
+  };
+
   /** Get the global feed as an observable
    * @param limit Maximum number of posts to return
    * @param offset Pagination offset
-   * @return Observable that emits feed data on JUCE message thread
+   * @return Observable that emits FeedResult with typed FeedPost objects on JUCE message thread
    */
-  rxcpp::observable<juce::var> getGlobalFeedObservable(int limit = 20, int offset = 0);
+  rxcpp::observable<FeedResult> getGlobalFeedObservable(int limit = 20, int offset = 0);
 
   /** Get the timeline feed as an observable
    * @param limit Maximum number of posts to return
    * @param offset Pagination offset
-   * @return Observable that emits feed data on JUCE message thread
+   * @return Observable that emits FeedResult with typed FeedPost objects on JUCE message thread
    */
-  rxcpp::observable<juce::var> getTimelineFeedObservable(int limit = 20, int offset = 0);
+  rxcpp::observable<FeedResult> getTimelineFeedObservable(int limit = 20, int offset = 0);
 
   /** Get the trending feed as an observable
    * @param limit Maximum number of posts to return
    * @param offset Pagination offset
-   * @return Observable that emits feed data on JUCE message thread
+   * @return Observable that emits FeedResult with typed FeedPost objects on JUCE message thread
    */
-  rxcpp::observable<juce::var> getTrendingFeedObservable(int limit = 20, int offset = 0);
+  rxcpp::observable<FeedResult> getTrendingFeedObservable(int limit = 20, int offset = 0);
 
   /** Get "For You" personalized feed as an observable
    * @param limit Maximum number of posts to return
    * @param offset Pagination offset
-   * @return Observable that emits feed data on JUCE message thread
+   * @return Observable that emits FeedResult with typed FeedPost objects on JUCE message thread
    */
-  rxcpp::observable<juce::var> getForYouFeedObservable(int limit = 20, int offset = 0);
+  rxcpp::observable<FeedResult> getForYouFeedObservable(int limit = 20, int offset = 0);
 
   /** Get popular feed as an observable
    * @param limit Maximum number of posts to return
    * @param offset Pagination offset
-   * @return Observable that emits feed data on JUCE message thread
+   * @return Observable that emits FeedResult with typed FeedPost objects on JUCE message thread
    */
-  rxcpp::observable<juce::var> getPopularFeedObservable(int limit = 20, int offset = 0);
+  rxcpp::observable<FeedResult> getPopularFeedObservable(int limit = 20, int offset = 0);
 
   /** Get latest feed as an observable
    * @param limit Maximum number of posts to return
    * @param offset Pagination offset
-   * @return Observable that emits feed data on JUCE message thread
+   * @return Observable that emits FeedResult with typed FeedPost objects on JUCE message thread
    */
-  rxcpp::observable<juce::var> getLatestFeedObservable(int limit = 20, int offset = 0);
+  rxcpp::observable<FeedResult> getLatestFeedObservable(int limit = 20, int offset = 0);
 
   /** Get discovery feed as an observable
    * @param limit Maximum number of posts to return
    * @param offset Pagination offset
-   * @return Observable that emits feed data on JUCE message thread
+   * @return Observable that emits FeedResult with typed FeedPost objects on JUCE message thread
    */
-  rxcpp::observable<juce::var> getDiscoveryFeedObservable(int limit = 20, int offset = 0);
+  rxcpp::observable<FeedResult> getDiscoveryFeedObservable(int limit = 20, int offset = 0);
 
   /** Search posts as an observable
    * @param query Search query string
