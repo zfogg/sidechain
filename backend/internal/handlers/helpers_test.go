@@ -91,7 +91,7 @@ func TestParseGenreArray(t *testing.T) {
 	}{
 		{"Electronic", []string{"Electronic"}},
 		{"", []string{}},
-		{"House, Techno", []string{"House, Techno"}}, // Current impl just wraps
+		{"House, Techno", []string{"House", "Techno"}}, // Splits by comma and trims spaces
 	}
 
 	for _, tc := range testCases {

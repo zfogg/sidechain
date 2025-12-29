@@ -214,6 +214,21 @@ func (c *GorseRESTClient) SyncFeedback(userID, postID, feedbackType string) erro
 	return c.SyncFeedbackWithContext(context.Background(), userID, postID, feedbackType)
 }
 
+// GetForYouFeed returns personalized recommendations for a user (convenience wrapper without context)
+func (c *GorseRESTClient) GetForYouFeed(userID string, limit, offset int) ([]PostScore, error) {
+	return c.GetForYouFeedWithContext(context.Background(), userID, limit, offset)
+}
+
+// GetSimilarPosts returns posts similar to the given post (convenience wrapper without context)
+func (c *GorseRESTClient) GetSimilarPosts(postID string, limit int) ([]models.AudioPost, error) {
+	return c.GetSimilarPostsWithContext(context.Background(), postID, limit)
+}
+
+// GetSimilarUsers returns users similar to the given user (convenience wrapper without context)
+func (c *GorseRESTClient) GetSimilarUsers(userID string, limit int) ([]models.User, error) {
+	return c.GetSimilarUsersWithContext(context.Background(), userID, limit)
+}
+
 // GetForYouFeedWithContext returns personalized recommendations for a user with request context
 func (c *GorseRESTClient) GetForYouFeedWithContext(ctx context.Context, userID string, limit, offset int) ([]PostScore, error) {
 	// Gorse GetRecommend endpoint: GET /api/recommend/{user-id}?n={n}
