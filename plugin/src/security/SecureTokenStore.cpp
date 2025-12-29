@@ -321,9 +321,8 @@ bool SecureTokenStore::saveTokenLinux(const juce::String &key, const juce::Strin
   // Tokens are stored in the application data directory with restricted permissions.
   // For production deployments, consider using a secure credential manager or
   // environment-based authentication instead of file-based token storage.
-  juce::Logger::writeToLog(
-      "WARNING: Storing authentication tokens in file system (Linux fallback). "
-      "Consider using environment variables or a credential manager for production use.");
+  juce::Logger::writeToLog("WARNING: Storing authentication tokens in file system (Linux fallback). "
+                           "Consider using environment variables or a credential manager for production use.");
 
   auto filepath = getTokenFilePath(key);
   if (!filepath.replaceWithText(token))

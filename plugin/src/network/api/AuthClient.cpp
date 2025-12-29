@@ -16,8 +16,8 @@ void NetworkClient::registerAccount(const juce::String &email, const juce::Strin
                                     const juce::String &password, const juce::String &displayName,
                                     AuthenticationCallback callback) {
   Async::runVoid([this, email, username, password, displayName, callback]() {
-    auto registerData =
-        createJsonObject({{"email", email}, {"username", username}, {"password", password}, {"display_name", displayName}});
+    auto registerData = createJsonObject(
+        {{"email", email}, {"username", username}, {"password", password}, {"display_name", displayName}});
 
     auto response = makeRequest(buildApiPath("/auth/register"), "POST", registerData, false);
 

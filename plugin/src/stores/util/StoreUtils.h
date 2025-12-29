@@ -221,9 +221,13 @@ struct ToggleState {
   bool isActive = false;
   int count = 0;
 
-  ToggleState toggle() const { return {!isActive, isActive ? std::max(0, count - 1) : count + 1}; }
+  ToggleState toggle() const {
+    return {!isActive, isActive ? std::max(0, count - 1) : count + 1};
+  }
 
-  static ToggleState from(bool active, int cnt) { return {active, cnt}; }
+  static ToggleState from(bool active, int cnt) {
+    return {active, cnt};
+  }
 };
 
 // ==============================================================================
@@ -249,14 +253,26 @@ public:
       : originalState_(currentState), originalCount_(currentCount), newState_(!currentState),
         newCount_(currentState ? std::max(0, currentCount - 1) : currentCount + 1) {}
 
-  bool originalState() const { return originalState_; }
-  int originalCount() const { return originalCount_; }
-  bool newState() const { return newState_; }
-  int newCount() const { return newCount_; }
+  bool originalState() const {
+    return originalState_;
+  }
+  int originalCount() const {
+    return originalCount_;
+  }
+  bool newState() const {
+    return newState_;
+  }
+  int newCount() const {
+    return newCount_;
+  }
 
   // For determining which API to call
-  bool wasActive() const { return originalState_; }
-  bool willBeActive() const { return newState_; }
+  bool wasActive() const {
+    return originalState_;
+  }
+  bool willBeActive() const {
+    return newState_;
+  }
 
 private:
   bool originalState_;
@@ -277,7 +293,9 @@ public:
   /**
    * Create a timestamp for last updated tracking.
    */
-  static int64_t now() { return juce::Time::getCurrentTime().toMilliseconds(); }
+  static int64_t now() {
+    return juce::Time::getCurrentTime().toMilliseconds();
+  }
 
   /**
    * Check if a cache is stale based on TTL.
@@ -290,7 +308,9 @@ public:
   /**
    * Check if should load more (pagination helper).
    */
-  static bool shouldLoadMore(bool hasMore, bool isLoading) { return hasMore && !isLoading; }
+  static bool shouldLoadMore(bool hasMore, bool isLoading) {
+    return hasMore && !isLoading;
+  }
 };
 
 // ==============================================================================
@@ -307,8 +327,7 @@ public:
 class NetworkClientGuard {
 public:
   template <typename NetworkClientType>
-  static bool check(NetworkClientType *client, const juce::String &operation,
-                    const juce::String &logTag = "AppStore") {
+  static bool check(NetworkClientType *client, const juce::String &operation, const juce::String &logTag = "AppStore") {
     if (!client) {
       Util::logError(logTag, "Cannot " + operation + " - network client not set");
       return false;
@@ -316,8 +335,7 @@ public:
     return true;
   }
 
-  template <typename NetworkClientType>
-  static bool checkSilent(NetworkClientType *client) {
+  template <typename NetworkClientType> static bool checkSilent(NetworkClientType *client) {
     return client != nullptr;
   }
 };
@@ -338,9 +356,13 @@ public:
  */
 class LoadingStateScope {
 public:
-  explicit LoadingStateScope(bool &loadingFlag) : loadingFlag_(loadingFlag) { loadingFlag_ = true; }
+  explicit LoadingStateScope(bool &loadingFlag) : loadingFlag_(loadingFlag) {
+    loadingFlag_ = true;
+  }
 
-  ~LoadingStateScope() { loadingFlag_ = false; }
+  ~LoadingStateScope() {
+    loadingFlag_ = false;
+  }
 
   // Non-copyable
   LoadingStateScope(const LoadingStateScope &) = delete;

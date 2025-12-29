@@ -1230,7 +1230,8 @@ void CommentsPanel::onAppStateChanged(const Sidechain::Stores::CommentsState &st
     comments = postComments;
     // Safely access totalCountByPostId to avoid std::out_of_range exception
     auto countIt = state.totalCountByPostId.find(currentPostId.toStdString());
-    totalCommentCount = (countIt != state.totalCountByPostId.end()) ? countIt->second : static_cast<int>(postComments.size());
+    totalCommentCount =
+        (countIt != state.totalCountByPostId.end()) ? countIt->second : static_cast<int>(postComments.size());
     isLoading = false;
     errorMessage.clear();
     Log::info("CommentsPanel::onAppStateChanged: Calling updateCommentsList() to render comments");

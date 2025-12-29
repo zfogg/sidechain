@@ -56,9 +56,11 @@ func (sv *ServiceValidator) ValidateServices(ctx context.Context) error {
 		timeoutCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 		if err := serviceChecker(timeoutCtx); err != nil {
 			cancel()
-			errorMsg := fmt.Sprintf("❌ Required service '%s' validation failed: %v", serviceName, err)
-			logger.Log.Error(errorMsg)
-			return fmt.Errorf(errorMsg)
+			logger.Log.Error("❌ Required service validation failed",
+				zap.String("service", serviceName),
+				zap.Error(err),
+			)
+			return fmt.Errorf("service validation failed for '%s': %w", serviceName, err)
 		}
 		cancel()
 

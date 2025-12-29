@@ -23,7 +23,7 @@
 // Check at runtime since we want to compile on older SDKs too
 static bool isWindows10OrLater() {
   // Use RtlGetVersion to get accurate version (GetVersionEx lies on Win10+)
-  typedef LONG(WINAPI *RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
+  typedef LONG(WINAPI * RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
   HMODULE ntdll = GetModuleHandleW(L"ntdll.dll");
   if (ntdll) {
     // BUG FIX: Use C-style cast instead of reinterpret_cast for Windows API
@@ -420,8 +420,7 @@ bool OSNotification::show(const juce::String &title, const juce::String &message
 #endif
   } else {
     // Call from message thread asynchronously
-    juce::MessageManager::callAsync(
-        [title, message, subtitle, sound]() { show(title, message, subtitle, sound); });
+    juce::MessageManager::callAsync([title, message, subtitle, sound]() { show(title, message, subtitle, sound); });
     return true; // Return true because we successfully queued the operation
   }
 }

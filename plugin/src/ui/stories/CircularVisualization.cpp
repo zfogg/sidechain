@@ -12,8 +12,12 @@ const juce::Colour sweepGlow(0x40ff5252);
 const juce::Colour noteActive(0xffb388ff);
 
 // Use SidechainColors for common colors
-inline juce::Colour noteDefault() { return SidechainColors::getMidiNoteColor(0); }
-inline juce::Colour centerText() { return SidechainColors::textMuted(); }
+inline juce::Colour noteDefault() {
+  return SidechainColors::getMidiNoteColor(0);
+}
+inline juce::Colour centerText() {
+  return SidechainColors::textMuted();
+}
 } // namespace CircularColors
 
 // ==============================================================================

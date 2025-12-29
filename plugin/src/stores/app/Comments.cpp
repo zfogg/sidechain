@@ -89,7 +89,8 @@ void AppStore::createComment(const juce::String &postId, const juce::String &con
             commentsIt->second.insert(commentsIt->second.begin(), normalizedComment);
             newState.totalCountByPostId[postId.toStdString()]++;
           } else {
-            Util::logWarning("AppStore", "Post " + postId + " not found in commentsByPostId map, initializing empty list");
+            Util::logWarning("AppStore",
+                             "Post " + postId + " not found in commentsByPostId map, initializing empty list");
             newState.commentsByPostId[postId.toStdString()] = {normalizedComment};
             newState.totalCountByPostId[postId.toStdString()] = 1;
           }

@@ -10,7 +10,7 @@ using Utils::JsonArrayParser;
 using Utils::NetworkClientGuard;
 
 void AppStore::loadFeaturedSounds() {
-  if (!NetworkClientGuard::check(networkClient.get(), "load featured sounds")) {
+  if (!NetworkClientGuard::check(networkClient, "load featured sounds")) {
     return;
   }
 
@@ -42,7 +42,7 @@ void AppStore::loadFeaturedSounds() {
 }
 
 void AppStore::loadRecentSounds() {
-  if (!NetworkClientGuard::check(networkClient.get(), "load recent sounds")) {
+  if (!NetworkClientGuard::check(networkClient, "load recent sounds")) {
     return;
   }
 
@@ -75,7 +75,7 @@ void AppStore::loadRecentSounds() {
 }
 
 void AppStore::loadMoreSounds() {
-  if (!NetworkClientGuard::checkSilent(networkClient.get())) {
+  if (!NetworkClientGuard::checkSilent(networkClient)) {
     return;
   }
 

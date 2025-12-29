@@ -3,7 +3,7 @@
 #include "../slices/AppSlices.h"
 #include "../app/AppState.h"
 #include "StoreUtils.h"
-#include "../../util/Log.h"
+#include "../../util/logging/Logger.h"
 #include "../../util/Result.h"
 #include <JuceHeader.h>
 #include <functional>
@@ -131,7 +131,7 @@ public:
     auto toggleState = findCurrentState(currentState, postId, config.getIsActive, config.getCount);
 
     if (!toggleState.has_value()) {
-      Log::warn("PostInteractionHelper", "Post not found for " + config.actionName + ": " + postId);
+      Util::logWarning("PostInteractionHelper", "Post not found for " + config.actionName + ": " + postId);
       return;
     }
 
@@ -146,23 +146,22 @@ public:
     });
     slice->setState(newState);
 
-    Log::debug("PostInteractionHelper", config.actionName + " optimistic update: " + postId);
+    Util::logDebug("PostInteractionHelper", config.actionName + " optimistic update: " + postId);
 
     // 3. Call API
     config.apiCall(postId, wasActive, [slice, postId, wasActive, toggleState, config](Outcome<juce::var> result) {
       if (result.isOk()) {
-        Log::info("PostInteractionHelper",
-                  config.actionName + " " + (wasActive ? "undone" : "applied") + " successfully: " + postId);
+        Util::logInfo("PostInteractionHelper",
+                      config.actionName + " " + (wasActive ? "undone" : "applied") + " successfully: " + postId);
       } else {
-        Log::error("PostInteractionHelper", "Failed to " + config.actionName + " post: " + result.getError());
+        Util::logError("PostInteractionHelper", "Failed to " + config.actionName + " post: " + result.getError());
 
         // Rollback optimistic update
         PostsState rollbackState = slice->getState();
-        updatePostAcrossCollections(rollbackState, postId,
-                                    [&config, &toggleState](std::shared_ptr<FeedPost> &post) {
-                                      config.setIsActive(*post, toggleState->isActive);
-                                      config.setCount(*post, toggleState->count);
-                                    });
+        updatePostAcrossCollections(rollbackState, postId, [&config, &toggleState](std::shared_ptr<FeedPost> &post) {
+          config.setIsActive(*post, toggleState->isActive);
+          config.setCount(*post, toggleState->count);
+        });
         slice->setState(rollbackState);
       }
     });
@@ -171,8 +170,8 @@ public:
   /**
    * Create a ToggleConfig for like operations.
    */
-  static ToggleConfig createLikeConfig(
-      std::function<void(const juce::String &, bool, std::function<void(Outcome<juce::var>)>)> apiCall) {
+  static ToggleConfig
+  createLikeConfig(std::function<void(const juce::String &, bool, std::function<void(Outcome<juce::var>)>)> apiCall) {
     return ToggleConfig{.getIsActive = [](const FeedPost &p) { return p.isLiked; },
                         .getCount = [](const FeedPost &p) { return p.likeCount; },
                         .setIsActive = [](FeedPost &p, bool active) { p.isLiked = active; },
@@ -184,8 +183,8 @@ public:
   /**
    * Create a ToggleConfig for save operations.
    */
-  static ToggleConfig createSaveConfig(
-      std::function<void(const juce::String &, bool, std::function<void(Outcome<juce::var>)>)> apiCall) {
+  static ToggleConfig
+  createSaveConfig(std::function<void(const juce::String &, bool, std::function<void(Outcome<juce::var>)>)> apiCall) {
     return ToggleConfig{.getIsActive = [](const FeedPost &p) { return p.isSaved; },
                         .getCount = [](const FeedPost &p) { return p.saveCount; },
                         .setIsActive = [](FeedPost &p, bool active) { p.isSaved = active; },
@@ -197,8 +196,8 @@ public:
   /**
    * Create a ToggleConfig for repost operations.
    */
-  static ToggleConfig createRepostConfig(
-      std::function<void(const juce::String &, bool, std::function<void(Outcome<juce::var>)>)> apiCall) {
+  static ToggleConfig
+  createRepostConfig(std::function<void(const juce::String &, bool, std::function<void(Outcome<juce::var>)>)> apiCall) {
     return ToggleConfig{.getIsActive = [](const FeedPost &p) { return p.isReposted; },
                         .getCount = [](const FeedPost &p) { return p.repostCount; },
                         .setIsActive = [](FeedPost &p, bool active) { p.isReposted = active; },

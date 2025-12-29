@@ -497,4 +497,3 @@ void DraftsView::discardRecoveryDraft() {
   resized();
   repaint();
 }
-

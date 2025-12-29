@@ -50,7 +50,7 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'pnpm exec vite',
+    command: 'bunx vite',
     url: 'http://localhost:5173',
     reuseExistingServer: true, // Always reuse existing server if available
     timeout: 120 * 1000,

@@ -6,15 +6,15 @@
 #include "../../util/Json.h"
 
 using namespace Sidechain;
-using Stores::Utils::UserLoadingHelper;
 using Stores::Utils::NetworkClientGuard;
+using Stores::Utils::UserLoadingHelper;
 
 // ==============================================================================
 // Discovery Redux Actions
 // ==============================================================================
 
 void AppStore::loadTrendingUsersAndCache(int limit) {
-  if (!NetworkClientGuard::check(networkClient.get(), "load trending users")) {
+  if (!NetworkClientGuard::check(networkClient, "load trending users")) {
     return;
   }
 
@@ -45,7 +45,7 @@ void AppStore::loadTrendingUsersAndCache(int limit) {
 }
 
 void AppStore::loadFeaturedProducersAndCache(int limit) {
-  if (!NetworkClientGuard::check(networkClient.get(), "load featured producers")) {
+  if (!NetworkClientGuard::check(networkClient, "load featured producers")) {
     return;
   }
 
@@ -76,7 +76,7 @@ void AppStore::loadFeaturedProducersAndCache(int limit) {
 }
 
 void AppStore::loadSuggestedUsersAndCache(int limit) {
-  if (!NetworkClientGuard::check(networkClient.get(), "load suggested users")) {
+  if (!NetworkClientGuard::check(networkClient, "load suggested users")) {
     return;
   }
 

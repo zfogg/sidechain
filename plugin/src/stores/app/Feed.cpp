@@ -7,8 +7,8 @@ namespace Sidechain {
 namespace Stores {
 
 using Utils::JsonArrayParser;
-using Utils::PostInteractionHelper;
 using Utils::NetworkClientGuard;
+using Utils::PostInteractionHelper;
 
 // ==============================================================================
 // Helper Functions
@@ -308,7 +308,7 @@ void AppStore::restorePost(const juce::String &postId) {
 // Post Interactions
 
 void AppStore::toggleLike(const juce::String &postId) {
-  if (!NetworkClientGuard::checkSilent(networkClient.get())) {
+  if (!NetworkClientGuard::checkSilent(networkClient)) {
     return;
   }
 
@@ -325,7 +325,7 @@ void AppStore::toggleLike(const juce::String &postId) {
 }
 
 void AppStore::toggleSave(const juce::String &postId) {
-  if (!NetworkClientGuard::checkSilent(networkClient.get())) {
+  if (!NetworkClientGuard::checkSilent(networkClient)) {
     return;
   }
 
@@ -342,7 +342,7 @@ void AppStore::toggleSave(const juce::String &postId) {
 }
 
 void AppStore::toggleRepost(const juce::String &postId) {
-  if (!NetworkClientGuard::checkSilent(networkClient.get())) {
+  if (!NetworkClientGuard::checkSilent(networkClient)) {
     return;
   }
 
@@ -372,7 +372,7 @@ void AppStore::addReaction(const juce::String &postId, const juce::String &emoji
 }
 
 void AppStore::toggleFollow(const juce::String &postId, bool willFollow) {
-  if (!NetworkClientGuard::checkSilent(networkClient.get())) {
+  if (!NetworkClientGuard::checkSilent(networkClient)) {
     return;
   }
 
@@ -396,8 +396,7 @@ void AppStore::toggleFollow(const juce::String &postId, bool willFollow) {
   FollowHelper::updateFollowState(newState, postId, willFollow);
   sliceManager.posts->setState(newState);
 
-  Util::logDebug("AppStore",
-                 "Follow post optimistic update: " + postId + " - " + (willFollow ? "follow" : "unfollow"));
+  Util::logDebug("AppStore", "Follow post optimistic update: " + postId + " - " + (willFollow ? "follow" : "unfollow"));
 
   // Define rollback callback
   auto rollbackOnError = [this, postId, previousFollowState](Outcome<juce::var> result) {
@@ -445,14 +444,14 @@ void AppStore::toggleMute(const juce::String &userId, bool willMute) {
 }
 
 void AppStore::togglePin(const juce::String &postId, bool pinned) {
-  if (!NetworkClientGuard::checkSilent(networkClient.get())) {
+  if (!NetworkClientGuard::checkSilent(networkClient)) {
     return;
   }
 
   // Update UI optimistically
   PostsState newState = sliceManager.posts->getState();
-  PostInteractionHelper::updatePostAcrossCollections(newState, postId,
-                                                     [pinned](std::shared_ptr<FeedPost> &post) { post->isPinned = pinned; });
+  PostInteractionHelper::updatePostAcrossCollections(
+      newState, postId, [pinned](std::shared_ptr<FeedPost> &post) { post->isPinned = pinned; });
   sliceManager.posts->setState(newState);
 
   // Call actual API to persist pin/unpin state

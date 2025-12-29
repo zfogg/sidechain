@@ -14,9 +14,15 @@ const juce::Colour noteActive(0xffb388ff);
 const juce::Colour playhead(0xffff5252);
 
 // Use SidechainColors for common colors
-inline juce::Colour keyBorder() { return SidechainColors::border(); }
-inline juce::Colour noteDefault() { return SidechainColors::getMidiNoteColor(0); }
-inline juce::Colour textPrimary() { return SidechainColors::textSecondary(); }
+inline juce::Colour keyBorder() {
+  return SidechainColors::border();
+}
+inline juce::Colour noteDefault() {
+  return SidechainColors::getMidiNoteColor(0);
+}
+inline juce::Colour textPrimary() {
+  return SidechainColors::textSecondary();
+}
 } // namespace PianoRollColors
 
 // ==============================================================================

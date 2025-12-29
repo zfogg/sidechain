@@ -9,7 +9,7 @@ using Utils::JsonArrayParser;
 using Utils::NetworkClientGuard;
 
 void AppStore::searchPosts(const juce::String &query) {
-  if (!NetworkClientGuard::check(networkClient.get(), "search posts")) {
+  if (!NetworkClientGuard::check(networkClient, "search posts")) {
     return;
   }
 
@@ -40,9 +40,10 @@ void AppStore::searchPosts(const juce::String &query) {
       SearchState successState = sliceManager.search->getState();
       successState.results.posts = std::move(postsList);
       successState.results.isSearching = false;
-      successState.results.totalResults =
-          static_cast<int>(data.getProperty("total_count", static_cast<juce::var>(static_cast<int>(successState.results.posts.size()))));
-      successState.results.hasMoreResults = successState.results.posts.size() < static_cast<size_t>(successState.results.totalResults);
+      successState.results.totalResults = static_cast<int>(
+          data.getProperty("total_count", static_cast<juce::var>(static_cast<int>(successState.results.posts.size()))));
+      successState.results.hasMoreResults =
+          successState.results.posts.size() < static_cast<size_t>(successState.results.totalResults);
       successState.results.offset = static_cast<int>(successState.results.posts.size());
       successState.results.searchError = "";
       Util::logInfo("AppStore", "Search found " + juce::String(successState.results.posts.size()) +
@@ -59,7 +60,7 @@ void AppStore::searchPosts(const juce::String &query) {
 }
 
 void AppStore::searchUsers(const juce::String &query) {
-  if (!NetworkClientGuard::check(networkClient.get(), "search users")) {
+  if (!NetworkClientGuard::check(networkClient, "search users")) {
     return;
   }
 
@@ -85,8 +86,8 @@ void AppStore::searchUsers(const juce::String &query) {
       SearchState successState = sliceManager.search->getState();
       successState.results.users = std::move(usersList);
       successState.results.isSearching = false;
-      successState.results.totalResults =
-          static_cast<int>(data.getProperty("total_count", static_cast<juce::var>(static_cast<int>(successState.results.users.size()))));
+      successState.results.totalResults = static_cast<int>(
+          data.getProperty("total_count", static_cast<juce::var>(static_cast<int>(successState.results.users.size()))));
       successState.results.searchError = "";
       Util::logInfo("AppStore", "User search found " + juce::String(successState.results.users.size()) + " users");
       sliceManager.search->setState(successState);
@@ -106,7 +107,7 @@ void AppStore::loadMoreSearchResults() {
     return;
   }
 
-  if (!NetworkClientGuard::checkSilent(networkClient.get())) {
+  if (!NetworkClientGuard::checkSilent(networkClient)) {
     return;
   }
 

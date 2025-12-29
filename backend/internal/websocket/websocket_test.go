@@ -2,11 +2,19 @@ package websocket
 
 import (
 	"encoding/json"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 )
+
+func TestMain(m *testing.M) {
+	// Initialize logger for tests
+	_ = logger.Initialize("error", "")
+	os.Exit(m.Run())
+}
 
 func TestNewHub(t *testing.T) {
 	hub := NewHub()

@@ -12,8 +12,12 @@ const juce::Colour keyIndicator(0xff2a2a3a);
 const juce::Colour keyIndicatorBlack(0xff1a1a2a);
 
 // Use SidechainColors for MIDI note colors
-inline juce::Colour noteDefault() { return SidechainColors::getMidiNoteColor(0); }
-inline juce::Colour textDim() { return SidechainColors::textMuted(); }
+inline juce::Colour noteDefault() {
+  return SidechainColors::getMidiNoteColor(0);
+}
+inline juce::Colour textDim() {
+  return SidechainColors::textMuted();
+}
 } // namespace WaterfallColors
 
 // ==============================================================================

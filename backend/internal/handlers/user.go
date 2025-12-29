@@ -1316,7 +1316,7 @@ func (h *Handlers) UnfollowUserByID(c *gin.Context) {
 // invalidateFeedWhenFollowPropagates polls until the follow relationship is propagated
 // to Stream.io, then broadcasts a feed invalidation. This replaces the fragile
 // hard-coded 2-second sleep with a polling mechanism using exponential backoff.
-func (h *UserHandler) invalidateFeedWhenFollowPropagates(followerID, followeeID string) {
+func (h *Handlers) invalidateFeedWhenFollowPropagates(followerID, followeeID string) {
 	const (
 		maxRetries      = 10
 		initialDelay    = 100 * time.Millisecond

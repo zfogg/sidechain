@@ -460,7 +460,7 @@ func (h *Handlers) GetEnrichedTimeline(c *gin.Context) {
 
 	// If timeline is empty and we're on the first page, fall back to recommendations
 	if len(activities) == 0 && offset == 0 {
-		fallbackActivities := h.getFallbackFeed(currentUser.ID, limit)
+		fallbackActivities := h.getFallbackFeed(c.Request.Context(), currentUser.ID, limit)
 		if len(fallbackActivities) > 0 {
 			c.JSON(http.StatusOK, gin.H{
 				"activities": fallbackActivities,
@@ -667,7 +667,7 @@ func (h *Handlers) GetEnrichedTimeline(c *gin.Context) {
 
 // getFallbackFeed returns recommended posts when the user's timeline is empty
 // First tries Gorse recommendations, then falls back to recent posts from database
-func (h *Handlers) getFallbackFeed(userID string, limit int) []map[string]interface{} {
+func (h *Handlers) getFallbackFeed(ctx context.Context, userID string, limit int) []map[string]interface{} {
 	// Get muted user IDs for filtering
 	mutedUserIDs, err := GetMutedUserIDs(userID)
 	if err != nil {
@@ -681,7 +681,7 @@ func (h *Handlers) getFallbackFeed(userID string, limit int) []map[string]interf
 
 	// Try Gorse recommendations first
 	if h.gorse != nil {
-		scores, err := h.gorse.GetForYouFeedWithContext(c.Request.Context(), userID, limit, 0)
+		scores, err := h.gorse.GetForYouFeedWithContext(ctx, userID, limit, 0)
 		if err == nil && len(scores) > 0 {
 			// Collect user IDs and batch fetch user data
 			userIDSet := make(map[string]bool)

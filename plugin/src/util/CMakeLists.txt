@@ -106,6 +106,16 @@ if(TARGET nlohmann_json::nlohmann_json)
     target_link_libraries(SidechainCore PUBLIC nlohmann_json::nlohmann_json)
 endif()
 
+# Link websocketpp for include paths (needed by AppStore -> StreamChatClient)
+if(TARGET websocketpp)
+    target_link_libraries(SidechainCore PUBLIC websocketpp)
+endif()
+
+# Link RxCpp for reactive programming (needed by AppStore)
+if(TARGET rxcpp)
+    target_link_libraries(SidechainCore PUBLIC rxcpp)
+endif()
+
 # Link libuuid for distributed tracing (UUID generation)
 find_package(PkgConfig QUIET)
 if(PkgConfig_FOUND)

@@ -232,8 +232,9 @@ void PostCard::drawFollowButton(juce::Graphics &g, juce::Rectangle<int> bounds) 
     return;
 
   // Use UIHelpers for consistent follow button styling
-  UIHelpers::drawFollowButton(g, bounds, postPtr->isFollowing, SidechainColors::follow(), SidechainColors::textPrimary(),
-                              SidechainColors::textSecondary(), SidechainColors::border());
+  UIHelpers::drawFollowButton(g, bounds, postPtr->isFollowing, SidechainColors::follow(),
+                              SidechainColors::textPrimary(), SidechainColors::textSecondary(),
+                              SidechainColors::border());
 }
 
 void PostCard::drawWaveform(juce::Graphics &g, juce::Rectangle<int> bounds) {

@@ -278,7 +278,7 @@ func (s *Service) getFollowingPosts(ctx context.Context, userID string, limit in
 
 // getGorseRecommendations gets personalized recommendations from Gorse
 func (s *Service) getGorseRecommendations(ctx context.Context, userID string, limit int) ([]TimelineItem, error) {
-	scores, err := s.gorseClient.GetForYouFeed(userID, limit, 0)
+	scores, err := s.gorseClient.GetForYouFeedWithContext(ctx, userID, limit, 0)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get gorse recommendations: %w", err)
 	}

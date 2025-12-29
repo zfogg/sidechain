@@ -272,7 +272,8 @@ void Header::drawCircularProfilePic(juce::Graphics &g, juce::Rectangle<int> boun
     }
 
     // Draw placeholder using utility
-    UIHelpers::drawCircularAvatar(g, bounds, juce::Image(), SidechainColors::primary(), juce::Colours::transparentBlack);
+    UIHelpers::drawCircularAvatar(g, bounds, juce::Image(), SidechainColors::primary(),
+                                  juce::Colours::transparentBlack);
   }
 
   // Border (only if no story highlight)

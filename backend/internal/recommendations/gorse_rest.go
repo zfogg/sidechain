@@ -199,6 +199,21 @@ func (c *GorseRESTClient) SyncFeedbackWithContext(ctx context.Context, userID, p
 	return err
 }
 
+// SyncUser syncs a user to Gorse (convenience wrapper without context)
+func (c *GorseRESTClient) SyncUser(userID string) error {
+	return c.SyncUserWithContext(context.Background(), userID)
+}
+
+// SyncItem syncs a post/item to Gorse (convenience wrapper without context)
+func (c *GorseRESTClient) SyncItem(postID string) error {
+	return c.SyncItemWithContext(context.Background(), postID)
+}
+
+// SyncFeedback syncs a feedback event to Gorse (convenience wrapper without context)
+func (c *GorseRESTClient) SyncFeedback(userID, postID, feedbackType string) error {
+	return c.SyncFeedbackWithContext(context.Background(), userID, postID, feedbackType)
+}
+
 // GetForYouFeedWithContext returns personalized recommendations for a user with request context
 func (c *GorseRESTClient) GetForYouFeedWithContext(ctx context.Context, userID string, limit, offset int) ([]PostScore, error) {
 	// Gorse GetRecommend endpoint: GET /api/recommend/{user-id}?n={n}

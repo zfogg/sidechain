@@ -321,8 +321,7 @@ void StreamChatClient::queryChannels(ChannelsCallback callback, int limit, int o
           if (channelsArray.isArray()) {
             auto *arr = channelsArray.getArray();
             if (arr != nullptr) {
-              Log::debug("StreamChatClient: Found channels array with " + juce::String(arr->size()) +
-                         " channels");
+              Log::debug("StreamChatClient: Found channels array with " + juce::String(arr->size()) + " channels");
               // Note: Stream.io queryChannels doesn't return member data in the
               // list response, so we can't filter by members. Just return all
               // channels - the API already restricts access to channels the user
@@ -465,7 +464,8 @@ void StreamChatClient::queryMessages(const juce::String &channelType, const juce
             if (messagesArray == nullptr) {
               Log::warn("StreamChatClient::queryMessages - getArray() returned null despite isArray() check");
             } else {
-              Log::debug("StreamChatClient::queryMessages - found " + juce::String(messagesArray->size()) + " messages");
+              Log::debug("StreamChatClient::queryMessages - found " + juce::String(messagesArray->size()) +
+                         " messages");
 
               for (int i = 0; i < messagesArray->size(); i++) {
                 auto messageData = messagesArray->getReference(i);
@@ -831,8 +831,8 @@ StreamChatClient::Message StreamChatClient::parseMessage(const juce::var &messag
     message.createdAt = Json::getString(messageData, "created_at");
     message.reactions = Json::getObject(messageData, "reactions");
     message.extraData = Json::getObject(messageData, "extra_data");
-    message.isDeleted = Json::hasKey(messageData, "deleted_at") &&
-                        messageData.getProperty("deleted_at", juce::var()).isString();
+    message.isDeleted =
+        Json::hasKey(messageData, "deleted_at") && messageData.getProperty("deleted_at", juce::var()).isString();
 
     auto user = Json::getObject(messageData, "user");
     if (user.isObject()) {

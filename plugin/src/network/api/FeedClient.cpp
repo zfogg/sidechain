@@ -24,9 +24,8 @@ void NetworkClient::getGlobalFeed(int limit, int offset, FeedCallback callback) 
     auto response = makeRequest(endpoint, "GET", juce::var(), true);
 
     if (callback) {
-      juce::MessageManager::callAsync([callback, response]() {
-        callback(parseJsonResponse(response, "Invalid feed response"));
-      });
+      juce::MessageManager::callAsync(
+          [callback, response]() { callback(parseJsonResponse(response, "Invalid feed response")); });
     }
   });
 }
@@ -44,9 +43,8 @@ void NetworkClient::getTimelineFeed(int limit, int offset, FeedCallback callback
     auto response = makeRequest(endpoint, "GET", juce::var(), true);
 
     if (callback) {
-      juce::MessageManager::callAsync([callback, response]() {
-        callback(parseJsonResponse(response, "Invalid feed response"));
-      });
+      juce::MessageManager::callAsync(
+          [callback, response]() { callback(parseJsonResponse(response, "Invalid feed response")); });
     }
   });
 }
@@ -63,9 +61,8 @@ void NetworkClient::getTrendingFeed(int limit, int offset, FeedCallback callback
     auto response = makeRequest(endpoint, "GET", juce::var(), true);
 
     if (callback) {
-      juce::MessageManager::callAsync([callback, response]() {
-        callback(parseJsonResponse(response, "Invalid feed response"));
-      });
+      juce::MessageManager::callAsync(
+          [callback, response]() { callback(parseJsonResponse(response, "Invalid feed response")); });
     }
   });
 }
@@ -84,9 +81,8 @@ void NetworkClient::getForYouFeed(int limit, int offset, FeedCallback callback) 
     auto response = makeRequest(endpoint, "GET", juce::var(), true);
 
     if (callback) {
-      juce::MessageManager::callAsync([callback, response]() {
-        callback(parseJsonResponse(response, "Invalid feed response"));
-      });
+      juce::MessageManager::callAsync(
+          [callback, response]() { callback(parseJsonResponse(response, "Invalid feed response")); });
     }
   });
 }
@@ -104,9 +100,8 @@ void NetworkClient::getSimilarPosts(const juce::String &postId, int limit, FeedC
     auto response = makeRequest(endpoint, "GET", juce::var(), true);
 
     if (callback) {
-      juce::MessageManager::callAsync([callback, response]() {
-        callback(parseJsonResponse(response, "Invalid feed response"));
-      });
+      juce::MessageManager::callAsync(
+          [callback, response]() { callback(parseJsonResponse(response, "Invalid feed response")); });
     }
   });
 }
