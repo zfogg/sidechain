@@ -131,7 +131,7 @@ async def analyze_audio(
         tags_result = None
         if detect_tags:
             try:
-                tagger = get_tagger()
+                tagger = get_tagger(models_dir=settings.models_dir)
                 tag_data = tagger.tag(str(temp_path), top_n=tag_top_n)
 
                 # Convert to TagResult schema

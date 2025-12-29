@@ -48,7 +48,7 @@ async def lifespan(app: FastAPI):
     try:
         from .analysis.tagger import get_tagger
 
-        tagger = get_tagger()
+        tagger = get_tagger(models_dir=settings.models_dir)
         logger.info("audio_tagger_initialized")
     except Exception as e:
         logger.warning("audio_tagger_initialization_failed", error=str(e))

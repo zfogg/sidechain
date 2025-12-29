@@ -34,43 +34,47 @@ ENV UV_SYSTEM_PYTHON=1
 ENV UV_FROZEN=1
 RUN uv sync --no-dev --no-editable
 
-# Download Essentia TF models (~200MB total)
+# Download Essentia TF models (~50MB total)
+# Note: Models are from classification-heads and feature-extractors directories
 RUN mkdir -p /app/models && \
-    # MagnaTagATune (50 tags)
+    # Discogs EffNet embedding extractor (required for classification heads)
+    wget -q -O /app/models/discogs-effnet-bs64-1.pb \
+      https://essentia.upf.edu/models/feature-extractors/discogs-effnet/discogs-effnet-bs64-1.pb && \
+    # MagnaTagATune (50 tags) - from autotagging
     wget -q -O /app/models/msd-musicnn-1.pb \
       https://essentia.upf.edu/models/autotagging/msd/msd-musicnn-1.pb && \
     wget -q -O /app/models/msd-musicnn-1.json \
       https://essentia.upf.edu/models/autotagging/msd/msd-musicnn-1.json && \
-    # MTG-Jamendo Genre (87 genres)
+    # MTG-Jamendo Genre (87 genres) - from classification-heads
     wget -q -O /app/models/mtg_jamendo_genre-discogs-effnet-1.pb \
-      https://essentia.upf.edu/models/classification/mtg_jamendo/mtg_jamendo_genre-discogs-effnet-1.pb && \
+      https://essentia.upf.edu/models/classification-heads/mtg_jamendo_genre/mtg_jamendo_genre-discogs-effnet-1.pb && \
     wget -q -O /app/models/mtg_jamendo_genre-discogs-effnet-1.json \
-      https://essentia.upf.edu/models/classification/mtg_jamendo/mtg_jamendo_genre-discogs-effnet-1.json && \
+      https://essentia.upf.edu/models/classification-heads/mtg_jamendo_genre/mtg_jamendo_genre-discogs-effnet-1.json && \
     # MTG-Jamendo Mood/Theme (56 moods)
     wget -q -O /app/models/mtg_jamendo_moodtheme-discogs-effnet-1.pb \
-      https://essentia.upf.edu/models/classification/mtg_jamendo/mtg_jamendo_moodtheme-discogs-effnet-1.pb && \
+      https://essentia.upf.edu/models/classification-heads/mtg_jamendo_moodtheme/mtg_jamendo_moodtheme-discogs-effnet-1.pb && \
     wget -q -O /app/models/mtg_jamendo_moodtheme-discogs-effnet-1.json \
-      https://essentia.upf.edu/models/classification/mtg_jamendo/mtg_jamendo_moodtheme-discogs-effnet-1.json && \
+      https://essentia.upf.edu/models/classification-heads/mtg_jamendo_moodtheme/mtg_jamendo_moodtheme-discogs-effnet-1.json && \
     # MTG-Jamendo Instruments (40 instruments)
     wget -q -O /app/models/mtg_jamendo_instrument-discogs-effnet-1.pb \
-      https://essentia.upf.edu/models/classification/mtg_jamendo/mtg_jamendo_instrument-discogs-effnet-1.pb && \
+      https://essentia.upf.edu/models/classification-heads/mtg_jamendo_instrument/mtg_jamendo_instrument-discogs-effnet-1.pb && \
     wget -q -O /app/models/mtg_jamendo_instrument-discogs-effnet-1.json \
-      https://essentia.upf.edu/models/classification/mtg_jamendo/mtg_jamendo_instrument-discogs-effnet-1.json && \
+      https://essentia.upf.edu/models/classification-heads/mtg_jamendo_instrument/mtg_jamendo_instrument-discogs-effnet-1.json && \
     # Voice/Instrumental detection
     wget -q -O /app/models/voice_instrumental-discogs-effnet-1.pb \
-      https://essentia.upf.edu/models/classification/voice_instrumental/voice_instrumental-discogs-effnet-1.pb && \
+      https://essentia.upf.edu/models/classification-heads/voice_instrumental/voice_instrumental-discogs-effnet-1.pb && \
     wget -q -O /app/models/voice_instrumental-discogs-effnet-1.json \
-      https://essentia.upf.edu/models/classification/voice_instrumental/voice_instrumental-discogs-effnet-1.json && \
+      https://essentia.upf.edu/models/classification-heads/voice_instrumental/voice_instrumental-discogs-effnet-1.json && \
     # Danceability
     wget -q -O /app/models/danceability-discogs-effnet-1.pb \
-      https://essentia.upf.edu/models/classification/danceability/danceability-discogs-effnet-1.pb && \
+      https://essentia.upf.edu/models/classification-heads/danceability/danceability-discogs-effnet-1.pb && \
     wget -q -O /app/models/danceability-discogs-effnet-1.json \
-      https://essentia.upf.edu/models/classification/danceability/danceability-discogs-effnet-1.json && \
+      https://essentia.upf.edu/models/classification-heads/danceability/danceability-discogs-effnet-1.json && \
     # Arousal/Valence (emomusic)
     wget -q -O /app/models/emomusic-msd-musicnn-2.pb \
-      https://essentia.upf.edu/models/classification/emomusic/emomusic-msd-musicnn-2.pb && \
+      https://essentia.upf.edu/models/classification-heads/emomusic/emomusic-msd-musicnn-2.pb && \
     wget -q -O /app/models/emomusic-msd-musicnn-2.json \
-      https://essentia.upf.edu/models/classification/emomusic/emomusic-msd-musicnn-2.json
+      https://essentia.upf.edu/models/classification-heads/emomusic/emomusic-msd-musicnn-2.json
 
 # Copy application code
 COPY app/ ./app/

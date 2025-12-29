@@ -24,3 +24,6 @@ htmlcov/
 # Temp files
 /tmp/
 *.tmp
+
+# TensorFlow models (downloaded during Docker build)
+models/

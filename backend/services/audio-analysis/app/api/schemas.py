@@ -28,7 +28,7 @@ class TagItem(BaseModel):
     """Single tag with confidence score."""
 
     name: str = Field(..., description="Tag name")
-    confidence: float = Field(..., ge=0.0, le=1.0, description="Tag confidence score")
+    confidence: float = Field(..., ge=0.0, description="Tag confidence score (activation value)")
 
 
 class TagResult(BaseModel):

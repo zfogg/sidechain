@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     temp_dir: str = "/tmp/audio-analysis"
     cleanup_temp_files: bool = True
 
+    # Models directory for TensorFlow tagging models
+    models_dir: str = "/app/models"
+
     class Config:
         env_prefix = ""
         case_sensitive = False
