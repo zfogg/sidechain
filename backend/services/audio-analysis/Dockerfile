@@ -26,11 +26,13 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 WORKDIR /app
 
 # Copy project files for dependency installation
-COPY pyproject.toml .
+COPY pyproject.toml uv.lock ./
 
-# Create virtual environment and install dependencies
+# Create virtual environment and install dependencies using lock file
+# This ensures reproducible builds with exact versions
 ENV UV_SYSTEM_PYTHON=1
-RUN uv pip install -e . --no-cache
+ENV UV_FROZEN=1
+RUN uv sync --no-dev --no-editable
 
 # Download Essentia TF models (~200MB total)
 RUN mkdir -p /app/models && \

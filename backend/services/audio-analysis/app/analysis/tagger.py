@@ -1,14 +1,15 @@
 """Audio tagging using Essentia TensorFlow models."""
 
 import json
-import logging
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 
 import numpy as np
 import essentia.standard as es
 
-logger = logging.getLogger(__name__)
+from ..logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 class AudioTagger:
@@ -41,7 +42,7 @@ class AudioTagger:
         self._discogs_embedder = None
         self._musicnn_embedder = None
 
-        logger.info(f"AudioTagger initialized with models_dir={models_dir}")
+        logger.info("audio_tagger_initialized", models_dir=models_dir)
 
     def _load_metadata(self, model_name: str) -> Dict[str, Any]:
         """Load model metadata (class labels) from JSON file."""
@@ -50,7 +51,7 @@ class AudioTagger:
 
         json_path = self.models_dir / f"{model_name}.json"
         if not json_path.exists():
-            logger.warning(f"Model metadata not found: {json_path}")
+            logger.warning("model_metadata_not_found", path=str(json_path))
             return {}
 
         with open(json_path) as f:
@@ -62,7 +63,7 @@ class AudioTagger:
         if self._models_loaded:
             return
 
-        logger.info("Loading Essentia TensorFlow models...")
+        logger.info("loading_tensorflow_models")
 
         # Load embedding extractors
         try:
@@ -79,7 +80,7 @@ class AudioTagger:
                     output="PartitionedCall:1"
                 )
         except Exception as e:
-            logger.warning(f"Failed to load EffNet embedder: {e}")
+            logger.warning("effnet_embedder_load_failed", error=str(e))
 
         try:
             self._musicnn_embedder = es.TensorflowPredictMusiCNN(
@@ -87,7 +88,7 @@ class AudioTagger:
                 output="model/dense/BiasAdd"
             )
         except Exception as e:
-            logger.warning(f"Failed to load MusiCNN embedder: {e}")
+            logger.warning("musicnn_embedder_load_failed", error=str(e))
 
         # Load classification models
         self._load_model("msd-musicnn-1", "_msd_model", es.TensorflowPredict2D)
@@ -99,21 +100,21 @@ class AudioTagger:
         self._load_model("emomusic-msd-musicnn-2", "_emomusic_model", es.TensorflowPredict2D)
 
         self._models_loaded = True
-        logger.info("All Essentia TensorFlow models loaded successfully")
+        logger.info("tensorflow_models_loaded")
 
     def _load_model(self, model_name: str, attr_name: str, model_class):
         """Load a single TensorFlow model."""
         pb_path = self.models_dir / f"{model_name}.pb"
         if not pb_path.exists():
-            logger.warning(f"Model not found: {pb_path}")
+            logger.warning("model_not_found", model=model_name, path=str(pb_path))
             return
 
         try:
             setattr(self, attr_name, model_class(graphFilename=str(pb_path)))
             self._load_metadata(model_name)
-            logger.debug(f"Loaded model: {model_name}")
+            logger.debug("model_loaded", model=model_name)
         except Exception as e:
-            logger.error(f"Failed to load model {model_name}: {e}")
+            logger.error("model_load_failed", model=model_name, error=str(e))
 
     def tag(
         self,
@@ -147,7 +148,7 @@ class AudioTagger:
         if not path.exists():
             raise FileNotFoundError(f"Audio file not found: {audio_path}")
 
-        logger.info(f"Tagging audio: {audio_path}")
+        logger.info("tagging_audio", path=audio_path)
 
         # Load audio at 16kHz for TensorFlow models
         audio = es.MonoLoader(filename=str(path), sampleRate=self.sample_rate)()
@@ -162,13 +163,13 @@ class AudioTagger:
             try:
                 effnet_embeddings = self._discogs_embedder(audio)
             except Exception as e:
-                logger.warning(f"EffNet embedding extraction failed: {e}")
+                logger.warning("effnet_embedding_failed", error=str(e))
 
         if self._musicnn_embedder:
             try:
                 musicnn_embeddings = self._musicnn_embedder(audio)
             except Exception as e:
-                logger.warning(f"MusiCNN embedding extraction failed: {e}")
+                logger.warning("musicnn_embedding_failed", error=str(e))
 
         # MagnaTagATune (top general tags)
         if musicnn_embeddings is not None:
@@ -267,7 +268,7 @@ class AudioTagger:
                 if i < len(classes) and mean_predictions[i] > 0.1
             ]
         except Exception as e:
-            logger.warning(f"Classification failed for {model_name}: {e}")
+            logger.warning("classification_failed", model=model_name, error=str(e))
             return []
 
     def _classify_binary(
@@ -298,7 +299,7 @@ class AudioTagger:
             else:
                 return {"is_positive": is_positive, "confidence": confidence}
         except Exception as e:
-            logger.warning(f"Binary classification failed for {model_name}: {e}")
+            logger.warning("binary_classification_failed", model=model_name, error=str(e))
             return None
 
     def _get_arousal_valence(self, embeddings: np.ndarray) -> Optional[Dict[str, float]]:
@@ -322,7 +323,7 @@ class AudioTagger:
 
             return {"arousal": arousal, "valence": valence}
         except Exception as e:
-            logger.warning(f"Arousal/valence extraction failed: {e}")
+            logger.warning("arousal_valence_failed", error=str(e))
             return None
 
 

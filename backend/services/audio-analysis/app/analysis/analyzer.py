@@ -1,6 +1,5 @@
 """Audio analysis using Essentia library for key and BPM detection."""
 
-import logging
 from typing import Optional, Dict, Any
 from pathlib import Path
 
@@ -8,8 +7,9 @@ import essentia
 import essentia.standard as es
 
 from .camelot import to_camelot, normalize_key_name
+from ..logging_config import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class AudioAnalyzer:
@@ -28,8 +28,9 @@ class AudioAnalyzer:
         self.rhythm_extractor = es.RhythmExtractor2013(method="multifeature")
 
         logger.info(
-            f"AudioAnalyzer initialized with sample_rate={sample_rate}, "
-            f"essentia_version={essentia.__version__}"
+            "audio_analyzer_initialized",
+            sample_rate=sample_rate,
+            essentia_version=essentia.__version__,
         )
 
     def analyze(
@@ -57,7 +58,7 @@ class AudioAnalyzer:
         if not path.exists():
             raise FileNotFoundError(f"Audio file not found: {audio_path}")
 
-        logger.info(f"Loading audio from: {audio_path}")
+        logger.info("loading_audio", path=audio_path)
 
         # Load audio as mono
         loader = es.MonoLoader(filename=str(path), sampleRate=self.sample_rate)
@@ -65,7 +66,7 @@ class AudioAnalyzer:
 
         # Calculate duration
         duration = len(audio) / self.sample_rate
-        logger.info(f"Audio loaded: {duration:.2f} seconds, {len(audio)} samples")
+        logger.info("audio_loaded", duration_seconds=round(duration, 2), samples=len(audio))
 
         # Minimum duration check (need at least 3 seconds for reliable analysis)
         if duration < 3.0:
@@ -81,11 +82,13 @@ class AudioAnalyzer:
                 key_result = self._detect_key(audio)
                 result["key"] = key_result
                 logger.info(
-                    f"Key detected: {key_result['value']} "
-                    f"(confidence: {key_result['confidence']:.2f})"
+                    "key_detected",
+                    key=key_result["value"],
+                    camelot=key_result["camelot"],
+                    confidence=round(key_result["confidence"], 2),
                 )
             except Exception as e:
-                logger.error(f"Key detection failed: {e}")
+                logger.error("key_detection_failed", error=str(e))
                 result["key"] = None
 
         # BPM detection
@@ -94,11 +97,12 @@ class AudioAnalyzer:
                 bpm_result = self._detect_bpm(audio)
                 result["bpm"] = bpm_result
                 logger.info(
-                    f"BPM detected: {bpm_result['value']:.1f} "
-                    f"(confidence: {bpm_result['confidence']:.2f})"
+                    "bpm_detected",
+                    bpm=round(bpm_result["value"], 1),
+                    confidence=round(bpm_result["confidence"], 2),
                 )
             except Exception as e:
-                logger.error(f"BPM detection failed: {e}")
+                logger.error("bpm_detection_failed", error=str(e))
                 result["bpm"] = None
 
         return result

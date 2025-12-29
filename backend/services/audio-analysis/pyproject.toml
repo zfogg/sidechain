@@ -2,6 +2,7 @@
 name = "audio-analysis"
 version = "0.1.0"
 description = "Audio analysis service using Essentia for key, BPM, and tagging detection"
+readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     # FastAPI and server
@@ -18,14 +19,21 @@ dependencies = [
     # Utilities
     "pydantic>=2.5.3",
     "pydantic-settings>=2.1.0",
+    # Structured logging
+    "structlog>=24.1.0",
+    "python-json-logger>=2.0.7",
 ]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "pytest>=7.4.0",
     "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
 ]
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]

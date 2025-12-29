@@ -1,6 +1,5 @@
 """API routes for audio analysis service."""
 
-import logging
 import os
 import time
 import tempfile
@@ -11,6 +10,7 @@ import httpx
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, status
 
 from ..config import get_settings
+from ..logging_config import get_logger
 from ..analysis.analyzer import get_analyzer
 from ..analysis.tagger import get_tagger
 from .schemas import (
@@ -24,7 +24,7 @@ from .schemas import (
     TagItem,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 router = APIRouter()
 
@@ -148,12 +148,13 @@ async def analyze_audio(
                     valence=tag_data.get("valence"),
                 )
                 logger.info(
-                    f"Tagging complete: {len(tags_result.genres or [])} genres, "
-                    f"{len(tags_result.moods or [])} moods, "
-                    f"vocals={tags_result.has_vocals}"
+                    "tagging_complete",
+                    genres_count=len(tags_result.genres or []),
+                    moods_count=len(tags_result.moods or []),
+                    has_vocals=tags_result.has_vocals,
                 )
             except Exception as e:
-                logger.warning(f"Tagging failed (continuing without tags): {e}")
+                logger.warning("tagging_failed", error=str(e))
 
         # Build response
         analysis_time_ms = int((time.time() - start_time) * 1000)
@@ -167,10 +168,11 @@ async def analyze_audio(
         )
 
         logger.info(
-            f"Analysis complete: key={response.key.value if response.key else 'N/A'}, "
-            f"bpm={response.bpm.value if response.bpm else 'N/A'}, "
-            f"tags={'yes' if response.tags else 'no'}, "
-            f"time={analysis_time_ms}ms"
+            "analysis_complete",
+            key=response.key.value if response.key else None,
+            bpm=response.bpm.value if response.bpm else None,
+            has_tags=response.tags is not None,
+            analysis_time_ms=analysis_time_ms,
         )
 
         return response
@@ -195,7 +197,7 @@ async def analyze_audio(
         )
 
     except Exception as e:
-        logger.exception(f"Analysis failed: {e}")
+        logger.exception("analysis_failed", error=str(e))
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail={
@@ -209,9 +211,9 @@ async def analyze_audio(
         if settings.cleanup_temp_files and temp_path and temp_path.exists():
             try:
                 temp_path.unlink()
-                logger.debug(f"Cleaned up temp file: {temp_path}")
+                logger.debug("temp_file_cleaned", path=str(temp_path))
             except Exception as e:
-                logger.warning(f"Failed to cleanup temp file {temp_path}: {e}")
+                logger.warning("temp_file_cleanup_failed", path=str(temp_path), error=str(e))
 
 
 @router.post(
@@ -262,7 +264,7 @@ async def _download_audio(url: str, temp_dir: Path) -> Path:
         HTTPException: If download fails
     """
     settings = get_settings()
-    logger.info(f"Downloading audio from: {url}")
+    logger.info("downloading_audio", url=url)
 
     try:
         async with httpx.AsyncClient(timeout=settings.analysis_timeout) as client:
@@ -278,11 +280,11 @@ async def _download_audio(url: str, temp_dir: Path) -> Path:
             with os.fdopen(fd, "wb") as f:
                 f.write(response.content)
 
-            logger.info(f"Downloaded {len(response.content)} bytes to {temp_path}")
+            logger.info("audio_downloaded", bytes=len(response.content), path=temp_path)
             return Path(temp_path)
 
     except httpx.HTTPError as e:
-        logger.error(f"Failed to download audio: {e}")
+        logger.error("audio_download_failed", error=str(e))
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail={
@@ -311,7 +313,7 @@ async def _save_upload(upload: UploadFile, temp_dir: Path) -> Path:
         content = await upload.read()
         f.write(content)
 
-    logger.info(f"Saved upload ({len(content)} bytes) to {temp_path}")
+    logger.info("upload_saved", bytes=len(content), path=temp_path)
     return Path(temp_path)
 
 
