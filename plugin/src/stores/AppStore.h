@@ -1064,6 +1064,18 @@ public:
   rxcpp::observable<juce::var> loadFeedObservable(FeedType feedType);
 
   /**
+   * Load multiple feed types in parallel using merge (Reactive).
+   *
+   * @param feedTypes Vector of feed types to load
+   * @return rxcpp::observable<juce::var> - emits each feed as it arrives
+   *
+   * Usage:
+   *   appStore.loadMultipleFeedsObservable({FeedType::Timeline, FeedType::Trending})
+   *       .subscribe([](auto feedData) { processFeed(feedData); });
+   */
+  rxcpp::observable<juce::var> loadMultipleFeedsObservable(const std::vector<FeedType> &feedTypes);
+
+  /**
    * Like a post with automatic cache invalidation (Reactive).
    *
    * @param postId Post ID to like

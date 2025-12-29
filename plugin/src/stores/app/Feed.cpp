@@ -1217,5 +1217,25 @@ rxcpp::observable<int> AppStore::addReactionObservable(const juce::String &postI
       .observe_on(Rx::observe_on_juce_thread());
 }
 
+rxcpp::observable<juce::var> AppStore::loadMultipleFeedsObservable(const std::vector<FeedType> &feedTypes) {
+  if (feedTypes.empty()) {
+    return rxcpp::observable<>::empty<juce::var>();
+  }
+
+  // Create observables for each feed type and merge them
+  std::vector<rxcpp::observable<juce::var>> feedObservables;
+  feedObservables.reserve(feedTypes.size());
+
+  for (const auto &feedType : feedTypes) {
+    feedObservables.push_back(loadFeedObservable(feedType));
+  }
+
+  // Merge all feed observables into one stream
+  // Each feed will emit its results as they arrive
+  return rxcpp::observable<>::iterate(feedObservables)
+      .flat_map([](auto obs) { return obs; })
+      .observe_on(Rx::observe_on_juce_thread());
+}
+
 } // namespace Stores
 } // namespace Sidechain

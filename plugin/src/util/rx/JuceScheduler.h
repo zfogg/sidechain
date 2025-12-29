@@ -217,5 +217,147 @@ template <typename T, typename Factory> auto async_to_juce_thread(Factory &&fact
   return rxcpp::sources::create<T>(std::forward<Factory>(factory)).observe_on(observe_on_juce_thread());
 }
 
+// ==============================================================================
+// Retry with Backoff
+// ==============================================================================
+
+/**
+ * Configuration for retry with exponential backoff.
+ */
+struct RetryConfig {
+  int maxRetries = 3;                                            // Maximum number of retry attempts
+  std::chrono::milliseconds initialDelay{1000};                  // Initial delay before first retry
+  std::chrono::milliseconds maxDelay{4000};                      // Maximum delay between retries
+  double backoffMultiplier = 2.0;                                // Multiplier for exponential backoff
+  std::function<bool(std::exception_ptr)> shouldRetry = nullptr; // Optional: custom retry condition
+};
+
+/**
+ * Retry an observable with exponential backoff.
+ *
+ * Retries failed observables with increasing delays: 1s, 2s, 4s (with default config).
+ * All delays and retries occur on the JUCE message thread.
+ *
+ * Usage:
+ *   retryWithBackoff(loadFeedObservable())
+ *       .subscribe([](auto data) { ... });
+ *
+ *   // With custom config
+ *   RetryConfig config;
+ *   config.maxRetries = 5;
+ *   config.initialDelay = std::chrono::milliseconds(500);
+ *   retryWithBackoff(loadDataObservable(), config)
+ *       .subscribe([](auto data) { ... });
+ *
+ * @param source Observable to retry on failure
+ * @param config Retry configuration (uses defaults if not specified)
+ * @return Observable that retries on failure with backoff
+ */
+template <typename T>
+rxcpp::observable<T> retryWithBackoff(rxcpp::observable<T> sourceObs, RetryConfig config = RetryConfig{}) {
+  return rxcpp::observable<>::create<T>([source = std::move(sourceObs), config](rxcpp::subscriber<T> subscriber) {
+    auto retryCount = std::make_shared<int>(0);
+    auto currentDelay = std::make_shared<std::chrono::milliseconds>(config.initialDelay);
+    auto subscription = std::make_shared<rxcpp::composite_subscription>();
+
+    std::function<void()> attempt;
+    attempt = [source, config, retryCount, currentDelay, subscription, subscriber, &attempt]() {
+      // Subscribe to source
+      source.subscribe(
+          *subscription,
+          [subscriber](T value) {
+            // Forward successful values
+            subscriber.on_next(std::move(value));
+          },
+          [config, retryCount, currentDelay, subscription, subscriber, &attempt](std::exception_ptr ep) {
+            // Check if we should retry
+            bool shouldRetry = *retryCount < config.maxRetries;
+
+            // Apply custom retry condition if provided
+            if (shouldRetry && config.shouldRetry) {
+              shouldRetry = config.shouldRetry(ep);
+            }
+
+            if (shouldRetry) {
+              (*retryCount)++;
+
+              // Schedule retry after delay
+              int delayMs = static_cast<int>(currentDelay->count());
+              juce::Timer::callAfterDelay(delayMs, [&attempt]() { attempt(); });
+
+              // Increase delay for next retry (exponential backoff)
+              auto nextDelay = std::chrono::milliseconds(
+                  static_cast<long long>(static_cast<double>(currentDelay->count()) * config.backoffMultiplier));
+              *currentDelay = std::min(nextDelay, config.maxDelay);
+            } else {
+              // Max retries exceeded, propagate error
+              subscriber.on_error(ep);
+            }
+          },
+          [subscriber]() {
+            // Forward completion
+            subscriber.on_completed();
+          });
+    };
+
+    // Start first attempt
+    attempt();
+
+    // Return subscription for cancellation
+    subscriber.add(*subscription);
+  });
+}
+
+/**
+ * Convenience overload with default configuration.
+ * Retries 3 times with 1s, 2s, 4s delays.
+ */
+template <typename T> rxcpp::observable<T> retryWithBackoff(rxcpp::observable<T> source, int maxRetries) {
+  RetryConfig config;
+  config.maxRetries = maxRetries;
+  return retryWithBackoff(std::move(source), config);
+}
+
+// ==============================================================================
+// Debounce Helpers for Search
+// ==============================================================================
+
+/**
+ * Create a debounced search pipeline from a query subject.
+ *
+ * Takes a subject that receives search queries and returns an observable
+ * that debounces input and flat-maps to search results.
+ *
+ * Usage:
+ *   rxcpp::subjects::subject<juce::String> querySubject;
+ *
+ *   // Set up debounced search
+ *   auto searchResults = debouncedSearch(
+ *       querySubject.get_observable(),
+ *       [this](auto q) { return appStore.searchPostsObservable(q); }
+ *   );
+ *
+ *   // Subscribe to results
+ *   searchResults.subscribe([this](auto posts) {
+ *       displayResults(posts);
+ *   });
+ *
+ *   // Push queries from UI
+ *   querySubject.get_subscriber().on_next("beat");
+ *
+ * @param queryStream Observable of query strings
+ * @param searchFn Function that performs the search (returns observable)
+ * @param debounceMs Debounce delay in milliseconds (default 300)
+ * @return Observable of search results
+ */
+template <typename T, typename SearchFn>
+auto debouncedSearch(rxcpp::observable<juce::String> queryStream, SearchFn searchFunc,
+                     std::chrono::milliseconds debounceMs = std::chrono::milliseconds(300)) {
+  return queryStream.debounce(debounceMs, observe_on_juce_thread())
+      .distinct_until_changed()
+      .flat_map([fn = std::move(searchFunc)](const juce::String &query) { return fn(query); })
+      .observe_on(observe_on_juce_thread());
+}
+
 } // namespace Rx
 } // namespace Sidechain
