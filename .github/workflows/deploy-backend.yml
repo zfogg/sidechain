@@ -44,7 +44,11 @@ jobs:
           docker-compose -f docker-compose.yml -f docker-compose.prod.yml build backend
           echo "🐳 Pulling other Docker images..."
           docker-compose -f docker-compose.yml -f docker-compose.prod.yml pull
-          echo "🚀 Restarting all services..."
+          echo "🛑 Stopping old services..."
+          docker-compose -f docker-compose.yml -f docker-compose.prod.yml down --remove-orphans || true
+          echo "🧹 Cleaning up stale containers..."
+          docker container prune -f || true
+          echo "🚀 Starting all services..."
           docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
           echo "🎉 Deployment complete!"
           EOF
