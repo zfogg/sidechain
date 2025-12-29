@@ -45,6 +45,7 @@ services:
     command: ["./server"]
     environment:
       - ELASTICSEARCH_URL=${ELASTICSEARCH_URL:-http://elasticsearch:9200}
+      - AUDIO_ANALYSIS_URL=${AUDIO_ANALYSIS_URL:-http://audio-analysis:8090}
     depends_on:
       postgres:
         condition: service_healthy
@@ -54,6 +55,8 @@ services:
         condition: service_healthy
       elasticsearch:
         condition: service_healthy
+      audio-analysis:
+        condition: service_healthy
 
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8787/health || exit 1"]
@@ -62,6 +65,31 @@ services:
       retries: 5
       start_period: 10s
 
+    networks:
+      - sidechain
+
+  audio-analysis:
+    image: zfogg/sidechain-audio-analysis:latest
+    container_name: sidechain-audio-analysis
+    build:
+      context: ./services/audio-analysis
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    cpus: 2.0
+    mem_limit: 1g
+    memswap_limit: 1g
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - MAX_AUDIO_DURATION=${MAX_AUDIO_DURATION:-300}
+      - ANALYSIS_TIMEOUT=${ANALYSIS_TIMEOUT:-60}
+    volumes:
+      - audio_analysis_tmp:/tmp/audio-analysis
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8090/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     networks:
       - sidechain
 
@@ -241,7 +269,7 @@ services:
     memswap_limit: 128m
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    command: --interval 30 --cleanup sidechain-backend sidechain-gorse sidechain-postgres sidechain-redis sidechain-elasticsearch sidechain-caddy sidechain-prometheus sidechain-grafana
+    command: --interval 30 --cleanup sidechain-backend sidechain-audio-analysis sidechain-gorse sidechain-postgres sidechain-redis sidechain-elasticsearch sidechain-caddy sidechain-prometheus sidechain-grafana
     networks:
       - sidechain
 
@@ -259,6 +287,8 @@ volumes:
   prometheus_data:
     driver: local
   grafana_data:
+    driver: local
+  audio_analysis_tmp:
     driver: local
 
 networks:

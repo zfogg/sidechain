@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/zfogg/sidechain/backend/internal/analysis"
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/models"
@@ -29,6 +30,11 @@ type Processor struct {
 // SetPostCompleteCallback sets a callback for when post processing completes
 func (p *Processor) SetPostCompleteCallback(callback func(postID string)) {
 	p.audioQueue.SetPostCompleteCallback(callback)
+}
+
+// SetAudioAnalyzer sets the audio analysis client for key/BPM detection
+func (p *Processor) SetAudioAnalyzer(analyzer *analysis.Client) {
+	p.audioQueue.SetAudioAnalyzer(analyzer)
 }
 
 // NewProcessor creates a new audio processor with queue integration

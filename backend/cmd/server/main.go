@@ -17,6 +17,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/zfogg/sidechain/backend/internal/alerts"
+	"github.com/zfogg/sidechain/backend/internal/analysis"
 	"github.com/zfogg/sidechain/backend/internal/audio"
 	"github.com/zfogg/sidechain/backend/internal/auth"
 	"github.com/zfogg/sidechain/backend/internal/cache"
@@ -351,6 +352,25 @@ func main() {
 	audioProcessor := audio.NewProcessor(s3Uploader)
 	audioProcessor.Start()
 	defer audioProcessor.Stop()
+
+	// Initialize audio analysis client for key/BPM detection (Essentia microservice)
+	audioAnalysisURL := os.Getenv("AUDIO_ANALYSIS_URL")
+	if audioAnalysisURL != "" {
+		audioAnalyzer := analysis.NewClient(audioAnalysisURL)
+		// Check if the analysis service is available
+		if audioAnalyzer.IsAvailable(context.Background()) {
+			audioProcessor.SetAudioAnalyzer(audioAnalyzer)
+			logger.Log.Info("✅ Audio analysis service connected",
+				zap.String("url", audioAnalysisURL),
+			)
+		} else {
+			logger.Log.Warn("Audio analysis service not available, key/BPM detection disabled",
+				zap.String("url", audioAnalysisURL),
+			)
+		}
+	} else {
+		logger.Log.Info("Audio analysis service not configured (AUDIO_ANALYSIS_URL not set)")
+	}
 
 	// Initialize WebSocket hub and handler
 	wsHub := websocket.NewHub()

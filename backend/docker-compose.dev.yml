@@ -62,6 +62,9 @@ services:
       # Redis
       REDIS_HOST: "${REDIS_HOST:-redis}"
       REDIS_PORT: "${REDIS_PORT:-6379}"
+
+      # Audio Analysis Service
+      AUDIO_ANALYSIS_URL: "${AUDIO_ANALYSIS_URL:-http://audio-analysis:8090}"
     depends_on:
       postgres:
         condition: service_healthy
@@ -71,12 +74,40 @@ services:
         condition: service_healthy
       elasticsearch:
         condition: service_healthy
+      audio-analysis:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8787/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 3s
+
+  audio-analysis:
+    image: zfogg/sidechain-audio-analysis:latest
+    container_name: sidechain-audio-analysis
+    build:
+      context: ./services/audio-analysis
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    environment:
+      LOG_LEVEL: "${LOG_LEVEL:-info}"
+      MAX_AUDIO_DURATION: "${MAX_AUDIO_DURATION:-300}"
+      ANALYSIS_TIMEOUT: "${ANALYSIS_TIMEOUT:-60}"
+    volumes:
+      - audio_analysis_tmp:/tmp/audio-analysis
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8090/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
 
   postgres:
     image: postgres:16-alpine
@@ -334,4 +365,6 @@ volumes:
   tempo_data:
     driver: local
   loki_data:
+    driver: local
+  audio_analysis_tmp:
     driver: local

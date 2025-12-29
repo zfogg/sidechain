@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/zfogg/sidechain/backend/internal/analysis"
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/fingerprint"
 	"github.com/zfogg/sidechain/backend/internal/logger"
@@ -38,6 +39,23 @@ type AudioJobResult struct {
 	WaveformURL   string  `json:"waveform_url"`
 	Duration      float64 `json:"duration"`
 	ProcessedSize int64   `json:"processed_size"`
+
+	// Audio analysis results (from Essentia service)
+	DetectedBPM           *float64 `json:"detected_bpm,omitempty"`
+	DetectedBPMConfidence *float64 `json:"detected_bpm_confidence,omitempty"`
+	DetectedKey           *string  `json:"detected_key,omitempty"`
+	DetectedKeyConfidence *float64 `json:"detected_key_confidence,omitempty"`
+	DetectedKeyCamelot    *string  `json:"detected_key_camelot,omitempty"`
+
+	// Audio tagging results (from Essentia TensorFlow models)
+	DetectedTags        []string `json:"detected_tags,omitempty"`        // MagnaTagATune top tags
+	DetectedGenres      []string `json:"detected_genres,omitempty"`      // MTG-Jamendo genres
+	DetectedMoods       []string `json:"detected_moods,omitempty"`       // MTG-Jamendo moods
+	DetectedInstruments []string `json:"detected_instruments,omitempty"` // MTG-Jamendo instruments
+	HasVocals           *bool    `json:"has_vocals,omitempty"`           // Voice/Instrumental detection
+	IsDanceable         *bool    `json:"is_danceable,omitempty"`         // Danceability detection
+	Arousal             *float64 `json:"arousal,omitempty"`              // Energy level (0-1)
+	Valence             *float64 `json:"valence,omitempty"`              // Mood positivity (0-1)
 }
 
 // AudioQueue manages background audio processing
@@ -50,8 +68,9 @@ type AudioQueue struct {
 	cancel     context.CancelFunc
 
 	// Dependencies for actual processing
-	s3Uploader *storage.S3Uploader
-	tempDir    string
+	s3Uploader    *storage.S3Uploader
+	audioAnalyzer *analysis.Client
+	tempDir       string
 
 	// Callback for post indexing (protected by callbackMux to prevent data races)
 	callbackMux    sync.RWMutex
@@ -93,6 +112,11 @@ func (q *AudioQueue) SetPostCompleteCallback(callback func(postID string)) {
 	q.callbackMux.Lock()
 	defer q.callbackMux.Unlock()
 	q.onPostComplete = callback
+}
+
+// SetAudioAnalyzer sets the audio analysis client for key/BPM detection
+func (q *AudioQueue) SetAudioAnalyzer(analyzer *analysis.Client) {
+	q.audioAnalyzer = analyzer
 }
 
 // Start begins processing jobs with worker pool
@@ -242,10 +266,23 @@ func (q *AudioQueue) processJob(workerID int, job *AudioJob) {
 
 	// 4. Update database record with results
 	result := &AudioJobResult{
-		AudioURL:      audioResult.URL,
-		WaveformURL:   waveformURL,
-		Duration:      processedAudio.Duration,
-		ProcessedSize: audioResult.Size,
+		AudioURL:              audioResult.URL,
+		WaveformURL:           waveformURL,
+		Duration:              processedAudio.Duration,
+		ProcessedSize:         audioResult.Size,
+		DetectedBPM:           processedAudio.DetectedBPM,
+		DetectedBPMConfidence: processedAudio.DetectedBPMConfidence,
+		DetectedKey:           processedAudio.DetectedKey,
+		DetectedKeyConfidence: processedAudio.DetectedKeyConfidence,
+		DetectedKeyCamelot:    processedAudio.DetectedKeyCamelot,
+		DetectedTags:          processedAudio.DetectedTags,
+		DetectedGenres:        processedAudio.DetectedGenres,
+		DetectedMoods:         processedAudio.DetectedMoods,
+		DetectedInstruments:   processedAudio.DetectedInstruments,
+		HasVocals:             processedAudio.HasVocals,
+		IsDanceable:           processedAudio.IsDanceable,
+		Arousal:               processedAudio.Arousal,
+		Valence:               processedAudio.Valence,
 	}
 
 	err = q.updateAudioPostComplete(job.PostID, result)
@@ -280,10 +317,27 @@ func (q *AudioQueue) processJob(workerID int, job *AudioJob) {
 
 // ProcessedAudio contains the result of FFmpeg processing
 type ProcessedAudio struct {
-	Data         []byte
-	WaveformPNG  string
-	Duration     float64
-	FileSize     int64
+	Data        []byte
+	WaveformPNG string
+	Duration    float64
+	FileSize    int64
+
+	// Audio analysis results (from Essentia service)
+	DetectedBPM           *float64
+	DetectedBPMConfidence *float64
+	DetectedKey           *string
+	DetectedKeyConfidence *float64
+	DetectedKeyCamelot    *string
+
+	// Audio tagging results (from Essentia TensorFlow models)
+	DetectedTags        []string
+	DetectedGenres      []string
+	DetectedMoods       []string
+	DetectedInstruments []string
+	HasVocals           *bool
+	IsDanceable         *bool
+	Arousal             *float64
+	Valence             *float64
 }
 
 // processAudioWithFFmpeg runs the actual FFmpeg processing pipeline
@@ -327,6 +381,74 @@ func (q *AudioQueue) processAudioWithFFmpeg(ctx context.Context, job *AudioJob) 
 		logger.Log.Warn("Audio fingerprinting failed", zap.Error(err))
 	}
 
+	// Step 4.5: Analyze audio for key, BPM, and tags using Essentia service
+	var detectedBPM, detectedBPMConfidence *float64
+	var detectedKey, detectedKeyCamelot *string
+	var detectedKeyConfidence *float64
+	var detectedTags, detectedGenres, detectedMoods, detectedInstruments []string
+	var hasVocals, isDanceable *bool
+	var arousal, valence *float64
+
+	if q.audioAnalyzer != nil {
+		analysisCtx, analysisCancel := context.WithTimeout(ctx, 90*time.Second) // Increased timeout for tagging
+		// Use full analysis options to include tagging
+		analysisResult, analysisErr := q.audioAnalyzer.AnalyzeFileWithFullOptions(analysisCtx, outputPath, analysis.FullAnalysisOptions())
+		analysisCancel()
+
+		if analysisErr != nil {
+			// Non-fatal - analysis failure shouldn't block upload
+			logger.Log.Warn("Audio analysis failed",
+				zap.String("job_id", job.ID),
+				zap.Error(analysisErr))
+		} else {
+			// Store BPM results
+			if analysisResult.BPM != nil {
+				detectedBPM = &analysisResult.BPM.Value
+				detectedBPMConfidence = &analysisResult.BPM.Confidence
+				logger.Log.Debug("BPM detected",
+					zap.String("job_id", job.ID),
+					zap.Float64("bpm", analysisResult.BPM.Value),
+					zap.Float64("confidence", analysisResult.BPM.Confidence))
+			}
+
+			// Store key results
+			if analysisResult.Key != nil {
+				detectedKey = &analysisResult.Key.Value
+				detectedKeyConfidence = &analysisResult.Key.Confidence
+				detectedKeyCamelot = &analysisResult.Key.Camelot
+				logger.Log.Debug("Key detected",
+					zap.String("job_id", job.ID),
+					zap.String("key", analysisResult.Key.Value),
+					zap.String("camelot", analysisResult.Key.Camelot),
+					zap.Float64("confidence", analysisResult.Key.Confidence))
+			}
+
+			// Store tag results
+			if analysisResult.Tags != nil {
+				// Extract tag names from TagItems
+				if len(analysisResult.Tags.TopTags) > 0 {
+					detectedTags = make([]string, len(analysisResult.Tags.TopTags))
+					for i, tag := range analysisResult.Tags.TopTags {
+						detectedTags[i] = tag.Name
+					}
+				}
+				detectedGenres = analysisResult.Tags.Genres
+				detectedMoods = analysisResult.Tags.Moods
+				detectedInstruments = analysisResult.Tags.Instruments
+				hasVocals = analysisResult.Tags.HasVocals
+				isDanceable = analysisResult.Tags.IsDanceable
+				arousal = analysisResult.Tags.Arousal
+				valence = analysisResult.Tags.Valence
+
+				logger.Log.Debug("Tags detected",
+					zap.String("job_id", job.ID),
+					zap.Int("genres", len(detectedGenres)),
+					zap.Int("moods", len(detectedMoods)),
+					zap.Int("instruments", len(detectedInstruments)))
+			}
+		}
+	}
+
 	// Step 5: Read processed file
 	data, err := os.ReadFile(outputPath)
 	if err != nil {
@@ -334,10 +456,23 @@ func (q *AudioQueue) processAudioWithFFmpeg(ctx context.Context, job *AudioJob) 
 	}
 
 	return &ProcessedAudio{
-		Data:         data,
-		WaveformPNG:  waveformPNG,
-		Duration:     duration,
-		FileSize:     int64(len(data)),
+		Data:                  data,
+		WaveformPNG:           waveformPNG,
+		Duration:              duration,
+		FileSize:              int64(len(data)),
+		DetectedBPM:           detectedBPM,
+		DetectedBPMConfidence: detectedBPMConfidence,
+		DetectedKey:           detectedKey,
+		DetectedKeyConfidence: detectedKeyConfidence,
+		DetectedKeyCamelot:    detectedKeyCamelot,
+		DetectedTags:          detectedTags,
+		DetectedGenres:        detectedGenres,
+		DetectedMoods:         detectedMoods,
+		DetectedInstruments:   detectedInstruments,
+		HasVocals:             hasVocals,
+		IsDanceable:           isDanceable,
+		Arousal:               arousal,
+		Valence:               valence,
 	}, nil
 }
 
@@ -384,6 +519,43 @@ func (q *AudioQueue) updateAudioPostComplete(postID string, result *AudioJobResu
 		"waveform_url":      result.WaveformURL,
 		"duration":          result.Duration,
 		"file_size":         result.ProcessedSize,
+	}
+
+	// Add detected audio analysis values if available
+	if result.DetectedBPM != nil {
+		updates["detected_bpm"] = result.DetectedBPM
+		updates["detected_bpm_confidence"] = result.DetectedBPMConfidence
+	}
+	if result.DetectedKey != nil {
+		updates["detected_key"] = result.DetectedKey
+		updates["detected_key_confidence"] = result.DetectedKeyConfidence
+		updates["detected_key_camelot"] = result.DetectedKeyCamelot
+	}
+
+	// Add detected audio tagging values if available
+	if len(result.DetectedTags) > 0 {
+		updates["detected_tags"] = models.StringArray(result.DetectedTags)
+	}
+	if len(result.DetectedGenres) > 0 {
+		updates["detected_genres"] = models.StringArray(result.DetectedGenres)
+	}
+	if len(result.DetectedMoods) > 0 {
+		updates["detected_moods"] = models.StringArray(result.DetectedMoods)
+	}
+	if len(result.DetectedInstruments) > 0 {
+		updates["detected_instruments"] = models.StringArray(result.DetectedInstruments)
+	}
+	if result.HasVocals != nil {
+		updates["has_vocals"] = result.HasVocals
+	}
+	if result.IsDanceable != nil {
+		updates["is_danceable"] = result.IsDanceable
+	}
+	if result.Arousal != nil {
+		updates["arousal"] = result.Arousal
+	}
+	if result.Valence != nil {
+		updates["valence"] = result.Valence
 	}
 
 	return database.DB.Model(&models.AudioPost{}).

@@ -190,6 +190,25 @@ type AudioPost struct {
 	// CommentAudience controls who can comment: "everyone" (default), "followers", "off"
 	CommentAudience string `gorm:"default:everyone" json:"comment_audience"`
 
+	// Server-detected audio analysis (supplements plugin-provided values)
+	DetectedBPM           *float64 `json:"detected_bpm,omitempty"`            // Server-detected BPM
+	DetectedBPMConfidence *float64 `json:"detected_bpm_confidence,omitempty"` // Detection confidence (0.0-1.0)
+	DetectedKey           *string  `json:"detected_key,omitempty"`            // Server-detected key (e.g., "A minor")
+	DetectedKeyConfidence *float64 `json:"detected_key_confidence,omitempty"` // Detection confidence (0.0-1.0)
+	DetectedKeyCamelot    *string  `json:"detected_key_camelot,omitempty"`    // Camelot notation (e.g., "8A")
+	BPMSource             string   `gorm:"default:plugin" json:"bpm_source"`  // Source: "daw", "plugin", "server"
+	KeySource             string   `gorm:"default:plugin" json:"key_source"`  // Source: "plugin", "server"
+
+	// Server-detected audio tags (from Essentia TensorFlow models)
+	DetectedTags        StringArray `gorm:"type:text[]" json:"detected_tags,omitempty"`        // MagnaTagATune top tags
+	DetectedGenres      StringArray `gorm:"type:text[]" json:"detected_genres,omitempty"`      // MTG-Jamendo genres
+	DetectedMoods       StringArray `gorm:"type:text[]" json:"detected_moods,omitempty"`       // MTG-Jamendo moods
+	DetectedInstruments StringArray `gorm:"type:text[]" json:"detected_instruments,omitempty"` // MTG-Jamendo instruments
+	HasVocals           *bool       `json:"has_vocals,omitempty"`                              // Voice/Instrumental detection
+	IsDanceable         *bool       `json:"is_danceable,omitempty"`                            // Danceability detection
+	Arousal             *float64    `json:"arousal,omitempty"`                                 // Energy level (0=calm, 1=energetic)
+	Valence             *float64    `json:"valence,omitempty"`                                 // Mood positivity (0=negative, 1=positive)
+
 	// GORM fields
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
