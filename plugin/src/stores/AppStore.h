@@ -86,6 +86,75 @@ public:
   void startTokenRefreshTimer();
   void stopTokenRefreshTimer();
 
+  // Reactive Auth Methods (Phase 7)
+
+  /**
+   * Login result containing auth state on success
+   */
+  struct LoginResult {
+    bool success = false;
+    bool requires2FA = false;
+    juce::String userId;
+    juce::String username;
+    juce::String token;
+    juce::String errorMessage;
+  };
+
+  /**
+   * Login with reactive observable pattern.
+   * Returns LoginResult with auth state or error.
+   *
+   * @param email User email
+   * @param password User password
+   * @return Observable that emits LoginResult
+   */
+  rxcpp::observable<LoginResult> loginObservable(const juce::String &email, const juce::String &password);
+
+  /**
+   * Register account with reactive observable pattern.
+   *
+   * @param email User email
+   * @param username Username
+   * @param password Password
+   * @param displayName Display name
+   * @return Observable that emits LoginResult on success
+   */
+  rxcpp::observable<LoginResult> registerAccountObservable(const juce::String &email, const juce::String &username,
+                                                           const juce::String &password,
+                                                           const juce::String &displayName);
+
+  /**
+   * Verify 2FA code with reactive observable pattern.
+   *
+   * @param code 2FA verification code
+   * @return Observable that emits LoginResult on success
+   */
+  rxcpp::observable<LoginResult> verify2FAObservable(const juce::String &code);
+
+  /**
+   * Request password reset with reactive observable pattern.
+   *
+   * @param email User email to send reset to
+   * @return Observable that emits 0 on success, errors on failure
+   */
+  rxcpp::observable<int> requestPasswordResetObservable(const juce::String &email);
+
+  /**
+   * Reset password with reactive observable pattern.
+   *
+   * @param token Reset token from email
+   * @param newPassword New password
+   * @return Observable that emits 0 on success, errors on failure
+   */
+  rxcpp::observable<int> resetPasswordObservable(const juce::String &token, const juce::String &newPassword);
+
+  /**
+   * Refresh auth token with reactive observable pattern.
+   *
+   * @return Observable that emits 0 on success, errors on failure
+   */
+  rxcpp::observable<int> refreshAuthTokenObservable();
+
   // ==============================================================================
   // Feed/Posts Methods (AppStore_Feed.cpp)
 
@@ -150,6 +219,44 @@ public:
    * @param userId User ID to unfollow
    */
   void unfollowUser(const juce::String &userId);
+
+  // Reactive User/Profile Methods (Phase 7)
+
+  /**
+   * Fetch user profile with reactive observable pattern.
+   * Returns the current user's profile data.
+   *
+   * @param forceRefresh Force network request even if cached
+   * @return Observable that emits User on success
+   */
+  rxcpp::observable<User> fetchUserProfileObservable(bool forceRefresh = false);
+
+  /**
+   * Update user profile with reactive observable pattern.
+   *
+   * @param username New username (empty to keep current)
+   * @param displayName New display name (empty to keep current)
+   * @param bio New bio (empty to keep current)
+   * @return Observable that emits 0 on success, errors on failure
+   */
+  rxcpp::observable<int> updateProfileObservable(const juce::String &username = "",
+                                                 const juce::String &displayName = "", const juce::String &bio = "");
+
+  /**
+   * Change username with reactive observable pattern.
+   *
+   * @param newUsername New username
+   * @return Observable that emits 0 on success, errors on failure
+   */
+  rxcpp::observable<int> changeUsernameObservable(const juce::String &newUsername);
+
+  /**
+   * Upload profile picture with reactive observable pattern.
+   *
+   * @param imageFile Image file to upload
+   * @return Observable that emits the new profile picture URL on success
+   */
+  rxcpp::observable<juce::String> uploadProfilePictureObservable(const juce::File &imageFile);
 
   // ==============================================================================
   // Discovery Methods (for UserDiscovery component)
@@ -245,6 +352,47 @@ public:
    */
   void addMessageToChannel(const juce::String &channelId, const juce::String &messageId, const juce::String &text,
                            const juce::String &userId, const juce::String &userName, const juce::String &createdAt);
+
+  // Reactive Chat Methods (Phase 7)
+
+  /**
+   * Load messages for a channel with reactive observable pattern.
+   * Returns value copies of Message structs.
+   *
+   * @param channelId Channel ID to load messages for
+   * @param limit Number of messages to load (default 50)
+   * @return Observable that emits vector of Message
+   */
+  rxcpp::observable<std::vector<Message>> loadMessagesObservable(const juce::String &channelId, int limit = 50);
+
+  /**
+   * Send message to channel with reactive observable pattern.
+   *
+   * @param channelId Channel ID to send to
+   * @param text Message text
+   * @return Observable that emits the sent Message on success
+   */
+  rxcpp::observable<Message> sendMessageObservable(const juce::String &channelId, const juce::String &text);
+
+  /**
+   * Edit message with reactive observable pattern.
+   *
+   * @param channelId Channel ID
+   * @param messageId Message ID to edit
+   * @param newText New message text
+   * @return Observable that emits 0 on success, errors on failure
+   */
+  rxcpp::observable<int> editMessageObservable(const juce::String &channelId, const juce::String &messageId,
+                                               const juce::String &newText);
+
+  /**
+   * Delete message with reactive observable pattern.
+   *
+   * @param channelId Channel ID
+   * @param messageId Message ID to delete
+   * @return Observable that emits 0 on success, errors on failure
+   */
+  rxcpp::observable<int> deleteMessageObservable(const juce::String &channelId, const juce::String &messageId);
 
   // ==============================================================================
   // Search Methods (Search.cpp)
@@ -408,6 +556,28 @@ public:
   void uploadPost(const juce::var &postData, const juce::File &audioFile);
   void cancelUpload();
 
+  // Reactive Upload Methods (Phase 7)
+
+  /**
+   * Upload progress result
+   */
+  struct UploadProgress {
+    float progress = 0.0f; // 0.0 to 1.0
+    bool isComplete = false;
+    juce::String postId; // Populated on success
+    juce::String error;  // Populated on failure
+  };
+
+  /**
+   * Upload post with reactive observable pattern.
+   * Emits progress updates and completes with the created post ID.
+   *
+   * @param postData Post metadata (title, description, etc.)
+   * @param audioFile Audio file to upload
+   * @return Observable that emits UploadProgress updates
+   */
+  rxcpp::observable<UploadProgress> uploadPostObservable(const juce::var &postData, const juce::File &audioFile);
+
   // ==============================================================================
   // Playlist Methods (Playlists.cpp)
 
@@ -424,11 +594,66 @@ public:
   void deletePlaylist(const juce::String &playlistId);
   void addPostToPlaylist(const juce::String &postId, const juce::String &playlistId);
 
+  // Reactive Playlist Methods (Phase 7)
+
+  /**
+   * Load playlists with reactive observable pattern.
+   * Returns value copies of Playlist structs.
+   *
+   * @return Observable that emits vector of Playlist
+   */
+  rxcpp::observable<std::vector<Playlist>> loadPlaylistsObservable();
+
+  /**
+   * Create playlist with reactive observable pattern.
+   *
+   * @param name Playlist name
+   * @param description Playlist description
+   * @return Observable that emits the created Playlist on success
+   */
+  rxcpp::observable<Playlist> createPlaylistObservable(const juce::String &name, const juce::String &description);
+
+  /**
+   * Delete playlist with reactive observable pattern.
+   *
+   * @param playlistId Playlist ID to delete
+   * @return Observable that emits 0 on success, errors on failure
+   */
+  rxcpp::observable<int> deletePlaylistObservable(const juce::String &playlistId);
+
+  /**
+   * Add post to playlist with reactive observable pattern.
+   *
+   * @param postId Post ID to add
+   * @param playlistId Playlist ID to add to
+   * @return Observable that emits 0 on success, errors on failure
+   */
+  rxcpp::observable<int> addPostToPlaylistObservable(const juce::String &postId, const juce::String &playlistId);
+
   // ==============================================================================
   // Challenge Methods (Challenges.cpp)
 
   void loadChallenges();
   void submitChallenge(const juce::String &challengeId, const juce::File &midiFile);
+
+  // Reactive Challenge Methods (Phase 7)
+
+  /**
+   * Load challenges with reactive observable pattern.
+   * Returns value copies of MIDIChallenge structs.
+   *
+   * @return Observable that emits vector of MIDIChallenge
+   */
+  rxcpp::observable<std::vector<MIDIChallenge>> loadChallengesObservable();
+
+  /**
+   * Submit challenge with reactive observable pattern.
+   *
+   * @param challengeId Challenge ID to submit to
+   * @param midiFile MIDI file to submit
+   * @return Observable that emits 0 on success, errors on failure
+   */
+  rxcpp::observable<int> submitChallengeObservable(const juce::String &challengeId, const juce::File &midiFile);
 
   // ==============================================================================
   // Sound Methods (Sounds.cpp)
@@ -437,6 +662,24 @@ public:
   void loadRecentSounds();
   void loadMoreSounds();
   void refreshSounds();
+
+  // Reactive Sound Methods (Phase 7)
+
+  /**
+   * Load featured sounds with reactive observable pattern.
+   * Returns value copies of Sound structs.
+   *
+   * @return Observable that emits vector of Sound
+   */
+  rxcpp::observable<std::vector<Sound>> loadFeaturedSoundsObservable();
+
+  /**
+   * Load recent sounds with reactive observable pattern.
+   * Returns value copies of Sound structs.
+   *
+   * @return Observable that emits vector of Sound
+   */
+  rxcpp::observable<std::vector<Sound>> loadRecentSoundsObservable();
 
   // ==============================================================================
   // Comment Methods (Comments.cpp)

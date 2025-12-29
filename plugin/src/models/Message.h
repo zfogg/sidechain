@@ -63,6 +63,14 @@ inline void from_json(const nlohmann::json &j, MessageAttachment &att) {
  * Represents a message in a conversation with text, attachments, and metadata.
  */
 struct Message : public SerializableModel<Message> {
+  // Equality comparison (by ID) - required for RxCpp observables
+  bool operator==(const Message &other) const {
+    return id == other.id;
+  }
+  bool operator!=(const Message &other) const {
+    return id != other.id;
+  }
+
   // ==============================================================================
   // Core identity
   juce::String id;

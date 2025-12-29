@@ -1,5 +1,9 @@
 #include "../AppStore.h"
 #include "../../util/Log.h"
+#include "../../util/rx/JuceScheduler.h"
+#include "../../models/Message.h"
+#include <rxcpp/rx.hpp>
+#include <nlohmann/json.hpp>
 
 namespace Sidechain {
 namespace Stores {
@@ -288,6 +292,186 @@ void AppStore::addMessageToChannel(const juce::String &channelId, const juce::St
     Log::warn("AppStore::addMessageToChannel: Channel not found in state - " + channelId);
   }
   sliceManager.chat->setState(newState);
+}
+
+// ==============================================================================
+// Reactive Chat Observables (Phase 7)
+// ==============================================================================
+
+rxcpp::observable<std::vector<Message>> AppStore::loadMessagesObservable(const juce::String &channelId, int limit) {
+  using ResultType = std::vector<Message>;
+  return rxcpp::sources::create<ResultType>([this, channelId, limit](auto observer) {
+           if (!streamChatClient) {
+             Log::error("StreamChatClient not available");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("StreamChatClient not available")));
+             return;
+           }
+
+           Log::debug("Loading messages via observable for channel: " + channelId);
+
+           streamChatClient->queryMessages(
+               "messaging", channelId, limit, 0,
+               [observer, channelId](Outcome<std::vector<StreamChatClient::Message>> result) {
+                 if (result.isOk()) {
+                   const auto &streamMessages = result.getValue();
+                   ResultType messages;
+
+                   for (const auto &streamMsg : streamMessages) {
+                     Message msg;
+                     msg.id = streamMsg.id;
+                     msg.conversationId = channelId;
+                     msg.text = streamMsg.text;
+                     msg.senderId = streamMsg.userId;
+                     msg.senderUsername = streamMsg.userName;
+                     msg.createdAt = juce::Time::fromISO8601(streamMsg.createdAt);
+                     messages.push_back(std::move(msg));
+                   }
+
+                   Log::info("Loaded " + juce::String(static_cast<int>(messages.size())) +
+                             " messages for channel: " + channelId);
+                   observer.on_next(std::move(messages));
+                   observer.on_completed();
+                 } else {
+                   Log::error("Failed to load messages: " + result.getError());
+                   observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+                 }
+               });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<Message> AppStore::sendMessageObservable(const juce::String &channelId, const juce::String &text) {
+  return rxcpp::sources::create<Message>([this, channelId, text](auto observer) {
+           if (!streamChatClient) {
+             Log::error("StreamChatClient not available");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("StreamChatClient not available")));
+             return;
+           }
+
+           if (channelId.isEmpty() || text.isEmpty()) {
+             observer.on_error(std::make_exception_ptr(std::runtime_error("channelId and text are required")));
+             return;
+           }
+
+           Log::debug("Sending message via observable to channel: " + channelId);
+
+           juce::String userId = sliceManager.user->getState().userId;
+           juce::String username = sliceManager.user->getState().username;
+
+           juce::var extraData;
+           streamChatClient->sendMessage(
+               "messaging", channelId, text, extraData,
+               [this, observer, channelId, text, userId, username](const Outcome<StreamChatClient::Message> &result) {
+                 if (result.isOk()) {
+                   const auto &streamMsg = result.getValue();
+
+                   Message msg;
+                   msg.id = streamMsg.id;
+                   msg.conversationId = channelId;
+                   msg.text = text;
+                   msg.senderId = userId;
+                   msg.senderUsername = username;
+                   msg.createdAt = juce::Time::getCurrentTime();
+
+                   // Add to local state
+                   auto msgPtr = std::make_shared<Message>(msg);
+                   ChatState newState = sliceManager.chat->getState();
+                   auto channelIt = newState.channels.find(channelId);
+                   if (channelIt != newState.channels.end()) {
+                     channelIt->second.messages.push_back(msgPtr);
+                   }
+                   sliceManager.chat->setState(newState);
+
+                   Log::info("Message sent successfully: " + msg.id);
+                   observer.on_next(std::move(msg));
+                   observer.on_completed();
+                 } else {
+                   Log::error("Failed to send message: " + result.getError());
+                   observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+                 }
+               });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<int> AppStore::editMessageObservable(const juce::String &channelId, const juce::String &messageId,
+                                                       const juce::String &newText) {
+  return rxcpp::sources::create<int>([this, channelId, messageId, newText](auto observer) {
+           if (!streamChatClient) {
+             Log::error("StreamChatClient not available");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("StreamChatClient not available")));
+             return;
+           }
+
+           Log::debug("Editing message via observable: " + messageId);
+
+           streamChatClient->updateMessage(
+               "messaging", channelId, messageId, newText,
+               [this, observer, channelId, messageId, newText](const Outcome<StreamChatClient::Message> &result) {
+                 if (result.isOk()) {
+                   // Update local state
+                   ChatState newState = sliceManager.chat->getState();
+                   auto channelIt = newState.channels.find(channelId);
+                   if (channelIt != newState.channels.end()) {
+                     for (auto &msg : channelIt->second.messages) {
+                       if (msg && msg->id == messageId) {
+                         msg->text = newText;
+                         msg->isEdited = true;
+                         break;
+                       }
+                     }
+                   }
+                   sliceManager.chat->setState(newState);
+
+                   Log::info("Message edited successfully: " + messageId);
+                   observer.on_next(0);
+                   observer.on_completed();
+                 } else {
+                   Log::error("Failed to edit message: " + result.getError());
+                   observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+                 }
+               });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<int> AppStore::deleteMessageObservable(const juce::String &channelId, const juce::String &messageId) {
+  return rxcpp::sources::create<int>([this, channelId, messageId](auto observer) {
+           if (!streamChatClient) {
+             Log::error("StreamChatClient not available");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("StreamChatClient not available")));
+             return;
+           }
+
+           Log::debug("Deleting message via observable: " + messageId);
+
+           streamChatClient->deleteMessage(
+               "messaging", channelId, messageId, [this, observer, channelId, messageId](const Outcome<void> &result) {
+                 if (result.isOk()) {
+                   // Update local state
+                   ChatState newState = sliceManager.chat->getState();
+                   auto channelIt = newState.channels.find(channelId);
+                   if (channelIt != newState.channels.end()) {
+                     auto &messages = channelIt->second.messages;
+                     for (auto it = messages.begin(); it != messages.end(); ++it) {
+                       if (*it && (*it)->id == messageId) {
+                         messages.erase(it);
+                         break;
+                       }
+                     }
+                   }
+                   sliceManager.chat->setState(newState);
+
+                   Log::info("Message deleted successfully: " + messageId);
+                   observer.on_next(0);
+                   observer.on_completed();
+                 } else {
+                   Log::error("Failed to delete message: " + result.getError());
+                   observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+                 }
+               });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
 }
 
 } // namespace Stores

@@ -2,6 +2,10 @@
 #include "../../util/logging/Logger.h"
 #include "../../util/Async.h"
 #include "../../util/PropertiesFileUtils.h"
+#include "../../util/rx/JuceScheduler.h"
+#include "../../models/User.h"
+#include <rxcpp/rx.hpp>
+#include <nlohmann/json.hpp>
 
 namespace Sidechain {
 namespace Stores {
@@ -871,6 +875,210 @@ void AppStore::loadFollowing(const juce::String &userId, int limit, int offset) 
 }
 
 // Old handler methods removed - now using Redux pattern in loadFollowers/loadFollowing
+
+// ==============================================================================
+// Reactive User/Profile Observables (Phase 7)
+// ==============================================================================
+
+rxcpp::observable<User> AppStore::fetchUserProfileObservable(bool forceRefresh) {
+  return rxcpp::sources::create<User>([this, forceRefresh](auto observer) {
+           if (!networkClient) {
+             Util::logError("AppStore", "Network client not configured");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not configured")));
+             return;
+           }
+
+           auto authSlice = sliceManager.auth;
+           if (!authSlice->getState().isLoggedIn) {
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Not logged in")));
+             return;
+           }
+
+           // Check cache if not force refreshing
+           if (!forceRefresh) {
+             const auto currentState = sliceManager.user->getState();
+             if (currentState.lastProfileUpdate > 0) {
+               auto age = juce::Time::getCurrentTime().toMilliseconds() - currentState.lastProfileUpdate;
+               if (age < 60000) {
+                 // Return cached data as User
+                 User user;
+                 user.id = currentState.userId;
+                 user.username = currentState.username;
+                 user.displayName = currentState.displayName;
+                 user.bio = currentState.bio;
+                 user.avatarUrl = currentState.profilePictureUrl;
+                 user.followerCount = currentState.followerCount;
+                 user.followingCount = currentState.followingCount;
+                 observer.on_next(std::move(user));
+                 observer.on_completed();
+                 return;
+               }
+             }
+           }
+
+           Util::logDebug("AppStore", "Fetching user profile via observable");
+
+           networkClient->getCurrentUser([this, observer](Outcome<juce::var> result) {
+             if (result.isOk()) {
+               const auto &data = result.getValue();
+               if (!data.isObject()) {
+                 observer.on_error(std::make_exception_ptr(std::runtime_error("Invalid profile data")));
+                 return;
+               }
+
+               User user;
+               user.id = data.getProperty("id", "").toString();
+               user.username = data.getProperty("username", "").toString();
+               user.displayName = data.getProperty("display_name", "").toString();
+               user.bio = data.getProperty("bio", "").toString();
+
+               // Get profile picture URL
+               juce::String profileUrl = data.getProperty("avatar_url", "").toString();
+               if (profileUrl.isEmpty()) {
+                 profileUrl = data.getProperty("profile_picture_url", "").toString();
+               }
+               if (profileUrl.isEmpty()) {
+                 profileUrl = data.getProperty("oauth_profile_picture_url", "").toString();
+               }
+               user.avatarUrl = profileUrl;
+
+               // Update slice state
+               UserState newState = sliceManager.user->getState();
+               newState.userId = user.id;
+               newState.username = user.username;
+               newState.displayName = user.displayName;
+               newState.email = data.getProperty("email", "").toString();
+               newState.bio = user.bio;
+               newState.profilePictureUrl = profileUrl;
+               newState.userError = "";
+               newState.isFetchingProfile = false;
+               newState.lastProfileUpdate = juce::Time::getCurrentTime().toMilliseconds();
+               sliceManager.user->setState(newState);
+
+               Util::logInfo("AppStore", "Profile fetched for: " + user.username);
+               observer.on_next(std::move(user));
+               observer.on_completed();
+             } else {
+               Util::logError("AppStore", "Failed to fetch profile: " + result.getError());
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<int> AppStore::updateProfileObservable(const juce::String &username, const juce::String &displayName,
+                                                         const juce::String &bio) {
+  return rxcpp::sources::create<int>([this, username, displayName, bio](auto observer) {
+           if (!networkClient) {
+             Util::logError("AppStore", "Network client not configured");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not configured")));
+             return;
+           }
+
+           Util::logDebug("AppStore", "Updating profile via observable");
+
+           auto userSlice = sliceManager.user;
+           auto previousState = userSlice->getState();
+
+           // Optimistic update
+           UserState optimisticState = userSlice->getState();
+           if (!username.isEmpty())
+             optimisticState.username = username;
+           if (!displayName.isEmpty())
+             optimisticState.displayName = displayName;
+           if (!bio.isEmpty())
+             optimisticState.bio = bio;
+           userSlice->setState(optimisticState);
+
+           networkClient->updateUserProfile(
+               username, displayName, bio, [this, observer, previousState](Outcome<juce::var> result) {
+                 if (result.isOk()) {
+                   Util::logInfo("AppStore", "Profile updated successfully");
+                   observer.on_next(0);
+                   observer.on_completed();
+                 } else {
+                   // Revert optimistic update
+                   sliceManager.user->setState(previousState);
+                   Util::logError("AppStore", "Failed to update profile: " + result.getError());
+                   observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+                 }
+               });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<int> AppStore::changeUsernameObservable(const juce::String &newUsername) {
+  return rxcpp::sources::create<int>([this, newUsername](auto observer) {
+           if (!networkClient) {
+             Util::logError("AppStore", "Network client not configured");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not configured")));
+             return;
+           }
+
+           if (newUsername.isEmpty()) {
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Username cannot be empty")));
+             return;
+           }
+
+           Util::logDebug("AppStore", "Changing username via observable to: " + newUsername);
+
+           networkClient->changeUsername(newUsername, [this, observer, newUsername](Outcome<juce::var> result) {
+             if (result.isOk()) {
+               UserState newState = sliceManager.user->getState();
+               newState.username = newUsername;
+               sliceManager.user->setState(newState);
+
+               Util::logInfo("AppStore", "Username changed successfully");
+               observer.on_next(0);
+               observer.on_completed();
+             } else {
+               Util::logError("AppStore", "Failed to change username: " + result.getError());
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<juce::String> AppStore::uploadProfilePictureObservable(const juce::File &imageFile) {
+  return rxcpp::sources::create<juce::String>([this, imageFile](auto observer) {
+           if (!networkClient) {
+             Util::logError("AppStore", "Network client not configured");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not configured")));
+             return;
+           }
+
+           if (!imageFile.existsAsFile()) {
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Image file does not exist")));
+             return;
+           }
+
+           Util::logDebug("AppStore", "Uploading profile picture via observable");
+
+           networkClient->uploadProfilePicture(imageFile, [this, observer](Outcome<juce::String> result) {
+             if (result.isOk()) {
+               const auto &url = result.getValue();
+
+               UserState newState = sliceManager.user->getState();
+               newState.profilePictureUrl = url;
+               newState.isLoadingImage = true;
+               sliceManager.user->setState(newState);
+
+               // Download and cache the new image
+               downloadProfileImage(url);
+
+               Util::logInfo("AppStore", "Profile picture uploaded: " + url);
+               observer.on_next(url);
+               observer.on_completed();
+             } else {
+               Util::logError("AppStore", "Failed to upload profile picture: " + result.getError());
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
+}
 
 } // namespace Stores
 } // namespace Sidechain
