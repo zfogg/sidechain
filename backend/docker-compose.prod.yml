@@ -87,12 +87,12 @@ services:
     container_name: sidechain-elasticsearch
     restart: unless-stopped
     cpus: 1.0
-    mem_limit: 1g
-    memswap_limit: 1g
+    mem_limit: 2g
+    memswap_limit: 2g
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
       - bootstrap.memory_lock=false
     ulimits:
       memlock:
