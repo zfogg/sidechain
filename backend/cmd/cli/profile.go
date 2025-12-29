@@ -85,7 +85,7 @@ func updatePrivacy(isPrivate bool) error {
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		var errResp map[string]interface{}
-		json.Unmarshal(body, &errResp)
+		_ = json.Unmarshal(body, &errResp) // Best-effort extraction of error message
 		if msg, ok := errResp["message"].(string); ok {
 			return fmt.Errorf("API error: %s", msg)
 		}
@@ -134,7 +134,7 @@ func getProfile() error {
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		var errResp map[string]interface{}
-		json.Unmarshal(body, &errResp)
+		_ = json.Unmarshal(body, &errResp) // Best-effort extraction of error message
 		if msg, ok := errResp["message"].(string); ok {
 			return fmt.Errorf("API error: %s", msg)
 		}

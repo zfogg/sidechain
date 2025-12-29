@@ -37,16 +37,32 @@ func (p *tracingPlugin) Name() string {
 
 func (p *tracingPlugin) Initialize(db *gorm.DB) error {
 	// Register before callbacks
-	db.Callback().Query().Before("gorm:query").Register("telemetry:before_query", p.beforeQuery)
-	db.Callback().Create().Before("gorm:create").Register("telemetry:before_create", p.beforeCreate)
-	db.Callback().Update().Before("gorm:update").Register("telemetry:before_update", p.beforeUpdate)
-	db.Callback().Delete().Before("gorm:delete").Register("telemetry:before_delete", p.beforeDelete)
+	if err := db.Callback().Query().Before("gorm:query").Register("telemetry:before_query", p.beforeQuery); err != nil {
+		return fmt.Errorf("failed to register before_query callback: %w", err)
+	}
+	if err := db.Callback().Create().Before("gorm:create").Register("telemetry:before_create", p.beforeCreate); err != nil {
+		return fmt.Errorf("failed to register before_create callback: %w", err)
+	}
+	if err := db.Callback().Update().Before("gorm:update").Register("telemetry:before_update", p.beforeUpdate); err != nil {
+		return fmt.Errorf("failed to register before_update callback: %w", err)
+	}
+	if err := db.Callback().Delete().Before("gorm:delete").Register("telemetry:before_delete", p.beforeDelete); err != nil {
+		return fmt.Errorf("failed to register before_delete callback: %w", err)
+	}
 
 	// Register after callbacks
-	db.Callback().Query().After("gorm:query").Register("telemetry:after_query", p.afterQuery)
-	db.Callback().Create().After("gorm:create").Register("telemetry:after_create", p.afterQuery)
-	db.Callback().Update().After("gorm:update").Register("telemetry:after_query", p.afterQuery)
-	db.Callback().Delete().After("gorm:delete").Register("telemetry:after_query", p.afterQuery)
+	if err := db.Callback().Query().After("gorm:query").Register("telemetry:after_query", p.afterQuery); err != nil {
+		return fmt.Errorf("failed to register after_query callback: %w", err)
+	}
+	if err := db.Callback().Create().After("gorm:create").Register("telemetry:after_create", p.afterQuery); err != nil {
+		return fmt.Errorf("failed to register after_create callback: %w", err)
+	}
+	if err := db.Callback().Update().After("gorm:update").Register("telemetry:after_update", p.afterQuery); err != nil {
+		return fmt.Errorf("failed to register after_update callback: %w", err)
+	}
+	if err := db.Callback().Delete().After("gorm:delete").Register("telemetry:after_delete", p.afterQuery); err != nil {
+		return fmt.Errorf("failed to register after_delete callback: %w", err)
+	}
 
 	return nil
 }

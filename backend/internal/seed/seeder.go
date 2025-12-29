@@ -27,7 +27,8 @@ type Seeder struct {
 // NewSeeder creates a new seeder instance
 func NewSeeder(db *gorm.DB) *Seeder {
 	// Seed random generator for reproducible results
-	gofakeit.Seed(time.Now().UnixNano())
+	// Note: Seed returns an error only for invalid sources, time.Now().UnixNano() is always valid
+	_ = gofakeit.Seed(time.Now().UnixNano())
 	return &Seeder{db: db}
 }
 
