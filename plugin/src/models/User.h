@@ -91,6 +91,14 @@ inline void from_json(const nlohmann::json &j, SocialLinks &links) {
  * Features typed JSON with validation for safe parsing from API responses.
  */
 struct User : public SerializableModel<User> {
+  // Equality comparison (by ID) - required for RxCpp observables
+  bool operator==(const User &other) const {
+    return id == other.id;
+  }
+  bool operator!=(const User &other) const {
+    return id != other.id;
+  }
+
   // ==============================================================================
   // Core identity
   juce::String id;

@@ -1,11 +1,13 @@
 #pragma once
 
 #include "../util/Result.h"
+#include "../util/rx/JuceScheduler.h"
 #include "NetworkClient.h"
 #include <JuceHeader.h>
 #include <atomic>
 #include <functional>
 #include <memory>
+#include <rxcpp/rx.hpp>
 #include <thread>
 #include <vector>
 
@@ -98,6 +100,14 @@ public:
     juce::var reactions;    // /< Message reactions (emoji, etc.)
     juce::var extraData;    // /< Additional data (audio_url, reply_to, etc.)
     bool isDeleted = false; // /< Whether the message has been deleted
+
+    // Equality comparison (required for RxCpp)
+    bool operator==(const Message &other) const {
+      return id == other.id;
+    }
+    bool operator!=(const Message &other) const {
+      return id != other.id;
+    }
   };
 
   /** User presence information */
@@ -106,6 +116,43 @@ public:
     bool online = false;     // /< Whether the user is currently online
     juce::String lastActive; // /< Last active timestamp
     juce::String status;     // /< Custom status (e.g., "in studio")
+
+    // Equality comparison (required for RxCpp)
+    bool operator==(const UserPresence &other) const {
+      return userId == other.userId;
+    }
+    bool operator!=(const UserPresence &other) const {
+      return userId != other.userId;
+    }
+  };
+
+  /** Typing event information */
+  struct TypingEvent {
+    juce::String userId;    // /< User who is typing
+    juce::String channelId; // /< Channel where typing is occurring
+    bool isTyping = false;  // /< Whether user is currently typing
+
+    // Equality comparison (required for RxCpp)
+    bool operator==(const TypingEvent &other) const {
+      return userId == other.userId && channelId == other.channelId;
+    }
+    bool operator!=(const TypingEvent &other) const {
+      return !(*this == other);
+    }
+  };
+
+  /** Message event with channel context */
+  struct MessageEvent {
+    Message message;        // /< The message
+    juce::String channelId; // /< Channel where message was sent
+
+    // Equality comparison (required for RxCpp)
+    bool operator==(const MessageEvent &other) const {
+      return message.id == other.message.id;
+    }
+    bool operator!=(const MessageEvent &other) const {
+      return message.id != other.message.id;
+    }
   };
 
   // ==========================================================================
@@ -403,6 +450,44 @@ public:
     onMessageNotificationRequested = callback;
   }
 
+  // ==========================================================================
+  // Reactive Observables (RxCpp subjects for real-time events)
+  //
+  // These provide hot observables for WebSocket events. Multiple UI components
+  // can subscribe to the same event stream without affecting each other.
+  //
+  // Usage:
+  //   chatClient->messages().subscribe([](const MessageEvent& evt) {
+  //       updateUI(evt.message, evt.channelId);
+  //   });
+
+  /**
+   * Observable stream of new messages from WebSocket.
+   * Emits MessageEvent containing the message and channel context.
+   * @return Hot observable that emits on JUCE message thread
+   */
+  rxcpp::observable<MessageEvent> messages() const {
+    return messageSubject_.get_observable().observe_on(Sidechain::Rx::observe_on_juce_thread());
+  }
+
+  /**
+   * Observable stream of typing events from WebSocket.
+   * Emits TypingEvent when users start/stop typing.
+   * @return Hot observable that emits on JUCE message thread
+   */
+  rxcpp::observable<TypingEvent> typingEvents() const {
+    return typingSubject_.get_observable().observe_on(Sidechain::Rx::observe_on_juce_thread());
+  }
+
+  /**
+   * Observable stream of presence changes from WebSocket.
+   * Emits UserPresence when users come online/offline.
+   * @return Hot observable that emits on JUCE message thread
+   */
+  rxcpp::observable<UserPresence> presenceChanges() const {
+    return presenceSubject_.get_observable().observe_on(Sidechain::Rx::observe_on_juce_thread());
+  }
+
   // Send typing indicator via REST API event endpoint
   void sendTypingIndicator(const juce::String &channelType, const juce::String &channelId, bool isTyping);
 
@@ -491,6 +576,12 @@ private:
   PresenceChangedCallback presenceChangedCallback;
   std::function<void(int)> unreadCountCallback;
   MessageNotificationCallback onMessageNotificationRequested;
+
+  // RxCpp subjects for reactive event streams
+  // These are mutable to allow const observable getters
+  mutable rxcpp::subjects::subject<MessageEvent> messageSubject_;
+  mutable rxcpp::subjects::subject<TypingEvent> typingSubject_;
+  mutable rxcpp::subjects::subject<UserPresence> presenceSubject_;
 
   // Channel watching (polling-based real-time)
   juce::String watchedChannelType;

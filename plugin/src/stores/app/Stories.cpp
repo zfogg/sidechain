@@ -1,6 +1,9 @@
 #include "../AppStore.h"
 #include "../../util/logging/Logger.h"
+#include "../../util/rx/JuceScheduler.h"
+#include "../../models/Story.h"
 #include <nlohmann/json.hpp>
+#include <rxcpp/rx.hpp>
 
 namespace Sidechain {
 namespace Stores {
@@ -206,6 +209,167 @@ void AppStore::createHighlight(const juce::String &name, const juce::Array<juce:
       sliceManager.stories->setState(highlightErrorState);
     }
   });
+}
+
+// ==============================================================================
+// Reactive Stories Observables (Phase 6)
+// ==============================================================================
+//
+// These methods return rxcpp::observable with proper model types (Story values,
+// not shared_ptr). They use the same network calls as the Redux actions above
+// but wrap them in reactive streams for compose-able operations.
+
+rxcpp::observable<std::vector<Story>> AppStore::loadStoriesFeedObservable() {
+  using ResultType = std::vector<Story>;
+  return rxcpp::sources::create<ResultType>([this](auto observer) {
+           if (!networkClient) {
+             Util::logError("AppStore", "Network client not initialized");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
+             return;
+           }
+
+           Util::logDebug("AppStore", "Loading stories feed via observable");
+
+           networkClient->getStoriesFeed([observer](Outcome<juce::var> result) {
+             if (result.isOk()) {
+               const auto data = result.getValue();
+               ResultType stories;
+
+               if (data.isArray()) {
+                 for (int i = 0; i < data.size(); ++i) {
+                   try {
+                     auto jsonStr = juce::JSON::toString(data[i]);
+                     auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+                     Story story;
+                     from_json(jsonObj, story);
+                     if (story.isValid()) {
+                       stories.push_back(std::move(story));
+                     }
+                   } catch (const std::exception &e) {
+                     Util::logWarning("AppStore", "Failed to parse story: " + juce::String(e.what()));
+                   }
+                 }
+               }
+
+               Util::logInfo("AppStore",
+                             "Loaded " + juce::String(static_cast<int>(stories.size())) + " stories from feed");
+               observer.on_next(std::move(stories));
+               observer.on_completed();
+             } else {
+               Util::logError("AppStore", "Failed to load stories feed: " + result.getError());
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<std::vector<Story>> AppStore::loadMyStoriesObservable() {
+  using ResultType = std::vector<Story>;
+  return rxcpp::sources::create<ResultType>([this](auto observer) {
+           if (!networkClient) {
+             Util::logError("AppStore", "Network client not initialized");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
+             return;
+           }
+
+           Util::logDebug("AppStore", "Loading my stories via observable");
+
+           // Get current user ID to filter only user's own stories
+           const auto currentAuthState = sliceManager.auth->getState();
+           const juce::String currentUserId = currentAuthState.userId;
+
+           networkClient->getStoriesFeed([observer, currentUserId](Outcome<juce::var> result) {
+             if (result.isOk()) {
+               const auto data = result.getValue();
+               ResultType stories;
+
+               if (data.isArray()) {
+                 for (int i = 0; i < data.size(); ++i) {
+                   try {
+                     auto jsonStr = juce::JSON::toString(data[i]);
+                     auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+                     Story story;
+                     from_json(jsonObj, story);
+                     // Only include stories that belong to the current user
+                     if (story.isValid() && story.userId == currentUserId) {
+                       stories.push_back(std::move(story));
+                     }
+                   } catch (const std::exception &e) {
+                     Util::logWarning("AppStore", "Failed to parse story: " + juce::String(e.what()));
+                   }
+                 }
+               }
+
+               Util::logInfo("AppStore", "Loaded " + juce::String(static_cast<int>(stories.size())) + " of my stories");
+               observer.on_next(std::move(stories));
+               observer.on_completed();
+             } else {
+               Util::logError("AppStore", "Failed to load my stories: " + result.getError());
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<int> AppStore::markStoryAsViewedObservable(const juce::String &storyId) {
+  return rxcpp::sources::create<int>([this, storyId](auto observer) {
+           if (!networkClient) {
+             Util::logError("AppStore", "Network client not initialized");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
+             return;
+           }
+
+           Util::logDebug("AppStore", "Marking story as viewed via observable: " + storyId);
+
+           networkClient->viewStory(storyId, [observer, storyId](Outcome<juce::var> result) {
+             if (result.isOk()) {
+               Util::logInfo("AppStore", "Story marked as viewed: " + storyId);
+               observer.on_next(0);
+               observer.on_completed();
+             } else {
+               Util::logError("AppStore", "Failed to mark story as viewed: " + result.getError());
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<int> AppStore::deleteStoryObservable(const juce::String &storyId) {
+  return rxcpp::sources::create<int>([this, storyId](auto observer) {
+           if (!networkClient) {
+             Util::logError("AppStore", "Network client not initialized");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
+             return;
+           }
+
+           Util::logDebug("AppStore", "Deleting story via observable: " + storyId);
+
+           networkClient->deleteStory(storyId, [this, observer, storyId](Outcome<juce::var> result) {
+             if (result.isOk()) {
+               // Update state
+               StoriesState deleteState = sliceManager.stories->getState();
+               for (int i = static_cast<int>(deleteState.myStories.size()) - 1; i >= 0; --i) {
+                 auto story = deleteState.myStories[static_cast<size_t>(i)];
+                 if (story && story->id == storyId) {
+                   deleteState.myStories.erase(deleteState.myStories.begin() + i);
+                   break;
+                 }
+               }
+               sliceManager.stories->setState(deleteState);
+
+               Util::logInfo("AppStore", "Story deleted: " + storyId);
+               observer.on_next(0);
+               observer.on_completed();
+             } else {
+               Util::logError("AppStore", "Failed to delete story: " + result.getError());
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
 }
 
 } // namespace Stores

@@ -1,6 +1,7 @@
 #include "../AppStore.h"
 #include "../../util/logging/Logger.h"
 #include "../../util/Async.h"
+#include "../../util/rx/JuceScheduler.h"
 #include <chrono>
 #include <thread>
 #include <rxcpp/rx.hpp>
@@ -29,18 +30,20 @@ juce::File AppStore::getCachedAudio(const juce::String &url) {
 
 rxcpp::observable<juce::Image> AppStore::loadImageObservable(const juce::String &url) {
   return rxcpp::sources::create<juce::Image>([this, url](auto observer) {
-    Log::debug("AppStore::loadImageObservable: Loading " + url);
-    getImage(url, [observer, url](const juce::Image &image) {
-      if (image.isValid()) {
-        Log::info("AppStore::loadImageObservable: Loaded successfully - " + url);
-        observer.on_next(image);
-      } else {
-        Log::warn("AppStore::loadImageObservable: Image invalid after download - " + url);
-        observer.on_next(juce::Image()); // Emit empty image on error
-      }
-      observer.on_completed();
-    });
-  });
+           Util::logDebug("AppStore", "loadImageObservable: Loading " + url);
+           getImage(url, [observer, url](const juce::Image &image) {
+             if (image.isValid()) {
+               Util::logInfo("AppStore", "loadImageObservable: Loaded successfully - " + url);
+               observer.on_next(image);
+               observer.on_completed();
+             } else {
+               Util::logWarning("AppStore", "loadImageObservable: Image invalid after download - " + url);
+               observer.on_error(
+                   std::make_exception_ptr(std::runtime_error("Failed to load image: " + url.toStdString())));
+             }
+           });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
 }
 
 // ==============================================================================
@@ -51,76 +54,78 @@ rxcpp::observable<juce::Image> AppStore::loadImageObservable(const juce::String 
 
 rxcpp::observable<juce::File> AppStore::loadAudioObservable(const juce::String &url) {
   return rxcpp::sources::create<juce::File>([this, url](auto observer) {
-    // Try file cache first
-    if (auto cached = audioCache.getAudioFile(url)) {
-      Util::logDebug("AppStore", "Audio cache hit: " + url);
-      observer.on_next(*cached);
-      observer.on_completed();
-      return;
-    }
+           // Try file cache first
+           if (auto cached = audioCache.getAudioFile(url)) {
+             Util::logDebug("AppStore", "Audio cache hit: " + url);
+             observer.on_next(*cached);
+             observer.on_completed();
+             return;
+           }
 
-    // Download from network on background thread
-    Async::run<juce::File>(
-        [this, url]() {
-          try {
-            Util::logDebug("AppStore", "Audio downloading: " + url);
-            juce::URL audioUrl(url);
-            auto tempFile = juce::File::getSpecialLocation(juce::File::tempDirectory)
-                                .getChildFile(juce::String("audio_") +
-                                              juce::String::toHexString(static_cast<int>(std::time(nullptr))));
+           // Download from network on background thread
+           Async::run<juce::File>(
+               [this, url]() {
+                 try {
+                   Util::logDebug("AppStore", "Audio downloading: " + url);
+                   juce::URL audioUrl(url);
+                   auto tempFile = juce::File::getSpecialLocation(juce::File::tempDirectory)
+                                       .getChildFile(juce::String("audio_") +
+                                                     juce::String::toHexString(static_cast<int>(std::time(nullptr))));
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-            auto inputStream =
-                audioUrl.createInputStream(false, nullptr, nullptr, "User-Agent: Sidechain/1.0", 5000, nullptr);
+                   auto inputStream =
+                       audioUrl.createInputStream(false, nullptr, nullptr, "User-Agent: Sidechain/1.0", 5000, nullptr);
 #pragma clang diagnostic pop
-            if (inputStream == nullptr) {
-              Util::logWarning("AppStore", "Failed to open audio stream for " + url);
-              return juce::File();
-            }
+                   if (inputStream == nullptr) {
+                     Util::logWarning("AppStore", "Failed to open audio stream for " + url);
+                     return juce::File();
+                   }
 
-            juce::FileOutputStream output(tempFile);
-            if (!output.openedOk()) {
-              Util::logWarning("AppStore", "Failed to create temp file for audio");
-              return juce::File();
-            }
+                   juce::FileOutputStream output(tempFile);
+                   if (!output.openedOk()) {
+                     Util::logWarning("AppStore", "Failed to create temp file for audio");
+                     return juce::File();
+                   }
 
-            // writeFromInputStream returns int64, but audio files are always < 2GB
-            // so safe to cast to int (INT_MAX = 2.1GB)
-            int64_t bytesWritten = output.writeFromInputStream(*inputStream, -1);
-            int numBytesWritten = static_cast<int>(bytesWritten);
+                   // writeFromInputStream returns int64, but audio files are always < 2GB
+                   // so safe to cast to int (INT_MAX = 2.1GB)
+                   int64_t bytesWritten = output.writeFromInputStream(*inputStream, -1);
+                   int numBytesWritten = static_cast<int>(bytesWritten);
 
-            output.flush(); // FileOutputStream::flush() returns void in modern JUCE
-            if (!output.openedOk()) {
-              Util::logWarning("AppStore", "Failed to write audio file");
-              tempFile.deleteFile();
-              return juce::File();
-            }
+                   output.flush(); // FileOutputStream::flush() returns void in modern JUCE
+                   if (!output.openedOk()) {
+                     Util::logWarning("AppStore", "Failed to write audio file");
+                     tempFile.deleteFile();
+                     return juce::File();
+                   }
 
-            if (numBytesWritten <= 0) {
-              Util::logWarning("AppStore", "Failed to download audio file");
-              tempFile.deleteFile();
-              return juce::File();
-            }
+                   if (numBytesWritten <= 0) {
+                     Util::logWarning("AppStore", "Failed to download audio file");
+                     tempFile.deleteFile();
+                     return juce::File();
+                   }
 
-            // Cache the downloaded file
-            audioCache.cacheAudioFile(url, tempFile);
-            Util::logInfo("AppStore", "Audio downloaded and cached: " + url);
-            return tempFile;
-          } catch (const std::exception &e) {
-            Util::logError("AppStore", "Audio fetch error: " + juce::String(e.what()));
-            return juce::File();
-          }
-        },
-        [observer](const juce::File &file) {
-          if (file.existsAsFile()) {
-            observer.on_next(file);
-          } else {
-            observer.on_next(juce::File()); // Emit empty file on error
-          }
-          observer.on_completed();
-        });
-  });
+                   // Cache the downloaded file
+                   audioCache.cacheAudioFile(url, tempFile);
+                   Util::logInfo("AppStore", "Audio downloaded and cached: " + url);
+                   return tempFile;
+                 } catch (const std::exception &e) {
+                   Util::logError("AppStore", "Audio fetch error: " + juce::String(e.what()));
+                   return juce::File();
+                 }
+               },
+               [observer, url](const juce::File &file) {
+                 if (file.existsAsFile()) {
+                   observer.on_next(file);
+                   observer.on_completed();
+                 } else {
+                   observer.on_error(
+                       std::make_exception_ptr(std::runtime_error("Failed to download audio: " + url.toStdString())));
+                 }
+               });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
 }
 
 // ==============================================================================
@@ -223,24 +228,35 @@ void AppStore::getImage(const juce::String &url, std::function<void(const juce::
 
 rxcpp::observable<juce::Array<juce::var>> AppStore::searchUsersObservable(const juce::String &query) {
   return rxcpp::sources::create<juce::Array<juce::var>>([this, query](auto observer) {
-    if (!networkClient || query.isEmpty()) {
-      observer.on_next(juce::Array<juce::var>());
-      observer.on_completed();
-      return;
-    }
+           if (!networkClient) {
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
+             return;
+           }
 
-    networkClient->searchUsers(query, 20, 0, [observer](Outcome<juce::var> result) {
-      juce::Array<juce::var> users;
-      if (result.isOk() && result.getValue().isArray()) {
-        auto resultsArray = result.getValue();
-        for (int i = 0; i < resultsArray.size(); ++i) {
-          users.add(resultsArray[i]);
-        }
-      }
-      observer.on_next(users);
-      observer.on_completed();
-    });
-  });
+           if (query.isEmpty()) {
+             observer.on_next(juce::Array<juce::var>());
+             observer.on_completed();
+             return;
+           }
+
+           networkClient->searchUsers(query, 20, 0, [observer, query](Outcome<juce::var> result) {
+             if (result.isOk()) {
+               juce::Array<juce::var> users;
+               if (result.getValue().isArray()) {
+                 auto resultsArray = result.getValue();
+                 for (int i = 0; i < resultsArray.size(); ++i) {
+                   users.add(resultsArray[i]);
+                 }
+               }
+               observer.on_next(users);
+               observer.on_completed();
+             } else {
+               observer.on_error(
+                   std::make_exception_ptr(std::runtime_error("Search failed: " + result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
 }
 
 // ==============================================================================
@@ -248,32 +264,56 @@ rxcpp::observable<juce::Array<juce::var>> AppStore::searchUsersObservable(const 
 
 rxcpp::observable<int> AppStore::followUserObservable(const juce::String &userId) {
   return rxcpp::sources::create<int>([this, userId](auto observer) {
-    if (!networkClient || userId.isEmpty()) {
-      observer.on_next(0);
-      observer.on_completed();
-      return;
-    }
+           if (!networkClient) {
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
+             return;
+           }
 
-    networkClient->followUser(userId, [observer](Outcome<juce::var> result) {
-      observer.on_next(result.isOk() ? 1 : 0);
-      observer.on_completed();
-    });
-  });
+           if (userId.isEmpty()) {
+             observer.on_error(std::make_exception_ptr(std::runtime_error("User ID is empty")));
+             return;
+           }
+
+           networkClient->followUser(userId, [observer, userId](Outcome<juce::var> result) {
+             if (result.isOk()) {
+               Util::logInfo("AppStore", "Followed user successfully: " + userId);
+               observer.on_next(1);
+               observer.on_completed();
+             } else {
+               Util::logError("AppStore", "Failed to follow user: " + result.getError());
+               observer.on_error(std::make_exception_ptr(
+                   std::runtime_error("Failed to follow user: " + result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
 }
 
 rxcpp::observable<int> AppStore::unfollowUserObservable(const juce::String &userId) {
   return rxcpp::sources::create<int>([this, userId](auto observer) {
-    if (!networkClient || userId.isEmpty()) {
-      observer.on_next(0);
-      observer.on_completed();
-      return;
-    }
+           if (!networkClient) {
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
+             return;
+           }
 
-    networkClient->unfollowUser(userId, [observer](Outcome<juce::var> result) {
-      observer.on_next(result.isOk() ? 1 : 0);
-      observer.on_completed();
-    });
-  });
+           if (userId.isEmpty()) {
+             observer.on_error(std::make_exception_ptr(std::runtime_error("User ID is empty")));
+             return;
+           }
+
+           networkClient->unfollowUser(userId, [observer, userId](Outcome<juce::var> result) {
+             if (result.isOk()) {
+               Util::logInfo("AppStore", "Unfollowed user successfully: " + userId);
+               observer.on_next(1);
+               observer.on_completed();
+             } else {
+               Util::logError("AppStore", "Failed to unfollow user: " + result.getError());
+               observer.on_error(std::make_exception_ptr(
+                   std::runtime_error("Failed to unfollow user: " + result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
 }
 
 } // namespace Stores

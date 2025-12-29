@@ -11,10 +11,12 @@
 #include "../models/Sound.h"
 #include "../models/Story.h"
 #include "../models/User.h"
+#include "../util/rx/JuceScheduler.h"
 #include "EntityCache.h"
 #include <JuceHeader.h>
 #include <memory>
 #include <nlohmann/json.hpp>
+#include <rxcpp/rx.hpp>
 
 // Forward declarations
 class NetworkClient;
@@ -427,13 +429,44 @@ public:
 
   // ==============================================================================
   // High-level fetch operations (with automatic caching)
-  // These will be implemented when NetworkClient is fully migrated to nlohmann::json
-  // Phase 2: Enable these methods for direct entity fetching
+  //
+  // These observables implement cache-first fetching with automatic network fallback.
+  // Pattern: Check cache -> If valid, return cached -> Otherwise fetch from network -> Cache result
+  //
+  // Usage:
+  //   entityStore.fetchPost(postId)
+  //       .subscribe([](const FeedPost& post) { updateUI(post); },
+  //                  [](std::exception_ptr e) { handleError(e); });
 
-  // rxcpp::observable<FeedPost> fetchPost(const juce::String& id);
-  // rxcpp::observable<Story> fetchStory(const juce::String& id);
-  // rxcpp::observable<User> fetchUser(const juce::String& id);
-  // rxcpp::observable<std::vector<FeedPost>> fetchPosts(const juce::Array<juce::String>& ids);
+  /**
+   * Fetch a post by ID with cache-first strategy.
+   * Returns cached post if valid, otherwise fetches from network.
+   * @param id Post ID to fetch
+   * @return Observable that emits the FeedPost
+   */
+  rxcpp::observable<FeedPost> fetchPost(const juce::String &id);
+
+  /**
+   * Fetch a story by ID with cache-first strategy (5-min TTL).
+   * @param id Story ID to fetch
+   * @return Observable that emits the Story
+   */
+  rxcpp::observable<Story> fetchStory(const juce::String &id);
+
+  /**
+   * Fetch a user by ID with cache-first strategy (10-min TTL).
+   * @param id User ID to fetch
+   * @return Observable that emits the User
+   */
+  rxcpp::observable<User> fetchUser(const juce::String &id);
+
+  /**
+   * Fetch multiple posts in parallel with cache-first strategy.
+   * Uses merge() to combine parallel network requests.
+   * @param ids Array of Post IDs to fetch
+   * @return Observable that emits vector of FeedPosts
+   */
+  rxcpp::observable<std::vector<FeedPost>> fetchPosts(const juce::Array<juce::String> &ids);
 
   // ==============================================================================
   // WebSocket event handlers (cache invalidation with typed JSON)

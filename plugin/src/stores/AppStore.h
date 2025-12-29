@@ -172,6 +172,43 @@ public:
    */
   void loadSuggestedUsers();
 
+  // Reactive Discovery Methods (Phase 5)
+
+  /**
+   * Load trending users with reactive observable pattern.
+   * Returns value copies of User structs (not shared_ptr).
+   *
+   * @param limit Maximum number of users to fetch (default 10)
+   * @return Observable that emits vector of User
+   */
+  rxcpp::observable<std::vector<User>> loadTrendingUsersObservable(int limit = 10);
+
+  /**
+   * Load featured producers with reactive observable pattern.
+   * Returns value copies of User structs.
+   *
+   * @param limit Maximum number of producers to fetch (default 10)
+   * @return Observable that emits vector of User
+   */
+  rxcpp::observable<std::vector<User>> loadFeaturedProducersObservable(int limit = 10);
+
+  /**
+   * Load suggested users with reactive observable pattern.
+   * Returns value copies of User structs.
+   *
+   * @param limit Maximum number of users to fetch (default 10)
+   * @return Observable that emits vector of User
+   */
+  rxcpp::observable<std::vector<User>> loadSuggestedUsersObservable(int limit = 10);
+
+  /**
+   * Load all discovery data (trending, featured, suggested) in parallel.
+   * Uses merge to combine all three streams.
+   *
+   * @return Observable that emits DiscoveryState when all data is loaded
+   */
+  rxcpp::observable<DiscoveryState> loadDiscoveryDataObservable();
+
   // ==============================================================================
   // Chat Methods (Chat.cpp)
 
@@ -223,6 +260,61 @@ public:
   void autocompleteGenres(const juce::String &query,
                           std::function<void(const juce::Array<juce::String> &suggestions)> callback);
 
+  // Reactive Search Methods (Phase 2)
+
+  /**
+   * Search posts with reactive observable pattern.
+   *
+   * Use with debounce for live search:
+   *   inputObservable
+   *       .debounce(std::chrono::milliseconds(300))
+   *       .distinct_until_changed()
+   *       .flat_map([this](auto q) { return searchPostsObservable(q); })
+   *       .subscribe([](auto posts) { ... });
+   *
+   * @param query Search query string
+   * @return Observable that emits vector of FeedPost
+   */
+  rxcpp::observable<std::vector<FeedPost>> searchPostsObservable(const juce::String &query);
+
+  /**
+   * Search users with reactive observable pattern.
+   *
+   * Use with debounce for live search:
+   *   inputObservable
+   *       .debounce(std::chrono::milliseconds(300))
+   *       .distinct_until_changed()
+   *       .flat_map([this](auto q) { return searchUsersReactiveObservable(q); })
+   *       .subscribe([](auto users) { ... });
+   *
+   * @param query Search query string
+   * @return Observable that emits vector of User
+   */
+  rxcpp::observable<std::vector<User>> searchUsersReactiveObservable(const juce::String &query);
+
+  /**
+   * Autocomplete users with reactive observable pattern.
+   *
+   * Use with debounce for live autocomplete:
+   *   inputObservable
+   *       .debounce(std::chrono::milliseconds(200))
+   *       .distinct_until_changed()
+   *       .flat_map([this](auto q) { return autocompleteUsersObservable(q); })
+   *       .subscribe([](auto suggestions) { ... });
+   *
+   * @param query Partial username to autocomplete
+   * @return Observable that emits array of username suggestions
+   */
+  rxcpp::observable<juce::Array<juce::String>> autocompleteUsersObservable(const juce::String &query);
+
+  /**
+   * Autocomplete genres with reactive observable pattern.
+   *
+   * @param query Partial genre name to autocomplete
+   * @return Observable that emits array of genre suggestions
+   */
+  rxcpp::observable<juce::Array<juce::String>> autocompleteGenresObservable(const juce::String &query);
+
   // ==============================================================================
   // Notification Methods (Notifications.cpp)
 
@@ -230,6 +322,32 @@ public:
   void loadMoreNotifications();
   void markNotificationsAsRead();
   void markNotificationsAsSeen();
+
+  // Reactive Notification Methods (Phase 6)
+
+  /**
+   * Load notifications with reactive observable pattern.
+   * Returns value copies of Notification structs.
+   *
+   * @param limit Number of notifications to load (default 20)
+   * @param offset Pagination offset (default 0)
+   * @return Observable that emits vector of Notification
+   */
+  rxcpp::observable<std::vector<Notification>> loadNotificationsObservable(int limit = 20, int offset = 0);
+
+  /**
+   * Mark all notifications as read with reactive observable pattern.
+   *
+   * @return Observable that emits 0 on success, errors on failure
+   */
+  rxcpp::observable<int> markNotificationsAsReadObservable();
+
+  /**
+   * Mark all notifications as seen with reactive observable pattern.
+   *
+   * @return Observable that emits 0 on success, errors on failure
+   */
+  rxcpp::observable<int> markNotificationsAsSeenObservable();
 
   // ==============================================================================
   // Presence Methods (Presence.cpp)
@@ -249,6 +367,40 @@ public:
   void markStoryAsViewed(const juce::String &storyId);
   void deleteStory(const juce::String &storyId);
   void createHighlight(const juce::String &name, const juce::Array<juce::String> &storyIds);
+
+  // Reactive Stories Methods (Phase 6)
+
+  /**
+   * Load stories feed with reactive observable pattern.
+   * Returns value copies of Story structs.
+   *
+   * @return Observable that emits vector of Story
+   */
+  rxcpp::observable<std::vector<Story>> loadStoriesFeedObservable();
+
+  /**
+   * Load user's own stories with reactive observable pattern.
+   * Returns value copies of Story structs.
+   *
+   * @return Observable that emits vector of Story
+   */
+  rxcpp::observable<std::vector<Story>> loadMyStoriesObservable();
+
+  /**
+   * Mark a story as viewed with reactive observable pattern.
+   *
+   * @param storyId Story ID to mark as viewed
+   * @return Observable that emits 0 on success, errors on failure
+   */
+  rxcpp::observable<int> markStoryAsViewedObservable(const juce::String &storyId);
+
+  /**
+   * Delete a story with reactive observable pattern.
+   *
+   * @param storyId Story ID to delete
+   * @return Observable that emits 0 on success, errors on failure
+   */
+  rxcpp::observable<int> deleteStoryObservable(const juce::String &storyId);
 
   // ==============================================================================
   // Upload Methods (Upload.cpp)
@@ -293,12 +445,43 @@ public:
    * Get comments for a post with pagination.
    * Uses observable pattern for reactive updates.
    *
+   * @deprecated Use loadCommentsObservable() for typed Comment values
    * @param postId Post ID to load comments for
    * @param limit Number of comments to load (default 20)
    * @param offset Pagination offset (default 0)
    */
   rxcpp::observable<juce::Array<juce::var>> getCommentsObservable(const juce::String &postId, int limit = 20,
                                                                   int offset = 0);
+
+  /**
+   * Load comments for a post with reactive observable pattern.
+   * Returns value copies of Comment structs (not shared_ptr).
+   *
+   * @param postId Post ID to load comments for
+   * @param limit Number of comments to load (default 20)
+   * @param offset Pagination offset (default 0)
+   * @return Observable that emits vector of Comment
+   */
+  rxcpp::observable<std::vector<Comment>> loadCommentsObservable(const juce::String &postId, int limit = 20,
+                                                                 int offset = 0);
+
+  /**
+   * Like a comment with reactive observable pattern.
+   * Includes optimistic update with rollback on error.
+   *
+   * @param commentId Comment ID to like
+   * @return Observable that emits 0 on success, errors on failure
+   */
+  rxcpp::observable<int> likeCommentObservable(const juce::String &commentId);
+
+  /**
+   * Unlike a comment with reactive observable pattern.
+   * Includes optimistic update with rollback on error.
+   *
+   * @param commentId Comment ID to unlike
+   * @return Observable that emits 0 on success, errors on failure
+   */
+  rxcpp::observable<int> unlikeCommentObservable(const juce::String &commentId);
 
   /**
    * Create a new comment on a post.

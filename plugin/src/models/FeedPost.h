@@ -23,6 +23,14 @@ public:
   FeedPost(const FeedPost &) = default;
   FeedPost &operator=(const FeedPost &) = default;
 
+  // Equality comparison (by ID) - required for RxCpp observables
+  bool operator==(const FeedPost &other) const {
+    return id == other.id;
+  }
+  bool operator!=(const FeedPost &other) const {
+    return id != other.id;
+  }
+
   // ==============================================================================
   // Core identifiers
   juce::String id;        // getstream.io activity ID

@@ -15,6 +15,14 @@ namespace Sidechain {
  * Can be aggregated (e.g., "Alice and 3 others liked your post")
  */
 struct Notification : public SerializableModel<Notification> {
+  // Equality comparison (by ID) - required for RxCpp observables
+  bool operator==(const Notification &other) const {
+    return id == other.id;
+  }
+  bool operator!=(const Notification &other) const {
+    return id != other.id;
+  }
+
   // ==============================================================================
   // Core identity
   juce::String id;

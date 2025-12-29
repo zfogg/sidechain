@@ -1434,6 +1434,10 @@ void StreamChatClient::parseWebSocketEvent(const juce::var &event) {
       auto message = parseMessage(messageData);
       auto channelId = Json::getString(event, "channel_id");
 
+      // Push to RxCpp subject for reactive subscribers
+      MessageEvent msgEvent{message, channelId};
+      messageSubject_.get_subscriber().on_next(msgEvent);
+
       // Show OS notification for messages from other users (GetStream.io Chat
       // notifications)
       if (message.userId != currentUserId && !message.userId.isEmpty()) {
@@ -1461,7 +1465,7 @@ void StreamChatClient::parseWebSocketEvent(const juce::var &event) {
         Log::debug("StreamChatClient: OS notification requested for message from " + message.userName);
       }
 
-      // Call the existing callback for UI updates
+      // Call the existing callback for UI updates (legacy support)
       if (messageReceivedCallback) {
         juce::MessageManager::callAsync([this, message, channelId]() {
           if (messageReceivedCallback)
@@ -1471,22 +1475,38 @@ void StreamChatClient::parseWebSocketEvent(const juce::var &event) {
     }
   } else if (eventType == "typing.start" || eventType == "typing.stop") {
     auto userData = Json::getObject(event, "user");
-    if (userData.isObject() && typingCallback) {
+    if (userData.isObject()) {
       auto userId = Json::getString(userData, "id");
+      auto channelId = Json::getString(event, "channel_id");
       bool isTyping = eventType == "typing.start";
-      juce::MessageManager::callAsync([this, userId, isTyping]() {
-        if (typingCallback)
-          typingCallback(userId, isTyping);
-      });
+
+      // Push to RxCpp subject for reactive subscribers
+      TypingEvent typingEvent{userId, channelId, isTyping};
+      typingSubject_.get_subscriber().on_next(typingEvent);
+
+      // Call the existing callback (legacy support)
+      if (typingCallback) {
+        juce::MessageManager::callAsync([this, userId, isTyping]() {
+          if (typingCallback)
+            typingCallback(userId, isTyping);
+        });
+      }
     }
   } else if (eventType == "user.presence.changed") {
     auto userData = Json::getObject(event, "user");
-    if (userData.isObject() && presenceChangedCallback) {
+    if (userData.isObject()) {
       auto presence = parsePresence(userData);
-      juce::MessageManager::callAsync([this, presence]() {
-        if (presenceChangedCallback)
-          presenceChangedCallback(presence);
-      });
+
+      // Push to RxCpp subject for reactive subscribers
+      presenceSubject_.get_subscriber().on_next(presence);
+
+      // Call the existing callback (legacy support)
+      if (presenceChangedCallback) {
+        juce::MessageManager::callAsync([this, presence]() {
+          if (presenceChangedCallback)
+            presenceChangedCallback(presence);
+        });
+      }
     }
   }
 }

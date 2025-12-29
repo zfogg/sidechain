@@ -1,6 +1,9 @@
 #include "../AppStore.h"
 #include "../../util/logging/Logger.h"
+#include "../../util/rx/JuceScheduler.h"
 #include "../EntityStore.h"
+#include "../../models/Comment.h"
+#include <rxcpp/rx.hpp>
 
 namespace Sidechain {
 namespace Stores {
@@ -459,6 +462,145 @@ std::function<void()> AppStore::subscribeToComment(const juce::String &commentId
       });
 
   return unsubscriber;
+}
+
+// ==============================================================================
+// Reactive Comment Observables (Phase 6)
+// ==============================================================================
+//
+// These methods return rxcpp::observable with proper model types (Comment values,
+// not shared_ptr). They use the same network calls as the Redux actions above
+// but wrap them in reactive streams for compose-able operations.
+
+rxcpp::observable<std::vector<Comment>> AppStore::loadCommentsObservable(const juce::String &postId, int limit,
+                                                                         int offset) {
+  using ResultType = std::vector<Comment>;
+  return rxcpp::sources::create<ResultType>([this, postId, limit, offset](auto observer) {
+           if (!networkClient) {
+             Util::logError("AppStore", "Network client not initialized");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
+             return;
+           }
+
+           Util::logDebug("AppStore", "Loading comments via observable for post: " + postId);
+
+           networkClient->getComments(
+               postId, limit, offset, [observer, postId](Outcome<std::pair<juce::var, int>> result) {
+                 if (result.isOk()) {
+                   auto [commentsData, totalCount] = result.getValue();
+                   ResultType comments;
+
+                   if (commentsData.isArray()) {
+                     for (int i = 0; i < commentsData.size(); ++i) {
+                       try {
+                         auto jsonStr = juce::JSON::toString(commentsData[i]);
+                         auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+                         Comment comment;
+                         from_json(jsonObj, comment);
+                         if (comment.isValid()) {
+                           comments.push_back(std::move(comment));
+                         }
+                       } catch (const std::exception &e) {
+                         Util::logWarning("AppStore", "Failed to parse comment: " + juce::String(e.what()));
+                       }
+                     }
+                   }
+
+                   Util::logInfo("AppStore", "Loaded " + juce::String(static_cast<int>(comments.size())) +
+                                                 " comments for post: " + postId);
+                   observer.on_next(std::move(comments));
+                   observer.on_completed();
+                 } else {
+                   Util::logError("AppStore", "Failed to load comments: " + result.getError());
+                   observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+                 }
+               });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<int> AppStore::likeCommentObservable(const juce::String &commentId) {
+  return rxcpp::sources::create<int>([this, commentId](auto observer) {
+           if (!networkClient) {
+             Util::logError("AppStore", "Network client not initialized");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
+             return;
+           }
+
+           Util::logDebug("AppStore", "Liking comment via observable: " + commentId);
+
+           // Optimistic update in EntityStore
+           bool updated = EntityStore::getInstance().comments().update(commentId, [](Comment &comment) {
+             comment.isLiked = true;
+             comment.likeCount++;
+           });
+
+           if (!updated) {
+             Util::logWarning("AppStore", "Cannot like comment - comment not found in cache: " + commentId);
+           }
+
+           // Make network request
+           networkClient->likeComment(commentId, [observer, commentId](Outcome<juce::var> result) {
+             if (result.isOk()) {
+               Util::logInfo("AppStore", "Comment liked successfully: " + commentId);
+               observer.on_next(0);
+               observer.on_completed();
+             } else {
+               Util::logError("AppStore", "Failed to like comment: " + result.getError());
+
+               // Rollback optimistic update
+               EntityStore::getInstance().comments().update(commentId, [](Comment &comment) {
+                 comment.isLiked = false;
+                 comment.likeCount--;
+               });
+
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<int> AppStore::unlikeCommentObservable(const juce::String &commentId) {
+  return rxcpp::sources::create<int>([this, commentId](auto observer) {
+           if (!networkClient) {
+             Util::logError("AppStore", "Network client not initialized");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
+             return;
+           }
+
+           Util::logDebug("AppStore", "Unliking comment via observable: " + commentId);
+
+           // Optimistic update in EntityStore
+           bool updated = EntityStore::getInstance().comments().update(commentId, [](Comment &comment) {
+             comment.isLiked = false;
+             comment.likeCount--;
+           });
+
+           if (!updated) {
+             Util::logWarning("AppStore", "Cannot unlike comment - comment not found in cache: " + commentId);
+           }
+
+           // Make network request
+           networkClient->unlikeComment(commentId, [observer, commentId](Outcome<juce::var> result) {
+             if (result.isOk()) {
+               Util::logInfo("AppStore", "Comment unliked successfully: " + commentId);
+               observer.on_next(0);
+               observer.on_completed();
+             } else {
+               Util::logError("AppStore", "Failed to unlike comment: " + result.getError());
+
+               // Rollback optimistic update
+               EntityStore::getInstance().comments().update(commentId, [](Comment &comment) {
+                 comment.isLiked = true;
+                 comment.likeCount++;
+               });
+
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
 }
 
 } // namespace Stores

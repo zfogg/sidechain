@@ -16,6 +16,14 @@ namespace Sidechain {
  * including MIDI data for piano roll visualization. They expire after 24 hours.
  */
 struct Story : public SerializableModel<Story> {
+  // Equality comparison (by ID) - required for RxCpp observables
+  bool operator==(const Story &other) const {
+    return id == other.id;
+  }
+  bool operator!=(const Story &other) const {
+    return id != other.id;
+  }
+
   juce::String id;
   juce::String userId;
   juce::String audioUrl;

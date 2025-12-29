@@ -48,6 +48,14 @@ inline void from_json(const nlohmann::json &j, CommentReaction &reaction) {
  * Comments can be top-level or replies (parentId is non-empty for replies).
  */
 struct Comment : public SerializableModel<Comment> {
+  // Equality comparison (by ID) - required for RxCpp observables
+  bool operator==(const Comment &other) const {
+    return id == other.id;
+  }
+  bool operator!=(const Comment &other) const {
+    return id != other.id;
+  }
+
   // ==============================================================================
   // Core identity
   juce::String id;       // Unique comment ID

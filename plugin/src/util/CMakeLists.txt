@@ -34,6 +34,9 @@ add_library(SidechainCore STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/HoverState.h
     ${CMAKE_CURRENT_SOURCE_DIR}/LongPressDetector.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Emoji.h
+    # RxCpp Schedulers and Operators
+    ${CMAKE_CURRENT_SOURCE_DIR}/rx/JuceScheduler.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/rx/RxOperators.h
     ${CMAKE_CURRENT_SOURCE_DIR}/DAWProjectFolder.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/DAWProjectFolder.h
     ${CMAKE_CURRENT_SOURCE_DIR}/OSNotification.cpp

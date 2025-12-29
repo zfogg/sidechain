@@ -2,6 +2,7 @@
 #include "../util/StoreUtils.h"
 #include "../util/PostInteractionHelper.h"
 #include "../../util/logging/Logger.h"
+#include "../../util/rx/JuceScheduler.h"
 
 namespace Sidechain {
 namespace Stores {
@@ -818,153 +819,152 @@ AggregatedFeedResponse AppStore::parseAggregatedJsonResponse(const juce::var &js
 
 rxcpp::observable<juce::var> AppStore::loadFeedObservable(FeedType feedType) {
   return rxcpp::sources::create<juce::var>([this, feedType](auto observer) {
-    // Fetch from network
-    if (!networkClient) {
-      Util::logError("AppStore", "Network client not initialized");
-      observer.on_next(juce::var());
-      observer.on_completed();
-      return;
-    }
+           // Fetch from network
+           if (!networkClient) {
+             Util::logError("AppStore", "Network client not initialized");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
+             return;
+           }
 
-    Util::logDebug("AppStore", "Loading feed from network: " + feedTypeToString(feedType));
+           Util::logDebug("AppStore", "Loading feed from network: " + feedTypeToString(feedType));
 
-    // Create callback to handle network response
-    auto callback = [feedType, observer](Outcome<juce::var> result) {
-      if (result.isOk()) {
-        // Cache the response (30 seconds for feeds - they update frequently)
-        auto data = result.getValue();
-        Util::logInfo("AppStore", "Feed loaded and cached: " + feedTypeToString(feedType));
-        observer.on_next(data);
-      } else {
-        Util::logError("AppStore", "Feed load failed: " + result.getError());
-        observer.on_next(juce::var());
-      }
-      observer.on_completed();
-    };
+           // Create callback to handle network response
+           auto callback = [feedType, observer](Outcome<juce::var> result) {
+             if (result.isOk()) {
+               // Cache the response (30 seconds for feeds - they update frequently)
+               auto data = result.getValue();
+               Util::logInfo("AppStore", "Feed loaded and cached: " + feedTypeToString(feedType));
+               observer.on_next(data);
+               observer.on_completed();
+             } else {
+               Util::logError("AppStore", "Feed load failed: " + result.getError());
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           };
 
-    // Call the appropriate feed method based on feed type
-    if (feedType == FeedType::Timeline) {
-      networkClient->getTimelineFeed(20, 0, callback);
-    } else if (feedType == FeedType::Trending) {
-      networkClient->getTrendingFeed(20, 0, callback);
-    } else if (feedType == FeedType::Global) {
-      networkClient->getGlobalFeed(20, 0, callback);
-    } else if (feedType == FeedType::ForYou) {
-      networkClient->getForYouFeed(20, 0, callback);
-    } else if (feedType == FeedType::Popular) {
-      networkClient->getPopularFeed(20, 0, callback);
-    } else if (feedType == FeedType::Latest) {
-      networkClient->getLatestFeed(20, 0, callback);
-    } else if (feedType == FeedType::Discovery) {
-      networkClient->getDiscoveryFeed(20, 0, callback);
-    } else if (feedType == FeedType::TimelineAggregated) {
-      networkClient->getAggregatedTimeline(20, 0, callback);
-    } else if (feedType == FeedType::TrendingAggregated) {
-      networkClient->getTrendingFeedGrouped(20, 0, callback);
-    } else if (feedType == FeedType::NotificationAggregated) {
-      networkClient->getNotificationsAggregated(20, 0, callback);
-    } else if (feedType == FeedType::UserActivityAggregated) {
-      Util::logWarning("AppStore", "UserActivityAggregated requires userId - skipping");
-      observer.on_next(juce::var());
-      observer.on_completed();
-    } else {
-      Util::logError("AppStore", "Unknown feed type");
-      observer.on_next(juce::var());
-      observer.on_completed();
-    }
-  });
+           // Call the appropriate feed method based on feed type
+           if (feedType == FeedType::Timeline) {
+             networkClient->getTimelineFeed(20, 0, callback);
+           } else if (feedType == FeedType::Trending) {
+             networkClient->getTrendingFeed(20, 0, callback);
+           } else if (feedType == FeedType::Global) {
+             networkClient->getGlobalFeed(20, 0, callback);
+           } else if (feedType == FeedType::ForYou) {
+             networkClient->getForYouFeed(20, 0, callback);
+           } else if (feedType == FeedType::Popular) {
+             networkClient->getPopularFeed(20, 0, callback);
+           } else if (feedType == FeedType::Latest) {
+             networkClient->getLatestFeed(20, 0, callback);
+           } else if (feedType == FeedType::Discovery) {
+             networkClient->getDiscoveryFeed(20, 0, callback);
+           } else if (feedType == FeedType::TimelineAggregated) {
+             networkClient->getAggregatedTimeline(20, 0, callback);
+           } else if (feedType == FeedType::TrendingAggregated) {
+             networkClient->getTrendingFeedGrouped(20, 0, callback);
+           } else if (feedType == FeedType::NotificationAggregated) {
+             networkClient->getNotificationsAggregated(20, 0, callback);
+           } else if (feedType == FeedType::UserActivityAggregated) {
+             Util::logWarning("AppStore", "UserActivityAggregated requires userId - skipping");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("UserActivityAggregated requires userId")));
+           } else {
+             Util::logError("AppStore", "Unknown feed type");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Unknown feed type")));
+           }
+         })
+      .observe_on(Rx::observe_on_juce_thread());
 }
 
 rxcpp::observable<int> AppStore::likePostObservable(const juce::String &postId) {
   return rxcpp::sources::create<int>([this, postId](auto observer) {
-    if (!networkClient) {
-      Util::logError("AppStore", "Network client not initialized");
-      observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
-      return;
-    }
+           if (!networkClient) {
+             Util::logError("AppStore", "Network client not initialized");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
+             return;
+           }
 
-    // Check current like state from app state
-    auto currentPostsState = sliceManager.posts->getState();
-    bool isCurrentlyLiked = false;
+           // Check current like state from app state
+           auto currentPostsState = sliceManager.posts->getState();
+           bool isCurrentlyLiked = false;
 
-    for (const auto &[feedType, feedState] : currentPostsState.feeds) {
-      for (const auto &post : feedState.posts) {
-        if (post->id == postId) {
-          isCurrentlyLiked = post->isLiked;
-          break;
-        }
-      }
-    }
+           for (const auto &[feedType, feedState] : currentPostsState.feeds) {
+             for (const auto &post : feedState.posts) {
+               if (post->id == postId) {
+                 isCurrentlyLiked = post->isLiked;
+                 break;
+               }
+             }
+           }
 
-    // Store previous state for rollback on error
-    auto previousState = isCurrentlyLiked;
+           // Store previous state for rollback on error
+           auto previousState = isCurrentlyLiked;
 
-    // Apply optimistic update
-    PostsState newState = sliceManager.posts->getState();
-    for (auto &[feedType, feedState] : newState.feeds) {
-      for (auto &post : feedState.posts) {
-        if (post->id == postId) {
-          post->isLiked = !post->isLiked;
-          // BUG FIX: Prevent negative like counts
-          post->likeCount = post->isLiked ? post->likeCount + 1 : std::max(0, post->likeCount - 1);
-        }
-      }
-    }
-    sliceManager.posts->setState(newState);
+           // Apply optimistic update
+           PostsState newState = sliceManager.posts->getState();
+           for (auto &[feedType, feedState] : newState.feeds) {
+             for (auto &post : feedState.posts) {
+               if (post->id == postId) {
+                 post->isLiked = !post->isLiked;
+                 // BUG FIX: Prevent negative like counts
+                 post->likeCount = post->isLiked ? post->likeCount + 1 : std::max(0, post->likeCount - 1);
+               }
+             }
+           }
+           sliceManager.posts->setState(newState);
 
-    Util::logDebug("AppStore", "Like post optimistic update: " + postId);
+           Util::logDebug("AppStore", "Like post optimistic update: " + postId);
 
-    // Send to server - like or unlike based on previous state
-    if (isCurrentlyLiked) {
-      networkClient->unlikePost(postId, [this, postId, previousState, observer](Outcome<juce::var> result) {
-        if (result.isOk()) {
-          Util::logInfo("AppStore", "Post unliked successfully: " + postId);
-          // Invalidate feed caches on successful unlike
-          observer.on_next(0);
-          observer.on_completed();
-        } else {
-          Util::logError("AppStore", "Failed to unlike post: " + result.getError());
-          // Rollback optimistic update on error
-          PostsState rollbackState = sliceManager.posts->getState();
-          for (auto &[feedType, feedState] : rollbackState.feeds) {
-            for (auto &post : feedState.posts) {
-              if (post->id == postId) {
-                post->isLiked = previousState;
-                // BUG FIX: Prevent negative like counts on rollback
-                post->likeCount = previousState ? post->likeCount + 1 : std::max(0, post->likeCount - 1);
-              }
-            }
-          }
-          sliceManager.posts->setState(rollbackState);
-          observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
-        }
-      });
-    } else {
-      networkClient->likePost(postId, "", [this, postId, previousState, observer](Outcome<juce::var> result) {
-        if (result.isOk()) {
-          Util::logInfo("AppStore", "Post liked successfully: " + postId);
-          // Invalidate feed caches on successful like
-          observer.on_next(0);
-          observer.on_completed();
-        } else {
-          Util::logError("AppStore", "Failed to like post: " + result.getError());
-          // Rollback optimistic update on error
-          PostsState rollbackState = sliceManager.posts->getState();
-          for (auto &[feedType, feedState] : rollbackState.feeds) {
-            for (auto &post : feedState.posts) {
-              if (post->id == postId) {
-                post->isLiked = previousState;
-                // BUG FIX: Prevent negative like counts on rollback
-                post->likeCount = previousState ? post->likeCount + 1 : std::max(0, post->likeCount - 1);
-              }
-            }
-          }
-          sliceManager.posts->setState(rollbackState);
-          observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
-        }
-      });
-    }
-  });
+           // Send to server - like or unlike based on previous state
+           if (isCurrentlyLiked) {
+             networkClient->unlikePost(postId, [this, postId, previousState, observer](Outcome<juce::var> result) {
+               if (result.isOk()) {
+                 Util::logInfo("AppStore", "Post unliked successfully: " + postId);
+                 // Invalidate feed caches on successful unlike
+                 observer.on_next(0);
+                 observer.on_completed();
+               } else {
+                 Util::logError("AppStore", "Failed to unlike post: " + result.getError());
+                 // Rollback optimistic update on error
+                 PostsState rollbackState = sliceManager.posts->getState();
+                 for (auto &[feedType, feedState] : rollbackState.feeds) {
+                   for (auto &post : feedState.posts) {
+                     if (post->id == postId) {
+                       post->isLiked = previousState;
+                       // BUG FIX: Prevent negative like counts on rollback
+                       post->likeCount = previousState ? post->likeCount + 1 : std::max(0, post->likeCount - 1);
+                     }
+                   }
+                 }
+                 sliceManager.posts->setState(rollbackState);
+                 observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+               }
+             });
+           } else {
+             networkClient->likePost(postId, "", [this, postId, previousState, observer](Outcome<juce::var> result) {
+               if (result.isOk()) {
+                 Util::logInfo("AppStore", "Post liked successfully: " + postId);
+                 // Invalidate feed caches on successful like
+                 observer.on_next(0);
+                 observer.on_completed();
+               } else {
+                 Util::logError("AppStore", "Failed to like post: " + result.getError());
+                 // Rollback optimistic update on error
+                 PostsState rollbackState = sliceManager.posts->getState();
+                 for (auto &[feedType, feedState] : rollbackState.feeds) {
+                   for (auto &post : feedState.posts) {
+                     if (post->id == postId) {
+                       post->isLiked = previousState;
+                       // BUG FIX: Prevent negative like counts on rollback
+                       post->likeCount = previousState ? post->likeCount + 1 : std::max(0, post->likeCount - 1);
+                     }
+                   }
+                 }
+                 sliceManager.posts->setState(rollbackState);
+                 observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+               }
+             });
+           }
+         })
+      .observe_on(Rx::observe_on_juce_thread());
 }
 
 // ==============================================================================
@@ -972,196 +972,249 @@ rxcpp::observable<int> AppStore::likePostObservable(const juce::String &postId) 
 
 rxcpp::observable<int> AppStore::toggleSaveObservable(const juce::String &postId) {
   return rxcpp::sources::create<int>([this, postId](auto observer) {
-    if (!networkClient) {
-      Util::logError("AppStore", "Network client not initialized");
-      observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
-      return;
-    }
+           if (!networkClient) {
+             Util::logError("AppStore", "Network client not initialized");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
+             return;
+           }
 
-    // Check current save state
-    auto currentPostsState = sliceManager.posts->getState();
-    bool isCurrentlySaved = false;
+           // Check current save state
+           auto currentPostsState = sliceManager.posts->getState();
+           bool isCurrentlySaved = false;
 
-    for (const auto &[feedType, feedState] : currentPostsState.feeds) {
-      for (const auto &post : feedState.posts) {
-        if (post->id == postId) {
-          isCurrentlySaved = post->isSaved;
-          break;
-        }
-      }
-    }
+           for (const auto &[feedType, feedState] : currentPostsState.feeds) {
+             for (const auto &post : feedState.posts) {
+               if (post->id == postId) {
+                 isCurrentlySaved = post->isSaved;
+                 break;
+               }
+             }
+           }
 
-    // Store previous state for rollback on error
-    auto previousState = isCurrentlySaved;
+           // Store previous state for rollback on error
+           auto previousState = isCurrentlySaved;
 
-    // Apply optimistic update
-    PostsState newState = sliceManager.posts->getState();
-    for (auto &[feedType, feedState] : newState.feeds) {
-      for (auto &post : feedState.posts) {
-        if (post->id == postId) {
-          post->isSaved = !post->isSaved;
-          // BUG FIX: Prevent negative save counts
-          post->saveCount = post->isSaved ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
-        }
-      }
-    }
+           // Apply optimistic update
+           PostsState newState = sliceManager.posts->getState();
+           for (auto &[feedType, feedState] : newState.feeds) {
+             for (auto &post : feedState.posts) {
+               if (post->id == postId) {
+                 post->isSaved = !post->isSaved;
+                 // BUG FIX: Prevent negative save counts
+                 post->saveCount = post->isSaved ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
+               }
+             }
+           }
 
-    for (auto &post : newState.savedPosts.posts) {
-      if (post->id == postId) {
-        post->isSaved = !post->isSaved;
-        // BUG FIX: Prevent negative save counts
-        post->saveCount = post->isSaved ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
-      }
-    }
+           for (auto &post : newState.savedPosts.posts) {
+             if (post->id == postId) {
+               post->isSaved = !post->isSaved;
+               // BUG FIX: Prevent negative save counts
+               post->saveCount = post->isSaved ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
+             }
+           }
 
-    for (auto &post : newState.archivedPosts.posts) {
-      if (post->id == postId) {
-        post->isSaved = !post->isSaved;
-        // BUG FIX: Prevent negative save counts
-        post->saveCount = post->isSaved ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
-      }
-    }
-    sliceManager.posts->setState(newState);
+           for (auto &post : newState.archivedPosts.posts) {
+             if (post->id == postId) {
+               post->isSaved = !post->isSaved;
+               // BUG FIX: Prevent negative save counts
+               post->saveCount = post->isSaved ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
+             }
+           }
+           sliceManager.posts->setState(newState);
 
-    Util::logDebug("AppStore", "Toggle save optimistic update: " + postId);
+           Util::logDebug("AppStore", "Toggle save optimistic update: " + postId);
 
-    // Send to server
-    if (previousState) {
-      networkClient->unsavePost(postId, [this, postId, previousState, observer](Outcome<juce::var> result) {
-        if (result.isOk()) {
-          Util::logInfo("AppStore", "Post unsaved successfully: " + postId);
-          observer.on_next(0);
-          observer.on_completed();
-        } else {
-          Util::logError("AppStore", "Failed to unsave post: " + result.getError());
-          // Rollback optimistic update on error
-          PostsState rollbackState = sliceManager.posts->getState();
-          for (auto &[feedType, feedState] : rollbackState.feeds) {
-            for (auto &post : feedState.posts) {
-              if (post->id == postId) {
-                post->isSaved = previousState;
-                // BUG FIX: Prevent negative save counts on rollback
-                post->saveCount = previousState ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
-              }
-            }
-          }
-          for (auto &post : rollbackState.savedPosts.posts) {
-            if (post->id == postId) {
-              post->isSaved = previousState;
-              // BUG FIX: Prevent negative save counts on rollback
-              post->saveCount = previousState ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
-            }
-          }
-          for (auto &post : rollbackState.archivedPosts.posts) {
-            if (post->id == postId) {
-              post->isSaved = previousState;
-              // BUG FIX: Prevent negative save counts on rollback
-              post->saveCount = previousState ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
-            }
-          }
-          sliceManager.posts->setState(rollbackState);
-          observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
-        }
-      });
-    } else {
-      networkClient->savePost(postId, [this, postId, previousState, observer](Outcome<juce::var> result) {
-        if (result.isOk()) {
-          Util::logInfo("AppStore", "Post saved successfully: " + postId);
-          observer.on_next(0);
-          observer.on_completed();
-        } else {
-          Util::logError("AppStore", "Failed to save post: " + result.getError());
-          // Rollback optimistic update on error
-          PostsState rollbackState = sliceManager.posts->getState();
-          for (auto &[feedType, feedState] : rollbackState.feeds) {
-            for (auto &post : feedState.posts) {
-              if (post->id == postId) {
-                post->isSaved = previousState;
-                // BUG FIX: Prevent negative save counts on rollback
-                post->saveCount = previousState ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
-              }
-            }
-          }
-          for (auto &post : rollbackState.savedPosts.posts) {
-            if (post->id == postId) {
-              post->isSaved = previousState;
-              // BUG FIX: Prevent negative save counts on rollback
-              post->saveCount = previousState ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
-            }
-          }
-          for (auto &post : rollbackState.archivedPosts.posts) {
-            if (post->id == postId) {
-              post->isSaved = previousState;
-              // BUG FIX: Prevent negative save counts on rollback
-              post->saveCount = previousState ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
-            }
-          }
-          sliceManager.posts->setState(rollbackState);
-          observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
-        }
-      });
-    }
-  });
+           // Send to server
+           if (previousState) {
+             networkClient->unsavePost(postId, [this, postId, previousState, observer](Outcome<juce::var> result) {
+               if (result.isOk()) {
+                 Util::logInfo("AppStore", "Post unsaved successfully: " + postId);
+                 observer.on_next(0);
+                 observer.on_completed();
+               } else {
+                 Util::logError("AppStore", "Failed to unsave post: " + result.getError());
+                 // Rollback optimistic update on error
+                 PostsState rollbackState = sliceManager.posts->getState();
+                 for (auto &[feedType, feedState] : rollbackState.feeds) {
+                   for (auto &post : feedState.posts) {
+                     if (post->id == postId) {
+                       post->isSaved = previousState;
+                       // BUG FIX: Prevent negative save counts on rollback
+                       post->saveCount = previousState ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
+                     }
+                   }
+                 }
+                 for (auto &post : rollbackState.savedPosts.posts) {
+                   if (post->id == postId) {
+                     post->isSaved = previousState;
+                     // BUG FIX: Prevent negative save counts on rollback
+                     post->saveCount = previousState ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
+                   }
+                 }
+                 for (auto &post : rollbackState.archivedPosts.posts) {
+                   if (post->id == postId) {
+                     post->isSaved = previousState;
+                     // BUG FIX: Prevent negative save counts on rollback
+                     post->saveCount = previousState ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
+                   }
+                 }
+                 sliceManager.posts->setState(rollbackState);
+                 observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+               }
+             });
+           } else {
+             networkClient->savePost(postId, [this, postId, previousState, observer](Outcome<juce::var> result) {
+               if (result.isOk()) {
+                 Util::logInfo("AppStore", "Post saved successfully: " + postId);
+                 observer.on_next(0);
+                 observer.on_completed();
+               } else {
+                 Util::logError("AppStore", "Failed to save post: " + result.getError());
+                 // Rollback optimistic update on error
+                 PostsState rollbackState = sliceManager.posts->getState();
+                 for (auto &[feedType, feedState] : rollbackState.feeds) {
+                   for (auto &post : feedState.posts) {
+                     if (post->id == postId) {
+                       post->isSaved = previousState;
+                       // BUG FIX: Prevent negative save counts on rollback
+                       post->saveCount = previousState ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
+                     }
+                   }
+                 }
+                 for (auto &post : rollbackState.savedPosts.posts) {
+                   if (post->id == postId) {
+                     post->isSaved = previousState;
+                     // BUG FIX: Prevent negative save counts on rollback
+                     post->saveCount = previousState ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
+                   }
+                 }
+                 for (auto &post : rollbackState.archivedPosts.posts) {
+                   if (post->id == postId) {
+                     post->isSaved = previousState;
+                     // BUG FIX: Prevent negative save counts on rollback
+                     post->saveCount = previousState ? post->saveCount + 1 : std::max(0, post->saveCount - 1);
+                   }
+                 }
+                 sliceManager.posts->setState(rollbackState);
+                 observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+               }
+             });
+           }
+         })
+      .observe_on(Rx::observe_on_juce_thread());
 }
 
 rxcpp::observable<int> AppStore::toggleRepostObservable(const juce::String &postId) {
   return rxcpp::sources::create<int>([this, postId](auto observer) {
-    if (!networkClient) {
-      Util::logError("AppStore", "Network client not initialized");
-      observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
-      return;
-    }
+           if (!networkClient) {
+             Util::logError("AppStore", "Network client not initialized");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
+             return;
+           }
 
-    // Call the existing callback-based method for now - it handles optimistic updates and cache invalidation
-    toggleRepost(postId);
-    observer.on_next(0);
-    observer.on_completed();
-  });
+           // Find current repost state
+           auto currentState = sliceManager.posts->getState();
+           auto toggleState = PostInteractionHelper::findCurrentState(
+               currentState, postId, [](const FeedPost &p) { return p.isReposted; },
+               [](const FeedPost &p) { return p.repostCount; });
+
+           if (!toggleState.has_value()) {
+             Util::logWarning("AppStore", "Post not found for repost toggle: " + postId);
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Post not found")));
+             return;
+           }
+
+           bool wasReposted = toggleState->isActive;
+           auto newToggleState = toggleState->toggle();
+
+           // Apply optimistic update
+           PostsState newState = sliceManager.posts->getState();
+           PostInteractionHelper::updatePostAcrossCollections(newState, postId,
+                                                              [&newToggleState](std::shared_ptr<FeedPost> &post) {
+                                                                post->isReposted = newToggleState.isActive;
+                                                                post->repostCount = newToggleState.count;
+                                                              });
+           sliceManager.posts->setState(newState);
+
+           Util::logDebug("AppStore", "Repost optimistic update: " + postId);
+
+           // Call API and wait for response
+           auto callback = [this, postId, wasReposted, toggleState, observer](Outcome<juce::var> result) {
+             if (result.isOk()) {
+               Util::logInfo("AppStore",
+                             "Repost " + juce::String(wasReposted ? "undone" : "applied") + " successfully: " + postId);
+               observer.on_next(0);
+               observer.on_completed();
+             } else {
+               Util::logError("AppStore", "Failed to toggle repost: " + result.getError());
+               // Rollback optimistic update
+               PostsState rollbackState = sliceManager.posts->getState();
+               PostInteractionHelper::updatePostAcrossCollections(rollbackState, postId,
+                                                                  [&toggleState](std::shared_ptr<FeedPost> &post) {
+                                                                    post->isReposted = toggleState->isActive;
+                                                                    post->repostCount = toggleState->count;
+                                                                  });
+               sliceManager.posts->setState(rollbackState);
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           };
+
+           if (wasReposted) {
+             networkClient->undoRepost(postId, callback);
+           } else {
+             networkClient->repostPost(postId, "", callback);
+           }
+         })
+      .observe_on(Rx::observe_on_juce_thread());
 }
 
 rxcpp::observable<int> AppStore::togglePinObservable(const juce::String &postId, bool pinned) {
   return rxcpp::sources::create<int>([this, postId, pinned](auto observer) {
-    if (!networkClient) {
-      Util::logError("AppStore", "Network client not initialized");
-      observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
-      return;
-    }
+           if (!networkClient) {
+             Util::logError("AppStore", "Network client not initialized");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
+             return;
+           }
 
-    // Call the existing callback-based method for now - it handles optimistic updates and cache invalidation
-    togglePin(postId, pinned);
-    observer.on_next(0);
-    observer.on_completed();
-  });
+           // Call the existing callback-based method for now - it handles optimistic updates and cache invalidation
+           togglePin(postId, pinned);
+           observer.on_next(0);
+           observer.on_completed();
+         })
+      .observe_on(Rx::observe_on_juce_thread());
 }
 
 rxcpp::observable<int> AppStore::toggleFollowObservable(const juce::String &postId, bool willFollow) {
   return rxcpp::sources::create<int>([this, postId, willFollow](auto observer) {
-    if (!networkClient) {
-      Util::logError("AppStore", "Network client not initialized");
-      observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
-      return;
-    }
+           if (!networkClient) {
+             Util::logError("AppStore", "Network client not initialized");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
+             return;
+           }
 
-    // Call the existing callback-based method for now - it handles optimistic updates and cache invalidation
-    toggleFollow(postId, willFollow);
-    observer.on_next(0);
-    observer.on_completed();
-  });
+           // Call the existing callback-based method for now - it handles optimistic updates and cache invalidation
+           toggleFollow(postId, willFollow);
+           observer.on_next(0);
+           observer.on_completed();
+         })
+      .observe_on(Rx::observe_on_juce_thread());
 }
 
 rxcpp::observable<int> AppStore::addReactionObservable(const juce::String &postId, const juce::String &emoji) {
   return rxcpp::sources::create<int>([this, postId, emoji](auto observer) {
-    if (!networkClient) {
-      Util::logError("AppStore", "Network client not initialized");
-      observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
-      return;
-    }
+           if (!networkClient) {
+             Util::logError("AppStore", "Network client not initialized");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
+             return;
+           }
 
-    // Call the existing callback-based method for now - it handles optimistic updates and cache invalidation
-    addReaction(postId, emoji);
-    observer.on_next(0);
-    observer.on_completed();
-  });
+           // Call the existing callback-based method for now - it handles optimistic updates and cache invalidation
+           addReaction(postId, emoji);
+           observer.on_next(0);
+           observer.on_completed();
+         })
+      .observe_on(Rx::observe_on_juce_thread());
 }
 
 } // namespace Stores
