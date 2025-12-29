@@ -11,8 +11,14 @@ cmake_minimum_required(VERSION 3.22)
 foreach(MODULE IN LISTS JUCE_MODULES_TO_CACHE)
     set(MODULE_DIR "${JUCE_SOURCE_DIR}/modules/${MODULE}")
 
-    # Check if module has .cpp (not header-only)
-    if(NOT EXISTS "${MODULE_DIR}/${MODULE}.cpp")
+    # Check if module has source files (not header-only)
+    # On macOS, JUCE uses .mm files; on other platforms, .cpp
+    set(MODULE_SOURCE "")
+    if(APPLE AND EXISTS "${MODULE_DIR}/${MODULE}.mm")
+        set(MODULE_SOURCE "${MODULE_DIR}/${MODULE}.mm")
+    elseif(EXISTS "${MODULE_DIR}/${MODULE}.cpp")
+        set(MODULE_SOURCE "${MODULE_DIR}/${MODULE}.cpp")
+    else()
         continue()
     endif()
 
@@ -27,7 +33,7 @@ foreach(MODULE IN LISTS JUCE_MODULES_TO_CACHE)
     add_library(${TARGET_NAME} OBJECT EXCLUDE_FROM_ALL)
 
     # Add sources
-    target_sources(${TARGET_NAME} PRIVATE "${MODULE_DIR}/${MODULE}.cpp")
+    target_sources(${TARGET_NAME} PRIVATE "${MODULE_SOURCE}")
 
     if(EXISTS "${MODULE_DIR}/${MODULE}_CompilationTime.cpp")
         target_sources(${TARGET_NAME} PRIVATE "${MODULE_DIR}/${MODULE}_CompilationTime.cpp")

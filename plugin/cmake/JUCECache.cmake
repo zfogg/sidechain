@@ -31,7 +31,14 @@ set(JUCE_MODULES_TO_CACHE
 )
 
 # Set JUCE source directory for wrapper
-set(JUCE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../deps/JUCE" CACHE INTERNAL "")
+# Use deps/JUCE if it exists, otherwise use FetchContent location
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../deps/JUCE/CMakeLists.txt")
+    set(JUCE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../deps/JUCE" CACHE INTERNAL "")
+elseif(DEFINED juce_SOURCE_DIR)
+    set(JUCE_SOURCE_DIR "${juce_SOURCE_DIR}" CACHE INTERNAL "")
+else()
+    message(FATAL_ERROR "JUCE source directory not found")
+endif()
 
 # Find platform-specific dependencies for JUCE modules (Linux needs GTK)
 if(UNIX AND NOT APPLE)

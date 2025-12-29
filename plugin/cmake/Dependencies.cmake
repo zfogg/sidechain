@@ -82,8 +82,8 @@ else()
     include(FetchContent)
     FetchContent_Declare(
         JUCE
-        GIT_REPOSITORY https://github.com/zfogg/JUCE.git
-        GIT_TAG fix/audio-plugin-instance-constructor
+        GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
+        GIT_TAG 8.0.12
         GIT_SHALLOW TRUE
         EXCLUDE_FROM_ALL
     )
