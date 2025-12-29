@@ -15,6 +15,14 @@ namespace Sidechain {
  * Playlist represents a collection of audio posts
  */
 struct Playlist : public SerializableModel<Playlist> {
+  // Equality comparison (by ID) - required for RxCpp observables
+  bool operator==(const Playlist &other) const {
+    return id == other.id;
+  }
+  bool operator!=(const Playlist &other) const {
+    return id != other.id;
+  }
+
   juce::String id;
   juce::String name;
   juce::String description;

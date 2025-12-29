@@ -30,6 +30,14 @@ struct MIDIChallengeConstraints {
  * MIDIChallenge represents a MIDI challenge
  */
 struct MIDIChallenge : public SerializableModel<MIDIChallenge> {
+  // Equality comparison (by ID) - required for RxCpp observables
+  bool operator==(const MIDIChallenge &other) const {
+    return id == other.id;
+  }
+  bool operator!=(const MIDIChallenge &other) const {
+    return id != other.id;
+  }
+
   juce::String id;
   juce::String title;
   juce::String description;

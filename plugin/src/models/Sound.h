@@ -15,6 +15,14 @@ namespace Sidechain {
  * to the same Sound, enabling "See X other posts with this sound" discovery.
  */
 struct Sound : public SerializableModel<Sound> {
+  // Equality comparison (by ID) - required for RxCpp observables
+  bool operator==(const Sound &other) const {
+    return id == other.id;
+  }
+  bool operator!=(const Sound &other) const {
+    return id != other.id;
+  }
+
   juce::String id;
   juce::String name;
   juce::String description;

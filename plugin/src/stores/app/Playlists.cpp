@@ -1,5 +1,6 @@
 #include "../AppStore.h"
 #include "../../util/logging/Logger.h"
+#include "../../util/rx/JuceScheduler.h"
 #include <nlohmann/json.hpp>
 
 namespace Sidechain {
@@ -170,6 +171,156 @@ void AppStore::addPostToPlaylist(const juce::String &postId, const juce::String 
       Util::logError("AppStore", "Failed to add post to playlist: " + result.getError());
     }
   });
+}
+
+// ==============================================================================
+// Reactive Playlist Methods (Phase 7)
+
+rxcpp::observable<std::vector<Playlist>> AppStore::loadPlaylistsObservable() {
+  return rxcpp::sources::create<std::vector<Playlist>>([this](auto observer) {
+           if (!networkClient) {
+             Util::logError("AppStore", "Cannot load playlists - network client not set");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not set")));
+             return;
+           }
+
+           Util::logInfo("AppStore", "Loading playlists observable");
+
+           networkClient->getPlaylists("all", [observer](Outcome<juce::var> result) {
+             if (result.isOk()) {
+               const auto data = result.getValue();
+
+               // Parse juce::var response into Playlist value objects
+               juce::String jsonString = juce::JSON::toString(data, false);
+               try {
+                 auto jsonArray = nlohmann::json::parse(jsonString.toStdString());
+                 auto parseResult = Playlist::createFromJsonArray(jsonArray);
+
+                 if (parseResult.isOk()) {
+                   auto sharedPlaylists = parseResult.getValue();
+                   // Convert shared_ptr to value types
+                   std::vector<Playlist> playlists;
+                   playlists.reserve(sharedPlaylists.size());
+                   for (const auto &ptr : sharedPlaylists) {
+                     if (ptr) {
+                       playlists.push_back(*ptr);
+                     }
+                   }
+                   Util::logInfo("AppStore", "Loaded " + juce::String(playlists.size()) + " playlists via observable");
+                   observer.on_next(playlists);
+                   observer.on_completed();
+                 } else {
+                   Util::logError("AppStore", "Failed to parse playlists: " + parseResult.getError());
+                   observer.on_error(std::make_exception_ptr(std::runtime_error(parseResult.getError().toStdString())));
+                 }
+               } catch (const std::exception &e) {
+                 Util::logError("AppStore", "JSON parse error: " + juce::String(e.what()));
+                 observer.on_error(std::make_exception_ptr(e));
+               }
+             } else {
+               Util::logError("AppStore", "Failed to load playlists: " + result.getError());
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<Playlist> AppStore::createPlaylistObservable(const juce::String &name,
+                                                               const juce::String &description) {
+  return rxcpp::sources::create<Playlist>([this, name, description](auto observer) {
+           if (!networkClient) {
+             Util::logError("AppStore", "Cannot create playlist - network client not set");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not set")));
+             return;
+           }
+
+           Util::logInfo("AppStore", "Creating playlist: " + name);
+
+           networkClient->createPlaylist(name, description, false, true, [observer, name](Outcome<juce::var> result) {
+             if (result.isOk()) {
+               Util::logInfo("AppStore", "Playlist created successfully: " + name);
+               // Parse the created playlist from response
+               Playlist playlist = Playlist::fromJSON(result.getValue());
+               observer.on_next(playlist);
+               observer.on_completed();
+             } else {
+               Util::logError("AppStore", "Failed to create playlist: " + result.getError());
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<int> AppStore::deletePlaylistObservable(const juce::String &playlistId) {
+  return rxcpp::sources::create<int>([this, playlistId](auto observer) {
+           if (!networkClient) {
+             Util::logError("AppStore", "Cannot delete playlist - network client not set");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not set")));
+             return;
+           }
+
+           Util::logInfo("AppStore", "Deleting playlist: " + playlistId);
+
+           // Optimistically remove from state
+           PlaylistState currentState = sliceManager.playlists->getState();
+           auto it = std::find_if(currentState.playlists.begin(), currentState.playlists.end(),
+                                  [&playlistId](const auto &p) { return p->id == playlistId; });
+
+           std::shared_ptr<Playlist> removedPlaylist;
+           if (it != currentState.playlists.end()) {
+             removedPlaylist = *it;
+             currentState.playlists.erase(it);
+             sliceManager.playlists->setState(currentState);
+             Util::logInfo("AppStore", "Playlist removed from local state");
+           }
+
+           networkClient->deletePlaylist(
+               playlistId, [this, playlistId, removedPlaylist, observer](Outcome<juce::var> result) {
+                 if (result.isOk()) {
+                   Util::logInfo("AppStore", "Playlist deleted on server: " + playlistId);
+                   observer.on_next(0);
+                   observer.on_completed();
+                 } else {
+                   Util::logError("AppStore", "Failed to delete playlist: " + result.getError());
+                   // Rollback optimistic update
+                   if (removedPlaylist) {
+                     PlaylistState rollbackState = sliceManager.playlists->getState();
+                     rollbackState.playlists.push_back(removedPlaylist);
+                     sliceManager.playlists->setState(rollbackState);
+                   }
+                   observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+                 }
+               });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<int> AppStore::addPostToPlaylistObservable(const juce::String &postId,
+                                                             const juce::String &playlistId) {
+  return rxcpp::sources::create<int>([this, postId, playlistId](auto observer) {
+           if (!networkClient) {
+             Util::logError("AppStore", "Cannot add post to playlist - network client not set");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not set")));
+             return;
+           }
+
+           Util::logInfo("AppStore", "Adding post " + postId + " to playlist " + playlistId);
+
+           networkClient->addPlaylistEntry(
+               playlistId, postId, -1, [postId, playlistId, observer](Outcome<juce::var> result) {
+                 if (result.isOk()) {
+                   Util::logInfo("AppStore", "Post " + postId + " added to playlist " + playlistId + " successfully");
+                   observer.on_next(0);
+                   observer.on_completed();
+                 } else {
+                   Util::logError("AppStore", "Failed to add post to playlist: " + result.getError());
+                   observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+                 }
+               });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
 }
 
 } // namespace Stores

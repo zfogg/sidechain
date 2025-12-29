@@ -1,6 +1,7 @@
 #include "../AppStore.h"
 #include "../util/StoreUtils.h"
 #include "../../util/logging/Logger.h"
+#include "../../util/rx/JuceScheduler.h"
 #include <nlohmann/json.hpp>
 
 namespace Sidechain {
@@ -113,6 +114,82 @@ void AppStore::refreshSounds() {
   // Load both featured and recent sounds
   loadFeaturedSounds();
   loadRecentSounds();
+}
+
+// ==============================================================================
+// Reactive Sound Methods (Phase 7)
+
+rxcpp::observable<std::vector<Sound>> AppStore::loadFeaturedSoundsObservable() {
+  return rxcpp::sources::create<std::vector<Sound>>([this](auto observer) {
+           if (!networkClient) {
+             Util::logError("AppStore", "Cannot load featured sounds - network client not set");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not set")));
+             return;
+           }
+
+           Util::logInfo("AppStore", "Loading featured sounds observable");
+
+           networkClient->getTrendingSounds(20, [observer](Outcome<juce::var> result) {
+             if (result.isOk()) {
+               const auto data = result.getValue();
+
+               // Parse using JsonArrayParser and convert to value types
+               auto sharedSounds = JsonArrayParser<Sound>::parse(data, "featured sounds");
+               std::vector<Sound> sounds;
+               sounds.reserve(sharedSounds.size());
+               for (const auto &ptr : sharedSounds) {
+                 if (ptr) {
+                   sounds.push_back(*ptr);
+                 }
+               }
+
+               Util::logInfo("AppStore", "Loaded " + juce::String(sounds.size()) + " featured sounds via observable");
+               observer.on_next(sounds);
+               observer.on_completed();
+             } else {
+               Util::logError("AppStore", "Failed to load featured sounds: " + result.getError());
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<std::vector<Sound>> AppStore::loadRecentSoundsObservable() {
+  return rxcpp::sources::create<std::vector<Sound>>([this](auto observer) {
+           if (!networkClient) {
+             Util::logError("AppStore", "Cannot load recent sounds - network client not set");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not set")));
+             return;
+           }
+
+           Util::logInfo("AppStore", "Loading recent sounds observable");
+
+           // Use searchSounds with empty query to get recent sounds
+           networkClient->searchSounds("", 20, [observer](Outcome<juce::var> result) {
+             if (result.isOk()) {
+               const auto data = result.getValue();
+
+               // Parse using JsonArrayParser and convert to value types
+               auto sharedSounds = JsonArrayParser<Sound>::parse(data, "recent sounds");
+               std::vector<Sound> sounds;
+               sounds.reserve(sharedSounds.size());
+               for (const auto &ptr : sharedSounds) {
+                 if (ptr) {
+                   sounds.push_back(*ptr);
+                 }
+               }
+
+               Util::logInfo("AppStore", "Loaded " + juce::String(sounds.size()) + " recent sounds via observable");
+               observer.on_next(sounds);
+               observer.on_completed();
+             } else {
+               Util::logError("AppStore", "Failed to load recent sounds: " + result.getError());
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
 }
 
 } // namespace Stores
