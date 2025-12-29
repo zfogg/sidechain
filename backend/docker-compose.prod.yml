@@ -32,6 +32,9 @@ services:
   backend:
     image: zfogg/sidechain-backend:latest
     container_name: sidechain-backend
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: unless-stopped
     pull_policy: never
     cpus: 1.5
