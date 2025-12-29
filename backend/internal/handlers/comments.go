@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -110,7 +111,11 @@ func (h *Handlers) CreateComment(c *gin.Context) {
 
 	// Notify post owner (if not commenting on own post)
 	if post.UserID != userID {
-		go h.notifyCommentOnPost(comment, post)
+		if err := h.notifyCommentOnPost(comment, post); err != nil {
+			logger.ErrorWithFields("Failed to notify post owner of comment", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send notification"})
+			return
+		}
 
 		// Send WebSocket notification to post owner and broadcast metrics
 		if h.wsHandler != nil {
@@ -539,21 +544,24 @@ func (h *Handlers) processMentions(commentID string, usernames []string, authorI
 }
 
 // notifyCommentOnPost sends a notification to the post owner when someone comments
-func (h *Handlers) notifyCommentOnPost(comment models.Comment, post models.AudioPost) {
+func (h *Handlers) notifyCommentOnPost(comment models.Comment, post models.AudioPost) error {
 	if h.stream == nil {
-		return
+		return nil
 	}
 
 	// Get commenter info for the notification
 	var commenter models.User
 	if err := database.DB.First(&commenter, "id = ?", comment.UserID).Error; err != nil {
-		logger.WarnWithFields("Failed to fetch commenter for notification", err)
-		return
+		return fmt.Errorf("failed to fetch commenter for notification: %w", err)
 	}
 
 	// NotifyComment(actorUserID, targetUserID, loopID, commentText)
 	// Pass a preview of the comment content for the notification
-	h.stream.NotifyComment(comment.UserID, post.UserID, post.ID, comment.Content)
+	if err := h.stream.NotifyComment(comment.UserID, post.UserID, post.ID, comment.Content); err != nil {
+		return fmt.Errorf("failed to send comment notification: %w", err)
+	}
+
+	return nil
 }
 
 // ReportComment reports a comment for moderation
