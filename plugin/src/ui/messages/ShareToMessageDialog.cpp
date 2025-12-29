@@ -2,6 +2,7 @@
 #include "../../util/Colors.h"
 #include "../../util/Log.h"
 #include "../../util/StringFormatter.h"
+#include "../../util/rx/JuceScheduler.h"
 
 // ==============================================================================
 // Constants
@@ -48,9 +49,13 @@ ShareToMessageDialog::ShareToMessageDialog()
   scrollBar.addListener(this);
   scrollBar.setRangeLimits(0.0, 0.0);
   addAndMakeVisible(scrollBar);
+
+  // Setup RxCpp debounced search
+  setupDebouncedSearch();
 }
 
 ShareToMessageDialog::~ShareToMessageDialog() {
+  searchSubscription_.unsubscribe();
   scrollBar.removeListener(this);
 }
 
@@ -231,11 +236,8 @@ void ShareToMessageDialog::mouseWheelMove(const juce::MouseEvent &event, const j
 void ShareToMessageDialog::textEditorTextChanged(juce::TextEditor &editor) {
   // Search conversations when text changes
   if (&editor == &searchInput) {
-    // Debounce search with timer
-    stopTimer();
-    if (!searchInput.getText().isEmpty()) {
-      startTimer(300);
-    }
+    // Push query to RxCpp subject for debounced search
+    searchQuerySubject_.get_subscriber().on_next(searchInput.getText());
   }
 }
 
@@ -247,23 +249,36 @@ void ShareToMessageDialog::textEditorReturnKeyPressed(juce::TextEditor &editor) 
   }
 }
 
-void ShareToMessageDialog::timerCallback() {
-  // Implement debounced search - called after 300ms delay from text input
-  stopTimer();
+void ShareToMessageDialog::setupDebouncedSearch() {
+  Log::debug("ShareToMessageDialog: Setting up RxCpp debounced search");
 
-  juce::String query = searchInput.getText();
-  if (query.isEmpty()) {
-    // Clear search results if query is empty
-    searchResults.clear();
-    repaint();
-    return;
-  }
+  searchSubscription_ = rxcpp::composite_subscription();
+  juce::Component::SafePointer<ShareToMessageDialog> safeThis(this);
 
-  // Update search state and perform the search
-  currentSearchQuery = query;
-  isSearching = true;
-  performSearch(query);
-  repaint();
+  // Use RxCpp debounce operator with 300ms delay
+  searchQuerySubject_.get_observable()
+      .debounce(std::chrono::milliseconds(300), Sidechain::Rx::observe_on_juce_thread())
+      .distinct_until_changed()
+      .subscribe(
+          searchSubscription_,
+          [safeThis](const juce::String &query) {
+            if (!safeThis)
+              return;
+
+            if (query.isEmpty()) {
+              // Clear search results if query is empty
+              safeThis->searchResults.clear();
+              safeThis->repaint();
+              return;
+            }
+
+            // Update search state and perform the search
+            safeThis->currentSearchQuery = query;
+            safeThis->isSearching = true;
+            safeThis->performSearch(query);
+            safeThis->repaint();
+          },
+          [](std::exception_ptr) { Log::warn("ShareToMessageDialog: Debounced search error"); });
 }
 
 void ShareToMessageDialog::scrollBarMoved(juce::ScrollBar *bar, double newRangeStart) {

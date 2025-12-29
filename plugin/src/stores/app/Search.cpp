@@ -76,30 +76,33 @@ void AppStore::searchUsers(const juce::String &query) {
   loadingState.results.searchQuery = query;
   stateManager.search->setState(loadingState);
 
-  // searchUsers signature: query, limit=20, offset=0, callback
-  networkClient->searchUsers(query, 20, 0, [this, query](Outcome<juce::var> result) {
-    if (result.isOk()) {
-      const auto data = result.getValue();
-      auto usersArray = data.getProperty("users", juce::var());
+  // Use observable API
+  networkClient->searchUsersObservable(query, 20).subscribe(
+      [this, query](const juce::var &data) {
+        auto usersArray = data.getProperty("users", juce::var());
 
-      // Use JsonArrayParser
-      auto usersList = JsonArrayParser<User>::parse(usersArray, "search users");
+        // Use JsonArrayParser
+        auto usersList = JsonArrayParser<User>::parse(usersArray, "search users");
 
-      SearchState successState = stateManager.search->getState();
-      successState.results.users = std::move(usersList);
-      successState.results.isSearching = false;
-      successState.results.totalResults = static_cast<int>(
-          data.getProperty("total_count", static_cast<juce::var>(static_cast<int>(successState.results.users.size()))));
-      successState.results.searchError = "";
-      Util::logInfo("AppStore", "User search found " + juce::String(successState.results.users.size()) + " users");
-      stateManager.search->setState(successState);
-    } else {
-      SearchState errorState = stateManager.search->getState();
-      errorState.results.isSearching = false;
-      errorState.results.searchError = result.getError();
-      stateManager.search->setState(errorState);
-    }
-  });
+        SearchState successState = stateManager.search->getState();
+        successState.results.users = std::move(usersList);
+        successState.results.isSearching = false;
+        successState.results.totalResults = static_cast<int>(data.getProperty(
+            "total_count", static_cast<juce::var>(static_cast<int>(successState.results.users.size()))));
+        successState.results.searchError = "";
+        Util::logInfo("AppStore", "User search found " + juce::String(successState.results.users.size()) + " users");
+        stateManager.search->setState(successState);
+      },
+      [this](std::exception_ptr ep) {
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          SearchState errorState = stateManager.search->getState();
+          errorState.results.isSearching = false;
+          errorState.results.searchError = juce::String(e.what());
+          stateManager.search->setState(errorState);
+        }
+      });
 }
 
 void AppStore::loadMoreSearchResults() {
@@ -290,26 +293,29 @@ void AppStore::searchUsersAndCache(const juce::String &query, int limit, int off
     return;
   }
 
-  auto &entityStore = EntityStore::getInstance();
-
-  networkClient->searchUsers(query, limit, offset, [&entityStore](Outcome<juce::var> result) {
-    if (!result.isOk()) {
-      Util::logError("AppStore", "Failed to search users: " + result.getError());
-      return;
-    }
-
-    try {
-      auto var = result.getValue();
-      if (var.isArray()) {
-        for (int i = 0; i < var.size(); ++i) {
-          auto json = nlohmann::json::parse(var[i].toString().toStdString());
-          entityStore.normalizeUser(json);
-        }
-      }
-    } catch (const std::exception &e) {
-      Util::logError("AppStore", "Failed to parse search results JSON: " + juce::String(e.what()));
-    }
-  });
+  // Use observable API
+  networkClient->searchUsersObservable(query, limit)
+      .subscribe(
+          [](const juce::var &data) {
+            try {
+              auto usersArray = data.getProperty("users", juce::var());
+              if (usersArray.isArray()) {
+                for (int i = 0; i < usersArray.size(); ++i) {
+                  auto json = nlohmann::json::parse(usersArray[i].toString().toStdString());
+                  EntityStore::getInstance().normalizeUser(json);
+                }
+              }
+            } catch (const std::exception &e) {
+              Util::logError("AppStore", "Failed to parse search results JSON: " + juce::String(e.what()));
+            }
+          },
+          [](std::exception_ptr ep) {
+            try {
+              std::rethrow_exception(ep);
+            } catch (const std::exception &e) {
+              Util::logError("AppStore", "Failed to search users: " + juce::String(e.what()));
+            }
+          });
 }
 
 // ==============================================================================
@@ -379,45 +385,33 @@ rxcpp::observable<std::vector<FeedPost>> AppStore::searchPostsObservable(const j
  */
 rxcpp::observable<std::vector<User>> AppStore::searchUsersReactiveObservable(const juce::String &query) {
   using ResultType = std::vector<User>;
-  return rxcpp::sources::create<ResultType>([this, query](auto observer) {
-           if (!networkClient) {
-             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
-             return;
-           }
 
-           if (query.isEmpty()) {
-             observer.on_next(ResultType{});
-             observer.on_completed();
-             return;
-           }
+  if (!networkClient) {
+    return rxcpp::sources::error<ResultType>(
+        std::make_exception_ptr(std::runtime_error("Network client not initialized")));
+  }
 
-           networkClient->searchUsers(query, 20, 0, [observer, query](Outcome<juce::var> result) {
-             if (result.isOk()) {
-               const auto data = result.getValue();
-               auto usersArray = data.getProperty("users", juce::var());
-               auto parsedUsers = Utils::JsonArrayParser<User>::parse(usersArray, "search users observable");
+  if (query.isEmpty()) {
+    return rxcpp::sources::just(ResultType{});
+  }
 
-               // Convert shared_ptr vector to value vector
-               ResultType users;
-               users.reserve(parsedUsers.size());
-               for (const auto &userPtr : parsedUsers) {
-                 if (userPtr) {
-                   users.push_back(*userPtr);
-                 }
-               }
+  // Use the network client's observable API and transform the result
+  return networkClient->searchUsersObservable(query, 20).map([query](const juce::var &data) {
+    auto usersArray = data.getProperty("users", juce::var());
+    auto parsedUsers = Utils::JsonArrayParser<User>::parse(usersArray, "search users observable");
 
-               Util::logInfo("AppStore",
-                             "Search users observable found " + juce::String(users.size()) + " results for: " + query);
-               observer.on_next(std::move(users));
-               observer.on_completed();
-             } else {
-               Util::logError("AppStore", "Search users observable failed: " + result.getError());
-               observer.on_error(std::make_exception_ptr(
-                   std::runtime_error("Search users failed: " + result.getError().toStdString())));
-             }
-           });
-         })
-      .observe_on(Rx::observe_on_juce_thread());
+    // Convert shared_ptr vector to value vector
+    ResultType users;
+    users.reserve(parsedUsers.size());
+    for (const auto &userPtr : parsedUsers) {
+      if (userPtr) {
+        users.push_back(*userPtr);
+      }
+    }
+
+    Util::logInfo("AppStore", "Search users observable found " + juce::String(users.size()) + " results for: " + query);
+    return users;
+  });
 }
 
 /**

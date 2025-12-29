@@ -439,173 +439,183 @@ void NetworkClient::getForYouFeedModels(int limit, int offset, FeedPostsCallback
 // providing a reactive API for feed operations.
 
 rxcpp::observable<juce::var> NetworkClient::getGlobalFeedObservable(int limit, int offset) {
-  return rxcpp::sources::create<juce::var>([this, limit, offset](auto observer) {
-           if (!isAuthenticated()) {
-             observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
-             return;
-           }
+  auto source = rxcpp::sources::create<juce::var>([this, limit, offset](auto observer) {
+    if (!isAuthenticated()) {
+      observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
+      return;
+    }
 
-           getGlobalFeed(limit, offset, [observer](Outcome<juce::var> result) {
-             if (result.isOk()) {
-               observer.on_next(result.getValue());
-               observer.on_completed();
-             } else {
-               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
-             }
-           });
-         })
-      .observe_on(Sidechain::Rx::observe_on_juce_thread());
+    getGlobalFeed(limit, offset, [observer](Outcome<juce::var> result) {
+      if (result.isOk()) {
+        observer.on_next(result.getValue());
+        observer.on_completed();
+      } else {
+        observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+      }
+    });
+  });
+
+  // Apply retry with backoff for transient network failures
+  return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
 }
 
 rxcpp::observable<juce::var> NetworkClient::getTimelineFeedObservable(int limit, int offset) {
-  return rxcpp::sources::create<juce::var>([this, limit, offset](auto observer) {
-           if (!isAuthenticated()) {
-             observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
-             return;
-           }
+  auto source = rxcpp::sources::create<juce::var>([this, limit, offset](auto observer) {
+    if (!isAuthenticated()) {
+      observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
+      return;
+    }
 
-           getTimelineFeed(limit, offset, [observer](Outcome<juce::var> result) {
-             if (result.isOk()) {
-               observer.on_next(result.getValue());
-               observer.on_completed();
-             } else {
-               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
-             }
-           });
-         })
-      .observe_on(Sidechain::Rx::observe_on_juce_thread());
+    getTimelineFeed(limit, offset, [observer](Outcome<juce::var> result) {
+      if (result.isOk()) {
+        observer.on_next(result.getValue());
+        observer.on_completed();
+      } else {
+        observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+      }
+    });
+  });
+
+  return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
 }
 
 rxcpp::observable<juce::var> NetworkClient::getTrendingFeedObservable(int limit, int offset) {
-  return rxcpp::sources::create<juce::var>([this, limit, offset](auto observer) {
-           if (!isAuthenticated()) {
-             observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
-             return;
-           }
+  auto source = rxcpp::sources::create<juce::var>([this, limit, offset](auto observer) {
+    if (!isAuthenticated()) {
+      observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
+      return;
+    }
 
-           getTrendingFeed(limit, offset, [observer](Outcome<juce::var> result) {
-             if (result.isOk()) {
-               observer.on_next(result.getValue());
-               observer.on_completed();
-             } else {
-               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
-             }
-           });
-         })
-      .observe_on(Sidechain::Rx::observe_on_juce_thread());
+    getTrendingFeed(limit, offset, [observer](Outcome<juce::var> result) {
+      if (result.isOk()) {
+        observer.on_next(result.getValue());
+        observer.on_completed();
+      } else {
+        observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+      }
+    });
+  });
+
+  return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
 }
 
 rxcpp::observable<juce::var> NetworkClient::getForYouFeedObservable(int limit, int offset) {
-  return rxcpp::sources::create<juce::var>([this, limit, offset](auto observer) {
-           if (!isAuthenticated()) {
-             observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
-             return;
-           }
+  auto source = rxcpp::sources::create<juce::var>([this, limit, offset](auto observer) {
+    if (!isAuthenticated()) {
+      observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
+      return;
+    }
 
-           getForYouFeed(limit, offset, [observer](Outcome<juce::var> result) {
-             if (result.isOk()) {
-               observer.on_next(result.getValue());
-               observer.on_completed();
-             } else {
-               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
-             }
-           });
-         })
-      .observe_on(Sidechain::Rx::observe_on_juce_thread());
+    getForYouFeed(limit, offset, [observer](Outcome<juce::var> result) {
+      if (result.isOk()) {
+        observer.on_next(result.getValue());
+        observer.on_completed();
+      } else {
+        observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+      }
+    });
+  });
+
+  return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
 }
 
 rxcpp::observable<juce::var> NetworkClient::getPopularFeedObservable(int limit, int offset) {
-  return rxcpp::sources::create<juce::var>([this, limit, offset](auto observer) {
-           if (!isAuthenticated()) {
-             observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
-             return;
-           }
+  auto source = rxcpp::sources::create<juce::var>([this, limit, offset](auto observer) {
+    if (!isAuthenticated()) {
+      observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
+      return;
+    }
 
-           getPopularFeed(limit, offset, [observer](Outcome<juce::var> result) {
-             if (result.isOk()) {
-               observer.on_next(result.getValue());
-               observer.on_completed();
-             } else {
-               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
-             }
-           });
-         })
-      .observe_on(Sidechain::Rx::observe_on_juce_thread());
+    getPopularFeed(limit, offset, [observer](Outcome<juce::var> result) {
+      if (result.isOk()) {
+        observer.on_next(result.getValue());
+        observer.on_completed();
+      } else {
+        observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+      }
+    });
+  });
+
+  return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
 }
 
 rxcpp::observable<juce::var> NetworkClient::getLatestFeedObservable(int limit, int offset) {
-  return rxcpp::sources::create<juce::var>([this, limit, offset](auto observer) {
-           if (!isAuthenticated()) {
-             observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
-             return;
-           }
+  auto source = rxcpp::sources::create<juce::var>([this, limit, offset](auto observer) {
+    if (!isAuthenticated()) {
+      observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
+      return;
+    }
 
-           getLatestFeed(limit, offset, [observer](Outcome<juce::var> result) {
-             if (result.isOk()) {
-               observer.on_next(result.getValue());
-               observer.on_completed();
-             } else {
-               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
-             }
-           });
-         })
-      .observe_on(Sidechain::Rx::observe_on_juce_thread());
+    getLatestFeed(limit, offset, [observer](Outcome<juce::var> result) {
+      if (result.isOk()) {
+        observer.on_next(result.getValue());
+        observer.on_completed();
+      } else {
+        observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+      }
+    });
+  });
+
+  return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
 }
 
 rxcpp::observable<juce::var> NetworkClient::getDiscoveryFeedObservable(int limit, int offset) {
-  return rxcpp::sources::create<juce::var>([this, limit, offset](auto observer) {
-           if (!isAuthenticated()) {
-             observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
-             return;
-           }
+  auto source = rxcpp::sources::create<juce::var>([this, limit, offset](auto observer) {
+    if (!isAuthenticated()) {
+      observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
+      return;
+    }
 
-           getDiscoveryFeed(limit, offset, [observer](Outcome<juce::var> result) {
-             if (result.isOk()) {
-               observer.on_next(result.getValue());
-               observer.on_completed();
-             } else {
-               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
-             }
-           });
-         })
-      .observe_on(Sidechain::Rx::observe_on_juce_thread());
+    getDiscoveryFeed(limit, offset, [observer](Outcome<juce::var> result) {
+      if (result.isOk()) {
+        observer.on_next(result.getValue());
+        observer.on_completed();
+      } else {
+        observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+      }
+    });
+  });
+
+  return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
 }
 
 rxcpp::observable<juce::var> NetworkClient::likePostObservable(const juce::String &activityId,
                                                                const juce::String &emoji) {
-  return rxcpp::sources::create<juce::var>([this, activityId, emoji](auto observer) {
-           if (!isAuthenticated()) {
-             observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
-             return;
-           }
+  auto source = rxcpp::sources::create<juce::var>([this, activityId, emoji](auto observer) {
+    if (!isAuthenticated()) {
+      observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
+      return;
+    }
 
-           likePost(activityId, emoji, [observer](Outcome<juce::var> result) {
-             if (result.isOk()) {
-               observer.on_next(result.getValue());
-               observer.on_completed();
-             } else {
-               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
-             }
-           });
-         })
-      .observe_on(Sidechain::Rx::observe_on_juce_thread());
+    likePost(activityId, emoji, [observer](Outcome<juce::var> result) {
+      if (result.isOk()) {
+        observer.on_next(result.getValue());
+        observer.on_completed();
+      } else {
+        observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+      }
+    });
+  });
+
+  return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
 }
 
 rxcpp::observable<juce::var> NetworkClient::unlikePostObservable(const juce::String &activityId) {
-  return rxcpp::sources::create<juce::var>([this, activityId](auto observer) {
-           if (!isAuthenticated()) {
-             observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
-             return;
-           }
+  auto source = rxcpp::sources::create<juce::var>([this, activityId](auto observer) {
+    if (!isAuthenticated()) {
+      observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
+      return;
+    }
 
-           unlikePost(activityId, [observer](Outcome<juce::var> result) {
-             if (result.isOk()) {
-               observer.on_next(result.getValue());
-               observer.on_completed();
-             } else {
-               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
-             }
-           });
-         })
-      .observe_on(Sidechain::Rx::observe_on_juce_thread());
+    unlikePost(activityId, [observer](Outcome<juce::var> result) {
+      if (result.isOk()) {
+        observer.on_next(result.getValue());
+        observer.on_completed();
+      } else {
+        observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+      }
+    });
+  });
+
+  return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
 }

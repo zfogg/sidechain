@@ -19,27 +19,35 @@ void AppStore::loadFeaturedSounds() {
   newState.isFeaturedLoading = true;
   stateManager.sounds->setState(newState);
 
-  networkClient->getTrendingSounds(20, [this](Outcome<juce::var> result) {
-    if (result.isOk()) {
-      const auto data = result.getValue();
+  loadFeaturedSoundsObservable().subscribe(
+      [this](const std::vector<Sound> &sounds) {
+        // Convert to shared_ptr for state
+        std::vector<std::shared_ptr<Sound>> soundsList;
+        soundsList.reserve(sounds.size());
+        for (const auto &s : sounds) {
+          soundsList.push_back(std::make_shared<Sound>(s));
+        }
 
-      // Use JsonArrayParser
-      auto soundsList = JsonArrayParser<Sound>::parse(data, "featured sounds");
-
-      SoundState successState = stateManager.sounds->getState();
-      successState.featuredSounds = std::move(soundsList);
-      successState.isFeaturedLoading = false;
-      successState.soundError = "";
-      Util::logInfo("AppStore", "Loaded " + juce::String(successState.featuredSounds.size()) + " featured sounds");
-      stateManager.sounds->setState(successState);
-    } else {
-      SoundState errorState = stateManager.sounds->getState();
-      errorState.isFeaturedLoading = false;
-      errorState.soundError = result.getError();
-      Util::logError("AppStore", "Failed to load featured sounds: " + result.getError());
-      stateManager.sounds->setState(errorState);
-    }
-  });
+        SoundState successState = stateManager.sounds->getState();
+        successState.featuredSounds = std::move(soundsList);
+        successState.isFeaturedLoading = false;
+        successState.soundError = "";
+        Util::logInfo("AppStore", "Loaded " + juce::String(successState.featuredSounds.size()) + " featured sounds");
+        stateManager.sounds->setState(successState);
+      },
+      [this](std::exception_ptr ep) {
+        juce::String errorMsg;
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          errorMsg = e.what();
+        }
+        SoundState errorState = stateManager.sounds->getState();
+        errorState.isFeaturedLoading = false;
+        errorState.soundError = errorMsg;
+        Util::logError("AppStore", "Failed to load featured sounds: " + errorMsg);
+        stateManager.sounds->setState(errorState);
+      });
 }
 
 void AppStore::loadRecentSounds() {
@@ -51,28 +59,35 @@ void AppStore::loadRecentSounds() {
   loadState.isLoading = true;
   stateManager.sounds->setState(loadState);
 
-  // Use searchSounds with empty query to get recent sounds
-  networkClient->searchSounds("", 20, [this](Outcome<juce::var> result) {
-    if (result.isOk()) {
-      const auto data = result.getValue();
+  loadRecentSoundsObservable().subscribe(
+      [this](const std::vector<Sound> &sounds) {
+        // Convert to shared_ptr for state
+        std::vector<std::shared_ptr<Sound>> soundsList;
+        soundsList.reserve(sounds.size());
+        for (const auto &s : sounds) {
+          soundsList.push_back(std::make_shared<Sound>(s));
+        }
 
-      // Use JsonArrayParser
-      auto soundsList = JsonArrayParser<Sound>::parse(data, "recent sounds");
-
-      SoundState recentState = stateManager.sounds->getState();
-      recentState.recentSounds = std::move(soundsList);
-      recentState.isLoading = false;
-      recentState.soundError = "";
-      recentState.recentOffset = static_cast<int>(recentState.recentSounds.size());
-      Util::logInfo("AppStore", "Loaded " + juce::String(recentState.recentSounds.size()) + " recent sounds");
-      stateManager.sounds->setState(recentState);
-    } else {
-      SoundState recentErrorState = stateManager.sounds->getState();
-      recentErrorState.isLoading = false;
-      recentErrorState.soundError = result.getError();
-      stateManager.sounds->setState(recentErrorState);
-    }
-  });
+        SoundState recentState = stateManager.sounds->getState();
+        recentState.recentSounds = std::move(soundsList);
+        recentState.isLoading = false;
+        recentState.soundError = "";
+        recentState.recentOffset = static_cast<int>(recentState.recentSounds.size());
+        Util::logInfo("AppStore", "Loaded " + juce::String(recentState.recentSounds.size()) + " recent sounds");
+        stateManager.sounds->setState(recentState);
+      },
+      [this](std::exception_ptr ep) {
+        juce::String errorMsg;
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          errorMsg = e.what();
+        }
+        SoundState recentErrorState = stateManager.sounds->getState();
+        recentErrorState.isLoading = false;
+        recentErrorState.soundError = errorMsg;
+        stateManager.sounds->setState(recentErrorState);
+      });
 }
 
 void AppStore::loadMoreSounds() {
@@ -86,21 +101,25 @@ void AppStore::loadMoreSounds() {
     return;
   }
 
-  networkClient->searchSounds("", 20, [this](Outcome<juce::var> result) {
-    if (result.isOk()) {
-      const auto data = result.getValue();
+  loadRecentSoundsObservable().subscribe(
+      [this](const std::vector<Sound> &sounds) {
+        // Convert to shared_ptr for state
+        std::vector<std::shared_ptr<Sound>> newSounds;
+        newSounds.reserve(sounds.size());
+        for (const auto &s : sounds) {
+          newSounds.push_back(std::make_shared<Sound>(s));
+        }
 
-      // Use JsonArrayParser
-      auto newSounds = JsonArrayParser<Sound>::parse(data, "more sounds");
-
-      SoundState moreState = stateManager.sounds->getState();
-      for (const auto &sound : newSounds) {
-        moreState.recentSounds.push_back(sound);
-      }
-      moreState.recentOffset += static_cast<int>(newSounds.size());
-      stateManager.sounds->setState(moreState);
-    }
-  });
+        SoundState moreState = stateManager.sounds->getState();
+        for (const auto &sound : newSounds) {
+          moreState.recentSounds.push_back(sound);
+        }
+        moreState.recentOffset += static_cast<int>(newSounds.size());
+        stateManager.sounds->setState(moreState);
+      },
+      [](std::exception_ptr) {
+        // Silent failure for pagination
+      });
 }
 
 void AppStore::refreshSounds() {

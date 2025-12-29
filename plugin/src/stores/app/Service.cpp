@@ -227,93 +227,61 @@ void AppStore::getImage(const juce::String &url, std::function<void(const juce::
 // Search Operations
 
 rxcpp::observable<juce::Array<juce::var>> AppStore::searchUsersObservable(const juce::String &query) {
-  return rxcpp::sources::create<juce::Array<juce::var>>([this, query](auto observer) {
-           if (!networkClient) {
-             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
-             return;
-           }
+  if (!networkClient) {
+    return rxcpp::sources::error<juce::Array<juce::var>>(
+        std::make_exception_ptr(std::runtime_error("Network client not initialized")));
+  }
 
-           if (query.isEmpty()) {
-             observer.on_next(juce::Array<juce::var>());
-             observer.on_completed();
-             return;
-           }
+  if (query.isEmpty()) {
+    return rxcpp::sources::just(juce::Array<juce::var>());
+  }
 
-           networkClient->searchUsers(query, 20, 0, [observer, query](Outcome<juce::var> result) {
-             if (result.isOk()) {
-               juce::Array<juce::var> users;
-               if (result.getValue().isArray()) {
-                 auto resultsArray = result.getValue();
-                 for (int i = 0; i < resultsArray.size(); ++i) {
-                   users.add(resultsArray[i]);
-                 }
-               }
-               observer.on_next(users);
-               observer.on_completed();
-             } else {
-               observer.on_error(
-                   std::make_exception_ptr(std::runtime_error("Search failed: " + result.getError().toStdString())));
-             }
-           });
-         })
-      .observe_on(Rx::observe_on_juce_thread());
+  // Use the network client's observable API and transform the result
+  return networkClient->searchUsersObservable(query, 20).map([](const juce::var &data) {
+    juce::Array<juce::var> users;
+    auto usersArray = data.getProperty("users", juce::var());
+    if (usersArray.isArray()) {
+      for (int i = 0; i < usersArray.size(); ++i) {
+        users.add(usersArray[i]);
+      }
+    }
+    return users;
+  });
 }
 
 // ==============================================================================
 // Follow Operations
 
 rxcpp::observable<int> AppStore::followUserObservable(const juce::String &userId) {
-  return rxcpp::sources::create<int>([this, userId](auto observer) {
-           if (!networkClient) {
-             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
-             return;
-           }
+  if (!networkClient) {
+    return rxcpp::sources::error<int>(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
+  }
 
-           if (userId.isEmpty()) {
-             observer.on_error(std::make_exception_ptr(std::runtime_error("User ID is empty")));
-             return;
-           }
+  if (userId.isEmpty()) {
+    return rxcpp::sources::error<int>(std::make_exception_ptr(std::runtime_error("User ID is empty")));
+  }
 
-           networkClient->followUser(userId, [observer, userId](Outcome<juce::var> result) {
-             if (result.isOk()) {
-               Util::logInfo("AppStore", "Followed user successfully: " + userId);
-               observer.on_next(1);
-               observer.on_completed();
-             } else {
-               Util::logError("AppStore", "Failed to follow user: " + result.getError());
-               observer.on_error(std::make_exception_ptr(
-                   std::runtime_error("Failed to follow user: " + result.getError().toStdString())));
-             }
-           });
-         })
-      .observe_on(Rx::observe_on_juce_thread());
+  // Use the network client's observable API and transform the result
+  return networkClient->followUserObservable(userId).map([userId](const juce::var &) {
+    Util::logInfo("AppStore", "Followed user successfully: " + userId);
+    return 1;
+  });
 }
 
 rxcpp::observable<int> AppStore::unfollowUserObservable(const juce::String &userId) {
-  return rxcpp::sources::create<int>([this, userId](auto observer) {
-           if (!networkClient) {
-             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
-             return;
-           }
+  if (!networkClient) {
+    return rxcpp::sources::error<int>(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
+  }
 
-           if (userId.isEmpty()) {
-             observer.on_error(std::make_exception_ptr(std::runtime_error("User ID is empty")));
-             return;
-           }
+  if (userId.isEmpty()) {
+    return rxcpp::sources::error<int>(std::make_exception_ptr(std::runtime_error("User ID is empty")));
+  }
 
-           networkClient->unfollowUser(userId, [observer, userId](Outcome<juce::var> result) {
-             if (result.isOk()) {
-               Util::logInfo("AppStore", "Unfollowed user successfully: " + userId);
-               observer.on_next(1);
-               observer.on_completed();
-             } else {
-               Util::logError("AppStore", "Failed to unfollow user: " + result.getError());
-               observer.on_error(std::make_exception_ptr(
-                   std::runtime_error("Failed to unfollow user: " + result.getError().toStdString())));
-             }
-           });
-         })
-      .observe_on(Rx::observe_on_juce_thread());
+  // Use the network client's observable API and transform the result
+  return networkClient->unfollowUserObservable(userId).map([userId](const juce::var &) {
+    Util::logInfo("AppStore", "Unfollowed user successfully: " + userId);
+    return 1;
+  });
 }
 
 } // namespace Stores

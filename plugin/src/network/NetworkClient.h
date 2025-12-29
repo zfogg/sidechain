@@ -466,6 +466,13 @@ public:
   //   Rx::retryWithBackoff(networkClient->getTimelineFeedObservable())
   //       .subscribe([](auto feed) { ... });
 
+  /** Result structure for notification queries */
+  struct NotificationResult {
+    std::vector<Sidechain::Notification> notifications; ///< Parsed notification objects
+    int unseen = 0;                                     ///< Count of unseen notifications
+    int unread = 0;                                     ///< Count of unread notifications
+  };
+
   /** Get the global feed as an observable
    * @param limit Maximum number of posts to return
    * @param offset Pagination offset
@@ -540,6 +547,23 @@ public:
    */
   rxcpp::observable<int> getFollowRequestCountObservable();
 
+  /** Get notifications as an observable
+   * @param limit Maximum number of notifications
+   * @param offset Pagination offset
+   * @return Observable that emits NotificationResult on JUCE message thread
+   */
+  rxcpp::observable<NotificationResult> getNotificationsObservable(int limit = 20, int offset = 0);
+
+  /** Mark all notifications as read as an observable
+   * @return Observable that emits result on success
+   */
+  rxcpp::observable<juce::var> markNotificationsReadObservable();
+
+  /** Mark all notifications as seen as an observable
+   * @return Observable that emits result on success
+   */
+  rxcpp::observable<juce::var> markNotificationsSeenObservable();
+
   /** Get comments for a post as an observable
    * @param postId The post ID
    * @param limit Maximum number of comments
@@ -548,6 +572,49 @@ public:
    */
   rxcpp::observable<std::pair<juce::var, int>> getCommentsObservable(const juce::String &postId, int limit = 20,
                                                                      int offset = 0);
+
+  /** Create a comment as an observable
+   * @param postId The post ID
+   * @param content The comment content
+   * @param parentId Optional parent comment ID for replies
+   * @return Observable that emits created comment data
+   */
+  rxcpp::observable<juce::var> createCommentObservable(const juce::String &postId, const juce::String &content,
+                                                       const juce::String &parentId = "");
+
+  /** Delete a comment as an observable
+   * @param commentId The comment ID
+   * @return Observable that emits result on success
+   */
+  rxcpp::observable<juce::var> deleteCommentObservable(const juce::String &commentId);
+
+  /** Like a comment as an observable
+   * @param commentId The comment ID
+   * @return Observable that emits result on success
+   */
+  rxcpp::observable<juce::var> likeCommentObservable(const juce::String &commentId);
+
+  /** Unlike a comment as an observable
+   * @param commentId The comment ID
+   * @return Observable that emits result on success
+   */
+  rxcpp::observable<juce::var> unlikeCommentObservable(const juce::String &commentId);
+
+  /** Update a comment as an observable
+   * @param commentId The comment ID
+   * @param content The new comment content
+   * @return Observable that emits result on success
+   */
+  rxcpp::observable<juce::var> updateCommentObservable(const juce::String &commentId, const juce::String &content);
+
+  /** Report a comment as an observable
+   * @param commentId The comment ID
+   * @param reason The report reason
+   * @param description Optional additional description
+   * @return Observable that emits result on success
+   */
+  rxcpp::observable<juce::var> reportCommentObservable(const juce::String &commentId, const juce::String &reason,
+                                                       const juce::String &description = "");
 
   /** Like a post as an observable
    * @param activityId The post activity ID
@@ -573,6 +640,134 @@ public:
    * @return Observable that emits result on success
    */
   rxcpp::observable<juce::var> unfollowUserObservable(const juce::String &userId);
+
+  /** Save a post as an observable
+   * @param postId The post ID to save
+   * @return Observable that emits result on success
+   */
+  rxcpp::observable<juce::var> savePostObservable(const juce::String &postId);
+
+  /** Unsave a post as an observable
+   * @param postId The post ID to unsave
+   * @return Observable that emits result on success
+   */
+  rxcpp::observable<juce::var> unsavePostObservable(const juce::String &postId);
+
+  /** Get saved posts as an observable
+   * @param limit Number of posts to fetch
+   * @param offset Pagination offset
+   * @return Observable that emits saved posts data
+   */
+  rxcpp::observable<juce::var> getSavedPostsObservable(int limit = 20, int offset = 0);
+
+  /** Repost a post as an observable
+   * @param postId The post ID to repost
+   * @param quote Optional quote text
+   * @return Observable that emits result on success
+   */
+  rxcpp::observable<juce::var> repostPostObservable(const juce::String &postId, const juce::String &quote = "");
+
+  /** Undo a repost as an observable
+   * @param postId The post ID to un-repost
+   * @return Observable that emits result on success
+   */
+  rxcpp::observable<juce::var> undoRepostObservable(const juce::String &postId);
+
+  /** Get archived posts as an observable
+   * @param limit Number of posts to fetch
+   * @param offset Pagination offset
+   * @return Observable that emits archived posts data
+   */
+  rxcpp::observable<juce::var> getArchivedPostsObservable(int limit = 20, int offset = 0);
+
+  /** Unarchive a post as an observable
+   * @param postId The post ID to unarchive
+   * @return Observable that emits result on success
+   */
+  rxcpp::observable<juce::var> unarchivePostObservable(const juce::String &postId);
+
+  /** Mute a user as an observable
+   * @param userId The user ID to mute
+   * @return Observable that emits result on success
+   */
+  rxcpp::observable<juce::var> muteUserObservable(const juce::String &userId);
+
+  /** Unmute a user as an observable
+   * @param userId The user ID to unmute
+   * @return Observable that emits result on success
+   */
+  rxcpp::observable<juce::var> unmuteUserObservable(const juce::String &userId);
+
+  /** Pin a post as an observable
+   * @param postId The post ID to pin
+   * @return Observable that emits result on success
+   */
+  rxcpp::observable<juce::var> pinPostObservable(const juce::String &postId);
+
+  /** Unpin a post as an observable
+   * @param postId The post ID to unpin
+   * @return Observable that emits result on success
+   */
+  rxcpp::observable<juce::var> unpinPostObservable(const juce::String &postId);
+
+  // ==========================================================================
+  // User Profile Observable Methods
+
+  /** Get a user's profile as an observable
+   * @param userId The user ID
+   * @return Observable that emits user data
+   */
+  rxcpp::observable<juce::var> getUserObservable(const juce::String &userId);
+
+  /** Get a user's posts as an observable
+   * @param userId The user ID
+   * @param limit Number of posts to fetch
+   * @param offset Pagination offset
+   * @return Observable that emits posts data
+   */
+  rxcpp::observable<juce::var> getUserPostsObservable(const juce::String &userId, int limit = 20, int offset = 0);
+
+  /** Get a user's followers as an observable
+   * @param userId The user ID
+   * @param limit Number of followers to fetch
+   * @param offset Pagination offset
+   * @return Observable that emits followers data
+   */
+  rxcpp::observable<juce::var> getFollowersObservable(const juce::String &userId, int limit = 20, int offset = 0);
+
+  /** Get users a user is following as an observable
+   * @param userId The user ID
+   * @param limit Number of following to fetch
+   * @param offset Pagination offset
+   * @return Observable that emits following data
+   */
+  rxcpp::observable<juce::var> getFollowingObservable(const juce::String &userId, int limit = 20, int offset = 0);
+
+  /** Change username as an observable
+   * @param newUsername The new username
+   * @return Observable that emits result on success
+   */
+  rxcpp::observable<juce::var> changeUsernameObservable(const juce::String &newUsername);
+
+  /** Upload profile picture as an observable
+   * @param imageFile The image file to upload
+   * @return Observable that emits the new image URL on success
+   */
+  rxcpp::observable<juce::String> uploadProfilePictureObservable(const juce::File &imageFile);
+
+  /** Get current user profile as an observable
+   * @return Observable that emits current user data
+   */
+  rxcpp::observable<juce::var> getCurrentUserObservable();
+
+  /** Update user profile as an observable
+   * @param username New username (empty to skip)
+   * @param displayName New display name (empty to skip)
+   * @param bio New bio (empty to skip)
+   * @return Observable that emits result on success
+   */
+  rxcpp::observable<juce::var> updateUserProfileObservable(const juce::String &username,
+                                                           const juce::String &displayName, const juce::String &bio);
 
   // ==========================================================================
   // NOTE: Callback-based like/unlike methods are deprecated. Use observable versions.
@@ -1219,12 +1414,6 @@ public:
   // Notification operations
   // NOTE: Callback-based methods are deprecated. Use observable versions instead.
 
-  /** Result structure for notification queries */
-  struct NotificationResult {
-    juce::var notifications; // /< Array of notification objects
-    int unseen = 0;          // /< Count of unseen notifications
-    int unread = 0;          // /< Count of unread notifications
-  };
   using NotificationCallback = std::function<void(Outcome<NotificationResult>)>;
 
   /** Get user notifications

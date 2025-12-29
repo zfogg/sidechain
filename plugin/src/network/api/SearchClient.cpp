@@ -124,25 +124,26 @@ void NetworkClient::getSearchSuggestions(const juce::String &query, int limit, R
 // ==============================================================================
 
 rxcpp::observable<juce::var> NetworkClient::searchPostsObservable(const juce::String &query, int limit, int offset) {
-  return rxcpp::sources::create<juce::var>([this, query, limit, offset](auto observer) {
-           // Build query string
-           juce::String encodedQuery = juce::URL::addEscapeChars(query, true);
-           juce::String endpoint = buildApiPath("/search/posts") + "?q=" + encodedQuery +
-                                   "&limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
+  auto source = rxcpp::sources::create<juce::var>([this, query, limit, offset](auto observer) {
+    // Build query string
+    juce::String encodedQuery = juce::URL::addEscapeChars(query, true);
+    juce::String endpoint = buildApiPath("/search/posts") + "?q=" + encodedQuery + "&limit=" + juce::String(limit) +
+                            "&offset=" + juce::String(offset);
 
-           Async::runVoid([this, endpoint, observer]() {
-             auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+    Async::runVoid([this, endpoint, observer]() {
+      auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
 
-             juce::MessageManager::callAsync([result, observer]() {
-               auto outcome = requestResultToOutcome(result);
-               if (outcome.isOk()) {
-                 observer.on_next(outcome.getValue());
-                 observer.on_completed();
-               } else {
-                 observer.on_error(std::make_exception_ptr(std::runtime_error(outcome.getError().toStdString())));
-               }
-             });
-           });
-         })
-      .observe_on(Sidechain::Rx::observe_on_juce_thread());
+      juce::MessageManager::callAsync([result, observer]() {
+        auto outcome = requestResultToOutcome(result);
+        if (outcome.isOk()) {
+          observer.on_next(outcome.getValue());
+          observer.on_completed();
+        } else {
+          observer.on_error(std::make_exception_ptr(std::runtime_error(outcome.getError().toStdString())));
+        }
+      });
+    });
+  });
+
+  return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
 }

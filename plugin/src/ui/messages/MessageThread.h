@@ -7,6 +7,7 @@
 #include "../../util/reactive/ReactiveBoundComponent.h"
 #include "../common/ErrorState.h"
 #include <JuceHeader.h>
+#include <rxcpp/rx.hpp>
 
 class NetworkClient;
 class SidechainAudioProcessor;
@@ -251,6 +252,16 @@ private:
 
   // User picker dialog for adding members
   std::unique_ptr<class UserPickerDialog> userPickerDialog;
+
+  // ==============================================================================
+  // Real-time RxCpp subscriptions
+  // These subscribe to StreamChatClient hot observables for live updates
+  rxcpp::composite_subscription messageSubscription_;
+  rxcpp::composite_subscription typingSubscription_;
+  rxcpp::composite_subscription presenceSubscription_;
+
+  void subscribeToRealTimeEvents();
+  void unsubscribeFromRealTimeEvents();
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MessageThread)
 };

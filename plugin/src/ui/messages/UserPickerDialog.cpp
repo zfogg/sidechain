@@ -5,6 +5,7 @@
 #include "../../util/Colors.h"
 #include "../../util/Log.h"
 #include "../../util/StringUtils.h"
+#include "../../util/rx/JuceScheduler.h"
 
 using namespace Sidechain::Stores;
 
@@ -48,11 +49,15 @@ UserPickerDialog::UserPickerDialog()
   errorStateComponent = std::make_unique<ErrorState>();
   addChildComponent(errorStateComponent.get());
 
+  // Setup RxCpp debounced search
+  setupDebouncedSearch();
+
   setSize(500, 700);
 }
 
 UserPickerDialog::~UserPickerDialog() {
   Log::debug("UserPickerDialog: Destroying");
+  searchSubscription_.unsubscribe();
   dialogSubscriptions_.unsubscribe();
 }
 
@@ -263,16 +268,14 @@ void UserPickerDialog::mouseWheelMove(const juce::MouseEvent &event, const juce:
 
 void UserPickerDialog::textEditorTextChanged(juce::TextEditor &editor) {
   if (&editor == &searchInput) {
-    // Start debounce timer for search
-    stopTimer();
-    startTimer(SEARCH_DEBOUNCE_MS);
+    // Push query to RxCpp subject for debounced search
+    searchQuerySubject_.get_subscriber().on_next(searchInput.getText());
   }
 }
 
 void UserPickerDialog::textEditorReturnKeyPressed(juce::TextEditor &editor) {
   if (&editor == &searchInput) {
-    // Trigger search immediately
-    stopTimer();
+    // Trigger search immediately (bypass debounce)
     performSearch(searchInput.getText());
   } else if (&editor == &groupNameInput) {
     // Enter key in group name = create conversation
@@ -280,10 +283,26 @@ void UserPickerDialog::textEditorReturnKeyPressed(juce::TextEditor &editor) {
   }
 }
 
-void UserPickerDialog::timerCallback() {
-  // Debounced search triggered
-  stopTimer();
-  performSearch(searchInput.getText());
+void UserPickerDialog::setupDebouncedSearch() {
+  Log::info("UserPickerDialog: Setting up RxCpp debounced search");
+
+  searchSubscription_ = rxcpp::composite_subscription();
+  juce::Component::SafePointer<UserPickerDialog> safeThis(this);
+
+  // Use RxCpp debounce operator with 300ms delay
+  searchQuerySubject_.get_observable()
+      .debounce(std::chrono::milliseconds(SEARCH_DEBOUNCE_MS), Sidechain::Rx::observe_on_juce_thread())
+      .distinct_until_changed()
+      .subscribe(
+          searchSubscription_,
+          [safeThis](const juce::String &query) {
+            if (!safeThis)
+              return;
+
+            Log::debug("UserPickerDialog: Debounced query triggered: " + query);
+            safeThis->performSearch(query);
+          },
+          [](std::exception_ptr) { Log::warn("UserPickerDialog: Debounced search error"); });
 }
 
 void UserPickerDialog::scrollBarMoved(juce::ScrollBar *scrollBarPtr, double newRangeStart) {

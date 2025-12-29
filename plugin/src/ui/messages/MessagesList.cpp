@@ -31,7 +31,56 @@ MessagesList::MessagesList(Sidechain::Stores::AppStore *store)
 
 MessagesList::~MessagesList() {
   Log::debug("MessagesList: Destroying");
+  unsubscribeFromRealTimeEvents();
   stopTimer();
+}
+
+void MessagesList::subscribeToRealTimeEvents() {
+  if (!streamChatClient) {
+    Log::warn("MessagesList: Cannot subscribe to real-time events - no StreamChatClient");
+    return;
+  }
+
+  Log::info("MessagesList: Subscribing to real-time presence events");
+
+  juce::Component::SafePointer<MessagesList> safeThis(this);
+
+  // Subscribe to presence changes for online/offline indicators
+  presenceSubscription_ = rxcpp::composite_subscription();
+
+  streamChatClient->presenceChanges().subscribe(
+      presenceSubscription_,
+      [safeThis](const StreamChatClient::UserPresence &presence) {
+        if (!safeThis)
+          return;
+
+        // Update our presence cache
+        safeThis->userPresence[presence.userId] = presence;
+        Log::debug("MessagesList: User " + presence.userId + " is now " + (presence.online ? "online" : "offline"));
+        safeThis->repaint();
+      },
+      [](std::exception_ptr) { Log::warn("MessagesList: Presence subscription error"); });
+
+  // Subscribe to unread count changes using polling observable
+  unreadCountSubscription_ = rxcpp::composite_subscription();
+
+  streamChatClient->pollUnreadCountObservable(30000).subscribe( // Poll every 30 seconds
+      unreadCountSubscription_,
+      [safeThis](int totalUnread) {
+        if (!safeThis)
+          return;
+
+        Log::debug("MessagesList: Total unread count: " + juce::String(totalUnread));
+        // Refresh channels to update unread badges
+        safeThis->refreshChannels();
+      },
+      [](std::exception_ptr) { Log::warn("MessagesList: Unread count subscription error"); });
+}
+
+void MessagesList::unsubscribeFromRealTimeEvents() {
+  Log::debug("MessagesList: Unsubscribing from real-time events");
+  presenceSubscription_.unsubscribe();
+  unreadCountSubscription_.unsubscribe();
 }
 
 // ==============================================================================
@@ -225,7 +274,16 @@ void MessagesList::mouseWheelMove(const juce::MouseEvent &event, const juce::Mou
 
 // ==============================================================================
 void MessagesList::setStreamChatClient(StreamChatClient *client) {
+  // Unsubscribe from previous client's events
+  unsubscribeFromRealTimeEvents();
+
   streamChatClient = client;
+
+  // Subscribe to new client's real-time events
+  if (streamChatClient) {
+    subscribeToRealTimeEvents();
+  }
+
   loadChannels();
 }
 

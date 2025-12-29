@@ -81,6 +81,35 @@ NotificationItem NotificationItem::fromAggregatedGroup(const Sidechain::Aggregat
   return item;
 }
 
+NotificationItem NotificationItem::fromNotification(const Sidechain::Notification &notif) {
+  NotificationItem item;
+
+  // Set basic properties
+  item.isRead = notif.isRead;
+  item.isSeen = notif.isSeen;
+  item.targetType = notif.targetType;
+  item.targetId = notif.targetId;
+  item.targetPreview = notif.targetPreview;
+
+  // Set actor info from the notification
+  item.actorId = notif.getPrimaryActorId();
+  item.actorName = notif.getPrimaryActorUsername();
+  item.actorAvatarUrl = notif.getPrimaryActorAvatar();
+
+  // Use actor ID as name fallback
+  if (item.actorName.isEmpty())
+    item.actorName = item.actorId;
+
+  // Create a minimal AggregatedFeedGroup for compatibility
+  item.group.id = notif.id;
+  item.group.verb = notif.verb;
+  item.group.actorCount = notif.actorCount;
+  item.group.createdAt = notif.createdAt;
+  item.group.updatedAt = notif.updatedAt;
+
+  return item;
+}
+
 // Phase 2 features:
 // - Notification sound option (user preference)
 // - Notification preferences (mute specific types)

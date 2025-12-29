@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../util/SerializableModel.h"
 #include "../util/json/JsonValidation.h"
 #include <JuceHeader.h>
 #include <nlohmann/json.hpp>

@@ -25,28 +25,40 @@ void AppStore::loadTrendingUsersAndCache(int limit) {
 
   Util::logInfo("AppStore", "Loading trending users");
 
-  UserLoadingHelper<DiscoveryState>::loadUsers(
-      stateManager.discovery,
-      // Set loading state
-      [](DiscoveryState &s) {
-        s.isTrendingLoading = true;
-        s.discoveryError = "";
+  // Set loading state
+  DiscoveryState loadingState = stateManager.discovery->getState();
+  loadingState.isTrendingLoading = true;
+  loadingState.discoveryError = "";
+  stateManager.discovery->setState(loadingState);
+
+  loadTrendingUsersObservable(limit).subscribe(
+      [this](const std::vector<User> &users) {
+        // Convert to shared_ptr<const User> for state
+        std::vector<std::shared_ptr<const User>> userPtrs;
+        userPtrs.reserve(users.size());
+        for (const auto &u : users) {
+          userPtrs.push_back(std::make_shared<const User>(u));
+        }
+
+        DiscoveryState successState = stateManager.discovery->getState();
+        successState.trendingUsers = std::move(userPtrs);
+        successState.isTrendingLoading = false;
+        successState.discoveryError = "";
+        successState.lastTrendingUpdate = juce::Time::getCurrentTime().toMilliseconds();
+        stateManager.discovery->setState(successState);
       },
-      // Network call
-      [this, limit](auto callback) { networkClient->getTrendingUsers(limit, callback); },
-      // On success
-      [](DiscoveryState &s, auto users) {
-        s.trendingUsers = std::move(users);
-        s.isTrendingLoading = false;
-        s.discoveryError = "";
-        s.lastTrendingUpdate = juce::Time::getCurrentTime().toMilliseconds();
-      },
-      // On error
-      [](DiscoveryState &s, const juce::String &err) {
-        s.isTrendingLoading = false;
-        s.discoveryError = err;
-      },
-      "trending users");
+      [this](std::exception_ptr ep) {
+        juce::String errorMsg;
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          errorMsg = e.what();
+        }
+        DiscoveryState errorState = stateManager.discovery->getState();
+        errorState.isTrendingLoading = false;
+        errorState.discoveryError = errorMsg;
+        stateManager.discovery->setState(errorState);
+      });
 }
 
 void AppStore::loadFeaturedProducersAndCache(int limit) {
@@ -56,28 +68,40 @@ void AppStore::loadFeaturedProducersAndCache(int limit) {
 
   Util::logInfo("AppStore", "Loading featured producers");
 
-  UserLoadingHelper<DiscoveryState>::loadUsers(
-      stateManager.discovery,
-      // Set loading state
-      [](DiscoveryState &s) {
-        s.isFeaturedLoading = true;
-        s.discoveryError = "";
+  // Set loading state
+  DiscoveryState loadingState = stateManager.discovery->getState();
+  loadingState.isFeaturedLoading = true;
+  loadingState.discoveryError = "";
+  stateManager.discovery->setState(loadingState);
+
+  loadFeaturedProducersObservable(limit).subscribe(
+      [this](const std::vector<User> &users) {
+        // Convert to shared_ptr<const User> for state
+        std::vector<std::shared_ptr<const User>> userPtrs;
+        userPtrs.reserve(users.size());
+        for (const auto &u : users) {
+          userPtrs.push_back(std::make_shared<const User>(u));
+        }
+
+        DiscoveryState successState = stateManager.discovery->getState();
+        successState.featuredProducers = std::move(userPtrs);
+        successState.isFeaturedLoading = false;
+        successState.discoveryError = "";
+        successState.lastFeaturedUpdate = juce::Time::getCurrentTime().toMilliseconds();
+        stateManager.discovery->setState(successState);
       },
-      // Network call
-      [this, limit](auto callback) { networkClient->getFeaturedProducers(limit, callback); },
-      // On success
-      [](DiscoveryState &s, auto users) {
-        s.featuredProducers = std::move(users);
-        s.isFeaturedLoading = false;
-        s.discoveryError = "";
-        s.lastFeaturedUpdate = juce::Time::getCurrentTime().toMilliseconds();
-      },
-      // On error
-      [](DiscoveryState &s, const juce::String &err) {
-        s.isFeaturedLoading = false;
-        s.discoveryError = err;
-      },
-      "featured producers");
+      [this](std::exception_ptr ep) {
+        juce::String errorMsg;
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          errorMsg = e.what();
+        }
+        DiscoveryState errorState = stateManager.discovery->getState();
+        errorState.isFeaturedLoading = false;
+        errorState.discoveryError = errorMsg;
+        stateManager.discovery->setState(errorState);
+      });
 }
 
 void AppStore::loadSuggestedUsersAndCache(int limit) {
@@ -87,28 +111,40 @@ void AppStore::loadSuggestedUsersAndCache(int limit) {
 
   Util::logInfo("AppStore", "Loading suggested users");
 
-  UserLoadingHelper<DiscoveryState>::loadUsers(
-      stateManager.discovery,
-      // Set loading state
-      [](DiscoveryState &s) {
-        s.isSuggestedLoading = true;
-        s.discoveryError = "";
+  // Set loading state
+  DiscoveryState loadingState = stateManager.discovery->getState();
+  loadingState.isSuggestedLoading = true;
+  loadingState.discoveryError = "";
+  stateManager.discovery->setState(loadingState);
+
+  loadSuggestedUsersObservable(limit).subscribe(
+      [this](const std::vector<User> &users) {
+        // Convert to shared_ptr<const User> for state
+        std::vector<std::shared_ptr<const User>> userPtrs;
+        userPtrs.reserve(users.size());
+        for (const auto &u : users) {
+          userPtrs.push_back(std::make_shared<const User>(u));
+        }
+
+        DiscoveryState successState = stateManager.discovery->getState();
+        successState.suggestedUsers = std::move(userPtrs);
+        successState.isSuggestedLoading = false;
+        successState.discoveryError = "";
+        successState.lastSuggestedUpdate = juce::Time::getCurrentTime().toMilliseconds();
+        stateManager.discovery->setState(successState);
       },
-      // Network call
-      [this, limit](auto callback) { networkClient->getSuggestedUsers(limit, callback); },
-      // On success
-      [](DiscoveryState &s, auto users) {
-        s.suggestedUsers = std::move(users);
-        s.isSuggestedLoading = false;
-        s.discoveryError = "";
-        s.lastSuggestedUpdate = juce::Time::getCurrentTime().toMilliseconds();
-      },
-      // On error
-      [](DiscoveryState &s, const juce::String &err) {
-        s.isSuggestedLoading = false;
-        s.discoveryError = err;
-      },
-      "suggested users");
+      [this](std::exception_ptr ep) {
+        juce::String errorMsg;
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          errorMsg = e.what();
+        }
+        DiscoveryState errorState = stateManager.discovery->getState();
+        errorState.isSuggestedLoading = false;
+        errorState.discoveryError = errorMsg;
+        stateManager.discovery->setState(errorState);
+      });
 }
 
 // ==============================================================================

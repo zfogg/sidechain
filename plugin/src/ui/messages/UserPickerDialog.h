@@ -20,10 +20,7 @@ class NetworkClient;
  * - Multi-select support for creating group chats
  * - Group name input when 2+ users selected
  */
-class UserPickerDialog : public juce::Component,
-                         public juce::TextEditor::Listener,
-                         public juce::Timer,
-                         public juce::ScrollBar::Listener {
+class UserPickerDialog : public juce::Component, public juce::TextEditor::Listener, public juce::ScrollBar::Listener {
 public:
   UserPickerDialog();
   ~UserPickerDialog() override;
@@ -36,9 +33,6 @@ public:
   // TextEditor::Listener
   void textEditorTextChanged(juce::TextEditor &editor) override;
   void textEditorReturnKeyPressed(juce::TextEditor &editor) override;
-
-  // Timer for debounced search
-  void timerCallback() override;
 
   // Callbacks
   std::function<void(const juce::String &userId)> onUserSelected;                // Single user selected
@@ -81,6 +75,10 @@ private:
 
   // RxCpp subscription management
   rxcpp::composite_subscription dialogSubscriptions_;
+  rxcpp::subjects::subject<juce::String> searchQuerySubject_;
+  rxcpp::composite_subscription searchSubscription_;
+
+  void setupDebouncedSearch();
 
   // UI elements
   juce::TextEditor searchInput;

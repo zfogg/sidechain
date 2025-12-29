@@ -7,6 +7,7 @@
 #include "../feed/PostCard.h"
 #include "../social/UserCard.h" // For DiscoveredUser struct and UserCard
 #include <JuceHeader.h>
+#include <rxcpp/rx.hpp>
 
 class StreamChatClient;
 
@@ -26,8 +27,7 @@ class StreamChatClient;
 class Search : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::SearchState>,
                public juce::TextEditor::Listener,
                public juce::ScrollBar::Listener,
-               public juce::KeyListener,
-               public juce::Timer {
+               public juce::KeyListener {
 public:
   Search(Sidechain::Stores::AppStore *store = nullptr);
   ~Search() override;
@@ -68,9 +68,6 @@ public:
 
   // KeyListener
   bool keyPressed(const juce::KeyPress &key, juce::Component *originatingComponent) override;
-
-  // Timer (for debouncing search)
-  void timerCallback() override;
 
   // ==============================================================================
   // Public methods
@@ -193,6 +190,14 @@ private:
   juce::Rectangle<int> getFilterBounds() const;
   juce::Rectangle<int> getTabBounds() const;
   juce::Rectangle<int> getResultsBounds() const;
+
+  // ==============================================================================
+  // RxCpp debounced search
+  // Uses subject + debounce operator instead of juce::Timer
+  rxcpp::subjects::subject<juce::String> querySubject_;
+  rxcpp::composite_subscription searchSubscription_;
+
+  void setupDebouncedSearch();
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Search)
 };

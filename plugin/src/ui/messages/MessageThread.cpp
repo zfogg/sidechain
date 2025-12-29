@@ -16,7 +16,75 @@ MessageThread::MessageThread(Sidechain::Stores::AppStore *store)
   startTimer(250);
 }
 
+void MessageThread::subscribeToRealTimeEvents() {
+  if (!streamChatClient) {
+    Log::warn("MessageThread: Cannot subscribe to real-time events - no StreamChatClient");
+    return;
+  }
+
+  Log::info("MessageThread: Subscribing to real-time events for channel: " + channelId);
+
+  // Subscribe to new messages
+  juce::Component::SafePointer<MessageThread> safeThis(this);
+  messageSubscription_ = rxcpp::composite_subscription();
+
+  streamChatClient->messages().subscribe(
+      messageSubscription_,
+      [safeThis, channelId = this->channelId](const StreamChatClient::MessageEvent &event) {
+        if (!safeThis)
+          return;
+
+        // Only process messages for this channel
+        if (event.channelId == channelId) {
+          Log::debug("MessageThread: Received real-time message: " + event.message.id);
+          // AppStore will be updated by StreamChatClient, which triggers onAppStateChanged
+          // But we can repaint immediately for responsiveness
+          safeThis->repaint();
+        }
+      },
+      [](std::exception_ptr) { Log::warn("MessageThread: Message subscription error"); });
+
+  // Subscribe to typing events
+  typingSubscription_ = rxcpp::composite_subscription();
+
+  streamChatClient->typingEvents().subscribe(
+      typingSubscription_,
+      [safeThis, channelId = this->channelId](const StreamChatClient::TypingEvent &event) {
+        if (!safeThis)
+          return;
+
+        // Only process typing events for this channel
+        if (event.channelId == channelId) {
+          Log::debug("MessageThread: User " + event.userId + (event.isTyping ? " started" : " stopped") + " typing");
+          safeThis->repaint();
+        }
+      },
+      [](std::exception_ptr) { Log::warn("MessageThread: Typing subscription error"); });
+
+  // Subscribe to presence changes
+  presenceSubscription_ = rxcpp::composite_subscription();
+
+  streamChatClient->presenceChanges().subscribe(
+      presenceSubscription_,
+      [safeThis](const StreamChatClient::UserPresence &presence) {
+        if (!safeThis)
+          return;
+
+        Log::debug("MessageThread: User " + presence.userId + " is now " + (presence.online ? "online" : "offline"));
+        safeThis->repaint();
+      },
+      [](std::exception_ptr) { Log::warn("MessageThread: Presence subscription error"); });
+}
+
+void MessageThread::unsubscribeFromRealTimeEvents() {
+  Log::debug("MessageThread: Unsubscribing from real-time events");
+  messageSubscription_.unsubscribe();
+  typingSubscription_.unsubscribe();
+  presenceSubscription_.unsubscribe();
+}
+
 MessageThread::~MessageThread() {
+  unsubscribeFromRealTimeEvents();
   stopTimer();
   Log::debug("MessageThread: Destroying");
 }
@@ -38,10 +106,33 @@ void MessageThread::mouseWheelMove(const juce::MouseEvent &, const juce::MouseWh
 void MessageThread::textEditorReturnKeyPressed(juce::TextEditor &) {}
 void MessageThread::textEditorTextChanged(juce::TextEditor &) {}
 
-void MessageThread::setStreamChatClient(StreamChatClient *) {}
+void MessageThread::setStreamChatClient(StreamChatClient *client) {
+  // Unsubscribe from previous client's events
+  unsubscribeFromRealTimeEvents();
+
+  streamChatClient = client;
+
+  // Subscribe to new client's real-time events if channel is loaded
+  if (streamChatClient && !channelId.isEmpty()) {
+    subscribeToRealTimeEvents();
+  }
+}
 void MessageThread::setNetworkClient(NetworkClient *) {}
 void MessageThread::setAudioProcessor(SidechainAudioProcessor *) {}
-void MessageThread::loadChannel(const juce::String &, const juce::String &) {}
+void MessageThread::loadChannel(const juce::String &type, const juce::String &id) {
+  // Unsubscribe from previous channel's events
+  unsubscribeFromRealTimeEvents();
+
+  channelType = type;
+  channelId = id;
+
+  Log::info("MessageThread: Loading channel - type: " + type + ", id: " + id);
+
+  // Subscribe to real-time events for this channel
+  if (streamChatClient) {
+    subscribeToRealTimeEvents();
+  }
+}
 
 void MessageThread::onAppStateChanged(const Sidechain::Stores::ChatState &) {
   repaint();

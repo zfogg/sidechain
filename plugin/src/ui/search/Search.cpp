@@ -4,6 +4,7 @@
 #include "../../util/Constants.h"
 #include "../../util/Log.h"
 #include "../../util/Time.h"
+#include "../../util/rx/JuceScheduler.h"
 #include "../social/UserCard.h"
 #include <fstream>
 
@@ -36,8 +37,8 @@ Search::Search(Sidechain::Stores::AppStore *store)
   loadTrendingSearches(); // Load trending searches
   loadAvailableGenres();
 
-  // Start timer for debouncing search
-  startTimer(300); // 300ms debounce
+  // Setup RxCpp debounced search instead of timer-based debounce
+  setupDebouncedSearch();
 
   // Create error state component (initially hidden)
   errorStateComponent = std::make_unique<ErrorState>();
@@ -66,7 +67,8 @@ Search::Search(Sidechain::Stores::AppStore *store)
 }
 
 Search::~Search() {
-  stopTimer();
+  // Unsubscribe from RxCpp debounced search
+  searchSubscription_.unsubscribe();
   // RAII: juce::Array will clean up automatically
   // AppStoreComponent destructor will handle unsubscribe
 }
@@ -330,9 +332,8 @@ void Search::textEditorTextChanged(juce::TextEditor &editor) {
         selectedResultIndex = -1; // Reset keyboard navigation
         repaint();
       } else {
-        // Restart timer for debouncing
-        stopTimer();
-        startTimer(300);
+        // Push query to RxCpp subject for debounced search
+        querySubject_.get_subscriber().on_next(newQuery);
       }
     }
   }
@@ -423,12 +424,28 @@ bool Search::keyPressed(const juce::KeyPress &key, juce::Component *originatingC
 }
 
 // ==============================================================================
-void Search::timerCallback() {
-  stopTimer();
+void Search::setupDebouncedSearch() {
+  Log::info("Search: Setting up RxCpp debounced search pipeline");
 
-  if (!currentQuery.isEmpty()) {
-    performSearch();
-  }
+  searchSubscription_ = rxcpp::composite_subscription();
+  juce::Component::SafePointer<Search> safeThis(this);
+
+  // Use RxCpp debounce operator with 300ms delay
+  querySubject_.get_observable()
+      .debounce(std::chrono::milliseconds(300), Sidechain::Rx::observe_on_juce_thread())
+      .distinct_until_changed()
+      .subscribe(
+          searchSubscription_,
+          [safeThis](const juce::String &query) {
+            if (!safeThis)
+              return;
+
+            Log::debug("Search: Debounced query triggered: " + query);
+            if (!query.isEmpty()) {
+              safeThis->performSearch();
+            }
+          },
+          [](std::exception_ptr) { Log::warn("Search: Debounced search error"); });
 }
 
 // ==============================================================================

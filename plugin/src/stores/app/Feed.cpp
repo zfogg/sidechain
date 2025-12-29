@@ -141,7 +141,15 @@ void AppStore::loadSavedPosts() {
   loadingState.savedPosts.error = "";
   stateManager.posts->setState(loadingState);
 
-  networkClient->getSavedPosts(20, 0, [this](Outcome<juce::var> result) { handleSavedPostsLoaded(result); });
+  networkClient->getSavedPostsObservable(20, 0).subscribe(
+      [this](const juce::var &data) { handleSavedPostsLoaded(Outcome<juce::var>::ok(data)); },
+      [this](std::exception_ptr ep) {
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          handleSavedPostsLoaded(Outcome<juce::var>::error(juce::String(e.what())));
+        }
+      });
 }
 
 void AppStore::loadMoreSavedPosts() {
@@ -156,8 +164,15 @@ void AppStore::loadMoreSavedPosts() {
   loadingState.savedPosts.isLoading = true;
   stateManager.posts->setState(loadingState);
 
-  networkClient->getSavedPosts(currentState.savedPosts.limit, currentState.savedPosts.offset,
-                               [this](Outcome<juce::var> result) { handleSavedPostsLoaded(result); });
+  networkClient->getSavedPostsObservable(currentState.savedPosts.limit, currentState.savedPosts.offset)
+      .subscribe([this](const juce::var &data) { handleSavedPostsLoaded(Outcome<juce::var>::ok(data)); },
+                 [this](std::exception_ptr ep) {
+                   try {
+                     std::rethrow_exception(ep);
+                   } catch (const std::exception &e) {
+                     handleSavedPostsLoaded(Outcome<juce::var>::error(juce::String(e.what())));
+                   }
+                 });
 }
 
 void AppStore::unsavePost(const juce::String &postId) {
@@ -176,16 +191,18 @@ void AppStore::unsavePost(const juce::String &postId) {
   }
   stateManager.posts->setState(newState);
 
-  // Send to server
-  networkClient->unsavePost(postId, [this, postId](Outcome<juce::var> result) {
-    if (!result.isOk()) {
-      // Refresh on error to restore the post
-      Util::logError("AppStore", "Failed to unsave post: " + result.getError());
-      loadSavedPosts();
-    } else {
-      Util::logDebug("AppStore", "Post unsaved successfully");
-    }
-  });
+  // Send to server using observable
+  networkClient->unsavePostObservable(postId).subscribe(
+      [](const juce::var &) { Util::logDebug("AppStore", "Post unsaved successfully"); },
+      [this, postId](std::exception_ptr ep) {
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          // Refresh on error to restore the post
+          Util::logError("AppStore", "Failed to unsave post: " + juce::String(e.what()));
+          loadSavedPosts();
+        }
+      });
 }
 
 // ==============================================================================
@@ -208,7 +225,15 @@ void AppStore::loadArchivedPosts() {
   loadingState.archivedPosts.error = "";
   stateManager.posts->setState(loadingState);
 
-  networkClient->getArchivedPosts(20, 0, [this](Outcome<juce::var> result) { handleArchivedPostsLoaded(result); });
+  networkClient->getArchivedPostsObservable(20, 0).subscribe(
+      [this](const juce::var &data) { handleArchivedPostsLoaded(Outcome<juce::var>::ok(data)); },
+      [this](std::exception_ptr ep) {
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          handleArchivedPostsLoaded(Outcome<juce::var>::error(juce::String(e.what())));
+        }
+      });
 }
 
 void AppStore::loadMoreArchivedPosts() {
@@ -227,54 +252,57 @@ void AppStore::loadMoreArchivedPosts() {
   // Note: offset field already represents how many posts have been loaded,
   // so we use it directly without adding posts.size() again
   int offset = currentState.archivedPosts.offset;
-  networkClient->getArchivedPosts(20, offset, [this, offset](Outcome<juce::var> result) {
-    if (!result.isOk()) {
-      Util::logError("AppStore", "Failed to load archived posts: " + result.getError());
-      PostsState errorState = stateManager.posts->getState();
-      errorState.archivedPosts.isLoading = false;
-      errorState.archivedPosts.error = result.getError();
-      stateManager.posts->setState(errorState);
-      return;
-    }
+  networkClient->getArchivedPostsObservable(20, offset)
+      .subscribe(
+          [this, offset](const juce::var &data) {
+            // Parse the response
+            if (!data.isArray()) {
+              Util::logError("AppStore", "Invalid archived posts response format");
+              PostsState errorState = stateManager.posts->getState();
+              errorState.archivedPosts.isLoading = false;
+              stateManager.posts->setState(errorState);
+              return;
+            }
 
-    // Parse the response
-    const auto &data = result.getValue();
-    if (!data.isArray()) {
-      Util::logError("AppStore", "Invalid archived posts response format");
-      PostsState errorState = stateManager.posts->getState();
-      errorState.archivedPosts.isLoading = false;
-      stateManager.posts->setState(errorState);
-      return;
-    }
+            // Update state with fetched archived posts
+            PostsState newState = stateManager.posts->getState();
+            newState.archivedPosts.isLoading = false;
 
-    // Update state with fetched archived posts
-    PostsState newState = stateManager.posts->getState();
-    newState.archivedPosts.isLoading = false;
+            // Parse each archived post from the response
+            for (int i = 0; i < data.size(); ++i) {
+              try {
+                // Convert juce::var to nlohmann::json
+                auto jsonStr = juce::JSON::toString(data[i]);
+                auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
 
-    // Parse each archived post from the response
-    for (int i = 0; i < data.size(); ++i) {
-      try {
-        // Convert juce::var to nlohmann::json
-        auto jsonStr = juce::JSON::toString(data[i]);
-        auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+                // Use new SerializableModel API
+                auto postResult = Sidechain::SerializableModel<FeedPost>::createFromJson(jsonObj);
+                if (postResult.isOk()) {
+                  newState.archivedPosts.posts.push_back(postResult.getValue());
+                }
+              } catch (...) {
+                // Skip invalid posts
+              }
+            }
 
-        // Use new SerializableModel API
-        auto postResult = Sidechain::SerializableModel<FeedPost>::createFromJson(jsonObj);
-        if (postResult.isOk()) {
-          newState.archivedPosts.posts.push_back(postResult.getValue());
-        }
-      } catch (...) {
-        // Skip invalid posts
-      }
-    }
+            // Update pagination info
+            newState.archivedPosts.offset = offset;
+            newState.archivedPosts.hasMore = (data.size() >= 20); // Has more if got full page
 
-    // Update pagination info
-    newState.archivedPosts.offset = offset;
-    newState.archivedPosts.hasMore = (data.size() >= 20); // Has more if got full page
-
-    stateManager.posts->setState(newState);
-    Util::logDebug("AppStore", "Loaded " + juce::String(data.size()) + " archived posts");
-  });
+            stateManager.posts->setState(newState);
+            Util::logDebug("AppStore", "Loaded " + juce::String(data.size()) + " archived posts");
+          },
+          [this](std::exception_ptr ep) {
+            try {
+              std::rethrow_exception(ep);
+            } catch (const std::exception &e) {
+              Util::logError("AppStore", "Failed to load archived posts: " + juce::String(e.what()));
+              PostsState errorState = stateManager.posts->getState();
+              errorState.archivedPosts.isLoading = false;
+              errorState.archivedPosts.error = juce::String(e.what());
+              stateManager.posts->setState(errorState);
+            }
+          });
 }
 
 void AppStore::restorePost(const juce::String &postId) {
@@ -293,16 +321,18 @@ void AppStore::restorePost(const juce::String &postId) {
   }
   stateManager.posts->setState(newState);
 
-  // Send to server
-  networkClient->unarchivePost(postId, [this, postId](Outcome<juce::var> result) {
-    if (!result.isOk()) {
-      // Refresh on error to restore the post to the list
-      Util::logError("AppStore", "Failed to restore post: " + result.getError());
-      loadArchivedPosts();
-    } else {
-      Util::logDebug("AppStore", "Post restored successfully");
-    }
-  });
+  // Send to server using observable
+  networkClient->unarchivePostObservable(postId).subscribe(
+      [](const juce::var &) { Util::logDebug("AppStore", "Post restored successfully"); },
+      [this](std::exception_ptr ep) {
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          // Refresh on error to restore the post to the list
+          Util::logError("AppStore", "Failed to restore post: " + juce::String(e.what()));
+          loadArchivedPosts();
+        }
+      });
 }
 
 // ==============================================================================
@@ -313,14 +343,18 @@ void AppStore::toggleLike(const juce::String &postId) {
     return;
   }
 
-  auto config = PostInteractionHelper::createLikeConfig(
-      [this](const juce::String &id, bool wasLiked, std::function<void(Outcome<juce::var>)> callback) {
-        if (wasLiked) {
-          networkClient->unlikePost(id, callback);
-        } else {
-          networkClient->likePost(id, "", callback);
-        }
-      });
+  auto config = PostInteractionHelper::createLikeConfig([this](const juce::String &id, bool wasLiked,
+                                                               std::function<void(Outcome<juce::var>)> callback) {
+    auto observable = wasLiked ? networkClient->unlikePostObservable(id) : networkClient->likePostObservable(id, "");
+    observable.subscribe([callback](const juce::var &result) { callback(Outcome<juce::var>::ok(result)); },
+                         [callback](std::exception_ptr ep) {
+                           try {
+                             std::rethrow_exception(ep);
+                           } catch (const std::exception &e) {
+                             callback(Outcome<juce::var>::error(juce::String(e.what())));
+                           }
+                         });
+  });
 
   PostInteractionHelper::performToggle(stateManager.posts, postId, config);
 }
@@ -332,11 +366,15 @@ void AppStore::toggleSave(const juce::String &postId) {
 
   auto config = PostInteractionHelper::createSaveConfig(
       [this](const juce::String &id, bool wasSaved, std::function<void(Outcome<juce::var>)> callback) {
-        if (wasSaved) {
-          networkClient->unsavePost(id, callback);
-        } else {
-          networkClient->savePost(id, callback);
-        }
+        auto observable = wasSaved ? networkClient->unsavePostObservable(id) : networkClient->savePostObservable(id);
+        observable.subscribe([callback](const juce::var &result) { callback(Outcome<juce::var>::ok(result)); },
+                             [callback](std::exception_ptr ep) {
+                               try {
+                                 std::rethrow_exception(ep);
+                               } catch (const std::exception &e) {
+                                 callback(Outcome<juce::var>::error(juce::String(e.what())));
+                               }
+                             });
       });
 
   PostInteractionHelper::performToggle(stateManager.posts, postId, config);
@@ -349,11 +387,16 @@ void AppStore::toggleRepost(const juce::String &postId) {
 
   auto config = PostInteractionHelper::createRepostConfig(
       [this](const juce::String &id, bool wasReposted, std::function<void(Outcome<juce::var>)> callback) {
-        if (wasReposted) {
-          networkClient->undoRepost(id, callback);
-        } else {
-          networkClient->repostPost(id, "", callback);
-        }
+        auto observable =
+            wasReposted ? networkClient->undoRepostObservable(id) : networkClient->repostPostObservable(id, "");
+        observable.subscribe([callback](const juce::var &result) { callback(Outcome<juce::var>::ok(result)); },
+                             [callback](std::exception_ptr ep) {
+                               try {
+                                 std::rethrow_exception(ep);
+                               } catch (const std::exception &e) {
+                                 callback(Outcome<juce::var>::error(juce::String(e.what())));
+                               }
+                             });
       });
 
   PostInteractionHelper::performToggle(stateManager.posts, postId, config);
@@ -364,12 +407,16 @@ void AppStore::addReaction(const juce::String &postId, const juce::String &emoji
     return;
   }
 
-  // Add a reaction by liking with an emoji
-  networkClient->likePost(postId, emoji, [](Outcome<juce::var> result) {
-    if (!result.isOk()) {
-      Util::logError("AppStore", "Failed to add reaction: " + result.getError());
-    }
-  });
+  // Add a reaction by liking with an emoji using observable
+  networkClient->likePostObservable(postId, emoji)
+      .subscribe([](const juce::var &) {},
+                 [](std::exception_ptr ep) {
+                   try {
+                     std::rethrow_exception(ep);
+                   } catch (const std::exception &e) {
+                     Util::logError("AppStore", "Failed to add reaction: " + juce::String(e.what()));
+                   }
+                 });
 }
 
 void AppStore::toggleFollow(const juce::String &postId, bool willFollow) {
@@ -399,25 +446,26 @@ void AppStore::toggleFollow(const juce::String &postId, bool willFollow) {
 
   Util::logDebug("AppStore", "Follow post optimistic update: " + postId + " - " + (willFollow ? "follow" : "unfollow"));
 
-  // Define rollback callback
-  auto rollbackOnError = [this, postId, previousFollowState](Outcome<juce::var> result) {
-    if (!result.isOk()) {
-      Util::logError("AppStore", "Failed to " + juce::String(previousFollowState ? "unfollow" : "follow") +
-                                     " user: " + result.getError());
-      PostsState rollbackState = stateManager.posts->getState();
-      FollowHelper::updateFollowState(rollbackState, postId, previousFollowState);
-      stateManager.posts->setState(rollbackState);
-    } else {
-      Util::logInfo("AppStore", "User " + juce::String(previousFollowState ? "unfollowed" : "followed") +
-                                    " successfully: " + postId);
-    }
-  };
+  // Use observable for network request
+  auto observable =
+      willFollow ? networkClient->followUserObservable(userId) : networkClient->unfollowUserObservable(userId);
 
-  if (willFollow) {
-    networkClient->followUser(userId, rollbackOnError);
-  } else {
-    networkClient->unfollowUser(userId, rollbackOnError);
-  }
+  observable.subscribe(
+      [previousFollowState, postId](const juce::var &) {
+        Util::logInfo("AppStore", "User " + juce::String(previousFollowState ? "unfollowed" : "followed") +
+                                      " successfully: " + postId);
+      },
+      [this, postId, previousFollowState](std::exception_ptr ep) {
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          Util::logError("AppStore", "Failed to " + juce::String(previousFollowState ? "unfollow" : "follow") +
+                                         " user: " + juce::String(e.what()));
+          PostsState rollbackState = stateManager.posts->getState();
+          FollowHelper::updateFollowState(rollbackState, postId, previousFollowState);
+          stateManager.posts->setState(rollbackState);
+        }
+      });
 }
 
 void AppStore::toggleMute(const juce::String &userId, bool willMute) {
@@ -425,23 +473,20 @@ void AppStore::toggleMute(const juce::String &userId, bool willMute) {
     return;
   }
 
-  if (willMute) {
-    networkClient->muteUser(userId, [](Outcome<juce::var> result) {
-      if (!result.isOk()) {
-        Util::logError("AppStore", "Failed to mute user: " + result.getError());
-      } else {
-        // Invalidate feed caches on successful mute (feed may change)
-      }
-    });
-  } else {
-    networkClient->unmuteUser(userId, [](Outcome<juce::var> result) {
-      if (!result.isOk()) {
-        Util::logError("AppStore", "Failed to unmute user: " + result.getError());
-      } else {
-        // Invalidate feed caches on successful unmute (feed may change)
-      }
-    });
-  }
+  auto observable = willMute ? networkClient->muteUserObservable(userId) : networkClient->unmuteUserObservable(userId);
+
+  observable.subscribe(
+      [](const juce::var &) {
+        // Invalidate feed caches on successful mute/unmute (feed may change)
+      },
+      [willMute](std::exception_ptr ep) {
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          Util::logError("AppStore", "Failed to " + juce::String(willMute ? "mute" : "unmute") +
+                                         " user: " + juce::String(e.what()));
+        }
+      });
 }
 
 void AppStore::togglePin(const juce::String &postId, bool pinned) {
@@ -455,12 +500,18 @@ void AppStore::togglePin(const juce::String &postId, bool pinned) {
       newState, postId, [pinned](std::shared_ptr<FeedPost> &post) { post->isPinned = pinned; });
   stateManager.posts->setState(newState);
 
-  // Call actual API to persist pin/unpin state
-  if (pinned) {
-    networkClient->pinPost(postId, nullptr);
-  } else {
-    networkClient->unpinPost(postId, nullptr);
-  }
+  // Call actual API to persist pin/unpin state using observable
+  auto observable = pinned ? networkClient->pinPostObservable(postId) : networkClient->unpinPostObservable(postId);
+
+  observable.subscribe([](const juce::var &) {},
+                       [postId, pinned](std::exception_ptr ep) {
+                         try {
+                           std::rethrow_exception(ep);
+                         } catch (const std::exception &e) {
+                           Util::logError("AppStore", "Failed to " + juce::String(pinned ? "pin" : "unpin") + " post " +
+                                                          postId + ": " + juce::String(e.what()));
+                         }
+                       });
 
   Util::logInfo("AppStore", pinned ? "Pin post: " + postId : "Unpin post: " + postId);
 }
@@ -477,43 +528,76 @@ void AppStore::performFetch(FeedType feedType, int limit, int offset) {
     return;
   }
 
-  auto callback = [this, feedType, limit, offset](Outcome<juce::var> result) {
-    Log::debug("AppStore: performFetch callback invoked for feedType=" + feedTypeToString(feedType));
-    if (result.isOk()) {
-      Log::debug("AppStore: Feed response received, parsing...");
-      handleFetchSuccess(feedType, result.getValue(), limit, offset);
-    } else {
-      Log::debug("AppStore: Feed request failed: " + result.getError());
-      handleFetchError(feedType, result.getError());
-    }
-  };
+  // Get the appropriate observable based on feed type
+  rxcpp::observable<juce::var> feedObservable;
 
-  // Call the appropriate feed method based on feed type
   if (feedType == FeedType::Timeline) {
-    Util::logDebug("AppStore", "performFetch: calling getTimelineFeed");
-    networkClient->getTimelineFeed(limit, offset, callback);
+    Util::logDebug("AppStore", "performFetch: using getTimelineFeedObservable");
+    feedObservable = networkClient->getTimelineFeedObservable(limit, offset);
   } else if (feedType == FeedType::Trending) {
-    networkClient->getTrendingFeed(limit, offset, callback);
+    feedObservable = networkClient->getTrendingFeedObservable(limit, offset);
   } else if (feedType == FeedType::Global) {
-    networkClient->getGlobalFeed(limit, offset, callback);
+    feedObservable = networkClient->getGlobalFeedObservable(limit, offset);
   } else if (feedType == FeedType::ForYou) {
-    networkClient->getForYouFeed(limit, offset, callback);
+    feedObservable = networkClient->getForYouFeedObservable(limit, offset);
   } else if (feedType == FeedType::Popular) {
-    networkClient->getPopularFeed(limit, offset, callback);
+    feedObservable = networkClient->getPopularFeedObservable(limit, offset);
   } else if (feedType == FeedType::Latest) {
-    networkClient->getLatestFeed(limit, offset, callback);
+    feedObservable = networkClient->getLatestFeedObservable(limit, offset);
   } else if (feedType == FeedType::Discovery) {
-    networkClient->getDiscoveryFeed(limit, offset, callback);
+    feedObservable = networkClient->getDiscoveryFeedObservable(limit, offset);
   } else if (feedType == FeedType::TimelineAggregated) {
-    networkClient->getAggregatedTimeline(limit, offset, callback);
+    // Aggregated feeds still use callbacks as they don't have observable versions yet
+    networkClient->getAggregatedTimeline(limit, offset, [this, feedType, limit, offset](Outcome<juce::var> result) {
+      if (result.isOk()) {
+        handleFetchSuccess(feedType, result.getValue(), limit, offset);
+      } else {
+        handleFetchError(feedType, result.getError());
+      }
+    });
+    return;
   } else if (feedType == FeedType::TrendingAggregated) {
-    networkClient->getTrendingFeedGrouped(limit, offset, callback);
+    networkClient->getTrendingFeedGrouped(limit, offset, [this, feedType, limit, offset](Outcome<juce::var> result) {
+      if (result.isOk()) {
+        handleFetchSuccess(feedType, result.getValue(), limit, offset);
+      } else {
+        handleFetchError(feedType, result.getError());
+      }
+    });
+    return;
   } else if (feedType == FeedType::NotificationAggregated) {
-    networkClient->getNotificationsAggregated(limit, offset, callback);
+    networkClient->getNotificationsAggregated(limit, offset,
+                                              [this, feedType, limit, offset](Outcome<juce::var> result) {
+                                                if (result.isOk()) {
+                                                  handleFetchSuccess(feedType, result.getValue(), limit, offset);
+                                                } else {
+                                                  handleFetchError(feedType, result.getError());
+                                                }
+                                              });
+    return;
   } else if (feedType == FeedType::UserActivityAggregated) {
     // For user activity, we would need the user ID - for now, skip
     Util::logWarning("AppStore", "UserActivityAggregated requires userId - skipping");
+    return;
+  } else {
+    Util::logError("AppStore", "Unknown feed type");
+    return;
   }
+
+  // Subscribe to the observable
+  feedObservable.subscribe(
+      [this, feedType, limit, offset](const juce::var &data) {
+        Log::debug("AppStore: Feed response received via observable, parsing...");
+        handleFetchSuccess(feedType, data, limit, offset);
+      },
+      [this, feedType](std::exception_ptr ep) {
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          Log::debug("AppStore: Feed request failed: " + juce::String(e.what()));
+          handleFetchError(feedType, juce::String(e.what()));
+        }
+      });
 }
 
 void AppStore::handleFetchSuccess(FeedType feedType, const juce::var &data, int limit, int offset) {

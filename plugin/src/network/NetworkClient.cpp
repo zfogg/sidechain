@@ -1250,6 +1250,51 @@ void NetworkClient::updateUserProfile(const juce::String &username, const juce::
 }
 
 // ==============================================================================
+// User Profile Observable Methods
+
+rxcpp::observable<juce::var> NetworkClient::getCurrentUserObservable() {
+  auto source = rxcpp::sources::create<juce::var>([this](auto observer) {
+    if (!isAuthenticated()) {
+      observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
+      return;
+    }
+
+    getCurrentUser([observer](Outcome<juce::var> result) {
+      if (result.isOk()) {
+        observer.on_next(result.getValue());
+        observer.on_completed();
+      } else {
+        observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+      }
+    });
+  });
+
+  return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<juce::var> NetworkClient::updateUserProfileObservable(const juce::String &username,
+                                                                        const juce::String &displayName,
+                                                                        const juce::String &bio) {
+  auto source = rxcpp::sources::create<juce::var>([this, username, displayName, bio](auto observer) {
+    if (!isAuthenticated()) {
+      observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
+      return;
+    }
+
+    updateUserProfile(username, displayName, bio, [observer](Outcome<juce::var> result) {
+      if (result.isOk()) {
+        observer.on_next(result.getValue());
+        observer.on_completed();
+      } else {
+        observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+      }
+    });
+  });
+
+  return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
+}
+
+// ==============================================================================
 // Model parsing helpers (Phase 3 refactoring)
 
 Outcome<std::vector<std::shared_ptr<Sidechain::FeedPost>>>

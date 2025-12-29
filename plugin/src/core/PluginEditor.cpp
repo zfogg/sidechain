@@ -2980,12 +2980,10 @@ void SidechainAudioProcessorEditor::fetchNotifications() {
       notificationList->setUnreadCount(notifResult.unread);
     }
 
-    // Parse notification groups
+    // Convert typed Notification objects to NotificationItem
     juce::Array<NotificationItem> items;
-    if (notifResult.notifications.isArray()) {
-      for (int i = 0; i < notifResult.notifications.size(); ++i) {
-        items.add(NotificationItem::fromJson(notifResult.notifications[i]));
-      }
+    for (const auto &notif : notifResult.notifications) {
+      items.add(NotificationItem::fromNotification(notif));
     }
 
     // Show OS notification for new notifications (most recent first)
@@ -3035,8 +3033,8 @@ void SidechainAudioProcessorEditor::fetchNotificationCounts() {
       networkClient->getNotifications(1, 0, [this](Outcome<NetworkClient::NotificationResult> result) {
         if (result.isOk()) {
           auto notifResult = result.getValue();
-          if (notifResult.notifications.isArray() && notifResult.notifications.size() > 0) {
-            auto latestNotification = NotificationItem::fromJson(notifResult.notifications[0]);
+          if (!notifResult.notifications.empty()) {
+            auto latestNotification = NotificationItem::fromNotification(notifResult.notifications[0]);
             juce::String notificationTitle = "Sidechain";
             juce::String notificationMessage = latestNotification.getDisplayText();
 

@@ -4,6 +4,7 @@
 #include "../../models/Story.h"
 #include "../../network/StreamChatClient.h"
 #include <JuceHeader.h>
+#include <rxcpp/rx.hpp>
 
 class NetworkClient;
 
@@ -22,7 +23,6 @@ class NetworkClient;
  */
 class ShareToMessageDialog : public juce::Component,
                              public juce::TextEditor::Listener,
-                             public juce::Timer,
                              public juce::ScrollBar::Listener {
 public:
   ShareToMessageDialog();
@@ -36,9 +36,6 @@ public:
   // TextEditor::Listener
   void textEditorTextChanged(juce::TextEditor &editor) override;
   void textEditorReturnKeyPressed(juce::TextEditor &editor) override;
-
-  // Timer for debounced search
-  void timerCallback() override;
 
   // Callbacks
   std::function<void()> onClosed;                      // Dialog closed/cancelled
@@ -158,6 +155,13 @@ private:
   void sendPostToChannel(const ConversationItem &conversation);
   void handleSendSuccess(const juce::String &channelId);
   void handleSendError(const juce::String &channelId, const juce::String &error);
+
+  // ==============================================================================
+  // RxCpp debounced search
+  rxcpp::subjects::subject<juce::String> searchQuerySubject_;
+  rxcpp::composite_subscription searchSubscription_;
+
+  void setupDebouncedSearch();
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ShareToMessageDialog)
 };

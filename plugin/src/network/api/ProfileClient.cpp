@@ -6,8 +6,10 @@
 #include "../../util/Async.h"
 #include "../../util/Constants.h"
 #include "../../util/Log.h"
+#include "../../util/rx/JuceScheduler.h"
 #include "../NetworkClient.h"
 #include "Common.h"
+#include <rxcpp/rx.hpp>
 
 using namespace Sidechain::Network::Api;
 
@@ -201,4 +203,138 @@ void NetworkClient::getUserPosts(const juce::String &userId, int limit, int offs
       callback(outcome);
     });
   });
+}
+
+// ==============================================================================
+// Reactive Observable Methods
+// ==============================================================================
+
+rxcpp::observable<juce::var> NetworkClient::getUserObservable(const juce::String &userId) {
+  auto source = rxcpp::sources::create<juce::var>([this, userId](auto observer) {
+    if (userId.isEmpty()) {
+      observer.on_error(std::make_exception_ptr(std::runtime_error("User ID is empty")));
+      return;
+    }
+
+    getUser(userId, [observer](Outcome<juce::var> result) {
+      if (result.isOk()) {
+        observer.on_next(result.getValue());
+        observer.on_completed();
+      } else {
+        observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+      }
+    });
+  });
+
+  return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<juce::var> NetworkClient::getUserPostsObservable(const juce::String &userId, int limit, int offset) {
+  auto source = rxcpp::sources::create<juce::var>([this, userId, limit, offset](auto observer) {
+    if (userId.isEmpty()) {
+      observer.on_error(std::make_exception_ptr(std::runtime_error("User ID is empty")));
+      return;
+    }
+
+    getUserPosts(userId, limit, offset, [observer](Outcome<juce::var> result) {
+      if (result.isOk()) {
+        observer.on_next(result.getValue());
+        observer.on_completed();
+      } else {
+        observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+      }
+    });
+  });
+
+  return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<juce::var> NetworkClient::getFollowersObservable(const juce::String &userId, int limit, int offset) {
+  auto source = rxcpp::sources::create<juce::var>([this, userId, limit, offset](auto observer) {
+    if (userId.isEmpty()) {
+      observer.on_error(std::make_exception_ptr(std::runtime_error("User ID is empty")));
+      return;
+    }
+
+    getFollowers(userId, limit, offset, [observer](Outcome<juce::var> result) {
+      if (result.isOk()) {
+        observer.on_next(result.getValue());
+        observer.on_completed();
+      } else {
+        observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+      }
+    });
+  });
+
+  return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<juce::var> NetworkClient::getFollowingObservable(const juce::String &userId, int limit, int offset) {
+  auto source = rxcpp::sources::create<juce::var>([this, userId, limit, offset](auto observer) {
+    if (userId.isEmpty()) {
+      observer.on_error(std::make_exception_ptr(std::runtime_error("User ID is empty")));
+      return;
+    }
+
+    getFollowing(userId, limit, offset, [observer](Outcome<juce::var> result) {
+      if (result.isOk()) {
+        observer.on_next(result.getValue());
+        observer.on_completed();
+      } else {
+        observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+      }
+    });
+  });
+
+  return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<juce::var> NetworkClient::changeUsernameObservable(const juce::String &newUsername) {
+  auto source = rxcpp::sources::create<juce::var>([this, newUsername](auto observer) {
+    if (!isAuthenticated()) {
+      observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
+      return;
+    }
+
+    if (newUsername.isEmpty()) {
+      observer.on_error(std::make_exception_ptr(std::runtime_error("Username cannot be empty")));
+      return;
+    }
+
+    changeUsername(newUsername, [observer](Outcome<juce::var> result) {
+      if (result.isOk()) {
+        observer.on_next(result.getValue());
+        observer.on_completed();
+      } else {
+        observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+      }
+    });
+  });
+
+  return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<juce::String> NetworkClient::uploadProfilePictureObservable(const juce::File &imageFile) {
+  auto source = rxcpp::sources::create<juce::String>([this, imageFile](auto observer) {
+    if (!isAuthenticated()) {
+      observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
+      return;
+    }
+
+    if (!imageFile.existsAsFile()) {
+      observer.on_error(std::make_exception_ptr(std::runtime_error("Image file does not exist")));
+      return;
+    }
+
+    uploadProfilePicture(imageFile, [observer](Outcome<juce::String> result) {
+      if (result.isOk()) {
+        observer.on_next(result.getValue());
+        observer.on_completed();
+      } else {
+        observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+      }
+    });
+  });
+
+  return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
 }

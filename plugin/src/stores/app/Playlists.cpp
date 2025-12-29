@@ -55,46 +55,34 @@ void AppStore::loadPlaylists() {
   newState.isLoading = true;
   stateManager.playlists->setState(newState);
 
-  networkClient->getPlaylists("all", [this](Outcome<juce::var> result) {
-    if (result.isOk()) {
-      const auto data = result.getValue();
-
-      // Parse juce::var response into shared_ptr Playlist objects
-      juce::String jsonString = juce::JSON::toString(data, false);
-      try {
-        auto jsonArray = nlohmann::json::parse(jsonString.toStdString());
-        auto parseResult = Playlist::createFromJsonArray(jsonArray);
-
-        if (parseResult.isOk()) {
-          auto playlistsList = parseResult.getValue();
-          PlaylistState successState = stateManager.playlists->getState();
-          successState.playlists = playlistsList;
-          successState.isLoading = false;
-          successState.playlistError = "";
-          Util::logInfo("AppStore", "Loaded " + juce::String(playlistsList.size()) + " playlists");
-          stateManager.playlists->setState(successState);
-        } else {
-          PlaylistState parseErrorState = stateManager.playlists->getState();
-          parseErrorState.isLoading = false;
-          parseErrorState.playlistError = parseResult.getError();
-          Util::logError("AppStore", "Failed to parse playlists: " + parseResult.getError());
-          stateManager.playlists->setState(parseErrorState);
+  loadPlaylistsObservable().subscribe(
+      [this](const std::vector<Playlist> &playlists) {
+        // Convert value types to shared_ptr for state
+        std::vector<std::shared_ptr<Playlist>> playlistsList;
+        playlistsList.reserve(playlists.size());
+        for (const auto &p : playlists) {
+          playlistsList.push_back(std::make_shared<Playlist>(p));
         }
-      } catch (const std::exception &e) {
-        PlaylistState exceptionState = stateManager.playlists->getState();
-        exceptionState.isLoading = false;
-        exceptionState.playlistError = juce::String(e.what());
-        Util::logError("AppStore", "JSON parse error: " + juce::String(e.what()));
-        stateManager.playlists->setState(exceptionState);
-      }
-    } else {
-      PlaylistState networkErrorState = stateManager.playlists->getState();
-      networkErrorState.isLoading = false;
-      networkErrorState.playlistError = result.getError();
-      Util::logError("AppStore", "Failed to load playlists: " + result.getError());
-      stateManager.playlists->setState(networkErrorState);
-    }
-  });
+
+        PlaylistState successState = stateManager.playlists->getState();
+        successState.playlists = std::move(playlistsList);
+        successState.isLoading = false;
+        successState.playlistError = "";
+        stateManager.playlists->setState(successState);
+      },
+      [this](std::exception_ptr ep) {
+        juce::String errorMsg;
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          errorMsg = e.what();
+        }
+        PlaylistState errorState = stateManager.playlists->getState();
+        errorState.isLoading = false;
+        errorState.playlistError = errorMsg;
+        Util::logError("AppStore", "Failed to load playlists: " + errorMsg);
+        stateManager.playlists->setState(errorState);
+      });
 }
 
 void AppStore::createPlaylist(const juce::String &name, const juce::String &description) {
@@ -105,19 +93,25 @@ void AppStore::createPlaylist(const juce::String &name, const juce::String &desc
 
   Util::logInfo("AppStore", "Creating playlist: " + name);
 
-  // createPlaylist signature: name, description="", isCollaborative=false, isPublic=true, callback
-  networkClient->createPlaylist(name, description, false, true, [this](Outcome<juce::var> result) {
-    if (result.isOk()) {
-      Util::logInfo("AppStore", "Playlist created successfully");
-      // Reload playlists to get the new one
-      loadPlaylists();
-    } else {
-      PlaylistState createErrorState = stateManager.playlists->getState();
-      createErrorState.playlistError = result.getError();
-      Util::logError("AppStore", "Failed to create playlist: " + result.getError());
-      stateManager.playlists->setState(createErrorState);
-    }
-  });
+  createPlaylistObservable(name, description)
+      .subscribe(
+          [this](const Playlist &) {
+            Util::logInfo("AppStore", "Playlist created successfully");
+            // Reload playlists to get the new one
+            loadPlaylists();
+          },
+          [this](std::exception_ptr ep) {
+            juce::String errorMsg;
+            try {
+              std::rethrow_exception(ep);
+            } catch (const std::exception &e) {
+              errorMsg = e.what();
+            }
+            PlaylistState createErrorState = stateManager.playlists->getState();
+            createErrorState.playlistError = errorMsg;
+            Util::logError("AppStore", "Failed to create playlist: " + errorMsg);
+            stateManager.playlists->setState(createErrorState);
+          });
 }
 
 void AppStore::deletePlaylist(const juce::String &playlistId) {
@@ -128,28 +122,21 @@ void AppStore::deletePlaylist(const juce::String &playlistId) {
 
   Util::logInfo("AppStore", "Deleting playlist: " + playlistId);
 
-  // Optimistically remove from state
-  PlaylistState currentState = stateManager.playlists->getState();
-  auto it = std::find_if(currentState.playlists.begin(), currentState.playlists.end(),
-                         [&playlistId](const auto &p) { return p->id == playlistId; });
-
-  if (it != currentState.playlists.end()) {
-    currentState.playlists.erase(it);
-    stateManager.playlists->setState(currentState);
-    Util::logInfo("AppStore", "Playlist removed from local state");
-  }
-
-  // Make API call to delete on server
-  networkClient->deletePlaylist(playlistId, [this, playlistId](Outcome<juce::var> result) {
-    if (result.isOk()) {
-      Util::logInfo("AppStore", "Playlist deleted on server: " + playlistId);
-    } else {
-      PlaylistState errorState = stateManager.playlists->getState();
-      errorState.playlistError = result.getError();
-      stateManager.playlists->setState(errorState);
-      Util::logError("AppStore", "Failed to delete playlist: " + result.getError());
-    }
-  });
+  // deletePlaylistObservable handles optimistic update and rollback
+  deletePlaylistObservable(playlistId)
+      .subscribe([playlistId](int) { Util::logInfo("AppStore", "Playlist deleted on server: " + playlistId); },
+                 [this](std::exception_ptr ep) {
+                   juce::String errorMsg;
+                   try {
+                     std::rethrow_exception(ep);
+                   } catch (const std::exception &e) {
+                     errorMsg = e.what();
+                   }
+                   PlaylistState errorState = stateManager.playlists->getState();
+                   errorState.playlistError = errorMsg;
+                   stateManager.playlists->setState(errorState);
+                   Util::logError("AppStore", "Failed to delete playlist: " + errorMsg);
+                 });
 }
 
 void AppStore::addPostToPlaylist(const juce::String &postId, const juce::String &playlistId) {
@@ -160,17 +147,20 @@ void AppStore::addPostToPlaylist(const juce::String &postId, const juce::String 
 
   Util::logInfo("AppStore", "Adding post " + postId + " to playlist " + playlistId);
 
-  networkClient->addPlaylistEntry(playlistId, postId, -1, [this](Outcome<juce::var> result) {
-    if (result.isOk()) {
-      Util::logInfo("AppStore", "Post added to playlist successfully");
-      // Could reload playlists here if needed
-    } else {
-      PlaylistState errorState = stateManager.playlists->getState();
-      errorState.playlistError = result.getError();
-      stateManager.playlists->setState(errorState);
-      Util::logError("AppStore", "Failed to add post to playlist: " + result.getError());
-    }
-  });
+  addPostToPlaylistObservable(postId, playlistId)
+      .subscribe([](int) { Util::logInfo("AppStore", "Post added to playlist successfully"); },
+                 [this](std::exception_ptr ep) {
+                   juce::String errorMsg;
+                   try {
+                     std::rethrow_exception(ep);
+                   } catch (const std::exception &e) {
+                     errorMsg = e.what();
+                   }
+                   PlaylistState errorState = stateManager.playlists->getState();
+                   errorState.playlistError = errorMsg;
+                   stateManager.playlists->setState(errorState);
+                   Util::logError("AppStore", "Failed to add post to playlist: " + errorMsg);
+                 });
 }
 
 // ==============================================================================

@@ -16,32 +16,35 @@ void AppStore::loadChallenges() {
   newState.isLoading = true;
   challengeState->setState(newState);
 
-  networkClient->getMIDIChallenges("", [challengeState](Outcome<juce::var> result) {
-    if (result.isOk()) {
-      const auto data = result.getValue();
-      std::vector<std::shared_ptr<Sidechain::MIDIChallenge>> challengesList;
-
-      if (data.isArray()) {
-        for (int i = 0; i < data.size(); ++i) {
-          auto challenge = Sidechain::MIDIChallenge::fromJSON(data[i]);
-          challengesList.push_back(std::make_shared<Sidechain::MIDIChallenge>(challenge));
+  loadChallengesObservable().subscribe(
+      [challengeState](const std::vector<MIDIChallenge> &challenges) {
+        // Convert to shared_ptr for state
+        std::vector<std::shared_ptr<Sidechain::MIDIChallenge>> challengesList;
+        challengesList.reserve(challenges.size());
+        for (const auto &c : challenges) {
+          challengesList.push_back(std::make_shared<Sidechain::MIDIChallenge>(c));
         }
-      }
 
-      ChallengeState successState = challengeState->getState();
-      successState.challenges = challengesList;
-      successState.isLoading = false;
-      successState.challengeError = "";
-      Util::logInfo("AppStore", "Loaded " + juce::String(challengesList.size()) + " challenges");
-      challengeState->setState(successState);
-    } else {
-      ChallengeState errorState = challengeState->getState();
-      errorState.isLoading = false;
-      errorState.challengeError = result.getError();
-      Util::logError("AppStore", "Failed to load challenges: " + result.getError());
-      challengeState->setState(errorState);
-    }
-  });
+        ChallengeState successState = challengeState->getState();
+        successState.challenges = std::move(challengesList);
+        successState.isLoading = false;
+        successState.challengeError = "";
+        Util::logInfo("AppStore", "Loaded " + juce::String(successState.challenges.size()) + " challenges");
+        challengeState->setState(successState);
+      },
+      [challengeState](std::exception_ptr ep) {
+        juce::String errorMsg;
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          errorMsg = e.what();
+        }
+        ChallengeState errorState = challengeState->getState();
+        errorState.isLoading = false;
+        errorState.challengeError = errorMsg;
+        Util::logError("AppStore", "Failed to load challenges: " + errorMsg);
+        challengeState->setState(errorState);
+      });
 }
 
 void AppStore::submitChallenge(const juce::String &challengeId, const juce::File &midiFile) {
@@ -57,41 +60,17 @@ void AppStore::submitChallenge(const juce::String &challengeId, const juce::File
 
   Util::logInfo("AppStore", "Submitting challenge " + challengeId + " with MIDI file: " + midiFile.getFileName());
 
-  // Read MIDI file content
-  auto midiContent = midiFile.loadFileAsString();
-  if (midiContent.isEmpty()) {
-    Util::logError("AppStore", "Failed to read MIDI file content: " + midiFile.getFullPathName());
-    return;
-  }
-
-  // Parse as JSON var (if MIDI data is in JSON format) or convert to base64
-  juce::var midiData;
-  try {
-    // Try to parse as JSON first
-    juce::var parsed = juce::JSON::parse(midiContent);
-    if (!parsed.isVoid()) {
-      midiData = parsed;
-    } else {
-      // If not JSON, store as string (base64 encoded would be ideal but keeping it simple)
-      midiData = midiContent;
-    }
-  } catch (...) {
-    // If parsing fails, just use as string
-    midiData = midiContent;
-  }
-
-  // Submit challenge entry with MIDI data
-  // audioUrl is empty since we're submitting MIDI data directly
-  // Backend will synthesize audio from MIDI data if needed
-  networkClient->submitMIDIChallengeEntry(challengeId, "", "", midiData, "", [challengeId](Outcome<juce::var> result) {
-    if (result.isOk()) {
-      const auto data = result.getValue();
-      Util::logInfo("AppStore", "Successfully submitted challenge " + challengeId);
-      // Update state if needed
-    } else {
-      Util::logError("AppStore", "Failed to submit challenge: " + result.getError());
-    }
-  });
+  submitChallengeObservable(challengeId, midiFile)
+      .subscribe([challengeId](int) { Util::logInfo("AppStore", "Successfully submitted challenge " + challengeId); },
+                 [challengeId](std::exception_ptr ep) {
+                   juce::String errorMsg;
+                   try {
+                     std::rethrow_exception(ep);
+                   } catch (const std::exception &e) {
+                     errorMsg = e.what();
+                   }
+                   Util::logError("AppStore", "Failed to submit challenge " + challengeId + ": " + errorMsg);
+                 });
 }
 
 // ==============================================================================

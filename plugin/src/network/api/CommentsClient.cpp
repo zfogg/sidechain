@@ -230,31 +230,156 @@ void NetworkClient::reportComment(const juce::String &commentId, const juce::Str
 
 rxcpp::observable<std::pair<juce::var, int>> NetworkClient::getCommentsObservable(const juce::String &postId, int limit,
                                                                                   int offset) {
-  return rxcpp::sources::create<std::pair<juce::var, int>>([this, postId, limit, offset](auto observer) {
-           juce::String endpoint = buildApiPath("/posts") + "/" + postId + "/comments?limit=" + juce::String(limit) +
-                                   "&offset=" + juce::String(offset);
+  auto source = rxcpp::sources::create<std::pair<juce::var, int>>([this, postId, limit, offset](auto observer) {
+    juce::String endpoint = buildApiPath("/posts") + "/" + postId + "/comments?limit=" + juce::String(limit) +
+                            "&offset=" + juce::String(offset);
 
-           Async::runVoid([this, endpoint, observer]() {
-             auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+    Async::runVoid([this, endpoint, observer]() {
+      auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
 
-             int totalCount = 0;
-             juce::var comments;
+      int totalCount = 0;
+      juce::var comments;
 
-             if (result.isSuccess() && result.data.isObject()) {
-               comments = Json::getArray(result.data, "comments");
-               totalCount = Json::getInt(result.data, "total_count");
-             }
+      if (result.isSuccess() && result.data.isObject()) {
+        comments = Json::getArray(result.data, "comments");
+        totalCount = Json::getInt(result.data, "total_count");
+      }
 
-             juce::MessageManager::callAsync([observer, result, comments, totalCount]() {
-               if (result.isSuccess()) {
-                 observer.on_next(std::make_pair(comments, totalCount));
-                 observer.on_completed();
-               } else {
-                 observer.on_error(
-                     std::make_exception_ptr(std::runtime_error(result.getUserFriendlyError().toStdString())));
-               }
-             });
-           });
-         })
-      .observe_on(Sidechain::Rx::observe_on_juce_thread());
+      juce::MessageManager::callAsync([observer, result, comments, totalCount]() {
+        if (result.isSuccess()) {
+          observer.on_next(std::make_pair(comments, totalCount));
+          observer.on_completed();
+        } else {
+          observer.on_error(std::make_exception_ptr(std::runtime_error(result.getUserFriendlyError().toStdString())));
+        }
+      });
+    });
+  });
+
+  return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<juce::var> NetworkClient::createCommentObservable(const juce::String &postId,
+                                                                    const juce::String &content,
+                                                                    const juce::String &parentId) {
+  auto source = rxcpp::sources::create<juce::var>([this, postId, content, parentId](auto observer) {
+    if (!isAuthenticated()) {
+      observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
+      return;
+    }
+
+    createComment(postId, content, parentId, [observer](Outcome<juce::var> result) {
+      if (result.isOk()) {
+        observer.on_next(result.getValue());
+        observer.on_completed();
+      } else {
+        observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+      }
+    });
+  });
+
+  return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<juce::var> NetworkClient::deleteCommentObservable(const juce::String &commentId) {
+  auto source = rxcpp::sources::create<juce::var>([this, commentId](auto observer) {
+    if (!isAuthenticated()) {
+      observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
+      return;
+    }
+
+    deleteComment(commentId, [observer](Outcome<juce::var> result) {
+      if (result.isOk()) {
+        observer.on_next(result.getValue());
+        observer.on_completed();
+      } else {
+        observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+      }
+    });
+  });
+
+  return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<juce::var> NetworkClient::likeCommentObservable(const juce::String &commentId) {
+  auto source = rxcpp::sources::create<juce::var>([this, commentId](auto observer) {
+    if (!isAuthenticated()) {
+      observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
+      return;
+    }
+
+    likeComment(commentId, [observer](Outcome<juce::var> result) {
+      if (result.isOk()) {
+        observer.on_next(result.getValue());
+        observer.on_completed();
+      } else {
+        observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+      }
+    });
+  });
+
+  return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<juce::var> NetworkClient::unlikeCommentObservable(const juce::String &commentId) {
+  auto source = rxcpp::sources::create<juce::var>([this, commentId](auto observer) {
+    if (!isAuthenticated()) {
+      observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
+      return;
+    }
+
+    unlikeComment(commentId, [observer](Outcome<juce::var> result) {
+      if (result.isOk()) {
+        observer.on_next(result.getValue());
+        observer.on_completed();
+      } else {
+        observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+      }
+    });
+  });
+
+  return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<juce::var> NetworkClient::updateCommentObservable(const juce::String &commentId,
+                                                                    const juce::String &content) {
+  auto source = rxcpp::sources::create<juce::var>([this, commentId, content](auto observer) {
+    if (!isAuthenticated()) {
+      observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
+      return;
+    }
+
+    updateComment(commentId, content, [observer](Outcome<juce::var> result) {
+      if (result.isOk()) {
+        observer.on_next(result.getValue());
+        observer.on_completed();
+      } else {
+        observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+      }
+    });
+  });
+
+  return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<juce::var> NetworkClient::reportCommentObservable(const juce::String &commentId,
+                                                                    const juce::String &reason,
+                                                                    const juce::String &description) {
+  auto source = rxcpp::sources::create<juce::var>([this, commentId, reason, description](auto observer) {
+    if (!isAuthenticated()) {
+      observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
+      return;
+    }
+
+    reportComment(commentId, reason, description, [observer](Outcome<juce::var> result) {
+      if (result.isOk()) {
+        observer.on_next(result.getValue());
+        observer.on_completed();
+      } else {
+        observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+      }
+    });
+  });
+
+  return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
 }

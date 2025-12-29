@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../models/AggregatedFeedGroup.h"
+#include "../../models/Notification.h"
 #include <JuceHeader.h>
 
 // ==============================================================================
@@ -30,6 +31,9 @@ struct NotificationItem {
 
   // Parse from JSON response (old format for backward compatibility)
   static NotificationItem fromJson(const juce::var &json);
+
+  // Create from typed Notification model
+  static NotificationItem fromNotification(const Sidechain::Notification &notif);
 
   // Create from AggregatedFeedGroup
   static NotificationItem fromAggregatedGroup(const Sidechain::AggregatedFeedGroup &group, bool read = false,

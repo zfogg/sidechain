@@ -18,45 +18,35 @@ void AppStore::loadStoriesFeed() {
   newState.isFeedLoading = true;
   stateManager.stories->setState(newState);
 
-  networkClient->getStoriesFeed([this](Outcome<juce::var> result) {
-    if (result.isOk()) {
-      const auto data = result.getValue();
-      std::vector<std::shared_ptr<Sidechain::Story>> storiesList;
-
-      if (data.isArray()) {
-        for (int i = 0; i < data.size(); ++i) {
-          try {
-            // Convert juce::var to nlohmann::json for new API
-            auto jsonStr = juce::JSON::toString(data[i]);
-            auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
-
-            // Use new SerializableModel API
-            auto storyResult = Sidechain::SerializableModel<Sidechain::Story>::createFromJson(jsonObj);
-            if (storyResult.isOk()) {
-              storiesList.push_back(storyResult.getValue());
-            } else {
-              Util::logError("AppStore", "Failed to parse story: " + storyResult.getError());
-            }
-          } catch (const std::exception &e) {
-            Util::logError("AppStore", "Exception parsing story: " + juce::String(e.what()));
-          }
+  loadStoriesFeedObservable().subscribe(
+      [this](const std::vector<Story> &stories) {
+        // Convert to shared_ptr for state
+        std::vector<std::shared_ptr<Sidechain::Story>> storiesList;
+        storiesList.reserve(stories.size());
+        for (const auto &s : stories) {
+          storiesList.push_back(std::make_shared<Sidechain::Story>(s));
         }
-      }
 
-      StoriesState feedState = stateManager.stories->getState();
-      feedState.feedUserStories = storiesList;
-      feedState.isFeedLoading = false;
-      feedState.storiesError = "";
-      Util::logInfo("AppStore", "Loaded " + juce::String(storiesList.size()) + " stories from feed");
-      stateManager.stories->setState(feedState);
-    } else {
-      StoriesState feedErrorState = stateManager.stories->getState();
-      feedErrorState.isFeedLoading = false;
-      feedErrorState.storiesError = result.getError();
-      Util::logError("AppStore", "Failed to load stories feed: " + result.getError());
-      stateManager.stories->setState(feedErrorState);
-    }
-  });
+        StoriesState feedState = stateManager.stories->getState();
+        feedState.feedUserStories = std::move(storiesList);
+        feedState.isFeedLoading = false;
+        feedState.storiesError = "";
+        Util::logInfo("AppStore", "Loaded " + juce::String(feedState.feedUserStories.size()) + " stories from feed");
+        stateManager.stories->setState(feedState);
+      },
+      [this](std::exception_ptr ep) {
+        juce::String errorMsg;
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          errorMsg = e.what();
+        }
+        StoriesState feedErrorState = stateManager.stories->getState();
+        feedErrorState.isFeedLoading = false;
+        feedErrorState.storiesError = errorMsg;
+        Util::logError("AppStore", "Failed to load stories feed: " + errorMsg);
+        stateManager.stories->setState(feedErrorState);
+      });
 }
 
 void AppStore::loadMyStories() {
@@ -69,52 +59,33 @@ void AppStore::loadMyStories() {
   myStoriesStartState.isMyStoriesLoading = true;
   stateManager.stories->setState(myStoriesStartState);
 
-  // Fetch user's own stories from NetworkClient
-  networkClient->getStoriesFeed([this](Outcome<juce::var> result) {
-    if (!result.isOk()) {
-      Util::logError("AppStore", "Failed to load my stories: " + result.getError());
-      StoriesState errorState = stateManager.stories->getState();
-      errorState.isMyStoriesLoading = false;
-      // Note: StoriesState doesn't have myStoriesError field yet
-      stateManager.stories->setState(errorState);
-      return;
-    }
-
-    // Parse the response - should be an array of stories
-    const auto &data = result.getValue();
-    StoriesState newState = stateManager.stories->getState();
-    newState.isMyStoriesLoading = false;
-
-    // Get current user ID to filter only user's own stories
-    const auto currentAuthState = stateManager.auth->getState();
-    const juce::String currentUserId = currentAuthState.userId;
-
-    if (data.isArray()) {
-      // Clear existing stories and populate only with user's own stories
-      newState.myStories.clear();
-      for (int i = 0; i < data.size(); ++i) {
-        const auto &storyData = data[i];
-        if (storyData.isObject()) {
-          auto *obj = storyData.getDynamicObject();
-          if (obj) {
-            juce::String storyUserId = obj->getProperty("user_id").toString();
-            // Only include stories that belong to the current user
-            if (storyUserId == currentUserId) {
-              auto story = std::make_shared<Story>();
-              story->id = obj->getProperty("id").toString();
-              story->audioUrl = obj->getProperty("audio_url").toString();
-              story->userId = storyUserId;
-
-              newState.myStories.push_back(story);
-            }
-          }
+  loadMyStoriesObservable().subscribe(
+      [this](const std::vector<Story> &stories) {
+        // Convert to shared_ptr for state
+        std::vector<std::shared_ptr<Story>> myStoriesList;
+        myStoriesList.reserve(stories.size());
+        for (const auto &s : stories) {
+          myStoriesList.push_back(std::make_shared<Story>(s));
         }
-      }
-      Util::logInfo("AppStore", "Loaded " + juce::String(newState.myStories.size()) + " of my stories");
-    }
 
-    stateManager.stories->setState(newState);
-  });
+        StoriesState newState = stateManager.stories->getState();
+        newState.myStories = std::move(myStoriesList);
+        newState.isMyStoriesLoading = false;
+        Util::logInfo("AppStore", "Loaded " + juce::String(newState.myStories.size()) + " of my stories");
+        stateManager.stories->setState(newState);
+      },
+      [this](std::exception_ptr ep) {
+        juce::String errorMsg;
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          errorMsg = e.what();
+        }
+        Util::logError("AppStore", "Failed to load my stories: " + errorMsg);
+        StoriesState errorState = stateManager.stories->getState();
+        errorState.isMyStoriesLoading = false;
+        stateManager.stories->setState(errorState);
+      });
 }
 
 void AppStore::markStoryAsViewed(const juce::String &storyId) {
@@ -124,11 +95,17 @@ void AppStore::markStoryAsViewed(const juce::String &storyId) {
 
   Util::logInfo("AppStore", "Marking story as viewed: " + storyId);
 
-  networkClient->viewStory(storyId, [](Outcome<juce::var> result) {
-    if (!result.isOk()) {
-      Util::logError("AppStore", "Failed to mark story as viewed: " + result.getError());
-    }
-  });
+  markStoryAsViewedObservable(storyId).subscribe(
+      [storyId](int) { Util::logInfo("AppStore", "Story marked as viewed: " + storyId); },
+      [storyId](std::exception_ptr ep) {
+        juce::String errorMsg;
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          errorMsg = e.what();
+        }
+        Util::logError("AppStore", "Failed to mark story " + storyId + " as viewed: " + errorMsg);
+      });
 }
 
 void AppStore::deleteStory(const juce::String &storyId) {
@@ -139,26 +116,21 @@ void AppStore::deleteStory(const juce::String &storyId) {
 
   Util::logInfo("AppStore", "Deleting story: " + storyId);
 
-  networkClient->deleteStory(storyId, [this, storyId](Outcome<juce::var> result) {
-    if (result.isOk()) {
-      StoriesState deleteState = stateManager.stories->getState();
-      // Remove from my stories
-      for (int i = static_cast<int>(deleteState.myStories.size()) - 1; i >= 0; --i) {
-        auto story = deleteState.myStories[static_cast<size_t>(i)];
-        if (story && story->id == storyId) {
-          deleteState.myStories.erase(deleteState.myStories.begin() + i);
-          Util::logInfo("AppStore", "Story deleted: " + storyId);
-          break;
+  // deleteStoryObservable handles the state update
+  deleteStoryObservable(storyId).subscribe(
+      [storyId](int) { Util::logInfo("AppStore", "Story deleted successfully: " + storyId); },
+      [this, storyId](std::exception_ptr ep) {
+        juce::String errorMsg;
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          errorMsg = e.what();
         }
-      }
-      stateManager.stories->setState(deleteState);
-    } else {
-      StoriesState deleteErrorState = stateManager.stories->getState();
-      deleteErrorState.storiesError = result.getError();
-      Util::logError("AppStore", "Failed to delete story: " + result.getError());
-      stateManager.stories->setState(deleteErrorState);
-    }
-  });
+        StoriesState deleteErrorState = stateManager.stories->getState();
+        deleteErrorState.storiesError = errorMsg;
+        Util::logError("AppStore", "Failed to delete story " + storyId + ": " + errorMsg);
+        stateManager.stories->setState(deleteErrorState);
+      });
 }
 
 void AppStore::createHighlight(const juce::String &name, const juce::Array<juce::String> &storyIds) {

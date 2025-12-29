@@ -8,6 +8,7 @@
 #include "../common/ErrorState.h"
 #include <JuceHeader.h>
 #include <map>
+#include <rxcpp/rx.hpp>
 
 class NetworkClient;
 
@@ -120,4 +121,12 @@ protected:
 
   // Empty state button bounds (set during paint)
   mutable juce::Rectangle<int> emptyStateButtonBounds;
+
+  // ==============================================================================
+  // Real-time RxCpp subscriptions for presence and unread counts
+  rxcpp::composite_subscription presenceSubscription_;
+  rxcpp::composite_subscription unreadCountSubscription_;
+
+  void subscribeToRealTimeEvents();
+  void unsubscribeFromRealTimeEvents();
 };
