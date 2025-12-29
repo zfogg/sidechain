@@ -2142,7 +2142,7 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String &user, con
 
   // Subscribe to user state changes to wait for profile fetch to complete
   // This allows us to show the correct view (Feed or ProfileSetup) once we know if user has a profile picture
-  Slices::AppSliceManager::getInstance().user->subscribe([this](const Sidechain::Stores::UserState &userState) {
+  StateManager::getInstance().user->subscribe([this](const Sidechain::Stores::UserState &userState) {
     // Only proceed once we've fetched the profile (userId should be populated)
     if (!userState.userId.isEmpty() && !userState.isFetchingProfile) {
       Log::info("onLoginSuccess: Profile fetch complete - userId: " + userState.userId +
@@ -2373,74 +2373,73 @@ void SidechainAudioProcessorEditor::loadLoginState() {
     Log::debug("loadLoginState: Fetching user profile from backend");
     auto fetchAttempts = std::make_shared<int>(0);
 
-    Slices::AppSliceManager::getInstance().user->subscribe(
-        [this, fetchAttempts](const Sidechain::Stores::UserState &userState) {
-          Log::debug("loadLoginState subscription: isFetchingProfile=" +
-                     juce::String(userState.isFetchingProfile ? "true" : "false") + ", userError='" +
-                     userState.userError + "', userId='" + userState.userId + "'");
+    StateManager::getInstance().user->subscribe([this, fetchAttempts](const Sidechain::Stores::UserState &userState) {
+      Log::debug("loadLoginState subscription: isFetchingProfile=" +
+                 juce::String(userState.isFetchingProfile ? "true" : "false") + ", userError='" + userState.userError +
+                 "', userId='" + userState.userId + "'");
 
-          // Check if fetch is complete (either success or failure)
-          if (!userState.isFetchingProfile) {
-            // If we got an auth error, invalidate token and show auth screen
-            // Check for various auth error patterns from backend API responses
-            bool isAuthError =
-                !userState.userError.isEmpty() && (userState.userError.containsIgnoreCase("expired") ||
-                                                   userState.userError.containsIgnoreCase("invalid_token") ||
-                                                   userState.userError.containsIgnoreCase("invalid token") ||
-                                                   userState.userError.containsIgnoreCase("unauthorized") ||
-                                                   userState.userError.containsIgnoreCase("invalid claims") ||
-                                                   userState.userError.containsIgnoreCase("401") ||
-                                                   userState.userError.containsIgnoreCase("not authenticated") ||
-                                                   userState.userError.containsIgnoreCase("forbidden"));
+      // Check if fetch is complete (either success or failure)
+      if (!userState.isFetchingProfile) {
+        // If we got an auth error, invalidate token and show auth screen
+        // Check for various auth error patterns from backend API responses
+        bool isAuthError =
+            !userState.userError.isEmpty() && (userState.userError.containsIgnoreCase("expired") ||
+                                               userState.userError.containsIgnoreCase("invalid_token") ||
+                                               userState.userError.containsIgnoreCase("invalid token") ||
+                                               userState.userError.containsIgnoreCase("unauthorized") ||
+                                               userState.userError.containsIgnoreCase("invalid claims") ||
+                                               userState.userError.containsIgnoreCase("401") ||
+                                               userState.userError.containsIgnoreCase("not authenticated") ||
+                                               userState.userError.containsIgnoreCase("forbidden"));
 
-            Log::debug("loadLoginState subscription: isAuthError=" + juce::String(isAuthError ? "true" : "false"));
+        Log::debug("loadLoginState subscription: isAuthError=" + juce::String(isAuthError ? "true" : "false"));
 
-            if (isAuthError) {
-              Log::warn("loadLoginState: Auth error detected, invalidating token and showing auth screen: " +
-                        userState.userError);
+        if (isAuthError) {
+          Log::warn("loadLoginState: Auth error detected, invalidating token and showing auth screen: " +
+                    userState.userError);
 
-              // Clear the invalid token from persistent storage
-              auto invalidTokenProperties =
-                  std::make_unique<juce::PropertiesFile>(Sidechain::Util::PropertiesFileUtils::getStandardOptions());
-              invalidTokenProperties->removeValue("authToken");
-              invalidTokenProperties->save();
+          // Clear the invalid token from persistent storage
+          auto invalidTokenProperties =
+              std::make_unique<juce::PropertiesFile>(Sidechain::Util::PropertiesFileUtils::getStandardOptions());
+          invalidTokenProperties->removeValue("authToken");
+          invalidTokenProperties->save();
 
           // Also try to clear from secure storage (Release builds)
 #ifdef NDEBUG
-              if (auto *secureStore = Sidechain::Security::SecureTokenStore::getInstance()) {
-                secureStore->deleteToken("auth_token");
-              }
+          if (auto *secureStore = Sidechain::Security::SecureTokenStore::getInstance()) {
+            secureStore->deleteToken("auth_token");
+          }
 #endif
 
-              // Invalidate token in AppStore and NetworkClient via logout
-              appStore.logout();
+          // Invalidate token in AppStore and NetworkClient via logout
+          appStore.logout();
 
-              // Show auth screen
-              showView(AppView::Authentication);
-            } else if (!userState.userId.isEmpty()) {
-              // Success - profile fetched successfully
-              Log::info("loadLoginState: Profile fetch complete - userId: " + userState.userId +
-                        ", profilePictureUrl: " + (userState.profilePictureUrl.isEmpty() ? "empty" : "set"));
+          // Show auth screen
+          showView(AppView::Authentication);
+        } else if (!userState.userId.isEmpty()) {
+          // Success - profile fetched successfully
+          Log::info("loadLoginState: Profile fetch complete - userId: " + userState.userId +
+                    ", profilePictureUrl: " + (userState.profilePictureUrl.isEmpty() ? "empty" : "set"));
 
-              // Update header with fresh user data from backend
-              if (headerComponent) {
-                headerComponent->setUserInfo(userState.username, userState.profilePictureUrl);
-                if (userState.profileImage.isValid()) {
-                  headerComponent->setProfileImage(userState.profileImage);
-                }
-              }
-
-              // For logged-in users, show the PostsFeed as default entry point
-              Log::info("loadLoginState: Showing PostsFeed for logged-in user");
-              username = userState.username;
-              email = userState.email;
-              profilePicUrl = userState.profilePictureUrl;
-              showView(AppView::PostsFeed);
-
-              // Subscription will continue but callback only executes for subsequent state changes
+          // Update header with fresh user data from backend
+          if (headerComponent) {
+            headerComponent->setUserInfo(userState.username, userState.profilePictureUrl);
+            if (userState.profileImage.isValid()) {
+              headerComponent->setProfileImage(userState.profileImage);
             }
           }
-        });
+
+          // For logged-in users, show the PostsFeed as default entry point
+          Log::info("loadLoginState: Showing PostsFeed for logged-in user");
+          username = userState.username;
+          email = userState.email;
+          profilePicUrl = userState.profilePictureUrl;
+          showView(AppView::PostsFeed);
+
+          // Subscription will continue but callback only executes for subsequent state changes
+        }
+      }
+    });
 
     appStore.fetchUserProfile(true); // Force refresh
   } else {

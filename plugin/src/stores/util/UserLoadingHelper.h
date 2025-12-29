@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../EntityStore.h"
-#include "../slices/AppSlices.h"
+#include "../AppState.h"
 #include "../../util/Log.h"
 #include "../../util/Result.h"
 #include <JuceHeader.h>
@@ -45,7 +45,7 @@ namespace Utils {
  */
 template <typename StateType> class UserLoadingHelper {
 public:
-  using StateSlice = std::shared_ptr<ImmutableSlice<StateType>>;
+  using StateSlice = Rx::State<StateType>;
   using UserList = std::vector<std::shared_ptr<const User>>;
   using SetLoadingFn = std::function<void(StateType &)>;
   using NetworkCallFn = std::function<void(std::function<void(Outcome<juce::var>)>)>;
@@ -127,7 +127,7 @@ public:
  */
 template <typename StateType, typename ModelType> class GenericListLoader {
 public:
-  using StateSlice = std::shared_ptr<ImmutableSlice<StateType>>;
+  using StateSlice = Rx::State<StateType>;
   using ModelList = std::vector<std::shared_ptr<ModelType>>;
   using SetLoadingFn = std::function<void(StateType &)>;
   using NetworkCallFn = std::function<void(std::function<void(Outcome<juce::var>)>)>;
@@ -186,7 +186,7 @@ public:
  */
 template <typename StateType> class AsyncStateUpdater {
 public:
-  using StateSlice = std::shared_ptr<ImmutableSlice<StateType>>;
+  using StateSlice = Rx::State<StateType>;
   using UpdateFn = std::function<void(StateType &)>;
 
   static void update(StateSlice slice, UpdateFn updateFn) {

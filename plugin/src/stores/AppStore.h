@@ -1,6 +1,6 @@
 #pragma once
 
-#include "slices/AppSlices.h"
+#include "AppState.h"
 #include "EntityStore.h"
 #include "queries/AppStoreQueries.h"
 #include "../models/FeedResponse.h"
@@ -24,8 +24,8 @@ namespace Stores {
 /**
  * AppStore - Pure orchestration and business logic layer
  *
- * Manages all application business logic by dispatching actions to independent slices.
- * Uses AppSliceManager to coordinate state across domains.
+ * Manages all application business logic using reactive state management.
+ * Uses AppState (StateSubject-based) to coordinate state across domains.
  *
  * Methods organized in separate .cpp files:
  *   - Auth.cpp - login, logout, 2FA, password reset
@@ -41,9 +41,9 @@ namespace Stores {
  *   - Challenges.cpp - MIDI challenges
  *   - Sounds.cpp - sound pages
  *
- * Components subscribe directly to slices:
- *   auto& manager = AppSliceManager::getInstance();
- *   manager.auth()->subscribe([this](const AuthState& auth) {
+ * Components subscribe directly to state:
+ *   auto& state = AppState::getInstance();
+ *   state.auth->subscribe([this](const AuthState& auth) {
  *       if (auth.isLoggedIn) updateUI();
  *   });
  *
@@ -1363,10 +1363,10 @@ private:
   StreamChatClient *streamChatClient = nullptr;
 
   // ==============================================================================
-  // Slice Architecture
-  // AppStore is now a pure orchestration/service layer
-  // All state is managed by independent slices via AppSliceManager
-  Slices::AppSliceManager &sliceManager = Slices::AppSliceManager::getInstance();
+  // State Management
+  // AppStore is a pure orchestration/service layer
+  // All state is managed by reactive StateSubjects via StateManager
+  StateManager &sliceManager = StateManager::getInstance();
 
   // File caching (for binary assets: images, audio, MIDI, drafts)
   SidechainImageCache imageCache{500 * 1024 * 1024};        // 500MB

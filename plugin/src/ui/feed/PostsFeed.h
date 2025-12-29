@@ -3,7 +3,7 @@
 #include "../../audio/HttpAudioPlayer.h"
 #include "../../models/FeedResponse.h"
 #include "../../models/Playlist.h"
-#include "../../stores/slices/AppSlices.h"
+#include "../../stores/AppState.h"
 #include "../../ui/animations/AnimationController.h"
 #include "../../ui/animations/Easing.h"
 #include "../../ui/animations/TransitionAnimation.h"
@@ -161,8 +161,8 @@ private:
   // Stream chat client for presence queries
   StreamChatClient *streamChatClient = nullptr;
 
-  // Posts slice for direct state management
-  std::shared_ptr<Sidechain::Stores::Slices::PostsSlice> postsSlice;
+  // Posts state for direct state management (using StateSubject)
+  Sidechain::Rx::State<Sidechain::Stores::PostsState> postsSlice;
 
   // ==============================================================================
   // Listen duration tracking (postId -> start time)

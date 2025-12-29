@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../slices/AppSlices.h"
+#include "../AppState.h"
 #include "../app/AppState.h"
 #include "StoreUtils.h"
 #include "../../util/logging/Logger.h"
@@ -28,7 +28,7 @@ namespace Utils {
  */
 class PostInteractionHelper {
 public:
-  using PostsSlice = std::shared_ptr<ImmutableSlice<PostsState>>;
+  using PostsSlice = Rx::State<PostsState>;
 
   /**
    * Configuration for a toggle operation.
@@ -216,7 +216,7 @@ public:
  */
 class FollowHelper {
 public:
-  using PostsSlice = std::shared_ptr<ImmutableSlice<PostsState>>;
+  using PostsSlice = Rx::State<PostsState>;
 
   /**
    * Extract user ID from a post.

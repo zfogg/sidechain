@@ -5,7 +5,6 @@
 #include "../../util/Time.h"
 #include "../../models/User.h"
 #include "../../stores/app/AppState.h"
-#include "../../stores/slices/AppSlices.h"
 #include "../common/AppStoreComponent.h"
 #include <JuceHeader.h>
 #include <memory>

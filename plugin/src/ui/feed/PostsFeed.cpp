@@ -70,7 +70,7 @@ PostsFeed::PostsFeed(Sidechain::Stores::AppStore *store)
           store, [store](auto cb) { return store ? store->subscribeToFeed(cb) : std::function<void()>([]() {}); }) {
   using namespace Sidechain::Stores;
   if (appStore) {
-    postsSlice = Sidechain::Stores::Slices::AppSliceManager::getInstance().posts;
+    postsSlice = Sidechain::Stores::StateManager::getInstance().posts;
     if (postsSlice) {
       juce::Component::SafePointer<PostsFeed> safeThis(this);
       storeUnsubscriber = postsSlice->subscribe([safeThis](const Sidechain::Stores::PostsState &state) {
