@@ -18,7 +18,7 @@ class BPMResult(BaseModel):
     """BPM/tempo detection result."""
 
     value: float = Field(..., gt=0, description="Detected BPM")
-    confidence: float = Field(..., ge=0.0, le=1.0, description="Detection confidence")
+    confidence: float = Field(..., ge=0.0, description="Detection confidence (Essentia may return >1)")
     beats: Optional[List[float]] = Field(
         None, description="Beat positions in seconds (limited to first 100)"
     )

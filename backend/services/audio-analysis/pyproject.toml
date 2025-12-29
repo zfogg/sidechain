@@ -35,5 +35,13 @@ dev = [
     "pytest-cov>=4.1.0",
 ]
 
+[tool.uv]
+# Resolve for both macOS ARM64 (local dev) and Linux x86_64 (Docker)
+# Essentia doesn't have ARM64 Linux wheels, so Docker must use x86_64
+environments = [
+    "sys_platform == 'darwin'",  # macOS (local development)
+    "sys_platform == 'linux' and platform_machine == 'x86_64'",  # Linux x86_64 (Docker)
+]
+
 [tool.hatch.build.targets.wheel]
 packages = ["app"]

@@ -86,6 +86,8 @@ services:
   audio-analysis:
     image: zfogg/sidechain-audio-analysis:latest
     container_name: sidechain-audio-analysis
+    # Force x86_64 platform - Essentia doesn't have ARM64 Linux wheels
+    platform: linux/amd64
     build:
       context: ./services/audio-analysis
       dockerfile: Dockerfile
