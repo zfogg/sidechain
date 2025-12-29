@@ -2,7 +2,7 @@
 
 #include "../EntityStore.h"
 #include "../AppState.h"
-#include "../../util/Log.h"
+#include "../../util/logging/Logger.h"
 #include "../../util/Result.h"
 #include <JuceHeader.h>
 #include <nlohmann/json.hpp>
@@ -65,7 +65,7 @@ public:
         StateType errorState = state->getState();
         onError(errorState, result.getError());
         state->setState(errorState);
-        Log::error("UserLoadingHelper", "Failed to load " + logContext + ": " + result.getError());
+        Util::logError("UserLoadingHelper", "Failed to load " + logContext + ": " + result.getError());
         return;
       }
 
@@ -86,7 +86,7 @@ public:
               mutableUsers.push_back(user);
             }
           } catch (const std::exception &e) {
-            Log::warn("UserLoadingHelper", "Failed to parse " + logContext + " JSON: " + juce::String(e.what()));
+            Util::logWarning("UserLoadingHelper", "Failed to parse " + logContext + " JSON: " + juce::String(e.what()));
           }
         }
 
@@ -102,13 +102,13 @@ public:
         onSuccess(successState, std::move(immutableUsers));
         state->setState(successState);
 
-        Log::info("UserLoadingHelper", "Loaded " + juce::String(mutableUsers.size()) + " " + logContext);
+        Util::logInfo("UserLoadingHelper", "Loaded " + juce::String(mutableUsers.size()) + " " + logContext);
 
       } catch (const std::exception &e) {
         StateType errorState = state->getState();
         onError(errorState, juce::String(e.what()));
         state->setState(errorState);
-        Log::error("UserLoadingHelper", "Failed to load " + logContext + ": " + juce::String(e.what()));
+        Util::logError("UserLoadingHelper", "Failed to load " + logContext + ": " + juce::String(e.what()));
       }
     });
   }
@@ -148,7 +148,7 @@ public:
         StateType errorState = state->getState();
         onError(errorState, result.getError());
         state->setState(errorState);
-        Log::error("GenericListLoader", "Failed to load " + logContext + ": " + result.getError());
+        Util::logError("GenericListLoader", "Failed to load " + logContext + ": " + result.getError());
         return;
       }
 
@@ -159,13 +159,13 @@ public:
         onSuccess(successState, std::move(models));
         state->setState(successState);
 
-        Log::info("GenericListLoader", "Loaded " + juce::String(models.size()) + " " + logContext);
+        Util::logInfo("GenericListLoader", "Loaded " + juce::String(models.size()) + " " + logContext);
 
       } catch (const std::exception &e) {
         StateType errorState = state->getState();
         onError(errorState, juce::String(e.what()));
         state->setState(errorState);
-        Log::error("GenericListLoader", "Exception loading " + logContext + ": " + juce::String(e.what()));
+        Util::logError("GenericListLoader", "Exception loading " + logContext + ": " + juce::String(e.what()));
       }
     });
   }
@@ -189,22 +189,22 @@ public:
   using StateRef = Rx::State<StateType>;
   using UpdateFn = std::function<void(StateType &)>;
 
-  static void update(StateRef state, UpdateFn updateFn) {
-    StateType state = state->getState();
+  static void update(StateRef stateRef, UpdateFn updateFn) {
+    StateType state = stateRef->getState();
     updateFn(state);
-    state->setState(state);
+    stateRef->setState(state);
   }
 
   /**
    * Update with conditional - only applies update if condition returns true.
    */
-  static bool updateIf(StateRef state, std::function<bool(const StateType &)> condition, UpdateFn updateFn) {
-    StateType state = state->getState();
+  static bool updateIf(StateRef stateRef, std::function<bool(const StateType &)> condition, UpdateFn updateFn) {
+    StateType state = stateRef->getState();
     if (!condition(state)) {
       return false;
     }
     updateFn(state);
-    state->setState(state);
+    stateRef->setState(state);
     return true;
   }
 };

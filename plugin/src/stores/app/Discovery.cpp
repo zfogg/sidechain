@@ -2,15 +2,17 @@
 #include "../EntityStore.h"
 #include "../util/UserLoadingHelper.h"
 #include "../util/StoreUtils.h"
-#include "../../util/Log.h"
+#include "../../util/logging/Logger.h"
 #include "../../util/Json.h"
 #include "../../util/rx/JuceScheduler.h"
 #include "../../models/User.h"
 #include <rxcpp/rx.hpp>
 
-using namespace Sidechain;
-using Stores::Utils::NetworkClientGuard;
-using Stores::Utils::UserLoadingHelper;
+namespace Sidechain {
+namespace Stores {
+
+using Utils::NetworkClientGuard;
+using Utils::UserLoadingHelper;
 
 // ==============================================================================
 // Discovery Redux Actions
@@ -21,26 +23,26 @@ void AppStore::loadTrendingUsersAndCache(int limit) {
     return;
   }
 
-  Log::info("AppStore", "Loading trending users");
+  Util::logInfo("AppStore", "Loading trending users");
 
-  UserLoadingHelper<Stores::DiscoveryState>::loadUsers(
+  UserLoadingHelper<DiscoveryState>::loadUsers(
       stateManager.discovery,
       // Set loading state
-      [](Stores::DiscoveryState &s) {
+      [](DiscoveryState &s) {
         s.isTrendingLoading = true;
         s.discoveryError = "";
       },
       // Network call
       [this, limit](auto callback) { networkClient->getTrendingUsers(limit, callback); },
       // On success
-      [](Stores::DiscoveryState &s, auto users) {
+      [](DiscoveryState &s, auto users) {
         s.trendingUsers = std::move(users);
         s.isTrendingLoading = false;
         s.discoveryError = "";
         s.lastTrendingUpdate = juce::Time::getCurrentTime().toMilliseconds();
       },
       // On error
-      [](Stores::DiscoveryState &s, const juce::String &err) {
+      [](DiscoveryState &s, const juce::String &err) {
         s.isTrendingLoading = false;
         s.discoveryError = err;
       },
@@ -52,26 +54,26 @@ void AppStore::loadFeaturedProducersAndCache(int limit) {
     return;
   }
 
-  Log::info("AppStore", "Loading featured producers");
+  Util::logInfo("AppStore", "Loading featured producers");
 
-  UserLoadingHelper<Stores::DiscoveryState>::loadUsers(
+  UserLoadingHelper<DiscoveryState>::loadUsers(
       stateManager.discovery,
       // Set loading state
-      [](Stores::DiscoveryState &s) {
+      [](DiscoveryState &s) {
         s.isFeaturedLoading = true;
         s.discoveryError = "";
       },
       // Network call
       [this, limit](auto callback) { networkClient->getFeaturedProducers(limit, callback); },
       // On success
-      [](Stores::DiscoveryState &s, auto users) {
+      [](DiscoveryState &s, auto users) {
         s.featuredProducers = std::move(users);
         s.isFeaturedLoading = false;
         s.discoveryError = "";
         s.lastFeaturedUpdate = juce::Time::getCurrentTime().toMilliseconds();
       },
       // On error
-      [](Stores::DiscoveryState &s, const juce::String &err) {
+      [](DiscoveryState &s, const juce::String &err) {
         s.isFeaturedLoading = false;
         s.discoveryError = err;
       },
@@ -83,26 +85,26 @@ void AppStore::loadSuggestedUsersAndCache(int limit) {
     return;
   }
 
-  Log::info("AppStore", "Loading suggested users");
+  Util::logInfo("AppStore", "Loading suggested users");
 
-  UserLoadingHelper<Stores::DiscoveryState>::loadUsers(
+  UserLoadingHelper<DiscoveryState>::loadUsers(
       stateManager.discovery,
       // Set loading state
-      [](Stores::DiscoveryState &s) {
+      [](DiscoveryState &s) {
         s.isSuggestedLoading = true;
         s.discoveryError = "";
       },
       // Network call
       [this, limit](auto callback) { networkClient->getSuggestedUsers(limit, callback); },
       // On success
-      [](Stores::DiscoveryState &s, auto users) {
+      [](DiscoveryState &s, auto users) {
         s.suggestedUsers = std::move(users);
         s.isSuggestedLoading = false;
         s.discoveryError = "";
         s.lastSuggestedUpdate = juce::Time::getCurrentTime().toMilliseconds();
       },
       // On error
-      [](Stores::DiscoveryState &s, const juce::String &err) {
+      [](DiscoveryState &s, const juce::String &err) {
         s.isSuggestedLoading = false;
         s.discoveryError = err;
       },
@@ -130,12 +132,12 @@ rxcpp::observable<std::vector<User>> AppStore::loadTrendingUsersObservable(int l
   using ResultType = std::vector<User>;
   return rxcpp::sources::create<ResultType>([this, limit](auto observer) {
            if (!networkClient) {
-             Log::error("AppStore", "Network client not initialized");
+             Util::logError("AppStore", "Network client not initialized");
              observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
              return;
            }
 
-           Log::debug("AppStore", "Loading trending users via observable");
+           Util::logDebug("AppStore", "Loading trending users via observable");
 
            networkClient->getTrendingUsers(limit, [observer](Outcome<juce::var> result) {
              if (result.isOk()) {
@@ -153,16 +155,16 @@ rxcpp::observable<std::vector<User>> AppStore::loadTrendingUsersObservable(int l
                        users.push_back(std::move(user));
                      }
                    } catch (const std::exception &e) {
-                     Log::warning("AppStore", "Failed to parse trending user: " + juce::String(e.what()));
+                     Util::logWarning("AppStore", "Failed to parse trending user: " + juce::String(e.what()));
                    }
                  }
                }
 
-               Log::info("AppStore", "Loaded " + juce::String(static_cast<int>(users.size())) + " trending users");
+               Util::logInfo("AppStore", "Loaded " + juce::String(static_cast<int>(users.size())) + " trending users");
                observer.on_next(std::move(users));
                observer.on_completed();
              } else {
-               Log::error("AppStore", "Failed to load trending users: " + result.getError());
+               Util::logError("AppStore", "Failed to load trending users: " + result.getError());
                observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
              }
            });
@@ -174,12 +176,12 @@ rxcpp::observable<std::vector<User>> AppStore::loadFeaturedProducersObservable(i
   using ResultType = std::vector<User>;
   return rxcpp::sources::create<ResultType>([this, limit](auto observer) {
            if (!networkClient) {
-             Log::error("AppStore", "Network client not initialized");
+             Util::logError("AppStore", "Network client not initialized");
              observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
              return;
            }
 
-           Log::debug("AppStore", "Loading featured producers via observable");
+           Util::logDebug("AppStore", "Loading featured producers via observable");
 
            networkClient->getFeaturedProducers(limit, [observer](Outcome<juce::var> result) {
              if (result.isOk()) {
@@ -197,16 +199,17 @@ rxcpp::observable<std::vector<User>> AppStore::loadFeaturedProducersObservable(i
                        users.push_back(std::move(user));
                      }
                    } catch (const std::exception &e) {
-                     Log::warning("AppStore", "Failed to parse featured producer: " + juce::String(e.what()));
+                     Util::logWarning("AppStore", "Failed to parse featured producer: " + juce::String(e.what()));
                    }
                  }
                }
 
-               Log::info("AppStore", "Loaded " + juce::String(static_cast<int>(users.size())) + " featured producers");
+               Util::logInfo("AppStore",
+                             "Loaded " + juce::String(static_cast<int>(users.size())) + " featured producers");
                observer.on_next(std::move(users));
                observer.on_completed();
              } else {
-               Log::error("AppStore", "Failed to load featured producers: " + result.getError());
+               Util::logError("AppStore", "Failed to load featured producers: " + result.getError());
                observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
              }
            });
@@ -218,12 +221,12 @@ rxcpp::observable<std::vector<User>> AppStore::loadSuggestedUsersObservable(int 
   using ResultType = std::vector<User>;
   return rxcpp::sources::create<ResultType>([this, limit](auto observer) {
            if (!networkClient) {
-             Log::error("AppStore", "Network client not initialized");
+             Util::logError("AppStore", "Network client not initialized");
              observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
              return;
            }
 
-           Log::debug("AppStore", "Loading suggested users via observable");
+           Util::logDebug("AppStore", "Loading suggested users via observable");
 
            networkClient->getSuggestedUsers(limit, [observer](Outcome<juce::var> result) {
              if (result.isOk()) {
@@ -241,16 +244,16 @@ rxcpp::observable<std::vector<User>> AppStore::loadSuggestedUsersObservable(int 
                        users.push_back(std::move(user));
                      }
                    } catch (const std::exception &e) {
-                     Log::warning("AppStore", "Failed to parse suggested user: " + juce::String(e.what()));
+                     Util::logWarning("AppStore", "Failed to parse suggested user: " + juce::String(e.what()));
                    }
                  }
                }
 
-               Log::info("AppStore", "Loaded " + juce::String(static_cast<int>(users.size())) + " suggested users");
+               Util::logInfo("AppStore", "Loaded " + juce::String(static_cast<int>(users.size())) + " suggested users");
                observer.on_next(std::move(users));
                observer.on_completed();
              } else {
-               Log::error("AppStore", "Failed to load suggested users: " + result.getError());
+               Util::logError("AppStore", "Failed to load suggested users: " + result.getError());
                observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
              }
            });
@@ -258,10 +261,10 @@ rxcpp::observable<std::vector<User>> AppStore::loadSuggestedUsersObservable(int 
       .observe_on(Rx::observe_on_juce_thread());
 }
 
-rxcpp::observable<Stores::DiscoveryState> AppStore::loadDiscoveryDataObservable() {
-  return rxcpp::sources::create<Stores::DiscoveryState>([this](auto observer) {
+rxcpp::observable<DiscoveryState> AppStore::loadDiscoveryDataObservable() {
+  return rxcpp::sources::create<DiscoveryState>([this](auto observer) {
            // Use the slice state as accumulator, loading all data in parallel
-           auto state = std::make_shared<Stores::DiscoveryState>();
+           auto state = std::make_shared<DiscoveryState>();
            auto completedCount = std::make_shared<std::atomic<int>>(0);
            auto hasError = std::make_shared<std::atomic<bool>>(false);
 
@@ -285,7 +288,7 @@ rxcpp::observable<Stores::DiscoveryState> AppStore::loadDiscoveryDataObservable(
                  (*completedCount)++;
                  checkCompletion();
                },
-               [hasError, completedCount, checkCompletion, observer](std::exception_ptr e) {
+               [hasError, completedCount, checkCompletion, observer](std::exception_ptr /*e*/) {
                  hasError->store(true);
                  (*completedCount)++;
                  // Continue even on error - return partial data
@@ -328,3 +331,6 @@ rxcpp::observable<Stores::DiscoveryState> AppStore::loadDiscoveryDataObservable(
          })
       .observe_on(Rx::observe_on_juce_thread());
 }
+
+} // namespace Stores
+} // namespace Sidechain

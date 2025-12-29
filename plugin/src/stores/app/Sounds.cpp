@@ -192,5 +192,116 @@ rxcpp::observable<std::vector<Sound>> AppStore::loadRecentSoundsObservable() {
       .observe_on(Rx::observe_on_juce_thread());
 }
 
+rxcpp::observable<Sound> AppStore::getSoundObservable(const juce::String &soundId) {
+  return rxcpp::sources::create<Sound>([this, soundId](auto observer) {
+           if (!networkClient) {
+             Util::logError("AppStore", "Cannot get sound - network client not set");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not set")));
+             return;
+           }
+
+           Util::logInfo("AppStore", "Getting sound via observable: " + soundId);
+
+           networkClient->getSound(soundId, [observer](Outcome<juce::var> result) {
+             if (result.isOk()) {
+               try {
+                 nlohmann::json soundJson = nlohmann::json::parse(result.getValue().toString().toStdString());
+                 auto soundResult = Sound::createFromJson(soundJson);
+                 if (soundResult.isOk() && soundResult.getValue()) {
+                   Util::logInfo("AppStore", "Got sound via observable");
+                   observer.on_next(*soundResult.getValue());
+                   observer.on_completed();
+                 } else {
+                   observer.on_error(std::make_exception_ptr(std::runtime_error("Failed to parse sound")));
+                 }
+               } catch (const std::exception &e) {
+                 observer.on_error(std::make_exception_ptr(std::runtime_error(e.what())));
+               }
+             } else {
+               Util::logError("AppStore", "Failed to get sound: " + result.getError());
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<Sound> AppStore::getSoundForPostObservable(const juce::String &postId) {
+  return rxcpp::sources::create<Sound>([this, postId](auto observer) {
+           if (!networkClient) {
+             Util::logError("AppStore", "Cannot get sound for post - network client not set");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not set")));
+             return;
+           }
+
+           Util::logInfo("AppStore", "Getting sound for post via observable: " + postId);
+
+           networkClient->getSoundForPost(postId, [observer](Outcome<juce::var> result) {
+             if (result.isOk()) {
+               try {
+                 nlohmann::json soundJson = nlohmann::json::parse(result.getValue().toString().toStdString());
+                 auto soundResult = Sound::createFromJson(soundJson);
+                 if (soundResult.isOk() && soundResult.getValue()) {
+                   Util::logInfo("AppStore", "Got sound for post via observable");
+                   observer.on_next(*soundResult.getValue());
+                   observer.on_completed();
+                 } else {
+                   observer.on_error(std::make_exception_ptr(std::runtime_error("Failed to parse sound")));
+                 }
+               } catch (const std::exception &e) {
+                 observer.on_error(std::make_exception_ptr(std::runtime_error(e.what())));
+               }
+             } else {
+               Util::logError("AppStore", "Failed to get sound for post: " + result.getError());
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<std::vector<SoundPost>> AppStore::getSoundPostsObservable(const juce::String &soundId, int limit,
+                                                                            int offset) {
+  return rxcpp::sources::create<std::vector<SoundPost>>([this, soundId, limit, offset](auto observer) {
+           if (!networkClient) {
+             Util::logError("AppStore", "Cannot get sound posts - network client not set");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not set")));
+             return;
+           }
+
+           Util::logInfo("AppStore", "Getting sound posts via observable: " + soundId);
+
+           networkClient->getSoundPosts(soundId, limit, offset, [observer](Outcome<juce::var> result) {
+             if (result.isOk()) {
+               auto response = result.getValue();
+               auto postsArray = response.getProperty("posts", juce::var());
+
+               std::vector<SoundPost> posts;
+               if (postsArray.isArray()) {
+                 for (int i = 0; i < postsArray.size(); ++i) {
+                   try {
+                     nlohmann::json postJson = nlohmann::json::parse(postsArray[i].toString().toStdString());
+                     auto postResult = SoundPost::createFromJson(postJson);
+                     if (postResult.isOk() && postResult.getValue()) {
+                       posts.push_back(*postResult.getValue());
+                     }
+                   } catch (...) {
+                     // Skip invalid posts
+                   }
+                 }
+               }
+
+               Util::logInfo("AppStore", "Got " + juce::String(posts.size()) + " sound posts via observable");
+               observer.on_next(posts);
+               observer.on_completed();
+             } else {
+               Util::logError("AppStore", "Failed to get sound posts: " + result.getError());
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
+}
+
 } // namespace Stores
 } // namespace Sidechain

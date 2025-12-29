@@ -38,6 +38,8 @@ Auth::Auth(Sidechain::Stores::AppStore *store)
 
 Auth::~Auth() {
   Log::debug("Auth: Destroying authentication component");
+  // Clean up any pending subscriptions
+  authSubscriptions_.unsubscribe();
 }
 
 // ==============================================================================
@@ -966,99 +968,67 @@ void Auth::handleLogin() {
   loginSubmitButton->setEnabled(false);
   repaint();
 
-  // Make API call
-  if (networkClient == nullptr) {
-    Log::error("Auth: Cannot login - NetworkClient is null");
+  // Use AppStore observable for login
+  if (appStore == nullptr) {
+    Log::error("Auth: Cannot login - AppStore is null");
     isLoading = false;
     loginSubmitButton->setEnabled(true);
-    showError("Network client not available");
+    showError("Store not available");
     repaint();
     return;
   }
 
-  Log::info("Auth: Calling NetworkClient::loginWithTwoFactor for: " + email);
-  networkClient->loginWithTwoFactor(email, password, [this, email](NetworkClient::LoginResult result) {
-    isLoading = false;
-    loginSubmitButton->setEnabled(true);
+  Log::info("Auth: Calling AppStore::loginObservable for: " + email);
+  appStore->loginObservable(email, password)
+      .subscribe(
+          authSubscriptions_,
+          [this, email](const Sidechain::Stores::AppStore::LoginResult &result) {
+            isLoading = false;
+            loginSubmitButton->setEnabled(true);
 
-    if (result.requires2FA) {
-      // 2FA required - store user ID and show 2FA verification screen
-      Log::info("Auth: 2FA required for user: " + result.userId + " (type: " + result.twoFactorType + ")");
-      twoFactorUserId = result.userId;
-      twoFactorType = result.twoFactorType;
-      showTwoFactorVerify();
-    } else if (result.success) {
-      Log::info("Auth: Login successful for: " + email + ", userId: " + result.userId);
-      juce::String username = result.username;
-      juce::String token = result.token;
+            if (result.requires2FA) {
+              // 2FA required - store user ID and show 2FA verification screen
+              Log::info("Auth: 2FA required for user: " + result.userId);
+              twoFactorUserId = result.userId;
+              twoFactorType = "totp"; // Default to TOTP
+              showTwoFactorVerify();
+            } else if (result.success) {
+              Log::info("Auth: Login successful for: " + email + ", userId: " + result.userId);
+              juce::String username = result.username;
+              juce::String token = result.token;
 
-      if (username.isEmpty() && networkClient) {
-        username = networkClient->getCurrentUsername();
-        Log::debug("Auth: Retrieved username from NetworkClient: " + username);
-      }
+              if (username.isEmpty() && networkClient) {
+                username = networkClient->getCurrentUsername();
+                Log::debug("Auth: Retrieved username from NetworkClient: " + username);
+              }
 
-      // Handle "Remember me" - store credentials securely if checked
-      if (rememberMeCheckbox && rememberMeCheckbox->getToggleState()) {
-        // OS keychain integration can be implemented in Phase 2
-        // For now, credentials are stored in secure memory
-        Log::debug("Auth: Remember me checked - credentials stored securely in memory");
-      }
+              // Handle "Remember me" - store credentials securely if checked
+              if (rememberMeCheckbox && rememberMeCheckbox->getToggleState()) {
+                Log::debug("Auth: Remember me checked - credentials stored securely in memory");
+              }
 
-      // Check email verification status - fetch user profile to check
-      // email_verified
-      if (networkClient) {
-        juce::String meEndpoint = networkClient->getBaseUrl() + "/api/v1/auth/me";
-        networkClient->getAbsolute(meEndpoint, [this, username, email, token](Outcome<juce::var> meResult) {
-          bool emailVerified = true;
-
-          if (meResult.isOk()) {
-            auto userData = meResult.getValue();
-            if (userData.isObject()) {
-              emailVerified = userData.getProperty("email_verified", true).operator bool();
-              Log::debug("Auth: Email verification status: " +
-                         juce::String(emailVerified ? "verified" : "not verified"));
-            }
-          }
-
-          if (!emailVerified) {
-            auto opts = juce::MessageBoxOptions()
-                            .withIconType(juce::MessageBoxIconType::WarningIcon)
-                            .withTitle("Email Not Verified")
-                            .withMessage("Please verify your email address to access "
-                                         "all features.\n\n"
-                                         "A verification email has been sent to " +
-                                         email +
-                                         ".\n\n"
-                                         "You can still use the app, but some features "
-                                         "may be limited.")
-                            .withButton("OK");
-
-            juce::AlertWindow::showAsync(opts, [this, username, email, token](int) {
+              // Proceed with login success
               if (onLoginSuccess) {
-                Log::info("Auth: Calling onLoginSuccess callback "
-                          "(email not verified)");
+                Log::info("Auth: Calling onLoginSuccess callback");
                 onLoginSuccess(username, email, token);
               }
-            });
-          } else {
-            if (onLoginSuccess) {
-              Log::info("Auth: Calling onLoginSuccess callback");
-              onLoginSuccess(username, email, token);
+            } else {
+              Log::warn("Auth: Login failed - " + result.errorMessage);
+              showError(result.errorMessage.isEmpty() ? "Invalid email or password" : result.errorMessage);
             }
-          }
-        });
-      } else {
-        if (onLoginSuccess) {
-          Log::info("Auth: Calling onLoginSuccess callback");
-          onLoginSuccess(username, email, token);
-        }
-      }
-    } else {
-      Log::warn("Auth: Login failed - " + result.errorMessage);
-      showError(result.errorMessage.isEmpty() ? "Invalid email or password" : result.errorMessage);
-    }
-    repaint();
-  });
+            repaint();
+          },
+          [this](std::exception_ptr ep) {
+            isLoading = false;
+            loginSubmitButton->setEnabled(true);
+            try {
+              std::rethrow_exception(ep);
+            } catch (const std::exception &e) {
+              Log::error("Auth: Login observable error - " + juce::String(e.what()));
+              showError(e.what());
+            }
+            repaint();
+          });
 }
 
 void Auth::handleForgotPassword() {
@@ -1067,24 +1037,14 @@ void Auth::handleForgotPassword() {
   // Get email from login form if available
   juce::String email = loginEmailEditor->getText().trim();
 
-  // Note: Backend endpoint POST /api/v1/auth/reset-password is implemented -
-  // creates reset token Note: Password reset email flow is now implemented
-  // using AWS SES (see backend/internal/email/ses.go) For now, opens browser
-  // URL - in production, email would be sent automatically
-
-  juce::String resetUrl;
-  if (networkClient != nullptr) {
-    // Use the same base URL as the network client
-    resetUrl = juce::String(Constants::Endpoints::DEV_BASE_URL) + "/reset-password";
-    if (!email.isEmpty()) {
-      resetUrl += "?email=" + juce::URL::addEscapeChars(email, true);
-    }
-  } else {
-    resetUrl = juce::String(Constants::Endpoints::DEV_BASE_URL) + "/reset-password";
+  if (email.isEmpty()) {
+    showError("Please enter your email address");
+    loginEmailEditor->grabKeyboardFocus();
+    return;
   }
 
-  if (!networkClient) {
-    showError("Network client not available");
+  if (appStore == nullptr) {
+    showError("Store not available");
     return;
   }
 
@@ -1092,30 +1052,27 @@ void Auth::handleForgotPassword() {
   isLoading = true;
   repaint();
 
-  // Request password reset
-  networkClient->requestPasswordReset(email, [this, email](Outcome<juce::var> result) {
-    isLoading = false;
-    repaint();
+  Log::info("Auth: Calling AppStore::requestPasswordResetObservable for: " + email);
+  appStore->requestPasswordResetObservable(email).subscribe(
+      authSubscriptions_,
+      [this, email](int) {
+        isLoading = false;
+        repaint();
 
-    if (result.isOk()) {
-      auto response = result.getValue();
-      juce::String token;
-      if (response.isObject()) {
-        token = response.getProperty("token", "").toString();
-      }
-
-      juce::String message = "Password reset email sent to " + email;
-      if (token.isNotEmpty()) {
-        // Development mode - show token for testing
-        message += "\n\n(Development mode: Reset token: " + token + ")";
-      }
-
-      juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon, "Password Reset",
-                                             message + "\n\nPlease check your email for reset instructions.");
-    } else {
-      showError("Failed to send reset email. Please try again.");
-    }
-  });
+        juce::String message = "Password reset email sent to " + email;
+        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon, "Password Reset",
+                                               message + "\n\nPlease check your email for reset instructions.");
+      },
+      [this](std::exception_ptr ep) {
+        isLoading = false;
+        repaint();
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          Log::error("Auth: Password reset observable error - " + juce::String(e.what()));
+          showError("Failed to send reset email. Please try again.");
+        }
+      });
 }
 
 void Auth::handleSignup() {
@@ -1208,38 +1165,50 @@ void Auth::handleSignup() {
   signupSubmitButton->setEnabled(false);
   repaint();
 
-  // Make API call
-  if (networkClient == nullptr) {
-    Log::error("Auth: Cannot signup - NetworkClient is null");
+  // Use AppStore observable for registration
+  if (appStore == nullptr) {
+    Log::error("Auth: Cannot signup - AppStore is null");
     isLoading = false;
     signupSubmitButton->setEnabled(true);
-    showError("Network client not available");
+    showError("Store not available");
     repaint();
     return;
   }
 
-  Log::info("Auth: Calling NetworkClient::registerAccount - email: " + email + ", username: " + username);
-  networkClient->registerAccount(email, username, password, displayName,
-                                 [this, email, username](Outcome<std::pair<juce::String, juce::String>> authResult) {
-                                   isLoading = false;
-                                   signupSubmitButton->setEnabled(true);
+  Log::info("Auth: Calling AppStore::registerAccountObservable - email: " + email + ", username: " + username);
+  appStore->registerAccountObservable(email, username, password, displayName)
+      .subscribe(
+          authSubscriptions_,
+          [this, email, username](const Sidechain::Stores::AppStore::LoginResult &result) {
+            isLoading = false;
+            signupSubmitButton->setEnabled(true);
 
-                                   if (authResult.isOk()) {
-                                     auto [token, userId] = authResult.getValue();
-                                     Log::info("Auth: Signup successful - email: " + email + ", username: " + username +
-                                               ", userId: " + userId);
-                                     if (onLoginSuccess) {
-                                       Log::info("Auth: Calling onLoginSuccess callback");
-                                       onLoginSuccess(username, email, token);
-                                     } else {
-                                       Log::warn("Auth: Signup succeeded but onLoginSuccess callback not set");
-                                     }
-                                   } else {
-                                     Log::warn("Auth: Signup failed for: " + email + " - " + authResult.getError());
-                                     showError("Registration failed. Please try again.");
-                                   }
-                                   repaint();
-                                 });
+            if (result.success) {
+              Log::info("Auth: Signup successful - email: " + email + ", username: " + username +
+                        ", userId: " + result.userId);
+              if (onLoginSuccess) {
+                Log::info("Auth: Calling onLoginSuccess callback");
+                onLoginSuccess(username, email, result.token);
+              } else {
+                Log::warn("Auth: Signup succeeded but onLoginSuccess callback not set");
+              }
+            } else {
+              Log::warn("Auth: Signup failed for: " + email + " - " + result.errorMessage);
+              showError(result.errorMessage.isEmpty() ? "Registration failed. Please try again." : result.errorMessage);
+            }
+            repaint();
+          },
+          [this](std::exception_ptr ep) {
+            isLoading = false;
+            signupSubmitButton->setEnabled(true);
+            try {
+              std::rethrow_exception(ep);
+            } catch (const std::exception &e) {
+              Log::error("Auth: Signup observable error - " + juce::String(e.what()));
+              showError("Registration failed. Please try again.");
+            }
+            repaint();
+          });
 }
 
 void Auth::handleTwoFactorVerify() {
@@ -1276,48 +1245,60 @@ void Auth::handleTwoFactorVerify() {
   twoFactorVerifyButton->setEnabled(false);
   repaint();
 
-  if (networkClient == nullptr) {
-    Log::error("Auth: Cannot verify 2FA - NetworkClient is null");
+  // Use AppStore observable for 2FA verification
+  if (appStore == nullptr) {
+    Log::error("Auth: Cannot verify 2FA - AppStore is null");
     isLoading = false;
     twoFactorVerifyButton->setEnabled(true);
-    showError("Network client not available");
+    showError("Store not available");
     repaint();
     return;
   }
 
-  Log::info("Auth: Calling NetworkClient::verify2FALogin for userId: " + twoFactorUserId);
-  networkClient->verify2FALogin(twoFactorUserId, code,
-                                [this](Outcome<std::pair<juce::String, juce::String>> authResult) {
-                                  isLoading = false;
-                                  twoFactorVerifyButton->setEnabled(true);
+  Log::info("Auth: Calling AppStore::verify2FAObservable");
+  appStore->verify2FAObservable(code).subscribe(
+      authSubscriptions_,
+      [this](const Sidechain::Stores::AppStore::LoginResult &result) {
+        isLoading = false;
+        twoFactorVerifyButton->setEnabled(true);
 
-                                  if (authResult.isOk()) {
-                                    auto [token, userId] = authResult.getValue();
-                                    Log::info("Auth: 2FA verification successful for userId: " + userId);
+        if (result.success) {
+          Log::info("Auth: 2FA verification successful for userId: " + result.userId);
 
-                                    juce::String username = "";
-                                    juce::String email = "";
-                                    if (networkClient) {
-                                      username = networkClient->getCurrentUsername();
-                                      // Note: Email not available from 2FA login response, but we can
-                                      // proceed
-                                      Log::debug("Auth: Retrieved username from NetworkClient: " + username);
-                                    }
+          juce::String username = result.username;
+          juce::String email = "";
+          if (username.isEmpty() && networkClient) {
+            username = networkClient->getCurrentUsername();
+            Log::debug("Auth: Retrieved username from NetworkClient: " + username);
+          }
 
-                                    // Clear 2FA state
-                                    twoFactorUserId = "";
-                                    twoFactorType = "";
+          // Clear 2FA state
+          twoFactorUserId = "";
+          twoFactorType = "";
 
-                                    if (onLoginSuccess) {
-                                      Log::info("Auth: Calling onLoginSuccess callback after 2FA");
-                                      onLoginSuccess(username, email, token);
-                                    }
-                                  } else {
-                                    Log::warn("Auth: 2FA verification failed: " + authResult.getError());
-                                    showError("Invalid verification code. Please try again.");
-                                    twoFactorCodeEditor->clear();
-                                    twoFactorCodeEditor->grabKeyboardFocus();
-                                  }
-                                  repaint();
-                                });
+          if (onLoginSuccess) {
+            Log::info("Auth: Calling onLoginSuccess callback after 2FA");
+            onLoginSuccess(username, email, result.token);
+          }
+        } else {
+          Log::warn("Auth: 2FA verification failed: " + result.errorMessage);
+          showError("Invalid verification code. Please try again.");
+          twoFactorCodeEditor->clear();
+          twoFactorCodeEditor->grabKeyboardFocus();
+        }
+        repaint();
+      },
+      [this](std::exception_ptr ep) {
+        isLoading = false;
+        twoFactorVerifyButton->setEnabled(true);
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          Log::error("Auth: 2FA observable error - " + juce::String(e.what()));
+          showError("Invalid verification code. Please try again.");
+          twoFactorCodeEditor->clear();
+          twoFactorCodeEditor->grabKeyboardFocus();
+        }
+        repaint();
+      });
 }

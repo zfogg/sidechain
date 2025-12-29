@@ -5,6 +5,7 @@
 #include "../../stores/AppStore.h"
 #include "../common/AppStoreComponent.h"
 #include <JuceHeader.h>
+#include <rxcpp/rx.hpp>
 
 class NetworkClient;
 
@@ -71,6 +72,10 @@ protected:
   void onAppStateChanged(const Sidechain::Stores::SoundState &state) override;
 
 private:
+  // ==========================================================================
+  // RxCpp subscription management
+  rxcpp::composite_subscription soundSubscriptions_;
+
   // ==========================================================================
   // Data
   NetworkClient *networkClient = nullptr;

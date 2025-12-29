@@ -4,6 +4,7 @@
 #include "../../util/Colors.h"
 #include "../common/AppStoreComponent.h"
 #include <JuceHeader.h>
+#include <rxcpp/rx.hpp>
 
 class NetworkClient;
 class HttpAudioPlayer;
@@ -59,6 +60,10 @@ protected:
   void onAppStateChanged(const Sidechain::Stores::ChallengeState &state) override;
 
 private:
+  // ==============================================================================
+  // RxCpp subscription management
+  rxcpp::composite_subscription challengeSubscriptions_;
+
   // ==============================================================================
   // Data
   NetworkClient *networkClient = nullptr;

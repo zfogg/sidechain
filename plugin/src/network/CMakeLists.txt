@@ -50,6 +50,7 @@ add_library(SidechainNetwork STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/Search.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/Presence.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/Draft.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../stores/app/Discovery.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../stores/EntityStore.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../stores/EntityStore.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../stores/EntityCache.h

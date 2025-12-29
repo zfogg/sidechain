@@ -188,5 +188,54 @@ rxcpp::observable<int> AppStore::submitChallengeObservable(const juce::String &c
       .observe_on(Rx::observe_on_juce_thread());
 }
 
+rxcpp::observable<juce::var> AppStore::getMIDIChallengeObservable(const juce::String &challengeId) {
+  return rxcpp::sources::create<juce::var>([this, challengeId](auto observer) {
+           if (!networkClient) {
+             Util::logError("AppStore", "Cannot get MIDI challenge - network client not set");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not set")));
+             return;
+           }
+
+           Util::logInfo("AppStore", "Getting MIDI challenge via observable: " + challengeId);
+
+           networkClient->getMIDIChallenge(challengeId, [observer](Outcome<juce::var> result) {
+             if (result.isOk()) {
+               Util::logInfo("AppStore", "Got MIDI challenge via observable");
+               observer.on_next(result.getValue());
+               observer.on_completed();
+             } else {
+               Util::logError("AppStore", "Failed to get MIDI challenge: " + result.getError());
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<int> AppStore::voteMIDIChallengeEntryObservable(const juce::String &challengeId,
+                                                                  const juce::String &entryId) {
+  return rxcpp::sources::create<int>([this, challengeId, entryId](auto observer) {
+           if (!networkClient) {
+             Util::logError("AppStore", "Cannot vote for MIDI challenge entry - network client not set");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not set")));
+             return;
+           }
+
+           Util::logInfo("AppStore", "Voting for MIDI challenge entry via observable: " + entryId);
+
+           networkClient->voteMIDIChallengeEntry(challengeId, entryId, [observer, entryId](Outcome<juce::var> result) {
+             if (result.isOk()) {
+               Util::logInfo("AppStore", "Voted for entry via observable: " + entryId);
+               observer.on_next(0);
+               observer.on_completed();
+             } else {
+               Util::logError("AppStore", "Failed to vote for entry: " + result.getError());
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
+}
+
 } // namespace Stores
 } // namespace Sidechain

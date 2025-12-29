@@ -323,5 +323,54 @@ rxcpp::observable<int> AppStore::addPostToPlaylistObservable(const juce::String 
       .observe_on(Rx::observe_on_juce_thread());
 }
 
+rxcpp::observable<juce::var> AppStore::getPlaylistObservable(const juce::String &playlistId) {
+  return rxcpp::sources::create<juce::var>([this, playlistId](auto observer) {
+           if (!networkClient) {
+             Util::logError("AppStore", "Cannot get playlist - network client not set");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not set")));
+             return;
+           }
+
+           Util::logInfo("AppStore", "Getting playlist via observable: " + playlistId);
+
+           networkClient->getPlaylist(playlistId, [observer](Outcome<juce::var> result) {
+             if (result.isOk()) {
+               Util::logInfo("AppStore", "Got playlist via observable");
+               observer.on_next(result.getValue());
+               observer.on_completed();
+             } else {
+               Util::logError("AppStore", "Failed to get playlist: " + result.getError());
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<int> AppStore::removePlaylistEntryObservable(const juce::String &playlistId,
+                                                               const juce::String &entryId) {
+  return rxcpp::sources::create<int>([this, playlistId, entryId](auto observer) {
+           if (!networkClient) {
+             Util::logError("AppStore", "Cannot remove playlist entry - network client not set");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not set")));
+             return;
+           }
+
+           Util::logInfo("AppStore", "Removing playlist entry via observable: " + entryId);
+
+           networkClient->removePlaylistEntry(playlistId, entryId, [observer, entryId](Outcome<juce::var> result) {
+             if (result.isOk()) {
+               Util::logInfo("AppStore", "Removed playlist entry via observable: " + entryId);
+               observer.on_next(0);
+               observer.on_completed();
+             } else {
+               Util::logError("AppStore", "Failed to remove playlist entry: " + result.getError());
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
+}
+
 } // namespace Stores
 } // namespace Sidechain

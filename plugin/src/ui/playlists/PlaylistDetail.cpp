@@ -19,6 +19,7 @@ PlaylistDetail::PlaylistDetail(Sidechain::Stores::AppStore *store)
 PlaylistDetail::~PlaylistDetail() {
   Log::debug("PlaylistDetailComponent: Destroying");
   scrollBar.removeListener(this);
+  playlistSubscriptions_.unsubscribe();
 }
 
 // ==============================================================================
@@ -173,8 +174,8 @@ void PlaylistDetail::refresh() {
 
 // ==============================================================================
 void PlaylistDetail::fetchPlaylist() {
-  if (!networkClient || playlistId.isEmpty()) {
-    Log::warn("PlaylistDetailComponent: No network client or playlist ID");
+  if (appStore == nullptr || playlistId.isEmpty()) {
+    Log::warn("PlaylistDetailComponent: No store or playlist ID");
     return;
   }
 
@@ -182,75 +183,84 @@ void PlaylistDetail::fetchPlaylist() {
   errorMessage = "";
   repaint();
 
-  networkClient->getPlaylist(playlistId, [this](Outcome<juce::var> result) {
-    juce::MessageManager::callAsync([this, result]() {
-      isLoading = false;
+  // Use observable to get playlist
+  appStore->getPlaylistObservable(playlistId)
+      .subscribe(
+          playlistSubscriptions_,
+          [this](const juce::var &response) {
+            isLoading = false;
 
-      if (!result.isOk()) {
-        errorMessage = "Failed to load playlist: " + result.getError();
-        Log::warn("PlaylistDetailComponent: " + errorMessage);
-        repaint();
-        return;
-      }
+            playlist = Sidechain::Playlist::fromJSON(response);
 
-      auto response = result.getValue();
-      playlist = Sidechain::Playlist::fromJSON(response);
+            // Parse entries
+            entries.clear();
+            if (response.hasProperty("entries")) {
+              auto entriesArray = response["entries"];
+              if (entriesArray.isArray()) {
+                for (int i = 0; i < entriesArray.size(); ++i) {
+                  entries.add(Sidechain::PlaylistEntry::fromJSON(entriesArray[i]));
+                }
+              }
+            }
 
-      // Parse entries
-      entries.clear();
-      if (response.hasProperty("entries")) {
-        auto entriesArray = response["entries"];
-        if (entriesArray.isArray()) {
-          for (int i = 0; i < entriesArray.size(); ++i) {
-            entries.add(Sidechain::PlaylistEntry::fromJSON(entriesArray[i]));
-          }
-        }
-      }
+            // Parse collaborators
+            collaborators.clear();
+            if (response.hasProperty("collaborators")) {
+              auto collabsArray = response["collaborators"];
+              if (collabsArray.isArray()) {
+                for (int i = 0; i < collabsArray.size(); ++i) {
+                  collaborators.add(Sidechain::PlaylistCollaborator::fromJSON(collabsArray[i]));
+                }
+              }
+            }
 
-      // Parse collaborators
-      collaborators.clear();
-      if (response.hasProperty("collaborators")) {
-        auto collabsArray = response["collaborators"];
-        if (collabsArray.isArray()) {
-          for (int i = 0; i < collabsArray.size(); ++i) {
-            collaborators.add(Sidechain::PlaylistCollaborator::fromJSON(collabsArray[i]));
-          }
-        }
-      }
+            // Determine user role
+            if (playlist.ownerId == currentUserId)
+              playlist.userRole = "owner";
+            else {
+              for (const auto &collab : collaborators) {
+                if (collab.userId == currentUserId) {
+                  playlist.userRole = collab.role;
+                  break;
+                }
+              }
+            }
 
-      // Determine user role
-      if (playlist.ownerId == currentUserId)
-        playlist.userRole = "owner";
-      else {
-        for (const auto &collab : collaborators) {
-          if (collab.userId == currentUserId) {
-            playlist.userRole = collab.role;
-            break;
-          }
-        }
-      }
-
-      Log::info("PlaylistDetailComponent: Loaded playlist with " + juce::String(entries.size()) + " entries");
-      updateScrollBounds();
-      repaint();
-    });
-  });
+            Log::info("PlaylistDetailComponent: Loaded playlist with " + juce::String(entries.size()) + " entries");
+            updateScrollBounds();
+            repaint();
+          },
+          [this](std::exception_ptr ep) {
+            isLoading = false;
+            try {
+              std::rethrow_exception(ep);
+            } catch (const std::exception &e) {
+              errorMessage = "Failed to load playlist: " + juce::String(e.what());
+              Log::warn("PlaylistDetailComponent: " + errorMessage);
+            }
+            repaint();
+          });
 }
 
 void PlaylistDetail::removeEntry(const juce::String &entryId) {
-  if (!networkClient || !canEdit())
+  if (appStore == nullptr || !canEdit())
     return;
 
-  networkClient->removePlaylistEntry(playlistId, entryId, [this](Outcome<juce::var> result) {
-    juce::MessageManager::callAsync([this, result]() {
-      if (result.isOk()) {
-        Log::info("PlaylistDetailComponent: Entry removed");
-        refresh(); // Reload playlist
-      } else {
-        Log::error("PlaylistDetailComponent: Failed to remove entry: " + result.getError());
-      }
-    });
-  });
+  // Use observable to remove entry
+  appStore->removePlaylistEntryObservable(playlistId, entryId)
+      .subscribe(
+          playlistSubscriptions_,
+          [this](int) {
+            Log::info("PlaylistDetailComponent: Entry removed");
+            refresh(); // Reload playlist
+          },
+          [this](std::exception_ptr ep) {
+            try {
+              std::rethrow_exception(ep);
+            } catch (const std::exception &e) {
+              Log::error("PlaylistDetailComponent: Failed to remove entry: " + juce::String(e.what()));
+            }
+          });
 }
 
 // ==============================================================================

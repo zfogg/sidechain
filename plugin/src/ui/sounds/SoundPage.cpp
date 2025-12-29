@@ -19,6 +19,7 @@ SoundPage::SoundPage(Sidechain::Stores::AppStore *store)
 SoundPage::~SoundPage() {
   Log::debug("SoundPage: Destroying");
   scrollBar.removeListener(this);
+  soundSubscriptions_.unsubscribe();
   // AppStoreComponent destructor will handle unsubscribe
 }
 
@@ -215,8 +216,8 @@ void SoundPage::loadSound(const juce::String &id) {
 }
 
 void SoundPage::loadSoundForPost(const juce::String &postId) {
-  if (networkClient == nullptr) {
-    errorMessage = "Network client not available";
+  if (appStore == nullptr) {
+    errorMessage = "Store not available";
     repaint();
     return;
   }
@@ -224,33 +225,25 @@ void SoundPage::loadSoundForPost(const juce::String &postId) {
   isLoading = true;
   repaint();
 
-  // First get the sound for this post
-  networkClient->getSoundForPost(postId, [this](Outcome<juce::var> result) {
-    juce::MessageManager::callAsync([this, result]() {
-      if (result.isOk()) {
-        auto response = result.getValue();
-
-        // Convert juce::var to Sound using nlohmann::json
-        try {
-          nlohmann::json soundJson = nlohmann::json::parse(response.toString().toStdString());
-          sound = Sidechain::Sound::createFromJson(soundJson).getValue()
-                      ? *Sidechain::Sound::createFromJson(soundJson).getValue()
-                      : Sidechain::Sound();
-        } catch (...) {
-          sound = Sidechain::Sound();
-        }
-
+  // Use observable to get sound for post
+  appStore->getSoundForPostObservable(postId).subscribe(
+      soundSubscriptions_,
+      [this](const Sidechain::Sound &loadedSound) {
+        sound = loadedSound;
         soundId = sound.id;
 
         // Now fetch the posts using this sound
         fetchSoundPosts();
-      } else {
+      },
+      [this](std::exception_ptr ep) {
         isLoading = false;
-        errorMessage = result.getError();
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          errorMessage = e.what();
+        }
         repaint();
-      }
-    });
-  });
+      });
 }
 
 void SoundPage::refresh() {
@@ -278,7 +271,7 @@ void SoundPage::clearPlayingState() {
 
 // ==============================================================================
 void SoundPage::fetchSound() {
-  if (networkClient == nullptr || soundId.isEmpty()) {
+  if (appStore == nullptr || soundId.isEmpty()) {
     errorMessage = "Cannot fetch sound";
     repaint();
     return;
@@ -287,70 +280,55 @@ void SoundPage::fetchSound() {
   isLoading = true;
   repaint();
 
-  networkClient->getSound(soundId, [this](Outcome<juce::var> result) {
-    juce::MessageManager::callAsync([this, result]() {
-      if (result.isOk()) {
-        auto response = result.getValue();
-
-        // Convert juce::var to Sound using nlohmann::json
-        try {
-          nlohmann::json soundJson = nlohmann::json::parse(response.toString().toStdString());
-          sound = Sidechain::Sound::createFromJson(soundJson).getValue()
-                      ? *Sidechain::Sound::createFromJson(soundJson).getValue()
-                      : Sidechain::Sound();
-        } catch (...) {
-          sound = Sidechain::Sound();
-        }
-
+  // Use observable to get sound
+  appStore->getSoundObservable(soundId).subscribe(
+      soundSubscriptions_,
+      [this](const Sidechain::Sound &loadedSound) {
+        sound = loadedSound;
         loadCreatorAvatar();
 
         // Now fetch the posts
         fetchSoundPosts();
-      } else {
+      },
+      [this](std::exception_ptr ep) {
         isLoading = false;
-        errorMessage = result.getError();
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          errorMessage = e.what();
+        }
         repaint();
-      }
-    });
-  });
+      });
 }
 
 void SoundPage::fetchSoundPosts() {
-  if (networkClient == nullptr || soundId.isEmpty())
+  if (appStore == nullptr || soundId.isEmpty())
     return;
 
-  networkClient->getSoundPosts(soundId, 50, 0, [this](Outcome<juce::var> result) {
-    juce::MessageManager::callAsync([this, result]() {
-      isLoading = false;
+  // Use observable to get sound posts
+  appStore->getSoundPostsObservable(soundId, 50, 0)
+      .subscribe(
+          soundSubscriptions_,
+          [this](const std::vector<Sidechain::SoundPost> &loadedPosts) {
+            isLoading = false;
 
-      if (result.isOk()) {
-        auto response = result.getValue();
-        auto postsArray = response.getProperty("posts", juce::var());
-
-        posts.clear();
-        if (postsArray.isArray()) {
-          for (int i = 0; i < postsArray.size(); ++i) {
-            // Convert juce::var to SoundPost using nlohmann::json
-            try {
-              nlohmann::json postJson = nlohmann::json::parse(postsArray[i].toString().toStdString());
-              auto soundPost = Sidechain::SoundPost::createFromJson(postJson);
-              if (soundPost.isOk()) {
-                posts.add(*soundPost.getValue());
-              }
-            } catch (...) {
-              // Skip invalid posts
+            posts.clear();
+            for (const auto &post : loadedPosts) {
+              posts.add(post);
             }
-          }
-        }
 
-        updateScrollBounds();
-      } else {
-        errorMessage = result.getError();
-      }
-
-      repaint();
-    });
-  });
+            updateScrollBounds();
+            repaint();
+          },
+          [this](std::exception_ptr ep) {
+            isLoading = false;
+            try {
+              std::rethrow_exception(ep);
+            } catch (const std::exception &e) {
+              errorMessage = e.what();
+            }
+            repaint();
+          });
 }
 
 void SoundPage::loadCreatorAvatar() {

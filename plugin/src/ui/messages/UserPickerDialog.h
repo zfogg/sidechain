@@ -1,8 +1,10 @@
 #pragma once
 
 #include "../../network/StreamChatClient.h"
+#include "../../stores/AppStore.h"
 #include "../common/ErrorState.h"
 #include <JuceHeader.h>
+#include <rxcpp/rx.hpp>
 
 class NetworkClient;
 
@@ -50,6 +52,7 @@ public:
   // Set clients
   void setStreamChatClient(StreamChatClient *client);
   void setNetworkClient(NetworkClient *client);
+  void setAppStore(Sidechain::Stores::AppStore *store);
   void setCurrentUserId(const juce::String &userId) {
     currentUserId = userId;
   }
@@ -73,7 +76,11 @@ private:
 
   StreamChatClient *streamChatClient = nullptr;
   NetworkClient *networkClient = nullptr;
+  Sidechain::Stores::AppStore *appStore = nullptr;
   juce::String currentUserId;
+
+  // RxCpp subscription management
+  rxcpp::composite_subscription dialogSubscriptions_;
 
   // UI elements
   juce::TextEditor searchInput;

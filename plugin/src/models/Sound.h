@@ -132,6 +132,14 @@ inline void from_json(const nlohmann::json &j, Sound &sound) {
  * SoundPost represents a post that uses a specific sound
  */
 struct SoundPost : public SerializableModel<SoundPost> {
+  // Equality comparison (by ID) - required for RxCpp observables
+  bool operator==(const SoundPost &other) const {
+    return id == other.id;
+  }
+  bool operator!=(const SoundPost &other) const {
+    return id != other.id;
+  }
+
   juce::String id;
   juce::String audioUrl;
   double duration = 0.0;

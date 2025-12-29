@@ -6,6 +6,7 @@
 #include "../common/AppStoreComponent.h"
 #include "../../util/Colors.h"
 #include <JuceHeader.h>
+#include <rxcpp/rx.hpp>
 
 class NetworkClient;
 
@@ -59,6 +60,10 @@ protected:
   void onAppStateChanged(const Sidechain::Stores::PlaylistState &state) override;
 
 private:
+  // ==============================================================================
+  // RxCpp subscription management
+  rxcpp::composite_subscription playlistSubscriptions_;
+
   // ==============================================================================
   // Data
   NetworkClient *networkClient = nullptr;

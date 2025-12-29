@@ -2,6 +2,7 @@
 
 #include "../common/AppStoreComponent.h"
 #include <JuceHeader.h>
+#include <rxcpp/rx.hpp>
 
 class NetworkClient;
 
@@ -145,6 +146,10 @@ private:
   // ==============================================================================
   // Network client
   NetworkClient *networkClient = nullptr;
+
+  // ==============================================================================
+  // RxCpp subscription management
+  rxcpp::composite_subscription authSubscriptions_;
 
   // ==============================================================================
   // Welcome screen components

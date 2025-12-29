@@ -22,6 +22,7 @@ MidiChallengeDetail::MidiChallengeDetail(Sidechain::Stores::AppStore *store)
 MidiChallengeDetail::~MidiChallengeDetail() {
   Log::debug("MidiChallengeDetail: Destroying");
   scrollBar.removeListener(this);
+  challengeSubscriptions_.unsubscribe();
 }
 
 // ==============================================================================
@@ -184,69 +185,84 @@ void MidiChallengeDetail::fetchChallenge() {
   errorMessage = "";
   repaint();
 
-  networkClient->getMIDIChallenge(challengeId, [this](Outcome<juce::var> result) {
-    juce::MessageManager::callAsync([this, result]() {
-      isLoading = false;
+  if (appStore == nullptr) {
+    errorMessage = "Store not available";
+    isLoading = false;
+    repaint();
+    return;
+  }
 
-      if (!result.isOk()) {
-        errorMessage = "Failed to load challenge: " + result.getError();
-        Log::warn("MidiChallengeDetail: " + errorMessage);
-        repaint();
-        return;
-      }
+  // Use observable to get challenge
+  appStore->getMIDIChallengeObservable(challengeId)
+      .subscribe(
+          challengeSubscriptions_,
+          [this](const juce::var &response) {
+            isLoading = false;
 
-      auto response = result.getValue();
+            // Parse challenge
+            if (response.hasProperty("challenge")) {
+              challenge = Sidechain::MIDIChallenge::fromJSON(response["challenge"]);
+            } else {
+              challenge = Sidechain::MIDIChallenge::fromJSON(response);
+            }
 
-      // Parse challenge
-      if (response.hasProperty("challenge")) {
-        challenge = Sidechain::MIDIChallenge::fromJSON(response["challenge"]);
-      } else {
-        challenge = Sidechain::MIDIChallenge::fromJSON(response);
-      }
+            // Parse entries
+            entries.clear();
+            userEntryId = "";
 
-      // Parse entries
-      entries.clear();
-      userEntryId = "";
+            juce::var entriesVar;
+            if (response.hasProperty("challenge") && response["challenge"].hasProperty("entries")) {
+              entriesVar = response["challenge"]["entries"];
+            } else if (response.hasProperty("entries")) {
+              entriesVar = response["entries"];
+            }
 
-      juce::var entriesVar;
-      if (response.hasProperty("challenge") && response["challenge"].hasProperty("entries")) {
-        entriesVar = response["challenge"]["entries"];
-      } else if (response.hasProperty("entries")) {
-        entriesVar = response["entries"];
-      }
+            if (entriesVar.isArray()) {
+              for (int i = 0; i < entriesVar.size(); ++i) {
+                auto entry = Sidechain::MIDIChallengeEntry::fromJSON(entriesVar[i]);
+                entries.add(entry);
 
-      if (entriesVar.isArray()) {
-        for (int i = 0; i < entriesVar.size(); ++i) {
-          auto entry = Sidechain::MIDIChallengeEntry::fromJSON(entriesVar[i]);
-          entries.add(entry);
+                // Check if this is the user's entry
+                if (entry.userId == currentUserId)
+                  userEntryId = entry.id;
+              }
+            }
 
-          // Check if this is the user's entry
-          if (entry.userId == currentUserId)
-            userEntryId = entry.id;
-        }
-      }
-
-      Log::info("MidiChallengeDetail: Loaded challenge with " + juce::String(entries.size()) + " entries");
-      updateScrollBounds();
-      repaint();
-    });
-  });
+            Log::info("MidiChallengeDetail: Loaded challenge with " + juce::String(entries.size()) + " entries");
+            updateScrollBounds();
+            repaint();
+          },
+          [this](std::exception_ptr ep) {
+            isLoading = false;
+            try {
+              std::rethrow_exception(ep);
+            } catch (const std::exception &e) {
+              errorMessage = "Failed to load challenge: " + juce::String(e.what());
+              Log::warn("MidiChallengeDetail: " + errorMessage);
+            }
+            repaint();
+          });
 }
 
 void MidiChallengeDetail::voteForEntry(const juce::String &entryId) {
-  if (!networkClient || challengeId.isEmpty())
+  if (appStore == nullptr || challengeId.isEmpty())
     return;
 
-  networkClient->voteMIDIChallengeEntry(challengeId, entryId, [this, entryId](Outcome<juce::var> result) {
-    juce::MessageManager::callAsync([this, entryId, result]() {
-      if (result.isOk()) {
-        // Refresh to get updated vote counts
-        refresh();
-      } else {
-        Log::warn("MidiChallengeDetail: Failed to vote: " + result.getError());
-      }
-    });
-  });
+  // Use observable to vote
+  appStore->voteMIDIChallengeEntryObservable(challengeId, entryId)
+      .subscribe(
+          challengeSubscriptions_,
+          [this](int) {
+            // Refresh to get updated vote counts
+            refresh();
+          },
+          [this](std::exception_ptr ep) {
+            try {
+              std::rethrow_exception(ep);
+            } catch (const std::exception &e) {
+              Log::warn("MidiChallengeDetail: Failed to vote: " + juce::String(e.what()));
+            }
+          });
 }
 
 // ==============================================================================

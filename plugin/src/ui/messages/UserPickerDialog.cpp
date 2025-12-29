@@ -1,4 +1,5 @@
 #include "UserPickerDialog.h"
+#include "../../models/User.h"
 #include "../../network/NetworkClient.h"
 #include "../../stores/AppStore.h"
 #include "../../util/Colors.h"
@@ -52,6 +53,7 @@ UserPickerDialog::UserPickerDialog()
 
 UserPickerDialog::~UserPickerDialog() {
   Log::debug("UserPickerDialog: Destroying");
+  dialogSubscriptions_.unsubscribe();
 }
 
 void UserPickerDialog::paint(juce::Graphics &g) {
@@ -300,6 +302,10 @@ void UserPickerDialog::setNetworkClient(NetworkClient *client) {
   networkClient = client;
 }
 
+void UserPickerDialog::setAppStore(Sidechain::Stores::AppStore *store) {
+  appStore = store;
+}
+
 void UserPickerDialog::loadRecentConversations() {
   if (!streamChatClient || !streamChatClient->isAuthenticated()) {
     Log::error("UserPickerDialog: Cannot load recent conversations - not "
@@ -381,8 +387,8 @@ void UserPickerDialog::loadRecentConversations() {
 }
 
 void UserPickerDialog::loadSuggestedUsers() {
-  if (!networkClient) {
-    Log::error("UserPickerDialog: Cannot load suggested users - no NetworkClient");
+  if (!appStore) {
+    Log::error("UserPickerDialog: Cannot load suggested users - no AppStore");
     return;
   }
 
@@ -390,45 +396,46 @@ void UserPickerDialog::loadSuggestedUsers() {
 
   juce::Component::SafePointer<UserPickerDialog> safeThis(this);
 
-  // Get suggested users based on shared interests
-  networkClient->getSuggestedUsers(10, [safeThis](Outcome<juce::var> result) {
-    if (safeThis == nullptr)
-      return;
+  // Get suggested users based on shared interests via observable
+  appStore->loadSuggestedUsersObservable(10).subscribe(
+      dialogSubscriptions_,
+      [safeThis](const std::vector<Sidechain::User> &users) {
+        if (safeThis == nullptr)
+          return;
 
-    if (result.isError()) {
-      Log::error("UserPickerDialog: Failed to load suggested users - " + result.getError());
-      return;
-    }
+        safeThis->suggestedUsers.clear();
 
-    auto data = result.getValue();
-    safeThis->suggestedUsers.clear();
+        for (const auto &u : users) {
+          // Skip excluded users
+          if (u.id.isEmpty() || safeThis->excludedUserIds.contains(u.id))
+            continue;
 
-    if (data.isArray()) {
-      for (int i = 0; i < data.size(); ++i) {
-        auto userObj = data[i];
+          UserItem user;
+          user.userId = u.id;
+          user.username = u.username;
+          user.displayName = u.displayName;
+          user.profilePictureUrl = u.avatarUrl;
+          user.isFollowing = u.isFollowing;
+          user.followsMe = u.followsYou;
+          user.isOnline = u.isOnline;
 
-        // Skip excluded users
-        juce::String userId = userObj.getProperty("id", "").toString();
-        if (userId.isEmpty() || safeThis->excludedUserIds.contains(userId))
-          continue;
+          safeThis->suggestedUsers.push_back(user);
+        }
 
-        UserItem user;
-        user.userId = userId;
-        user.username = userObj.getProperty("username", "").toString();
-        user.displayName = userObj.getProperty("display_name", "").toString();
-        user.profilePictureUrl = userObj.getProperty("profile_picture_url", "").toString();
-        user.isFollowing = userObj.getProperty("is_following", false);
-        user.followsMe = userObj.getProperty("follows_me", false);
-        user.isOnline = userObj.getProperty("is_online", false);
+        Log::info("UserPickerDialog: Loaded " + juce::String(safeThis->suggestedUsers.size()) + " suggested users");
+        safeThis->resized();
+        safeThis->repaint();
+      },
+      [safeThis](std::exception_ptr ep) {
+        if (safeThis == nullptr)
+          return;
 
-        safeThis->suggestedUsers.push_back(user);
-      }
-    }
-
-    Log::info("UserPickerDialog: Loaded " + juce::String(safeThis->suggestedUsers.size()) + " suggested users");
-    safeThis->resized();
-    safeThis->repaint();
-  });
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          Log::error("UserPickerDialog: Failed to load suggested users - " + juce::String(e.what()));
+        }
+      });
 }
 
 // ==============================================================================

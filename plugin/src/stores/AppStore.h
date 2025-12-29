@@ -630,6 +630,23 @@ public:
    */
   rxcpp::observable<int> addPostToPlaylistObservable(const juce::String &postId, const juce::String &playlistId);
 
+  /**
+   * Get a single playlist by ID with reactive observable pattern.
+   *
+   * @param playlistId Playlist ID to fetch
+   * @return Observable that emits the playlist data as juce::var
+   */
+  rxcpp::observable<juce::var> getPlaylistObservable(const juce::String &playlistId);
+
+  /**
+   * Remove an entry from a playlist with reactive observable pattern.
+   *
+   * @param playlistId Playlist ID
+   * @param entryId Entry ID to remove
+   * @return Observable that emits 0 on success
+   */
+  rxcpp::observable<int> removePlaylistEntryObservable(const juce::String &playlistId, const juce::String &entryId);
+
   // ==============================================================================
   // Challenge Methods (Challenges.cpp)
 
@@ -654,6 +671,23 @@ public:
    * @return Observable that emits 0 on success, errors on failure
    */
   rxcpp::observable<int> submitChallengeObservable(const juce::String &challengeId, const juce::File &midiFile);
+
+  /**
+   * Get a single MIDI challenge with entries.
+   *
+   * @param challengeId Challenge ID to fetch
+   * @return Observable that emits the challenge data as juce::var
+   */
+  rxcpp::observable<juce::var> getMIDIChallengeObservable(const juce::String &challengeId);
+
+  /**
+   * Vote for a MIDI challenge entry.
+   *
+   * @param challengeId Challenge ID
+   * @param entryId Entry ID to vote for
+   * @return Observable that emits 0 on success
+   */
+  rxcpp::observable<int> voteMIDIChallengeEntryObservable(const juce::String &challengeId, const juce::String &entryId);
 
   // ==============================================================================
   // Sound Methods (Sounds.cpp)
@@ -680,6 +714,33 @@ public:
    * @return Observable that emits vector of Sound
    */
   rxcpp::observable<std::vector<Sound>> loadRecentSoundsObservable();
+
+  /**
+   * Get a specific sound by ID with reactive observable pattern.
+   *
+   * @param soundId Sound ID to fetch
+   * @return Observable that emits the Sound
+   */
+  rxcpp::observable<Sound> getSoundObservable(const juce::String &soundId);
+
+  /**
+   * Get the sound associated with a post with reactive observable pattern.
+   *
+   * @param postId Post ID to get sound for
+   * @return Observable that emits the Sound
+   */
+  rxcpp::observable<Sound> getSoundForPostObservable(const juce::String &postId);
+
+  /**
+   * Get posts that use a specific sound with reactive observable pattern.
+   *
+   * @param soundId Sound ID to get posts for
+   * @param limit Maximum number of posts to return
+   * @param offset Pagination offset
+   * @return Observable that emits vector of SoundPost
+   */
+  rxcpp::observable<std::vector<SoundPost>> getSoundPostsObservable(const juce::String &soundId, int limit = 50,
+                                                                    int offset = 0);
 
   // ==============================================================================
   // Comment Methods (Comments.cpp)
