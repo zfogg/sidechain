@@ -35,8 +35,8 @@ services:
     restart: unless-stopped
     pull_policy: never
     cpus: 1.5
-    mem_limit: 512m
-    memswap_limit: 512m
+    mem_limit: 1g
+    memswap_limit: 1g
     env_file: ./.env
     environment:
       - ELASTICSEARCH_URL=${ELASTICSEARCH_URL:-http://elasticsearch:9200}
