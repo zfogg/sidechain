@@ -513,11 +513,12 @@ func runManualMigrations() {
 // registerMetricsHooks registers GORM callbacks to record database metrics
 func registerMetricsHooks(db *gorm.DB) {
 	// METRICS-1: Record database query timing using GORM Before/After callbacks
-	db.Callback().Create().Before("gorm:before_create").Register("metrics:before_create", func(db *gorm.DB) {
+	// Note: Register errors are ignored since these are non-critical metrics hooks
+	_ = db.Callback().Create().Before("gorm:before_create").Register("metrics:before_create", func(db *gorm.DB) {
 		db.InstanceSet("metrics:start_time", time.Now())
 	})
 
-	db.Callback().Create().After("gorm:after_create").Register("metrics:after_create", func(db *gorm.DB) {
+	_ = db.Callback().Create().After("gorm:after_create").Register("metrics:after_create", func(db *gorm.DB) {
 		if start, ok := db.InstanceGet("metrics:start_time"); ok {
 			duration := time.Since(start.(time.Time)).Seconds()
 			metrics.Get().DatabaseQueryDuration.WithLabelValues("create", "insert").Observe(duration)
@@ -529,11 +530,11 @@ func registerMetricsHooks(db *gorm.DB) {
 		}
 	})
 
-	db.Callback().Query().Before("gorm:before_query").Register("metrics:before_query", func(db *gorm.DB) {
+	_ = db.Callback().Query().Before("gorm:before_query").Register("metrics:before_query", func(db *gorm.DB) {
 		db.InstanceSet("metrics:start_time", time.Now())
 	})
 
-	db.Callback().Query().After("gorm:after_query").Register("metrics:after_query", func(db *gorm.DB) {
+	_ = db.Callback().Query().After("gorm:after_query").Register("metrics:after_query", func(db *gorm.DB) {
 		if start, ok := db.InstanceGet("metrics:start_time"); ok {
 			duration := time.Since(start.(time.Time)).Seconds()
 			metrics.Get().DatabaseQueryDuration.WithLabelValues("query", "select").Observe(duration)
@@ -545,11 +546,11 @@ func registerMetricsHooks(db *gorm.DB) {
 		}
 	})
 
-	db.Callback().Update().Before("gorm:before_update").Register("metrics:before_update", func(db *gorm.DB) {
+	_ = db.Callback().Update().Before("gorm:before_update").Register("metrics:before_update", func(db *gorm.DB) {
 		db.InstanceSet("metrics:start_time", time.Now())
 	})
 
-	db.Callback().Update().After("gorm:after_update").Register("metrics:after_update", func(db *gorm.DB) {
+	_ = db.Callback().Update().After("gorm:after_update").Register("metrics:after_update", func(db *gorm.DB) {
 		if start, ok := db.InstanceGet("metrics:start_time"); ok {
 			duration := time.Since(start.(time.Time)).Seconds()
 			metrics.Get().DatabaseQueryDuration.WithLabelValues("update", "update").Observe(duration)
@@ -561,11 +562,11 @@ func registerMetricsHooks(db *gorm.DB) {
 		}
 	})
 
-	db.Callback().Delete().Before("gorm:before_delete").Register("metrics:before_delete", func(db *gorm.DB) {
+	_ = db.Callback().Delete().Before("gorm:before_delete").Register("metrics:before_delete", func(db *gorm.DB) {
 		db.InstanceSet("metrics:start_time", time.Now())
 	})
 
-	db.Callback().Delete().After("gorm:after_delete").Register("metrics:after_delete", func(db *gorm.DB) {
+	_ = db.Callback().Delete().After("gorm:after_delete").Register("metrics:after_delete", func(db *gorm.DB) {
 		if start, ok := db.InstanceGet("metrics:start_time"); ok {
 			duration := time.Since(start.(time.Time)).Seconds()
 			metrics.Get().DatabaseQueryDuration.WithLabelValues("delete", "delete").Observe(duration)

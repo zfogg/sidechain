@@ -11,8 +11,8 @@ import (
 )
 
 func main() {
-	// Load environment variables
-	godotenv.Load()
+	// Load environment variables (optional - .env may not exist in production)
+	_ = godotenv.Load()
 
 	// Parse command-line flags
 	email := flag.String("email", "", "Email address of user to promote to admin")

@@ -291,7 +291,8 @@ func (c *Client) handlePing(message *Message) {
 		pong.ReplyTo = message.ID
 	}
 
-	c.Send(pong)
+	// Best-effort pong response - connection may be closing
+	_ = c.Send(pong)
 }
 
 // handleAuth handles re-authentication requests
