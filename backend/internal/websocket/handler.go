@@ -70,7 +70,7 @@ func (h *Handler) HandleWebSocketHTTP(w http.ResponseWriter, r *http.Request) {
 	h.hub.Register(client)
 
 	// Send welcome message
-	client.Send(NewMessage(MessageTypeSystem, SystemPayload{
+	if err := client.Send(NewMessage(MessageTypeSystem, SystemPayload{
 		Event:   "connected",
 		Message: "Welcome to Sidechain!",
 		Data: map[string]interface{}{
@@ -79,7 +79,11 @@ func (h *Handler) HandleWebSocketHTTP(w http.ResponseWriter, r *http.Request) {
 			"server_time": time.Now().UTC().UnixMilli(),
 			"session_id":  fmt.Sprintf("%p", client),
 		},
-	}))
+	})); err != nil {
+		logger.Log.Warn("Failed to send welcome message to client",
+			zap.String("user_id", user.ID),
+			zap.Error(err))
+	}
 
 	// Start client read/write pumps
 	go client.WritePump()
@@ -161,71 +165,6 @@ func (h *Handler) authenticateHTTPRequest(r *http.Request) (*models.User, error)
 // This wraps HandleWebSocketHTTP for use with Gin routes
 func (h *Handler) HandleWebSocket(c *gin.Context) {
 	h.HandleWebSocketHTTP(c.Writer, c.Request)
-}
-
-// authenticateRequest extracts and validates the JWT token from the request
-func (h *Handler) authenticateRequest(c *gin.Context) (*models.User, error) {
-	tokenString := ""
-
-	// First check query parameter
-	if token := c.Query("token"); token != "" {
-		tokenString = token
-	}
-
-	// Then check Authorization header
-	if auth := c.GetHeader("Authorization"); auth != "" {
-		// Support "Bearer <token>" format
-		if strings.HasPrefix(auth, "Bearer ") {
-			tokenString = strings.TrimPrefix(auth, "Bearer ")
-		} else {
-			tokenString = auth
-		}
-	}
-
-	if tokenString == "" {
-		return nil, errors.New("no authentication token provided")
-	}
-
-	// Parse and validate JWT
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// Validate signing method
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		return h.jwtSecret, nil
-	})
-
-	if err != nil {
-		return nil, fmt.Errorf("invalid token: %w", err)
-	}
-
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok || !token.Valid {
-		return nil, errors.New("invalid token claims")
-	}
-
-	// Check token expiration
-	exp, ok := claims["exp"].(float64)
-	if !ok {
-		return nil, errors.New("token missing expiration")
-	}
-	if time.Unix(int64(exp), 0).Before(time.Now()) {
-		return nil, errors.New("token expired")
-	}
-
-	// Extract user ID
-	userID, ok := claims["user_id"].(string)
-	if !ok || userID == "" {
-		return nil, errors.New("invalid user_id in token")
-	}
-
-	// Fetch user from database
-	var user models.User
-	if err := database.DB.First(&user, "id = ?", userID).Error; err != nil {
-		return nil, fmt.Errorf("user not found: %w", err)
-	}
-
-	return &user, nil
 }
 
 // HandleMetrics returns WebSocket metrics (for monitoring)

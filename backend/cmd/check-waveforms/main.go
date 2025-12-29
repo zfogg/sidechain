@@ -11,7 +11,9 @@ import (
 
 func main() {
 	// Load environment
-	godotenv.Load()
+	if err := godotenv.Load(); err != nil {
+		log.Printf("Warning: Could not load .env file: %v", err)
+	}
 
 	// Connect to database
 	if err := database.Initialize(); err != nil {

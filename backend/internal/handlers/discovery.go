@@ -65,14 +65,15 @@ import (
 // trackSearchQuery logs search analytics
 // Note: In production, this would be indexed to an analytics service
 func (h *Handlers) trackSearchQuery(c *gin.Context, entityType string, query string, resultCount int, filters map[string]interface{}) {
-	// Non-blocking analytics tracking
+	// Analytics tracking
 	go func() {
 		// userID available for future analytics: c.GetString("user_id")
 		if h.search != nil {
 			// Delegate to search client for potential Elasticsearch analytics indexing
-			h.search.TrackSearchQuery(c.Request.Context(), query, resultCount, filters)
+			if err := h.search.TrackSearchQuery(c.Request.Context(), query, resultCount, filters); err != nil {
+				logger.WarnWithFields("Failed to track search query", err)
+			}
 		}
-
 	}()
 }
 

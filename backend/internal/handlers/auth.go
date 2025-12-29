@@ -901,7 +901,9 @@ func (h *AuthHandlers) GetProfilePictureURL(c *gin.Context) {
 		c.Header("Content-Type", contentType)
 		c.Header("Cache-Control", "public, max-age=3600") // Cache for 1 hour
 		c.Status(http.StatusOK)
-		io.Copy(c.Writer, resp.Body)
+		if _, err := io.Copy(c.Writer, resp.Body); err != nil {
+			logger.WarnWithFields("Failed to copy avatar response body", err)
+		}
 		return
 	}
 

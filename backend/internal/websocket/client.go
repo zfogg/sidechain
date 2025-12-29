@@ -291,17 +291,24 @@ func (c *Client) handlePing(message *Message) {
 		pong.ReplyTo = message.ID
 	}
 
-	// Best-effort pong response - connection may be closing
-	_ = c.Send(pong)
+	if err := c.Send(pong); err != nil {
+		logger.Log.Warn("Failed to send pong to client",
+			zap.String("user_id", c.UserID),
+			zap.Error(err))
+	}
 }
 
 // handleAuth handles re-authentication requests
 func (c *Client) handleAuth(message *Message) {
 	// For now, just acknowledge - real auth happens at connection time
-	c.Send(NewMessage(MessageTypeAuth, AuthPayload{
+	if err := c.Send(NewMessage(MessageTypeAuth, AuthPayload{
 		UserID: c.UserID,
 		Status: "authenticated",
-	}))
+	})); err != nil {
+		logger.Log.Warn("Failed to send auth acknowledgment to client",
+			zap.String("user_id", c.UserID),
+			zap.Error(err))
+	}
 }
 
 // Send sends a message to this client
@@ -335,7 +342,12 @@ func (c *Client) SendJSON(ctx context.Context, v interface{}) error {
 
 // SendError sends an error message to the client
 func (c *Client) SendError(code, message string) {
-	c.Send(NewErrorMessage(code, message))
+	if err := c.Send(NewErrorMessage(code, message)); err != nil {
+		logger.Log.Warn("Failed to send error message to client",
+			zap.String("user_id", c.UserID),
+			zap.String("error_code", code),
+			zap.Error(err))
+	}
 }
 
 // Close closes the client connection

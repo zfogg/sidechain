@@ -522,9 +522,14 @@ func generateBackupCodes(count int) []string {
 }
 
 // generateRandomCode generates a random alphanumeric code
+// Panics if cryptographic random generation fails (security-critical)
 func generateRandomCode(length int) string {
 	bytes := make([]byte, length)
-	rand.Read(bytes)
+	if _, err := rand.Read(bytes); err != nil {
+		// Panic because failing to generate random bytes is a security-critical error
+		// Backup codes MUST be cryptographically random
+		panic("crypto/rand.Read failed: " + err.Error())
+	}
 	// Use base32 for easy typing (no confusing chars like 0/O, 1/I)
 	encoded := base32.StdEncoding.EncodeToString(bytes)
 	// Take first 'length' characters and format as XXXX-XXXX

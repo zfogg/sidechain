@@ -95,7 +95,9 @@ func (h *Handlers) CreateComment(c *gin.Context) {
 		go func() {
 			var updatedPost models.AudioPost
 			if err := database.DB.Select("like_count", "play_count", "comment_count").First(&updatedPost, "id = ?", postID).Error; err == nil {
-				h.search.UpdatePostEngagement(c.Request.Context(), postID, updatedPost.LikeCount, updatedPost.PlayCount, updatedPost.CommentCount)
+				if err := h.search.UpdatePostEngagement(c.Request.Context(), postID, updatedPost.LikeCount, updatedPost.PlayCount, updatedPost.CommentCount); err != nil {
+					logger.WarnWithFields("Failed to update post engagement in search index", err)
+				}
 			}
 		}()
 	}
@@ -107,7 +109,11 @@ func (h *Handlers) CreateComment(c *gin.Context) {
 
 	// Extract mentions and create notifications
 	mentions := util.ExtractMentions(req.Content)
-	go h.processMentions(comment.ID, mentions, userID, postID)
+	if err := h.processMentions(comment.ID, mentions, userID, postID); err != nil {
+		logger.ErrorWithFields("Failed to process mentions", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send mention notifications"})
+		return
+	}
 
 	// Notify post owner (if not commenting on own post)
 	if post.UserID != userID {
@@ -380,12 +386,14 @@ func (h *Handlers) DeleteComment(c *gin.Context) {
 		logger.WarnWithFields("Failed to decrement comment count for post "+comment.PostID, err)
 	}
 
-	// Sync post engagement metrics to Elasticsearch (comment_count only)
+	// Sync post engagement metrics to Elasticsearch
 	if h.search != nil {
 		go func() {
 			var post models.AudioPost
 			if err := database.DB.Select("like_count", "play_count", "comment_count").First(&post, "id = ?", comment.PostID).Error; err == nil {
-				h.search.UpdatePostEngagement(c.Request.Context(), post.ID, post.LikeCount, post.PlayCount, post.CommentCount)
+				if err := h.search.UpdatePostEngagement(c.Request.Context(), post.ID, post.LikeCount, post.PlayCount, post.CommentCount); err != nil {
+					logger.WarnWithFields("Failed to update post engagement in search index", err)
+				}
 			}
 		}()
 	}
@@ -504,9 +512,9 @@ func (h *Handlers) UnlikeComment(c *gin.Context) {
 }
 
 // processMentions creates mention records and sends notifications
-func (h *Handlers) processMentions(commentID string, usernames []string, authorID string, postID string) {
+func (h *Handlers) processMentions(commentID string, usernames []string, authorID string, postID string) error {
 	if len(usernames) == 0 {
-		return
+		return nil
 	}
 
 	for _, username := range usernames {
@@ -532,7 +540,9 @@ func (h *Handlers) processMentions(commentID string, usernames []string, authorI
 
 		// Send notification via Stream.io
 		if h.stream != nil {
-			h.stream.NotifyMention(authorID, user.ID, postID, commentID)
+			if err := h.stream.NotifyMention(authorID, user.ID, postID, commentID); err != nil {
+				return fmt.Errorf("failed to send mention notification: %w", err)
+			}
 		}
 
 		// Mark notification as sent
@@ -541,6 +551,8 @@ func (h *Handlers) processMentions(commentID string, usernames []string, authorI
 			logger.WarnWithFields("Failed to update mention notification status", err)
 		}
 	}
+
+	return nil
 }
 
 // notifyCommentOnPost sends a notification to the post owner when someone comments

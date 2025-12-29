@@ -10,6 +10,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/stream"
 	"github.com/zfogg/sidechain/backend/internal/util"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -31,7 +32,13 @@ func (h *Handlers) CreateRepost(c *gin.Context) {
 	var req struct {
 		Quote string `json:"quote"`
 	}
-	c.ShouldBindJSON(&req)
+	// Quote is optional, but log if there's a parsing error
+	if err := c.ShouldBindJSON(&req); err != nil {
+		// Only log at debug level - quote is optional so this isn't critical
+		// but we want to know if someone sent malformed JSON
+		logger.Log.Debug("Failed to parse repost request body (quote is optional)",
+			zap.Error(err))
+	}
 
 	// Check if post exists and get post data
 	var post models.AudioPost
@@ -141,7 +148,11 @@ func (h *Handlers) CreateRepost(c *gin.Context) {
 		// Get target user's StreamUserID for notification
 		var targetUser models.User
 		if err := database.DB.First(&targetUser, "id = ?", post.UserID).Error; err == nil && targetUser.StreamUserID != "" {
-			h.stream.NotifyRepost(userID, targetUser.StreamUserID, postID)
+			if err := h.stream.NotifyRepost(userID, targetUser.StreamUserID, postID); err != nil {
+				logger.ErrorWithFields("Failed to send repost notification", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send notification"})
+				return
+			}
 		}
 	}
 

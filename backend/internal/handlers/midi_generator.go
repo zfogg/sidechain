@@ -93,7 +93,9 @@ func GenerateMIDIFile(data *models.MIDIData, name string) ([]byte, error) {
 		endDelta := endTick - lastTick
 		track.Close(endDelta)
 
-		s.Add(track)
+		if err := s.Add(track); err != nil {
+			return nil, fmt.Errorf("failed to add track to MIDI file: %w", err)
+		}
 	} else {
 		// Multi-track format (Type 1)
 		// First track contains tempo and time signature
@@ -109,7 +111,9 @@ func GenerateMIDIFile(data *models.MIDIData, name string) ([]byte, error) {
 		tempoTrack.Add(0, smf.MetaTimeSig(numerator, denomPower, 24, 8))
 		endTick := secondsToTicks(data.TotalTime, float64(tempo), ticksPerQuarter)
 		tempoTrack.Close(endTick)
-		s.Add(tempoTrack)
+		if err := s.Add(tempoTrack); err != nil {
+			return nil, fmt.Errorf("failed to add tempo track to MIDI file: %w", err)
+		}
 
 		// Add a track for each channel
 		channels := make([]int, 0, len(channelEvents))
@@ -146,7 +150,9 @@ func GenerateMIDIFile(data *models.MIDIData, name string) ([]byte, error) {
 
 			endDelta := endTick - lastTick
 			track.Close(endDelta)
-			s.Add(track)
+			if err := s.Add(track); err != nil {
+				return nil, fmt.Errorf("failed to add channel %d track to MIDI file: %w", ch, err)
+			}
 		}
 	}
 

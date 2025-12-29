@@ -65,7 +65,12 @@ func ResponseCacheMiddleware(ttl time.Duration) gin.HandlerFunc {
 					zap.Int("cached_data_length", len(cachedData)),
 				)
 				// Clear corrupted cache entry
-				redisClient.Del(ctx, cacheKey)
+				if delErr := redisClient.Del(ctx, cacheKey); delErr != nil {
+					logger.Log.Error("Failed to delete corrupted cache entry",
+						zap.String("key", cacheKey),
+						zap.Error(delErr),
+					)
+				}
 				// Fall through to fetch fresh data
 			} else {
 				logger.Log.Debug("Cache hit",
