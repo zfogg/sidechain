@@ -321,21 +321,13 @@ void UserPickerDialog::loadRecentConversations() {
 
   juce::Component::SafePointer<UserPickerDialog> safeThis(this);
 
-  // Query recent channels to get recent conversation partners
-  streamChatClient->queryChannels(
-      [safeThis](Outcome<std::vector<StreamChatClient::Channel>> result) {
+  // Query recent channels to get recent conversation partners using observable API
+  streamChatClient->queryChannelsObservable(20, 0).subscribe(
+      [safeThis](std::vector<StreamChatClient::Channel> channels) {
         if (safeThis == nullptr)
           return;
 
         safeThis->dialogState = DialogState::Showing;
-
-        if (result.isError()) {
-          Log::error("UserPickerDialog: Failed to load channels - " + result.getError());
-          safeThis->repaint();
-          return;
-        }
-
-        auto channels = result.getValue();
         safeThis->recentUsers.clear();
 
         // Extract unique users from channels
@@ -383,7 +375,19 @@ void UserPickerDialog::loadRecentConversations() {
         safeThis->resized();
         safeThis->repaint();
       },
-      20, 0);
+      [safeThis](std::exception_ptr ep) {
+        if (safeThis == nullptr)
+          return;
+
+        safeThis->dialogState = DialogState::Showing;
+
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          Log::error("UserPickerDialog: Failed to load channels - " + juce::String(e.what()));
+        }
+        safeThis->repaint();
+      });
 }
 
 void UserPickerDialog::loadSuggestedUsers() {

@@ -254,32 +254,39 @@ void MessagesList::loadChannels() {
   listState = ListState::Loading;
   repaint();
 
-  streamChatClient->queryChannels([this](Outcome<std::vector<StreamChatClient::Channel>> channelsResult) {
-    if (channelsResult.isOk()) {
-      channels = channelsResult.getValue();
-      Log::info("MessagesList: Loaded " + juce::String(channels.size()) + " conversations");
-      listState = channels.empty() ? ListState::Empty : ListState::Loaded;
+  streamChatClient->queryChannelsObservable().subscribe(
+      [this](std::vector<StreamChatClient::Channel> loadedChannels) {
+        channels = loadedChannels;
+        Log::info("MessagesList: Loaded " + juce::String(channels.size()) + " conversations");
+        listState = channels.empty() ? ListState::Empty : ListState::Loaded;
 
-      // Hide error state on success
-      if (errorStateComponent != nullptr)
-        errorStateComponent->setVisible(false);
+        // Hide error state on success
+        if (errorStateComponent != nullptr)
+          errorStateComponent->setVisible(false);
 
-      // Load presence info for channel members
-      if (!channels.empty())
-        loadPresenceForChannels();
-    } else {
-      Log::error("MessagesList: Failed to load channels - " + channelsResult.getError());
-      listState = ListState::Error;
-      errorMessage = "Failed to load channels: " + channelsResult.getError();
+        // Load presence info for channel members
+        if (!channels.empty())
+          loadPresenceForChannels();
 
-      // Configure and show error state component
-      if (errorStateComponent != nullptr) {
-        errorStateComponent->configureFromError(channelsResult.getError());
-        errorStateComponent->setVisible(true);
-      }
-    }
-    repaint();
-  });
+        repaint();
+      },
+      [this](std::exception_ptr ep) {
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          juce::String error = e.what();
+          Log::error("MessagesList: Failed to load channels - " + error);
+          listState = ListState::Error;
+          errorMessage = "Failed to load channels: " + error;
+
+          // Configure and show error state component
+          if (errorStateComponent != nullptr) {
+            errorStateComponent->configureFromError(error);
+            errorStateComponent->setVisible(true);
+          }
+          repaint();
+        }
+      });
 }
 
 void MessagesList::loadPresenceForChannels() {
@@ -304,18 +311,21 @@ void MessagesList::loadPresenceForChannels() {
 
   Log::debug("MessagesList: Querying presence for " + juce::String(userIds.size()) + " users");
 
-  streamChatClient->queryPresence(userIds, [this](Outcome<std::vector<StreamChatClient::UserPresence>> result) {
-    if (result.isOk()) {
-      const auto &presences = result.getValue();
-      for (const auto &presence : presences) {
-        userPresence[presence.userId] = presence;
-      }
-      Log::debug("MessagesList: Updated presence for " + juce::String(presences.size()) + " users");
-      repaint();
-    } else {
-      Log::warn("MessagesList: Failed to load presence - " + result.getError());
-    }
-  });
+  streamChatClient->queryPresenceObservable(userIds).subscribe(
+      [this](std::vector<StreamChatClient::UserPresence> presences) {
+        for (const auto &presence : presences) {
+          userPresence[presence.userId] = presence;
+        }
+        Log::debug("MessagesList: Updated presence for " + juce::String(presences.size()) + " users");
+        repaint();
+      },
+      [](std::exception_ptr ep) {
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          Log::warn("MessagesList: Failed to load presence - " + juce::String(e.what()));
+        }
+      });
 }
 
 juce::String MessagesList::getOtherUserId(const StreamChatClient::Channel &channel) const {

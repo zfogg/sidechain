@@ -1149,58 +1149,60 @@ void UserDiscovery::queryPresenceForUsers(const juce::Array<DiscoveredUser> &use
 
   Log::debug("UserDiscovery::queryPresenceForUsers: Querying presence for " + juce::String(userIds.size()) + " users");
 
-  // Query presence
+  // Query presence using observable API
   juce::Component::SafePointer<UserDiscovery> safeThis(this);
-  streamChatClient->queryPresence(userIds, [safeThis](Outcome<std::vector<StreamChatClient::UserPresence>> result) {
-    if (safeThis == nullptr)
-      return; // Component was deleted
+  streamChatClient->queryPresenceObservable(userIds).subscribe(
+      [safeThis](std::vector<StreamChatClient::UserPresence> presenceList) {
+        if (safeThis == nullptr)
+          return; // Component was deleted
 
-    if (result.isError()) {
-      Log::warn("UserDiscovery::queryPresenceForUsers: Failed to query presence: " + result.getError());
-      return;
-    }
+        Log::debug("UserDiscovery::queryPresenceForUsers: Received presence data for " +
+                   juce::String(presenceList.size()) + " users");
 
-    auto presenceList = result.getValue();
-    Log::debug("UserDiscovery::queryPresenceForUsers: Received presence data for " + juce::String(presenceList.size()) +
-               " users");
+        // Update user arrays with presence data
+        auto updateUserPresenceInArray = [&presenceList](juce::Array<DiscoveredUser> &userArray) {
+          for (auto &user : userArray) {
+            for (const auto &presence : presenceList) {
+              if (presence.userId == user.id) {
+                user.isOnline = presence.online;
+                user.isInStudio = (presence.status == "in_studio" || presence.status == "in studio");
+                break;
+              }
+            }
+          }
+        };
 
-    // Update user arrays with presence data
-    auto updateUserPresenceInArray = [&presenceList](juce::Array<DiscoveredUser> &userArray) {
-      for (auto &user : userArray) {
-        for (const auto &presence : presenceList) {
-          if (presence.userId == user.id) {
-            user.isOnline = presence.online;
-            user.isInStudio = (presence.status == "in_studio" || presence.status == "in studio");
-            break;
+        updateUserPresenceInArray(safeThis->searchResults);
+        updateUserPresenceInArray(safeThis->trendingUsers);
+        updateUserPresenceInArray(safeThis->featuredProducers);
+        updateUserPresenceInArray(safeThis->suggestedUsers);
+        updateUserPresenceInArray(safeThis->similarProducers);
+        updateUserPresenceInArray(safeThis->recommendedToFollow);
+        updateUserPresenceInArray(safeThis->genreUsers);
+
+        // Update corresponding UserCards
+        for (auto *card : safeThis->userCards) {
+          auto user = card->getUser();
+          for (const auto &presence : presenceList) {
+            if (presence.userId == user.id) {
+              user.isOnline = presence.online;
+              user.isInStudio = (presence.status == "in_studio" || presence.status == "in studio");
+              card->setUser(user);
+              break;
+            }
           }
         }
-      }
-    };
 
-    updateUserPresenceInArray(safeThis->searchResults);
-    updateUserPresenceInArray(safeThis->trendingUsers);
-    updateUserPresenceInArray(safeThis->featuredProducers);
-    updateUserPresenceInArray(safeThis->suggestedUsers);
-    updateUserPresenceInArray(safeThis->similarProducers);
-    updateUserPresenceInArray(safeThis->recommendedToFollow);
-    updateUserPresenceInArray(safeThis->genreUsers);
-
-    // Update corresponding UserCards
-    for (auto *card : safeThis->userCards) {
-      auto user = card->getUser();
-      for (const auto &presence : presenceList) {
-        if (presence.userId == user.id) {
-          user.isOnline = presence.online;
-          user.isInStudio = (presence.status == "in_studio" || presence.status == "in studio");
-          card->setUser(user);
-          break;
+        // Repaint to show online indicators
+        safeThis->repaint();
+      },
+      [](std::exception_ptr ep) {
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          Log::warn("UserDiscovery::queryPresenceForUsers: Failed to query presence: " + juce::String(e.what()));
         }
-      }
-    }
-
-    // Repaint to show online indicators
-    safeThis->repaint();
-  });
+      });
 }
 
 void UserDiscovery::updateUserPresence(const juce::String &userId, bool isOnline, const juce::String &status) {

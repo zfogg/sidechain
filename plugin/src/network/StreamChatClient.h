@@ -88,6 +88,14 @@ public:
     int unreadCount = 0;        // /< Number of unread messages
     juce::String lastMessageAt; // /< Timestamp of last message
     juce::var extraData;        // /< Additional channel metadata
+
+    // Equality comparison (required for RxCpp)
+    bool operator==(const Channel &other) const {
+      return id == other.id;
+    }
+    bool operator!=(const Channel &other) const {
+      return id != other.id;
+    }
   };
 
   /** Chat message information */
@@ -210,11 +218,14 @@ public:
 
   // ==========================================================================
   // Channel Management (REST API)
+  // NOTE: Callback-based methods are deprecated. Use observable versions instead.
 
   /** Create a direct messaging channel with another user
+   * @deprecated Use createDirectChannelObservable() instead
    * @param targetUserId The user ID to message
    * @param callback Called with the created channel or error
    */
+  [[deprecated("Use createDirectChannelObservable() instead")]]
   void createDirectChannel(const juce::String &targetUserId, std::function<void(Outcome<Channel>)> callback);
 
   /** Create a group channel
@@ -227,17 +238,21 @@ public:
                           const std::vector<juce::String> &memberIds, std::function<void(Outcome<Channel>)> callback);
 
   /** Query channels for the current user
+   * @deprecated Use queryChannelsObservable() instead
    * @param callback Called with list of channels or error
    * @param limit Maximum number of channels to return
    * @param offset Pagination offset
    */
+  [[deprecated("Use queryChannelsObservable() instead")]]
   void queryChannels(ChannelsCallback callback, int limit = 20, int offset = 0);
 
   /** Get a specific channel by type and ID
+   * @deprecated Use getChannelObservable() instead
    * @param channelType Channel type (e.g., "messaging", "team")
    * @param channelId Channel identifier
    * @param callback Called with the channel or error
    */
+  [[deprecated("Use getChannelObservable() instead")]]
   void getChannel(const juce::String &channelType, const juce::String &channelId,
                   std::function<void(Outcome<Channel>)> callback);
 
@@ -287,24 +302,29 @@ public:
 
   // ==========================================================================
   // Message Operations (REST API)
+  // NOTE: Callback-based methods are deprecated. Use observable versions instead.
 
   /** Send a text message to a channel
+   * @deprecated Use sendMessageObservable() instead
    * @param channelType Channel type
    * @param channelId Channel identifier
    * @param text Message text content
    * @param extraData Additional message data (e.g., reply_to, attachments)
    * @param callback Called with the sent message or error
    */
+  [[deprecated("Use sendMessageObservable() instead")]]
   void sendMessage(const juce::String &channelType, const juce::String &channelId, const juce::String &text,
                    const juce::var &extraData, MessageCallback callback);
 
   /** Query messages from a channel
+   * @deprecated Use queryMessagesObservable() instead
    * @param channelType Channel type
    * @param channelId Channel identifier
    * @param limit Maximum number of messages to return
    * @param offset Pagination offset
    * @param callback Called with list of messages or error
    */
+  [[deprecated("Use queryMessagesObservable() instead")]]
   void queryMessages(const juce::String &channelType, const juce::String &channelId, int limit, int offset,
                      MessagesCallback callback);
 
@@ -389,16 +409,25 @@ public:
 
   // ==========================================================================
   // Message Search
+  // NOTE: Callback-based methods are deprecated. Use observable versions instead.
+
+  /** Search messages
+   * @deprecated Use searchMessagesObservable() instead
+   */
+  [[deprecated("Use searchMessagesObservable() instead")]]
   void searchMessages(const juce::String &query, const juce::var &channelFilters, int limit, int offset,
                       MessagesCallback callback);
 
   // ==========================================================================
   // Presence (App-Wide) - GetStream.io handles presence automatically
+  // NOTE: Callback-based methods are deprecated. Use observable versions instead.
 
   /** Query presence status for multiple users
+   * @deprecated Use queryPresenceObservable() instead
    * @param userIds List of user IDs to query
    * @param callback Called with list of presence info or error
    */
+  [[deprecated("Use queryPresenceObservable() instead")]]
   void queryPresence(const std::vector<juce::String> &userIds, PresenceCallback callback);
 
   /** Update current user's status in GetStream.io
@@ -434,15 +463,25 @@ public:
   }
 
   // Callbacks for real-time events
+  // NOTE: These callback setters are deprecated. Use the observable subjects instead:
+  //   - messages() for new message events
+  //   - typingEvents() for typing indicators
+  //   - presenceChanges() for presence updates
+  //   - pollUnreadCountObservable() for unread counts
+
+  [[deprecated("Use messages() observable instead")]]
   void setMessageReceivedCallback(MessageReceivedCallback callback) {
     messageReceivedCallback = callback;
   }
+  [[deprecated("Use typingEvents() observable instead")]]
   void setTypingCallback(TypingCallback callback) {
     typingCallback = callback;
   }
+  [[deprecated("Use presenceChanges() observable instead")]]
   void setPresenceChangedCallback(PresenceChangedCallback callback) {
     presenceChangedCallback = callback;
   }
+  [[deprecated("Use pollUnreadCountObservable() instead")]]
   void setUnreadCountCallback(std::function<void(int totalUnread)> callback) {
     unreadCountCallback = callback;
   }
@@ -490,6 +529,117 @@ public:
 
   // Send typing indicator via REST API event endpoint
   void sendTypingIndicator(const juce::String &channelType, const juce::String &channelId, bool isTyping);
+
+  // ==========================================================================
+  // Reactive Observable Methods (Phase 6)
+  //
+  // These observables wrap callback-based APIs for easier composition with
+  // RxCpp operators like debounce, merge, zip, etc.
+  //
+  // Channel Operations
+  //
+
+  /**
+   * Query channels with reactive observable pattern.
+   * @param limit Maximum channels to return (default 20)
+   * @param offset Pagination offset (default 0)
+   * @return Observable that emits vector of Channel
+   */
+  rxcpp::observable<std::vector<Channel>> queryChannelsObservable(int limit = 20, int offset = 0);
+
+  /**
+   * Create a direct messaging channel with another user.
+   * @param targetUserId User ID to create DM with
+   * @return Observable that emits the created Channel
+   */
+  rxcpp::observable<Channel> createDirectChannelObservable(const juce::String &targetUserId);
+
+  /**
+   * Get a specific channel by type and ID.
+   * @param channelType Channel type (messaging, team, etc.)
+   * @param channelId Channel identifier
+   * @return Observable that emits the Channel
+   */
+  rxcpp::observable<Channel> getChannelObservable(const juce::String &channelType, const juce::String &channelId);
+
+  //
+  // Message Operations
+  //
+
+  /**
+   * Query messages from a channel with reactive observable pattern.
+   * @param channelType Channel type
+   * @param channelId Channel identifier
+   * @param limit Maximum messages to return (default 50)
+   * @param offset Pagination offset (default 0)
+   * @return Observable that emits vector of Message
+   */
+  rxcpp::observable<std::vector<Message>> queryMessagesObservable(const juce::String &channelType,
+                                                                  const juce::String &channelId, int limit = 50,
+                                                                  int offset = 0);
+
+  /**
+   * Send a message to a channel with reactive observable pattern.
+   * @param channelType Channel type
+   * @param channelId Channel identifier
+   * @param text Message text
+   * @param extraData Additional message data
+   * @return Observable that emits the sent Message
+   */
+  rxcpp::observable<Message> sendMessageObservable(const juce::String &channelType, const juce::String &channelId,
+                                                   const juce::String &text, const juce::var &extraData = juce::var());
+
+  /**
+   * Search messages with reactive observable pattern.
+   * @param query Search query
+   * @param channelFilters Optional channel filter conditions
+   * @param limit Maximum results (default 20)
+   * @param offset Pagination offset (default 0)
+   * @return Observable that emits vector of Message
+   */
+  rxcpp::observable<std::vector<Message>> searchMessagesObservable(const juce::String &query,
+                                                                   const juce::var &channelFilters = juce::var(),
+                                                                   int limit = 20, int offset = 0);
+
+  //
+  // Presence Operations
+  //
+
+  /**
+   * Query presence status for multiple users.
+   * @param userIds Vector of user IDs to query
+   * @return Observable that emits vector of UserPresence
+   */
+  rxcpp::observable<std::vector<UserPresence>> queryPresenceObservable(const std::vector<juce::String> &userIds);
+
+  //
+  // Interval-based Polling Observables
+  //
+  // These replace juce::Timer with RxCpp intervals for cleaner composition
+  // with other reactive streams. The observables emit periodically until
+  // unsubscribed.
+  //
+
+  /**
+   * Create an observable that polls a channel for new messages at regular intervals.
+   * Emits vector of new Messages when detected.
+   *
+   * @param channelType Channel type
+   * @param channelId Channel identifier
+   * @param intervalMs Polling interval in milliseconds (default 2000)
+   * @return Observable that emits new messages periodically
+   */
+  rxcpp::observable<std::vector<Message>>
+  pollChannelMessagesObservable(const juce::String &channelType, const juce::String &channelId, int intervalMs = 2000);
+
+  /**
+   * Create an observable that polls total unread count at regular intervals.
+   * Emits int representing total unread messages across all channels.
+   *
+   * @param intervalMs Polling interval in milliseconds (default 30000)
+   * @return Observable that emits unread count periodically
+   */
+  rxcpp::observable<int> pollUnreadCountObservable(int intervalMs = 30000);
 
   /**
    * Connect to getstream.io WebSocket for real-time updates.

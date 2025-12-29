@@ -138,16 +138,16 @@ void MessageThread::sendMessage() {
     extraData = juce::var(obj.get());
   }
 
-  // Send message through StreamChatClient
-  // streamChatClient->sendMessage(channelType, channelId, text, extraData, callback)
-  streamChatClient->sendMessage(channelType, channelId, messageText, extraData,
-                                [](const Outcome<StreamChatClient::Message> &result) {
-                                  if (result.isOk()) {
-                                    Log::info("MessageThread: Message sent successfully");
-                                  } else {
-                                    Log::error("MessageThread: Failed to send message");
-                                  }
-                                });
+  // Send message through StreamChatClient using observable API
+  streamChatClient->sendMessageObservable(channelType, channelId, messageText, extraData)
+      .subscribe([](StreamChatClient::Message /* message */) { Log::info("MessageThread: Message sent successfully"); },
+                 [](std::exception_ptr ep) {
+                   try {
+                     std::rethrow_exception(ep);
+                   } catch (const std::exception &e) {
+                     Log::error("MessageThread: Failed to send message - " + juce::String(e.what()));
+                   }
+                 });
 
   // Clear input and reset state
   messageInput.clear();

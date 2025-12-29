@@ -1431,45 +1431,48 @@ void Profile::queryPresenceForProfile() {
 
   std::vector<juce::String> userIds = {profile.id};
 
-  streamChatClient->queryPresence(userIds, [this](Outcome<std::vector<StreamChatClient::UserPresence>> result) {
-    if (result.isError()) {
-      Log::warn("Profile::queryPresenceForProfile: Failed to query presence: " + result.getError());
-      return;
-    }
+  // Query presence using observable API
+  streamChatClient->queryPresenceObservable(userIds).subscribe(
+      [this](std::vector<StreamChatClient::UserPresence> presenceList) {
+        if (presenceList.empty()) {
+          Log::debug("Profile::queryPresenceForProfile: No presence data returned");
+          return;
+        }
 
-    auto presenceList = result.getValue();
-    if (presenceList.empty()) {
-      Log::debug("Profile::queryPresenceForProfile: No presence data returned");
-      return;
-    }
+        const auto &presence = presenceList[0];
+        bool isInStudio = (presence.status == "in_studio" || presence.status == "in studio");
+        profile = profile.withOnlineStatus(presence.online).withStudioStatus(isInStudio);
 
-    const auto &presence = presenceList[0];
-    bool isInStudio = (presence.status == "in_studio" || presence.status == "in studio");
-    profile = profile.withOnlineStatus(presence.online).withStudioStatus(isInStudio);
+        // Format last active time
+        if (!presence.lastActive.isEmpty()) {
+          // Parse ISO timestamp and format as "last active X ago"
+          juce::Time lastActiveTime = juce::Time::fromISO8601(presence.lastActive);
+          if (lastActiveTime.toMilliseconds() > 0) {
+            auto diff = juce::Time::getCurrentTime() - lastActiveTime;
+            int minutes = static_cast<int>(diff.inMinutes());
+            int hours = static_cast<int>(diff.inHours());
+            int days = static_cast<int>(diff.inDays());
 
-    // Format last active time
-    if (!presence.lastActive.isEmpty()) {
-      // Parse ISO timestamp and format as "last active X ago"
-      juce::Time lastActiveTime = juce::Time::fromISO8601(presence.lastActive);
-      if (lastActiveTime.toMilliseconds() > 0) {
-        auto diff = juce::Time::getCurrentTime() - lastActiveTime;
-        int minutes = static_cast<int>(diff.inMinutes());
-        int hours = static_cast<int>(diff.inHours());
-        int days = static_cast<int>(diff.inDays());
+            if (days > 0)
+              profile.lastActive = juce::String(days) + "d ago";
+            else if (hours > 0)
+              profile.lastActive = juce::String(hours) + "h ago";
+            else if (minutes > 0)
+              profile.lastActive = juce::String(minutes) + "m ago";
+            else
+              profile.lastActive = "Just now";
+          }
+        }
 
-        if (days > 0)
-          profile.lastActive = juce::String(days) + "d ago";
-        else if (hours > 0)
-          profile.lastActive = juce::String(hours) + "h ago";
-        else if (minutes > 0)
-          profile.lastActive = juce::String(minutes) + "m ago";
-        else
-          profile.lastActive = "Just now";
-      }
-    }
-
-    repaint();
-  });
+        repaint();
+      },
+      [](std::exception_ptr ep) {
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          Log::warn("Profile::queryPresenceForProfile: Failed to query presence: " + juce::String(e.what()));
+        }
+      });
 }
 
 void Profile::updateUserPresence(const juce::String &userId, bool isOnline, const juce::String &status) {

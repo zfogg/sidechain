@@ -323,17 +323,11 @@ void ShareToMessageDialog::loadRecentConversations() {
 
   Log::debug("ShareToMessageDialog: Loading recent conversations from StreamChatClient");
 
-  // Load recent channels (limit to 20, sorted by last message time)
-  streamChatClient->queryChannels(
-      [this](const Outcome<std::vector<StreamChatClient::Channel>> &result) {
-        if (!result) {
-          Log::error("ShareToMessageDialog: Failed to load recent conversations - " + result.getError());
-          return;
-        }
-
+  // Load recent channels (limit to 20, sorted by last message time) using observable API
+  streamChatClient->queryChannelsObservable(20, 0).subscribe(
+      [this](std::vector<StreamChatClient::Channel> channels) {
         // Convert Stream Chat channels to ConversationItems
         recentConversations.clear();
-        const auto &channels = result.getValue();
         for (const auto &channel : channels) {
           ConversationItem conversation;
           conversation.channelType = channel.type;
@@ -348,9 +342,13 @@ void ShareToMessageDialog::loadRecentConversations() {
                    " recent conversations");
         repaint();
       },
-      20, // limit
-      0   // offset
-  );
+      [](std::exception_ptr ep) {
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          Log::error("ShareToMessageDialog: Failed to load recent conversations - " + juce::String(e.what()));
+        }
+      });
 }
 
 void ShareToMessageDialog::performSearch(const juce::String &query) {
@@ -361,19 +359,11 @@ void ShareToMessageDialog::performSearch(const juce::String &query) {
 
   Log::debug("ShareToMessageDialog: Searching for query: " + query);
 
-  // Search for channels matching the query
-  streamChatClient->queryChannels(
-      [this](const Outcome<std::vector<StreamChatClient::Channel>> &result) {
-        if (!result) {
-          Log::error("ShareToMessageDialog: Search failed - " + result.getError());
-          isSearching = false;
-          repaint();
-          return;
-        }
-
+  // Search for channels matching the query using observable API
+  streamChatClient->queryChannelsObservable(20, 0).subscribe(
+      [this](std::vector<StreamChatClient::Channel> channels) {
         // Convert matching channels to ConversationItems
         searchResults.clear();
-        const auto &channels = result.getValue();
         for (const auto &channel : channels) {
           ConversationItem conversation;
           conversation.channelType = channel.type;
@@ -388,7 +378,13 @@ void ShareToMessageDialog::performSearch(const juce::String &query) {
         Log::debug("ShareToMessageDialog: Search found " + juce::String(searchResults.size()) + " results");
         repaint();
       },
-      20, // limit
-      0   // offset
-  );
+      [this](std::exception_ptr ep) {
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          Log::error("ShareToMessageDialog: Search failed - " + juce::String(e.what()));
+          isSearching = false;
+          repaint();
+        }
+      });
 }

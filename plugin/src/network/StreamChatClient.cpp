@@ -1633,3 +1633,177 @@ void StreamChatClient::sendMessageWithAudio(const juce::String &channelType, con
         sendMessage(channelType, channelId, text, extraData, callback);
       });
 }
+
+// ==============================================================================
+// Reactive Observable Methods (Phase 6)
+// ==============================================================================
+
+rxcpp::observable<std::vector<StreamChatClient::Channel>> StreamChatClient::queryChannelsObservable(int limit,
+                                                                                                    int offset) {
+  return rxcpp::sources::create<std::vector<Channel>>([this, limit, offset](auto observer) {
+           queryChannels(
+               [observer](Outcome<std::vector<Channel>> result) {
+                 if (result.isOk()) {
+                   observer.on_next(result.getValue());
+                   observer.on_completed();
+                 } else {
+                   observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+                 }
+               },
+               limit, offset);
+         })
+      .observe_on(Sidechain::Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<StreamChatClient::Channel>
+StreamChatClient::createDirectChannelObservable(const juce::String &targetUserId) {
+  return rxcpp::sources::create<Channel>([this, targetUserId](auto observer) {
+           createDirectChannel(targetUserId, [observer](Outcome<Channel> result) {
+             if (result.isOk()) {
+               observer.on_next(result.getValue());
+               observer.on_completed();
+             } else {
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Sidechain::Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<StreamChatClient::Channel> StreamChatClient::getChannelObservable(const juce::String &channelType,
+                                                                                    const juce::String &channelId) {
+  return rxcpp::sources::create<Channel>([this, channelType, channelId](auto observer) {
+           getChannel(channelType, channelId, [observer](Outcome<Channel> result) {
+             if (result.isOk()) {
+               observer.on_next(result.getValue());
+               observer.on_completed();
+             } else {
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Sidechain::Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<std::vector<StreamChatClient::Message>>
+StreamChatClient::queryMessagesObservable(const juce::String &channelType, const juce::String &channelId, int limit,
+                                          int offset) {
+  return rxcpp::sources::create<std::vector<Message>>([this, channelType, channelId, limit, offset](auto observer) {
+           queryMessages(channelType, channelId, limit, offset, [observer](Outcome<std::vector<Message>> result) {
+             if (result.isOk()) {
+               observer.on_next(result.getValue());
+               observer.on_completed();
+             } else {
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Sidechain::Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<StreamChatClient::Message> StreamChatClient::sendMessageObservable(const juce::String &channelType,
+                                                                                     const juce::String &channelId,
+                                                                                     const juce::String &text,
+                                                                                     const juce::var &extraData) {
+  return rxcpp::sources::create<Message>([this, channelType, channelId, text, extraData](auto observer) {
+           sendMessage(channelType, channelId, text, extraData, [observer](Outcome<Message> result) {
+             if (result.isOk()) {
+               observer.on_next(result.getValue());
+               observer.on_completed();
+             } else {
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Sidechain::Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<std::vector<StreamChatClient::Message>>
+StreamChatClient::searchMessagesObservable(const juce::String &query, const juce::var &channelFilters, int limit,
+                                           int offset) {
+  return rxcpp::sources::create<std::vector<Message>>([this, query, channelFilters, limit, offset](auto observer) {
+           searchMessages(query, channelFilters, limit, offset, [observer](Outcome<std::vector<Message>> result) {
+             if (result.isOk()) {
+               observer.on_next(result.getValue());
+               observer.on_completed();
+             } else {
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Sidechain::Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<std::vector<StreamChatClient::UserPresence>>
+StreamChatClient::queryPresenceObservable(const std::vector<juce::String> &userIds) {
+  return rxcpp::sources::create<std::vector<UserPresence>>([this, userIds](auto observer) {
+           queryPresence(userIds, [observer](Outcome<std::vector<UserPresence>> result) {
+             if (result.isOk()) {
+               observer.on_next(result.getValue());
+               observer.on_completed();
+             } else {
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Sidechain::Rx::observe_on_juce_thread());
+}
+
+// ==============================================================================
+// Interval-based Polling Observables
+// ==============================================================================
+
+rxcpp::observable<std::vector<StreamChatClient::Message>>
+StreamChatClient::pollChannelMessagesObservable(const juce::String &channelType, const juce::String &channelId,
+                                                int intervalMs) {
+  // Use a shared state to track the last seen message ID
+  auto lastSeenId = std::make_shared<juce::String>("");
+
+  return rxcpp::sources::interval(std::chrono::milliseconds(intervalMs))
+      .flat_map([this, channelType, channelId, lastSeenId](long /* tick */) {
+        return queryMessagesObservable(channelType, channelId, 20, 0)
+            .map([lastSeenId](std::vector<Message> messages) -> std::vector<Message> {
+              if (messages.empty()) {
+                return {};
+              }
+
+              // Find new messages since last seen
+              std::vector<Message> newMessages;
+              bool foundLastSeen = lastSeenId->isEmpty();
+
+              for (const auto &msg : messages) {
+                if (msg.id == *lastSeenId) {
+                  foundLastSeen = true;
+                  continue;
+                }
+                if (foundLastSeen) {
+                  newMessages.push_back(msg);
+                }
+              }
+
+              // Update last seen to newest message
+              if (!messages.empty()) {
+                *lastSeenId = messages.back().id;
+              }
+
+              return newMessages;
+            });
+      })
+      .filter([](const std::vector<Message> &messages) { return !messages.empty(); })
+      .observe_on(Sidechain::Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<int> StreamChatClient::pollUnreadCountObservable(int intervalMs) {
+  return rxcpp::sources::interval(std::chrono::milliseconds(intervalMs))
+      .flat_map([this](long /* tick */) {
+        return queryChannelsObservable().map([](std::vector<Channel> channels) {
+          int totalUnread = 0;
+          for (const auto &channel : channels) {
+            totalUnread += channel.unreadCount;
+          }
+          return totalUnread;
+        });
+      })
+      .distinct_until_changed() // Only emit when count actually changes
+      .observe_on(Sidechain::Rx::observe_on_juce_thread());
+}

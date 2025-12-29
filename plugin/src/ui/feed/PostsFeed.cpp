@@ -565,32 +565,34 @@ void PostsFeed::queryPresenceForPosts() {
 
   Log::debug("PostsFeed::queryPresenceForPosts: Querying presence for " + juce::String(userIds.size()) + " users");
 
-  // Query presence
-  streamChatClient->queryPresence(userIds, [this](Outcome<std::vector<StreamChatClient::UserPresence>> result) {
-    if (result.isError()) {
-      Log::warn("PostsFeed::queryPresenceForPosts: Failed to query presence: " + result.getError());
-      return;
-    }
+  // Query presence using observable API
+  streamChatClient->queryPresenceObservable(userIds).subscribe(
+      [this](std::vector<StreamChatClient::UserPresence> presenceList) {
+        Log::debug("PostsFeed::queryPresenceForPosts: Received presence data for " + juce::String(presenceList.size()) +
+                   " users");
 
-    auto presenceList = result.getValue();
-    Log::debug("PostsFeed::queryPresenceForPosts: Received presence data for " + juce::String(presenceList.size()) +
-               " users");
-
-    // Update PostCards with presence data
-    for (const auto &presence : presenceList) {
-      for (auto *card : postCards) {
-        if (card->getPost() && card->getPost()->userId == presence.userId) {
-          auto updatedPost = *card->getPost();
-          updatedPost.isOnline = presence.online;
-          updatedPost.isInStudio = (presence.status == "in_studio" || presence.status == "in studio");
-          card->setPost(updatedPost);
+        // Update PostCards with presence data
+        for (const auto &presence : presenceList) {
+          for (auto *card : postCards) {
+            if (card->getPost() && card->getPost()->userId == presence.userId) {
+              auto updatedPost = *card->getPost();
+              updatedPost.isOnline = presence.online;
+              updatedPost.isInStudio = (presence.status == "in_studio" || presence.status == "in studio");
+              card->setPost(updatedPost);
+            }
+          }
         }
-      }
-    }
 
-    // Repaint to show updated online indicators
-    repaint();
-  });
+        // Repaint to show updated online indicators
+        repaint();
+      },
+      [](std::exception_ptr ep) {
+        try {
+          std::rethrow_exception(ep);
+        } catch (const std::exception &e) {
+          Log::warn("PostsFeed::queryPresenceForPosts: Failed to query presence: " + juce::String(e.what()));
+        }
+      });
 }
 
 void PostsFeed::updateUserPresence(const juce::String &userId, bool isOnline, const juce::String &status) {

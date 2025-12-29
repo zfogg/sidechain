@@ -5,8 +5,10 @@
 
 #include "../../util/Async.h"
 #include "../../util/Log.h"
+#include "../../util/rx/JuceScheduler.h"
 #include "../NetworkClient.h"
 #include "Common.h"
+#include <rxcpp/rx.hpp>
 
 using namespace Sidechain::Network::Api;
 
@@ -142,4 +144,32 @@ void NetworkClient::getRecommendedUsersToFollow(int limit, int offset, ResponseC
       callback(outcome);
     });
   });
+}
+
+// ==============================================================================
+// Reactive Observable Methods (Phase 5)
+// ==============================================================================
+
+rxcpp::observable<juce::var> NetworkClient::searchUsersObservable(const juce::String &query, int limit) {
+  return rxcpp::sources::create<juce::var>([this, query, limit](auto observer) {
+           // URL-encode the query string
+           juce::String encodedQuery = juce::URL::addEscapeChars(query, true);
+           juce::String endpoint =
+               buildApiPath("/search/users") + "?q=" + encodedQuery + "&limit=" + juce::String(limit) + "&offset=0";
+
+           Async::runVoid([this, endpoint, observer]() {
+             auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+
+             juce::MessageManager::callAsync([result, observer]() {
+               auto outcome = extractProperty(requestResultToOutcome(result), "users");
+               if (outcome.isOk()) {
+                 observer.on_next(outcome.getValue());
+                 observer.on_completed();
+               } else {
+                 observer.on_error(std::make_exception_ptr(std::runtime_error(outcome.getError().toStdString())));
+               }
+             });
+           });
+         })
+      .observe_on(Sidechain::Rx::observe_on_juce_thread());
 }

@@ -3,6 +3,7 @@
 #include "../security/RateLimiter.h"
 #include "../util/Constants.h"
 #include "../util/Result.h"
+#include "../util/rx/JuceScheduler.h"
 #include "../models/FeedPost.h"
 #include "../models/User.h"
 #include "../models/Notification.h"
@@ -16,6 +17,7 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <rxcpp/rx.hpp>
 
 // ==============================================================================
 /**
@@ -297,26 +299,33 @@ public:
   // ==========================================================================
   // Social feed operations (all use enriched endpoints with reaction data from
   // getstream.io)
+  // NOTE: Callback-based feed methods are deprecated. Use observable versions instead.
 
   /** Get the global feed (all posts)
+   * @deprecated Use getGlobalFeedObservable() instead
    * @param limit Maximum number of posts to return
    * @param offset Pagination offset
    * @param callback Called with feed data or error
    */
+  [[deprecated("Use getGlobalFeedObservable() instead")]]
   void getGlobalFeed(int limit = 20, int offset = 0, FeedCallback callback = nullptr);
 
   /** Get the timeline feed (posts from followed users)
+   * @deprecated Use getTimelineFeedObservable() instead
    * @param limit Maximum number of posts to return
    * @param offset Pagination offset
    * @param callback Called with feed data or error
    */
+  [[deprecated("Use getTimelineFeedObservable() instead")]]
   void getTimelineFeed(int limit = 20, int offset = 0, FeedCallback callback = nullptr);
 
   /** Get the trending feed (popular posts)
+   * @deprecated Use getTrendingFeedObservable() instead
    * @param limit Maximum number of posts to return
    * @param offset Pagination offset
    * @param callback Called with feed data or error
    */
+  [[deprecated("Use getTrendingFeedObservable() instead")]]
   void getTrendingFeed(int limit = 20, int offset = 0, FeedCallback callback = nullptr);
 
   /** Get aggregated timeline (activities grouped by user+day)
@@ -355,10 +364,12 @@ public:
   void getUserActivityAggregated(const juce::String &userId, int limit = 10, AggregatedFeedCallback callback = nullptr);
 
   /** Get "For You" personalized recommendations feed
+   * @deprecated Use getForYouFeedObservable() instead
    * @param limit Maximum number of posts to return
    * @param offset Pagination offset
    * @param callback Called with feed data or error
    */
+  [[deprecated("Use getForYouFeedObservable() instead")]]
   void getForYouFeed(int limit = 20, int offset = 0, FeedCallback callback = nullptr);
 
   /** Get similar posts to a given post
@@ -369,24 +380,30 @@ public:
   void getSimilarPosts(const juce::String &postId, int limit = 10, FeedCallback callback = nullptr);
 
   /** Get popular posts (trending content based on engagement)
+   * @deprecated Use getPopularFeedObservable() instead
    * @param limit Maximum number of posts to return
    * @param offset Pagination offset
    * @param callback Called with feed data or error
    */
+  [[deprecated("Use getPopularFeedObservable() instead")]]
   void getPopularFeed(int limit = 20, int offset = 0, FeedCallback callback = nullptr);
 
   /** Get latest posts (recently added content)
+   * @deprecated Use getLatestFeedObservable() instead
    * @param limit Maximum number of posts to return
    * @param offset Pagination offset
    * @param callback Called with feed data or error
    */
+  [[deprecated("Use getLatestFeedObservable() instead")]]
   void getLatestFeed(int limit = 20, int offset = 0, FeedCallback callback = nullptr);
 
   /** Get discovery feed (blended popular, latest, and personalized)
+   * @deprecated Use getDiscoveryFeedObservable() instead
    * @param limit Maximum number of posts to return
    * @param offset Pagination offset
    * @param callback Called with feed data or error
    */
+  [[deprecated("Use getDiscoveryFeedObservable() instead")]]
   void getDiscoveryFeed(int limit = 20, int offset = 0, FeedCallback callback = nullptr);
 
   // =========================================================================
@@ -433,17 +450,148 @@ public:
   void trackRecommendationClick(const juce::String &postId, const juce::String &source, int position,
                                 double playDuration = 0.0, bool completed = false, ResponseCallback callback = nullptr);
 
+  // ==========================================================================
+  // Reactive Observable Methods (Phase 5)
+  // ===========================================================================
+  //
+  // These methods return rxcpp::observable for reactive composition.
+  // All observables emit on the JUCE message thread via observe_on().
+  //
+  // Usage:
+  //   networkClient->getGlobalFeedObservable(20, 0)
+  //       .subscribe([](const juce::var& feed) { displayFeed(feed); },
+  //                  [](std::exception_ptr e) { handleError(e); });
+  //
+  //   // With retry and debounce
+  //   Rx::retryWithBackoff(networkClient->getTimelineFeedObservable())
+  //       .subscribe([](auto feed) { ... });
+
+  /** Get the global feed as an observable
+   * @param limit Maximum number of posts to return
+   * @param offset Pagination offset
+   * @return Observable that emits feed data on JUCE message thread
+   */
+  rxcpp::observable<juce::var> getGlobalFeedObservable(int limit = 20, int offset = 0);
+
+  /** Get the timeline feed as an observable
+   * @param limit Maximum number of posts to return
+   * @param offset Pagination offset
+   * @return Observable that emits feed data on JUCE message thread
+   */
+  rxcpp::observable<juce::var> getTimelineFeedObservable(int limit = 20, int offset = 0);
+
+  /** Get the trending feed as an observable
+   * @param limit Maximum number of posts to return
+   * @param offset Pagination offset
+   * @return Observable that emits feed data on JUCE message thread
+   */
+  rxcpp::observable<juce::var> getTrendingFeedObservable(int limit = 20, int offset = 0);
+
+  /** Get "For You" personalized feed as an observable
+   * @param limit Maximum number of posts to return
+   * @param offset Pagination offset
+   * @return Observable that emits feed data on JUCE message thread
+   */
+  rxcpp::observable<juce::var> getForYouFeedObservable(int limit = 20, int offset = 0);
+
+  /** Get popular feed as an observable
+   * @param limit Maximum number of posts to return
+   * @param offset Pagination offset
+   * @return Observable that emits feed data on JUCE message thread
+   */
+  rxcpp::observable<juce::var> getPopularFeedObservable(int limit = 20, int offset = 0);
+
+  /** Get latest feed as an observable
+   * @param limit Maximum number of posts to return
+   * @param offset Pagination offset
+   * @return Observable that emits feed data on JUCE message thread
+   */
+  rxcpp::observable<juce::var> getLatestFeedObservable(int limit = 20, int offset = 0);
+
+  /** Get discovery feed as an observable
+   * @param limit Maximum number of posts to return
+   * @param offset Pagination offset
+   * @return Observable that emits feed data on JUCE message thread
+   */
+  rxcpp::observable<juce::var> getDiscoveryFeedObservable(int limit = 20, int offset = 0);
+
+  /** Search posts as an observable
+   * @param query Search query string
+   * @param limit Maximum number of results
+   * @param offset Pagination offset
+   * @return Observable that emits search results on JUCE message thread
+   */
+  rxcpp::observable<juce::var> searchPostsObservable(const juce::String &query, int limit = 20, int offset = 0);
+
+  /** Search users as an observable
+   * @param query Search query string
+   * @param limit Maximum number of results
+   * @return Observable that emits user search results on JUCE message thread
+   */
+  rxcpp::observable<juce::var> searchUsersObservable(const juce::String &query, int limit = 20);
+
+  /** Get notification counts as an observable
+   * @return Observable that emits pair of (unseen, unread) counts
+   */
+  rxcpp::observable<std::pair<int, int>> getNotificationCountsObservable();
+
+  /** Get follow request count as an observable
+   * @return Observable that emits the follow request count
+   */
+  rxcpp::observable<int> getFollowRequestCountObservable();
+
+  /** Get comments for a post as an observable
+   * @param postId The post ID
+   * @param limit Maximum number of comments
+   * @param offset Pagination offset
+   * @return Observable that emits comments data on JUCE message thread
+   */
+  rxcpp::observable<std::pair<juce::var, int>> getCommentsObservable(const juce::String &postId, int limit = 20,
+                                                                     int offset = 0);
+
+  /** Like a post as an observable
+   * @param activityId The post activity ID
+   * @param emoji Optional emoji reaction
+   * @return Observable that emits result on success
+   */
+  rxcpp::observable<juce::var> likePostObservable(const juce::String &activityId, const juce::String &emoji = "");
+
+  /** Unlike a post as an observable
+   * @param activityId The post activity ID
+   * @return Observable that emits result on success
+   */
+  rxcpp::observable<juce::var> unlikePostObservable(const juce::String &activityId);
+
+  /** Follow a user as an observable
+   * @param userId The user ID to follow
+   * @return Observable that emits result on success
+   */
+  rxcpp::observable<juce::var> followUserObservable(const juce::String &userId);
+
+  /** Unfollow a user as an observable
+   * @param userId The user ID to unfollow
+   * @return Observable that emits result on success
+   */
+  rxcpp::observable<juce::var> unfollowUserObservable(const juce::String &userId);
+
+  // ==========================================================================
+  // NOTE: Callback-based like/unlike methods are deprecated. Use observable versions.
+
   /** Like a post with optional emoji reaction
+   * @deprecated Use likePostObservable() instead
    * @param activityId The post activity ID
    * @param emoji Optional emoji reaction (empty for default like)
    * @param callback Called with result or error
    */
+  [[deprecated("Use likePostObservable() instead")]]
   void likePost(const juce::String &activityId, const juce::String &emoji = "", ResponseCallback callback = nullptr);
 
   /** Unlike a post
+   * @deprecated Use unlikePostObservable() instead
    * @param activityId The post activity ID
    * @param callback Called with result or error
    */
+  [[deprecated("Use unlikePostObservable() instead")]]
   void unlikePost(const juce::String &activityId, ResponseCallback callback = nullptr);
 
   /** Delete a post
@@ -678,15 +826,19 @@ public:
                          DownloadProgressCallback progressCallback = nullptr, UploadCallback callback = nullptr);
 
   /** Follow a user
+   * @deprecated Use followUserObservable() instead
    * @param userId The user ID to follow
    * @param callback Called with result or error
    */
+  [[deprecated("Use followUserObservable() instead")]]
   void followUser(const juce::String &userId, ResponseCallback callback = nullptr);
 
   /** Unfollow a user
+   * @deprecated Use unfollowUserObservable() instead
    * @param userId The user ID to unfollow
    * @param callback Called with result or error
    */
+  [[deprecated("Use unfollowUserObservable() instead")]]
   void unfollowUser(const juce::String &userId, ResponseCallback callback = nullptr);
 
   /** Block a user
@@ -910,17 +1062,20 @@ public:
 
   // ==========================================================================
   // Comment operations
+  // NOTE: Callback-based methods are deprecated. Use observable versions instead.
   using CommentCallback = std::function<void(Outcome<juce::var> comment)>;
   // CommentsListCallback: returns Outcome with pair<comments, totalCount> or
   // error
   using CommentsListCallback = std::function<void(Outcome<std::pair<juce::var, int>>)>;
 
   /** Get comments for a post
+   * @deprecated Use getCommentsObservable() instead
    * @param postId The post ID
    * @param limit Maximum number of comments to return
    * @param offset Pagination offset
    * @param callback Called with comments list and total count or error
    */
+  [[deprecated("Use getCommentsObservable() instead")]]
   void getComments(const juce::String &postId, int limit = 20, int offset = 0, CommentsListCallback callback = nullptr);
 
   /** Create a new comment on a post
@@ -1062,6 +1217,7 @@ public:
 
   // ==========================================================================
   // Notification operations
+  // NOTE: Callback-based methods are deprecated. Use observable versions instead.
 
   /** Result structure for notification queries */
   struct NotificationResult {
@@ -1079,8 +1235,10 @@ public:
   void getNotifications(int limit = 20, int offset = 0, NotificationCallback callback = nullptr);
 
   /** Get notification counts (unseen and unread)
+   *  @deprecated Use getNotificationCountsObservable() instead
    *  @param callback Called with unseen and unread counts
    */
+  [[deprecated("Use getNotificationCountsObservable() instead")]]
   void getNotificationCounts(std::function<void(int unseen, int unread)> callback);
 
   /** Mark all notifications as read
@@ -1103,13 +1261,16 @@ public:
 
   // ==========================================================================
   // User Discovery operations
+  // NOTE: Callback-based search methods are deprecated. Use observable versions.
 
   /** Search users by username or display name
+   *  @deprecated Use searchUsersObservable() instead
    *  @param query Search query string
    *  @param limit Maximum number of results
    *  @param offset Pagination offset
    *  @param callback Called with search results or error
    */
+  [[deprecated("Use searchUsersObservable() instead")]]
   void searchUsers(const juce::String &query, int limit = 20, int offset = 0, ResponseCallback callback = nullptr);
 
   /** Get trending users (most active/followed recently)
@@ -1154,7 +1315,12 @@ public:
 
   // ==========================================================================
   // Search operations
-  // Search posts with optional filters (genre, BPM range, key)
+  // NOTE: Callback-based search methods are deprecated. Use observable versions.
+
+  /** Search posts with optional filters (genre, BPM range, key)
+   *  @deprecated Use searchPostsObservable() instead
+   */
+  [[deprecated("Use searchPostsObservable() instead")]]
   void searchPosts(const juce::String &query, const juce::String &genre = "", int bpmMin = 0, int bpmMax = 200,
                    const juce::String &key = "", int limit = 20, int offset = 0, ResponseCallback callback = nullptr);
 

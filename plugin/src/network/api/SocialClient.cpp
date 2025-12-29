@@ -6,8 +6,10 @@
 #include "../../util/Async.h"
 #include "../../util/Constants.h"
 #include "../../util/Log.h"
+#include "../../util/rx/JuceScheduler.h"
 #include "../NetworkClient.h"
 #include "Common.h"
+#include <rxcpp/rx.hpp>
 
 using namespace Sidechain::Network::Api;
 
@@ -678,4 +680,46 @@ void NetworkClient::addEmojiReaction(const juce::String &postId, const juce::Str
 
     juce::MessageManager::callAsync([callback, outcome]() { callback(outcome); });
   });
+}
+
+// ==============================================================================
+// Reactive Observable Methods (Phase 5)
+// ==============================================================================
+
+rxcpp::observable<juce::var> NetworkClient::followUserObservable(const juce::String &userId) {
+  return rxcpp::sources::create<juce::var>([this, userId](auto observer) {
+           if (!isAuthenticated()) {
+             observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
+             return;
+           }
+
+           followUser(userId, [observer](Outcome<juce::var> result) {
+             if (result.isOk()) {
+               observer.on_next(result.getValue());
+               observer.on_completed();
+             } else {
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Sidechain::Rx::observe_on_juce_thread());
+}
+
+rxcpp::observable<juce::var> NetworkClient::unfollowUserObservable(const juce::String &userId) {
+  return rxcpp::sources::create<juce::var>([this, userId](auto observer) {
+           if (!isAuthenticated()) {
+             observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
+             return;
+           }
+
+           unfollowUser(userId, [observer](Outcome<juce::var> result) {
+             if (result.isOk()) {
+               observer.on_next(result.getValue());
+               observer.on_completed();
+             } else {
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Sidechain::Rx::observe_on_juce_thread());
 }

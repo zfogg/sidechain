@@ -7,8 +7,10 @@
 #include "../../util/Constants.h"
 #include "../../util/Json.h"
 #include "../../util/Log.h"
+#include "../../util/rx/JuceScheduler.h"
 #include "../NetworkClient.h"
 #include "Common.h"
+#include <rxcpp/rx.hpp>
 
 using namespace Sidechain::Network::Api;
 
@@ -220,4 +222,39 @@ void NetworkClient::reportComment(const juce::String &commentId, const juce::Str
       });
     }
   });
+}
+
+// ==============================================================================
+// Reactive Observable Methods (Phase 5)
+// ==============================================================================
+
+rxcpp::observable<std::pair<juce::var, int>> NetworkClient::getCommentsObservable(const juce::String &postId, int limit,
+                                                                                  int offset) {
+  return rxcpp::sources::create<std::pair<juce::var, int>>([this, postId, limit, offset](auto observer) {
+           juce::String endpoint = buildApiPath("/posts") + "/" + postId + "/comments?limit=" + juce::String(limit) +
+                                   "&offset=" + juce::String(offset);
+
+           Async::runVoid([this, endpoint, observer]() {
+             auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+
+             int totalCount = 0;
+             juce::var comments;
+
+             if (result.isSuccess() && result.data.isObject()) {
+               comments = Json::getArray(result.data, "comments");
+               totalCount = Json::getInt(result.data, "total_count");
+             }
+
+             juce::MessageManager::callAsync([observer, result, comments, totalCount]() {
+               if (result.isSuccess()) {
+                 observer.on_next(std::make_pair(comments, totalCount));
+                 observer.on_completed();
+               } else {
+                 observer.on_error(
+                     std::make_exception_ptr(std::runtime_error(result.getUserFriendlyError().toStdString())));
+               }
+             });
+           });
+         })
+      .observe_on(Sidechain::Rx::observe_on_juce_thread());
 }
