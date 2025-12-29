@@ -28,7 +28,7 @@ namespace Utils {
  *
  * Usage:
  *   UserLoadingHelper<DiscoveryState>::loadUsers(
- *     discoverySlice,
+ *     discoveryState,
  *     [](DiscoveryState& s) { s.isTrendingLoading = true; s.discoveryError = ""; },
  *     [this, limit](auto callback) { networkClient->getTrendingUsers(limit, callback); },
  *     [](DiscoveryState& s, auto users) {
@@ -45,26 +45,26 @@ namespace Utils {
  */
 template <typename StateType> class UserLoadingHelper {
 public:
-  using StateSlice = Rx::State<StateType>;
+  using StateRef = Rx::State<StateType>;
   using UserList = std::vector<std::shared_ptr<const User>>;
   using SetLoadingFn = std::function<void(StateType &)>;
   using NetworkCallFn = std::function<void(std::function<void(Outcome<juce::var>)>)>;
   using OnSuccessFn = std::function<void(StateType &, UserList)>;
   using OnErrorFn = std::function<void(StateType &, const juce::String &)>;
 
-  static void loadUsers(StateSlice slice, SetLoadingFn setLoading, NetworkCallFn networkCall, OnSuccessFn onSuccess,
+  static void loadUsers(StateRef state, SetLoadingFn setLoading, NetworkCallFn networkCall, OnSuccessFn onSuccess,
                         OnErrorFn onError, const juce::String &logContext) {
     // Set loading state
-    StateType loadingState = slice->getState();
+    StateType loadingState = state->getState();
     setLoading(loadingState);
-    slice->setState(loadingState);
+    state->setState(loadingState);
 
     // Make network request
-    networkCall([slice, onSuccess, onError, logContext](Outcome<juce::var> result) {
+    networkCall([state, onSuccess, onError, logContext](Outcome<juce::var> result) {
       if (result.isError()) {
-        StateType errorState = slice->getState();
+        StateType errorState = state->getState();
         onError(errorState, result.getError());
-        slice->setState(errorState);
+        state->setState(errorState);
         Log::error("UserLoadingHelper", "Failed to load " + logContext + ": " + result.getError());
         return;
       }
@@ -98,16 +98,16 @@ public:
         }
 
         // Update state
-        StateType successState = slice->getState();
+        StateType successState = state->getState();
         onSuccess(successState, std::move(immutableUsers));
-        slice->setState(successState);
+        state->setState(successState);
 
         Log::info("UserLoadingHelper", "Loaded " + juce::String(mutableUsers.size()) + " " + logContext);
 
       } catch (const std::exception &e) {
-        StateType errorState = slice->getState();
+        StateType errorState = state->getState();
         onError(errorState, juce::String(e.what()));
-        slice->setState(errorState);
+        state->setState(errorState);
         Log::error("UserLoadingHelper", "Failed to load " + logContext + ": " + juce::String(e.what()));
       }
     });
@@ -127,7 +127,7 @@ public:
  */
 template <typename StateType, typename ModelType> class GenericListLoader {
 public:
-  using StateSlice = Rx::State<StateType>;
+  using StateRef = Rx::State<StateType>;
   using ModelList = std::vector<std::shared_ptr<ModelType>>;
   using SetLoadingFn = std::function<void(StateType &)>;
   using NetworkCallFn = std::function<void(std::function<void(Outcome<juce::var>)>)>;
@@ -135,19 +135,19 @@ public:
   using OnSuccessFn = std::function<void(StateType &, ModelList)>;
   using OnErrorFn = std::function<void(StateType &, const juce::String &)>;
 
-  static void load(StateSlice slice, SetLoadingFn setLoading, NetworkCallFn networkCall, ParseFn parse,
+  static void load(StateRef state, SetLoadingFn setLoading, NetworkCallFn networkCall, ParseFn parse,
                    OnSuccessFn onSuccess, OnErrorFn onError, const juce::String &logContext) {
     // Set loading state
-    StateType loadingState = slice->getState();
+    StateType loadingState = state->getState();
     setLoading(loadingState);
-    slice->setState(loadingState);
+    state->setState(loadingState);
 
     // Make network request
-    networkCall([slice, parse, onSuccess, onError, logContext](Outcome<juce::var> result) {
+    networkCall([state, parse, onSuccess, onError, logContext](Outcome<juce::var> result) {
       if (result.isError()) {
-        StateType errorState = slice->getState();
+        StateType errorState = state->getState();
         onError(errorState, result.getError());
-        slice->setState(errorState);
+        state->setState(errorState);
         Log::error("GenericListLoader", "Failed to load " + logContext + ": " + result.getError());
         return;
       }
@@ -155,16 +155,16 @@ public:
       try {
         auto models = parse(result.getValue());
 
-        StateType successState = slice->getState();
+        StateType successState = state->getState();
         onSuccess(successState, std::move(models));
-        slice->setState(successState);
+        state->setState(successState);
 
         Log::info("GenericListLoader", "Loaded " + juce::String(models.size()) + " " + logContext);
 
       } catch (const std::exception &e) {
-        StateType errorState = slice->getState();
+        StateType errorState = state->getState();
         onError(errorState, juce::String(e.what()));
-        slice->setState(errorState);
+        state->setState(errorState);
         Log::error("GenericListLoader", "Exception loading " + logContext + ": " + juce::String(e.what()));
       }
     });
@@ -179,32 +179,32 @@ public:
  * Simplifies the pattern of getting state, modifying it, and setting it back.
  *
  * Usage:
- *   AsyncStateUpdater<SearchState>::update(slice, [](SearchState& s) {
+ *   AsyncStateUpdater<SearchState>::update(state, [](SearchState& s) {
  *     s.isSearching = true;
  *     s.error = "";
  *   });
  */
 template <typename StateType> class AsyncStateUpdater {
 public:
-  using StateSlice = Rx::State<StateType>;
+  using StateRef = Rx::State<StateType>;
   using UpdateFn = std::function<void(StateType &)>;
 
-  static void update(StateSlice slice, UpdateFn updateFn) {
-    StateType state = slice->getState();
+  static void update(StateRef state, UpdateFn updateFn) {
+    StateType state = state->getState();
     updateFn(state);
-    slice->setState(state);
+    state->setState(state);
   }
 
   /**
    * Update with conditional - only applies update if condition returns true.
    */
-  static bool updateIf(StateSlice slice, std::function<bool(const StateType &)> condition, UpdateFn updateFn) {
-    StateType state = slice->getState();
+  static bool updateIf(StateRef state, std::function<bool(const StateType &)> condition, UpdateFn updateFn) {
+    StateType state = state->getState();
     if (!condition(state)) {
       return false;
     }
     updateFn(state);
-    slice->setState(state);
+    state->setState(state);
     return true;
   }
 };

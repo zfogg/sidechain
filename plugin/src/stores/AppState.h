@@ -8,13 +8,12 @@ namespace Sidechain {
 namespace Stores {
 
 /**
- * StateManager - Centralized reactive state management using StateSubject
+ * StateManager - Centralized reactive state management
  *
- * Replaces AppSliceManager with a unified RxCpp-based approach.
- * All state is held in StateSubject<T> instances that provide:
+ * All application state is held in Rx::State<T> (StateSubject) instances that provide:
  * - Thread-safe read/write
  * - Reactive subscriptions with selector support
- * - Composable with RxCpp observables
+ * - Composable with RxCpp observables via asObservable()
  *
  * Usage:
  *   auto& state = StateManager::getInstance();

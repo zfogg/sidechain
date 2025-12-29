@@ -8,43 +8,43 @@ namespace Stores {
 
 void AppStore::login(const juce::String &email, const juce::String &password) {
   if (!networkClient) {
-    AuthState errorState = sliceManager.auth->getState();
+    AuthState errorState = stateManager.auth->getState();
     errorState.authError = "Network client not initialized";
-    sliceManager.auth->setState(errorState);
+    stateManager.auth->setState(errorState);
     return;
   }
 
   // Optimistic update: show loading
-  AuthState loadingState = sliceManager.auth->getState();
+  AuthState loadingState = stateManager.auth->getState();
   loadingState.isAuthenticating = true;
   loadingState.authError = "";
-  sliceManager.auth->setState(loadingState);
+  stateManager.auth->setState(loadingState);
 
   networkClient->loginWithTwoFactor(email, password, [this, email](NetworkClient::LoginResult result) {
-    auto authSlice = sliceManager.auth;
+    auto authState = stateManager.auth;
 
     if (!result.success) {
-      AuthState errorState = authSlice->getState();
+      AuthState errorState = authState->getState();
       errorState.isAuthenticating = false;
       errorState.authError = result.errorMessage;
-      authSlice->setState(errorState);
+      authState->setState(errorState);
       return;
     }
 
     // Check if 2FA is required
     if (result.requires2FA) {
-      AuthState twoFAState = authSlice->getState();
+      AuthState twoFAState = authState->getState();
       twoFAState.isAuthenticating = false;
       twoFAState.is2FARequired = true;
       twoFAState.twoFactorUserId = result.userId;
-      authSlice->setState(twoFAState);
+      authState->setState(twoFAState);
       return;
     }
 
     // 2FA not required, proceed with login
     juce::String username = result.username.isEmpty() ? "user" : result.username;
 
-    AuthState successState = authSlice->getState();
+    AuthState successState = authState->getState();
     successState.isAuthenticating = false;
     successState.is2FARequired = false;
     successState.isLoggedIn = true;
@@ -56,7 +56,7 @@ void AppStore::login(const juce::String &email, const juce::String &password) {
     // Set token expiry to 24 hours from now (backend default)
     successState.tokenExpiresAt = juce::Time::getCurrentTime().toMilliseconds() + (24 * 60 * 60 * 1000);
     successState.authError = "";
-    authSlice->setState(successState);
+    authState->setState(successState);
 
     // Fetch user profile after successful login
     fetchUserProfile(false);
@@ -69,27 +69,27 @@ void AppStore::login(const juce::String &email, const juce::String &password) {
 void AppStore::registerAccount(const juce::String &email, const juce::String &username, const juce::String &password,
                                const juce::String &displayName) {
   if (!networkClient) {
-    AuthState errorState = sliceManager.auth->getState();
+    AuthState errorState = stateManager.auth->getState();
     errorState.authError = "Network client not initialized";
-    sliceManager.auth->setState(errorState);
+    stateManager.auth->setState(errorState);
     return;
   }
 
-  AuthState loadingState = sliceManager.auth->getState();
+  AuthState loadingState = stateManager.auth->getState();
   loadingState.isAuthenticating = true;
   loadingState.authError = "";
-  sliceManager.auth->setState(loadingState);
+  stateManager.auth->setState(loadingState);
 
   networkClient->registerAccount(
       email, username, password, displayName,
       [this, email, username, displayName](Outcome<std::pair<juce::String, juce::String>> result) {
-        auto authSlice = sliceManager.auth;
+        auto authState = stateManager.auth;
 
         if (!result.isOk()) {
-          AuthState errorState = authSlice->getState();
+          AuthState errorState = authState->getState();
           errorState.isAuthenticating = false;
           errorState.authError = result.getError();
-          authSlice->setState(errorState);
+          authState->setState(errorState);
           return;
         }
 
@@ -97,7 +97,7 @@ void AppStore::registerAccount(const juce::String &email, const juce::String &us
         auto [token, userId] = result.getValue();
 
         // Update auth state with user info
-        AuthState successState = authSlice->getState();
+        AuthState successState = authState->getState();
         successState.isAuthenticating = false;
         successState.isLoggedIn = true;
         successState.userId = userId;
@@ -108,46 +108,46 @@ void AppStore::registerAccount(const juce::String &email, const juce::String &us
         successState.lastAuthTime = juce::Time::getCurrentTime().toMilliseconds();
         // Set token expiry to 24 hours from now (backend default)
         successState.tokenExpiresAt = juce::Time::getCurrentTime().toMilliseconds() + (24 * 60 * 60 * 1000);
-        authSlice->setState(successState);
+        authState->setState(successState);
       });
 }
 
 void AppStore::verify2FA(const juce::String &code) {
-  auto authSlice = sliceManager.auth;
-  auto currentAuth = authSlice->getState();
+  auto authState = stateManager.auth;
+  auto currentAuth = authState->getState();
 
   if (!networkClient) {
-    AuthState errorState = authSlice->getState();
+    AuthState errorState = authState->getState();
     errorState.authError = "Network client not initialized";
-    authSlice->setState(errorState);
+    authState->setState(errorState);
     return;
   }
 
   if (currentAuth.twoFactorUserId.isEmpty()) {
-    AuthState errorState = authSlice->getState();
+    AuthState errorState = authState->getState();
     errorState.authError = "2FA not initiated";
-    authSlice->setState(errorState);
+    authState->setState(errorState);
     return;
   }
 
-  AuthState verifyingState = authSlice->getState();
+  AuthState verifyingState = authState->getState();
   verifyingState.isVerifying2FA = true;
-  authSlice->setState(verifyingState);
+  authState->setState(verifyingState);
 
   networkClient->verify2FALogin(
-      currentAuth.twoFactorUserId, code, [this, authSlice](Outcome<std::pair<juce::String, juce::String>> result) {
+      currentAuth.twoFactorUserId, code, [this, authState](Outcome<std::pair<juce::String, juce::String>> result) {
         if (!result.isOk()) {
-          AuthState errorState = authSlice->getState();
+          AuthState errorState = authState->getState();
           errorState.isVerifying2FA = false;
           errorState.authError = result.getError();
-          authSlice->setState(errorState);
+          authState->setState(errorState);
           return;
         }
 
         // Extract token and userId from result pair
         auto [token, userId] = result.getValue();
 
-        AuthState successState = authSlice->getState();
+        AuthState successState = authState->getState();
         successState.isVerifying2FA = false;
         successState.is2FARequired = false;
         successState.isLoggedIn = true;
@@ -156,7 +156,7 @@ void AppStore::verify2FA(const juce::String &code) {
         successState.authError = "";
         // Set token expiry to 24 hours from now (backend default)
         successState.tokenExpiresAt = juce::Time::getCurrentTime().toMilliseconds() + (24 * 60 * 60 * 1000);
-        authSlice->setState(successState);
+        authState->setState(successState);
 
         // Fetch user profile after successful 2FA
         fetchUserProfile(false);
@@ -164,79 +164,79 @@ void AppStore::verify2FA(const juce::String &code) {
 }
 
 void AppStore::requestPasswordReset(const juce::String &email) {
-  auto authSlice = sliceManager.auth;
+  auto authState = stateManager.auth;
 
   if (!networkClient) {
-    AuthState errorState = authSlice->getState();
+    AuthState errorState = authState->getState();
     errorState.authError = "Network client not initialized";
-    authSlice->setState(errorState);
+    authState->setState(errorState);
     return;
   }
 
-  AuthState resetState = authSlice->getState();
+  AuthState resetState = authState->getState();
   resetState.isResettingPassword = true;
-  authSlice->setState(resetState);
+  authState->setState(resetState);
 
-  networkClient->requestPasswordReset(email, [authSlice](Outcome<juce::var> result) {
+  networkClient->requestPasswordReset(email, [authState](Outcome<juce::var> result) {
     if (!result.isOk()) {
-      AuthState errorState = authSlice->getState();
+      AuthState errorState = authState->getState();
       errorState.isResettingPassword = false;
       errorState.authError = result.getError();
-      authSlice->setState(errorState);
+      authState->setState(errorState);
       return;
     }
 
-    AuthState doneState = authSlice->getState();
+    AuthState doneState = authState->getState();
     doneState.isResettingPassword = false;
     doneState.authError = "";
-    authSlice->setState(doneState);
+    authState->setState(doneState);
 
     Util::logInfo("AppStore", "Password reset email sent successfully");
   });
 }
 
 void AppStore::resetPassword(const juce::String &token, const juce::String &newPassword) {
-  auto authSlice = sliceManager.auth;
+  auto authState = stateManager.auth;
 
   if (!networkClient) {
-    AuthState errorState = authSlice->getState();
+    AuthState errorState = authState->getState();
     errorState.authError = "Network client not initialized";
-    authSlice->setState(errorState);
+    authState->setState(errorState);
     return;
   }
 
-  AuthState resetState = authSlice->getState();
+  AuthState resetState = authState->getState();
   resetState.isResettingPassword = true;
-  authSlice->setState(resetState);
+  authState->setState(resetState);
 
   networkClient->resetPassword(token, newPassword, [this](Outcome<juce::var> result) {
-    auto authSlicePtr = sliceManager.auth;
+    auto authStatePtr = stateManager.auth;
 
     if (!result.isOk()) {
-      AuthState errorState = authSlicePtr->getState();
+      AuthState errorState = authStatePtr->getState();
       errorState.isResettingPassword = false;
       errorState.authError = result.getError();
-      authSlicePtr->setState(errorState);
+      authStatePtr->setState(errorState);
       return;
     }
 
-    AuthState doneState = authSlicePtr->getState();
+    AuthState doneState = authStatePtr->getState();
     doneState.isResettingPassword = false;
     doneState.authError = "";
-    authSlicePtr->setState(doneState);
+    authStatePtr->setState(doneState);
 
     Util::logInfo("AppStore", "Password reset successful");
   });
 }
 
 void AppStore::logout() {
-  auto authSlice = sliceManager.auth;
-  auto userSlice = sliceManager.user;
+  auto authState = stateManager.auth;
+  auto userState = stateManager.user;
 
   // Stop token refresh timer
   stopTokenRefreshTimer();
 
-  AuthState logoutState = authSlice->getState();
+  AuthState logoutState = authState->getState();
   logoutState.isLoggedIn = false;
   logoutState.userId = "";
   logoutState.username = "";
@@ -247,30 +247,30 @@ void AppStore::logout() {
   logoutState.is2FARequired = false;
   logoutState.twoFactorUserId = "";
   logoutState.authError = "";
-  authSlice->setState(logoutState);
+  authState->setState(logoutState);
 
   // Clear user state
   UserState clearedState;
-  userSlice->setState(clearedState);
+  userState->setState(clearedState);
 }
 
 void AppStore::setAuthToken(const juce::String &token) {
-  AuthState newState = sliceManager.auth->getState();
+  AuthState newState = stateManager.auth->getState();
   newState.authToken = token;
   if (!token.isEmpty()) {
     newState.isLoggedIn = true;
   }
-  sliceManager.auth->setState(newState);
+  stateManager.auth->setState(newState);
 }
 
 void AppStore::refreshAuthToken() {
-  auto authSlice = sliceManager.auth;
-  auto currentAuth = authSlice->getState();
+  auto authState = stateManager.auth;
+  auto currentAuth = authState->getState();
 
   if (!networkClient) {
-    AuthState errorState = authSlice->getState();
+    AuthState errorState = authState->getState();
     errorState.authError = "Network client not initialized";
-    authSlice->setState(errorState);
+    authState->setState(errorState);
     return;
   }
 
@@ -281,19 +281,19 @@ void AppStore::refreshAuthToken() {
 
   // Call the new refresh endpoint
   networkClient->refreshAuthToken(
-      currentAuth.authToken, [authSlice](Outcome<std::pair<juce::String, juce::String>> result) {
+      currentAuth.authToken, [authState](Outcome<std::pair<juce::String, juce::String>> result) {
         if (result.isOk()) {
           // Extract new token and userId
           auto [newToken, userId] = result.getValue();
 
-          AuthState successState = authSlice->getState();
+          AuthState successState = authState->getState();
           successState.authToken = newToken;
           successState.userId = userId;
           // Reset token expiry to 24 hours from now
           successState.tokenExpiresAt = juce::Time::getCurrentTime().toMilliseconds() + (24 * 60 * 60 * 1000);
           successState.lastAuthTime = juce::Time::getCurrentTime().toMilliseconds();
           successState.authError = "";
-          authSlice->setState(successState);
+          authState->setState(successState);
 
           Util::logInfo("AppStore", "Token refreshed successfully");
         } else {
@@ -301,13 +301,13 @@ void AppStore::refreshAuthToken() {
           Util::logError("AppStore", "Token refresh failed: " + result.getError());
 
           // If token is truly expired, log user out
-          AuthState errorState = authSlice->getState();
+          AuthState errorState = authState->getState();
           errorState.authError = "Session expired - please log in again";
           errorState.isLoggedIn = false;
           errorState.authToken = "";
           errorState.userId = "";
           errorState.tokenExpiresAt = 0;
-          authSlice->setState(errorState);
+          authState->setState(errorState);
         }
       });
 }
@@ -330,8 +330,8 @@ void AppStore::stopTokenRefreshTimer() {
 }
 
 void AppStore::checkAndRefreshToken() {
-  auto authSlice = sliceManager.auth;
-  auto currentAuth = authSlice->getState();
+  auto authState = stateManager.auth;
+  auto currentAuth = authState->getState();
 
   // Only refresh if logged in and token needs refresh
   if (!currentAuth.isLoggedIn) {
@@ -384,10 +384,10 @@ rxcpp::observable<AppStore::LoginResult> AppStore::loginObservable(const juce::S
                    loginResult.userId = result.userId;
 
                    // Update state for 2FA
-                   AuthState twoFAState = sliceManager.auth->getState();
+                   AuthState twoFAState = stateManager.auth->getState();
                    twoFAState.is2FARequired = true;
                    twoFAState.twoFactorUserId = result.userId;
-                   sliceManager.auth->setState(twoFAState);
+                   stateManager.auth->setState(twoFAState);
 
                    observer.on_next(loginResult);
                    observer.on_completed();
@@ -401,7 +401,7 @@ rxcpp::observable<AppStore::LoginResult> AppStore::loginObservable(const juce::S
                  loginResult.username = result.username;
                  loginResult.token = result.token;
 
-                 AuthState successState = sliceManager.auth->getState();
+                 AuthState successState = stateManager.auth->getState();
                  successState.isAuthenticating = false;
                  successState.is2FARequired = false;
                  successState.isLoggedIn = true;
@@ -412,7 +412,7 @@ rxcpp::observable<AppStore::LoginResult> AppStore::loginObservable(const juce::S
                  successState.lastAuthTime = juce::Time::getCurrentTime().toMilliseconds();
                  successState.tokenExpiresAt = juce::Time::getCurrentTime().toMilliseconds() + (24 * 60 * 60 * 1000);
                  successState.authError = "";
-                 sliceManager.auth->setState(successState);
+                 stateManager.auth->setState(successState);
 
                  fetchUserProfile(false);
                  startTokenRefreshTimer();
@@ -457,7 +457,7 @@ rxcpp::observable<AppStore::LoginResult> AppStore::registerAccountObservable(con
                  loginResult.username = username;
                  loginResult.token = token;
 
-                 AuthState successState = sliceManager.auth->getState();
+                 AuthState successState = stateManager.auth->getState();
                  successState.isAuthenticating = false;
                  successState.isLoggedIn = true;
                  successState.userId = userId;
@@ -467,7 +467,7 @@ rxcpp::observable<AppStore::LoginResult> AppStore::registerAccountObservable(con
                  successState.authError = "";
                  successState.lastAuthTime = juce::Time::getCurrentTime().toMilliseconds();
                  successState.tokenExpiresAt = juce::Time::getCurrentTime().toMilliseconds() + (24 * 60 * 60 * 1000);
-                 sliceManager.auth->setState(successState);
+                 stateManager.auth->setState(successState);
 
                  observer.on_next(loginResult);
                  observer.on_completed();
@@ -478,8 +478,8 @@ rxcpp::observable<AppStore::LoginResult> AppStore::registerAccountObservable(con
 
 rxcpp::observable<AppStore::LoginResult> AppStore::verify2FAObservable(const juce::String &code) {
   return rxcpp::sources::create<LoginResult>([this, code](auto observer) {
-           auto authSlice = sliceManager.auth;
-           auto currentAuth = authSlice->getState();
+           auto authState = stateManager.auth;
+           auto currentAuth = authState->getState();
 
            if (!networkClient) {
              Util::logError("AppStore", "Network client not initialized");
@@ -512,7 +512,7 @@ rxcpp::observable<AppStore::LoginResult> AppStore::verify2FAObservable(const juc
                                            loginResult.userId = userId;
                                            loginResult.token = token;
 
-                                           AuthState successState = sliceManager.auth->getState();
+                                           AuthState successState = stateManager.auth->getState();
                                            successState.isVerifying2FA = false;
                                            successState.is2FARequired = false;
                                            successState.isLoggedIn = true;
@@ -521,7 +521,7 @@ rxcpp::observable<AppStore::LoginResult> AppStore::verify2FAObservable(const juc
                                            successState.authError = "";
                                            successState.tokenExpiresAt =
                                                juce::Time::getCurrentTime().toMilliseconds() + (24 * 60 * 60 * 1000);
-                                           sliceManager.auth->setState(successState);
+                                           stateManager.auth->setState(successState);
 
                                            fetchUserProfile(false);
 
@@ -582,8 +582,8 @@ rxcpp::observable<int> AppStore::resetPasswordObservable(const juce::String &tok
 
 rxcpp::observable<int> AppStore::refreshAuthTokenObservable() {
   return rxcpp::sources::create<int>([this](auto observer) {
-           auto authSlice = sliceManager.auth;
-           auto currentAuth = authSlice->getState();
+           auto authState = stateManager.auth;
+           auto currentAuth = authState->getState();
 
            if (!networkClient) {
              Util::logError("AppStore", "Network client not initialized");
@@ -605,13 +605,13 @@ rxcpp::observable<int> AppStore::refreshAuthTokenObservable() {
                  if (result.isOk()) {
                    auto [newToken, userId] = result.getValue();
 
-                   AuthState successState = sliceManager.auth->getState();
+                   AuthState successState = stateManager.auth->getState();
                    successState.authToken = newToken;
                    successState.userId = userId;
                    successState.tokenExpiresAt = juce::Time::getCurrentTime().toMilliseconds() + (24 * 60 * 60 * 1000);
                    successState.lastAuthTime = juce::Time::getCurrentTime().toMilliseconds();
                    successState.authError = "";
-                   sliceManager.auth->setState(successState);
+                   stateManager.auth->setState(successState);
 
                    Util::logInfo("AppStore", "Token refreshed successfully");
                    observer.on_next(0);

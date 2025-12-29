@@ -27,7 +27,7 @@ namespace Stores {
 
 /**
  * AuthState - Immutable authentication state snapshot
- * Immutability guaranteed by ImmutableSlice<AuthState> value semantics
+ * Immutability guaranteed by StateSubject<AuthState> value semantics
  */
 struct AuthState {
   bool isLoggedIn = false;
@@ -71,7 +71,7 @@ struct AuthState {
 
 /**
  * PostsState - Immutable feed and posts state
- * Stored by value in ImmutableSlice<PostsState>
+ * Stored by value in StateSubject<PostsState>
  * All changes create new state instances via setState()
  */
 
@@ -91,7 +91,7 @@ enum class FeedType {
 
 /**
  * FeedState - Immutable feed state for a specific feed type
- * Stored by value in ImmutableSlice<PostsState>
+ * Stored by value in StateSubject<PostsState>
  * All changes create new state instances via setState()
  */
 struct FeedState {
@@ -113,7 +113,7 @@ struct FeedState {
 
 /**
  * SavedPostsState - Immutable saved posts state
- * Stored by value in ImmutableSlice<PostsState>
+ * Stored by value in StateSubject<PostsState>
  * All changes create new state instances via setState()
  */
 struct SavedPostsState {
@@ -132,7 +132,7 @@ struct SavedPostsState {
 
 /**
  * ArchivedPostsState - Immutable archived posts state
- * Stored by value in ImmutableSlice<PostsState>
+ * Stored by value in StateSubject<PostsState>
  * All changes create new state instances via setState()
  */
 struct ArchivedPostsState {
@@ -151,7 +151,7 @@ struct ArchivedPostsState {
 
 /**
  * AggregatedFeedState - Immutable aggregated feed state
- * Stored by value in ImmutableSlice<PostsState>
+ * Stored by value in StateSubject<PostsState>
  * All changes create new state instances via setState()
  */
 struct AggregatedFeedState {
@@ -205,7 +205,7 @@ struct PostsState {
 
 /**
  * UserState - Immutable user profile state
- * Stored by value in ImmutableSlice<UserState>
+ * Stored by value in StateSubject<UserState>
  */
 struct UserState {
   juce::String userId;
@@ -237,7 +237,7 @@ struct UserState {
 
 /**
  * ChannelState - Immutable chat channel state
- * Stored by value in ImmutableSlice<ChatState>
+ * Stored by value in StateSubject<ChatState>
  * All changes create new state instances via setState()
  */
 struct ChannelState {
@@ -254,7 +254,7 @@ struct ChannelState {
 
 /**
  * ChatState - Immutable chat and messaging state
- * Stored by value in ImmutableSlice<ChatState>
+ * Stored by value in StateSubject<ChatState>
  * All changes create new state instances via setState()
  */
 struct ChatState {
@@ -275,7 +275,7 @@ struct ChatState {
 
 /**
  * NotificationState - Immutable notifications state
- * Stored by value in ImmutableSlice<NotificationState>
+ * Stored by value in StateSubject<NotificationState>
  */
 struct NotificationState {
   std::vector<std::shared_ptr<Sidechain::Notification>> notifications;
@@ -291,7 +291,7 @@ struct NotificationState {
 
 /**
  * CommentsState - Immutable comments state per post
- * Stored by value in ImmutableSlice<CommentsState>
+ * Stored by value in StateSubject<CommentsState>
  */
 struct CommentsState {
   // Comments per post (postId -> list of comments)
@@ -334,7 +334,7 @@ struct CommentsState {
 
 /**
  * SearchResultsState - Immutable search results state
- * Stored by value in ImmutableSlice<SearchState>
+ * Stored by value in StateSubject<SearchState>
  * All changes create new state instances via setState()
  */
 struct SearchResultsState {
@@ -356,7 +356,7 @@ struct SearchResultsState {
 
 /**
  * GenresState - Immutable genres list state
- * Stored by value in ImmutableSlice<SearchState>
+ * Stored by value in StateSubject<SearchState>
  * All changes create new state instances via setState()
  */
 struct GenresState {
@@ -370,7 +370,7 @@ struct GenresState {
 
 /**
  * SearchState - Immutable combined search state (results + genres)
- * Stored by value in ImmutableSlice<SearchState>
+ * Stored by value in StateSubject<SearchState>
  * All changes create new state instances via setState()
  */
 struct SearchState {
@@ -387,7 +387,7 @@ struct SearchState {
 
 /**
  * DiscoveryState - Immutable user discovery state
- * Stored by value in ImmutableSlice<DiscoveryState>
+ * Stored by value in StateSubject<DiscoveryState>
  */
 struct DiscoveryState {
   // Immutable copies of user entities from cache
@@ -437,7 +437,7 @@ struct DiscoveryState {
 
 /**
  * PresenceState - Immutable user presence state
- * Stored by value in ImmutableSlice<PresenceState>
+ * Stored by value in StateSubject<PresenceState>
  */
 enum class PresenceStatus { Unknown, Online, Away, Offline, DoNotDisturb };
 
@@ -471,7 +471,7 @@ struct PresenceState {
 
 /**
  * StoriesState - Immutable stories state
- * Stored by value in ImmutableSlice<StoriesState>
+ * Stored by value in StateSubject<StoriesState>
  * All changes create new state instances via setState()
  */
 struct StoriesState {
@@ -492,7 +492,7 @@ struct StoriesState {
 
 /**
  * UploadState - Immutable upload progress state
- * Stored by value in ImmutableSlice<UploadState>
+ * Stored by value in StateSubject<UploadState>
  * All changes create new state instances via setState()
  */
 struct UploadState {
@@ -513,7 +513,7 @@ struct UploadState {
 
 /**
  * PlaylistState - Immutable playlists state
- * Stored by value in ImmutableSlice<PlaylistState>
+ * Stored by value in StateSubject<PlaylistState>
  * All changes create new state instances via setState()
  */
 struct PlaylistState {
@@ -531,7 +531,7 @@ struct PlaylistState {
 
 /**
  * ChallengeState - Immutable challenges state
- * Stored by value in ImmutableSlice<ChallengeState>
+ * Stored by value in StateSubject<ChallengeState>
  * All changes create new state instances via setState()
  */
 struct ChallengeState {
@@ -549,7 +549,7 @@ struct ChallengeState {
 
 /**
  * SoundState - Immutable sound data state
- * Stored by value in ImmutableSlice<SoundState>
+ * Stored by value in StateSubject<SoundState>
  * All changes create new state instances via setState()
  */
 struct SoundState {
@@ -577,7 +577,7 @@ struct SoundState {
 
 /**
  * DraftState - Immutable drafts state
- * Stored by value in ImmutableSlice<DraftState>
+ * Stored by value in StateSubject<DraftState>
  * All changes create new state instances via setState()
  */
 struct DraftState {
@@ -595,8 +595,8 @@ struct DraftState {
 /**
  * FollowersState - Immutable snapshot for followers/following UI
  *
- * IMMUTABILITY via ImmutableSlice<FollowersState>:
- * - Stored by value (not by pointer) in ImmutableSlice
+ * IMMUTABILITY via StateSubject<FollowersState>:
+ * - Stored by value (not by pointer) in StateSubject
  * - setState() atomically replaces entire state instance
  * - Components receive const references to immutable snapshots
  * - All changes create new state instances via setState()
@@ -604,7 +604,7 @@ struct DraftState {
  * Pattern:
  * - EntityCache holds shared_ptr<User> (mutable source of truth)
  * - AppStore creates new FollowersState instances when data changes
- * - ImmutableSlice manages state with value semantics (copies, not pointers)
+ * - StateSubject manages state with value semantics (copies, not pointers)
  * - Components subscribe and receive const references to snapshots
  * - dispatch() copies state, modifies copy, calls setState() to replace
  */

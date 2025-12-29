@@ -70,10 +70,10 @@ PostsFeed::PostsFeed(Sidechain::Stores::AppStore *store)
           store, [store](auto cb) { return store ? store->subscribeToFeed(cb) : std::function<void()>([]() {}); }) {
   using namespace Sidechain::Stores;
   if (appStore) {
-    postsSlice = Sidechain::Stores::StateManager::getInstance().posts;
-    if (postsSlice) {
+    postsState = Sidechain::Stores::StateManager::getInstance().posts;
+    if (postsState) {
       juce::Component::SafePointer<PostsFeed> safeThis(this);
-      storeUnsubscriber = postsSlice->subscribe([safeThis](const Sidechain::Stores::PostsState &state) {
+      storeUnsubscriber = postsState->subscribe([safeThis](const Sidechain::Stores::PostsState &state) {
         if (!safeThis)
           return;
         juce::MessageManager::callAsync([safeThis, state]() {
@@ -228,8 +228,8 @@ void PostsFeed::setAudioPlayer(HttpAudioPlayer *player) {
         // Track recommendation click for CTR analysis (Gorse optimization)
         if (appStore != nullptr) {
           using namespace Sidechain::Stores;
-          auto currentFeedType = postsSlice->getState().currentFeedType;
-          const auto currentFeed = postsSlice->getState().getCurrentFeed();
+          auto currentFeedType = postsState->getState().currentFeedType;
+          const auto currentFeed = postsState->getState().getCurrentFeed();
 
           // Map feed type to source string for backend
           juce::String source = "unknown";
@@ -380,7 +380,7 @@ void PostsFeed::loadFeed() {
 
   // PostsStore will handle loading and notify via subscription
   if (appStore) {
-    appStore->loadFeed(postsSlice->getState().currentFeedType, false);
+    appStore->loadFeed(postsState->getState().currentFeedType, false);
     Log::debug("PostsFeed::loadFeed: PostsStore.loadFeed() called");
   } else {
     Log::error("PostsFeed::loadFeed: PostsStore is null!");
@@ -406,9 +406,9 @@ void PostsFeed::switchFeedType(Sidechain::Stores::FeedType type) {
 
   juce::String typeStr = feedTypeToString(type);
   juce::String currentTypeStr =
-      feedTypeToString(appStore ? postsSlice->getState().currentFeedType : FeedType::Timeline);
+      feedTypeToString(appStore ? postsState->getState().currentFeedType : FeedType::Timeline);
 
-  if (appStore && postsSlice->getState().currentFeedType == type) {
+  if (appStore && postsState->getState().currentFeedType == type) {
     Log::debug("PostsFeed::switchFeedType: Already on feed type: " + typeStr);
     return;
   }
@@ -541,7 +541,7 @@ void PostsFeed::queryPresenceForPosts() {
     return;
   }
 
-  auto currentFeed = postsSlice->getState().getCurrentFeed();
+  auto currentFeed = postsState->getState().getCurrentFeed();
   if (!currentFeed || currentFeed->posts.empty()) {
     Log::debug("PostsFeed::queryPresenceForPosts: Skipping - no posts");
     return;
@@ -660,7 +660,7 @@ void PostsFeed::drawFeedTabs(juce::Graphics &g) {
 
   // Get current feed type from store
   using namespace Sidechain::Stores;
-  auto currentFeedType = appStore ? postsSlice->getState().currentFeedType : FeedType::Timeline;
+  auto currentFeedType = appStore ? postsState->getState().currentFeedType : FeedType::Timeline;
 
   // Timeline (Following) tab
   auto timelineTab = getTimelineTabBounds();
@@ -720,7 +720,7 @@ void PostsFeed::drawFeedTabs(juce::Graphics &g) {
 
   // Refresh button
   auto refreshBtn = getRefreshButtonBounds();
-  const auto currentFeed = appStore ? postsSlice->getState().getCurrentFeed() : nullptr;
+  const auto currentFeed = appStore ? postsState->getState().getCurrentFeed() : nullptr;
   g.setColour((currentFeed && currentFeed->isLoading) ? SidechainColors::textMuted()
                                                       : SidechainColors::textSecondary());
   g.setFont(18.0f);
@@ -756,7 +756,7 @@ void PostsFeed::drawEmptyState(juce::Graphics &g) {
 
   // Different message for Timeline vs Global
   using namespace Sidechain::Stores;
-  auto currentFeedType = appStore ? postsSlice->getState().currentFeedType : FeedType::Timeline;
+  auto currentFeedType = appStore ? postsState->getState().currentFeedType : FeedType::Timeline;
   juce::String title, subtitle1, subtitle2;
 
   if (currentFeedType == FeedType::Timeline) {
@@ -812,7 +812,7 @@ void PostsFeed::drawErrorState(juce::Graphics &g) {
   g.setFont(14.0f);
   juce::String errorMsg = "Network error";
   if (appStore) {
-    const auto currentFeed = postsSlice->getState().getCurrentFeed();
+    const auto currentFeed = postsState->getState().getCurrentFeed();
     if (currentFeed && !currentFeed->error.isEmpty()) {
       errorMsg = currentFeed->error;
     }
@@ -834,7 +834,7 @@ void PostsFeed::drawFeedPosts(juce::Graphics &g) {
 
   // Loading more indicator at bottom
   if (appStore) {
-    const auto currentFeed = postsSlice->getState().getCurrentFeed();
+    const auto currentFeed = postsState->getState().getCurrentFeed();
     if (currentFeed && currentFeed->isLoading) {
       auto contentBounds = getFeedContentBounds();
       int loadingY = contentBounds.getY() + totalContentHeight - static_cast<int>(scrollPosition);
@@ -896,7 +896,7 @@ void PostsFeed::rebuildPostCards() {
     return;
   }
 
-  const auto currentFeedType = postsSlice->getState().currentFeedType;
+  const auto currentFeedType = postsState->getState().currentFeedType;
   const bool isAggregated = isAggregatedFeedType(currentFeedType);
 
   Log::debug("PostsFeed::rebuildPostCards: FeedType=" + feedTypeToString(currentFeedType) +
@@ -910,7 +910,7 @@ void PostsFeed::rebuildPostCards() {
 
   if (isAggregated) {
     // Build aggregated feed cards
-    const auto aggFeed = postsSlice->getState().getCurrentAggregatedFeed();
+    const auto aggFeed = postsState->getState().getCurrentAggregatedFeed();
     if (!aggFeed)
       return;
     const auto &groups = aggFeed->groups;
@@ -933,7 +933,7 @@ void PostsFeed::rebuildPostCards() {
 
       card->onPlayClicked = [this](const juce::String &playPostId) {
         // Find the post and play it
-        const auto playAggFeed = postsSlice->getState().getCurrentAggregatedFeed();
+        const auto playAggFeed = postsState->getState().getCurrentAggregatedFeed();
         if (!playAggFeed)
           return;
         const auto &playGroups = playAggFeed->groups;
@@ -1032,7 +1032,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
 
       // Pre-buffer next post for seamless playback
       if (appStore) {
-        const auto currentFeed = postsSlice->getState().getCurrentFeed();
+        const auto currentFeed = postsState->getState().getCurrentFeed();
         if (!currentFeed)
           return;
         const auto &posts = currentFeed->posts;
@@ -1799,7 +1799,7 @@ void PostsFeed::checkLoadMore() {
     return;
   }
 
-  const auto currentFeed = postsSlice->getState().getCurrentFeed();
+  const auto currentFeed = postsState->getState().getCurrentFeed();
   if (!currentFeed || feedDisplayState != PostsFeedDisplayState::Loaded || !currentFeed->hasMore ||
       currentFeed->isLoading) {
     return;
@@ -1861,7 +1861,7 @@ void PostsFeed::mouseUp(const juce::MouseEvent &event) {
   // Check refresh button
   bool canRefresh = true;
   if (appStore) {
-    const auto currentFeed = postsSlice->getState().getCurrentFeed();
+    const auto currentFeed = postsState->getState().getCurrentFeed();
     if (currentFeed && currentFeed->isLoading) {
       canRefresh = false;
     }
@@ -2080,7 +2080,7 @@ void PostsFeed::updateAudioPlayerPlaylist() {
   // Use FeedStore instead of local posts array
   juce::Array<Sidechain::FeedPost> posts;
   if (appStore) {
-    const auto currentFeed = postsSlice->getState().getCurrentFeed();
+    const auto currentFeed = postsState->getState().getCurrentFeed();
     if (currentFeed) {
       for (const auto &postPtr : currentFeed->posts) {
         if (postPtr) {

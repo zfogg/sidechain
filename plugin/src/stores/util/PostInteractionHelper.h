@@ -28,7 +28,7 @@ namespace Utils {
  */
 class PostInteractionHelper {
 public:
-  using PostsSlice = Rx::State<PostsState>;
+  using PostsStateRef = Rx::State<PostsState>;
 
   /**
    * Configuration for a toggle operation.
@@ -121,13 +121,13 @@ public:
   /**
    * Perform a toggle operation with optimistic update and rollback on error.
    *
-   * @param slice The posts state slice
+   * @param state The posts state state
    * @param postId The post to toggle
    * @param config Configuration for the toggle operation
    */
-  static void performToggle(PostsSlice slice, const juce::String &postId, const ToggleConfig &config) {
+  static void performToggle(PostsStateRef state, const juce::String &postId, const ToggleConfig &config) {
     // 1. Find current state
-    auto currentState = slice->getState();
+    auto currentState = state->getState();
     auto toggleState = findCurrentState(currentState, postId, config.getIsActive, config.getCount);
 
     if (!toggleState.has_value()) {
@@ -139,17 +139,17 @@ public:
     auto newToggleState = toggleState->toggle();
 
     // 2. Apply optimistic update
-    PostsState newState = slice->getState();
+    PostsState newState = state->getState();
     updatePostAcrossCollections(newState, postId, [&config, &newToggleState](std::shared_ptr<FeedPost> &post) {
       config.setIsActive(*post, newToggleState.isActive);
       config.setCount(*post, newToggleState.count);
     });
-    slice->setState(newState);
+    state->setState(newState);
 
     Util::logDebug("PostInteractionHelper", config.actionName + " optimistic update: " + postId);
 
     // 3. Call API
-    config.apiCall(postId, wasActive, [slice, postId, wasActive, toggleState, config](Outcome<juce::var> result) {
+    config.apiCall(postId, wasActive, [state, postId, wasActive, toggleState, config](Outcome<juce::var> result) {
       if (result.isOk()) {
         Util::logInfo("PostInteractionHelper",
                       config.actionName + " " + (wasActive ? "undone" : "applied") + " successfully: " + postId);
@@ -157,12 +157,12 @@ public:
         Util::logError("PostInteractionHelper", "Failed to " + config.actionName + " post: " + result.getError());
 
         // Rollback optimistic update
-        PostsState rollbackState = slice->getState();
+        PostsState rollbackState = state->getState();
         updatePostAcrossCollections(rollbackState, postId, [&config, &toggleState](std::shared_ptr<FeedPost> &post) {
           config.setIsActive(*post, toggleState->isActive);
           config.setCount(*post, toggleState->count);
         });
-        slice->setState(rollbackState);
+        state->setState(rollbackState);
       }
     });
   }
@@ -216,7 +216,7 @@ public:
  */
 class FollowHelper {
 public:
-  using PostsSlice = Rx::State<PostsState>;
+  using PostsStateRef = Rx::State<PostsState>;
 
   /**
    * Extract user ID from a post.

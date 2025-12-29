@@ -162,7 +162,7 @@ private:
   StreamChatClient *streamChatClient = nullptr;
 
   // Posts state for direct state management (using StateSubject)
-  Sidechain::Rx::State<Sidechain::Stores::PostsState> postsSlice;
+  Sidechain::Rx::State<Sidechain::Stores::PostsState> postsState;
 
   // ==============================================================================
   // Listen duration tracking (postId -> start time)

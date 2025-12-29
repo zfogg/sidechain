@@ -25,40 +25,18 @@ namespace Util {
  *     SubscriptionBag subscriptions;
  *
  * public:
- *     void initialize(ReactiveStore<FeedState>& feedStore) {
+ *     void initialize(Rx::State<FeedState> feedState) {
  *         // Subscribe automatically - unsubscribe on component destruction
- *         subscriptions += feedStore.subscribe([this](const FeedState& state) {
+ *         subscriptions += feedState->subscribe([this](const FeedState& state) {
  *             updateUI(state);
  *         });
  *
- *         subscriptions += feedStore.subscribeToSelection(
+ *         subscriptions += feedState->select(
  *             [](const FeedState& s) { return s.posts; },
  *             [this](const auto& posts) { renderPosts(posts); }
  *         );
  *     }
  *     // ~MyComponent() - SubscriptionBag destructor auto-unsubscribes
- * };
- * ```
- *
- * Pattern for stores:
- * ```cpp
- * template <typename T>
- * class ReactiveStore {
- * private:
- *     std::vector<std::function<void(const T&)>> subscribers;
- *
- * public:
- *     Subscription subscribe(std::function<void(const T&)> callback) {
- *         size_t index = subscribers.size();
- *         subscribers.push_back(callback);
- *
- *         // Return unsubscribe function
- *         return Subscription([this, index]() {
- *             if (index < subscribers.size()) {
- *                 subscribers[index] = nullptr;  // Null out instead of erase
- *             }
- *         });
- *     }
  * };
  * ```
  */

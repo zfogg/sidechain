@@ -15,9 +15,9 @@ void AppStore::loadFeaturedSounds() {
     return;
   }
 
-  SoundState newState = sliceManager.sounds->getState();
+  SoundState newState = stateManager.sounds->getState();
   newState.isFeaturedLoading = true;
-  sliceManager.sounds->setState(newState);
+  stateManager.sounds->setState(newState);
 
   networkClient->getTrendingSounds(20, [this](Outcome<juce::var> result) {
     if (result.isOk()) {
@@ -26,18 +26,18 @@ void AppStore::loadFeaturedSounds() {
       // Use JsonArrayParser
       auto soundsList = JsonArrayParser<Sound>::parse(data, "featured sounds");
 
-      SoundState successState = sliceManager.sounds->getState();
+      SoundState successState = stateManager.sounds->getState();
       successState.featuredSounds = std::move(soundsList);
       successState.isFeaturedLoading = false;
       successState.soundError = "";
       Util::logInfo("AppStore", "Loaded " + juce::String(successState.featuredSounds.size()) + " featured sounds");
-      sliceManager.sounds->setState(successState);
+      stateManager.sounds->setState(successState);
     } else {
-      SoundState errorState = sliceManager.sounds->getState();
+      SoundState errorState = stateManager.sounds->getState();
       errorState.isFeaturedLoading = false;
       errorState.soundError = result.getError();
       Util::logError("AppStore", "Failed to load featured sounds: " + result.getError());
-      sliceManager.sounds->setState(errorState);
+      stateManager.sounds->setState(errorState);
     }
   });
 }
@@ -47,9 +47,9 @@ void AppStore::loadRecentSounds() {
     return;
   }
 
-  SoundState loadState = sliceManager.sounds->getState();
+  SoundState loadState = stateManager.sounds->getState();
   loadState.isLoading = true;
-  sliceManager.sounds->setState(loadState);
+  stateManager.sounds->setState(loadState);
 
   // Use searchSounds with empty query to get recent sounds
   networkClient->searchSounds("", 20, [this](Outcome<juce::var> result) {
@@ -59,18 +59,18 @@ void AppStore::loadRecentSounds() {
       // Use JsonArrayParser
       auto soundsList = JsonArrayParser<Sound>::parse(data, "recent sounds");
 
-      SoundState recentState = sliceManager.sounds->getState();
+      SoundState recentState = stateManager.sounds->getState();
       recentState.recentSounds = std::move(soundsList);
       recentState.isLoading = false;
       recentState.soundError = "";
       recentState.recentOffset = static_cast<int>(recentState.recentSounds.size());
       Util::logInfo("AppStore", "Loaded " + juce::String(recentState.recentSounds.size()) + " recent sounds");
-      sliceManager.sounds->setState(recentState);
+      stateManager.sounds->setState(recentState);
     } else {
-      SoundState recentErrorState = sliceManager.sounds->getState();
+      SoundState recentErrorState = stateManager.sounds->getState();
       recentErrorState.isLoading = false;
       recentErrorState.soundError = result.getError();
-      sliceManager.sounds->setState(recentErrorState);
+      stateManager.sounds->setState(recentErrorState);
     }
   });
 }
@@ -80,8 +80,8 @@ void AppStore::loadMoreSounds() {
     return;
   }
 
-  auto soundSlice = sliceManager.sounds;
-  const auto &currentState = soundSlice->getState();
+  auto soundState = stateManager.sounds;
+  const auto &currentState = soundState->getState();
   if (currentState.recentSounds.empty()) {
     return;
   }
@@ -93,12 +93,12 @@ void AppStore::loadMoreSounds() {
       // Use JsonArrayParser
       auto newSounds = JsonArrayParser<Sound>::parse(data, "more sounds");
 
-      SoundState moreState = sliceManager.sounds->getState();
+      SoundState moreState = stateManager.sounds->getState();
       for (const auto &sound : newSounds) {
         moreState.recentSounds.push_back(sound);
       }
       moreState.recentOffset += static_cast<int>(newSounds.size());
-      sliceManager.sounds->setState(moreState);
+      stateManager.sounds->setState(moreState);
     }
   });
 }
@@ -106,10 +106,10 @@ void AppStore::loadMoreSounds() {
 void AppStore::refreshSounds() {
   Util::logInfo("AppStore", "Refreshing sounds");
 
-  SoundState refreshState = sliceManager.sounds->getState();
+  SoundState refreshState = stateManager.sounds->getState();
   refreshState.isRefreshing = true;
   refreshState.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
-  sliceManager.sounds->setState(refreshState);
+  stateManager.sounds->setState(refreshState);
 
   // Load both featured and recent sounds
   loadFeaturedSounds();

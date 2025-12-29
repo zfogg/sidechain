@@ -30,34 +30,34 @@ void AppStore::uploadPost(const juce::var &postData, const juce::File &audioFile
 
   if (!networkClient) {
     Util::logError("AppStore", "Network client not available");
-    UploadState newState = sliceManager.uploads->getState();
+    UploadState newState = stateManager.uploads->getState();
     newState.isUploading = false;
     newState.uploadError = "Network client not initialized";
     newState.progress = 0;
-    sliceManager.uploads->setState(newState);
+    stateManager.uploads->setState(newState);
     return;
   }
 
   if (!audioFile.existsAsFile()) {
     Util::logError("AppStore", "Audio file does not exist: " + audioFile.getFullPathName());
-    UploadState newState = sliceManager.uploads->getState();
+    UploadState newState = stateManager.uploads->getState();
     newState.isUploading = false;
     newState.uploadError = "Audio file not found";
     newState.progress = 0;
-    sliceManager.uploads->setState(newState);
+    stateManager.uploads->setState(newState);
     return;
   }
 
   Util::logInfo("AppStore", "Starting upload - " + audioFile.getFileName());
 
   // Update state to uploading
-  UploadState newState = sliceManager.uploads->getState();
+  UploadState newState = stateManager.uploads->getState();
   newState.isUploading = true;
   newState.progress = 10;
   newState.uploadError = "";
   newState.currentFileName = audioFile.getFileName();
   newState.startTime = juce::Time::getCurrentTime().toMilliseconds();
-  sliceManager.uploads->setState(newState);
+  stateManager.uploads->setState(newState);
 
   // Load audio file and upload with metadata
   if (auto reader = std::unique_ptr<juce::AudioFormatReader>(
@@ -84,39 +84,39 @@ void AppStore::uploadPost(const juce::var &postData, const juce::File &audioFile
                                            [this, postId](const Outcome<juce::String> &outcome) {
                                              if (outcome.isOk()) {
                                                Util::logInfo("AppStore", "Upload successful for post ID: " + postId);
-                                               UploadState uploadState = sliceManager.uploads->getState();
+                                               UploadState uploadState = stateManager.uploads->getState();
                                                uploadState.isUploading = false;
                                                uploadState.progress = 100;
                                                uploadState.uploadError = "";
-                                               sliceManager.uploads->setState(uploadState);
+                                               stateManager.uploads->setState(uploadState);
                                              } else {
                                                Util::logError("AppStore", "Upload failed: " + outcome.getError());
-                                               UploadState uploadState = sliceManager.uploads->getState();
+                                               UploadState uploadState = stateManager.uploads->getState();
                                                uploadState.isUploading = false;
                                                uploadState.progress = 0;
                                                uploadState.uploadError = outcome.getError();
-                                               sliceManager.uploads->setState(uploadState);
+                                               stateManager.uploads->setState(uploadState);
                                              }
                                            });
   } else {
     Util::logError("AppStore", "Failed to read audio file: " + audioFile.getFullPathName());
-    UploadState readErrorState = sliceManager.uploads->getState();
+    UploadState readErrorState = stateManager.uploads->getState();
     readErrorState.isUploading = false;
     readErrorState.uploadError = "Failed to read audio file";
     readErrorState.progress = 0;
-    sliceManager.uploads->setState(readErrorState);
+    stateManager.uploads->setState(readErrorState);
   }
 }
 
 void AppStore::cancelUpload() {
   Util::logInfo("AppStore", "Upload cancelled");
 
-  UploadState newState = sliceManager.uploads->getState();
+  UploadState newState = stateManager.uploads->getState();
   newState.isUploading = false;
   newState.progress = 0;
   newState.uploadError = "";
   newState.currentFileName = "";
-  sliceManager.uploads->setState(newState);
+  stateManager.uploads->setState(newState);
 }
 
 // ==============================================================================

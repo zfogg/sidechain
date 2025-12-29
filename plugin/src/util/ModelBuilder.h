@@ -56,7 +56,7 @@ template <typename T> class ImmutableGuard {
 public:
   /**
    * Allows controlled mutation only through state update functions
-   * Called only by ReactiveStore<T>::setState() to ensure mutations
+   * Called only by StateSubject<T>::next() to ensure mutations
    * are tracked and observable
    */
   static T mutateSafely(const T &original, std::function<void(T &)> mutator) {

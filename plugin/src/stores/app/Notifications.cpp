@@ -14,12 +14,12 @@ void AppStore::loadNotifications() {
     return;
   }
 
-  auto notificationSlice = sliceManager.notifications;
-  NotificationState loadingState = notificationSlice->getState();
+  auto notificationState = stateManager.notifications;
+  NotificationState loadingState = notificationState->getState();
   loadingState.isLoading = true;
-  notificationSlice->setState(loadingState);
+  notificationState->setState(loadingState);
 
-  networkClient->getNotifications(20, 0, [notificationSlice](Outcome<NetworkClient::NotificationResult> result) {
+  networkClient->getNotifications(20, 0, [notificationState](Outcome<NetworkClient::NotificationResult> result) {
     if (result.isOk()) {
       const auto notifResult = result.getValue();
       std::vector<std::shared_ptr<Sidechain::Notification>> notificationsList;
@@ -39,7 +39,7 @@ void AppStore::loadNotifications() {
         }
       }
 
-      NotificationState successState = notificationSlice->getState();
+      NotificationState successState = notificationState->getState();
       successState.notifications = notificationsList;
       successState.isLoading = false;
       successState.unreadCount = notifResult.unread;
@@ -47,13 +47,13 @@ void AppStore::loadNotifications() {
       successState.notificationError = "";
       Util::logInfo("AppStore", "Loaded " + juce::String(notificationsList.size()) +
                                     " notifications (unread: " + juce::String(notifResult.unread) + ")");
-      notificationSlice->setState(successState);
+      notificationState->setState(successState);
     } else {
-      NotificationState errorState = notificationSlice->getState();
+      NotificationState errorState = notificationState->getState();
       errorState.isLoading = false;
       errorState.notificationError = result.getError();
       Util::logError("AppStore", "Failed to load notifications: " + result.getError());
-      notificationSlice->setState(errorState);
+      notificationState->setState(errorState);
     }
   });
 }
@@ -63,14 +63,14 @@ void AppStore::loadMoreNotifications() {
     return;
   }
 
-  auto notificationSlice = sliceManager.notifications;
-  const auto &currentState = notificationSlice->getState();
+  auto notificationState = stateManager.notifications;
+  const auto &currentState = notificationState->getState();
   if (currentState.notifications.empty()) {
     return;
   }
 
   networkClient->getNotifications(20, static_cast<int>(currentState.notifications.size()),
-                                  [notificationSlice](Outcome<NetworkClient::NotificationResult> result) {
+                                  [notificationState](Outcome<NetworkClient::NotificationResult> result) {
                                     if (result.isOk()) {
                                       const auto notifResult = result.getValue();
                                       std::vector<std::shared_ptr<Sidechain::Notification>> newNotifications;
@@ -90,13 +90,13 @@ void AppStore::loadMoreNotifications() {
                                         }
                                       }
 
-                                      NotificationState moreState = notificationSlice->getState();
+                                      NotificationState moreState = notificationState->getState();
                                       for (const auto &notification : newNotifications) {
                                         moreState.notifications.push_back(notification);
                                       }
                                       moreState.unreadCount = notifResult.unread;
                                       moreState.unseenCount = notifResult.unseen;
-                                      notificationSlice->setState(moreState);
+                                      notificationState->setState(moreState);
                                     }
                                   });
 }
@@ -107,11 +107,11 @@ void AppStore::markNotificationsAsRead() {
     return;
   }
 
-  auto notificationSlice = sliceManager.notifications;
+  auto notificationState = stateManager.notifications;
 
-  networkClient->markNotificationsRead([notificationSlice](Outcome<juce::var> result) {
+  networkClient->markNotificationsRead([notificationState](Outcome<juce::var> result) {
     if (result.isOk()) {
-      NotificationState readState = notificationSlice->getState();
+      NotificationState readState = notificationState->getState();
       // Mark all notifications as read
       for (auto &notification : readState.notifications) {
         if (notification) {
@@ -120,12 +120,12 @@ void AppStore::markNotificationsAsRead() {
       }
       readState.unreadCount = 0;
       Util::logInfo("AppStore", "All notifications marked as read");
-      notificationSlice->setState(readState);
+      notificationState->setState(readState);
     } else {
-      NotificationState errorState = notificationSlice->getState();
+      NotificationState errorState = notificationState->getState();
       errorState.notificationError = result.getError();
       Util::logError("AppStore", "Failed to mark notifications as read: " + result.getError());
-      notificationSlice->setState(errorState);
+      notificationState->setState(errorState);
     }
   });
 }
@@ -136,19 +136,19 @@ void AppStore::markNotificationsAsSeen() {
     return;
   }
 
-  auto notificationSlice = sliceManager.notifications;
+  auto notificationState = stateManager.notifications;
 
-  networkClient->markNotificationsSeen([notificationSlice](Outcome<juce::var> result) {
+  networkClient->markNotificationsSeen([notificationState](Outcome<juce::var> result) {
     if (result.isOk()) {
-      NotificationState seenState = notificationSlice->getState();
+      NotificationState seenState = notificationState->getState();
       seenState.unseenCount = 0;
       Util::logInfo("AppStore", "All notifications marked as seen");
-      notificationSlice->setState(seenState);
+      notificationState->setState(seenState);
     } else {
-      NotificationState errorState = notificationSlice->getState();
+      NotificationState errorState = notificationState->getState();
       errorState.notificationError = result.getError();
       Util::logError("AppStore", "Failed to mark notifications as seen: " + result.getError());
-      notificationSlice->setState(errorState);
+      notificationState->setState(errorState);
     }
   });
 }
@@ -220,16 +220,16 @@ rxcpp::observable<int> AppStore::markNotificationsAsReadObservable() {
            networkClient->markNotificationsRead([this, observer](Outcome<juce::var> result) {
              if (result.isOk()) {
                // Update state
-               auto notificationSlice = sliceManager.notifications;
-               if (notificationSlice) {
-                 NotificationState readState = notificationSlice->getState();
+               auto notificationState = stateManager.notifications;
+               if (notificationState) {
+                 NotificationState readState = notificationState->getState();
                  for (auto &notification : readState.notifications) {
                    if (notification) {
                      notification->isRead = true;
                    }
                  }
                  readState.unreadCount = 0;
-                 notificationSlice->setState(readState);
+                 notificationState->setState(readState);
                }
 
                Util::logInfo("AppStore", "All notifications marked as read");
@@ -257,11 +257,11 @@ rxcpp::observable<int> AppStore::markNotificationsAsSeenObservable() {
            networkClient->markNotificationsSeen([this, observer](Outcome<juce::var> result) {
              if (result.isOk()) {
                // Update state
-               auto notificationSlice = sliceManager.notifications;
-               if (notificationSlice) {
-                 NotificationState seenState = notificationSlice->getState();
+               auto notificationState = stateManager.notifications;
+               if (notificationState) {
+                 NotificationState seenState = notificationState->getState();
                  seenState.unseenCount = 0;
-                 notificationSlice->setState(seenState);
+                 notificationState->setState(seenState);
                }
 
                Util::logInfo("AppStore", "All notifications marked as seen");

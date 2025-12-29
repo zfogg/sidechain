@@ -14,9 +14,9 @@ void AppStore::loadStoriesFeed() {
     return;
   }
 
-  StoriesState newState = sliceManager.stories->getState();
+  StoriesState newState = stateManager.stories->getState();
   newState.isFeedLoading = true;
-  sliceManager.stories->setState(newState);
+  stateManager.stories->setState(newState);
 
   networkClient->getStoriesFeed([this](Outcome<juce::var> result) {
     if (result.isOk()) {
@@ -43,18 +43,18 @@ void AppStore::loadStoriesFeed() {
         }
       }
 
-      StoriesState feedState = sliceManager.stories->getState();
+      StoriesState feedState = stateManager.stories->getState();
       feedState.feedUserStories = storiesList;
       feedState.isFeedLoading = false;
       feedState.storiesError = "";
       Util::logInfo("AppStore", "Loaded " + juce::String(storiesList.size()) + " stories from feed");
-      sliceManager.stories->setState(feedState);
+      stateManager.stories->setState(feedState);
     } else {
-      StoriesState feedErrorState = sliceManager.stories->getState();
+      StoriesState feedErrorState = stateManager.stories->getState();
       feedErrorState.isFeedLoading = false;
       feedErrorState.storiesError = result.getError();
       Util::logError("AppStore", "Failed to load stories feed: " + result.getError());
-      sliceManager.stories->setState(feedErrorState);
+      stateManager.stories->setState(feedErrorState);
     }
   });
 }
@@ -65,28 +65,28 @@ void AppStore::loadMyStories() {
     return;
   }
 
-  StoriesState myStoriesStartState = sliceManager.stories->getState();
+  StoriesState myStoriesStartState = stateManager.stories->getState();
   myStoriesStartState.isMyStoriesLoading = true;
-  sliceManager.stories->setState(myStoriesStartState);
+  stateManager.stories->setState(myStoriesStartState);
 
   // Fetch user's own stories from NetworkClient
   networkClient->getStoriesFeed([this](Outcome<juce::var> result) {
     if (!result.isOk()) {
       Util::logError("AppStore", "Failed to load my stories: " + result.getError());
-      StoriesState errorState = sliceManager.stories->getState();
+      StoriesState errorState = stateManager.stories->getState();
       errorState.isMyStoriesLoading = false;
       // Note: StoriesState doesn't have myStoriesError field yet
-      sliceManager.stories->setState(errorState);
+      stateManager.stories->setState(errorState);
       return;
     }
 
     // Parse the response - should be an array of stories
     const auto &data = result.getValue();
-    StoriesState newState = sliceManager.stories->getState();
+    StoriesState newState = stateManager.stories->getState();
     newState.isMyStoriesLoading = false;
 
     // Get current user ID to filter only user's own stories
-    const auto currentAuthState = sliceManager.auth->getState();
+    const auto currentAuthState = stateManager.auth->getState();
     const juce::String currentUserId = currentAuthState.userId;
 
     if (data.isArray()) {
@@ -113,7 +113,7 @@ void AppStore::loadMyStories() {
       Util::logInfo("AppStore", "Loaded " + juce::String(newState.myStories.size()) + " of my stories");
     }
 
-    sliceManager.stories->setState(newState);
+    stateManager.stories->setState(newState);
   });
 }
 
@@ -141,7 +141,7 @@ void AppStore::deleteStory(const juce::String &storyId) {
 
   networkClient->deleteStory(storyId, [this, storyId](Outcome<juce::var> result) {
     if (result.isOk()) {
-      StoriesState deleteState = sliceManager.stories->getState();
+      StoriesState deleteState = stateManager.stories->getState();
       // Remove from my stories
       for (int i = static_cast<int>(deleteState.myStories.size()) - 1; i >= 0; --i) {
         auto story = deleteState.myStories[static_cast<size_t>(i)];
@@ -151,12 +151,12 @@ void AppStore::deleteStory(const juce::String &storyId) {
           break;
         }
       }
-      sliceManager.stories->setState(deleteState);
+      stateManager.stories->setState(deleteState);
     } else {
-      StoriesState deleteErrorState = sliceManager.stories->getState();
+      StoriesState deleteErrorState = stateManager.stories->getState();
       deleteErrorState.storiesError = result.getError();
       Util::logError("AppStore", "Failed to delete story: " + result.getError());
-      sliceManager.stories->setState(deleteErrorState);
+      stateManager.stories->setState(deleteErrorState);
     }
   });
 }
@@ -199,14 +199,14 @@ void AppStore::createHighlight(const juce::String &name, const juce::Array<juce:
         }
       }
 
-      StoriesState successState = sliceManager.stories->getState();
+      StoriesState successState = stateManager.stories->getState();
       successState.storiesError = "";
-      sliceManager.stories->setState(successState);
+      stateManager.stories->setState(successState);
     } else {
-      StoriesState highlightErrorState = sliceManager.stories->getState();
+      StoriesState highlightErrorState = stateManager.stories->getState();
       highlightErrorState.storiesError = result.getError();
       Util::logError("AppStore", "Failed to create highlight: " + result.getError());
-      sliceManager.stories->setState(highlightErrorState);
+      stateManager.stories->setState(highlightErrorState);
     }
   });
 }
@@ -276,7 +276,7 @@ rxcpp::observable<std::vector<Story>> AppStore::loadMyStoriesObservable() {
            Util::logDebug("AppStore", "Loading my stories via observable");
 
            // Get current user ID to filter only user's own stories
-           const auto currentAuthState = sliceManager.auth->getState();
+           const auto currentAuthState = stateManager.auth->getState();
            const juce::String currentUserId = currentAuthState.userId;
 
            networkClient->getStoriesFeed([observer, currentUserId](Outcome<juce::var> result) {
@@ -350,7 +350,7 @@ rxcpp::observable<int> AppStore::deleteStoryObservable(const juce::String &story
            networkClient->deleteStory(storyId, [this, observer, storyId](Outcome<juce::var> result) {
              if (result.isOk()) {
                // Update state
-               StoriesState deleteState = sliceManager.stories->getState();
+               StoriesState deleteState = stateManager.stories->getState();
                for (int i = static_cast<int>(deleteState.myStories.size()) - 1; i >= 0; --i) {
                  auto story = deleteState.myStories[static_cast<size_t>(i)];
                  if (story && story->id == storyId) {
@@ -358,7 +358,7 @@ rxcpp::observable<int> AppStore::deleteStoryObservable(const juce::String &story
                    break;
                  }
                }
-               sliceManager.stories->setState(deleteState);
+               stateManager.stories->setState(deleteState);
 
                Util::logInfo("AppStore", "Story deleted: " + storyId);
                observer.on_next(0);

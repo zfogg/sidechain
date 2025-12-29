@@ -167,7 +167,7 @@ private:
   // Methods
   void setupUI();
   void updateUsersList();
-  void onSliceChanged(const Sidechain::Stores::FollowersState &state);
+  void onStateUpdated(const Sidechain::Stores::FollowersState &state);
 
   // Row callbacks
   void setupRowCallbacks(FollowUserRow *row);

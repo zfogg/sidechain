@@ -24,7 +24,7 @@ void AppStore::loadTrendingUsersAndCache(int limit) {
   Log::info("AppStore", "Loading trending users");
 
   UserLoadingHelper<Stores::DiscoveryState>::loadUsers(
-      sliceManager.discovery,
+      stateManager.discovery,
       // Set loading state
       [](Stores::DiscoveryState &s) {
         s.isTrendingLoading = true;
@@ -55,7 +55,7 @@ void AppStore::loadFeaturedProducersAndCache(int limit) {
   Log::info("AppStore", "Loading featured producers");
 
   UserLoadingHelper<Stores::DiscoveryState>::loadUsers(
-      sliceManager.discovery,
+      stateManager.discovery,
       // Set loading state
       [](Stores::DiscoveryState &s) {
         s.isFeaturedLoading = true;
@@ -86,7 +86,7 @@ void AppStore::loadSuggestedUsersAndCache(int limit) {
   Log::info("AppStore", "Loading suggested users");
 
   UserLoadingHelper<Stores::DiscoveryState>::loadUsers(
-      sliceManager.discovery,
+      stateManager.discovery,
       // Set loading state
       [](Stores::DiscoveryState &s) {
         s.isSuggestedLoading = true;

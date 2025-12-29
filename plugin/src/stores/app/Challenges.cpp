@@ -11,12 +11,12 @@ void AppStore::loadChallenges() {
     return;
   }
 
-  auto challengeSlice = sliceManager.challenge;
-  ChallengeState newState = challengeSlice->getState();
+  auto challengeState = stateManager.challenge;
+  ChallengeState newState = challengeState->getState();
   newState.isLoading = true;
-  challengeSlice->setState(newState);
+  challengeState->setState(newState);
 
-  networkClient->getMIDIChallenges("", [challengeSlice](Outcome<juce::var> result) {
+  networkClient->getMIDIChallenges("", [challengeState](Outcome<juce::var> result) {
     if (result.isOk()) {
       const auto data = result.getValue();
       std::vector<std::shared_ptr<Sidechain::MIDIChallenge>> challengesList;
@@ -28,18 +28,18 @@ void AppStore::loadChallenges() {
         }
       }
 
-      ChallengeState successState = challengeSlice->getState();
+      ChallengeState successState = challengeState->getState();
       successState.challenges = challengesList;
       successState.isLoading = false;
       successState.challengeError = "";
       Util::logInfo("AppStore", "Loaded " + juce::String(challengesList.size()) + " challenges");
-      challengeSlice->setState(successState);
+      challengeState->setState(successState);
     } else {
-      ChallengeState errorState = challengeSlice->getState();
+      ChallengeState errorState = challengeState->getState();
       errorState.isLoading = false;
       errorState.challengeError = result.getError();
       Util::logError("AppStore", "Failed to load challenges: " + result.getError());
-      challengeSlice->setState(errorState);
+      challengeState->setState(errorState);
     }
   });
 }

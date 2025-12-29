@@ -12,9 +12,9 @@ namespace Sidechain {
 namespace Rx {
 
 /**
- * StateSubject<T> - Thread-safe reactive state container
+ * StateSubject<T> - Thread-safe reactive state container (BehaviorSubject pattern)
  *
- * A simplified replacement for ImmutableSlice that uses RxCpp-style semantics.
+ * Core RxCpp-style state management for the Sidechain plugin.
  * Holds current state value and notifies subscribers on changes.
  *
  * Key features:
@@ -22,6 +22,7 @@ namespace Rx {
  * - Immediate notification to new subscribers with current value
  * - Selector subscriptions (only notify when derived value changes)
  * - Returns unsubscribe function for cleanup
+ * - Compatible with RxCpp observable composition via asObservable()
  *
  * Usage:
  *   StateSubject<AuthState> auth(AuthState{});
@@ -59,15 +60,16 @@ public:
   StateSubject &operator=(StateSubject &&) = default;
 
   /**
-   * Get current value (thread-safe read)
-   * Alias: getState() for compatibility with ImmutableSlice API
+   * Get current value (thread-safe read, returns copy)
    */
   T getValue() const {
     std::shared_lock<std::shared_mutex> lock(mutex_);
     return value_;
   }
 
-  // Alias for ImmutableSlice compatibility
+  /**
+   * Get current state reference (thread-safe read)
+   */
   const T &getState() const {
     std::shared_lock<std::shared_mutex> lock(mutex_);
     return value_;
@@ -75,7 +77,6 @@ public:
 
   /**
    * Update value and notify all subscribers (thread-safe write)
-   * Alias: setState() for compatibility with ImmutableSlice API
    */
   void next(T newValue) {
     std::vector<Callback> callbacksCopy;
@@ -96,7 +97,9 @@ public:
     }
   }
 
-  // Alias for ImmutableSlice compatibility
+  /**
+   * Update state (alias for next())
+   */
   void setState(const T &newValue) {
     next(newValue);
   }
@@ -148,7 +151,9 @@ public:
     });
   }
 
-  // Alias for ImmutableSlice compatibility
+  /**
+   * Subscribe to derived/selected value (alias for select())
+   */
   template <typename Derived>
   Unsubscriber subscribeToSelection(std::function<Derived(const T &)> selector,
                                     std::function<void(const Derived &)> callback) {
@@ -201,7 +206,7 @@ private:
 
 /**
  * Convenience alias for shared_ptr to StateSubject
- * Matches the usage pattern from ImmutableSlice
+ * Used throughout the app for reactive state management
  */
 template <typename T> using State = std::shared_ptr<StateSubject<T>>;
 

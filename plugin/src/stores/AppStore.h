@@ -876,97 +876,97 @@ public:
   juce::File getCachedAudio(const juce::String &url);
 
   // ==============================================================================
-  // UI Component Subscription Helpers (Thin delegates to slices)
-  // These are now the recommended way for UI components to subscribe to state changes
+  // UI Component Subscription Helpers (delegates to StateManager)
+  // These are the recommended way for UI components to subscribe to state changes
   // Components should call these methods during setup to get reactive updates
 
   std::function<void()> subscribeToAuth(std::function<void(const AuthState &)> callback) {
-    return sliceManager.auth->subscribe(callback);
+    return stateManager.auth->subscribe(callback);
   }
 
   std::function<void()> subscribeToChat(std::function<void(const ChatState &)> callback) {
-    return sliceManager.chat->subscribe(callback);
+    return stateManager.chat->subscribe(callback);
   }
 
   std::function<void()> subscribeToChallenges(std::function<void(const ChallengeState &)> callback) {
-    return sliceManager.challenge->subscribe(callback);
+    return stateManager.challenge->subscribe(callback);
   }
 
   std::function<void()> subscribeToNotifications(std::function<void(const NotificationState &)> callback) {
-    return sliceManager.notifications->subscribe(callback);
+    return stateManager.notifications->subscribe(callback);
   }
 
   std::function<void()> subscribeToFollowers(std::function<void(const FollowersState &)> callback) {
-    return sliceManager.followers->subscribe(callback);
+    return stateManager.followers->subscribe(callback);
   }
 
   std::function<void()> subscribeToUser(std::function<void(const UserState &)> callback) {
-    return sliceManager.user->subscribe(callback);
+    return stateManager.user->subscribe(callback);
   }
 
   std::function<void()> subscribeToFeed(std::function<void(const PostsState &)> callback) {
-    return sliceManager.posts->subscribe(callback);
+    return stateManager.posts->subscribe(callback);
   }
 
   std::function<void()> subscribeToPlaylists(std::function<void(const PlaylistState &)> callback) {
-    return sliceManager.playlists->subscribe(callback);
+    return stateManager.playlists->subscribe(callback);
   }
 
   std::function<void()> subscribeToDrafts(std::function<void(const DraftState &)> callback) {
-    return sliceManager.draft->subscribe(callback);
+    return stateManager.draft->subscribe(callback);
   }
 
   std::function<void()> subscribeToUploads(std::function<void(const UploadState &)> callback) {
-    return sliceManager.uploads->subscribe(callback);
+    return stateManager.uploads->subscribe(callback);
   }
 
   std::function<void()> subscribeSounds(std::function<void(const SoundState &)> callback) {
-    return sliceManager.sounds->subscribe(callback);
+    return stateManager.sounds->subscribe(callback);
   }
 
   std::function<void()> subscribeToSearch(std::function<void(const SearchState &)> callback) {
-    return sliceManager.search->subscribe(callback);
+    return stateManager.search->subscribe(callback);
   }
 
   std::function<void()> subscribeToSounds(std::function<void(const SoundState &)> callback) {
-    return sliceManager.sounds->subscribe(callback);
+    return stateManager.sounds->subscribe(callback);
   }
 
   std::function<void()> subscribeToStories(std::function<void(const StoriesState &)> callback) {
-    return sliceManager.stories->subscribe(callback);
+    return stateManager.stories->subscribe(callback);
   }
 
   std::function<void()> subscribeToComments(std::function<void(const CommentsState &)> callback) {
-    return sliceManager.comments->subscribe(callback);
+    return stateManager.comments->subscribe(callback);
   }
 
   std::function<void()> subscribeToDiscovery(std::function<void(const DiscoveryState &)> callback) {
-    return sliceManager.discovery->subscribe(callback);
+    return stateManager.discovery->subscribe(callback);
   }
 
   // Temporary accessor for UI components - to be removed
   const Stores::AuthState &getAuthState() const {
-    return sliceManager.auth->getState();
+    return stateManager.auth->getState();
   }
 
   const Stores::PostsState &getPostsState() const {
-    return sliceManager.posts->getState();
+    return stateManager.posts->getState();
   }
 
   const Stores::UserState &getUserState() const {
-    return sliceManager.user->getState();
+    return stateManager.user->getState();
   }
 
   const Stores::ChatState &getChatState() const {
-    return sliceManager.chat->getState();
+    return stateManager.chat->getState();
   }
 
   const Stores::SearchState &getSearchState() const {
-    return sliceManager.search->getState();
+    return stateManager.search->getState();
   }
 
   const Stores::NotificationState &getNotificationState() const {
-    return sliceManager.notifications->getState();
+    return stateManager.notifications->getState();
   }
 
   // ==============================================================================
@@ -1311,41 +1311,24 @@ public:
    * @return AppStoreQueries instance for reading state
    */
   AppStoreQueries queries() const {
-    auto postSlice = sliceManager.posts;
-    auto authSlice = sliceManager.auth;
-    auto userSlice = sliceManager.user;
-    auto chatSlice = sliceManager.chat;
-    auto notifSlice = sliceManager.notifications;
-    auto searchSlice = sliceManager.search;
-    auto commentsSlice = sliceManager.comments;
-    auto discoverSlice = sliceManager.discovery;
-    auto presenceSlice = sliceManager.presence;
-    auto storiesSlice = sliceManager.stories;
-    auto uploadsSlice = sliceManager.uploads;
-    auto playlistSlice = sliceManager.playlists;
-    auto challengeSlice = sliceManager.challenge;
-    auto soundSlice = sliceManager.sounds;
-    auto draftSlice = sliceManager.draft;
-    auto followersSlice = sliceManager.followers;
-
-    // Build composite AppState from all slices
+    // Build composite AppState from all state subjects
     AppState combinedState;
-    combinedState.auth = authSlice->getState();
-    combinedState.posts = postSlice->getState();
-    combinedState.user = userSlice->getState();
-    combinedState.chat = chatSlice->getState();
-    combinedState.notifications = notifSlice->getState();
-    combinedState.search = searchSlice->getState();
-    combinedState.comments = commentsSlice->getState();
-    combinedState.discovery = discoverSlice->getState();
-    combinedState.presence = presenceSlice->getState();
-    combinedState.stories = storiesSlice->getState();
-    combinedState.uploads = uploadsSlice->getState();
-    combinedState.playlists = playlistSlice->getState();
-    combinedState.challenges = challengeSlice->getState();
-    combinedState.sounds = soundSlice->getState();
-    combinedState.drafts = draftSlice->getState();
-    combinedState.followers = followersSlice->getState();
+    combinedState.auth = stateManager.auth->getState();
+    combinedState.posts = stateManager.posts->getState();
+    combinedState.user = stateManager.user->getState();
+    combinedState.chat = stateManager.chat->getState();
+    combinedState.notifications = stateManager.notifications->getState();
+    combinedState.search = stateManager.search->getState();
+    combinedState.comments = stateManager.comments->getState();
+    combinedState.discovery = stateManager.discovery->getState();
+    combinedState.presence = stateManager.presence->getState();
+    combinedState.stories = stateManager.stories->getState();
+    combinedState.uploads = stateManager.uploads->getState();
+    combinedState.playlists = stateManager.playlists->getState();
+    combinedState.challenges = stateManager.challenge->getState();
+    combinedState.sounds = stateManager.sounds->getState();
+    combinedState.drafts = stateManager.draft->getState();
+    combinedState.followers = stateManager.followers->getState();
 
     return AppStoreQueries(combinedState);
   }
@@ -1366,7 +1349,7 @@ private:
   // State Management
   // AppStore is a pure orchestration/service layer
   // All state is managed by reactive StateSubjects via StateManager
-  StateManager &sliceManager = StateManager::getInstance();
+  StateManager &stateManager = StateManager::getInstance();
 
   // File caching (for binary assets: images, audio, MIDI, drafts)
   SidechainImageCache imageCache{500 * 1024 * 1024};        // 500MB

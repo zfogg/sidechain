@@ -51,8 +51,8 @@ void AppStore::createComment(const juce::String &postId, const juce::String &con
     return;
   }
 
-  auto commentsSlice = sliceManager.comments;
-  if (!commentsSlice) {
+  auto commentsState = stateManager.comments;
+  if (!commentsState) {
     Util::logError("AppStore", "Cannot create comment - comments slice not available");
     return;
   }
@@ -60,7 +60,7 @@ void AppStore::createComment(const juce::String &postId, const juce::String &con
   Util::logInfo("AppStore", "Creating comment on post: " + postId);
 
   networkClient->createComment(postId, content, parentId, [this, postId](Outcome<juce::var> result) {
-    auto slice = sliceManager.comments;
+    auto slice = stateManager.comments;
     if (!slice) {
       Util::logError("AppStore", "Cannot update comments state - comments slice is null");
       return;
@@ -128,8 +128,8 @@ void AppStore::deleteComment(const juce::String &commentId) {
     return;
   }
 
-  auto commentsSlice = sliceManager.comments;
-  if (!commentsSlice) {
+  auto commentsState = stateManager.comments;
+  if (!commentsState) {
     Util::logError("AppStore", "Cannot delete comment - comments slice not available");
     return;
   }
@@ -137,7 +137,7 @@ void AppStore::deleteComment(const juce::String &commentId) {
   Util::logInfo("AppStore", "Deleting comment: " + commentId);
 
   // Find which post this comment belongs to
-  auto currentState = commentsSlice->getState();
+  auto currentState = commentsState->getState();
   juce::String postId;
   for (const auto &[pId, comments] : currentState.commentsByPostId) {
     for (const auto &comment : comments) {
@@ -151,7 +151,7 @@ void AppStore::deleteComment(const juce::String &commentId) {
   }
 
   networkClient->deleteComment(commentId, [this, commentId, postId](Outcome<juce::var> result) {
-    auto slice = sliceManager.comments;
+    auto slice = stateManager.comments;
     if (!slice)
       return;
 
@@ -349,24 +349,24 @@ void AppStore::loadPostComments(const juce::String &postId, int limit, int offse
     return;
   }
 
-  auto commentsSlice = sliceManager.comments;
-  if (!commentsSlice) {
+  auto commentsState = stateManager.comments;
+  if (!commentsState) {
     Util::logError("AppStore", "Cannot load comments - comments slice not available");
     return;
   }
 
   // Update loading state
-  CommentsState loadingState = commentsSlice->getState();
+  CommentsState loadingState = commentsState->getState();
   loadingState.isLoadingByPostId[postId.toStdString()] = true;
   loadingState.currentLoadingPostId = postId;
-  commentsSlice->setState(loadingState);
+  commentsState->setState(loadingState);
 
   Util::logInfo("AppStore", "Loading comments for post: " + postId + " (limit=" + juce::String(limit) +
                                 ", offset=" + juce::String(offset) + ")");
 
   // Make network request
   networkClient->getComments(postId, limit, offset, [this, postId, limit](Outcome<std::pair<juce::var, int>> result) {
-    auto slice = sliceManager.comments;
+    auto slice = stateManager.comments;
     if (!slice)
       return;
 
@@ -421,21 +421,21 @@ AppStore::subscribeToPostComments(const juce::String &postId,
     return []() {};
   }
 
-  auto commentsSlice = sliceManager.comments;
-  if (!commentsSlice) {
+  auto commentsState = stateManager.comments;
+  if (!commentsState) {
     Util::logError("AppStore", "Cannot subscribe to comments - comments slice not available");
     return []() {};
   }
 
   // Subscribe to CommentsState changes and invoke callback with state
-  commentsSlice->subscribe([callback, postId](const CommentsState &state) {
+  commentsState->subscribe([callback, postId](const CommentsState &state) {
     auto commentsIt = state.commentsByPostId.find(postId.toStdString());
     if (commentsIt != state.commentsByPostId.end()) {
       callback(commentsIt->second);
     }
   });
 
-  // StateSlice doesn't support unsubscription, return no-op
+  // StateSubject doesn't support unsubscription, return no-op
   return []() {};
 }
 

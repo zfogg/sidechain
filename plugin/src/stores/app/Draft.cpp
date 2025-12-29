@@ -8,10 +8,10 @@ namespace Sidechain {
 namespace Stores {
 
 void AppStore::loadDrafts() {
-  auto draftSlice = sliceManager.draft;
-  DraftState newState = draftSlice->getState();
+  auto draftState = stateManager.draft;
+  DraftState newState = draftState->getState();
   newState.isLoading = true;
-  draftSlice->setState(newState);
+  draftState->setState(newState);
 
   // Load drafts from cache directory
   std::vector<std::shared_ptr<Sidechain::Draft>> draftsList;
@@ -42,16 +42,16 @@ void AppStore::loadDrafts() {
     Util::logError("AppStore", "Failed to load drafts: " + juce::String(e.what()));
   }
 
-  DraftState finalState = draftSlice->getState();
+  DraftState finalState = draftState->getState();
   finalState.drafts = draftsList;
   finalState.isLoading = false;
   finalState.draftError = "";
-  draftSlice->setState(finalState);
+  draftState->setState(finalState);
 }
 
 void AppStore::deleteDraft(const juce::String &draftId) {
-  auto draftSlice = sliceManager.draft;
-  DraftState newState = draftSlice->getState();
+  auto draftState = stateManager.draft;
+  DraftState newState = draftState->getState();
   // Remove draft from list
   for (int i = static_cast<int>(newState.drafts.size()) - 1; i >= 0; --i) {
     auto draft = newState.drafts[static_cast<size_t>(i)];
@@ -61,7 +61,7 @@ void AppStore::deleteDraft(const juce::String &draftId) {
       break;
     }
   }
-  draftSlice->setState(newState);
+  draftState->setState(newState);
 
   // Remove from cache
   try {
@@ -85,15 +85,14 @@ void AppStore::clearAutoRecoveryDraft() {
     Util::logError("AppStore", "Failed to clear auto-recovery draft: " + juce::String(e.what()));
   }
 
-  DraftState newState = sliceManager.draft->getState();
+  DraftState newState = stateManager.draft->getState();
   newState.draftError = "";
-  sliceManager.draft->setState(newState);
+  stateManager.draft->setState(newState);
 }
 
 void AppStore::saveDrafts() {
   try {
-    auto draftSlice = sliceManager.draft;
-    const auto &draftState = draftSlice->getState();
+    const auto &draftState = stateManager.draft->getState();
 
     for (const auto &draft : draftState.drafts) {
       if (!draft) {

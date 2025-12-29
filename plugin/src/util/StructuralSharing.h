@@ -24,14 +24,14 @@ namespace Util {
  * // Before: Copy entire FeedState, replace entire posts vector
  * FeedState newState = feedState;  // Copy vector metadata
  * newState.posts = updatedPosts;   // Replace posts
- * slice->setState(newState);
+ * state->setState(newState);
  *
  * // After: Update just the affected post
  * if (auto post = cache.get(postId)) {
  *   auto updated = post->withLikeStatus(liked, newCount);
  *   auto newState = feedState;
  *   StructuralSharing::updateVector(newState.posts, postId, updated);
- *   slice->setState(newState);
+ *   state->setState(newState);
  * }
  * ```
  *
