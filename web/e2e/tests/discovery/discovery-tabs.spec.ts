@@ -23,11 +23,11 @@ test.describe('Discovery - Tab Navigation', () => {
     expect(timelineVisible && globalVisible && trendingVisible && forYouVisible).toBe(true)
   })
 
-  test('should have for-you tab active by default', async ({ authenticatedPage }) => {
+  test('should have timeline tab active by default', async ({ authenticatedPage }) => {
     const discoveryPage = new DiscoveryPage(authenticatedPage)
     await discoveryPage.goto()
 
-    const isActive = await discoveryPage.isTabActive('for-you')
+    const isActive = await discoveryPage.isTabActive('timeline')
     expect(isActive).toBe(true)
   })
 
@@ -40,8 +40,7 @@ test.describe('Discovery - Tab Navigation', () => {
     expect(isActive).toBe(true)
   })
 
-  test.skip('should switch to producers tab', async ({ authenticatedPage }) => {
-    // Producers tab doesn't exist in current Feed implementation
+  test('should switch to producers tab', async ({ authenticatedPage }) => {
     const discoveryPage = new DiscoveryPage(authenticatedPage)
     await discoveryPage.goto()
 
@@ -50,8 +49,7 @@ test.describe('Discovery - Tab Navigation', () => {
     expect(isActive).toBe(true)
   })
 
-  test.skip('should switch to genres tab', async ({ authenticatedPage }) => {
-    // Genres tab doesn't exist in current Feed implementation
+  test('should switch to genres tab', async ({ authenticatedPage }) => {
     const discoveryPage = new DiscoveryPage(authenticatedPage)
     await discoveryPage.goto()
 
@@ -159,8 +157,8 @@ test.describe('Discovery - Tab Navigation', () => {
     await authenticatedPage.goto('/feed')
     await discoveryPage.goto()
 
-    // For-you should be active (default)
-    const isDefault = await discoveryPage.isTabActive('for-you')
+    // Timeline should be active (default)
+    const isDefault = await discoveryPage.isTabActive('timeline')
     expect(isDefault).toBe(true)
   })
 })
