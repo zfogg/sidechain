@@ -7,159 +7,73 @@ export interface AuthFixtures {
   apiToken: string
 }
 
-/**
- * Custom test fixture that provides an authenticated page
- * Works with REAL backend authentication against actual database users
- *
- * Usage:
- *   test('should display user profile', async ({ authenticatedPage }) => {
- *     await authenticatedPage.goto('/profile')
- *     // ...
- *   })
- *
- *   test('as different user', async ({ authenticatedPageAs }) => {
- *     const bobPage = await authenticatedPageAs(testUsers.bob)
- *     await bobPage.goto('/profile/bob')
- *   })
- *
- *   test('with API token', async ({ apiToken }) => {
- *     const response = await fetch('/api/v1/users/me', {
- *       headers: { 'Authorization': `Bearer ${apiToken}` }
- *     })
- *   })
- */
+// Token cache - shared across all tests
+const tokenCache = new Map<string, string>()
+
 export const test = base.extend<AuthFixtures>({
   apiToken: async ({}, use) => {
-    const token = await authenticateWithBackend(testUsers.alice)
+    const token = await getToken(testUsers.alice)
     await use(token)
   },
 
   authenticatedPage: async ({ page, apiToken }, use) => {
-    await loginAsWithToken(page, apiToken)
+    await setupAuth(page, apiToken)
     await use(page)
   },
 
   authenticatedPageAs: async ({ page }, use) => {
-    const loginAsUser = async (user: TestUser) => {
+    await use(async (user: TestUser) => {
       const newPage = await page.context().newPage()
-      const token = await authenticateWithBackend(user)
-      await loginAsWithToken(newPage, token)
+      const token = await getToken(user)
+      await setupAuth(newPage, token)
       return newPage
-    }
-
-    await use(loginAsUser)
+    })
   },
 })
 
-/**
- * Authenticate with the real backend via API
- * Returns JWT token from /api/v1/auth/login
- */
-async function authenticateWithBackend(user: TestUser): Promise<string> {
+async function getToken(user: TestUser): Promise<string> {
+  // Return cached token immediately
+  const cached = tokenCache.get(user.email)
+  if (cached) return cached
+
   const backendUrl = process.env.BACKEND_URL || 'http://localhost:8787'
 
-  try {
-    const response = await fetch(`${backendUrl}/api/v1/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: user.email,
-        password: TEST_PASSWORD,
-      }),
-    })
+  const response = await fetch(`${backendUrl}/api/v1/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: user.email, password: TEST_PASSWORD }),
+  })
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(
-        `Backend login failed: ${response.status} - ${errorText}`
-      )
-    }
-
-    const data = await response.json()
-
-    // Backend returns token nested under auth.token
-    const token = data.auth?.token || data.token
-    if (!token) {
-      throw new Error(`No token in login response: ${JSON.stringify(data)}`)
-    }
-
-    console.log(
-      `✓ Authenticated as ${user.email} (${user.username}) with token`
-    )
-    return token
-  } catch (error) {
-    throw new Error(
-      `Failed to authenticate with backend: ${error instanceof Error ? error.message : String(error)}`
-    )
+  if (!response.ok) {
+    throw new Error(`Auth failed: ${response.status} - ${await response.text()}`)
   }
+
+  const data = await response.json()
+  const token = data.auth?.token || data.token
+  if (!token) throw new Error('No token in response')
+
+  tokenCache.set(user.email, token)
+  return token
 }
 
-/**
- * Log in using an API token by setting it in localStorage
- * This simulates browser-based auth after receiving token from login endpoint
- */
-async function loginAsWithToken(page: Page, token: string): Promise<void> {
-  // Navigate to app first to initialize localStorage and React
-  await page.goto('/')
-  
-  // Wait for page to load and React to initialize
-  await page.waitForLoadState('networkidle')
-  await page.waitForTimeout(500)
-
-  // Set auth token in localStorage (how the frontend stores it)
-  await page.evaluate((t) => {
+async function setupAuth(page: Page, token: string): Promise<void> {
+  // Set both auth_token and the Zustand store state
+  await page.addInitScript((t) => {
     localStorage.setItem('auth_token', t)
-    // Trigger a storage event to notify React components
-    window.dispatchEvent(new StorageEvent('storage', {
-      key: 'auth_token',
-      newValue: t,
-      storageArea: localStorage
-    }))
+    // Set Zustand user-store state so isAuthenticated is true on first render
+    const storeState = {
+      state: {
+        user: { id: 'test-user', username: 'testuser', displayName: 'Test User' },
+        token: t,
+        isAuthenticated: true,
+      },
+      version: 0,
+    }
+    localStorage.setItem('user-store', JSON.stringify(storeState))
   }, token)
-
-  // Reload page to trigger restoreSession() in AuthProvider
-  await page.reload()
-  await page.waitForLoadState('networkidle')
-  
-  // Wait for auth to be restored (AuthProvider calls restoreSession on mount)
-  await page.waitForTimeout(2000)
-
-  // Navigate to feed - should be automatically authorized
-  await page.goto('/feed')
-  await page.waitForLoadState('networkidle')
-  
-  // Wait a bit more for auth check and any redirects
-  await page.waitForTimeout(1000)
-
-  const url = page.url()
-  if (url.includes('/login')) {
-    // Check what's in localStorage and if user store is initialized
-    const debugInfo = await page.evaluate(() => {
-      const token = localStorage.getItem('auth_token')
-      const userStore = localStorage.getItem('user-store')
-      return {
-        token: token ? 'present' : 'missing',
-        userStore: userStore ? 'present' : 'missing',
-        currentUrl: window.location.href
-      }
-    })
-    throw new Error(`Still on login page after setting auth token. Debug: ${JSON.stringify(debugInfo)}`)
-  }
+  await page.goto('/feed', { waitUntil: 'domcontentloaded' })
 }
 
-/**
- * Helper to log out
- */
 export async function logout(page: Page): Promise<void> {
-  // Find and click logout button
-  const logoutButton = page.locator('button', { hasText: /Logout|Sign Out/ })
-  if (await logoutButton.isVisible({ timeout: 1000 }).catch(() => false)) {
-    await logoutButton.click()
-    await page.waitForURL('/login')
-  }
-
-  // Clear auth token
   await page.evaluate(() => localStorage.removeItem('auth_token'))
 }

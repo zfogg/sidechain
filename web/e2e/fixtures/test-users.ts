@@ -1,6 +1,6 @@
 /**
  * Test user credentials for E2E tests
- * These users should be seeded in the test database before tests run
+ * These users are seeded by the backend seeder with password 'password123'
  */
 
 export interface TestUser {
@@ -14,38 +14,38 @@ export const TEST_PASSWORD = 'password123'
 
 export const testUsers = {
   alice: {
-    username: 'alice',
-    email: 'alice@example.com',
+    username: 'drMarks',
+    email: 'kathryneolson@collier.info',
     password: TEST_PASSWORD,
-    displayName: 'Alice Smith',
+    displayName: 'Larry Kozey',
   } as TestUser,
 
   bob: {
-    username: 'bob',
-    email: 'bob@example.com',
+    username: 'DarkOrchid_rhythm',
+    email: 'earnestschroeder@macejkovic.com',
     password: TEST_PASSWORD,
-    displayName: 'Bob Johnson',
+    displayName: 'Khalid Sauer',
   } as TestUser,
 
   charlie: {
-    username: 'charlie',
-    email: 'charlie@example.com',
+    username: 'BlackcurrantSmoggy',
+    email: 'kayleeglover@dooley.org',
     password: TEST_PASSWORD,
-    displayName: 'Charlie Brown',
+    displayName: 'Eryn Feil',
   } as TestUser,
 
   diana: {
-    username: 'diana',
-    email: 'diana@example.com',
+    username: 'rhinoceros.61',
+    email: 'ellenjenkins@schmitt.net',
     password: TEST_PASSWORD,
-    displayName: 'Diana Prince',
+    displayName: 'Magdalena Lowe',
   } as TestUser,
 
   eve: {
-    username: 'eve',
-    email: 'eve@example.com',
+    username: 'StrawberryOdd95',
+    email: 'rileyzieme@schoen.name',
     password: TEST_PASSWORD,
-    displayName: 'Eve Wilson',
+    displayName: 'Cecilia Harber',
   } as TestUser,
 }
 

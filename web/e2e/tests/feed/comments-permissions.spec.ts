@@ -52,7 +52,7 @@ test.describe('Comments Permissions', () => {
       // Open comments on any post
       const postCard = feedPage.getPostCard(0)
       await postCard.comment()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Look for disabled message
       const disabledMessage = authenticatedPage.locator(
@@ -110,7 +110,7 @@ test.describe('Comments Permissions', () => {
 
         if (hasButton) {
           await commentButton.click()
-          await bobPage.waitForTimeout(500)
+          // REMOVED: waitForTimeout
 
           // Should be able to see comment input (if following)
           const commentInput = bobPage.locator(
@@ -156,11 +156,10 @@ test.describe('Comments Permissions', () => {
       await feedPage.goto()
 
       // Look for followers-only indicators
-      const followersIndicator = authenticatedPage.locator(
-        '[class*="followers-only"], text=/followers.*only|limited.*comments/i'
-      )
+      const followersClass = authenticatedPage.locator('[class*="followers-only"]')
+      const followersText = authenticatedPage.locator('text=/followers.*only|limited.*comments/i')
 
-      const hasIndicator = await followersIndicator.count()
+      const hasIndicator = await followersClass.count() + await followersText.count()
 
       // Some posts may have this indicator
       expect(hasIndicator >= 0).toBe(true)
@@ -173,7 +172,7 @@ test.describe('Comments Permissions', () => {
 
       // Go to own profile
       await alicePage.goto(`/@${testUsers.alice.username}`)
-      await alicePage.waitForLoadState('networkidle')
+      await alicePage.waitForLoadState('domcontentloaded')
 
       // Find own post
       const ownPost = alicePage.locator('[data-testid="post-card"], [class*="post-card"]').first()
@@ -188,7 +187,7 @@ test.describe('Comments Permissions', () => {
 
         if (hasMenu) {
           await optionsMenu.click()
-          await alicePage.waitForTimeout(300)
+          // REMOVED: waitForTimeout
 
           // Look for comment settings option
           const commentSettings = alicePage.locator(
@@ -205,7 +204,7 @@ test.describe('Comments Permissions', () => {
       const alicePage = await authenticatedPageAs(testUsers.alice)
 
       await alicePage.goto(`/@${testUsers.alice.username}`)
-      await alicePage.waitForLoadState('networkidle')
+      await alicePage.waitForLoadState('domcontentloaded')
 
       const ownPost = alicePage.locator('[data-testid="post-card"]').first()
       const hasPost = await ownPost.isVisible({ timeout: 3000 }).catch(() => false)
@@ -216,14 +215,14 @@ test.describe('Comments Permissions', () => {
 
         if (hasMenu) {
           await optionsMenu.click()
-          await alicePage.waitForTimeout(300)
+          // REMOVED: waitForTimeout
 
           const commentSettings = alicePage.locator('[role="menuitem"]:has-text("Comments")')
           const hasSettings = await commentSettings.isVisible({ timeout: 1000 }).catch(() => false)
 
           if (hasSettings) {
             await commentSettings.click()
-            await alicePage.waitForTimeout(500)
+            // REMOVED: waitForTimeout
 
             // Settings dialog should appear
             const settingsDialog = alicePage.locator('[role="dialog"]')
@@ -236,7 +235,7 @@ test.describe('Comments Permissions', () => {
 
               if (hasSave) {
                 await saveButton.click()
-                await alicePage.waitForTimeout(500)
+                // REMOVED: waitForTimeout
 
                 // Should save without error
                 const hasError = await alicePage.locator('text=/error|failed/i').isVisible({ timeout: 500 }).catch(() => false)
@@ -260,7 +259,7 @@ test.describe('Comments Permissions', () => {
       // Open a post's comments
       const postCard = feedPage.getPostCard(0)
       await postCard.comment()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Look for permission indicator
       const permissionIndicator = authenticatedPage.locator(
@@ -301,7 +300,7 @@ test.describe('Comments Permissions', () => {
 
       // Refresh page
       await authenticatedPage.reload()
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Should load fresh permission states
       expect(await feedPage.hasError()).toBe(false)

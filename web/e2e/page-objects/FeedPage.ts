@@ -31,10 +31,10 @@ export class FeedPage {
 
   constructor(page: Page) {
     this.page = page
-    this.timelineButton = page.locator('button', { hasText: /Timeline|👥/ })
-    this.globalButton = page.locator('button', { hasText: /Global|🌍/ })
-    this.trendingButton = page.locator('button', { hasText: /Trending|📊|This Week/ })
-    this.forYouButton = page.locator('button', { hasText: /For You|Recommended/ })
+    this.timelineButton = page.locator('button:has-text("Timeline"), button:has-text("📰")').first()
+    this.globalButton = page.locator('button:has-text("Global"), button:has-text("🌍")').first()
+    this.trendingButton = page.locator('button:has-text("Trending"), button:has-text("🔥")').first()
+    this.forYouButton = page.locator('button:has-text("For You"), button:has-text("✨")').first()
 
     this.postCards = page.locator('[data-testid="post-card"], .bg-card.border, [class*="Post"]')
     this.emptyState = page.locator('text=/no activity|no posts|empty|📭|📈/i')
@@ -56,19 +56,24 @@ export class FeedPage {
   /**
    * Wait for feed to load with posts or empty state
    */
-  async waitForFeedLoad(timeout: number = 10000): Promise<void> {
-    await this.page.waitForLoadState('networkidle', { timeout }).catch(() => {})
+  async waitForFeedLoad(timeout: number = 5000): Promise<void> {
+    await this.page.waitForLoadState('domcontentloaded').catch(() => {})
 
-    // Wait for either posts, empty state, or error to be visible
+    // Wait for either buttons or posts to be visible
     try {
       await expect(
-        this.page.locator(
-          '[data-testid="post-card"], .bg-card.border, text=/no activity|no posts|error|failed/i'
-        ).first()
-      ).toBeVisible({ timeout: 5000 })
+        this.timelineButton.or(this.postCards.first())
+      ).toBeVisible({ timeout })
     } catch (e) {
       // If nothing visible, that's ok - page might still be loading
     }
+  }
+
+  /**
+   * Check if the page is loaded
+   */
+  async isLoaded(): Promise<boolean> {
+    return await this.timelineButton.or(this.postCards.first()).isVisible().catch(() => false)
   }
 
   /**
@@ -82,7 +87,10 @@ export class FeedPage {
       forYou: this.forYouButton,
     }
 
-    await buttons[feedType].click()
+    const button = buttons[feedType]
+    // Wait for button to be visible before clicking
+    await button.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {})
+    await button.click()
     await this.waitForFeedLoad()
   }
 
@@ -105,11 +113,13 @@ export class FeedPage {
     }
 
     const button = buttons[feedType]
-    return await button.evaluate((el: HTMLElement) =>
-      el.className.includes('active') ||
-      el.getAttribute('aria-current') === 'page' ||
-      el.parentElement?.className.includes('active')
-    )
+    try {
+      const className = await button.getAttribute('class') || ''
+      // The Button component uses 'default' variant for active, 'outline' for inactive
+      return !className.includes('outline') || className.includes('active') || className.includes('selected')
+    } catch {
+      return false
+    }
   }
 
   /**
@@ -160,7 +170,7 @@ export class FeedPage {
    */
   async scrollToBottom(): Promise<void> {
     await this.page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
-    await this.page.waitForTimeout(500)
+    // REMOVED: waitForTimeout
   }
 
   /**

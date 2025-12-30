@@ -13,7 +13,7 @@ test.describe('404 Errors', () => {
   test.describe('Non-Existent Pages', () => {
     test('should show 404 for invalid route', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/this-page-does-not-exist-123456')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Should show 404 page or message
       const notFoundMessage = authenticatedPage.locator(
@@ -26,7 +26,7 @@ test.describe('404 Errors', () => {
 
     test('should show 404 for non-existent user profile', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/@nonexistentuser123456789')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Should show user not found
       const notFoundMessage = authenticatedPage.locator(
@@ -39,7 +39,7 @@ test.describe('404 Errors', () => {
 
     test('should show 404 for non-existent post', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/post/nonexistent-post-id-123456')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Should show post not found
       const notFoundMessage = authenticatedPage.locator(
@@ -55,7 +55,7 @@ test.describe('404 Errors', () => {
     test('should show appropriate message for deleted post', async ({ authenticatedPage }) => {
       // Simulate a deleted post (if we had the ID)
       await authenticatedPage.goto('/feed')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Look for deleted content indicators in feed
       const deletedIndicator = authenticatedPage.locator(
@@ -70,11 +70,10 @@ test.describe('404 Errors', () => {
 
     test('should handle deleted user profile gracefully', async ({ authenticatedPage }) => {
       // Deleted users might show a placeholder
-      const deletedUser = authenticatedPage.locator(
-        '[class*="deleted-user"], text=/deleted user|account removed/i'
-      )
+      const deletedUserByClass = authenticatedPage.locator('[class*="deleted-user"]')
+      const deletedUserByText = authenticatedPage.locator('text=/deleted user|account removed/i')
 
-      const hasDeletedUser = await deletedUser.count()
+      const hasDeletedUser = await deletedUserByClass.count() + await deletedUserByText.count()
 
       // May appear in comments or mentions
       expect(hasDeletedUser >= 0).toBe(true)
@@ -84,7 +83,7 @@ test.describe('404 Errors', () => {
   test.describe('404 Page Features', () => {
     test('should have navigation options on 404', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/this-page-does-not-exist')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Should have home link
       const homeLink = authenticatedPage.locator(
@@ -97,7 +96,7 @@ test.describe('404 Errors', () => {
 
     test('should have search option on 404', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/this-page-does-not-exist')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // May have search input
       const searchInput = authenticatedPage.locator(
@@ -112,7 +111,7 @@ test.describe('404 Errors', () => {
 
     test('should maintain navigation on 404', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/this-page-does-not-exist')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Navigation should still work
       const nav = authenticatedPage.locator('nav, [role="navigation"]')
@@ -125,7 +124,7 @@ test.describe('404 Errors', () => {
   test.describe('Invalid URLs', () => {
     test('should handle malformed URLs', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/post/!@#$%^&*()')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Should not crash
       const body = authenticatedPage.locator('body')
@@ -136,7 +135,7 @@ test.describe('404 Errors', () => {
     test('should handle very long URLs', async ({ authenticatedPage }) => {
       const longPath = '/a'.repeat(500)
       await authenticatedPage.goto(longPath)
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Should handle gracefully
       const body = authenticatedPage.locator('body')
@@ -146,7 +145,7 @@ test.describe('404 Errors', () => {
 
     test('should handle special characters in URLs', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/@user%20name')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Should not crash
       const body = authenticatedPage.locator('body')
@@ -166,7 +165,7 @@ test.describe('404 Errors', () => {
       })
 
       await authenticatedPage.goto('/@someuser')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Should show appropriate message, not crash
       const hasError = await authenticatedPage.locator('text=/error|crashed/i').isVisible({ timeout: 500 }).catch(() => false)

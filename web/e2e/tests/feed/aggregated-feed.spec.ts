@@ -45,7 +45,7 @@ test.describe('Aggregated Feed', () => {
       if (hasExpand) {
         const initialPostCount = await feedPage.getPostCount()
         await expandButton.first().click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         const newPostCount = await feedPage.getPostCount()
         // Should have same or more posts after expanding
@@ -85,7 +85,7 @@ test.describe('Aggregated Feed', () => {
 
       if (hasGenreTag) {
         await genreTag.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // URL might update or filter applied
         // Just verify no error
@@ -101,12 +101,12 @@ test.describe('Aggregated Feed', () => {
       await feedPage.switchToFeedType('trending')
 
       // Look for time period filters/labels
-      const timePeriods = authenticatedPage.locator(
-        'button:has-text("Today"), button:has-text("This Week"), button:has-text("This Month"), ' +
-        'text=/today|this week|this month|24 hours/i'
+      const timeButtons = authenticatedPage.locator(
+        'button:has-text("Today"), button:has-text("This Week"), button:has-text("This Month")'
       )
+      const timeLabels = authenticatedPage.locator('text=/today|this week|this month|24 hours/i')
 
-      const hasPeriods = await timePeriods.count()
+      const hasPeriods = await timeButtons.count() + await timeLabels.count()
 
       // Time period filters may exist
       expect(hasPeriods >= 0).toBe(true)
@@ -123,7 +123,7 @@ test.describe('Aggregated Feed', () => {
 
       if (hasWeekButton) {
         await weekButton.first().click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Feed should update
         expect(await feedPage.hasError()).toBe(false)
@@ -134,7 +134,7 @@ test.describe('Aggregated Feed', () => {
   test.describe('Aggregated Notifications', () => {
     test('should show aggregated like notifications', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/notifications')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Look for aggregated notifications like "Alice and 3 others liked your post"
       const aggregatedNotif = authenticatedPage.locator('text=/and \\d+ other/i')
@@ -146,7 +146,7 @@ test.describe('Aggregated Feed', () => {
 
     test('should expand aggregated notification to show all actors', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/notifications')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Find aggregated notification
       const aggregatedNotif = authenticatedPage.locator('text=/and \\d+ other/i').first()
@@ -155,7 +155,7 @@ test.describe('Aggregated Feed', () => {
       if (hasAggregated) {
         // Try to expand
         await aggregatedNotif.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Should show individual actors or stay the same
       }
@@ -167,7 +167,7 @@ test.describe('Aggregated Feed', () => {
 
     test('should show aggregated follow notifications', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/notifications')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Look for "X and Y started following you"
       const followNotif = authenticatedPage.locator('text=/followed|following/i')
@@ -216,7 +216,7 @@ test.describe('Aggregated Feed', () => {
     test('should respect aggregation settings if available', async ({ authenticatedPage }) => {
       // Check if there are aggregation settings in settings page
       await authenticatedPage.goto('/settings')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Look for feed preferences
       const feedPrefs = authenticatedPage.locator('text=/aggregat|group|bundle/i')
@@ -278,7 +278,7 @@ test.describe('Aggregated Feed', () => {
       if (bobPostCount > 0) {
         const postCard = bobFeed.getPostCard(0)
         await postCard.like()
-        await bobPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
       }
 
       // Alice's feed should still work
