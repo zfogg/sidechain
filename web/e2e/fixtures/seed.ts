@@ -10,7 +10,7 @@ const execAsync = promisify(exec)
  * and data via the backend's seeding mechanism
  */
 
-const BACKEND_DIR = '../../backend' // Relative to web directory
+const BACKEND_DIR = '../backend' // Relative to web directory
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8787'
 const DATABASE_URL =
   process.env.DATABASE_URL ||
@@ -174,7 +174,7 @@ export async function verifyTestUsers(): Promise<void> {
 
       if (response.ok) {
         const data = await response.json()
-        if (data.token) {
+        if (data.auth?.token) {
           console.log(`  ✓ ${name} (${user.email})`)
         } else {
           throw new Error('No token in response')

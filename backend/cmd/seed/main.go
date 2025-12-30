@@ -7,6 +7,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/logger"
 	"github.com/zfogg/sidechain/backend/internal/recommendations"
 	"github.com/zfogg/sidechain/backend/internal/seed"
 	"github.com/zfogg/sidechain/backend/internal/stream"
@@ -16,6 +17,15 @@ func main() {
 	// Load environment variables
 	if err := godotenv.Load(); err != nil {
 		log.Println("Warning: .env file not found, using system environment variables")
+	}
+
+	// Initialize logger (required by database package)
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "info"
+	}
+	if err := logger.Initialize(logLevel, "seed.log"); err != nil {
+		log.Printf("Warning: Failed to initialize logger: %v", err)
 	}
 
 	// Parse command
