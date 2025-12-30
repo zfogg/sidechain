@@ -187,31 +187,21 @@ void PlaylistDetail::fetchPlaylist() {
   appStore->getPlaylistObservable(playlistId)
       .subscribe(
           playlistSubscriptions_,
-          [this](const juce::var &response) {
+          [this](const Sidechain::Stores::AppStore::PlaylistDetailResult &result) {
             isLoading = false;
 
-            playlist = Sidechain::Playlist::fromJSON(response);
+            playlist = result.playlist;
 
-            // Parse entries
+            // Copy entries from result
             entries.clear();
-            if (response.hasProperty("entries")) {
-              auto entriesArray = response["entries"];
-              if (entriesArray.isArray()) {
-                for (int i = 0; i < entriesArray.size(); ++i) {
-                  entries.add(Sidechain::PlaylistEntry::fromJSON(entriesArray[i]));
-                }
-              }
+            for (const auto &entry : result.entries) {
+              entries.add(entry);
             }
 
-            // Parse collaborators
+            // Copy collaborators from result
             collaborators.clear();
-            if (response.hasProperty("collaborators")) {
-              auto collabsArray = response["collaborators"];
-              if (collabsArray.isArray()) {
-                for (int i = 0; i < collabsArray.size(); ++i) {
-                  collaborators.add(Sidechain::PlaylistCollaborator::fromJSON(collabsArray[i]));
-                }
-              }
+            for (const auto &collab : result.collaborators) {
+              collaborators.add(collab);
             }
 
             // Determine user role

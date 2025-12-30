@@ -634,9 +634,14 @@ public:
    * Get a single playlist by ID with reactive observable pattern.
    *
    * @param playlistId Playlist ID to fetch
-   * @return Observable that emits the playlist data as juce::var
+   * @return Observable that emits typed PlaylistDetailResult with playlist, entries, and collaborators
    */
-  rxcpp::observable<juce::var> getPlaylistObservable(const juce::String &playlistId);
+  struct PlaylistDetailResult {
+    Playlist playlist;
+    std::vector<PlaylistEntry> entries;
+    std::vector<PlaylistCollaborator> collaborators;
+  };
+  rxcpp::observable<PlaylistDetailResult> getPlaylistObservable(const juce::String &playlistId);
 
   /**
    * Remove an entry from a playlist with reactive observable pattern.

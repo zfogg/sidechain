@@ -313,8 +313,8 @@ rxcpp::observable<int> AppStore::addPostToPlaylistObservable(const juce::String 
       .observe_on(Rx::observe_on_juce_thread());
 }
 
-rxcpp::observable<juce::var> AppStore::getPlaylistObservable(const juce::String &playlistId) {
-  return rxcpp::sources::create<juce::var>([this, playlistId](auto observer) {
+rxcpp::observable<AppStore::PlaylistDetailResult> AppStore::getPlaylistObservable(const juce::String &playlistId) {
+  return rxcpp::sources::create<PlaylistDetailResult>([this, playlistId](auto observer) {
            if (!networkClient) {
              Util::logError("AppStore", "Cannot get playlist - network client not set");
              observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not set")));
@@ -323,10 +323,39 @@ rxcpp::observable<juce::var> AppStore::getPlaylistObservable(const juce::String 
 
            Util::logInfo("AppStore", "Getting playlist via observable: " + playlistId);
 
-           networkClient->getPlaylist(playlistId, [observer](Outcome<juce::var> result) {
+           networkClient->getPlaylist(playlistId, [observer, playlistId](Outcome<juce::var> result) {
              if (result.isOk()) {
                Util::logInfo("AppStore", "Got playlist via observable");
-               observer.on_next(result.getValue());
+               PlaylistDetailResult detailResult;
+
+               auto response = result.getValue();
+
+               // Parse playlist
+               detailResult.playlist = Playlist::fromJSON(response);
+
+               // Parse entries
+               if (response.hasProperty("entries")) {
+                 auto entriesArray = response["entries"];
+                 if (entriesArray.isArray()) {
+                   detailResult.entries.reserve(static_cast<size_t>(entriesArray.size()));
+                   for (int i = 0; i < entriesArray.size(); ++i) {
+                     detailResult.entries.push_back(PlaylistEntry::fromJSON(entriesArray[i]));
+                   }
+                 }
+               }
+
+               // Parse collaborators
+               if (response.hasProperty("collaborators")) {
+                 auto collabsArray = response["collaborators"];
+                 if (collabsArray.isArray()) {
+                   detailResult.collaborators.reserve(static_cast<size_t>(collabsArray.size()));
+                   for (int i = 0; i < collabsArray.size(); ++i) {
+                     detailResult.collaborators.push_back(PlaylistCollaborator::fromJSON(collabsArray[i]));
+                   }
+                 }
+               }
+
+               observer.on_next(detailResult);
                observer.on_completed();
              } else {
                Util::logError("AppStore", "Failed to get playlist: " + result.getError());
