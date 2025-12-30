@@ -1,4 +1,5 @@
 #include "../AppStore.h"
+#include "../../network/NetworkClient.h"
 #include "../util/StoreUtils.h"
 #include "../util/PostInteractionHelper.h"
 #include "../../util/logging/Logger.h"
@@ -343,18 +344,36 @@ void AppStore::toggleLike(const juce::String &postId) {
     return;
   }
 
-  auto config = PostInteractionHelper::createLikeConfig([this](const juce::String &id, bool wasLiked,
-                                                               std::function<void(Outcome<juce::var>)> callback) {
-    auto observable = wasLiked ? networkClient->unlikePostObservable(id) : networkClient->likePostObservable(id, "");
-    observable.subscribe([callback](const juce::var &result) { callback(Outcome<juce::var>::ok(result)); },
-                         [callback](std::exception_ptr ep) {
-                           try {
-                             std::rethrow_exception(ep);
-                           } catch (const std::exception &e) {
-                             callback(Outcome<juce::var>::error(juce::String(e.what())));
-                           }
-                         });
-  });
+  auto config = PostInteractionHelper::createLikeConfig(
+      [this](const juce::String &id, bool wasLiked, std::function<void(Outcome<juce::var>)> callback) {
+        if (wasLiked) {
+          networkClient->unlikePostObservable(id).subscribe(
+              [callback](const juce::var &result) { callback(Outcome<juce::var>::ok(result)); },
+              [callback](std::exception_ptr ep) {
+                try {
+                  std::rethrow_exception(ep);
+                } catch (const std::exception &e) {
+                  callback(Outcome<juce::var>::error(juce::String(e.what())));
+                }
+              });
+        } else {
+          networkClient->likePostObservable(id, "").subscribe(
+              [callback](const NetworkClient::LikeResult &result) {
+                // Convert LikeResult to juce::var for legacy callback interface
+                auto varResult = juce::var(new juce::DynamicObject());
+                varResult.getDynamicObject()->setProperty("like_count", result.likeCount);
+                varResult.getDynamicObject()->setProperty("is_liked", result.isLiked);
+                callback(Outcome<juce::var>::ok(varResult));
+              },
+              [callback](std::exception_ptr ep) {
+                try {
+                  std::rethrow_exception(ep);
+                } catch (const std::exception &e) {
+                  callback(Outcome<juce::var>::error(juce::String(e.what())));
+                }
+              });
+        }
+      });
 
   PostInteractionHelper::performToggle(stateManager.posts, postId, config);
 }
@@ -409,7 +428,7 @@ void AppStore::addReaction(const juce::String &postId, const juce::String &emoji
 
   // Add a reaction by liking with an emoji using observable
   networkClient->likePostObservable(postId, emoji)
-      .subscribe([](const juce::var &) {},
+      .subscribe([](const NetworkClient::LikeResult &) {},
                  [](std::exception_ptr ep) {
                    try {
                      std::rethrow_exception(ep);
@@ -446,26 +465,32 @@ void AppStore::toggleFollow(const juce::String &postId, bool willFollow) {
 
   Util::logDebug("AppStore", "Follow post optimistic update: " + postId + " - " + (willFollow ? "follow" : "unfollow"));
 
-  // Use observable for network request
-  auto observable =
-      willFollow ? networkClient->followUserObservable(userId) : networkClient->unfollowUserObservable(userId);
+  // Use observable for network request - separate branches due to different return types
+  auto errorHandler = [this, postId, previousFollowState](std::exception_ptr ep) {
+    try {
+      std::rethrow_exception(ep);
+    } catch (const std::exception &e) {
+      Util::logError("AppStore", "Failed to " + juce::String(previousFollowState ? "unfollow" : "follow") +
+                                     " user: " + juce::String(e.what()));
+      PostsState rollbackState = stateManager.posts->getState();
+      FollowHelper::updateFollowState(rollbackState, postId, previousFollowState);
+      stateManager.posts->setState(rollbackState);
+    }
+  };
 
-  observable.subscribe(
-      [previousFollowState, postId](const juce::var &) {
-        Util::logInfo("AppStore", "User " + juce::String(previousFollowState ? "unfollowed" : "followed") +
-                                      " successfully: " + postId);
-      },
-      [this, postId, previousFollowState](std::exception_ptr ep) {
-        try {
-          std::rethrow_exception(ep);
-        } catch (const std::exception &e) {
-          Util::logError("AppStore", "Failed to " + juce::String(previousFollowState ? "unfollow" : "follow") +
-                                         " user: " + juce::String(e.what()));
-          PostsState rollbackState = stateManager.posts->getState();
-          FollowHelper::updateFollowState(rollbackState, postId, previousFollowState);
-          stateManager.posts->setState(rollbackState);
-        }
-      });
+  if (willFollow) {
+    networkClient->followUserObservable(userId).subscribe(
+        [previousFollowState, postId](const NetworkClient::FollowResult &) {
+          Util::logInfo("AppStore", "User followed successfully: " + postId);
+        },
+        errorHandler);
+  } else {
+    networkClient->unfollowUserObservable(userId).subscribe(
+        [previousFollowState, postId](const juce::var &) {
+          Util::logInfo("AppStore", "User unfollowed successfully: " + postId);
+        },
+        errorHandler);
+  }
 }
 
 void AppStore::toggleMute(const juce::String &userId, bool willMute) {

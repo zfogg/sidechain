@@ -638,9 +638,9 @@ rxcpp::observable<NetworkClient::FeedResult> NetworkClient::getDiscoveryFeedObse
   return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
 }
 
-rxcpp::observable<juce::var> NetworkClient::likePostObservable(const juce::String &activityId,
-                                                               const juce::String &emoji) {
-  auto source = rxcpp::sources::create<juce::var>([this, activityId, emoji](auto observer) {
+rxcpp::observable<NetworkClient::LikeResult> NetworkClient::likePostObservable(const juce::String &activityId,
+                                                                               const juce::String &emoji) {
+  auto source = rxcpp::sources::create<LikeResult>([this, activityId, emoji](auto observer) {
     if (!isAuthenticated()) {
       observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
       return;
@@ -648,7 +648,16 @@ rxcpp::observable<juce::var> NetworkClient::likePostObservable(const juce::Strin
 
     likePost(activityId, emoji, [observer](Outcome<juce::var> result) {
       if (result.isOk()) {
-        observer.on_next(result.getValue());
+        LikeResult likeResult;
+        auto value = result.getValue();
+        if (value.isObject()) {
+          likeResult.likeCount = Json::getInt(value, "like_count", Json::getInt(value, "likeCount", 0));
+          likeResult.isLiked = Json::getBool(value, "is_liked", Json::getBool(value, "isLiked", true));
+        } else {
+          // Default to liked state if response doesn't include details
+          likeResult.isLiked = true;
+        }
+        observer.on_next(likeResult);
         observer.on_completed();
       } else {
         observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));

@@ -495,6 +495,18 @@ public:
     bool hasMore = false;                     ///< Whether more comments are available
   };
 
+  /** Result structure for like action responses */
+  struct LikeResult {
+    int likeCount = 0;    ///< New total like count after action
+    bool isLiked = false; ///< Whether the post is now liked by current user
+  };
+
+  /** Result structure for follow action responses */
+  struct FollowResult {
+    bool isFollowing = false; ///< Whether the current user is now following
+    int followerCount = 0;    ///< New follower count of the target user
+  };
+
   /** Get the global feed as an observable
    * @param limit Maximum number of posts to return
    * @param offset Pagination offset
@@ -641,9 +653,9 @@ public:
   /** Like a post as an observable
    * @param activityId The post activity ID
    * @param emoji Optional emoji reaction
-   * @return Observable that emits result on success
+   * @return Observable that emits LikeResult with new like count and status
    */
-  rxcpp::observable<juce::var> likePostObservable(const juce::String &activityId, const juce::String &emoji = "");
+  rxcpp::observable<LikeResult> likePostObservable(const juce::String &activityId, const juce::String &emoji = "");
 
   /** Unlike a post as an observable
    * @param activityId The post activity ID
@@ -653,9 +665,9 @@ public:
 
   /** Follow a user as an observable
    * @param userId The user ID to follow
-   * @return Observable that emits result on success
+   * @return Observable that emits FollowResult with new follow status and count
    */
-  rxcpp::observable<juce::var> followUserObservable(const juce::String &userId);
+  rxcpp::observable<FollowResult> followUserObservable(const juce::String &userId);
 
   /** Unfollow a user as an observable
    * @param userId The user ID to unfollow

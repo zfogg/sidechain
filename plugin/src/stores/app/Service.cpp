@@ -1,4 +1,5 @@
 #include "../AppStore.h"
+#include "../../network/NetworkClient.h"
 #include "../../util/logging/Logger.h"
 #include "../../util/Async.h"
 #include "../../util/rx/JuceScheduler.h"
@@ -257,7 +258,7 @@ rxcpp::observable<int> AppStore::followUserObservable(const juce::String &userId
   }
 
   // Use the network client's observable API and transform the result
-  return networkClient->followUserObservable(userId).map([userId](const juce::var &) {
+  return networkClient->followUserObservable(userId).map([userId](const NetworkClient::FollowResult &) {
     Util::logInfo("AppStore", "Followed user successfully: " + userId);
     return 1;
   });

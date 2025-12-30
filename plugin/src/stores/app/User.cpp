@@ -360,7 +360,9 @@ void AppStore::followUser(const juce::String &userId) {
 
   // Use observable API
   networkClient->followUserObservable(userId).subscribe(
-      [userId](const juce::var &) { Util::logInfo("AppStore", "Successfully followed user: " + userId); },
+      [userId](const NetworkClient::FollowResult &) {
+        Util::logInfo("AppStore", "Successfully followed user: " + userId);
+      },
       [userState](std::exception_ptr ep) {
         // Rollback optimistic update
         UserState rollbackState = userState->getState();

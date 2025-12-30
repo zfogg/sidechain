@@ -5,6 +5,7 @@
 
 #include "../../util/Async.h"
 #include "../../util/Constants.h"
+#include "../../util/Json.h"
 #include "../../util/Log.h"
 #include "../../util/rx/JuceScheduler.h"
 #include "../NetworkClient.h"
@@ -686,8 +687,8 @@ void NetworkClient::addEmojiReaction(const juce::String &postId, const juce::Str
 // Reactive Observable Methods (Phase 5)
 // ==============================================================================
 
-rxcpp::observable<juce::var> NetworkClient::followUserObservable(const juce::String &userId) {
-  auto source = rxcpp::sources::create<juce::var>([this, userId](auto observer) {
+rxcpp::observable<NetworkClient::FollowResult> NetworkClient::followUserObservable(const juce::String &userId) {
+  auto source = rxcpp::sources::create<FollowResult>([this, userId](auto observer) {
     if (!isAuthenticated()) {
       observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
       return;
@@ -695,7 +696,16 @@ rxcpp::observable<juce::var> NetworkClient::followUserObservable(const juce::Str
 
     followUser(userId, [observer](Outcome<juce::var> result) {
       if (result.isOk()) {
-        observer.on_next(result.getValue());
+        FollowResult followResult;
+        auto value = result.getValue();
+        if (value.isObject()) {
+          followResult.isFollowing = Json::getBool(value, "is_following", Json::getBool(value, "isFollowing", true));
+          followResult.followerCount = Json::getInt(value, "follower_count", Json::getInt(value, "followerCount", 0));
+        } else {
+          // Default to following state if response doesn't include details
+          followResult.isFollowing = true;
+        }
+        observer.on_next(followResult);
         observer.on_completed();
       } else {
         observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
