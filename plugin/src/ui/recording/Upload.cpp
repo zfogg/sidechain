@@ -1073,13 +1073,13 @@ void Upload::startUpload() {
   auto genreStr =
       selectedGenreIndex < static_cast<int>(genres.size()) ? genres[static_cast<size_t>(selectedGenreIndex)] : "";
 
-  // Create post data object and call appStore->uploadPost which will handle the network request
+  // Create typed post data and call appStore->uploadPost which will handle the network request
   // The store will notify us via subscription with progress/success/error updates
-  juce::DynamicObject::Ptr postData(new juce::DynamicObject());
-  postData->setProperty("filename", filename);
-  postData->setProperty("genre", genreStr);
-  postData->setProperty("key", keyStr);
-  postData->setProperty("bpm", bpm);
+  Sidechain::Stores::AppStore::PostUploadData postData;
+  postData.filename = filename;
+  postData.genre = genreStr;
+  postData.key = keyStr;
+  postData.bpm = bpm;
 
   // Create actual audio file from audioBuffer and write to temporary location
   // Use system temp directory to store the WAV file before upload
@@ -1125,7 +1125,7 @@ void Upload::startUpload() {
     return;
   }
 
-  appStore->uploadPost(postData.get(), audioFile);
+  appStore->uploadPost(postData, audioFile);
 
   // Store upload details for success preview
   lastUploadedFilename = filename;

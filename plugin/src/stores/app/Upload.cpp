@@ -5,29 +5,7 @@
 namespace Sidechain {
 namespace Stores {
 
-void AppStore::uploadPost(const juce::var &postData, const juce::File &audioFile) {
-  // Extract post metadata if available
-  juce::String postId;
-  juce::String filename;
-  double bpm = 0.0;
-  juce::String key;
-  juce::String genre;
-
-  if (postData.isObject()) {
-    const auto *obj = postData.getDynamicObject();
-    if (obj) {
-      postId = obj->getProperty("id").toString();
-      filename = obj->getProperty("filename").toString();
-      bpm = obj->getProperty("bpm");
-      key = obj->getProperty("key").toString();
-      genre = obj->getProperty("genre").toString();
-
-      if (!postId.isEmpty()) {
-        Util::logInfo("AppStore", "Starting upload for post ID: " + postId);
-      }
-    }
-  }
-
+void AppStore::uploadPost(const PostUploadData &postData, const juce::File &audioFile) {
   if (!networkClient) {
     Util::logError("AppStore", "Network client not available");
     UploadState newState = stateManager.uploads->getState();
@@ -68,12 +46,12 @@ void AppStore::uploadPost(const juce::var &postData, const juce::File &audioFile
                                          static_cast<int>(reader->lengthInSamples));
     reader->read(&audioBuffer, 0, static_cast<int>(reader->lengthInSamples), 0, true, true);
 
-    // Prepare upload metadata
+    // Prepare upload metadata from typed PostUploadData
     NetworkClient::AudioUploadMetadata metadata;
-    metadata.filename = filename.isEmpty() ? audioFile.getFileName() : filename;
-    metadata.bpm = bpm > 0 ? bpm : 0.0;
-    metadata.key = key;
-    metadata.genre = genre;
+    metadata.filename = postData.filename.isEmpty() ? audioFile.getFileName() : postData.filename;
+    metadata.bpm = postData.bpm > 0 ? postData.bpm : 0.0;
+    metadata.key = postData.key;
+    metadata.genre = postData.genre;
     metadata.durationSeconds = static_cast<double>(reader->lengthInSamples) / reader->sampleRate;
     metadata.sampleRate = static_cast<int>(reader->sampleRate);
     metadata.numChannels = static_cast<int>(reader->numChannels);
@@ -81,9 +59,9 @@ void AppStore::uploadPost(const juce::var &postData, const juce::File &audioFile
 
     // Upload audio with metadata
     networkClient->uploadAudioWithMetadata(audioBuffer, reader->sampleRate, metadata,
-                                           [this, postId](const Outcome<juce::String> &outcome) {
+                                           [this](const Outcome<juce::String> &outcome) {
                                              if (outcome.isOk()) {
-                                               Util::logInfo("AppStore", "Upload successful for post ID: " + postId);
+                                               Util::logInfo("AppStore", "Upload successful");
                                                UploadState uploadState = stateManager.uploads->getState();
                                                uploadState.isUploading = false;
                                                uploadState.progress = 100;
@@ -122,27 +100,9 @@ void AppStore::cancelUpload() {
 // ==============================================================================
 // Reactive Upload Methods (Phase 7)
 
-rxcpp::observable<AppStore::UploadProgress> AppStore::uploadPostObservable(const juce::var &postData,
+rxcpp::observable<AppStore::UploadProgress> AppStore::uploadPostObservable(const PostUploadData &postData,
                                                                            const juce::File &audioFile) {
   return rxcpp::sources::create<UploadProgress>([this, postData, audioFile](auto observer) {
-           // Extract post metadata if available
-           juce::String postId;
-           juce::String filename;
-           double bpm = 0.0;
-           juce::String key;
-           juce::String genre;
-
-           if (postData.isObject()) {
-             const auto *obj = postData.getDynamicObject();
-             if (obj) {
-               postId = obj->getProperty("id").toString();
-               filename = obj->getProperty("filename").toString();
-               bpm = obj->getProperty("bpm");
-               key = obj->getProperty("key").toString();
-               genre = obj->getProperty("genre").toString();
-             }
-           }
-
            if (!networkClient) {
              UploadProgress errorProgress;
              errorProgress.error = "Network client not initialized";
@@ -183,12 +143,12 @@ rxcpp::observable<AppStore::UploadProgress> AppStore::uploadPostObservable(const
                                                 static_cast<int>(reader->lengthInSamples));
            reader->read(&audioBuffer, 0, static_cast<int>(reader->lengthInSamples), 0, true, true);
 
-           // Prepare upload metadata
+           // Prepare upload metadata from typed PostUploadData
            NetworkClient::AudioUploadMetadata metadata;
-           metadata.filename = filename.isEmpty() ? audioFile.getFileName() : filename;
-           metadata.bpm = bpm > 0 ? bpm : 0.0;
-           metadata.key = key;
-           metadata.genre = genre;
+           metadata.filename = postData.filename.isEmpty() ? audioFile.getFileName() : postData.filename;
+           metadata.bpm = postData.bpm > 0 ? postData.bpm : 0.0;
+           metadata.key = postData.key;
+           metadata.genre = postData.genre;
            metadata.durationSeconds = static_cast<double>(reader->lengthInSamples) / reader->sampleRate;
            metadata.sampleRate = static_cast<int>(reader->sampleRate);
            metadata.numChannels = static_cast<int>(reader->numChannels);
@@ -201,13 +161,13 @@ rxcpp::observable<AppStore::UploadProgress> AppStore::uploadPostObservable(const
 
            // Upload audio with metadata
            networkClient->uploadAudioWithMetadata(
-               audioBuffer, reader->sampleRate, metadata, [observer, postId](const Outcome<juce::String> &outcome) {
+               audioBuffer, reader->sampleRate, metadata, [observer](const Outcome<juce::String> &outcome) {
                  if (outcome.isOk()) {
                    Util::logInfo("AppStore", "Upload observable completed successfully");
                    UploadProgress successProgress;
                    successProgress.progress = 1.0f;
                    successProgress.isComplete = true;
-                   successProgress.postId = outcome.getValue().isEmpty() ? postId : outcome.getValue();
+                   successProgress.postId = outcome.getValue();
                    observer.on_next(successProgress);
                    observer.on_completed();
                  } else {

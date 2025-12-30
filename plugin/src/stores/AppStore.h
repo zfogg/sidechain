@@ -553,7 +553,17 @@ public:
   // ==============================================================================
   // Upload Methods (Upload.cpp)
 
-  void uploadPost(const juce::var &postData, const juce::File &audioFile);
+  /**
+   * Typed post upload metadata
+   */
+  struct PostUploadData {
+    juce::String filename; // Display filename
+    juce::String genre;    // Genre category
+    juce::String key;      // Musical key (e.g., "C", "Am")
+    double bpm = 0.0;      // Beats per minute
+  };
+
+  void uploadPost(const PostUploadData &postData, const juce::File &audioFile);
   void cancelUpload();
 
   // Reactive Upload Methods (Phase 7)
@@ -572,11 +582,11 @@ public:
    * Upload post with reactive observable pattern.
    * Emits progress updates and completes with the created post ID.
    *
-   * @param postData Post metadata (title, description, etc.)
+   * @param postData Post metadata (filename, genre, key, bpm)
    * @param audioFile Audio file to upload
    * @return Observable that emits UploadProgress updates
    */
-  rxcpp::observable<UploadProgress> uploadPostObservable(const juce::var &postData, const juce::File &audioFile);
+  rxcpp::observable<UploadProgress> uploadPostObservable(const PostUploadData &postData, const juce::File &audioFile);
 
   // ==============================================================================
   // Playlist Methods (Playlists.cpp)
