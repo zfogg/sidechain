@@ -14,13 +14,13 @@ test.describe('Discovery - Tab Navigation', () => {
     const discoveryPage = new DiscoveryPage(authenticatedPage)
     await discoveryPage.goto()
 
-    // Check all tabs are visible
-    const forYouVisible = await discoveryPage.forYouTab.isVisible()
+    // Check main feed tabs are visible (Timeline, Global, Trending, For You)
+    const timelineVisible = await discoveryPage.timelineTab.isVisible()
+    const globalVisible = await discoveryPage.globalTab.isVisible()
     const trendingVisible = await discoveryPage.trendingTab.isVisible()
-    const producersVisible = await discoveryPage.producersTab.isVisible()
-    const genresVisible = await discoveryPage.genresTab.isVisible()
+    const forYouVisible = await discoveryPage.forYouTab.isVisible()
 
-    expect(forYouVisible && trendingVisible && producersVisible && genresVisible).toBe(true)
+    expect(timelineVisible && globalVisible && trendingVisible && forYouVisible).toBe(true)
   })
 
   test('should have for-you tab active by default', async ({ authenticatedPage }) => {
@@ -40,7 +40,8 @@ test.describe('Discovery - Tab Navigation', () => {
     expect(isActive).toBe(true)
   })
 
-  test('should switch to producers tab', async ({ authenticatedPage }) => {
+  test.skip('should switch to producers tab', async ({ authenticatedPage }) => {
+    // Producers tab doesn't exist in current Feed implementation
     const discoveryPage = new DiscoveryPage(authenticatedPage)
     await discoveryPage.goto()
 
@@ -49,7 +50,8 @@ test.describe('Discovery - Tab Navigation', () => {
     expect(isActive).toBe(true)
   })
 
-  test('should switch to genres tab', async ({ authenticatedPage }) => {
+  test.skip('should switch to genres tab', async ({ authenticatedPage }) => {
+    // Genres tab doesn't exist in current Feed implementation
     const discoveryPage = new DiscoveryPage(authenticatedPage)
     await discoveryPage.goto()
 

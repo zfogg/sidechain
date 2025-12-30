@@ -275,7 +275,7 @@ test.describe('Search - Pagination & Filtering', () => {
     const isNextEnabled = await searchPage.isNextEnabled()
     if (isNextEnabled) {
       await searchPage.clickNext()
-      await searchPage.page.waitForTimeout(200)
+      await searchPage.page.waitForLoadState('domcontentloaded')
       // Don't click again immediately - let it load
 
       const resultCount = await searchPage.getResultCount()

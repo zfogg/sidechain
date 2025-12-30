@@ -42,8 +42,8 @@ export class DiscoveryPage {
   }
 
   async waitForPageLoad(timeout: number = 5000): Promise<void> {
-    // Wait for either heading or tabs to be visible
-    await expect(this.heading.or(this.timelineTab)).toBeVisible({ timeout })
+    // Wait for either heading or tabs to be visible (use first() to avoid strict mode violation)
+    await expect(this.heading.or(this.timelineTab).first()).toBeVisible({ timeout })
   }
 
   async hasError(): Promise<boolean> {
@@ -52,7 +52,10 @@ export class DiscoveryPage {
   }
 
   async isLoaded(): Promise<boolean> {
-    return await this.heading.isVisible().catch(() => false)
+    // Check for either heading or tabs
+    const headingVisible = await this.heading.isVisible().catch(() => false)
+    const tabsVisible = await this.timelineTab.isVisible().catch(() => false)
+    return headingVisible || tabsVisible
   }
 
   async switchTab(tab: 'for-you' | 'trending' | 'producers' | 'genres' | 'timeline' | 'global'): Promise<void> {
@@ -110,9 +113,17 @@ export class DiscoveryPage {
       'global': this.globalTab,
     }
     const tabEl = tabMap[tab]
-    const classes = await tabEl.getAttribute('class') || ''
-    const ariaSelected = await tabEl.getAttribute('aria-selected')
-    return classes.includes('active') || classes.includes('selected') || ariaSelected === 'true'
+    try {
+      const isVisible = await tabEl.isVisible()
+      if (!isVisible) return false
+      const classes = await tabEl.getAttribute('class') || ''
+      const ariaSelected = await tabEl.getAttribute('aria-selected')
+      // Check for "default" variant (active) vs "outline" variant (inactive)
+      const hasDefaultVariant = !classes.includes('outline') && classes.includes('primary')
+      return hasDefaultVariant || classes.includes('active') || classes.includes('selected') || ariaSelected === 'true'
+    } catch {
+      return false
+    }
   }
 
   async isLoading(): Promise<boolean> {

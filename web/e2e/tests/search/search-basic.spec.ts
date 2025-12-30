@@ -101,7 +101,7 @@ test.describe('Search - Basic Search Functionality', () => {
 
     // Search with very long query that might fail
     await searchPage.search('a'.repeat(500))
-    await searchPage.page.waitForTimeout(1000)
+    await searchPage.page.waitForLoadState('domcontentloaded')
 
     // Either show results, empty state, or error
     const hasResults = await searchPage.hasResults()

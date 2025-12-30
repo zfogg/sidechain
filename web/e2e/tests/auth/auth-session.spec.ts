@@ -133,13 +133,13 @@ test.describe('Auth Session', () => {
         await emailInput.fill(testUsers.alice.email)
         await passwordInput.fill(testUsers.alice.password)
         await loginButton.click()
-        await page1.waitForTimeout(2000)
+        await page1.waitForLoadState('domcontentloaded')
       }
 
       // Open second tab
       const page2 = await context.newPage()
       await page2.goto('/feed')
-      await page2.waitForTimeout(2000)
+      await page2.waitForLoadState('domcontentloaded')
 
       // Second tab should be authenticated
       const isLoggedIn = !page2.url().includes('/login')
@@ -171,11 +171,11 @@ test.describe('Auth Session', () => {
 
       if (hasLogout) {
         await logoutButton.click()
-        await page1.waitForTimeout(2000)
+        await page1.waitForLoadState('domcontentloaded')
 
         // Check if second tab reflects logout
         await page2.reload()
-        await page2.waitForTimeout(2000)
+        await page2.waitForLoadState('domcontentloaded')
 
         const page2IsLoggedOut = page2.url().includes('/login')
 
