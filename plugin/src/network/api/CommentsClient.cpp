@@ -3,6 +3,7 @@
 // Part of NetworkClient implementation split
 // ==============================================================================
 
+#include "../../models/Comment.h"
 #include "../../util/Async.h"
 #include "../../util/Constants.h"
 #include "../../util/Json.h"
@@ -10,9 +11,51 @@
 #include "../../util/rx/JuceScheduler.h"
 #include "../NetworkClient.h"
 #include "Common.h"
+#include <nlohmann/json.hpp>
 #include <rxcpp/rx.hpp>
 
 using namespace Sidechain::Network::Api;
+
+// ==============================================================================
+// Helper functions for typed Comment parsing
+
+/** Parse a single Comment from juce::var JSON */
+static Sidechain::Comment parseCommentFromJson(const juce::var &json) {
+  Sidechain::Comment comment;
+  if (!json.isObject())
+    return comment;
+
+  try {
+    auto jsonStr = juce::JSON::toString(json);
+    auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+    from_json(jsonObj, comment);
+  } catch (const std::exception &e) {
+    Log::warn("CommentsClient: Failed to parse comment: " + juce::String(e.what()));
+  }
+
+  return comment;
+}
+
+/** Parse a CommentResult from API response */
+static NetworkClient::CommentResult parseCommentListResponse(const juce::var &json) {
+  NetworkClient::CommentResult result;
+
+  if (!json.isObject())
+    return result;
+
+  result.total = Json::getInt(json, "total_count");
+  result.hasMore = Json::getBool(json, "has_more", false);
+
+  auto commentsArray = Json::getArray(json, "comments");
+  if (commentsArray.isArray()) {
+    result.comments.reserve(static_cast<size_t>(commentsArray.size()));
+    for (int i = 0; i < commentsArray.size(); ++i) {
+      result.comments.push_back(parseCommentFromJson(commentsArray[i]));
+    }
+  }
+
+  return result;
+}
 
 // ==============================================================================
 void NetworkClient::getComments(const juce::String &postId, int limit, int offset, CommentsListCallback callback) {
@@ -228,41 +271,36 @@ void NetworkClient::reportComment(const juce::String &commentId, const juce::Str
 // Reactive Observable Methods (Phase 5)
 // ==============================================================================
 
-rxcpp::observable<std::pair<juce::var, int>> NetworkClient::getCommentsObservable(const juce::String &postId, int limit,
-                                                                                  int offset) {
-  auto source = rxcpp::sources::create<std::pair<juce::var, int>>([this, postId, limit, offset](auto observer) {
+rxcpp::observable<NetworkClient::CommentResult> NetworkClient::getCommentsObservable(const juce::String &postId,
+                                                                                     int limit, int offset) {
+  auto source = rxcpp::sources::create<CommentResult>([this, postId, limit, offset](auto observer) {
     juce::String endpoint = buildApiPath("/posts") + "/" + postId + "/comments?limit=" + juce::String(limit) +
                             "&offset=" + juce::String(offset);
 
     Async::runVoid([this, endpoint, observer]() {
       auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
 
-      int totalCount = 0;
-      juce::var comments;
-
       if (result.isSuccess() && result.data.isObject()) {
-        comments = Json::getArray(result.data, "comments");
-        totalCount = Json::getInt(result.data, "total_count");
-      }
-
-      juce::MessageManager::callAsync([observer, result, comments, totalCount]() {
-        if (result.isSuccess()) {
-          observer.on_next(std::make_pair(comments, totalCount));
+        auto commentResult = parseCommentListResponse(result.data);
+        juce::MessageManager::callAsync([observer, commentResult]() {
+          observer.on_next(commentResult);
           observer.on_completed();
-        } else {
+        });
+      } else {
+        juce::MessageManager::callAsync([observer, result]() {
           observer.on_error(std::make_exception_ptr(std::runtime_error(result.getUserFriendlyError().toStdString())));
-        }
-      });
+        });
+      }
     });
   });
 
   return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
 }
 
-rxcpp::observable<juce::var> NetworkClient::createCommentObservable(const juce::String &postId,
-                                                                    const juce::String &content,
-                                                                    const juce::String &parentId) {
-  auto source = rxcpp::sources::create<juce::var>([this, postId, content, parentId](auto observer) {
+rxcpp::observable<Sidechain::Comment> NetworkClient::createCommentObservable(const juce::String &postId,
+                                                                             const juce::String &content,
+                                                                             const juce::String &parentId) {
+  auto source = rxcpp::sources::create<Sidechain::Comment>([this, postId, content, parentId](auto observer) {
     if (!isAuthenticated()) {
       observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
       return;
@@ -270,7 +308,8 @@ rxcpp::observable<juce::var> NetworkClient::createCommentObservable(const juce::
 
     createComment(postId, content, parentId, [observer](Outcome<juce::var> result) {
       if (result.isOk()) {
-        observer.on_next(result.getValue());
+        auto comment = parseCommentFromJson(result.getValue());
+        observer.on_next(comment);
         observer.on_completed();
       } else {
         observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
@@ -341,9 +380,9 @@ rxcpp::observable<juce::var> NetworkClient::unlikeCommentObservable(const juce::
   return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
 }
 
-rxcpp::observable<juce::var> NetworkClient::updateCommentObservable(const juce::String &commentId,
-                                                                    const juce::String &content) {
-  auto source = rxcpp::sources::create<juce::var>([this, commentId, content](auto observer) {
+rxcpp::observable<Sidechain::Comment> NetworkClient::updateCommentObservable(const juce::String &commentId,
+                                                                             const juce::String &content) {
+  auto source = rxcpp::sources::create<Sidechain::Comment>([this, commentId, content](auto observer) {
     if (!isAuthenticated()) {
       observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
       return;
@@ -351,7 +390,8 @@ rxcpp::observable<juce::var> NetworkClient::updateCommentObservable(const juce::
 
     updateComment(commentId, content, [observer](Outcome<juce::var> result) {
       if (result.isOk()) {
-        observer.on_next(result.getValue());
+        auto comment = parseCommentFromJson(result.getValue());
+        observer.on_next(comment);
         observer.on_completed();
       } else {
         observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));

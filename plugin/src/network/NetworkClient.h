@@ -11,6 +11,7 @@
 #include "../models/Playlist.h"
 #include "../models/Story.h"
 #include "../models/Sound.h"
+#include "../models/Comment.h"
 #include "../models/MidiChallenge.h"
 #include <JuceHeader.h>
 #include <atomic>
@@ -487,6 +488,13 @@ public:
     bool hasMore = false;               ///< Whether more users are available
   };
 
+  /** Result structure for comment queries (typed Comment with pagination) */
+  struct CommentResult {
+    std::vector<Sidechain::Comment> comments; ///< Parsed Comment objects (value types)
+    int total = 0;                            ///< Total count of comments available
+    bool hasMore = false;                     ///< Whether more comments are available
+  };
+
   /** Get the global feed as an observable
    * @param limit Maximum number of posts to return
    * @param offset Pagination offset
@@ -582,19 +590,18 @@ public:
    * @param postId The post ID
    * @param limit Maximum number of comments
    * @param offset Pagination offset
-   * @return Observable that emits comments data on JUCE message thread
+   * @return Observable that emits CommentResult with typed Comment objects on JUCE message thread
    */
-  rxcpp::observable<std::pair<juce::var, int>> getCommentsObservable(const juce::String &postId, int limit = 20,
-                                                                     int offset = 0);
+  rxcpp::observable<CommentResult> getCommentsObservable(const juce::String &postId, int limit = 20, int offset = 0);
 
   /** Create a comment as an observable
    * @param postId The post ID
    * @param content The comment content
    * @param parentId Optional parent comment ID for replies
-   * @return Observable that emits created comment data
+   * @return Observable that emits typed Comment on success
    */
-  rxcpp::observable<juce::var> createCommentObservable(const juce::String &postId, const juce::String &content,
-                                                       const juce::String &parentId = "");
+  rxcpp::observable<Sidechain::Comment> createCommentObservable(const juce::String &postId, const juce::String &content,
+                                                                const juce::String &parentId = "");
 
   /** Delete a comment as an observable
    * @param commentId The comment ID
@@ -617,9 +624,10 @@ public:
   /** Update a comment as an observable
    * @param commentId The comment ID
    * @param content The new comment content
-   * @return Observable that emits result on success
+   * @return Observable that emits typed Comment on success
    */
-  rxcpp::observable<juce::var> updateCommentObservable(const juce::String &commentId, const juce::String &content);
+  rxcpp::observable<Sidechain::Comment> updateCommentObservable(const juce::String &commentId,
+                                                                const juce::String &content);
 
   /** Report a comment as an observable
    * @param commentId The comment ID

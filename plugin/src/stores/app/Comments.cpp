@@ -1,4 +1,5 @@
 #include "../AppStore.h"
+#include "../../network/NetworkClient.h"
 #include "../../util/logging/Logger.h"
 #include "../../util/rx/JuceScheduler.h"
 #include "../EntityStore.h"
@@ -61,57 +62,35 @@ void AppStore::createComment(const juce::String &postId, const juce::String &con
 
   networkClient->createCommentObservable(postId, content, parentId)
       .subscribe(
-          [this, postId](const juce::var &resultVar) {
+          [this, postId](const Comment &createdComment) {
             auto slice = stateManager.comments;
             if (!slice) {
               Util::logError("AppStore", "Cannot update comments state - comments slice is null");
               return;
             }
 
-            try {
-              auto resultStr = juce::JSON::toString(resultVar);
-              auto json = nlohmann::json::parse(resultStr.toStdString());
+            // Normalize comment to shared_ptr for storage
+            auto normalizedComment = std::make_shared<Comment>(createdComment);
 
-              // Extract comment object from response wrapper ({"comment": {...}})
-              nlohmann::json commentJson = json;
-              if (json.contains("comment") && json["comment"].is_object()) {
-                commentJson = json["comment"];
-              }
+            // Also add to EntityStore for cache access
+            EntityStore::getInstance().comments().set(createdComment.id, normalizedComment);
 
-              // Normalize comment to model
-              auto normalizedComment = EntityStore::getInstance().normalizeComment(commentJson);
+            Util::logInfo("AppStore", "Comment created successfully with ID: " + juce::String(normalizedComment->id));
 
-              if (normalizedComment) {
-                Util::logInfo("AppStore",
-                              "Comment created successfully with ID: " + juce::String(normalizedComment->id));
-
-                // Update CommentsState - add new comment to the post's comments list
-                CommentsState newState = slice->getState();
-                auto commentsIt = newState.commentsByPostId.find(postId.toStdString());
-                if (commentsIt != newState.commentsByPostId.end()) {
-                  commentsIt->second.insert(commentsIt->second.begin(), normalizedComment);
-                  newState.totalCountByPostId[postId.toStdString()]++;
-                } else {
-                  Util::logWarning("AppStore",
-                                   "Post " + postId + " not found in commentsByPostId map, initializing empty list");
-                  newState.commentsByPostId[postId.toStdString()] = {normalizedComment};
-                  newState.totalCountByPostId[postId.toStdString()] = 1;
-                }
-                newState.commentsError.clear();
-                slice->setState(newState);
-              } else {
-                Util::logError("AppStore", "Failed to normalize comment from JSON");
-                CommentsState errorState = slice->getState();
-                errorState.commentsError = "Failed to normalize comment";
-                slice->setState(errorState);
-              }
-            } catch (const std::exception &e) {
-              Util::logError("AppStore", "Failed to parse created comment: " + juce::String(e.what()));
-
-              CommentsState errorState = slice->getState();
-              errorState.commentsError = "JSON Parse Error: " + juce::String(e.what());
-              slice->setState(errorState);
+            // Update CommentsState - add new comment to the post's comments list
+            CommentsState newState = slice->getState();
+            auto commentsIt = newState.commentsByPostId.find(postId.toStdString());
+            if (commentsIt != newState.commentsByPostId.end()) {
+              commentsIt->second.insert(commentsIt->second.begin(), normalizedComment);
+              newState.totalCountByPostId[postId.toStdString()]++;
+            } else {
+              Util::logWarning("AppStore",
+                               "Post " + postId + " not found in commentsByPostId map, initializing empty list");
+              newState.commentsByPostId[postId.toStdString()] = {normalizedComment};
+              newState.totalCountByPostId[postId.toStdString()] = 1;
             }
+            newState.commentsError.clear();
+            slice->setState(newState);
           },
           [this](std::exception_ptr ep) {
             auto slice = stateManager.comments;
@@ -326,18 +305,12 @@ void AppStore::updateComment(const juce::String &commentId, const juce::String &
   // Make network request using observable
   networkClient->updateCommentObservable(commentId, content)
       .subscribe(
-          [commentId](const juce::var &result) {
+          [commentId](const Comment &updatedComment) {
             Util::logInfo("AppStore", "Comment updated successfully: " + commentId);
 
-            // Try to parse and normalize the response if needed
-            try {
-              if (result.isObject()) {
-                auto json = nlohmann::json::parse(result.toString().toStdString());
-                EntityStore::getInstance().normalizeComment(json);
-              }
-            } catch (const std::exception &e) {
-              Util::logWarning("AppStore", "Failed to parse update response: " + juce::String(e.what()));
-            }
+            // Update EntityStore with the new comment data
+            auto commentPtr = std::make_shared<Comment>(updatedComment);
+            EntityStore::getInstance().comments().set(commentId, commentPtr);
           },
           [commentId, originalContent](std::exception_ptr ep) {
             try {
@@ -401,40 +374,32 @@ void AppStore::loadPostComments(const juce::String &postId, int limit, int offse
   // Make network request using observable
   networkClient->getCommentsObservable(postId, limit, offset)
       .subscribe(
-          [this, postId, limit](const std::pair<juce::var, int> &result) {
+          [this, postId, limit](const NetworkClient::CommentResult &result) {
             auto slice = stateManager.comments;
             if (!slice)
               return;
 
-            auto [commentsData, totalCount] = result;
-
-            // Convert juce::var to nlohmann::json and normalize comments
+            // Convert typed comments to shared_ptr and add to EntityStore
             std::vector<std::shared_ptr<Comment>> normalizedComments;
-            if (commentsData.isArray()) {
-              for (int i = 0; i < commentsData.size(); ++i) {
-                try {
-                  auto json = nlohmann::json::parse(commentsData[i].toString().toStdString());
-                  auto normalized = EntityStore::getInstance().normalizeComment(json);
-                  if (normalized) {
-                    normalizedComments.push_back(normalized);
-                  }
-                } catch (const std::exception &e) {
-                  Util::logError("AppStore", "Failed to parse comment: " + juce::String(e.what()));
-                }
-              }
+            normalizedComments.reserve(result.comments.size());
+            for (const auto &comment : result.comments) {
+              auto commentPtr = std::make_shared<Comment>(comment);
+              EntityStore::getInstance().comments().set(comment.id, commentPtr);
+              normalizedComments.push_back(commentPtr);
             }
 
-            Util::logInfo("AppStore",
-                          "Loaded " + juce::String(normalizedComments.size()) + " comments for post: " + postId);
+            Util::logInfo("AppStore", "Loaded " + juce::String(static_cast<int>(normalizedComments.size())) +
+                                          " comments for post: " + postId);
 
             // Update CommentsState with models
             CommentsState successState = slice->getState();
             successState.commentsByPostId[postId.toStdString()] = normalizedComments;
-            successState.totalCountByPostId[postId.toStdString()] = totalCount;
+            successState.totalCountByPostId[postId.toStdString()] = result.total;
             successState.limitByPostId[postId.toStdString()] = limit;
             successState.isLoadingByPostId[postId.toStdString()] = false;
             successState.lastUpdatedByPostId[postId.toStdString()] = juce::Time::getCurrentTime().toMilliseconds();
-            successState.hasMoreByPostId[postId.toStdString()] = (int)normalizedComments.size() >= limit;
+            successState.hasMoreByPostId[postId.toStdString()] =
+                static_cast<int>(normalizedComments.size()) >= limit || result.hasMore;
             successState.commentsError.clear();
             slice->setState(successState);
           },
@@ -530,29 +495,10 @@ rxcpp::observable<std::vector<Comment>> AppStore::loadCommentsObservable(const j
 
   // Use the network client's observable API and transform the result
   return networkClient->getCommentsObservable(postId, limit, offset)
-      .map([postId](const std::pair<juce::var, int> &result) {
-        auto [commentsData, totalCount] = result;
-        ResultType comments;
-
-        if (commentsData.isArray()) {
-          for (int i = 0; i < commentsData.size(); ++i) {
-            try {
-              auto jsonStr = juce::JSON::toString(commentsData[i]);
-              auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
-              Comment comment;
-              from_json(jsonObj, comment);
-              if (comment.isValid()) {
-                comments.push_back(std::move(comment));
-              }
-            } catch (const std::exception &e) {
-              Util::logWarning("AppStore", "Failed to parse comment: " + juce::String(e.what()));
-            }
-          }
-        }
-
-        Util::logInfo("AppStore",
-                      "Loaded " + juce::String(static_cast<int>(comments.size())) + " comments for post: " + postId);
-        return comments;
+      .map([postId](const NetworkClient::CommentResult &result) {
+        Util::logInfo("AppStore", "Loaded " + juce::String(static_cast<int>(result.comments.size())) +
+                                      " comments for post: " + postId);
+        return result.comments;
       });
 }
 
