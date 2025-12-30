@@ -167,8 +167,9 @@ rxcpp::observable<int> AppStore::submitChallengeObservable(const juce::String &c
       .observe_on(Rx::observe_on_juce_thread());
 }
 
-rxcpp::observable<juce::var> AppStore::getMIDIChallengeObservable(const juce::String &challengeId) {
-  return rxcpp::sources::create<juce::var>([this, challengeId](auto observer) {
+rxcpp::observable<AppStore::MIDIChallengeDetailResult>
+AppStore::getMIDIChallengeObservable(const juce::String &challengeId) {
+  return rxcpp::sources::create<MIDIChallengeDetailResult>([this, challengeId](auto observer) {
            if (!networkClient) {
              Util::logError("AppStore", "Cannot get MIDI challenge - network client not set");
              observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not set")));
@@ -180,7 +181,33 @@ rxcpp::observable<juce::var> AppStore::getMIDIChallengeObservable(const juce::St
            networkClient->getMIDIChallenge(challengeId, [observer](Outcome<juce::var> result) {
              if (result.isOk()) {
                Util::logInfo("AppStore", "Got MIDI challenge via observable");
-               observer.on_next(result.getValue());
+               MIDIChallengeDetailResult detailResult;
+
+               const auto &response = result.getValue();
+
+               // Parse challenge
+               if (response.hasProperty("challenge")) {
+                 detailResult.challenge = MIDIChallenge::fromJSON(response["challenge"]);
+               } else {
+                 detailResult.challenge = MIDIChallenge::fromJSON(response);
+               }
+
+               // Parse entries
+               juce::var entriesVar;
+               if (response.hasProperty("challenge") && response["challenge"].hasProperty("entries")) {
+                 entriesVar = response["challenge"]["entries"];
+               } else if (response.hasProperty("entries")) {
+                 entriesVar = response["entries"];
+               }
+
+               if (entriesVar.isArray()) {
+                 detailResult.entries.reserve(static_cast<size_t>(entriesVar.size()));
+                 for (int i = 0; i < entriesVar.size(); ++i) {
+                   detailResult.entries.push_back(MIDIChallengeEntry::fromJSON(entriesVar[i]));
+                 }
+               }
+
+               observer.on_next(detailResult);
                observer.on_completed();
              } else {
                Util::logError("AppStore", "Failed to get MIDI challenge: " + result.getError());

@@ -196,36 +196,22 @@ void MidiChallengeDetail::fetchChallenge() {
   appStore->getMIDIChallengeObservable(challengeId)
       .subscribe(
           challengeSubscriptions_,
-          [this](const juce::var &response) {
+          [this](const Sidechain::Stores::AppStore::MIDIChallengeDetailResult &result) {
             isLoading = false;
 
-            // Parse challenge
-            if (response.hasProperty("challenge")) {
-              challenge = Sidechain::MIDIChallenge::fromJSON(response["challenge"]);
-            } else {
-              challenge = Sidechain::MIDIChallenge::fromJSON(response);
-            }
+            // Use typed challenge directly
+            challenge = result.challenge;
 
-            // Parse entries
+            // Use typed entries directly
             entries.clear();
             userEntryId = "";
 
-            juce::var entriesVar;
-            if (response.hasProperty("challenge") && response["challenge"].hasProperty("entries")) {
-              entriesVar = response["challenge"]["entries"];
-            } else if (response.hasProperty("entries")) {
-              entriesVar = response["entries"];
-            }
+            for (const auto &entry : result.entries) {
+              entries.add(entry);
 
-            if (entriesVar.isArray()) {
-              for (int i = 0; i < entriesVar.size(); ++i) {
-                auto entry = Sidechain::MIDIChallengeEntry::fromJSON(entriesVar[i]);
-                entries.add(entry);
-
-                // Check if this is the user's entry
-                if (entry.userId == currentUserId)
-                  userEntryId = entry.id;
-              }
+              // Check if this is the user's entry
+              if (entry.userId == currentUserId)
+                userEntryId = entry.id;
             }
 
             Log::info("MidiChallengeDetail: Loaded challenge with " + juce::String(entries.size()) + " entries");

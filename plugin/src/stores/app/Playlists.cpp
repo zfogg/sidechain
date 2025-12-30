@@ -6,43 +6,54 @@
 namespace Sidechain {
 namespace Stores {
 
-rxcpp::observable<juce::Array<juce::var>> AppStore::getPlaylistsObservable() {
-  return rxcpp::sources::create<juce::Array<juce::var>>([this](auto observer) {
-    if (!networkClient) {
-      Util::logError("AppStore", "Cannot get playlists - network client not set");
-      observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not set")));
-      return;
-    }
+rxcpp::observable<std::vector<Playlist>> AppStore::getPlaylistsObservable() {
+  return rxcpp::sources::create<std::vector<Playlist>>([this](auto observer) {
+           if (!networkClient) {
+             Util::logError("AppStore", "Cannot get playlists - network client not set");
+             observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not set")));
+             return;
+           }
 
-    Util::logInfo("AppStore", "Fetching playlists");
+           Util::logInfo("AppStore", "Fetching playlists");
 
-    networkClient->getPlaylists("all", [observer](Outcome<juce::var> result) {
-      if (result.isOk()) {
-        const auto data = result.getValue();
-        juce::Array<juce::var> playlistsList;
+           networkClient->getPlaylists("all", [observer](Outcome<juce::var> result) {
+             if (result.isOk()) {
+               const auto data = result.getValue();
 
-        if (data.isArray()) {
-          for (int i = 0; i < data.size(); ++i) {
-            playlistsList.add(data[i]);
-          }
-        } else if (data.hasProperty("playlists")) {
-          auto playlistsArray = data["playlists"];
-          if (playlistsArray.isArray()) {
-            for (int i = 0; i < playlistsArray.size(); ++i) {
-              playlistsList.add(playlistsArray[i]);
-            }
-          }
-        }
+               // Parse juce::var response into Playlist value objects
+               juce::String jsonString = juce::JSON::toString(data, false);
+               try {
+                 auto jsonArray = nlohmann::json::parse(jsonString.toStdString());
+                 auto parseResult = Playlist::createFromJsonArray(jsonArray);
 
-        Util::logInfo("AppStore", "Loaded " + juce::String(playlistsList.size()) + " playlists");
-        observer.on_next(playlistsList);
-        observer.on_completed();
-      } else {
-        Util::logError("AppStore", "Failed to get playlists: " + result.getError());
-        observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
-      }
-    });
-  });
+                 if (parseResult.isOk()) {
+                   auto sharedPlaylists = parseResult.getValue();
+                   // Convert shared_ptr to value types
+                   std::vector<Playlist> playlists;
+                   playlists.reserve(sharedPlaylists.size());
+                   for (const auto &ptr : sharedPlaylists) {
+                     if (ptr) {
+                       playlists.push_back(*ptr);
+                     }
+                   }
+                   Util::logInfo("AppStore", "Loaded " + juce::String(playlists.size()) + " playlists");
+                   observer.on_next(playlists);
+                   observer.on_completed();
+                 } else {
+                   Util::logError("AppStore", "Failed to parse playlists: " + parseResult.getError());
+                   observer.on_error(std::make_exception_ptr(std::runtime_error(parseResult.getError().toStdString())));
+                 }
+               } catch (const std::exception &e) {
+                 Util::logError("AppStore", "JSON parse error: " + juce::String(e.what()));
+                 observer.on_error(std::make_exception_ptr(e));
+               }
+             } else {
+               Util::logError("AppStore", "Failed to get playlists: " + result.getError());
+               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+             }
+           });
+         })
+      .observe_on(Rx::observe_on_juce_thread());
 }
 
 void AppStore::loadPlaylists() {

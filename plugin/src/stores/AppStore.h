@@ -585,9 +585,9 @@ public:
    * Get user's playlists with reactive observable pattern.
    * Returns list of playlists from server.
    *
-   * @return rxcpp::observable<juce::Array<juce::var>> - emits playlist array when available
+   * @return rxcpp::observable<std::vector<Playlist>> - emits typed playlist vector
    */
-  rxcpp::observable<juce::Array<juce::var>> getPlaylistsObservable();
+  rxcpp::observable<std::vector<Playlist>> getPlaylistsObservable();
 
   void loadPlaylists();
   void createPlaylist(const juce::String &name, const juce::String &description);
@@ -681,9 +681,13 @@ public:
    * Get a single MIDI challenge with entries.
    *
    * @param challengeId Challenge ID to fetch
-   * @return Observable that emits the challenge data as juce::var
+   * @return Observable that emits typed MIDIChallengeDetailResult with challenge and entries
    */
-  rxcpp::observable<juce::var> getMIDIChallengeObservable(const juce::String &challengeId);
+  struct MIDIChallengeDetailResult {
+    MIDIChallenge challenge;
+    std::vector<MIDIChallengeEntry> entries;
+  };
+  rxcpp::observable<MIDIChallengeDetailResult> getMIDIChallengeObservable(const juce::String &challengeId);
 
   /**
    * Vote for a MIDI challenge entry.

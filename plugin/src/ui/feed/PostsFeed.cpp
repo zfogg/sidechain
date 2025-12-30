@@ -1445,29 +1445,24 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
     juce::Component::SafePointer<PostsFeed> safeThis(this);
 
     appStore.getPlaylistsObservable().subscribe(
-        [safeThis, post](const juce::Array<juce::var> &playlistsArray) {
+        [safeThis, post](const std::vector<Sidechain::Playlist> &playlists) {
           if (safeThis == nullptr)
             return;
-
-          juce::Array<Sidechain::Playlist> playlists;
-          for (const auto &item : playlistsArray) {
-            playlists.add(Sidechain::Playlist::fromJSON(item));
-          }
 
           // Show playlist picker menu
           juce::PopupMenu menu;
           menu.addItem(1, "Create New Playlist...", true, false);
 
-          if (playlists.isEmpty()) {
+          if (playlists.empty()) {
             menu.addSeparator();
             menu.addItem(2, "No playlists available", false);
           } else {
             menu.addSeparator();
-            for (int i = 0; i < playlists.size(); ++i) {
+            for (size_t i = 0; i < playlists.size(); ++i) {
               juce::String name = playlists[i].name;
               if (playlists[i].isCollaborative)
                 name += " (Collaborative)";
-              menu.addItem(i + 3, name, true, false);
+              menu.addItem(static_cast<int>(i) + 3, name, true, false);
             }
           }
 
@@ -1488,7 +1483,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
                 postId = postId.substring(5);
 
               auto &appStoreRef = AppStore::getInstance();
-              appStoreRef.addPostToPlaylist(postId, playlists[index].id);
+              appStoreRef.addPostToPlaylist(postId, playlists[static_cast<size_t>(index)].id);
 
               juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon, "Added to Playlist",
                                                      "Track added to playlist successfully!");
