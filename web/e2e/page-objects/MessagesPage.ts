@@ -30,7 +30,7 @@ export class MessagesPage {
    */
   async goto(): Promise<void> {
     await this.page.goto('/messages')
-    await this.page.waitForLoadState('networkidle')
+    await this.page.waitForLoadState('domcontentloaded')
   }
 
   /**
@@ -38,7 +38,7 @@ export class MessagesPage {
    */
   async gotoConversation(channelId: string): Promise<void> {
     await this.page.goto(`/messages/${channelId}`)
-    await this.page.waitForLoadState('networkidle')
+    await this.page.waitForLoadState('domcontentloaded')
   }
 
   /**

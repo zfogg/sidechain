@@ -140,7 +140,7 @@ test.describe('Notifications - Center & Management', () => {
     if (hasButton) {
       try {
         await notificationsPage.clickMarkAllAsRead()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
         expect(true).toBe(true)
       } catch (e) {
         // Button might not be functional
@@ -173,7 +173,7 @@ test.describe('Notifications - Center & Management', () => {
       const notification = await notificationsPage.getNotificationItem(0)
       try {
         await notification.markAsRead()
-        await authenticatedPage.waitForTimeout(300)
+        // REMOVED: waitForTimeout
         expect(true).toBe(true)
       } catch (e) {
         // Button might not exist
@@ -192,7 +192,7 @@ test.describe('Notifications - Center & Management', () => {
       const notification = await notificationsPage.getNotificationItem(0)
       try {
         await notification.delete()
-        await authenticatedPage.waitForTimeout(300)
+        // REMOVED: waitForTimeout
         expect(true).toBe(true)
       } catch (e) {
         // Button might not exist
@@ -213,7 +213,7 @@ test.describe('Notifications - Center & Management', () => {
 
       try {
         await notification.clickNotification()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         const newUrl = authenticatedPage.url()
         expect(typeof newUrl).toBe('string')

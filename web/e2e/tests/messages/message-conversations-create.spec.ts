@@ -37,7 +37,7 @@ test.describe('Message Conversations - Create', () => {
       test.skip(!isVisible, 'New conversation button not found')
 
       await newConvoButton.click()
-      await authenticatedPage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
 
       // Find search input in dialog
       const searchInput = authenticatedPage.locator('[role="dialog"] input, .fixed.inset-0 input').first()
@@ -46,7 +46,7 @@ test.describe('Message Conversations - Create', () => {
 
       // Search for bob
       await searchInput.fill('bob')
-      await authenticatedPage.waitForTimeout(1000) // Wait for search results
+      // REMOVED: waitForTimeout // Wait for search results
 
       // Should see bob in results
       const bobResult = authenticatedPage.locator(`text=/${testUsers.bob.username}|${testUsers.bob.displayName}/i`)
@@ -63,7 +63,7 @@ test.describe('Message Conversations - Create', () => {
       test.skip(!isVisible, 'New conversation button not found')
 
       await newConvoButton.click()
-      await authenticatedPage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
 
       // Search for bob
       const searchInput = authenticatedPage.locator('[role="dialog"] input, .fixed.inset-0 input').first()
@@ -71,14 +71,14 @@ test.describe('Message Conversations - Create', () => {
       test.skip(!inputVisible, 'Search input not found')
 
       await searchInput.fill('bob')
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Click on bob in results
       const bobResult = authenticatedPage.locator(`text=/${testUsers.bob.username}|${testUsers.bob.displayName}/i`).first()
       await bobResult.click()
 
       // Wait for conversation to be created/selected
-      await authenticatedPage.waitForTimeout(2000)
+      // REMOVED: waitForTimeout
 
       // Should now be in a conversation (dialog closed or conversation view shown)
       // Check for message input or conversation header
@@ -98,7 +98,7 @@ test.describe('Message Conversations - Create', () => {
       test.skip(!isVisible, 'New conversation button not found')
 
       await newConvoButton.click()
-      await authenticatedPage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
 
       // Search and select charlie
       const searchInput = authenticatedPage.locator('[role="dialog"] input, .fixed.inset-0 input').first()
@@ -106,11 +106,11 @@ test.describe('Message Conversations - Create', () => {
       test.skip(!inputVisible, 'Search input not found')
 
       await searchInput.fill('charlie')
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       const charlieResult = authenticatedPage.locator(`text=/${testUsers.charlie.username}|${testUsers.charlie.displayName}/i`).first()
       await charlieResult.click()
-      await authenticatedPage.waitForTimeout(2000)
+      // REMOVED: waitForTimeout
 
       // Find message input
       const messageInput = authenticatedPage.locator('textarea, input[placeholder*="message" i], [contenteditable]').first()
@@ -144,7 +144,7 @@ test.describe('Message Conversations - Create', () => {
 
       // Navigate to messages page
       await messagesPage.goto()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Either we have conversations or an empty state
       if (channelCount === 0) {

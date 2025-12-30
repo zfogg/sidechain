@@ -41,7 +41,7 @@ test.describe('Profile - Following', () => {
     const isFollowing = await profilePage.isFollowing()
     if (!isFollowing) {
       await profilePage.follow()
-      await alicePage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
     }
 
     const followerCountBeforeUnfollow = (await profilePage.getUserStats()).followers
@@ -91,7 +91,7 @@ test.describe('Profile - Following', () => {
 
     // Click follow/unfollow
     await profilePage.followButton.click()
-    await alicePage.waitForTimeout(500)
+    // REMOVED: waitForTimeout
 
     // Text should change
     const newText = await profilePage.followButton.textContent()
@@ -124,7 +124,7 @@ test.describe('Profile - Following', () => {
 
     if (!wasBobFollowing) {
       await profilePage.follow()
-      await alicePage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
     }
 
     // Navigate to charlie
@@ -185,7 +185,7 @@ test.describe('Profile - Following', () => {
         await profilePage.follow()
       }
 
-      await alicePage.waitForTimeout(300)
+      // REMOVED: waitForTimeout
     }
 
     // Should still be functional
@@ -209,7 +209,7 @@ test.describe('Profile - Following', () => {
 
     if (!wasBobFollowing) {
       await profilePage.follow()
-      await alicePage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
     }
 
     // Go back to own profile

@@ -20,7 +20,7 @@ test.describe('Message Group Conversations', () => {
       test.skip(!isVisible, 'New group button not found')
 
       await newGroupButton.click()
-      await authenticatedPage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
 
       // Dialog should open
       await expect(authenticatedPage.locator('[role="dialog"], .fixed.inset-0').last()).toBeVisible({ timeout: 3000 })
@@ -36,7 +36,7 @@ test.describe('Message Group Conversations', () => {
       test.skip(!isVisible, 'New conversation button not found')
 
       await newButton.click()
-      await authenticatedPage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
 
       // Search and add bob
       const searchInput = authenticatedPage.locator('[role="dialog"] input, .fixed.inset-0 input').first()
@@ -44,20 +44,20 @@ test.describe('Message Group Conversations', () => {
       test.skip(!inputVisible, 'Search input not found')
 
       await searchInput.fill('bob')
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Select bob
       const bobResult = authenticatedPage.locator(`text=/${testUsers.bob.username}|${testUsers.bob.displayName}/i`).first()
       const bobVisible = await bobResult.isVisible({ timeout: 3000 }).catch(() => false)
       if (bobVisible) {
         await bobResult.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
       }
 
       // Search and add charlie
       await searchInput.clear()
       await searchInput.fill('charlie')
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       const charlieResult = authenticatedPage.locator(`text=/${testUsers.charlie.username}|${testUsers.charlie.displayName}/i`).first()
       const charlieVisible = await charlieResult.isVisible({ timeout: 3000 }).catch(() => false)
@@ -79,7 +79,7 @@ test.describe('Message Group Conversations', () => {
       test.skip(!isVisible, 'New conversation button not found')
 
       await newButton.click()
-      await authenticatedPage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
 
       // Look for group name input
       const groupNameInput = authenticatedPage.locator('input[placeholder*="group name" i], input[placeholder*="name" i]').first()
@@ -153,7 +153,7 @@ test.describe('Message Group Conversations', () => {
 
       if (hasMenu) {
         await menuButton.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Look for leave option
         const leaveOption = authenticatedPage.locator('text=/leave|exit|remove myself/i')

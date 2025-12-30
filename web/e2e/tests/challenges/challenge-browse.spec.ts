@@ -14,7 +14,7 @@ test.describe('Challenge Browse', () => {
   test.describe('Active Challenges', () => {
     test('should display active challenges', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/challenges')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Look for challenge list
       const challengeList = authenticatedPage.locator(
@@ -30,7 +30,7 @@ test.describe('Challenge Browse', () => {
 
     test('should show challenge cards', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/challenges')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const challengeCard = authenticatedPage.locator(
         '[class*="challenge-card"], [data-testid="challenge-item"]'
@@ -44,7 +44,7 @@ test.describe('Challenge Browse', () => {
 
     test('should show challenge deadline', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/challenges')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const challengeCard = authenticatedPage.locator('[class*="challenge-card"]').first()
       const hasCard = await challengeCard.isVisible({ timeout: 3000 }).catch(() => false)
@@ -62,7 +62,7 @@ test.describe('Challenge Browse', () => {
 
     test('should show entry count', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/challenges')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const challengeCard = authenticatedPage.locator('[class*="challenge-card"]').first()
       const hasCard = await challengeCard.isVisible({ timeout: 3000 }).catch(() => false)
@@ -82,14 +82,14 @@ test.describe('Challenge Browse', () => {
   test.describe('Challenge Details', () => {
     test('should navigate to challenge detail page', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/challenges')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const challengeCard = authenticatedPage.locator('[class*="challenge-card"]').first()
       const hasCard = await challengeCard.isVisible({ timeout: 3000 }).catch(() => false)
 
       if (hasCard) {
         await challengeCard.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Should be on challenge detail page
         const isDetailPage = authenticatedPage.url().includes('/challenge')
@@ -100,14 +100,14 @@ test.describe('Challenge Browse', () => {
 
     test('should show challenge description', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/challenges')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const challengeCard = authenticatedPage.locator('[class*="challenge-card"]').first()
       const hasCard = await challengeCard.isVisible({ timeout: 3000 }).catch(() => false)
 
       if (hasCard) {
         await challengeCard.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Should show description
         const description = authenticatedPage.locator(
@@ -121,14 +121,14 @@ test.describe('Challenge Browse', () => {
 
     test('should show MIDI file to remix', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/challenges')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const challengeCard = authenticatedPage.locator('[class*="challenge-card"]').first()
       const hasCard = await challengeCard.isVisible({ timeout: 3000 }).catch(() => false)
 
       if (hasCard) {
         await challengeCard.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Should show MIDI/audio to remix
         const midiSection = authenticatedPage.locator(
@@ -143,14 +143,14 @@ test.describe('Challenge Browse', () => {
 
     test('should show challenge rules', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/challenges')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const challengeCard = authenticatedPage.locator('[class*="challenge-card"]').first()
       const hasCard = await challengeCard.isVisible({ timeout: 3000 }).catch(() => false)
 
       if (hasCard) {
         await challengeCard.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Should show rules
         const rules = authenticatedPage.locator(
@@ -166,14 +166,14 @@ test.describe('Challenge Browse', () => {
   test.describe('Challenge Entries', () => {
     test('should display challenge entries', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/challenges')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const challengeCard = authenticatedPage.locator('[class*="challenge-card"]').first()
       const hasCard = await challengeCard.isVisible({ timeout: 3000 }).catch(() => false)
 
       if (hasCard) {
         await challengeCard.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Look for entries section
         const entriesSection = authenticatedPage.locator(
@@ -187,14 +187,14 @@ test.describe('Challenge Browse', () => {
 
     test('should play entry audio', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/challenges')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const challengeCard = authenticatedPage.locator('[class*="challenge-card"]').first()
       const hasCard = await challengeCard.isVisible({ timeout: 3000 }).catch(() => false)
 
       if (hasCard) {
         await challengeCard.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Find play button on an entry
         const entryPlayButton = authenticatedPage.locator(
@@ -208,14 +208,14 @@ test.describe('Challenge Browse', () => {
 
     test('should show entry votes', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/challenges')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const challengeCard = authenticatedPage.locator('[class*="challenge-card"]').first()
       const hasCard = await challengeCard.isVisible({ timeout: 3000 }).catch(() => false)
 
       if (hasCard) {
         await challengeCard.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Look for vote counts
         const voteCount = authenticatedPage.locator(
@@ -231,7 +231,7 @@ test.describe('Challenge Browse', () => {
   test.describe('Challenge Filters', () => {
     test('should filter by challenge status', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/challenges')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Look for status filter
       const statusFilter = authenticatedPage.locator(
@@ -245,7 +245,7 @@ test.describe('Challenge Browse', () => {
 
     test('should filter by genre', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/challenges')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Look for genre filter
       const genreFilter = authenticatedPage.locator(
@@ -258,7 +258,7 @@ test.describe('Challenge Browse', () => {
 
     test('should sort challenges', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/challenges')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Look for sort options
       const sortOption = authenticatedPage.locator(
@@ -273,7 +273,7 @@ test.describe('Challenge Browse', () => {
   test.describe('Past Challenges', () => {
     test('should view completed challenges', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/challenges')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Look for completed/past tab
       const completedTab = authenticatedPage.locator(
@@ -285,7 +285,7 @@ test.describe('Challenge Browse', () => {
 
       if (hasCompleted) {
         await completedTab.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Should show past challenges
         expect(true).toBe(true)
@@ -294,7 +294,7 @@ test.describe('Challenge Browse', () => {
 
     test('should show challenge winners', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/challenges')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Look for winners section
       const winnersSection = authenticatedPage.locator(

@@ -39,11 +39,11 @@ test.describe('Rate Limit Errors', () => {
         const hasPost = await postCard.locator.isVisible({ timeout: 1000 }).catch(() => false)
         if (hasPost) {
           await postCard.like()
-          await authenticatedPage.waitForTimeout(100)
+          // REMOVED: waitForTimeout
         }
       }
 
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // App should not crash
       const isCrashed = await authenticatedPage.locator('body').isVisible()
@@ -74,7 +74,7 @@ test.describe('Rate Limit Errors', () => {
       if (postCount > 0) {
         const postCard = feedPage.getPostCard(0)
         await postCard.like()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
       }
 
       // Look for rate limit message
@@ -130,7 +130,7 @@ test.describe('Rate Limit Errors', () => {
       })
 
       // Wait for potential auto-retry
-      await authenticatedPage.waitForTimeout(3000)
+      // REMOVED: waitForTimeout
 
       // App should still be functional
       expect(await feedPage.hasError()).toBe(false)
@@ -162,7 +162,7 @@ test.describe('Rate Limit Errors', () => {
       if (postCount > 0) {
         const postCard = feedPage.getPostCard(0)
         await postCard.like()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
       }
 
       // Look for retry button
@@ -174,7 +174,7 @@ test.describe('Rate Limit Errors', () => {
 
       if (hasRetry) {
         await retryButton.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Should succeed on retry
         expect(await feedPage.hasError()).toBe(false)
@@ -205,10 +205,10 @@ test.describe('Rate Limit Errors', () => {
       // Rapidly click like button
       for (let i = 0; i < 10; i++) {
         await postCard.like()
-        await authenticatedPage.waitForTimeout(50)
+        // REMOVED: waitForTimeout
       }
 
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Should not have made 10 requests (debouncing)
       expect(requestCount).toBeLessThan(10)
@@ -229,7 +229,7 @@ test.describe('Rate Limit Errors', () => {
       })
 
       // Wait for any background polling
-      await authenticatedPage.waitForTimeout(5000)
+      // REMOVED: waitForTimeout
 
       // Background requests should be reasonable
       expect(backgroundRequests).toBeLessThan(20)
@@ -292,7 +292,7 @@ test.describe('Rate Limit Errors', () => {
         // Like should still work
         const postCard = feedPage.getPostCard(0)
         await postCard.like()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         expect(await feedPage.hasError()).toBe(false)
       }

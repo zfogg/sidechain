@@ -14,7 +14,7 @@ test.describe('Messages - Direct Messaging', () => {
     const messagesPage = new MessagesPage(authenticatedPage)
     await messagesPage.goto()
 
-    await authenticatedPage.waitForTimeout(1000)
+    // REMOVED: waitForTimeout
 
     const hasChannels = await messagesPage.hasConversations().catch(() => false)
     const hasEmpty = await messagesPage.hasEmptyState()
@@ -37,7 +37,7 @@ test.describe('Messages - Direct Messaging', () => {
     const buttonVisible = await messagesPage.newConversationButton.isVisible().catch(() => false)
     if (buttonVisible) {
       await messagesPage.clickNewConversation()
-      await authenticatedPage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
 
       const isOpen = await messagesPage.isNewMessageDialogOpen()
       expect(typeof isOpen).toBe('boolean')
@@ -51,12 +51,12 @@ test.describe('Messages - Direct Messaging', () => {
     const buttonVisible = await messagesPage.newConversationButton.isVisible().catch(() => false)
     if (buttonVisible) {
       await messagesPage.clickNewConversation()
-      await authenticatedPage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
 
       const wasOpen = await messagesPage.isNewMessageDialogOpen()
       if (wasOpen) {
         await messagesPage.closeNewMessageDialog()
-        await authenticatedPage.waitForTimeout(300)
+        // REMOVED: waitForTimeout
       }
 
       expect(true).toBe(true)
@@ -67,7 +67,7 @@ test.describe('Messages - Direct Messaging', () => {
     const messagesPage = new MessagesPage(authenticatedPage)
     await messagesPage.goto()
 
-    await authenticatedPage.waitForTimeout(1000)
+    // REMOVED: waitForTimeout
 
     const channelListVisible = await messagesPage.isChannelListVisible()
     expect(typeof channelListVisible).toBe('boolean')
@@ -77,7 +77,7 @@ test.describe('Messages - Direct Messaging', () => {
     const messagesPage = new MessagesPage(authenticatedPage)
     await messagesPage.goto()
 
-    await authenticatedPage.waitForTimeout(1000)
+    // REMOVED: waitForTimeout
 
     const hasEmpty = await messagesPage.hasEmptyState()
     const hasChannels = await messagesPage.hasConversations().catch(() => false)
@@ -89,7 +89,7 @@ test.describe('Messages - Direct Messaging', () => {
     const messagesPage = new MessagesPage(authenticatedPage)
     await messagesPage.goto()
 
-    await authenticatedPage.waitForTimeout(1000)
+    // REMOVED: waitForTimeout
 
     const hasError = await messagesPage.hasError()
     expect(hasError).toBe(false)
@@ -108,7 +108,7 @@ test.describe('Messages - Direct Messaging', () => {
     const messagesPage = new MessagesPage(authenticatedPage)
     await messagesPage.goto()
 
-    await authenticatedPage.waitForTimeout(1000)
+    // REMOVED: waitForTimeout
 
     const hasConversations = await messagesPage.hasConversations()
     if (hasConversations) {
@@ -128,7 +128,7 @@ test.describe('Messages - Direct Messaging', () => {
     const messagesPage = new MessagesPage(authenticatedPage)
     await messagesPage.goto()
 
-    await authenticatedPage.waitForTimeout(1000)
+    // REMOVED: waitForTimeout
 
     const count = await messagesPage.getChannelCount()
     expect(typeof count).toBe('number')
@@ -139,7 +139,7 @@ test.describe('Messages - Direct Messaging', () => {
     const messagesPage = new MessagesPage(authenticatedPage)
     await messagesPage.goto()
 
-    await authenticatedPage.waitForTimeout(1000)
+    // REMOVED: waitForTimeout
 
     const hasConversations = await messagesPage.hasConversations()
     if (hasConversations) {
@@ -161,7 +161,7 @@ test.describe('Messages - Direct Messaging', () => {
     const messagesPage = new MessagesPage(authenticatedPage)
     await messagesPage.goto()
 
-    await authenticatedPage.waitForTimeout(1000)
+    // REMOVED: waitForTimeout
 
     // Navigate to feed and back
     await authenticatedPage.goto('/feed')
@@ -175,13 +175,13 @@ test.describe('Messages - Direct Messaging', () => {
     const messagesPage = new MessagesPage(authenticatedPage)
     await messagesPage.goto()
 
-    await authenticatedPage.waitForTimeout(1000)
+    // REMOVED: waitForTimeout
 
     const count = await messagesPage.getChannelCount()
     if (count > 1) {
       try {
         await messagesPage.clickChannel(0)
-        await authenticatedPage.waitForTimeout(200)
+        // REMOVED: waitForTimeout
         // Don't click again immediately
 
         expect(true).toBe(true)
@@ -195,7 +195,7 @@ test.describe('Messages - Direct Messaging', () => {
     const messagesPage = new MessagesPage(authenticatedPage)
     await messagesPage.goto()
 
-    await authenticatedPage.waitForTimeout(1000)
+    // REMOVED: waitForTimeout
 
     // Check if page is responsive
     const isLoaded = await messagesPage.isLoaded()
@@ -209,7 +209,7 @@ test.describe('Messages - Direct Messaging', () => {
     // Navigate to a specific channel if URL parameter format is known
     try {
       await messagesPage.gotoConversation('test-channel-id')
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Should either load or show error
       const hasError = await messagesPage.hasError()
@@ -226,12 +226,12 @@ test.describe('Messages - Direct Messaging', () => {
     const messagesPage = new MessagesPage(authenticatedPage)
     await messagesPage.goto()
 
-    await authenticatedPage.waitForTimeout(1000)
+    // REMOVED: waitForTimeout
 
     const initialCount = await messagesPage.getChannelCount()
 
     // Wait a bit and check again
-    await authenticatedPage.waitForTimeout(1000)
+    // REMOVED: waitForTimeout
     const finalCount = await messagesPage.getChannelCount()
 
     expect(finalCount).toBe(initialCount)
@@ -247,9 +247,9 @@ test.describe('Messages - Direct Messaging', () => {
       for (let i = 0; i < 2; i++) {
         try {
           await messagesPage.clickNewConversation()
-          await authenticatedPage.waitForTimeout(300)
+          // REMOVED: waitForTimeout
           await messagesPage.closeNewMessageDialog()
-          await authenticatedPage.waitForTimeout(300)
+          // REMOVED: waitForTimeout
         } catch (e) {
           // Ignore
         }

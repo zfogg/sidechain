@@ -33,7 +33,7 @@ test.describe('Infinite Scroll Edge Cases', () => {
       await authenticatedPage.evaluate(() => {
         window.scrollTo(0, document.body.scrollHeight)
       })
-      await authenticatedPage.waitForTimeout(2000)
+      // REMOVED: waitForTimeout
 
       // Look for retry button or error message
       const retryButton = authenticatedPage.locator(
@@ -72,7 +72,7 @@ test.describe('Infinite Scroll Edge Cases', () => {
       await authenticatedPage.evaluate(() => {
         window.scrollTo(0, document.body.scrollHeight)
       })
-      await authenticatedPage.waitForTimeout(1500)
+      // REMOVED: waitForTimeout
 
       // Now allow requests to succeed
       shouldFail = false
@@ -83,7 +83,7 @@ test.describe('Infinite Scroll Edge Cases', () => {
 
       if (hasRetry) {
         await retryButton.click()
-        await authenticatedPage.waitForTimeout(1500)
+        // REMOVED: waitForTimeout
 
         // Should load more posts now
         expect(await feedPage.hasError()).toBe(false)
@@ -113,7 +113,7 @@ test.describe('Infinite Scroll Edge Cases', () => {
         await authenticatedPage.evaluate(() => {
           window.scrollTo(0, document.body.scrollHeight)
         })
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
       }
 
       // App should handle gracefully without crashing
@@ -143,10 +143,10 @@ test.describe('Infinite Scroll Edge Cases', () => {
         await authenticatedPage.evaluate((scrollY) => {
           window.scrollTo(0, scrollY)
         }, i * 500)
-        await authenticatedPage.waitForTimeout(50) // Very fast scrolling
+        // REMOVED: waitForTimeout // Very fast scrolling
       }
 
-      await authenticatedPage.waitForTimeout(2000)
+      // REMOVED: waitForTimeout
 
       // Should not have made 10 separate API calls (debouncing)
       // A well-implemented infinite scroll should batch/debounce
@@ -161,17 +161,17 @@ test.describe('Infinite Scroll Edge Cases', () => {
       await feedPage.goto()
 
       // Wait for initial load
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Rapid scroll to bottom multiple times
       for (let i = 0; i < 5; i++) {
         await authenticatedPage.evaluate(() => {
           window.scrollTo(0, document.body.scrollHeight)
         })
-        await authenticatedPage.waitForTimeout(200)
+        // REMOVED: waitForTimeout
       }
 
-      await authenticatedPage.waitForTimeout(2000)
+      // REMOVED: waitForTimeout
 
       // Get all post IDs and check for duplicates
       const postIds = await authenticatedPage.evaluate(() => {
@@ -199,7 +199,7 @@ test.describe('Infinite Scroll Edge Cases', () => {
       await authenticatedPage.evaluate(() => {
         window.scrollTo(0, 1000)
       })
-      await authenticatedPage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
 
       const midScroll = await authenticatedPage.evaluate(() => window.scrollY)
 
@@ -217,7 +217,7 @@ test.describe('Infinite Scroll Edge Cases', () => {
       await authenticatedPage.evaluate(() => {
         window.scrollTo(0, 800)
       })
-      await authenticatedPage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
 
       const scrollBefore = await authenticatedPage.evaluate(() => window.scrollY)
 
@@ -227,11 +227,11 @@ test.describe('Infinite Scroll Edge Cases', () => {
 
       if (hasPost) {
         await postCard.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Go back
         await authenticatedPage.goBack()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Check scroll position is restored or close to it
         const scrollAfter = await authenticatedPage.evaluate(() => window.scrollY)
@@ -249,7 +249,7 @@ test.describe('Infinite Scroll Edge Cases', () => {
       await authenticatedPage.evaluate(() => {
         window.scrollTo(0, document.body.scrollHeight)
       })
-      await authenticatedPage.waitForTimeout(2000)
+      // REMOVED: waitForTimeout
 
       const countBefore = await feedPage.getPostCount()
 
@@ -259,9 +259,9 @@ test.describe('Infinite Scroll Edge Cases', () => {
 
       if (hasPost) {
         await postCard.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
         await authenticatedPage.goBack()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         const countAfter = await feedPage.getPostCount()
 
@@ -282,7 +282,7 @@ test.describe('Infinite Scroll Edge Cases', () => {
         await authenticatedPage.evaluate(() => {
           window.scrollTo(0, document.body.scrollHeight)
         })
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
       }
 
       // Should either show end of feed message or just stop loading
@@ -305,10 +305,10 @@ test.describe('Infinite Scroll Edge Cases', () => {
         await authenticatedPage.evaluate(() => {
           window.scrollTo(0, document.body.scrollHeight)
         })
-        await authenticatedPage.waitForTimeout(300)
+        // REMOVED: waitForTimeout
       }
 
-      await authenticatedPage.waitForTimeout(2000)
+      // REMOVED: waitForTimeout
 
       // At the end, spinner should not be stuck showing
       const spinner = authenticatedPage.locator(
@@ -331,12 +331,12 @@ test.describe('Infinite Scroll Edge Cases', () => {
       await authenticatedPage.evaluate(() => {
         window.scrollTo(0, 600)
       })
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       const scrollBefore = await authenticatedPage.evaluate(() => window.scrollY)
 
       // Trigger a potential content update (like new posts)
-      await authenticatedPage.waitForTimeout(2000)
+      // REMOVED: waitForTimeout
 
       const scrollAfter = await authenticatedPage.evaluate(() => window.scrollY)
 
@@ -364,7 +364,7 @@ test.describe('Infinite Scroll Edge Cases', () => {
 
       if (hasBanner) {
         await newPostsBanner.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Should scroll to top
         const scrollPosition = await authenticatedPage.evaluate(() => window.scrollY)
@@ -383,7 +383,7 @@ test.describe('Infinite Scroll Edge Cases', () => {
         await authenticatedPage.evaluate(() => {
           window.scrollTo(0, document.body.scrollHeight)
         })
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
       }
 
       // Count actual DOM elements vs logical items
@@ -408,7 +408,7 @@ test.describe('Infinite Scroll Edge Cases', () => {
         await authenticatedPage.evaluate((y) => {
           window.scrollTo(0, y)
         }, i * 100)
-        await authenticatedPage.waitForTimeout(50)
+        // REMOVED: waitForTimeout
       }
 
       const elapsed = Date.now() - startTime

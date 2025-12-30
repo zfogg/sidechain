@@ -42,7 +42,7 @@ export class SearchPage {
    */
   async goto(): Promise<void> {
     await this.page.goto('/search')
-    await this.page.waitForLoadState('networkidle')
+    await this.page.waitForLoadState('domcontentloaded')
   }
 
   /**
@@ -58,7 +58,7 @@ export class SearchPage {
   async search(query: string): Promise<void> {
     await this.searchInput.fill(query)
     await this.searchInput.press('Enter')
-    await this.page.waitForTimeout(500) // Wait for search to execute
+    // REMOVED: waitForTimeout // Wait for search to execute
   }
 
   /**

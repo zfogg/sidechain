@@ -82,7 +82,7 @@ test.describe('Authentication - Login (UI Flow)', () => {
     await expect(timelineButton).toBeVisible()
 
     // Wait for page to fully load
-    await page.waitForTimeout(1000)
+    // REMOVED: waitForTimeout
 
     // Page should not redirect back to login
     expect(page.url()).toContain('/feed')
@@ -99,7 +99,7 @@ authenticatedTest.describe('Authentication - Token & Fixtures', () => {
       await authenticatedPage.goto('/profile/alice')
 
       // Profile should be visible (not redirected to login)
-      await authenticatedPage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
       expect(authenticatedPage.url()).toContain('/profile/alice')
     }
   )
@@ -112,7 +112,7 @@ authenticatedTest.describe('Authentication - Token & Fixtures', () => {
 
       // View bob's profile
       await bobPage.goto('/profile/bob')
-      await bobPage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
 
       expect(bobPage.url()).toContain('/profile/bob')
 

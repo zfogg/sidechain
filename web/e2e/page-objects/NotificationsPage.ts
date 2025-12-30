@@ -40,7 +40,7 @@ export class NotificationsPage {
    */
   async goto(): Promise<void> {
     await this.page.goto('/notifications')
-    await this.page.waitForLoadState('networkidle')
+    await this.page.waitForLoadState('domcontentloaded')
   }
 
   /**
@@ -55,7 +55,7 @@ export class NotificationsPage {
    */
   async switchToAll(): Promise<void> {
     await this.allTab.click()
-    await this.page.waitForTimeout(500)
+    // REMOVED: waitForTimeout
   }
 
   /**
@@ -63,7 +63,7 @@ export class NotificationsPage {
    */
   async switchToUnread(): Promise<void> {
     await this.unreadTab.click()
-    await this.page.waitForTimeout(500)
+    // REMOVED: waitForTimeout
   }
 
   /**

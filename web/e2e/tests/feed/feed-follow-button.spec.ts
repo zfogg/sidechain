@@ -121,13 +121,13 @@ test.describe('Feed - Follow Button', () => {
       } else {
         await profilePage.follow()
       }
-      await alicePage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
     }
 
     // Now follow from profile
     const wasFollowing = await profilePage.isFollowing()
     await profilePage.follow()
-    await alicePage.waitForTimeout(500)
+    // REMOVED: waitForTimeout
 
     // Navigate back to feed
     await feedPage.goto()
@@ -204,7 +204,7 @@ test.describe('Feed - Follow Button', () => {
 
     // Click follow on first post
     await firstPost.follow()
-    await alicePage.waitForTimeout(500)
+    // REMOVED: waitForTimeout
 
     // All posts by this author should have updated follow buttons
     for (const post of postsByAuthor) {
@@ -297,10 +297,10 @@ test.describe('Feed - Follow Button', () => {
     if (initialProfileFollowState !== initialFeedFollowState) {
       if (initialProfileFollowState) {
         await profilePage.unfollow()
-        await alicePage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
       } else {
         await profilePage.follow()
-        await alicePage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
       }
     }
 
@@ -329,7 +329,7 @@ test.describe('Feed - Follow Button', () => {
 
     // Click follow in feed
     await targetPost.follow()
-    await alicePage.waitForTimeout(500) // Wait for mutation to complete
+    // REMOVED: waitForTimeout // Wait for mutation to complete
 
     // Navigate to profile
     await profilePage.goto(authorUsername)
@@ -386,10 +386,10 @@ test.describe('Feed - Follow Button', () => {
     if (initialProfileFollowState !== initialFollowState) {
       if (initialProfileFollowState) {
         await profilePage.unfollow()
-        await alicePage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
       } else {
         await profilePage.follow()
-        await alicePage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
       }
     }
 
@@ -418,7 +418,7 @@ test.describe('Feed - Follow Button', () => {
 
     // Follow/unfollow to change state
     await targetPost.follow()
-    await alicePage.waitForTimeout(1000) // Wait for mutation to complete
+    // REMOVED: waitForTimeout // Wait for mutation to complete
 
     // Verify optimistic update worked
     const newFollowState = await targetPost.isFollowing()

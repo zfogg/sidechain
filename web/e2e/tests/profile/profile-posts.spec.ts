@@ -76,15 +76,15 @@ test.describe('Profile - User Posts', () => {
     if (firstPost) {
       // Like
       await firstPost.like()
-      await authenticatedPage.waitForTimeout(300)
+      // REMOVED: waitForTimeout
 
       // Save
       await firstPost.save()
-      await authenticatedPage.waitForTimeout(300)
+      // REMOVED: waitForTimeout
 
       // Comment
       await firstPost.comment()
-      await authenticatedPage.waitForTimeout(300)
+      // REMOVED: waitForTimeout
 
       // Should not error
       const hasError = await profilePage.hasError()
@@ -162,7 +162,7 @@ test.describe('Profile - User Posts', () => {
       await firstPost.click()
 
       // Might navigate to post detail
-      await authenticatedPage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
 
       // URL might change
       const newUrl = authenticatedPage.url()
@@ -252,7 +252,7 @@ test.describe('Profile - User Posts', () => {
       if (firstPost) {
         // Like first
         await firstPost.like()
-        await authenticatedPage.waitForTimeout(300)
+        // REMOVED: waitForTimeout
 
         // Find second post (might not be easy with page object)
         // Just verify no error

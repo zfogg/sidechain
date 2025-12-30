@@ -56,7 +56,7 @@ test.describe('Profile - Editing', () => {
       await saveButton.click()
 
       // Wait for save
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Should return to profile
       const finalName = await profilePage.getDisplayName()
@@ -91,7 +91,7 @@ test.describe('Profile - Editing', () => {
       const saveButton = authenticatedPage.locator('button:has-text("Save"), button:has-text("Update")')
       await saveButton.click()
 
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Bio should be updated
       const finalBio = await profilePage.getBio()
@@ -129,7 +129,7 @@ test.describe('Profile - Editing', () => {
         await authenticatedPage.keyboard.press('Escape')
       }
 
-      await authenticatedPage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
 
       // Name should not have changed
       const finalName = await profilePage.getDisplayName()
@@ -276,7 +276,7 @@ test.describe('Profile - Editing', () => {
       const saveButton = authenticatedPage.locator('button:has-text("Save"), button:has-text("Update")')
       await saveButton.click()
 
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Should be back on profile page
       const onProfilePage = authenticatedPage.url().includes('/profile/')

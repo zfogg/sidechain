@@ -248,14 +248,18 @@ export class PostCardElement {
     this.postTitle = cardLocator.locator('h2, h3, [class*="Title"]').first()
     this.postDescription = cardLocator.locator('p', { has: cardLocator }).nth(1)
 
-    this.likeButton = cardLocator.locator('button', { hasText: /❤|Like|like/i }).first()
-    this.likeCount = this.likeButton.locator('.. >> text=/\\d+/').first()
-    this.commentButton = cardLocator.locator('button', { hasText: /💬|Comment|comment/i })
-    this.commentCount = this.commentButton.locator('.. >> text=/\\d+/').first()
-    this.saveButton = cardLocator.locator('button', { hasText: /💾|Save|save|bookmark/i })
-    this.shareButton = cardLocator.locator('button', { hasText: /🔗|Share|share/i })
-    this.playButton = cardLocator.locator('button', { hasText: /▶|Play|play/i }).first()
-    this.followButton = cardLocator.locator('button', { hasText: /^Follow$|^Following$/i }).first()
+    // Action buttons row - find the container with multiple ghost buttons
+    const actionButtonRow = cardLocator.locator('.flex.gap-2 button[class*="ghost"]')
+    // Buttons are in order: Like, Comment, Save, Repost/Share
+    this.likeButton = actionButtonRow.nth(0)
+    this.likeCount = cardLocator.locator('text=/\\d+/').first()
+    this.commentButton = actionButtonRow.nth(1)
+    this.commentCount = cardLocator.locator('text=/\\d+ Comments/i').first()
+    this.saveButton = actionButtonRow.nth(2)
+    this.shareButton = actionButtonRow.nth(3)
+    // Play button in audio player section
+    this.playButton = cardLocator.locator('button:has(svg), [data-testid="play-button"]').first()
+    this.followButton = cardLocator.locator('button:has-text("Follow"), button:has-text("Following")').first()
 
     this.audioPlayer = cardLocator.locator('audio, [data-testid="audio-player"]')
     this.playCount = cardLocator.locator('text=/\\d+\\s+play/i')

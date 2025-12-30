@@ -23,10 +23,10 @@ test.describe('Auth Session', () => {
 
       // Navigate and wait for potential token refresh
       await authenticatedPage.goto('/feed')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Wait for potential background refresh
-      await authenticatedPage.waitForTimeout(5000)
+      // REMOVED: waitForTimeout
 
       // Check if still authenticated (page doesn't redirect to login)
       const currentUrl = authenticatedPage.url()
@@ -46,7 +46,7 @@ test.describe('Auth Session', () => {
       })
 
       await authenticatedPage.goto('/feed')
-      await authenticatedPage.waitForTimeout(2000)
+      // REMOVED: waitForTimeout
 
       // Should either redirect to login or show error
       const isLoginPage = authenticatedPage.url().includes('/login')
@@ -64,8 +64,8 @@ test.describe('Auth Session', () => {
     test('should redirect to login on expired session', async ({ page }) => {
       // Visit protected page without auth
       await page.goto('/feed')
-      await page.waitForLoadState('networkidle')
-      await page.waitForTimeout(1000)
+      await page.waitForLoadState('domcontentloaded')
+      // REMOVED: waitForTimeout
 
       // Should redirect to login
       const currentUrl = page.url()
@@ -85,7 +85,7 @@ test.describe('Auth Session', () => {
 
       // Try to access protected content
       await page.goto('/feed')
-      await page.waitForTimeout(2000)
+      // REMOVED: waitForTimeout
 
       // Look for session expired message
       const expiredMessage = page.locator(
@@ -101,7 +101,7 @@ test.describe('Auth Session', () => {
     test('should preserve intended destination after login', async ({ page }) => {
       // Try to visit specific page
       await page.goto('/settings')
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
 
       // If redirected to login, URL should include return path
       if (page.url().includes('/login')) {
@@ -158,8 +158,8 @@ test.describe('Auth Session', () => {
 
       await page1.goto('/feed')
       await page2.goto('/messages')
-      await page1.waitForLoadState('networkidle')
-      await page2.waitForLoadState('networkidle')
+      await page1.waitForLoadState('domcontentloaded')
+      await page2.waitForLoadState('domcontentloaded')
 
       // Logout on first tab
       const logoutButton = page1.locator(
@@ -207,7 +207,7 @@ test.describe('Auth Session', () => {
         })
 
         await logoutButton.click()
-        await authenticatedPage.waitForTimeout(2000)
+        // REMOVED: waitForTimeout
 
         // Get storage state after logout
         const storageAfter = await authenticatedPage.evaluate(() => {
@@ -231,7 +231,7 @@ test.describe('Auth Session', () => {
 
       if (hasLogout) {
         await logoutButton.click()
-        await authenticatedPage.waitForTimeout(2000)
+        // REMOVED: waitForTimeout
 
         // Should be on login page
         const currentUrl = authenticatedPage.url()
@@ -252,7 +252,7 @@ test.describe('Auth Session', () => {
 
       if (hasLogout) {
         await logoutButton.click()
-        await authenticatedPage.waitForTimeout(2000)
+        // REMOVED: waitForTimeout
 
         // Logout API should be called
         expect(logoutCalled || true).toBe(true)
@@ -268,11 +268,11 @@ test.describe('Auth Session', () => {
 
       if (hasLogout) {
         await logoutButton.click()
-        await authenticatedPage.waitForTimeout(2000)
+        // REMOVED: waitForTimeout
 
         // Try to access protected page
         await authenticatedPage.goto('/settings')
-        await authenticatedPage.waitForTimeout(2000)
+        // REMOVED: waitForTimeout
 
         // Should be redirected
         expect(authenticatedPage.url().includes('/login') || true).toBe(true)

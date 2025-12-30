@@ -92,14 +92,14 @@ test.describe('Repost Flow', () => {
 
       // Click repost
       await repostButton.click()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Handle repost confirmation dialog if present
       const confirmButton = authenticatedPage.locator('button:has-text("Confirm"), button:has-text("Repost")')
       const hasConfirm = await confirmButton.isVisible({ timeout: 1000 }).catch(() => false)
       if (hasConfirm) {
         await confirmButton.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
       }
 
       // Verify repost happened (button state or count changed)
@@ -142,7 +142,7 @@ test.describe('Repost Flow', () => {
 
       if (hasShare) {
         await shareButton.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Look for quote option in dropdown/dialog
         const quoteOption = authenticatedPage.locator('text=/quote|add comment/i')
@@ -189,14 +189,14 @@ test.describe('Repost Flow', () => {
 
       if (canRepost) {
         await repostButton.click()
-        await alicePage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Confirm if needed
         const confirmButton = alicePage.locator('button:has-text("Confirm")')
         if (await confirmButton.isVisible({ timeout: 500 }).catch(() => false)) {
           await confirmButton.click()
         }
-        await alicePage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
       }
 
       // Go to profile
@@ -269,13 +269,13 @@ test.describe('Repost Flow', () => {
 
       // Click to toggle (either repost or unrepost)
       await repostButton.click()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Handle confirmation
       const confirmButton = authenticatedPage.locator('button:has-text("Confirm"), button:has-text("Undo")')
       if (await confirmButton.isVisible({ timeout: 500 }).catch(() => false)) {
         await confirmButton.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
       }
 
       expect(await feedPage.hasError()).toBe(false)
@@ -325,7 +325,7 @@ test.describe('Repost Flow', () => {
 
       const alicePage = await authenticatedPageAs(testUsers.alice)
       await alicePage.goto('/notifications')
-      await alicePage.waitForLoadState('networkidle')
+      await alicePage.waitForLoadState('domcontentloaded')
 
       // Notifications page should load
       const notificationElements = alicePage.locator('[class*="notification"], [data-testid="notification"]')

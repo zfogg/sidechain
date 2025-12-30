@@ -78,7 +78,7 @@ test.describe('Discovery - Recommendations & Interactions', () => {
       const initialLiked = await card.isLiked().catch(() => false)
 
       await card.like()
-      await authenticatedPage.waitForTimeout(300)
+      // REMOVED: waitForTimeout
 
       const finalLiked = await card.isLiked().catch(() => false)
       expect(typeof finalLiked).toBe('boolean')
@@ -111,7 +111,7 @@ test.describe('Discovery - Recommendations & Interactions', () => {
       const card = await discoveryPage.getPostCard(0)
       try {
         await card.save()
-        await authenticatedPage.waitForTimeout(300)
+        // REMOVED: waitForTimeout
         expect(true).toBe(true)
       } catch (e) {
         // Save button might not exist
@@ -130,7 +130,7 @@ test.describe('Discovery - Recommendations & Interactions', () => {
       const card = await discoveryPage.getPostCard(0)
       try {
         await card.comment()
-        await authenticatedPage.waitForTimeout(300)
+        // REMOVED: waitForTimeout
         expect(true).toBe(true)
       } catch (e) {
         // Comment button might not exist or open dialog
@@ -149,7 +149,7 @@ test.describe('Discovery - Recommendations & Interactions', () => {
       const card = await discoveryPage.getPostCard(0)
       try {
         await card.play()
-        await authenticatedPage.waitForTimeout(300)
+        // REMOVED: waitForTimeout
         expect(true).toBe(true)
       } catch (e) {
         // Play button might not exist
@@ -170,7 +170,7 @@ test.describe('Discovery - Recommendations & Interactions', () => {
 
       try {
         await card.clickAuthor()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Should navigate to profile
         const newUrl = authenticatedPage.url()
@@ -194,7 +194,7 @@ test.describe('Discovery - Recommendations & Interactions', () => {
 
       try {
         await card.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         const newUrl = authenticatedPage.url()
         expect(typeof newUrl).toBe('string')

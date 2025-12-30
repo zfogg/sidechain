@@ -25,7 +25,7 @@ test.describe('Feed - Real-time Updates', () => {
     await feedPage.goto()
 
     // Wait a bit
-    await authenticatedPage.waitForTimeout(2000)
+    // REMOVED: waitForTimeout
 
     // Check if still connected (or if WebSocket exists)
     const state = await wsHelper.getConnectionState()
@@ -85,7 +85,7 @@ test.describe('Feed - Real-time Updates', () => {
     const initialCount = await feedPage.getPostCount()
 
     // Wait for potential new posts
-    await authenticatedPage.waitForTimeout(3000)
+    // REMOVED: waitForTimeout
 
     // Count might increase with new posts
     const finalCount = await feedPage.getPostCount()
@@ -124,7 +124,7 @@ test.describe('Feed - Real-time Updates', () => {
     }
 
     // Wait for reconnection
-    await authenticatedPage.waitForTimeout(2000)
+    // REMOVED: waitForTimeout
 
     // Data should still be visible
     const finalPostCount = await feedPage.getPostCount()
@@ -148,7 +148,7 @@ test.describe('Feed - Real-time Updates', () => {
       await postCard.play()
 
       // Wait a moment
-      await authenticatedPage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
 
       // Play count might increase
       const newPlayCount = await postCard.getPlayCount()
@@ -173,11 +173,11 @@ test.describe('Feed - Real-time Updates', () => {
 
     // Like post 1
     await post1.like()
-    await authenticatedPage.waitForTimeout(300)
+    // REMOVED: waitForTimeout
 
     // Like post 2
     await post2.like()
-    await authenticatedPage.waitForTimeout(300)
+    // REMOVED: waitForTimeout
 
     // Both should have updated like counts
     const count1 = await post1.getLikeCount()

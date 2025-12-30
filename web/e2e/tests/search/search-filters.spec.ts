@@ -14,7 +14,7 @@ test.describe('Search Filters', () => {
   test.describe('Content Type Filters', () => {
     test('should filter search to users only', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/search?q=test')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Look for users filter
       const usersFilter = authenticatedPage.locator(
@@ -26,7 +26,7 @@ test.describe('Search Filters', () => {
 
       if (hasUsersFilter) {
         await usersFilter.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Results should only show users
         const results = authenticatedPage.locator('[class*="search-result"], [data-testid="result"]')
@@ -44,7 +44,7 @@ test.describe('Search Filters', () => {
 
     test('should filter search to posts only', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/search?q=loop')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const postsFilter = authenticatedPage.locator(
         'button:has-text("Posts"), [role="tab"]:has-text("Posts"), ' +
@@ -55,7 +55,7 @@ test.describe('Search Filters', () => {
 
       if (hasPostsFilter) {
         await postsFilter.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Should show post results
         const postResults = authenticatedPage.locator(
@@ -69,7 +69,7 @@ test.describe('Search Filters', () => {
 
     test('should filter search to sounds only', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/search?q=beat')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const soundsFilter = authenticatedPage.locator(
         'button:has-text("Sounds"), [role="tab"]:has-text("Sounds"), ' +
@@ -80,7 +80,7 @@ test.describe('Search Filters', () => {
 
       if (hasSoundsFilter) {
         await soundsFilter.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Should show sound results
         const soundResults = authenticatedPage.locator(
@@ -94,7 +94,7 @@ test.describe('Search Filters', () => {
 
     test('should show all results by default', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/search?q=music')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // "All" filter should be active by default
       const allFilter = authenticatedPage.locator(
@@ -112,7 +112,7 @@ test.describe('Search Filters', () => {
   test.describe('Sort Options', () => {
     test('should sort by relevance', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/search?q=producer')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Look for sort dropdown
       const sortDropdown = authenticatedPage.locator(
@@ -124,7 +124,7 @@ test.describe('Search Filters', () => {
 
       if (hasSortDropdown) {
         await sortDropdown.click()
-        await authenticatedPage.waitForTimeout(300)
+        // REMOVED: waitForTimeout
 
         const relevanceOption = authenticatedPage.locator(
           'button:has-text("Relevance"), [role="option"]:has-text("Relevance")'
@@ -137,14 +137,14 @@ test.describe('Search Filters', () => {
 
     test('should sort by recency', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/search?q=new')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const sortDropdown = authenticatedPage.locator('button:has-text("Sort")').first()
       const hasSortDropdown = await sortDropdown.isVisible({ timeout: 2000 }).catch(() => false)
 
       if (hasSortDropdown) {
         await sortDropdown.click()
-        await authenticatedPage.waitForTimeout(300)
+        // REMOVED: waitForTimeout
 
         const recentOption = authenticatedPage.locator(
           'button:has-text("Recent"), [role="option"]:has-text("Newest")'
@@ -154,7 +154,7 @@ test.describe('Search Filters', () => {
 
         if (hasRecent) {
           await recentOption.click()
-          await authenticatedPage.waitForTimeout(1000)
+          // REMOVED: waitForTimeout
 
           // Results should be sorted by date
           expect(true).toBe(true)
@@ -164,14 +164,14 @@ test.describe('Search Filters', () => {
 
     test('should sort by popularity', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/search?q=trending')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const sortDropdown = authenticatedPage.locator('button:has-text("Sort")').first()
       const hasSortDropdown = await sortDropdown.isVisible({ timeout: 2000 }).catch(() => false)
 
       if (hasSortDropdown) {
         await sortDropdown.click()
-        await authenticatedPage.waitForTimeout(300)
+        // REMOVED: waitForTimeout
 
         const popularOption = authenticatedPage.locator(
           'button:has-text("Popular"), [role="option"]:has-text("Most liked")'
@@ -186,7 +186,7 @@ test.describe('Search Filters', () => {
   test.describe('Combined Filters', () => {
     test('should apply multiple filters', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/search?q=hip')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Apply type filter
       const postsFilter = authenticatedPage.locator('button:has-text("Posts")').first()
@@ -194,7 +194,7 @@ test.describe('Search Filters', () => {
 
       if (hasPostsFilter) {
         await postsFilter.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Apply genre filter if available
         const genreFilter = authenticatedPage.locator('button:has-text("Genre")').first()
@@ -202,14 +202,14 @@ test.describe('Search Filters', () => {
 
         if (hasGenreFilter) {
           await genreFilter.click()
-          await authenticatedPage.waitForTimeout(300)
+          // REMOVED: waitForTimeout
 
           const hipHopOption = authenticatedPage.locator('[role="option"]:has-text("Hip Hop")')
           const hasHipHop = await hipHopOption.isVisible({ timeout: 500 }).catch(() => false)
 
           if (hasHipHop) {
             await hipHopOption.click()
-            await authenticatedPage.waitForTimeout(1000)
+            // REMOVED: waitForTimeout
           }
         }
       }
@@ -221,7 +221,7 @@ test.describe('Search Filters', () => {
 
     test('should update URL with filters', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/search?q=test')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const initialUrl = authenticatedPage.url()
 
@@ -231,7 +231,7 @@ test.describe('Search Filters', () => {
 
       if (hasFilter) {
         await usersFilter.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         const newUrl = authenticatedPage.url()
 
@@ -244,7 +244,7 @@ test.describe('Search Filters', () => {
   test.describe('Clear Filters', () => {
     test('should clear all filters', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/search?q=test&type=users')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Look for clear filters button
       const clearButton = authenticatedPage.locator(
@@ -256,7 +256,7 @@ test.describe('Search Filters', () => {
 
       if (hasClear) {
         await clearButton.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Filters should be cleared
         expect(true).toBe(true)
@@ -265,7 +265,7 @@ test.describe('Search Filters', () => {
 
     test('should remove individual filter', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/search?q=test')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Apply a filter
       const usersFilter = authenticatedPage.locator('button:has-text("Users")').first()
@@ -273,11 +273,11 @@ test.describe('Search Filters', () => {
 
       if (hasFilter) {
         await usersFilter.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Click again to remove (toggle behavior)
         await usersFilter.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Or look for X button on filter chip
         const removeFilterButton = authenticatedPage.locator(
@@ -295,7 +295,7 @@ test.describe('Search Filters', () => {
   test.describe('Filter Persistence', () => {
     test('should persist filters on refresh', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/search?q=test')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Apply a filter
       const usersFilter = authenticatedPage.locator('button:has-text("Users")').first()
@@ -303,11 +303,11 @@ test.describe('Search Filters', () => {
 
       if (hasFilter) {
         await usersFilter.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Refresh page
         await authenticatedPage.reload()
-        await authenticatedPage.waitForLoadState('networkidle')
+        await authenticatedPage.waitForLoadState('domcontentloaded')
 
         // Check if filter is still applied (via URL or UI state)
         const url = authenticatedPage.url()
@@ -322,7 +322,7 @@ test.describe('Search Filters', () => {
   test.describe('Empty Results', () => {
     test('should show message for no results with filters', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/search?q=xyznonexistentquery123')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Should show no results message
       const noResults = authenticatedPage.locator(
@@ -335,7 +335,7 @@ test.describe('Search Filters', () => {
 
     test('should suggest removing filters when no results', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/search?q=xyz&type=users')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // May suggest clearing filters
       const suggestion = authenticatedPage.locator(

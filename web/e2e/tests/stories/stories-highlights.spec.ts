@@ -78,7 +78,7 @@ test.describe('Stories Highlights', () => {
 
       if (hasHighlight) {
         await highlightItem.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Story viewer should open
         const storyViewer = authenticatedPage.locator(
@@ -99,7 +99,7 @@ test.describe('Stories Highlights', () => {
 
       if (hasHighlight) {
         await highlightItem.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Navigate to next story
         const nextButton = authenticatedPage.locator(
@@ -109,7 +109,7 @@ test.describe('Stories Highlights', () => {
 
         if (hasNext) {
           await nextButton.click()
-          await authenticatedPage.waitForTimeout(500)
+          // REMOVED: waitForTimeout
 
           // Should advance to next story
           expect(true).toBe(true)
@@ -146,7 +146,7 @@ test.describe('Stories Highlights', () => {
 
       if (hasAddButton) {
         await addButton.click()
-        await alicePage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Creation dialog should appear
         const createDialog = alicePage.locator(
@@ -168,7 +168,7 @@ test.describe('Stories Highlights', () => {
 
       if (hasAddButton) {
         await addButton.click()
-        await alicePage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Look for story selection
         const storyOptions = alicePage.locator(
@@ -180,7 +180,7 @@ test.describe('Stories Highlights', () => {
         if (optionCount > 0) {
           // Select a story
           await storyOptions.first().click()
-          await alicePage.waitForTimeout(300)
+          // REMOVED: waitForTimeout
 
           // Story should be selected
           const selectedStory = alicePage.locator('[class*="story-option"][class*="selected"]')
@@ -201,7 +201,7 @@ test.describe('Stories Highlights', () => {
 
       if (hasAddButton) {
         await addButton.click()
-        await alicePage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Find name input
         const nameInput = alicePage.locator(
@@ -213,7 +213,7 @@ test.describe('Stories Highlights', () => {
 
         if (hasNameInput) {
           await nameInput.fill('My Best Loops')
-          await alicePage.waitForTimeout(300)
+          // REMOVED: waitForTimeout
 
           const value = await nameInput.inputValue()
           expect(value).toBe('My Best Loops')
@@ -234,7 +234,7 @@ test.describe('Stories Highlights', () => {
       if (hasHighlight) {
         // Long press or right-click to show options
         await highlightItem.click({ button: 'right' })
-        await alicePage.waitForTimeout(300)
+        // REMOVED: waitForTimeout
 
         // Look for edit option
         const editOption = alicePage.locator(
@@ -257,7 +257,7 @@ test.describe('Stories Highlights', () => {
 
       if (hasHighlight) {
         await highlightItem.click()
-        await alicePage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Look for add to highlight button in viewer
         const addButton = alicePage.locator(
@@ -279,7 +279,7 @@ test.describe('Stories Highlights', () => {
 
       if (hasHighlight) {
         await highlightItem.click()
-        await alicePage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Look for remove from highlight option
         const removeButton = alicePage.locator(
@@ -304,7 +304,7 @@ test.describe('Stories Highlights', () => {
       if (hasHighlight) {
         // Right-click for context menu
         await highlightItem.click({ button: 'right' })
-        await alicePage.waitForTimeout(300)
+        // REMOVED: waitForTimeout
 
         const deleteOption = alicePage.locator(
           'button:has-text("Delete"), [role="menuitem"]:has-text("Delete")'
@@ -325,14 +325,14 @@ test.describe('Stories Highlights', () => {
 
       if (hasHighlight) {
         await highlightItem.click({ button: 'right' })
-        await alicePage.waitForTimeout(300)
+        // REMOVED: waitForTimeout
 
         const deleteOption = alicePage.locator('[role="menuitem"]:has-text("Delete")')
         const hasDelete = await deleteOption.isVisible({ timeout: 1000 }).catch(() => false)
 
         if (hasDelete) {
           await deleteOption.click()
-          await alicePage.waitForTimeout(300)
+          // REMOVED: waitForTimeout
 
           // Confirmation dialog should appear
           const confirmDialog = alicePage.locator(
@@ -358,7 +358,7 @@ test.describe('Stories Highlights', () => {
 
       if (hasHighlight) {
         await highlightItem.click({ button: 'right' })
-        await alicePage.waitForTimeout(300)
+        // REMOVED: waitForTimeout
 
         const editOption = alicePage.locator('[role="menuitem"]:has-text("Edit cover")')
         const hasEditCover = await editOption.isVisible({ timeout: 1000 }).catch(() => false)

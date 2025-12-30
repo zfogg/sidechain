@@ -68,7 +68,7 @@ test.describe('Message Thread Updates', () => {
           await bobInput.press('Enter')
 
           // Wait a bit for realtime delivery
-          await alicePage.waitForTimeout(3000)
+          // REMOVED: waitForTimeout
 
           // Alice should see the message (if in same conversation)
           // Note: This test depends on test data setup having a shared conversation
@@ -113,7 +113,7 @@ test.describe('Message Thread Updates', () => {
           await messageInput.press('Enter')
 
           // Wait for message to appear
-          await authenticatedPage.waitForTimeout(1000)
+          // REMOVED: waitForTimeout
 
           // Scroll should still be at/near bottom
           const scrollAfter = await messageContainer.evaluate((el) => el.scrollTop)
@@ -180,7 +180,7 @@ test.describe('Message Thread Updates', () => {
         await messagesPage.waitForThreadLoad()
 
         // Unread should be cleared (badge removed from that conversation)
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
         // The unread indicator on the clicked item should be gone
       }
 
@@ -237,7 +237,7 @@ test.describe('Message Thread Updates', () => {
           await bobInput.type('typing test...', { delay: 100 })
 
           // Wait for typing indicator to potentially appear on Alice's screen
-          await alicePage.waitForTimeout(2000)
+          // REMOVED: waitForTimeout
 
           // Check if typing indicator appeared (may not if different conversations)
           const isTypingVisible = await typingIndicator.isVisible({ timeout: 1000 }).catch(() => false)
@@ -308,7 +308,7 @@ test.describe('Message Thread Updates', () => {
 
       // Send
       await messageInput.press('Enter')
-      await authenticatedPage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
 
       // Input should be cleared
       const inputValue = await messageInput.inputValue()
@@ -337,12 +337,12 @@ test.describe('Message Thread Updates', () => {
       // Switch to second conversation
       await messagesPage.clickChannel(1)
       await messagesPage.waitForThreadLoad()
-      await authenticatedPage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
 
       // Switch back to first conversation
       await messagesPage.clickChannel(0)
       await messagesPage.waitForThreadLoad()
-      await authenticatedPage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
 
       // Check if draft was preserved
       const newInput = authenticatedPage.locator('textarea, input[placeholder*="message" i]').first()

@@ -227,7 +227,7 @@ test.describe('Search - Basic Search Functionality', () => {
       if (result) {
         try {
           await result.play()
-          await authenticatedPage.waitForTimeout(300)
+          // REMOVED: waitForTimeout
           expect(true).toBe(true)
         } catch (e) {
           // Play button might not exist
@@ -250,7 +250,7 @@ test.describe('Search - Basic Search Functionality', () => {
         const initialUrl = authenticatedPage.url()
         try {
           await result.click()
-          await authenticatedPage.waitForTimeout(500)
+          // REMOVED: waitForTimeout
           const newUrl = authenticatedPage.url()
           expect(typeof newUrl).toBe('string')
         } catch (e) {

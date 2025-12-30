@@ -17,7 +17,7 @@ test.describe('Playlist CRUD', () => {
     test('should create new playlist', async ({ authenticatedPage }) => {
       // Navigate to playlists page
       await authenticatedPage.goto('/playlists')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Look for create button
       const createButton = authenticatedPage.locator(
@@ -29,7 +29,7 @@ test.describe('Playlist CRUD', () => {
 
       if (hasCreate) {
         await createButton.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Fill in playlist details
         const nameInput = authenticatedPage.locator(
@@ -45,7 +45,7 @@ test.describe('Playlist CRUD', () => {
           // Save
           const saveButton = authenticatedPage.locator('button:has-text("Save"), button:has-text("Create")')
           await saveButton.click()
-          await authenticatedPage.waitForTimeout(1000)
+          // REMOVED: waitForTimeout
 
           // Playlist should be created
           const newPlaylist = authenticatedPage.locator(`text="${playlistName}"`)
@@ -61,14 +61,14 @@ test.describe('Playlist CRUD', () => {
 
     test('should set playlist description', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/playlists')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const createButton = authenticatedPage.locator('button:has-text("New playlist")')
       const hasCreate = await createButton.isVisible({ timeout: 2000 }).catch(() => false)
 
       if (hasCreate) {
         await createButton.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         const descInput = authenticatedPage.locator(
           'textarea[placeholder*="description" i], textarea[name="description"]'
@@ -86,14 +86,14 @@ test.describe('Playlist CRUD', () => {
 
     test('should set playlist visibility', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/playlists')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const createButton = authenticatedPage.locator('button:has-text("New playlist")')
       const hasCreate = await createButton.isVisible({ timeout: 2000 }).catch(() => false)
 
       if (hasCreate) {
         await createButton.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Look for visibility toggle
         const visibilityToggle = authenticatedPage.locator(
@@ -123,7 +123,7 @@ test.describe('Playlist CRUD', () => {
 
       if (hasMenu) {
         await menuButton.click()
-        await authenticatedPage.waitForTimeout(300)
+        // REMOVED: waitForTimeout
 
         const addToPlaylist = authenticatedPage.locator(
           '[role="menuitem"]:has-text("Add to playlist"), ' +
@@ -148,14 +148,14 @@ test.describe('Playlist CRUD', () => {
 
       if (hasMenu) {
         await menuButton.click()
-        await authenticatedPage.waitForTimeout(300)
+        // REMOVED: waitForTimeout
 
         const addToPlaylist = authenticatedPage.locator('[role="menuitem"]:has-text("playlist")')
         const hasAdd = await addToPlaylist.isVisible({ timeout: 1000 }).catch(() => false)
 
         if (hasAdd) {
           await addToPlaylist.click()
-          await authenticatedPage.waitForTimeout(500)
+          // REMOVED: waitForTimeout
 
           // Playlist selection should appear
           const playlistList = authenticatedPage.locator(
@@ -184,14 +184,14 @@ test.describe('Playlist CRUD', () => {
   test.describe('View Playlist', () => {
     test('should view playlist contents', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/playlists')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const playlistItem = authenticatedPage.locator('[class*="playlist-item"]').first()
       const hasPlaylist = await playlistItem.isVisible({ timeout: 3000 }).catch(() => false)
 
       if (hasPlaylist) {
         await playlistItem.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Should show playlist contents
         const playlistPosts = authenticatedPage.locator('[data-testid="post-card"], [class*="post-card"]')
@@ -203,7 +203,7 @@ test.describe('Playlist CRUD', () => {
 
     test('should play playlist', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/playlists')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const playlistItem = authenticatedPage.locator('[class*="playlist-item"]').first()
       const hasPlaylist = await playlistItem.isVisible({ timeout: 3000 }).catch(() => false)
@@ -223,7 +223,7 @@ test.describe('Playlist CRUD', () => {
   test.describe('Edit Playlist', () => {
     test('should edit playlist name', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/playlists')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const playlistItem = authenticatedPage.locator('[class*="playlist-item"]').first()
       const hasPlaylist = await playlistItem.isVisible({ timeout: 3000 }).catch(() => false)
@@ -231,7 +231,7 @@ test.describe('Playlist CRUD', () => {
       if (hasPlaylist) {
         // Open playlist
         await playlistItem.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Look for edit button
         const editButton = authenticatedPage.locator(
@@ -245,14 +245,14 @@ test.describe('Playlist CRUD', () => {
 
     test('should remove post from playlist', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/playlists')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const playlistItem = authenticatedPage.locator('[class*="playlist-item"]').first()
       const hasPlaylist = await playlistItem.isVisible({ timeout: 3000 }).catch(() => false)
 
       if (hasPlaylist) {
         await playlistItem.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Look for remove button on a post
         const removeButton = authenticatedPage.locator(
@@ -266,7 +266,7 @@ test.describe('Playlist CRUD', () => {
 
     test('should reorder posts in playlist', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/playlists')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Look for drag handles
       const dragHandle = authenticatedPage.locator(
@@ -283,14 +283,14 @@ test.describe('Playlist CRUD', () => {
   test.describe('Delete Playlist', () => {
     test('should delete playlist', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/playlists')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const playlistItem = authenticatedPage.locator('[class*="playlist-item"]').first()
       const hasPlaylist = await playlistItem.isVisible({ timeout: 3000 }).catch(() => false)
 
       if (hasPlaylist) {
         await playlistItem.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Look for delete option
         const deleteButton = authenticatedPage.locator(
@@ -304,7 +304,7 @@ test.describe('Playlist CRUD', () => {
 
     test('should confirm before deleting playlist', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/playlists')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // If delete is clicked, should show confirmation
       const confirmDialog = authenticatedPage.locator(

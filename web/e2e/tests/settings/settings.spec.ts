@@ -114,7 +114,7 @@ test.describe('Settings - User Preferences', () => {
     if (hasSave) {
       try {
         await settingsPage.clickSave()
-        await authenticatedPage.waitForTimeout(300)
+        // REMOVED: waitForTimeout
         expect(true).toBe(true)
       } catch (e) {
         // Button might not be functional
@@ -138,7 +138,7 @@ test.describe('Settings - User Preferences', () => {
     if (toggleCount > 0) {
       try {
         await settingsPage.toggleSwitch(0)
-        await authenticatedPage.waitForTimeout(300)
+        // REMOVED: waitForTimeout
         expect(true).toBe(true)
       } catch (e) {
         // Toggle might not exist
@@ -187,7 +187,7 @@ test.describe('Settings - User Preferences', () => {
     if (hasSave) {
       try {
         await settingsPage.clickSave()
-        await authenticatedPage.waitForTimeout(300)
+        // REMOVED: waitForTimeout
 
         // Should still be on privacy tab
         const stillActive = await settingsPage.isTabActive('privacy')
@@ -265,7 +265,7 @@ test.describe('Settings - User Preferences', () => {
     for (const tab of tabs) {
       try {
         await settingsPage.switchTab(tab)
-        await authenticatedPage.waitForTimeout(100)
+        // REMOVED: waitForTimeout
       } catch (e) {
         // Ignore
       }

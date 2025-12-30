@@ -52,7 +52,7 @@ test.describe('Feed - Post Interactions', () => {
 
     // Like the post first
     await postCard.like()
-    await authenticatedPage.waitForTimeout(500)
+    // REMOVED: waitForTimeout
 
     const likedCount = await postCard.getLikeCount()
 
@@ -211,15 +211,15 @@ test.describe('Feed - Post Interactions', () => {
 
     // Like
     await postCard.like()
-    await authenticatedPage.waitForTimeout(300)
+    // REMOVED: waitForTimeout
 
     // Save
     await postCard.save()
-    await authenticatedPage.waitForTimeout(300)
+    // REMOVED: waitForTimeout
 
     // Comment
     await postCard.comment()
-    await authenticatedPage.waitForTimeout(300)
+    // REMOVED: waitForTimeout
 
     // Should still be functional
     const hasError = await feedPage.hasError()

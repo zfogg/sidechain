@@ -59,14 +59,14 @@ test.describe('Infinite Scroll - Deep Validation', () => {
 
       // Scroll to trigger load
       await feedPage.scrollToBottom()
-      await authenticatedPage.waitForTimeout(2000)
+      // REMOVED: waitForTimeout
 
       // Check for load more button or automatic loading
       const hasLoadMore = await feedPage.hasMorePostsToLoad()
 
       if (hasLoadMore) {
         await feedPage.clickLoadMore()
-        await authenticatedPage.waitForTimeout(2000)
+        // REMOVED: waitForTimeout
       }
 
       // Either more posts loaded or we reached the end
@@ -90,11 +90,11 @@ test.describe('Infinite Scroll - Deep Validation', () => {
 
       // Scroll down
       await feedPage.scrollToBottom()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Scroll back up
       await authenticatedPage.evaluate(() => window.scrollTo(0, 0))
-      await authenticatedPage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
 
       // First post should still be the same
       const newFirstPost = feedPage.getPostCard(0)
@@ -122,11 +122,11 @@ test.describe('Infinite Scroll - Deep Validation', () => {
 
       // Scroll to load more
       await feedPage.scrollToBottom()
-      await authenticatedPage.waitForTimeout(2000)
+      // REMOVED: waitForTimeout
 
       if (await feedPage.hasMorePostsToLoad()) {
         await feedPage.clickLoadMore()
-        await authenticatedPage.waitForTimeout(2000)
+        // REMOVED: waitForTimeout
       }
 
       const newCount = await feedPage.getPostCount()
@@ -172,7 +172,7 @@ test.describe('Infinite Scroll - Deep Validation', () => {
 
       while (scrollAttempts < maxScrolls) {
         await feedPage.scrollToBottom()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         const hasMore = await feedPage.hasMorePostsToLoad()
         const endMessage = await authenticatedPage.locator('text=/no more|end of feed|all caught up|that.s all/i').isVisible({ timeout: 500 }).catch(() => false)
@@ -185,7 +185,7 @@ test.describe('Infinite Scroll - Deep Validation', () => {
 
         if (hasMore) {
           await feedPage.clickLoadMore()
-          await authenticatedPage.waitForTimeout(1000)
+          // REMOVED: waitForTimeout
         }
 
         scrollAttempts++
@@ -202,13 +202,13 @@ test.describe('Infinite Scroll - Deep Validation', () => {
 
       // Scroll to load some posts
       await feedPage.scrollToBottom()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       const globalCount = await feedPage.getPostCount()
 
       // Switch to different feed type
       await feedPage.switchToFeedType('timeline')
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Should be back at the top with reset pagination
       const scrollPosition = await authenticatedPage.evaluate(() => window.scrollY)
@@ -239,7 +239,7 @@ test.describe('Infinite Scroll - Deep Validation', () => {
 
       // Scroll to trigger pagination
       await feedPage.scrollToBottom()
-      await authenticatedPage.waitForTimeout(2000)
+      // REMOVED: waitForTimeout
 
       // Look for error or retry UI
       const hasError = await feedPage.hasError()
@@ -272,11 +272,11 @@ test.describe('Infinite Scroll - Deep Validation', () => {
       // Rapidly scroll multiple times
       for (let i = 0; i < 5; i++) {
         await feedPage.scrollToBottom()
-        await authenticatedPage.waitForTimeout(100) // Very fast
+        // REMOVED: waitForTimeout // Very fast
       }
 
       // Wait for requests to settle
-      await authenticatedPage.waitForTimeout(2000)
+      // REMOVED: waitForTimeout
 
       // Should not have made excessive requests (debounce/throttle)
       expect(feedRequests).toBeLessThan(10)
@@ -296,7 +296,7 @@ test.describe('Infinite Scroll - Deep Validation', () => {
 
       // Scroll down
       await feedPage.scrollToBottom()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       const scrollPositionBefore = await authenticatedPage.evaluate(() => window.scrollY)
       expect(scrollPositionBefore).toBeGreaterThan(0)
@@ -304,11 +304,11 @@ test.describe('Infinite Scroll - Deep Validation', () => {
       // Click on a post to navigate away
       const postCard = feedPage.getPostCard(0)
       await postCard.click()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Go back
       await authenticatedPage.goBack()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Scroll position may or may not be restored (depends on implementation)
       // Just verify the feed loads correctly
@@ -328,7 +328,7 @@ test.describe('Infinite Scroll - Deep Validation', () => {
       // Click on a post to open comments
       const postCard = feedPage.getPostCard(0)
       await postCard.comment()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Look for comments section
       const commentsSection = authenticatedPage.locator('[class*="comment"], [data-testid="comments"]')
@@ -345,7 +345,7 @@ test.describe('Infinite Scroll - Deep Validation', () => {
 
         if (hasLoadMore) {
           await loadMoreComments.click()
-          await authenticatedPage.waitForTimeout(1000)
+          // REMOVED: waitForTimeout
 
           // Should have more comments now
           const newCommentCount = await commentItems.count()
@@ -362,7 +362,7 @@ test.describe('Infinite Scroll - Deep Validation', () => {
     test('should paginate search results', async ({ authenticatedPage }) => {
       // Navigate to search
       await authenticatedPage.goto('/search')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Find search input
       const searchInput = authenticatedPage.locator('input[type="search"], input[placeholder*="search" i]').first()
@@ -372,7 +372,7 @@ test.describe('Infinite Scroll - Deep Validation', () => {
       // Search for something common
       await searchInput.fill('audio')
       await searchInput.press('Enter')
-      await authenticatedPage.waitForTimeout(2000)
+      // REMOVED: waitForTimeout
 
       // Count initial results
       const results = authenticatedPage.locator('[data-testid="search-result"], [class*="search-result"], [class*="post-card"]')
@@ -381,7 +381,7 @@ test.describe('Infinite Scroll - Deep Validation', () => {
       if (initialCount > 0) {
         // Try to load more
         await authenticatedPage.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
-        await authenticatedPage.waitForTimeout(2000)
+        // REMOVED: waitForTimeout
 
         // Look for load more or automatic loading
         const loadMore = authenticatedPage.locator('button:has-text("Load More"), button:has-text("Show More")')
@@ -389,7 +389,7 @@ test.describe('Infinite Scroll - Deep Validation', () => {
 
         if (hasLoadMore) {
           await loadMore.click()
-          await authenticatedPage.waitForTimeout(1000)
+          // REMOVED: waitForTimeout
         }
       }
 

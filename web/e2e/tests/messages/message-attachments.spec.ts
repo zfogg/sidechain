@@ -38,7 +38,7 @@ test.describe('Message Attachments', () => {
 
       if (hasAttachButton) {
         await attachButton.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Look for file input or image option
         const imageOption = authenticatedPage.locator(
@@ -125,7 +125,7 @@ test.describe('Message Attachments', () => {
 
       if (hasImage) {
         await imageMessage.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Lightbox or modal should appear
         const lightbox = authenticatedPage.locator(
@@ -158,7 +158,7 @@ test.describe('Message Attachments', () => {
 
       if (hasAttachButton) {
         await attachButton.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Look for audio option
         const audioOption = authenticatedPage.locator(
@@ -212,7 +212,7 @@ test.describe('Message Attachments', () => {
 
       if (hasPlayButton) {
         await playButton.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Audio should start playing (button may change to pause)
         const pauseButton = authenticatedPage.locator(
@@ -245,7 +245,7 @@ test.describe('Message Attachments', () => {
 
       if (hasAttachButton) {
         await attachButton.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Look for file option
         const fileOption = authenticatedPage.locator(

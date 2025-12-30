@@ -15,7 +15,7 @@ test.describe('Story Viewing', () => {
   test.describe('Story Tray', () => {
     test('should display story tray on feed page', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/feed')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Look for story tray/carousel
       const storyTray = authenticatedPage.locator(
@@ -31,7 +31,7 @@ test.describe('Story Viewing', () => {
 
     test('should show story avatars from followed users', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/feed')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const storyAvatars = authenticatedPage.locator(
         '[class*="story-avatar"], [class*="story-item"], [data-testid="story-avatar"]'
@@ -45,7 +45,7 @@ test.describe('Story Viewing', () => {
 
     test('should indicate unviewed stories with ring', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/feed')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Look for unviewed story indicator (usually a colored ring around avatar)
       const unviewedStory = authenticatedPage.locator(
@@ -61,7 +61,7 @@ test.describe('Story Viewing', () => {
 
     test('should show own story option first', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/feed')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // First item in story tray is often "Add your story" or own story
       const firstStoryItem = authenticatedPage.locator(
@@ -84,14 +84,14 @@ test.describe('Story Viewing', () => {
   test.describe('Story Viewer', () => {
     test('should open story viewer on click', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/feed')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const storyItem = authenticatedPage.locator('[class*="story-item"], [data-testid="story-avatar"]').first()
       const hasStory = await storyItem.isVisible({ timeout: 3000 }).catch(() => false)
 
       if (hasStory) {
         await storyItem.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Story viewer should open
         const storyViewer = authenticatedPage.locator(
@@ -105,14 +105,14 @@ test.describe('Story Viewing', () => {
 
     test('should show story progress indicator', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/feed')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const storyItem = authenticatedPage.locator('[class*="story-item"]').first()
       const hasStory = await storyItem.isVisible({ timeout: 3000 }).catch(() => false)
 
       if (hasStory) {
         await storyItem.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Look for progress bar
         const progressBar = authenticatedPage.locator(
@@ -126,14 +126,14 @@ test.describe('Story Viewing', () => {
 
     test('should play audio in story', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/feed')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const storyItem = authenticatedPage.locator('[class*="story-item"]').first()
       const hasStory = await storyItem.isVisible({ timeout: 3000 }).catch(() => false)
 
       if (hasStory) {
         await storyItem.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Look for audio element or waveform
         const audioElement = authenticatedPage.locator(
@@ -147,14 +147,14 @@ test.describe('Story Viewing', () => {
 
     test('should show story author info', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/feed')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const storyItem = authenticatedPage.locator('[class*="story-item"]').first()
       const hasStory = await storyItem.isVisible({ timeout: 3000 }).catch(() => false)
 
       if (hasStory) {
         await storyItem.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Look for author info in story viewer
         const authorInfo = authenticatedPage.locator(
@@ -170,14 +170,14 @@ test.describe('Story Viewing', () => {
   test.describe('Story Navigation', () => {
     test('should navigate to next story', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/feed')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const storyItem = authenticatedPage.locator('[class*="story-item"]').first()
       const hasStory = await storyItem.isVisible({ timeout: 3000 }).catch(() => false)
 
       if (hasStory) {
         await storyItem.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Click on right side or next button
         const nextButton = authenticatedPage.locator(
@@ -187,7 +187,7 @@ test.describe('Story Viewing', () => {
 
         if (hasNextButton) {
           await nextButton.click()
-          await authenticatedPage.waitForTimeout(500)
+          // REMOVED: waitForTimeout
         } else {
           // Tap on right side of story
           const viewer = authenticatedPage.locator('[class*="story-viewer"]')
@@ -205,14 +205,14 @@ test.describe('Story Viewing', () => {
 
     test('should navigate to previous story', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/feed')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const storyItem = authenticatedPage.locator('[class*="story-item"]').first()
       const hasStory = await storyItem.isVisible({ timeout: 3000 }).catch(() => false)
 
       if (hasStory) {
         await storyItem.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Click on left side or prev button
         const prevButton = authenticatedPage.locator(
@@ -222,7 +222,7 @@ test.describe('Story Viewing', () => {
 
         if (hasPrevButton) {
           await prevButton.click()
-          await authenticatedPage.waitForTimeout(500)
+          // REMOVED: waitForTimeout
         } else {
           // Tap on left side of story
           const viewer = authenticatedPage.locator('[class*="story-viewer"]')
@@ -240,14 +240,14 @@ test.describe('Story Viewing', () => {
 
     test('should close story viewer', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/feed')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const storyItem = authenticatedPage.locator('[class*="story-item"]').first()
       const hasStory = await storyItem.isVisible({ timeout: 3000 }).catch(() => false)
 
       if (hasStory) {
         await storyItem.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Close button or press escape
         const closeButton = authenticatedPage.locator(
@@ -261,7 +261,7 @@ test.describe('Story Viewing', () => {
           await authenticatedPage.keyboard.press('Escape')
         }
 
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Story viewer should be closed
         const viewerStillVisible = await authenticatedPage.locator('[class*="story-viewer"]').isVisible({ timeout: 500 }).catch(() => false)
@@ -273,14 +273,14 @@ test.describe('Story Viewing', () => {
   test.describe('Story Interactions', () => {
     test('should be able to reply to story', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/feed')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const storyItem = authenticatedPage.locator('[class*="story-item"]').first()
       const hasStory = await storyItem.isVisible({ timeout: 3000 }).catch(() => false)
 
       if (hasStory) {
         await storyItem.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Look for reply input
         const replyInput = authenticatedPage.locator(
@@ -295,14 +295,14 @@ test.describe('Story Viewing', () => {
 
     test('should be able to like/react to story', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/feed')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const storyItem = authenticatedPage.locator('[class*="story-item"]').first()
       const hasStory = await storyItem.isVisible({ timeout: 3000 }).catch(() => false)
 
       if (hasStory) {
         await storyItem.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Look for like/react button
         const likeButton = authenticatedPage.locator(
@@ -319,7 +319,7 @@ test.describe('Story Viewing', () => {
   test.describe('Story Expiration', () => {
     test('should not show expired stories', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/feed')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Look for any expired story indicators
       const expiredIndicator = authenticatedPage.locator('text=/expired/i')

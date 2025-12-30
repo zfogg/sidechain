@@ -41,7 +41,7 @@ test.describe('Message Reactions', () => {
 
       if (hasReactionButton) {
         await reactionTrigger.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Select an emoji (heart or thumbs up are common)
         const emoji = authenticatedPage.locator('button:has-text("❤️"), button:has-text("👍"), [data-emoji]').first()
@@ -49,7 +49,7 @@ test.describe('Message Reactions', () => {
 
         if (hasEmoji) {
           await emoji.click()
-          await authenticatedPage.waitForTimeout(1000)
+          // REMOVED: waitForTimeout
 
           // Reaction should appear on message
           const reaction = message.locator('[class*="reaction"], [data-testid="reaction"]')
@@ -146,7 +146,7 @@ test.describe('Message Reactions', () => {
 
       if (hasReaction) {
         await reaction.hover()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Tooltip or popover with user names should appear
         const tooltip = authenticatedPage.locator('[role="tooltip"], [class*="tooltip"], [class*="popover"]')
@@ -176,7 +176,7 @@ test.describe('Message Reactions', () => {
       if (hasOwnReaction) {
         // Click to toggle off
         await ownReaction.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Reaction should be removed or toggled
         const stillVisible = await ownReaction.isVisible({ timeout: 500 }).catch(() => false)

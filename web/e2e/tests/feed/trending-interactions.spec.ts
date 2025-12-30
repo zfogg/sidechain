@@ -27,7 +27,7 @@ test.describe('Trending Interactions', () => {
 
       // Toggle like
       await postCard.like()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       const isNowLiked = await postCard.isLiked()
 
@@ -51,7 +51,7 @@ test.describe('Trending Interactions', () => {
       const wasLiked = await postCard.isLiked()
       if (!wasLiked) {
         await postCard.like()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         const newCount = await postCard.getLikeCount()
         expect(newCount).toBeGreaterThanOrEqual(initialCount)
@@ -71,19 +71,19 @@ test.describe('Trending Interactions', () => {
       // Like a post
       const postCard = feedPage.getPostCard(0)
       await postCard.like()
-      await authenticatedPage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
 
       // Scroll away
       await authenticatedPage.evaluate(() => {
         window.scrollTo(0, 1000)
       })
-      await authenticatedPage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
 
       // Scroll back
       await authenticatedPage.evaluate(() => {
         window.scrollTo(0, 0)
       })
-      await authenticatedPage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
 
       // Like state should persist
       expect(await feedPage.hasError()).toBe(false)
@@ -103,7 +103,7 @@ test.describe('Trending Interactions', () => {
 
       // Play audio
       await postCard.play()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Should be playing (check for pause button or playing state)
       const pauseButton = postCard.locator.locator(
@@ -125,7 +125,7 @@ test.describe('Trending Interactions', () => {
 
       const postCard = feedPage.getPostCard(0)
       await postCard.play()
-      await authenticatedPage.waitForTimeout(2000)
+      // REMOVED: waitForTimeout
 
       // Look for waveform progress indicator
       const waveformProgress = postCard.locator.locator(
@@ -147,12 +147,12 @@ test.describe('Trending Interactions', () => {
       // Play first post
       const firstPost = feedPage.getPostCard(0)
       await firstPost.play()
-      await authenticatedPage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
 
       // Play second post
       const secondPost = feedPage.getPostCard(1)
       await secondPost.play()
-      await authenticatedPage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
 
       // First should no longer be playing
       const firstPauseButton = firstPost.locator.locator('button[aria-label*="pause" i]')
@@ -177,7 +177,7 @@ test.describe('Trending Interactions', () => {
 
       // Click on the post (not on interactive elements)
       await postCard.click()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       const newUrl = authenticatedPage.url()
 
@@ -204,7 +204,7 @@ test.describe('Trending Interactions', () => {
 
       if (hasUserLink) {
         await userLink.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Should be on profile page
         const isProfilePage = authenticatedPage.url().includes('/user') ||
@@ -224,11 +224,11 @@ test.describe('Trending Interactions', () => {
       // Navigate to post
       const postCard = feedPage.getPostCard(0)
       await postCard.click()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Go back
       await authenticatedPage.goBack()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Should still be on trending (or feed page)
       expect(authenticatedPage.url().includes('/feed') || true).toBe(true)
@@ -246,7 +246,7 @@ test.describe('Trending Interactions', () => {
 
       const postCard = feedPage.getPostCard(0)
       await postCard.comment()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Comments section should be visible
       const commentsSection = authenticatedPage.locator(
@@ -267,7 +267,7 @@ test.describe('Trending Interactions', () => {
 
       const postCard = feedPage.getPostCard(0)
       await postCard.comment()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Find comment input
       const commentInput = authenticatedPage.locator(
@@ -280,7 +280,7 @@ test.describe('Trending Interactions', () => {
         const uniqueComment = `Great trending post! ${Date.now()}`
         await commentInput.fill(uniqueComment)
         await commentInput.press('Enter')
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Comment should appear
         const newComment = authenticatedPage.locator(`text="${uniqueComment}"`)
@@ -302,7 +302,7 @@ test.describe('Trending Interactions', () => {
 
       const postCard = feedPage.getPostCard(0)
       await postCard.repost()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Repost should be confirmed (button state change or toast)
       expect(await feedPage.hasError()).toBe(false)

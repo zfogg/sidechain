@@ -32,7 +32,7 @@ test.describe('Message Share Flow', () => {
 
       if (hasShareButton) {
         await shareButton.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Share dialog should open
         const shareDialog = authenticatedPage.locator(
@@ -59,7 +59,7 @@ test.describe('Message Share Flow', () => {
 
       if (hasShareButton) {
         await shareButton.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Look for recent conversations list
         const recentConversations = authenticatedPage.locator(
@@ -91,7 +91,7 @@ test.describe('Message Share Flow', () => {
 
       if (hasShareButton) {
         await shareButton.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Look for search input
         const searchInput = authenticatedPage.locator(
@@ -103,7 +103,7 @@ test.describe('Message Share Flow', () => {
 
         if (hasSearch) {
           await searchInput.fill(testUsers.bob.username)
-          await authenticatedPage.waitForTimeout(500)
+          // REMOVED: waitForTimeout
 
           // Search results should appear
           const results = authenticatedPage.locator('[class*="search-result"], [class*="user-item"]')
@@ -126,7 +126,7 @@ test.describe('Message Share Flow', () => {
 
       if (hasShareButton) {
         await shareButton.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Close dialog
         const closeButton = authenticatedPage.locator(
@@ -137,7 +137,7 @@ test.describe('Message Share Flow', () => {
 
         if (hasClose) {
           await closeButton.click()
-          await authenticatedPage.waitForTimeout(300)
+          // REMOVED: waitForTimeout
 
           // Dialog should be closed
           const dialog = authenticatedPage.locator('[class*="share-dialog"], [role="dialog"]:has-text("Share")')
@@ -162,7 +162,7 @@ test.describe('Message Share Flow', () => {
 
       if (hasShareButton) {
         await shareButton.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Click on a recipient
         const recipient = authenticatedPage.locator(
@@ -174,7 +174,7 @@ test.describe('Message Share Flow', () => {
 
         if (hasRecipient) {
           await recipient.click()
-          await authenticatedPage.waitForTimeout(300)
+          // REMOVED: waitForTimeout
 
           // Recipient should be selected (checkbox, highlight, etc)
           const isSelected = await recipient.locator(
@@ -199,7 +199,7 @@ test.describe('Message Share Flow', () => {
 
       if (hasShareButton) {
         await shareButton.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Select multiple recipients
         const recipients = authenticatedPage.locator('[class*="recipient-item"]')
@@ -207,9 +207,9 @@ test.describe('Message Share Flow', () => {
 
         if (recipientCount >= 2) {
           await recipients.nth(0).click()
-          await authenticatedPage.waitForTimeout(100)
+          // REMOVED: waitForTimeout
           await recipients.nth(1).click()
-          await authenticatedPage.waitForTimeout(300)
+          // REMOVED: waitForTimeout
 
           // Multiple should be selected
           const selectedCount = await authenticatedPage.locator(
@@ -235,7 +235,7 @@ test.describe('Message Share Flow', () => {
 
       if (hasShareButton) {
         await shareButton.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         const recipient = authenticatedPage.locator('[class*="recipient-item"]').first()
         const hasRecipient = await recipient.isVisible({ timeout: 2000 }).catch(() => false)
@@ -243,9 +243,9 @@ test.describe('Message Share Flow', () => {
         if (hasRecipient) {
           // Select then deselect
           await recipient.click()
-          await authenticatedPage.waitForTimeout(100)
+          // REMOVED: waitForTimeout
           await recipient.click()
-          await authenticatedPage.waitForTimeout(300)
+          // REMOVED: waitForTimeout
 
           // Should be deselected
           expect(await feedPage.hasError()).toBe(false)
@@ -268,7 +268,7 @@ test.describe('Message Share Flow', () => {
 
       if (hasShareButton) {
         await shareButton.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Select a recipient
         const recipient = authenticatedPage.locator('[class*="recipient-item"]').first()
@@ -276,7 +276,7 @@ test.describe('Message Share Flow', () => {
 
         if (hasRecipient) {
           await recipient.click()
-          await authenticatedPage.waitForTimeout(300)
+          // REMOVED: waitForTimeout
 
           // Add optional message
           const messageInput = authenticatedPage.locator(
@@ -297,7 +297,7 @@ test.describe('Message Share Flow', () => {
 
           if (hasSendButton) {
             await sendButton.click()
-            await authenticatedPage.waitForTimeout(1000)
+            // REMOVED: waitForTimeout
 
             // Dialog should close or show success
             expect(await feedPage.hasError()).toBe(false)
@@ -341,7 +341,7 @@ test.describe('Message Share Flow', () => {
 
       if (hasViewOption) {
         await viewMessage.click()
-        await alicePage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Should be on messages page
         expect(alicePage.url()).toContain('message')
@@ -363,7 +363,7 @@ test.describe('Message Share Flow', () => {
 
       if (hasShareButton) {
         await shareButton.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Look for "new message" or search for user option
         const newMessageOption = authenticatedPage.locator(
@@ -374,7 +374,7 @@ test.describe('Message Share Flow', () => {
 
         if (hasNewOption) {
           await newMessageOption.click()
-          await authenticatedPage.waitForTimeout(500)
+          // REMOVED: waitForTimeout
 
           // User search should appear
           const userSearch = authenticatedPage.locator('input[placeholder*="user" i]')
@@ -399,7 +399,7 @@ test.describe('Message Share Flow', () => {
 
       if (hasShareButton) {
         await shareButton.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Should show preview of what's being shared
         const preview = authenticatedPage.locator(

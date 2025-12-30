@@ -119,7 +119,7 @@ test.describe('OAuth - Google Login Flow', () => {
     await page.goto('/auth/callback?session_id=invalid_session_id_12345')
 
     // Should either show error or redirect to login
-    await page.waitForTimeout(2000)
+    // REMOVED: waitForTimeout
 
     const errorMessage = page.locator('text=/error|failed|invalid/i')
     const isError = await errorMessage.isVisible({ timeout: 5000 }).catch(() => false)

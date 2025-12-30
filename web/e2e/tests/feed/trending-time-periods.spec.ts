@@ -63,7 +63,7 @@ test.describe('Trending Time Periods', () => {
 
       if (hasTodayButton) {
         await todayButton.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Feed should update
         const postCount = await feedPage.getPostCount()
@@ -99,7 +99,7 @@ test.describe('Trending Time Periods', () => {
 
       if (hasWeekButton) {
         await weekButton.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         const postCount = await feedPage.getPostCount()
 
@@ -133,7 +133,7 @@ test.describe('Trending Time Periods', () => {
       let todayCount = 0
       if (hasTodayButton) {
         await todayButton.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
         todayCount = await feedPage.getPostCount()
       }
 
@@ -144,7 +144,7 @@ test.describe('Trending Time Periods', () => {
       let weekCount = 0
       if (hasWeekButton) {
         await weekButton.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
         weekCount = await feedPage.getPostCount()
       }
 
@@ -170,7 +170,7 @@ test.describe('Trending Time Periods', () => {
 
       if (hasMonthButton) {
         await monthButton.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         const postCount = await feedPage.getPostCount()
 
@@ -202,7 +202,7 @@ test.describe('Trending Time Periods', () => {
 
       if (hasMonthButton) {
         await monthButton.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Get new posts
         const newContent: string[] = []
@@ -260,7 +260,7 @@ test.describe('Trending Time Periods', () => {
 
       if (hasMonthButton) {
         await monthButton.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         const newUrl = authenticatedPage.url()
 
@@ -283,15 +283,15 @@ test.describe('Trending Time Periods', () => {
 
       if (hasMonthButton) {
         await monthButton.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Switch to different feed type
         await feedPage.switchToFeedType('global')
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Switch back to trending
         await feedPage.switchToFeedType('trending')
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Check if month is still selected
         const monthActive = await authenticatedPage.locator(
@@ -316,7 +316,7 @@ test.describe('Trending Time Periods', () => {
 
       if (hasTodayButton) {
         await todayButton.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         const postCount = await feedPage.getPostCount()
         const hasEmpty = await feedPage.hasEmptyState()

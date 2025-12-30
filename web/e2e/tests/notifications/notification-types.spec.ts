@@ -18,7 +18,7 @@ test.describe('Notification Types', () => {
   test.describe('Notifications Page', () => {
     test('should load notifications page', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/notifications')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Should not show error
       const hasError = await authenticatedPage.locator('text=/error|failed/i').isVisible({ timeout: 2000 }).catch(() => false)
@@ -27,7 +27,7 @@ test.describe('Notification Types', () => {
 
     test('should display notification list or empty state', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/notifications')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const notifications = authenticatedPage.locator('[class*="notification"], [data-testid="notification"]')
       const notificationCount = await notifications.count()
@@ -41,7 +41,7 @@ test.describe('Notification Types', () => {
 
     test('should show unread count in navigation', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/feed')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Look for notification badge in nav
       const notificationBadge = authenticatedPage.locator(
@@ -82,7 +82,7 @@ test.describe('Notification Types', () => {
 
           if (hasLikeButton) {
             await likeButton.click()
-            await bobPage.waitForTimeout(1000)
+            // REMOVED: waitForTimeout
           }
         }
       }
@@ -90,7 +90,7 @@ test.describe('Notification Types', () => {
       // Check Alice's notifications
       const alicePage = await authenticatedPageAs(testUsers.alice)
       await alicePage.goto('/notifications')
-      await alicePage.waitForLoadState('networkidle')
+      await alicePage.waitForLoadState('domcontentloaded')
 
       // Look for like notification
       const likeNotification = alicePage.locator('text=/liked/i')
@@ -102,7 +102,7 @@ test.describe('Notification Types', () => {
 
     test('should show who liked the post', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/notifications')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const likeNotification = authenticatedPage.locator('[class*="notification"]:has-text("liked")').first()
       const hasLikeNotification = await likeNotification.isVisible({ timeout: 3000 }).catch(() => false)
@@ -118,7 +118,7 @@ test.describe('Notification Types', () => {
   test.describe('Comment Notifications', () => {
     test('should show comment notification', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/notifications')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const commentNotification = authenticatedPage.locator('text=/commented/i')
       const hasCommentNotification = await commentNotification.count()
@@ -129,7 +129,7 @@ test.describe('Notification Types', () => {
 
     test('should show comment preview in notification', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/notifications')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const commentNotification = authenticatedPage.locator('[class*="notification"]:has-text("commented")').first()
       const hasCommentNotification = await commentNotification.isVisible({ timeout: 3000 }).catch(() => false)
@@ -145,7 +145,7 @@ test.describe('Notification Types', () => {
   test.describe('Follow Notifications', () => {
     test('should show follow notification', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/notifications')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const followNotification = authenticatedPage.locator('text=/followed|following/i')
       const hasFollowNotification = await followNotification.count()
@@ -163,13 +163,13 @@ test.describe('Notification Types', () => {
 
       if (!isFollowing) {
         await profilePage.follow()
-        await charliePage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
       }
 
       // Check Alice's notifications
       const alicePage = await authenticatedPageAs(testUsers.alice)
       await alicePage.goto('/notifications')
-      await alicePage.waitForLoadState('networkidle')
+      await alicePage.waitForLoadState('domcontentloaded')
 
       // Look for follow notification
       const followNotification = alicePage.locator('text=/followed|following/i')
@@ -182,7 +182,7 @@ test.describe('Notification Types', () => {
   test.describe('Notification Actions', () => {
     test('should mark notification as read on click', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/notifications')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const unreadNotification = authenticatedPage.locator(
         '[class*="notification"][class*="unread"], [class*="notification"][data-read="false"]'
@@ -192,7 +192,7 @@ test.describe('Notification Types', () => {
 
       if (hasUnread) {
         await unreadNotification.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Notification should now be marked as read
         // (class should change or it navigates away)
@@ -202,7 +202,7 @@ test.describe('Notification Types', () => {
 
     test('should navigate to relevant content on click', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/notifications')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const notification = authenticatedPage.locator('[class*="notification"]').first()
       const hasNotification = await notification.isVisible({ timeout: 3000 }).catch(() => false)
@@ -210,7 +210,7 @@ test.describe('Notification Types', () => {
       if (hasNotification) {
         const initialUrl = authenticatedPage.url()
         await notification.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         const newUrl = authenticatedPage.url()
 
@@ -222,7 +222,7 @@ test.describe('Notification Types', () => {
 
     test('should have mark all as read option', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/notifications')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const markAllRead = authenticatedPage.locator(
         'button:has-text("Mark all"), button:has-text("Read all"), ' +
@@ -239,7 +239,7 @@ test.describe('Notification Types', () => {
   test.describe('Notification Filtering', () => {
     test('should have notification type filters', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/notifications')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const filterButtons = authenticatedPage.locator(
         'button:has-text("All"), button:has-text("Mentions"), ' +
@@ -254,14 +254,14 @@ test.describe('Notification Types', () => {
 
     test('should filter notifications by type', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/notifications')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const likesFilter = authenticatedPage.locator('button:has-text("Likes")').first()
       const hasLikesFilter = await likesFilter.isVisible({ timeout: 2000 }).catch(() => false)
 
       if (hasLikesFilter) {
         await likesFilter.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Only like notifications should be visible
         const notifications = authenticatedPage.locator('[class*="notification"]')
@@ -281,14 +281,14 @@ test.describe('Notification Types', () => {
   test.describe('Real-time Notifications', () => {
     test('should update notification count in real-time', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/feed')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Get initial notification count
       const notificationBadge = authenticatedPage.locator('[class*="badge"], [data-testid="notification-count"]')
       const initialCount = await notificationBadge.textContent().catch(() => '0')
 
       // Wait a bit for any real-time updates
-      await authenticatedPage.waitForTimeout(2000)
+      // REMOVED: waitForTimeout
 
       // Count may or may not change (depends on other users' actions)
       expect(true).toBe(true)
@@ -296,7 +296,7 @@ test.describe('Notification Types', () => {
 
     test('should show toast/alert for new notifications', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/feed')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Look for toast notification element
       const toast = authenticatedPage.locator(

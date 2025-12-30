@@ -16,7 +16,7 @@ test.describe('Sound Discovery', () => {
     test('should display trending sounds section', async ({ authenticatedPage }) => {
       // Navigate to sounds/discover page
       await authenticatedPage.goto('/sounds')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Look for trending sounds section
       const trendingSounds = authenticatedPage.locator(
@@ -32,7 +32,7 @@ test.describe('Sound Discovery', () => {
 
     test('should show sound usage count', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/sounds')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Look for sound items with usage counts
       const soundItem = authenticatedPage.locator(
@@ -54,14 +54,14 @@ test.describe('Sound Discovery', () => {
 
     test('should navigate to sound page from trending', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/sounds')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const soundItem = authenticatedPage.locator('[class*="sound-item"]').first()
       const hasSoundItem = await soundItem.isVisible({ timeout: 3000 }).catch(() => false)
 
       if (hasSoundItem) {
         await soundItem.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Should be on sound detail page
         const isSoundPage = authenticatedPage.url().includes('/sound') ||
@@ -72,7 +72,7 @@ test.describe('Sound Discovery', () => {
 
     test('should play sound preview', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/sounds')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const soundItem = authenticatedPage.locator('[class*="sound-item"]').first()
       const hasSoundItem = await soundItem.isVisible({ timeout: 3000 }).catch(() => false)
@@ -80,7 +80,7 @@ test.describe('Sound Discovery', () => {
       if (hasSoundItem) {
         // Hover or click to play preview
         await soundItem.hover()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         const playButton = soundItem.locator(
           'button[aria-label*="play" i], [class*="play-button"]'
@@ -90,7 +90,7 @@ test.describe('Sound Discovery', () => {
 
         if (hasPlay) {
           await playButton.click()
-          await authenticatedPage.waitForTimeout(500)
+          // REMOVED: waitForTimeout
 
           // Should be playing
           const hasError = await authenticatedPage.locator('text=/error|failed/i').isVisible({ timeout: 500 }).catch(() => false)
@@ -103,7 +103,7 @@ test.describe('Sound Discovery', () => {
   test.describe('Search Sounds', () => {
     test('should search for sounds by name', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/sounds')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Look for search input
       const searchInput = authenticatedPage.locator(
@@ -115,7 +115,7 @@ test.describe('Sound Discovery', () => {
 
       if (hasSearch) {
         await searchInput.fill('loop')
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Search results should appear
         const results = authenticatedPage.locator('[class*="sound-item"], [class*="search-result"]')
@@ -127,7 +127,7 @@ test.describe('Sound Discovery', () => {
 
     test('should filter sounds by genre', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/sounds')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Look for genre filter
       const genreFilter = authenticatedPage.locator(
@@ -139,7 +139,7 @@ test.describe('Sound Discovery', () => {
 
       if (hasGenreFilter) {
         await genreFilter.click()
-        await authenticatedPage.waitForTimeout(300)
+        // REMOVED: waitForTimeout
 
         // Genre options should appear
         const genreOptions = authenticatedPage.locator(
@@ -153,7 +153,7 @@ test.describe('Sound Discovery', () => {
 
     test('should filter sounds by BPM', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/sounds')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Look for BPM filter
       const bpmFilter = authenticatedPage.locator(
@@ -171,7 +171,7 @@ test.describe('Sound Discovery', () => {
 
     test('should filter sounds by key', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/sounds')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Look for key filter
       const keyFilter = authenticatedPage.locator(
@@ -183,7 +183,7 @@ test.describe('Sound Discovery', () => {
 
       if (hasKeyFilter) {
         await keyFilter.click()
-        await authenticatedPage.waitForTimeout(300)
+        // REMOVED: waitForTimeout
 
         // Key options should appear
         const keyOptions = authenticatedPage.locator('[role="option"]')
@@ -197,7 +197,7 @@ test.describe('Sound Discovery', () => {
   test.describe('Featured Sounds', () => {
     test('should display featured sounds section', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/sounds')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Look for featured sounds
       const featuredSection = authenticatedPage.locator(
@@ -213,7 +213,7 @@ test.describe('Sound Discovery', () => {
 
     test('should show featured badge on sounds', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/sounds')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Look for featured badge
       const featuredBadge = authenticatedPage.locator(
@@ -246,7 +246,7 @@ test.describe('Sound Discovery', () => {
 
       if (hasSoundLink) {
         await soundLink.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Should be on sound page
         expect(authenticatedPage.url().includes('/sound') || true).toBe(true)
@@ -255,14 +255,14 @@ test.describe('Sound Discovery', () => {
 
     test('should show posts using sound', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/sounds')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const soundItem = authenticatedPage.locator('[class*="sound-item"]').first()
       const hasSoundItem = await soundItem.isVisible({ timeout: 3000 }).catch(() => false)
 
       if (hasSoundItem) {
         await soundItem.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Sound page should show posts using this sound
         const postsSection = authenticatedPage.locator(
@@ -277,14 +277,14 @@ test.describe('Sound Discovery', () => {
 
     test('should show sound metadata', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/sounds')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const soundItem = authenticatedPage.locator('[class*="sound-item"]').first()
       const hasSoundItem = await soundItem.isVisible({ timeout: 3000 }).catch(() => false)
 
       if (hasSoundItem) {
         await soundItem.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Sound page should show metadata (BPM, key, duration)
         const metadata = authenticatedPage.locator(
@@ -299,14 +299,14 @@ test.describe('Sound Discovery', () => {
 
     test('should show sound creator', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/sounds')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       const soundItem = authenticatedPage.locator('[class*="sound-item"]').first()
       const hasSoundItem = await soundItem.isVisible({ timeout: 3000 }).catch(() => false)
 
       if (hasSoundItem) {
         await soundItem.click()
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Should show original creator
         const creatorInfo = authenticatedPage.locator(
@@ -323,7 +323,7 @@ test.describe('Sound Discovery', () => {
   test.describe('Sound Categories', () => {
     test('should browse sounds by category', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/sounds')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Look for category tabs or filters
       const categoryTabs = authenticatedPage.locator(
@@ -339,7 +339,7 @@ test.describe('Sound Discovery', () => {
 
     test('should filter by instrument', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/sounds')
-      await authenticatedPage.waitForLoadState('networkidle')
+      await authenticatedPage.waitForLoadState('domcontentloaded')
 
       // Look for instrument filter
       const instrumentFilter = authenticatedPage.locator(

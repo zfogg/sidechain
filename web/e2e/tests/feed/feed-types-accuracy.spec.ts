@@ -19,7 +19,7 @@ test.describe('Feed Types - Content Accuracy', () => {
       const feedPage = new FeedPage(authenticatedPage)
       await feedPage.goto()
       await feedPage.switchToFeedType('timeline')
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       const postCount = await feedPage.getPostCount()
       const hasEmpty = await feedPage.hasEmptyState()
@@ -77,13 +77,13 @@ test.describe('Feed Types - Content Accuracy', () => {
 
       if (!isFollowing) {
         await profilePage.follow()
-        await alicePage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
       }
 
       // Go back to timeline
       await feedPage.goto()
       await feedPage.switchToFeedType('timeline')
-      await alicePage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Now bob's posts should appear (if he has any)
       const bobPosts = alicePage.locator(
@@ -106,12 +106,12 @@ test.describe('Feed Types - Content Accuracy', () => {
 
       if (!(await profilePage.isFollowing())) {
         await profilePage.follow()
-        await alicePage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
       }
 
       // Now unfollow
       await profilePage.unfollow()
-      await alicePage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Check timeline - bob's posts should not appear
       const feedPage = new FeedPage(alicePage)
@@ -140,7 +140,7 @@ test.describe('Feed Types - Content Accuracy', () => {
       const feedPage = new FeedPage(authenticatedPage)
       await feedPage.goto()
       await feedPage.switchToFeedType('global')
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       const postCount = await feedPage.getPostCount()
 
@@ -200,7 +200,7 @@ test.describe('Feed Types - Content Accuracy', () => {
       const feedPage = new FeedPage(authenticatedPage)
       await feedPage.goto()
       await feedPage.switchToFeedType('trending')
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       const postCount = await feedPage.getPostCount()
 
@@ -237,12 +237,12 @@ test.describe('Feed Types - Content Accuracy', () => {
       const postCard = feedPage.getPostCard(0)
       if (!(await postCard.isLiked())) {
         await postCard.like()
-        await alicePage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
       }
 
       // Switch to trending
       await feedPage.switchToFeedType('trending')
-      await alicePage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // The liked post may or may not appear in trending
       // (depends on overall engagement across posts)
@@ -271,7 +271,7 @@ test.describe('Feed Types - Content Accuracy', () => {
       const feedPage = new FeedPage(authenticatedPage)
       await feedPage.goto()
       await feedPage.switchToFeedType('forYou')
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // For You feed should load
       const postCount = await feedPage.getPostCount()
@@ -286,7 +286,7 @@ test.describe('Feed Types - Content Accuracy', () => {
       // Get global feed posts
       await feedPage.goto()
       await feedPage.switchToFeedType('global')
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       const globalPosts: string[] = []
       const globalCount = await feedPage.getPostCount()
@@ -297,7 +297,7 @@ test.describe('Feed Types - Content Accuracy', () => {
 
       // Get For You feed posts
       await feedPage.switchToFeedType('forYou')
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       const forYouPosts: string[] = []
       const forYouCount = await feedPage.getPostCount()
@@ -354,7 +354,7 @@ test.describe('Feed Types - Content Accuracy', () => {
       const postCard = feedPage.getPostCard(0)
       if (!(await postCard.isLiked())) {
         await postCard.like()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
       }
 
       // Refresh and check For You again
@@ -373,11 +373,11 @@ test.describe('Feed Types - Content Accuracy', () => {
 
       // Select trending
       await feedPage.switchToFeedType('trending')
-      await authenticatedPage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
 
       // Navigate away
       await authenticatedPage.goto('/profile/' + testUsers.alice.username)
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Navigate back to feed
       await authenticatedPage.goto('/feed')
@@ -394,7 +394,7 @@ test.describe('Feed Types - Content Accuracy', () => {
 
       // Select global
       await feedPage.switchToFeedType('global')
-      await authenticatedPage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
 
       // Refresh page
       await authenticatedPage.reload()
@@ -417,7 +417,7 @@ test.describe('Feed Types - Content Accuracy', () => {
 
       for (const feedType of feedTypes) {
         await feedPage.switchToFeedType(feedType)
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Each should load without error
         expect(await feedPage.hasError()).toBe(false)

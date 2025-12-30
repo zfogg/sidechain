@@ -25,7 +25,7 @@ test.describe('Comments Interactions', () => {
       // Open comments on first post
       const postCard = feedPage.getPostCard(0)
       await postCard.comment()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Find comments section
       const commentSection = authenticatedPage.locator('[class*="comment"], [data-testid="comments"]')
@@ -49,7 +49,7 @@ test.describe('Comments Interactions', () => {
 
             // Click like
             await likeButton.click()
-            await authenticatedPage.waitForTimeout(500)
+            // REMOVED: waitForTimeout
 
             // Verify like was registered (button state changed or count increased)
             expect(await feedPage.hasError()).toBe(false)
@@ -67,7 +67,7 @@ test.describe('Comments Interactions', () => {
 
       const postCard = feedPage.getPostCard(0)
       await postCard.comment()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Find already liked comment
       const likedComment = authenticatedPage.locator(
@@ -80,7 +80,7 @@ test.describe('Comments Interactions', () => {
       if (hasLikedComment) {
         const unlikeButton = likedComment.locator('button:has-text("Unlike"), button[class*="liked"]')
         await unlikeButton.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
       }
 
       expect(await feedPage.hasError()).toBe(false)
@@ -95,7 +95,7 @@ test.describe('Comments Interactions', () => {
 
       const postCard = feedPage.getPostCard(0)
       await postCard.comment()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       const comment = authenticatedPage.locator('[class*="comment-item"], [data-testid="comment"]').first()
       const hasComment = await comment.isVisible({ timeout: 2000 }).catch(() => false)
@@ -121,7 +121,7 @@ test.describe('Comments Interactions', () => {
 
       const postCard = feedPage.getPostCard(0)
       await postCard.comment()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // First, add a comment to edit
       const commentInput = authenticatedPage.locator('textarea[placeholder*="comment" i], input[placeholder*="comment" i]').first()
@@ -130,7 +130,7 @@ test.describe('Comments Interactions', () => {
       if (canComment) {
         await commentInput.fill('Test comment for editing')
         await commentInput.press('Enter')
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         // Find the comment we just posted
         const myComment = authenticatedPage.locator(
@@ -146,14 +146,14 @@ test.describe('Comments Interactions', () => {
 
           if (hasMenu) {
             await menuButton.click()
-            await authenticatedPage.waitForTimeout(300)
+            // REMOVED: waitForTimeout
 
             const editOption = authenticatedPage.locator('button:has-text("Edit"), [role="menuitem"]:has-text("Edit")')
             const canEdit = await editOption.isVisible({ timeout: 1000 }).catch(() => false)
 
             if (canEdit) {
               await editOption.click()
-              await authenticatedPage.waitForTimeout(300)
+              // REMOVED: waitForTimeout
 
               // Edit input should appear
               const editInput = authenticatedPage.locator('textarea[value*="editing"], input[value*="editing"]')
@@ -163,7 +163,7 @@ test.describe('Comments Interactions', () => {
                 await editInput.clear()
                 await editInput.fill('Edited comment content')
                 await authenticatedPage.locator('button:has-text("Save"), button:has-text("Update")').click()
-                await authenticatedPage.waitForTimeout(500)
+                // REMOVED: waitForTimeout
               }
             }
           }
@@ -182,7 +182,7 @@ test.describe('Comments Interactions', () => {
 
       const postCard = feedPage.getPostCard(0)
       await postCard.comment()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Look for any edited comments
       const editedIndicator = authenticatedPage.locator('text=/edited/i, [class*="edited"]')
@@ -203,7 +203,7 @@ test.describe('Comments Interactions', () => {
 
       const postCard = feedPage.getPostCard(0)
       await postCard.comment()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Add a comment to delete
       const commentInput = authenticatedPage.locator('textarea[placeholder*="comment" i], input[placeholder*="comment" i]').first()
@@ -213,7 +213,7 @@ test.describe('Comments Interactions', () => {
         const uniqueComment = `Delete test ${Date.now()}`
         await commentInput.fill(uniqueComment)
         await commentInput.press('Enter')
-        await authenticatedPage.waitForTimeout(1000)
+        // REMOVED: waitForTimeout
 
         const initialCount = await authenticatedPage.locator('[class*="comment-item"]').count()
 
@@ -230,7 +230,7 @@ test.describe('Comments Interactions', () => {
 
           if (hasMenu) {
             await menuButton.click()
-            await authenticatedPage.waitForTimeout(300)
+            // REMOVED: waitForTimeout
 
             const deleteOption = authenticatedPage.locator('button:has-text("Delete"), [role="menuitem"]:has-text("Delete")')
             const canDelete = await deleteOption.isVisible({ timeout: 1000 }).catch(() => false)
@@ -245,7 +245,7 @@ test.describe('Comments Interactions', () => {
                 await confirmButton.click()
               }
 
-              await authenticatedPage.waitForTimeout(500)
+              // REMOVED: waitForTimeout
 
               // Comment should be removed or show deleted placeholder
               const newCount = await authenticatedPage.locator('[class*="comment-item"]').count()
@@ -270,7 +270,7 @@ test.describe('Comments Interactions', () => {
 
       const postCard = feedPage.getPostCard(0)
       await postCard.comment()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Find a comment NOT by the current user
       const otherComment = authenticatedPage.locator(
@@ -285,7 +285,7 @@ test.describe('Comments Interactions', () => {
 
         if (hasMenu) {
           await menuButton.click()
-          await authenticatedPage.waitForTimeout(300)
+          // REMOVED: waitForTimeout
 
           // Delete option should NOT be present
           const deleteOption = authenticatedPage.locator('[role="menuitem"]:has-text("Delete")')
@@ -308,7 +308,7 @@ test.describe('Comments Interactions', () => {
 
       const postCard = feedPage.getPostCard(0)
       await postCard.comment()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       const comment = authenticatedPage.locator('[class*="comment-item"]').first()
       const hasComment = await comment.isVisible({ timeout: 2000 }).catch(() => false)
@@ -319,14 +319,14 @@ test.describe('Comments Interactions', () => {
 
         if (hasMenu) {
           await menuButton.click()
-          await authenticatedPage.waitForTimeout(300)
+          // REMOVED: waitForTimeout
 
           const reportOption = authenticatedPage.locator('button:has-text("Report"), [role="menuitem"]:has-text("Report")')
           const canReport = await reportOption.isVisible({ timeout: 1000 }).catch(() => false)
 
           if (canReport) {
             await reportOption.click()
-            await authenticatedPage.waitForTimeout(300)
+            // REMOVED: waitForTimeout
 
             // Report dialog should appear
             const reportDialog = authenticatedPage.locator('[class*="dialog"], [role="dialog"]')
@@ -349,7 +349,7 @@ test.describe('Comments Interactions', () => {
 
       const postCard = feedPage.getPostCard(0)
       await postCard.comment()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       const comment = authenticatedPage.locator('[class*="comment-item"]').first()
       const hasComment = await comment.isVisible({ timeout: 2000 }).catch(() => false)
@@ -361,7 +361,7 @@ test.describe('Comments Interactions', () => {
 
         if (canReply) {
           await replyButton.click()
-          await authenticatedPage.waitForTimeout(300)
+          // REMOVED: waitForTimeout
 
           // Reply input should appear
           const replyInput = authenticatedPage.locator('textarea[placeholder*="reply" i], textarea[placeholder*="comment" i]')
@@ -370,7 +370,7 @@ test.describe('Comments Interactions', () => {
           if (hasReplyInput) {
             await replyInput.fill('This is a reply')
             await replyInput.press('Enter')
-            await authenticatedPage.waitForTimeout(1000)
+            // REMOVED: waitForTimeout
 
             // Reply should appear nested under parent
             const nestedReply = comment.locator('[class*="reply"], [class*="nested"]')
@@ -393,7 +393,7 @@ test.describe('Comments Interactions', () => {
 
       const postCard = feedPage.getPostCard(0)
       await postCard.comment()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Look for collapse/expand button on threaded comments
       const collapseButton = authenticatedPage.locator(
@@ -405,7 +405,7 @@ test.describe('Comments Interactions', () => {
 
       if (hasCollapseButton) {
         await collapseButton.click()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         // Thread state should toggle
         expect(await feedPage.hasError()).toBe(false)

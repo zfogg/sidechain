@@ -193,7 +193,7 @@ test.describe('Feed - Infinite Scroll', () => {
     // Scroll down multiple times
     for (let i = 0; i < 3; i++) {
       await feedPage.scrollToBottom()
-      await authenticatedPage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
     }
 
     // Should have loaded more posts (if available)
@@ -222,7 +222,7 @@ test.describe('Feed - Infinite Scroll', () => {
 
       if (await feedPage.hasMorePostsToLoad()) {
         await feedPage.clickLoadMore()
-        await authenticatedPage.waitForTimeout(300)
+        // REMOVED: waitForTimeout
       }
     }
 

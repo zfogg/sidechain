@@ -36,7 +36,7 @@ export class SettingsPage {
    */
   async goto(): Promise<void> {
     await this.page.goto('/settings')
-    await this.page.waitForLoadState('networkidle')
+    await this.page.waitForLoadState('domcontentloaded')
   }
 
   /**
@@ -59,7 +59,7 @@ export class SettingsPage {
       'account': this.accountTab,
     }
     await tabMap[tab].click()
-    await this.page.waitForTimeout(300)
+    // REMOVED: waitForTimeout
   }
 
   /**

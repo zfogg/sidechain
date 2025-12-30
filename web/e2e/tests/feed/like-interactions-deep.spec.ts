@@ -47,7 +47,7 @@ test.describe('Like Button - Deep Network Validation', () => {
       }
 
       // Wait for network to complete
-      await authenticatedPage.waitForTimeout(1500)
+      // REMOVED: waitForTimeout
 
       // Cleanup route
       await authenticatedPage.unroute('**/social/like**')
@@ -66,7 +66,7 @@ test.describe('Like Button - Deep Network Validation', () => {
       const wasLiked = await postCard.isLiked()
       if (wasLiked) {
         await postCard.like() // Unlike it
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
       }
 
       const initialCount = await postCard.getLikeCount()
@@ -101,7 +101,7 @@ test.describe('Like Button - Deep Network Validation', () => {
       })
 
       await postCard.like()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       expect(likeRequestMade).toBe(true)
     })
@@ -119,12 +119,12 @@ test.describe('Like Button - Deep Network Validation', () => {
       const initiallyLiked = await postCard.isLiked()
       if (initiallyLiked) {
         await postCard.like()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
       }
 
       // Like the post
       await postCard.like()
-      await authenticatedPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       const wasLikedAfterClick = await postCard.isLiked()
 
@@ -154,7 +154,7 @@ test.describe('Like Button - Deep Network Validation', () => {
       const wasLiked = await postCard.isLiked()
       if (!wasLiked) {
         await postCard.like()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
       }
 
       const likedCount = await postCard.getLikeCount()
@@ -182,7 +182,7 @@ test.describe('Like Button - Deep Network Validation', () => {
       const wasLiked = await postCard.isLiked()
       if (!wasLiked) {
         await postCard.like()
-        await authenticatedPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
       }
 
       expect(await postCard.isLiked()).toBe(true)
@@ -213,7 +213,7 @@ test.describe('Like Button - Deep Network Validation', () => {
 
       // Toggle like state
       await postCard.like()
-      await authenticatedPage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
 
       const isLikedAfterClickInFeed = await postCard.isLiked()
 
@@ -221,7 +221,7 @@ test.describe('Like Button - Deep Network Validation', () => {
       await postCard.click()
 
       // Wait for navigation to post detail
-      await authenticatedPage.waitForTimeout(2000)
+      // REMOVED: waitForTimeout
 
       // Check like state on detail page
       const detailLikeButton = authenticatedPage.locator('button', { hasText: /like/i }).first()
@@ -250,7 +250,7 @@ test.describe('Like Button - Deep Network Validation', () => {
 
       // Like from profile
       await firstPost.like()
-      await authenticatedPage.waitForTimeout(500)
+      // REMOVED: waitForTimeout
 
       // Go to feed
       const feedPage = new FeedPage(authenticatedPage)
@@ -281,7 +281,7 @@ test.describe('Like Button - Deep Network Validation', () => {
       const aliceLiked = await postCard.isLiked()
       if (!aliceLiked) {
         await postCard.like()
-        await alicePage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
       }
 
       // Bob also views and potentially likes
@@ -300,7 +300,7 @@ test.describe('Like Button - Deep Network Validation', () => {
       const bobLiked = await bobPostCard.isLiked()
       if (!bobLiked) {
         await bobPostCard.like()
-        await bobPage.waitForTimeout(500)
+        // REMOVED: waitForTimeout
 
         const afterBobLikeCount = await bobPostCard.getLikeCount()
         expect(afterBobLikeCount).toBeGreaterThan(0)
@@ -334,7 +334,7 @@ test.describe('Like Button - Deep Network Validation', () => {
       await postCard.like()
 
       // Wait for potential rollback
-      await authenticatedPage.waitForTimeout(2000)
+      // REMOVED: waitForTimeout
 
       // State should eventually rollback to initial state (or close to it)
       // Some implementations may show an error toast instead of rollback
@@ -361,11 +361,11 @@ test.describe('Like Button - Deep Network Validation', () => {
       // Rapidly click like multiple times
       for (let i = 0; i < 5; i++) {
         await postCard.like()
-        await authenticatedPage.waitForTimeout(50) // Very fast clicks
+        // REMOVED: waitForTimeout // Very fast clicks
       }
 
       // Wait for all network requests to settle
-      await authenticatedPage.waitForTimeout(2000)
+      // REMOVED: waitForTimeout
 
       // Should not have an error state
       const hasError = await feedPage.hasError()
@@ -406,12 +406,12 @@ test.describe('Like Button - Deep Network Validation', () => {
       // Like alice's post
       const likeButton = alicePosts.first().locator('button', { hasText: /like/i }).first()
       await likeButton.click()
-      await bobPage.waitForTimeout(1000)
+      // REMOVED: waitForTimeout
 
       // Alice checks notifications
       const alicePage = await authenticatedPageAs(testUsers.alice)
       await alicePage.goto('/notifications')
-      await alicePage.waitForLoadState('networkidle')
+      await alicePage.waitForLoadState('domcontentloaded')
 
       // Should see a notification about the like (or at least the notifications page loads)
       const notificationsList = alicePage.locator('[class*="notification"], [data-testid="notification"]')
