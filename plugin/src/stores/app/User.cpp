@@ -392,7 +392,7 @@ void AppStore::unfollowUser(const juce::String &userId) {
 
   // Use observable API
   networkClient->unfollowUserObservable(userId).subscribe(
-      [userId](const juce::var &) { Util::logInfo("AppStore", "Successfully unfollowed user: " + userId); },
+      [userId](int) { Util::logInfo("AppStore", "Successfully unfollowed user: " + userId); },
       [userState](std::exception_ptr ep) {
         // Rollback optimistic update
         UserState rollbackState = userState->getState();

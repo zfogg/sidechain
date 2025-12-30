@@ -198,11 +198,11 @@ rxcpp::observable<NetworkClient::NotificationResult> NetworkClient::getNotificat
   return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
 }
 
-rxcpp::observable<juce::var> NetworkClient::markNotificationsReadObservable() {
-  auto source = rxcpp::sources::create<juce::var>([this](auto observer) {
+rxcpp::observable<int> NetworkClient::markNotificationsReadObservable() {
+  auto source = rxcpp::sources::create<int>([this](auto observer) {
     markNotificationsRead([observer](Outcome<juce::var> result) {
       if (result.isOk()) {
-        observer.on_next(result.getValue());
+        observer.on_next(0);
         observer.on_completed();
       } else {
         observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
@@ -213,11 +213,11 @@ rxcpp::observable<juce::var> NetworkClient::markNotificationsReadObservable() {
   return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
 }
 
-rxcpp::observable<juce::var> NetworkClient::markNotificationsSeenObservable() {
-  auto source = rxcpp::sources::create<juce::var>([this](auto observer) {
+rxcpp::observable<int> NetworkClient::markNotificationsSeenObservable() {
+  auto source = rxcpp::sources::create<int>([this](auto observer) {
     markNotificationsSeen([observer](Outcome<juce::var> result) {
       if (result.isOk()) {
-        observer.on_next(result.getValue());
+        observer.on_next(0);
         observer.on_completed();
       } else {
         observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));

@@ -194,7 +194,7 @@ void AppStore::unsavePost(const juce::String &postId) {
 
   // Send to server using observable
   networkClient->unsavePostObservable(postId).subscribe(
-      [](const juce::var &) { Util::logDebug("AppStore", "Post unsaved successfully"); },
+      [](int) { Util::logDebug("AppStore", "Post unsaved successfully"); },
       [this, postId](std::exception_ptr ep) {
         try {
           std::rethrow_exception(ep);
@@ -348,7 +348,7 @@ void AppStore::toggleLike(const juce::String &postId) {
       [this](const juce::String &id, bool wasLiked, std::function<void(Outcome<juce::var>)> callback) {
         if (wasLiked) {
           networkClient->unlikePostObservable(id).subscribe(
-              [callback](const juce::var &result) { callback(Outcome<juce::var>::ok(result)); },
+              [callback](int) { callback(Outcome<juce::var>::ok(juce::var())); },
               [callback](std::exception_ptr ep) {
                 try {
                   std::rethrow_exception(ep);
@@ -386,7 +386,7 @@ void AppStore::toggleSave(const juce::String &postId) {
   auto config = PostInteractionHelper::createSaveConfig(
       [this](const juce::String &id, bool wasSaved, std::function<void(Outcome<juce::var>)> callback) {
         auto observable = wasSaved ? networkClient->unsavePostObservable(id) : networkClient->savePostObservable(id);
-        observable.subscribe([callback](const juce::var &result) { callback(Outcome<juce::var>::ok(result)); },
+        observable.subscribe([callback](int) { callback(Outcome<juce::var>::ok(juce::var())); },
                              [callback](std::exception_ptr ep) {
                                try {
                                  std::rethrow_exception(ep);
@@ -408,7 +408,7 @@ void AppStore::toggleRepost(const juce::String &postId) {
       [this](const juce::String &id, bool wasReposted, std::function<void(Outcome<juce::var>)> callback) {
         auto observable =
             wasReposted ? networkClient->undoRepostObservable(id) : networkClient->repostPostObservable(id, "");
-        observable.subscribe([callback](const juce::var &result) { callback(Outcome<juce::var>::ok(result)); },
+        observable.subscribe([callback](int) { callback(Outcome<juce::var>::ok(juce::var())); },
                              [callback](std::exception_ptr ep) {
                                try {
                                  std::rethrow_exception(ep);
@@ -486,9 +486,7 @@ void AppStore::toggleFollow(const juce::String &postId, bool willFollow) {
         errorHandler);
   } else {
     networkClient->unfollowUserObservable(userId).subscribe(
-        [previousFollowState, postId](const juce::var &) {
-          Util::logInfo("AppStore", "User unfollowed successfully: " + postId);
-        },
+        [previousFollowState, postId](int) { Util::logInfo("AppStore", "User unfollowed successfully: " + postId); },
         errorHandler);
   }
 }
@@ -501,7 +499,7 @@ void AppStore::toggleMute(const juce::String &userId, bool willMute) {
   auto observable = willMute ? networkClient->muteUserObservable(userId) : networkClient->unmuteUserObservable(userId);
 
   observable.subscribe(
-      [](const juce::var &) {
+      [](int) {
         // Invalidate feed caches on successful mute/unmute (feed may change)
       },
       [willMute](std::exception_ptr ep) {

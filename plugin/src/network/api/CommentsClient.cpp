@@ -320,8 +320,8 @@ rxcpp::observable<Sidechain::Comment> NetworkClient::createCommentObservable(con
   return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
 }
 
-rxcpp::observable<juce::var> NetworkClient::deleteCommentObservable(const juce::String &commentId) {
-  auto source = rxcpp::sources::create<juce::var>([this, commentId](auto observer) {
+rxcpp::observable<int> NetworkClient::deleteCommentObservable(const juce::String &commentId) {
+  auto source = rxcpp::sources::create<int>([this, commentId](auto observer) {
     if (!isAuthenticated()) {
       observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
       return;
@@ -329,7 +329,7 @@ rxcpp::observable<juce::var> NetworkClient::deleteCommentObservable(const juce::
 
     deleteComment(commentId, [observer](Outcome<juce::var> result) {
       if (result.isOk()) {
-        observer.on_next(result.getValue());
+        observer.on_next(0);
         observer.on_completed();
       } else {
         observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
@@ -340,8 +340,8 @@ rxcpp::observable<juce::var> NetworkClient::deleteCommentObservable(const juce::
   return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
 }
 
-rxcpp::observable<juce::var> NetworkClient::likeCommentObservable(const juce::String &commentId) {
-  auto source = rxcpp::sources::create<juce::var>([this, commentId](auto observer) {
+rxcpp::observable<int> NetworkClient::likeCommentObservable(const juce::String &commentId) {
+  auto source = rxcpp::sources::create<int>([this, commentId](auto observer) {
     if (!isAuthenticated()) {
       observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
       return;
@@ -349,7 +349,7 @@ rxcpp::observable<juce::var> NetworkClient::likeCommentObservable(const juce::St
 
     likeComment(commentId, [observer](Outcome<juce::var> result) {
       if (result.isOk()) {
-        observer.on_next(result.getValue());
+        observer.on_next(0);
         observer.on_completed();
       } else {
         observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
@@ -360,8 +360,8 @@ rxcpp::observable<juce::var> NetworkClient::likeCommentObservable(const juce::St
   return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
 }
 
-rxcpp::observable<juce::var> NetworkClient::unlikeCommentObservable(const juce::String &commentId) {
-  auto source = rxcpp::sources::create<juce::var>([this, commentId](auto observer) {
+rxcpp::observable<int> NetworkClient::unlikeCommentObservable(const juce::String &commentId) {
+  auto source = rxcpp::sources::create<int>([this, commentId](auto observer) {
     if (!isAuthenticated()) {
       observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
       return;
@@ -369,7 +369,7 @@ rxcpp::observable<juce::var> NetworkClient::unlikeCommentObservable(const juce::
 
     unlikeComment(commentId, [observer](Outcome<juce::var> result) {
       if (result.isOk()) {
-        observer.on_next(result.getValue());
+        observer.on_next(0);
         observer.on_completed();
       } else {
         observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
@@ -402,10 +402,9 @@ rxcpp::observable<Sidechain::Comment> NetworkClient::updateCommentObservable(con
   return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
 }
 
-rxcpp::observable<juce::var> NetworkClient::reportCommentObservable(const juce::String &commentId,
-                                                                    const juce::String &reason,
-                                                                    const juce::String &description) {
-  auto source = rxcpp::sources::create<juce::var>([this, commentId, reason, description](auto observer) {
+rxcpp::observable<int> NetworkClient::reportCommentObservable(const juce::String &commentId, const juce::String &reason,
+                                                              const juce::String &description) {
+  auto source = rxcpp::sources::create<int>([this, commentId, reason, description](auto observer) {
     if (!isAuthenticated()) {
       observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
       return;
@@ -413,7 +412,7 @@ rxcpp::observable<juce::var> NetworkClient::reportCommentObservable(const juce::
 
     reportComment(commentId, reason, description, [observer](Outcome<juce::var> result) {
       if (result.isOk()) {
-        observer.on_next(result.getValue());
+        observer.on_next(0);
         observer.on_completed();
       } else {
         observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));

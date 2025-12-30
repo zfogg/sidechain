@@ -274,7 +274,7 @@ rxcpp::observable<int> AppStore::unfollowUserObservable(const juce::String &user
   }
 
   // Use the network client's observable API and transform the result
-  return networkClient->unfollowUserObservable(userId).map([userId](const juce::var &) {
+  return networkClient->unfollowUserObservable(userId).map([userId](int) {
     Util::logInfo("AppStore", "Unfollowed user successfully: " + userId);
     return 1;
   });

@@ -589,14 +589,14 @@ public:
   rxcpp::observable<NotificationResult> getNotificationsObservable(int limit = 20, int offset = 0);
 
   /** Mark all notifications as read as an observable
-   * @return Observable that emits result on success
+   * @return Observable that emits 0 on success
    */
-  rxcpp::observable<juce::var> markNotificationsReadObservable();
+  rxcpp::observable<int> markNotificationsReadObservable();
 
   /** Mark all notifications as seen as an observable
-   * @return Observable that emits result on success
+   * @return Observable that emits 0 on success
    */
-  rxcpp::observable<juce::var> markNotificationsSeenObservable();
+  rxcpp::observable<int> markNotificationsSeenObservable();
 
   /** Get comments for a post as an observable
    * @param postId The post ID
@@ -617,21 +617,21 @@ public:
 
   /** Delete a comment as an observable
    * @param commentId The comment ID
-   * @return Observable that emits result on success
+   * @return Observable that emits 0 on success
    */
-  rxcpp::observable<juce::var> deleteCommentObservable(const juce::String &commentId);
+  rxcpp::observable<int> deleteCommentObservable(const juce::String &commentId);
 
   /** Like a comment as an observable
    * @param commentId The comment ID
-   * @return Observable that emits result on success
+   * @return Observable that emits 0 on success
    */
-  rxcpp::observable<juce::var> likeCommentObservable(const juce::String &commentId);
+  rxcpp::observable<int> likeCommentObservable(const juce::String &commentId);
 
   /** Unlike a comment as an observable
    * @param commentId The comment ID
-   * @return Observable that emits result on success
+   * @return Observable that emits 0 on success
    */
-  rxcpp::observable<juce::var> unlikeCommentObservable(const juce::String &commentId);
+  rxcpp::observable<int> unlikeCommentObservable(const juce::String &commentId);
 
   /** Update a comment as an observable
    * @param commentId The comment ID
@@ -645,10 +645,10 @@ public:
    * @param commentId The comment ID
    * @param reason The report reason
    * @param description Optional additional description
-   * @return Observable that emits result on success
+   * @return Observable that emits 0 on success
    */
-  rxcpp::observable<juce::var> reportCommentObservable(const juce::String &commentId, const juce::String &reason,
-                                                       const juce::String &description = "");
+  rxcpp::observable<int> reportCommentObservable(const juce::String &commentId, const juce::String &reason,
+                                                 const juce::String &description = "");
 
   /** Like a post as an observable
    * @param activityId The post activity ID
@@ -659,9 +659,9 @@ public:
 
   /** Unlike a post as an observable
    * @param activityId The post activity ID
-   * @return Observable that emits result on success
+   * @return Observable that emits 0 on success
    */
-  rxcpp::observable<juce::var> unlikePostObservable(const juce::String &activityId);
+  rxcpp::observable<int> unlikePostObservable(const juce::String &activityId);
 
   /** Follow a user as an observable
    * @param userId The user ID to follow
@@ -671,21 +671,21 @@ public:
 
   /** Unfollow a user as an observable
    * @param userId The user ID to unfollow
-   * @return Observable that emits result on success
+   * @return Observable that emits 0 on success
    */
-  rxcpp::observable<juce::var> unfollowUserObservable(const juce::String &userId);
+  rxcpp::observable<int> unfollowUserObservable(const juce::String &userId);
 
   /** Save a post as an observable
    * @param postId The post ID to save
-   * @return Observable that emits result on success
+   * @return Observable that emits 0 on success
    */
-  rxcpp::observable<juce::var> savePostObservable(const juce::String &postId);
+  rxcpp::observable<int> savePostObservable(const juce::String &postId);
 
   /** Unsave a post as an observable
    * @param postId The post ID to unsave
-   * @return Observable that emits result on success
+   * @return Observable that emits 0 on success
    */
-  rxcpp::observable<juce::var> unsavePostObservable(const juce::String &postId);
+  rxcpp::observable<int> unsavePostObservable(const juce::String &postId);
 
   /** Get saved posts as an observable
    * @param limit Number of posts to fetch
@@ -697,15 +697,15 @@ public:
   /** Repost a post as an observable
    * @param postId The post ID to repost
    * @param quote Optional quote text
-   * @return Observable that emits result on success
+   * @return Observable that emits 0 on success
    */
-  rxcpp::observable<juce::var> repostPostObservable(const juce::String &postId, const juce::String &quote = "");
+  rxcpp::observable<int> repostPostObservable(const juce::String &postId, const juce::String &quote = "");
 
   /** Undo a repost as an observable
    * @param postId The post ID to un-repost
-   * @return Observable that emits result on success
+   * @return Observable that emits 0 on success
    */
-  rxcpp::observable<juce::var> undoRepostObservable(const juce::String &postId);
+  rxcpp::observable<int> undoRepostObservable(const juce::String &postId);
 
   /** Get archived posts as an observable
    * @param limit Number of posts to fetch
@@ -716,33 +716,33 @@ public:
 
   /** Unarchive a post as an observable
    * @param postId The post ID to unarchive
-   * @return Observable that emits result on success
+   * @return Observable that emits 0 on success
    */
-  rxcpp::observable<juce::var> unarchivePostObservable(const juce::String &postId);
+  rxcpp::observable<int> unarchivePostObservable(const juce::String &postId);
 
   /** Mute a user as an observable
    * @param userId The user ID to mute
-   * @return Observable that emits result on success
+   * @return Observable that emits 0 on success
    */
-  rxcpp::observable<juce::var> muteUserObservable(const juce::String &userId);
+  rxcpp::observable<int> muteUserObservable(const juce::String &userId);
 
   /** Unmute a user as an observable
    * @param userId The user ID to unmute
-   * @return Observable that emits result on success
+   * @return Observable that emits 0 on success
    */
-  rxcpp::observable<juce::var> unmuteUserObservable(const juce::String &userId);
+  rxcpp::observable<int> unmuteUserObservable(const juce::String &userId);
 
   /** Pin a post as an observable
    * @param postId The post ID to pin
-   * @return Observable that emits result on success
+   * @return Observable that emits 0 on success
    */
-  rxcpp::observable<juce::var> pinPostObservable(const juce::String &postId);
+  rxcpp::observable<int> pinPostObservable(const juce::String &postId);
 
   /** Unpin a post as an observable
    * @param postId The post ID to unpin
-   * @return Observable that emits result on success
+   * @return Observable that emits 0 on success
    */
-  rxcpp::observable<juce::var> unpinPostObservable(const juce::String &postId);
+  rxcpp::observable<int> unpinPostObservable(const juce::String &postId);
 
   // ==========================================================================
   // User Profile Observable Methods

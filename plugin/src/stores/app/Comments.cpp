@@ -138,7 +138,7 @@ void AppStore::deleteComment(const juce::String &commentId) {
   }
 
   networkClient->deleteCommentObservable(commentId).subscribe(
-      [this, commentId, postId](const juce::var &) {
+      [this, commentId, postId](int) {
         auto slice = stateManager.comments;
         if (!slice)
           return;
@@ -202,19 +202,7 @@ void AppStore::likeComment(const juce::String &commentId) {
 
   // Make network request using observable
   networkClient->likeCommentObservable(commentId).subscribe(
-      [commentId](const juce::var &result) {
-        Util::logInfo("AppStore", "Comment liked successfully: " + commentId);
-
-        // Try to parse and normalize the response if needed
-        try {
-          if (result.isObject()) {
-            auto json = nlohmann::json::parse(result.toString().toStdString());
-            EntityStore::getInstance().normalizeComment(json);
-          }
-        } catch (const std::exception &e) {
-          Util::logWarning("AppStore", "Failed to parse like response: " + juce::String(e.what()));
-        }
-      },
+      [commentId](int) { Util::logInfo("AppStore", "Comment liked successfully: " + commentId); },
       [commentId](std::exception_ptr ep) {
         try {
           std::rethrow_exception(ep);
@@ -250,19 +238,7 @@ void AppStore::unlikeComment(const juce::String &commentId) {
 
   // Make network request using observable
   networkClient->unlikeCommentObservable(commentId).subscribe(
-      [commentId](const juce::var &result) {
-        Util::logInfo("AppStore", "Comment unliked successfully: " + commentId);
-
-        // Try to parse and normalize the response if needed
-        try {
-          if (result.isObject()) {
-            auto json = nlohmann::json::parse(result.toString().toStdString());
-            EntityStore::getInstance().normalizeComment(json);
-          }
-        } catch (const std::exception &e) {
-          Util::logWarning("AppStore", "Failed to parse unlike response: " + juce::String(e.what()));
-        }
-      },
+      [commentId](int) { Util::logInfo("AppStore", "Comment unliked successfully: " + commentId); },
       [commentId](std::exception_ptr ep) {
         try {
           std::rethrow_exception(ep);
@@ -336,15 +312,14 @@ void AppStore::reportComment(const juce::String &commentId, const juce::String &
 
   // Make network request using observable
   networkClient->reportCommentObservable(commentId, reason, description)
-      .subscribe(
-          [commentId](const juce::var &) { Util::logInfo("AppStore", "Comment reported successfully: " + commentId); },
-          [commentId](std::exception_ptr ep) {
-            try {
-              std::rethrow_exception(ep);
-            } catch (const std::exception &e) {
-              Util::logError("AppStore", "Failed to report comment: " + juce::String(e.what()));
-            }
-          });
+      .subscribe([commentId](int) { Util::logInfo("AppStore", "Comment reported successfully: " + commentId); },
+                 [commentId](std::exception_ptr ep) {
+                   try {
+                     std::rethrow_exception(ep);
+                   } catch (const std::exception &e) {
+                     Util::logError("AppStore", "Failed to report comment: " + juce::String(e.what()));
+                   }
+                 });
 }
 
 // ==============================================================================
@@ -522,7 +497,7 @@ rxcpp::observable<int> AppStore::likeCommentObservable(const juce::String &comme
 
   // Use the network client's observable API
   return networkClient->likeCommentObservable(commentId)
-      .map([commentId](const juce::var &) {
+      .map([commentId](int) {
         Util::logInfo("AppStore", "Comment liked successfully: " + commentId);
         return 0;
       })
@@ -563,7 +538,7 @@ rxcpp::observable<int> AppStore::unlikeCommentObservable(const juce::String &com
 
   // Use the network client's observable API
   return networkClient->unlikeCommentObservable(commentId)
-      .map([commentId](const juce::var &) {
+      .map([commentId](int) {
         Util::logInfo("AppStore", "Comment unliked successfully: " + commentId);
         return 0;
       })
