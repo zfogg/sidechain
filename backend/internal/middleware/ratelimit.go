@@ -2,12 +2,19 @@ package middleware
 
 import (
 	"net/http"
+	"os"
 	"strconv"
 	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
+
+// isRateLimitingDisabled checks if rate limiting is disabled via env var
+func isRateLimitingDisabled() bool {
+	val := os.Getenv("DISABLE_RATE_LIMITING")
+	return val == "1" || val == "true" || val == "yes"
+}
 
 // RateLimitConfig holds configuration for rate limiting
 type RateLimitConfig struct {
@@ -116,6 +123,13 @@ type RateLimiter struct {
 
 // NewRateLimiter creates a new rate limiting middleware
 func NewRateLimiter(config RateLimitConfig) gin.HandlerFunc {
+	// If rate limiting is disabled, return a no-op middleware
+	if isRateLimitingDisabled() {
+		return func(c *gin.Context) {
+			c.Next()
+		}
+	}
+
 	rl := &RateLimiter{
 		buckets: make(map[string]*TokenBucket),
 		config:  config,

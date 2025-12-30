@@ -18,6 +18,9 @@ services:
       HOST: "0.0.0.0"
       ENVIRONMENT: "${ENVIRONMENT:-development}"
 
+      # Disable rate limiting for e2e tests
+      DISABLE_RATE_LIMITING: "${DISABLE_RATE_LIMITING:-false}"
+
       # Database (connects to postgres container)
       DATABASE_URL: "postgres://sidechain:sidechain_dev_password@postgres:5432/sidechain?sslmode=disable"
 

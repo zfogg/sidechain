@@ -22,6 +22,12 @@ type RateLimiterConfig struct {
 // This works across multiple instances and provides fair access control
 func RedisRateLimitMiddleware(maxRequests int, window time.Duration) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// If rate limiting is disabled, skip
+		if isRateLimitingDisabled() {
+			c.Next()
+			return
+		}
+
 		redisClient := cache.GetRedisClient()
 		if redisClient == nil {
 			// Fallback: If Redis isn't available, let request through but log warning
