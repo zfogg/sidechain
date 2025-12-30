@@ -6,7 +6,6 @@
 #include "../../models/Comment.h"
 #include "../../util/Async.h"
 #include "../../util/Constants.h"
-#include "../../util/Json.h"
 #include "../../util/Log.h"
 #include "../../util/rx/JuceScheduler.h"
 #include "../NetworkClient.h"
@@ -19,16 +18,14 @@ using namespace Sidechain::Network::Api;
 // ==============================================================================
 // Helper functions for typed Comment parsing
 
-/** Parse a single Comment from juce::var JSON */
-static Sidechain::Comment parseCommentFromJson(const juce::var &json) {
+/** Parse a single Comment from nlohmann::json */
+static Sidechain::Comment parseCommentFromJson(const nlohmann::json &json) {
   Sidechain::Comment comment;
-  if (!json.isObject())
+  if (!json.is_object())
     return comment;
 
   try {
-    auto jsonStr = juce::JSON::toString(json);
-    auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
-    from_json(jsonObj, comment);
+    from_json(json, comment);
   } catch (const std::exception &e) {
     Log::warn("CommentsClient: Failed to parse comment: " + juce::String(e.what()));
   }
@@ -37,20 +34,20 @@ static Sidechain::Comment parseCommentFromJson(const juce::var &json) {
 }
 
 /** Parse a CommentResult from API response */
-static NetworkClient::CommentResult parseCommentListResponse(const juce::var &json) {
+static NetworkClient::CommentResult parseCommentListResponse(const nlohmann::json &json) {
   NetworkClient::CommentResult result;
 
-  if (!json.isObject())
+  if (!json.is_object())
     return result;
 
-  result.total = Json::getInt(json, "total_count");
-  result.hasMore = Json::getBool(json, "has_more", false);
+  result.total = json.value("total_count", 0);
+  result.hasMore = json.value("has_more", false);
 
-  auto commentsArray = Json::getArray(json, "comments");
-  if (commentsArray.isArray()) {
-    result.comments.reserve(static_cast<size_t>(commentsArray.size()));
-    for (int i = 0; i < commentsArray.size(); ++i) {
-      result.comments.push_back(parseCommentFromJson(commentsArray[i]));
+  if (json.contains("comments") && json["comments"].is_array()) {
+    const auto &commentsArray = json["comments"];
+    result.comments.reserve(commentsArray.size());
+    for (const auto &commentJson : commentsArray) {
+      result.comments.push_back(parseCommentFromJson(commentJson));
     }
   }
 
@@ -66,21 +63,21 @@ void NetworkClient::getComments(const juce::String &postId, int limit, int offse
                           "&offset=" + juce::String(offset);
 
   Async::runVoid([this, endpoint, callback]() {
-    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), true);
 
     int totalCount = 0;
-    juce::var comments;
+    nlohmann::json comments;
 
-    if (result.isSuccess() && result.data.isObject()) {
-      comments = Json::getArray(result.data, "comments");
-      totalCount = Json::getInt(result.data, "total_count");
+    if (result.isSuccess() && result.data.is_object()) {
+      comments = result.data.value("comments", nlohmann::json::array());
+      totalCount = result.data.value("total_count", 0);
     }
 
     juce::MessageManager::callAsync([callback, result, comments, totalCount]() {
       if (result.isSuccess())
-        callback(Outcome<std::pair<juce::var, int>>::ok({comments, totalCount}));
+        callback(Outcome<std::pair<nlohmann::json, int>>::ok({comments, totalCount}));
       else
-        callback(Outcome<std::pair<juce::var, int>>::error(result.getUserFriendlyError()));
+        callback(Outcome<std::pair<nlohmann::json, int>>::error(result.getUserFriendlyError()));
     });
   });
 }
@@ -93,7 +90,7 @@ void NetworkClient::createComment(const juce::String &postId, const juce::String
   if (!isAuthenticated()) {
     Log::error("NetworkClient::createComment: Not authenticated!");
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
@@ -101,13 +98,14 @@ void NetworkClient::createComment(const juce::String &postId, const juce::String
   Async::runVoid([this, postId, content, parentId, callback]() {
     Log::info("NetworkClient::createComment: ASYNC BLOCK RUNNING - About to make request");
 
-    auto data = createJsonObject({{"content", content}});
+    nlohmann::json data;
+    data["content"] = content.toStdString();
     if (parentId.isNotEmpty())
-      data.getDynamicObject()->setProperty("parent_id", parentId);
+      data["parent_id"] = parentId.toStdString();
 
     juce::String endpoint = buildApiPath("/posts") + "/" + postId + "/comments";
     auto result = makeRequestWithRetry(endpoint, "POST", data, true);
-    Log::debug("Create comment response: " + juce::JSON::toString(result.data));
+    Log::debug("Create comment response: " + juce::String(result.data.dump()));
     Log::info("NetworkClient::createComment: Request completed. callback=" + juce::String(callback ? "set" : "null"));
 
     if (callback) {
@@ -135,21 +133,21 @@ void NetworkClient::getCommentReplies(const juce::String &commentId, int limit, 
                           "&offset=" + juce::String(offset);
 
   Async::runVoid([this, endpoint, callback]() {
-    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), true);
 
     int totalCount = 0;
-    juce::var replies;
+    nlohmann::json replies;
 
-    if (result.isSuccess() && result.data.isObject()) {
-      replies = Json::getArray(result.data, "replies");
-      totalCount = Json::getInt(result.data, "total_count");
+    if (result.isSuccess() && result.data.is_object()) {
+      replies = result.data.value("replies", nlohmann::json::array());
+      totalCount = result.data.value("total_count", 0);
     }
 
     juce::MessageManager::callAsync([callback, result, replies, totalCount]() {
       if (result.isSuccess())
-        callback(Outcome<std::pair<juce::var, int>>::ok({replies, totalCount}));
+        callback(Outcome<std::pair<nlohmann::json, int>>::ok({replies, totalCount}));
       else
-        callback(Outcome<std::pair<juce::var, int>>::error(result.getUserFriendlyError()));
+        callback(Outcome<std::pair<nlohmann::json, int>>::error(result.getUserFriendlyError()));
     });
   });
 }
@@ -158,16 +156,17 @@ void NetworkClient::updateComment(const juce::String &commentId, const juce::Str
                                   CommentCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, commentId, content, callback]() {
-    auto data = createJsonObject({{"content", content}});
+    nlohmann::json data;
+    data["content"] = content.toStdString();
 
     juce::String endpoint = buildApiPath("/comments") + "/" + commentId;
     auto result = makeRequestWithRetry(endpoint, "PUT", data, true);
-    Log::debug("Update comment response: " + juce::JSON::toString(result.data));
+    Log::debug("Update comment response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -181,14 +180,14 @@ void NetworkClient::updateComment(const juce::String &commentId, const juce::Str
 void NetworkClient::deleteComment(const juce::String &commentId, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, commentId, callback]() {
     juce::String endpoint = buildApiPath("/comments") + "/" + commentId;
-    auto result = makeRequestWithRetry(endpoint, "DELETE", juce::var(), true);
-    Log::debug("Delete comment response: " + juce::JSON::toString(result.data));
+    auto result = makeRequestWithRetry(endpoint, "DELETE", nlohmann::json(), true);
+    Log::debug("Delete comment response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -202,14 +201,14 @@ void NetworkClient::deleteComment(const juce::String &commentId, ResponseCallbac
 void NetworkClient::likeComment(const juce::String &commentId, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, commentId, callback]() {
     juce::String endpoint = buildApiPath("/comments") + "/" + commentId + "/like";
-    auto result = makeRequestWithRetry(endpoint, "POST", juce::var(), true);
-    Log::debug("Like comment response: " + juce::JSON::toString(result.data));
+    auto result = makeRequestWithRetry(endpoint, "POST", nlohmann::json(), true);
+    Log::debug("Like comment response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -223,14 +222,14 @@ void NetworkClient::likeComment(const juce::String &commentId, ResponseCallback 
 void NetworkClient::unlikeComment(const juce::String &commentId, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, commentId, callback]() {
     juce::String endpoint = buildApiPath("/comments") + "/" + commentId + "/like";
-    auto result = makeRequestWithRetry(endpoint, "DELETE", juce::var(), true);
-    Log::debug("Unlike comment response: " + juce::JSON::toString(result.data));
+    auto result = makeRequestWithRetry(endpoint, "DELETE", nlohmann::json(), true);
+    Log::debug("Unlike comment response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -245,18 +244,19 @@ void NetworkClient::reportComment(const juce::String &commentId, const juce::Str
                                   const juce::String &description, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, commentId, reason, description, callback]() {
     juce::String endpoint = buildApiPath("/comments") + "/" + commentId + "/report";
-    auto data = createJsonObject({{"reason", reason}});
+    nlohmann::json data;
+    data["reason"] = reason.toStdString();
     if (description.isNotEmpty())
-      data.getDynamicObject()->setProperty("description", description);
+      data["description"] = description.toStdString();
 
     auto result = makeRequestWithRetry(endpoint, "POST", data, true);
-    Log::debug("Report comment response: " + juce::JSON::toString(result.data));
+    Log::debug("Report comment response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -278,9 +278,9 @@ rxcpp::observable<NetworkClient::CommentResult> NetworkClient::getCommentsObserv
                             "&offset=" + juce::String(offset);
 
     Async::runVoid([this, endpoint, observer]() {
-      auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+      auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), true);
 
-      if (result.isSuccess() && result.data.isObject()) {
+      if (result.isSuccess() && result.data.is_object()) {
         auto commentResult = parseCommentListResponse(result.data);
         juce::MessageManager::callAsync([observer, commentResult]() {
           observer.on_next(commentResult);
@@ -306,7 +306,7 @@ rxcpp::observable<Sidechain::Comment> NetworkClient::createCommentObservable(con
       return;
     }
 
-    createComment(postId, content, parentId, [observer](Outcome<juce::var> result) {
+    createComment(postId, content, parentId, [observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         auto comment = parseCommentFromJson(result.getValue());
         observer.on_next(comment);
@@ -327,7 +327,7 @@ rxcpp::observable<int> NetworkClient::deleteCommentObservable(const juce::String
       return;
     }
 
-    deleteComment(commentId, [observer](Outcome<juce::var> result) {
+    deleteComment(commentId, [observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         observer.on_next(0);
         observer.on_completed();
@@ -347,7 +347,7 @@ rxcpp::observable<int> NetworkClient::likeCommentObservable(const juce::String &
       return;
     }
 
-    likeComment(commentId, [observer](Outcome<juce::var> result) {
+    likeComment(commentId, [observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         observer.on_next(0);
         observer.on_completed();
@@ -367,7 +367,7 @@ rxcpp::observable<int> NetworkClient::unlikeCommentObservable(const juce::String
       return;
     }
 
-    unlikeComment(commentId, [observer](Outcome<juce::var> result) {
+    unlikeComment(commentId, [observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         observer.on_next(0);
         observer.on_completed();
@@ -388,7 +388,7 @@ rxcpp::observable<Sidechain::Comment> NetworkClient::updateCommentObservable(con
       return;
     }
 
-    updateComment(commentId, content, [observer](Outcome<juce::var> result) {
+    updateComment(commentId, content, [observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         auto comment = parseCommentFromJson(result.getValue());
         observer.on_next(comment);
@@ -410,7 +410,7 @@ rxcpp::observable<int> NetworkClient::reportCommentObservable(const juce::String
       return;
     }
 
-    reportComment(commentId, reason, description, [observer](Outcome<juce::var> result) {
+    reportComment(commentId, reason, description, [observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         observer.on_next(0);
         observer.on_completed();

@@ -16,14 +16,12 @@ rxcpp::observable<std::vector<Playlist>> AppStore::getPlaylistsObservable() {
 
            Util::logInfo("AppStore", "Fetching playlists");
 
-           networkClient->getPlaylists("all", [observer](Outcome<juce::var> result) {
+           networkClient->getPlaylists("all", [observer](Outcome<nlohmann::json> result) {
              if (result.isOk()) {
-               const auto data = result.getValue();
+               const auto &jsonArray = result.getValue();
 
-               // Parse juce::var response into Playlist value objects
-               juce::String jsonString = juce::JSON::toString(data, false);
+               // Parse nlohmann::json response into Playlist value objects
                try {
-                 auto jsonArray = nlohmann::json::parse(jsonString.toStdString());
                  auto parseResult = Playlist::createFromJsonArray(jsonArray);
 
                  if (parseResult.isOk()) {
@@ -187,14 +185,12 @@ rxcpp::observable<std::vector<Playlist>> AppStore::loadPlaylistsObservable() {
 
            Util::logInfo("AppStore", "Loading playlists observable");
 
-           networkClient->getPlaylists("all", [observer](Outcome<juce::var> result) {
+           networkClient->getPlaylists("all", [observer](Outcome<nlohmann::json> result) {
              if (result.isOk()) {
-               const auto data = result.getValue();
+               const auto &jsonArray = result.getValue();
 
-               // Parse juce::var response into Playlist value objects
-               juce::String jsonString = juce::JSON::toString(data, false);
+               // Parse nlohmann::json response into Playlist value objects
                try {
-                 auto jsonArray = nlohmann::json::parse(jsonString.toStdString());
                  auto parseResult = Playlist::createFromJsonArray(jsonArray);
 
                  if (parseResult.isOk()) {
@@ -238,18 +234,19 @@ rxcpp::observable<Playlist> AppStore::createPlaylistObservable(const juce::Strin
 
            Util::logInfo("AppStore", "Creating playlist: " + name);
 
-           networkClient->createPlaylist(name, description, false, true, [observer, name](Outcome<juce::var> result) {
-             if (result.isOk()) {
-               Util::logInfo("AppStore", "Playlist created successfully: " + name);
-               // Parse the created playlist from response
-               Playlist playlist = Playlist::fromJSON(result.getValue());
-               observer.on_next(playlist);
-               observer.on_completed();
-             } else {
-               Util::logError("AppStore", "Failed to create playlist: " + result.getError());
-               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
-             }
-           });
+           networkClient->createPlaylist(
+               name, description, false, true, [observer, name](Outcome<nlohmann::json> result) {
+                 if (result.isOk()) {
+                   Util::logInfo("AppStore", "Playlist created successfully: " + name);
+                   // Parse the created playlist from response
+                   Playlist playlist = result.getValue().get<Playlist>();
+                   observer.on_next(playlist);
+                   observer.on_completed();
+                 } else {
+                   Util::logError("AppStore", "Failed to create playlist: " + result.getError());
+                   observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+                 }
+               });
          })
       .observe_on(Rx::observe_on_juce_thread());
 }
@@ -278,7 +275,7 @@ rxcpp::observable<int> AppStore::deletePlaylistObservable(const juce::String &pl
            }
 
            networkClient->deletePlaylist(
-               playlistId, [this, playlistId, removedPlaylist, observer](Outcome<juce::var> result) {
+               playlistId, [this, playlistId, removedPlaylist, observer](Outcome<nlohmann::json> result) {
                  if (result.isOk()) {
                    Util::logInfo("AppStore", "Playlist deleted on server: " + playlistId);
                    observer.on_next(0);
@@ -310,7 +307,7 @@ rxcpp::observable<int> AppStore::addPostToPlaylistObservable(const juce::String 
            Util::logInfo("AppStore", "Adding post " + postId + " to playlist " + playlistId);
 
            networkClient->addPlaylistEntry(
-               playlistId, postId, -1, [postId, playlistId, observer](Outcome<juce::var> result) {
+               playlistId, postId, -1, [postId, playlistId, observer](Outcome<nlohmann::json> result) {
                  if (result.isOk()) {
                    Util::logInfo("AppStore", "Post " + postId + " added to playlist " + playlistId + " successfully");
                    observer.on_next(0);
@@ -334,19 +331,22 @@ rxcpp::observable<AppStore::PlaylistDetailResult> AppStore::getPlaylistObservabl
 
            Util::logInfo("AppStore", "Getting playlist via observable: " + playlistId);
 
-           networkClient->getPlaylist(playlistId, [observer, playlistId](Outcome<juce::var> result) {
+           networkClient->getPlaylist(playlistId, [observer, playlistId](Outcome<nlohmann::json> result) {
              if (result.isOk()) {
                Util::logInfo("AppStore", "Got playlist via observable");
                PlaylistDetailResult detailResult;
 
-               auto response = result.getValue();
+               const auto &response = result.getValue();
+
+               // Convert nlohmann::json to juce::var for parsing
+               juce::var juceResponse = juce::JSON::parse(juce::String(response.dump()));
 
                // Parse playlist
-               detailResult.playlist = Playlist::fromJSON(response);
+               detailResult.playlist = Playlist::fromJSON(juceResponse);
 
                // Parse entries
-               if (response.hasProperty("entries")) {
-                 auto entriesArray = response["entries"];
+               if (juceResponse.hasProperty("entries")) {
+                 auto entriesArray = juceResponse["entries"];
                  if (entriesArray.isArray()) {
                    detailResult.entries.reserve(static_cast<size_t>(entriesArray.size()));
                    for (int i = 0; i < entriesArray.size(); ++i) {
@@ -356,8 +356,8 @@ rxcpp::observable<AppStore::PlaylistDetailResult> AppStore::getPlaylistObservabl
                }
 
                // Parse collaborators
-               if (response.hasProperty("collaborators")) {
-                 auto collabsArray = response["collaborators"];
+               if (juceResponse.hasProperty("collaborators")) {
+                 auto collabsArray = juceResponse["collaborators"];
                  if (collabsArray.isArray()) {
                    detailResult.collaborators.reserve(static_cast<size_t>(collabsArray.size()));
                    for (int i = 0; i < collabsArray.size(); ++i) {
@@ -388,7 +388,7 @@ rxcpp::observable<int> AppStore::removePlaylistEntryObservable(const juce::Strin
 
            Util::logInfo("AppStore", "Removing playlist entry via observable: " + entryId);
 
-           networkClient->removePlaylistEntry(playlistId, entryId, [observer, entryId](Outcome<juce::var> result) {
+           networkClient->removePlaylistEntry(playlistId, entryId, [observer, entryId](Outcome<nlohmann::json> result) {
              if (result.isOk()) {
                Util::logInfo("AppStore", "Removed playlist entry via observable: " + entryId);
                observer.on_next(0);

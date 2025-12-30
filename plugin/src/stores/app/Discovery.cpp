@@ -6,6 +6,7 @@
 #include "../../util/Json.h"
 #include "../../util/rx/JuceScheduler.h"
 #include "../../models/User.h"
+#include <nlohmann/json.hpp>
 #include <rxcpp/rx.hpp>
 
 namespace Sidechain {
@@ -175,18 +176,16 @@ rxcpp::observable<std::vector<User>> AppStore::loadTrendingUsersObservable(int l
 
            Util::logDebug("AppStore", "Loading trending users via observable");
 
-           networkClient->getTrendingUsers(limit, [observer](Outcome<juce::var> result) {
+           networkClient->getTrendingUsers(limit, [observer](Outcome<nlohmann::json> result) {
              if (result.isOk()) {
                ResultType users;
                auto usersArray = result.getValue();
 
-               if (usersArray.isArray()) {
-                 for (int i = 0; i < usersArray.size(); ++i) {
+               if (usersArray.is_array()) {
+                 for (size_t i = 0; i < usersArray.size(); ++i) {
                    try {
-                     auto jsonStr = juce::JSON::toString(usersArray[i]);
-                     auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
                      User user;
-                     from_json(jsonObj, user);
+                     from_json(usersArray[i], user);
                      if (user.isValid()) {
                        users.push_back(std::move(user));
                      }
@@ -219,18 +218,16 @@ rxcpp::observable<std::vector<User>> AppStore::loadFeaturedProducersObservable(i
 
            Util::logDebug("AppStore", "Loading featured producers via observable");
 
-           networkClient->getFeaturedProducers(limit, [observer](Outcome<juce::var> result) {
+           networkClient->getFeaturedProducers(limit, [observer](Outcome<nlohmann::json> result) {
              if (result.isOk()) {
                ResultType users;
                auto usersArray = result.getValue();
 
-               if (usersArray.isArray()) {
-                 for (int i = 0; i < usersArray.size(); ++i) {
+               if (usersArray.is_array()) {
+                 for (size_t i = 0; i < usersArray.size(); ++i) {
                    try {
-                     auto jsonStr = juce::JSON::toString(usersArray[i]);
-                     auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
                      User user;
-                     from_json(jsonObj, user);
+                     from_json(usersArray[i], user);
                      if (user.isValid()) {
                        users.push_back(std::move(user));
                      }
@@ -264,18 +261,16 @@ rxcpp::observable<std::vector<User>> AppStore::loadSuggestedUsersObservable(int 
 
            Util::logDebug("AppStore", "Loading suggested users via observable");
 
-           networkClient->getSuggestedUsers(limit, [observer](Outcome<juce::var> result) {
+           networkClient->getSuggestedUsers(limit, [observer](Outcome<nlohmann::json> result) {
              if (result.isOk()) {
                ResultType users;
                auto usersArray = result.getValue();
 
-               if (usersArray.isArray()) {
-                 for (int i = 0; i < usersArray.size(); ++i) {
+               if (usersArray.is_array()) {
+                 for (size_t i = 0; i < usersArray.size(); ++i) {
                    try {
-                     auto jsonStr = juce::JSON::toString(usersArray[i]);
-                     auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
                      User user;
-                     from_json(jsonObj, user);
+                     from_json(usersArray[i], user);
                      if (user.isValid()) {
                        users.push_back(std::move(user));
                      }

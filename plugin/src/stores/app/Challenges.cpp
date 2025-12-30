@@ -1,6 +1,7 @@
 #include "../AppStore.h"
 #include "../../util/logging/Logger.h"
 #include "../../util/rx/JuceScheduler.h"
+#include <nlohmann/json.hpp>
 
 namespace Sidechain {
 namespace Stores {
@@ -86,14 +87,14 @@ rxcpp::observable<std::vector<MIDIChallenge>> AppStore::loadChallengesObservable
 
            Util::logInfo("AppStore", "Loading challenges observable");
 
-           networkClient->getMIDIChallenges("", [observer](Outcome<juce::var> result) {
+           networkClient->getMIDIChallenges("", [observer](Outcome<nlohmann::json> result) {
              if (result.isOk()) {
-               const auto data = result.getValue();
+               const auto &data = result.getValue();
                std::vector<MIDIChallenge> challenges;
 
-               if (data.isArray()) {
-                 for (int i = 0; i < data.size(); ++i) {
-                   auto challenge = MIDIChallenge::fromJSON(data[i]);
+               if (data.is_array()) {
+                 for (const auto &item : data) {
+                   MIDIChallenge challenge = item.get<MIDIChallenge>();
                    challenges.push_back(challenge);
                  }
                }
@@ -153,7 +154,7 @@ rxcpp::observable<int> AppStore::submitChallengeObservable(const juce::String &c
            }
 
            networkClient->submitMIDIChallengeEntry(
-               challengeId, "", "", midiData, "", [challengeId, observer](Outcome<juce::var> result) {
+               challengeId, "", "", midiData, "", [challengeId, observer](Outcome<nlohmann::json> result) {
                  if (result.isOk()) {
                    Util::logInfo("AppStore", "Successfully submitted challenge " + challengeId);
                    observer.on_next(0);
@@ -178,7 +179,7 @@ AppStore::getMIDIChallengeObservable(const juce::String &challengeId) {
 
            Util::logInfo("AppStore", "Getting MIDI challenge via observable: " + challengeId);
 
-           networkClient->getMIDIChallenge(challengeId, [observer](Outcome<juce::var> result) {
+           networkClient->getMIDIChallenge(challengeId, [observer](Outcome<nlohmann::json> result) {
              if (result.isOk()) {
                Util::logInfo("AppStore", "Got MIDI challenge via observable");
                MIDIChallengeDetailResult detailResult;
@@ -186,24 +187,24 @@ AppStore::getMIDIChallengeObservable(const juce::String &challengeId) {
                const auto &response = result.getValue();
 
                // Parse challenge
-               if (response.hasProperty("challenge")) {
-                 detailResult.challenge = MIDIChallenge::fromJSON(response["challenge"]);
+               if (response.contains("challenge")) {
+                 detailResult.challenge = response["challenge"].get<MIDIChallenge>();
                } else {
-                 detailResult.challenge = MIDIChallenge::fromJSON(response);
+                 detailResult.challenge = response.get<MIDIChallenge>();
                }
 
                // Parse entries
-               juce::var entriesVar;
-               if (response.hasProperty("challenge") && response["challenge"].hasProperty("entries")) {
-                 entriesVar = response["challenge"]["entries"];
-               } else if (response.hasProperty("entries")) {
-                 entriesVar = response["entries"];
+               const nlohmann::json *entriesJson = nullptr;
+               if (response.contains("challenge") && response["challenge"].contains("entries")) {
+                 entriesJson = &response["challenge"]["entries"];
+               } else if (response.contains("entries")) {
+                 entriesJson = &response["entries"];
                }
 
-               if (entriesVar.isArray()) {
-                 detailResult.entries.reserve(static_cast<size_t>(entriesVar.size()));
-                 for (int i = 0; i < entriesVar.size(); ++i) {
-                   detailResult.entries.push_back(MIDIChallengeEntry::fromJSON(entriesVar[i]));
+               if (entriesJson != nullptr && entriesJson->is_array()) {
+                 detailResult.entries.reserve(entriesJson->size());
+                 for (const auto &entryJson : *entriesJson) {
+                   detailResult.entries.push_back(entryJson.get<MIDIChallengeEntry>());
                  }
                }
 
@@ -229,16 +230,17 @@ rxcpp::observable<int> AppStore::voteMIDIChallengeEntryObservable(const juce::St
 
            Util::logInfo("AppStore", "Voting for MIDI challenge entry via observable: " + entryId);
 
-           networkClient->voteMIDIChallengeEntry(challengeId, entryId, [observer, entryId](Outcome<juce::var> result) {
-             if (result.isOk()) {
-               Util::logInfo("AppStore", "Voted for entry via observable: " + entryId);
-               observer.on_next(0);
-               observer.on_completed();
-             } else {
-               Util::logError("AppStore", "Failed to vote for entry: " + result.getError());
-               observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
-             }
-           });
+           networkClient->voteMIDIChallengeEntry(
+               challengeId, entryId, [observer, entryId](Outcome<nlohmann::json> result) {
+                 if (result.isOk()) {
+                   Util::logInfo("AppStore", "Voted for entry via observable: " + entryId);
+                   observer.on_next(0);
+                   observer.on_completed();
+                 } else {
+                   Util::logError("AppStore", "Failed to vote for entry: " + result.getError());
+                   observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+                 }
+               });
          })
       .observe_on(Rx::observe_on_juce_thread());
 }

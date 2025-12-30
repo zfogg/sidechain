@@ -16,20 +16,18 @@ using namespace Sidechain::Network::Api;
 
 // ==============================================================================
 // Helper function to parse user search results
-static std::vector<Sidechain::User> parseSearchUsersResponse(const juce::var &json) {
+static std::vector<Sidechain::User> parseSearchUsersResponse(const nlohmann::json &json) {
   std::vector<Sidechain::User> users;
 
-  if (!json.isArray()) {
+  if (!json.is_array()) {
     return users;
   }
 
-  users.reserve(static_cast<size_t>(json.size()));
-  for (int i = 0; i < json.size(); ++i) {
+  users.reserve(json.size());
+  for (const auto &item : json) {
     try {
-      auto jsonStr = juce::JSON::toString(json[i]);
-      auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
       Sidechain::User user;
-      from_json(jsonObj, user);
+      from_json(item, user);
       if (user.isValid()) {
         users.push_back(std::move(user));
       }
@@ -53,7 +51,7 @@ void NetworkClient::searchUsers(const juce::String &query, int limit, int offset
                           "&offset=" + juce::String(offset);
 
   Async::runVoid([this, endpoint, callback]() {
-    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), true);
 
     juce::MessageManager::callAsync([callback, result]() {
       auto outcome = extractProperty(requestResultToOutcome(result), "users");
@@ -69,7 +67,7 @@ void NetworkClient::getTrendingUsers(int limit, ResponseCallback callback) {
   juce::String endpoint = buildApiPath("/discover/trending") + "?limit=" + juce::String(limit);
 
   Async::runVoid([this, endpoint, callback]() {
-    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), true);
 
     juce::MessageManager::callAsync([callback, result]() {
       auto outcome = requestResultToOutcome(result);
@@ -85,7 +83,7 @@ void NetworkClient::getFeaturedProducers(int limit, ResponseCallback callback) {
   juce::String endpoint = buildApiPath("/discover/featured") + "?limit=" + juce::String(limit);
 
   Async::runVoid([this, endpoint, callback]() {
-    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), true);
 
     juce::MessageManager::callAsync([callback, result]() {
       auto outcome = requestResultToOutcome(result);
@@ -101,7 +99,7 @@ void NetworkClient::getSuggestedUsers(int limit, ResponseCallback callback) {
   juce::String endpoint = buildApiPath("/discover/suggested") + "?limit=" + juce::String(limit);
 
   Async::runVoid([this, endpoint, callback]() {
-    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), true);
 
     juce::MessageManager::callAsync([callback, result]() {
       auto outcome = extractProperty(requestResultToOutcome(result), "users");
@@ -120,7 +118,7 @@ void NetworkClient::getUsersByGenre(const juce::String &genre, int limit, int of
                           "&offset=" + juce::String(offset);
 
   Async::runVoid([this, endpoint, callback]() {
-    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), true);
 
     juce::MessageManager::callAsync([callback, result]() {
       auto outcome = requestResultToOutcome(result);
@@ -134,7 +132,7 @@ void NetworkClient::getAvailableGenres(ResponseCallback callback) {
     return;
 
   Async::runVoid([this, callback]() {
-    auto result = makeRequestWithRetry(buildApiPath("/discover/genres"), "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(buildApiPath("/discover/genres"), "GET", nlohmann::json(), true);
 
     juce::MessageManager::callAsync([callback, result]() {
       auto outcome = requestResultToOutcome(result);
@@ -150,7 +148,7 @@ void NetworkClient::getSimilarUsers(const juce::String &userId, int limit, Respo
   juce::String endpoint = buildApiPath("/users") + "/" + userId + "/similar?limit=" + juce::String(limit);
 
   Async::runVoid([this, endpoint, callback]() {
-    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), true);
 
     juce::MessageManager::callAsync([callback, result]() {
       auto outcome = requestResultToOutcome(result);
@@ -167,7 +165,7 @@ void NetworkClient::getRecommendedUsersToFollow(int limit, int offset, ResponseC
       buildApiPath("/users/recommended") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
 
   Async::runVoid([this, endpoint, callback]() {
-    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), true);
 
     juce::MessageManager::callAsync([callback, result]() {
       auto outcome = requestResultToOutcome(result);
@@ -190,7 +188,7 @@ rxcpp::observable<std::vector<Sidechain::User>> NetworkClient::searchUsersObserv
         buildApiPath("/search/users") + "?q=" + encodedQuery + "&limit=" + juce::String(limit) + "&offset=0";
 
     Async::runVoid([this, endpoint, observer]() {
-      auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+      auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), true);
 
       juce::MessageManager::callAsync([result, observer]() {
         auto outcome = extractProperty(requestResultToOutcome(result), "users");

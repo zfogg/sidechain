@@ -147,10 +147,10 @@ void AppStore::createHighlight(const juce::String &name, const juce::Array<juce:
   Util::logInfo("AppStore", "Creating highlight: " + name + " with " + juce::String(storyIds.size()) + " stories");
 
   // Create highlight with name and description
-  networkClient->createHighlight(name, "", [this, name, storyIds](Outcome<juce::var> result) {
+  networkClient->createHighlight(name, "", [this, name, storyIds](Outcome<nlohmann::json> result) {
     if (result.isOk()) {
-      const auto data = result.getValue();
-      const auto highlightId = data.getProperty("id", juce::var()).toString();
+      const auto &data = result.getValue();
+      const auto highlightId = juce::String(data.value("id", ""));
 
       Util::logInfo("AppStore", "Highlight created successfully: " + highlightId);
 
@@ -161,7 +161,7 @@ void AppStore::createHighlight(const juce::String &name, const juce::Array<juce:
         // Add each story to the highlight
         for (const auto &storyId : storyIds) {
           networkClient->addStoryToHighlight(
-              highlightId, storyId, [storyId, highlightId](Outcome<juce::var> addResult) {
+              highlightId, storyId, [storyId, highlightId](Outcome<nlohmann::json> addResult) {
                 if (addResult.isOk()) {
                   Util::logInfo("AppStore", "Added story " + storyId + " to highlight " + highlightId);
                 } else {
@@ -202,18 +202,16 @@ rxcpp::observable<std::vector<Story>> AppStore::loadStoriesFeedObservable() {
 
            Util::logDebug("AppStore", "Loading stories feed via observable");
 
-           networkClient->getStoriesFeed([observer](Outcome<juce::var> result) {
+           networkClient->getStoriesFeed([observer](Outcome<nlohmann::json> result) {
              if (result.isOk()) {
-               const auto data = result.getValue();
+               const auto &data = result.getValue();
                ResultType stories;
 
-               if (data.isArray()) {
-                 for (int i = 0; i < data.size(); ++i) {
+               if (data.is_array()) {
+                 for (const auto &item : data) {
                    try {
-                     auto jsonStr = juce::JSON::toString(data[i]);
-                     auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
                      Story story;
-                     from_json(jsonObj, story);
+                     from_json(item, story);
                      if (story.isValid()) {
                        stories.push_back(std::move(story));
                      }
@@ -251,18 +249,16 @@ rxcpp::observable<std::vector<Story>> AppStore::loadMyStoriesObservable() {
            const auto currentAuthState = stateManager.auth->getState();
            const juce::String currentUserId = currentAuthState.userId;
 
-           networkClient->getStoriesFeed([observer, currentUserId](Outcome<juce::var> result) {
+           networkClient->getStoriesFeed([observer, currentUserId](Outcome<nlohmann::json> result) {
              if (result.isOk()) {
-               const auto data = result.getValue();
+               const auto &data = result.getValue();
                ResultType stories;
 
-               if (data.isArray()) {
-                 for (int i = 0; i < data.size(); ++i) {
+               if (data.is_array()) {
+                 for (const auto &item : data) {
                    try {
-                     auto jsonStr = juce::JSON::toString(data[i]);
-                     auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
                      Story story;
-                     from_json(jsonObj, story);
+                     from_json(item, story);
                      // Only include stories that belong to the current user
                      if (story.isValid() && story.userId == currentUserId) {
                        stories.push_back(std::move(story));
@@ -295,7 +291,7 @@ rxcpp::observable<int> AppStore::markStoryAsViewedObservable(const juce::String 
 
            Util::logDebug("AppStore", "Marking story as viewed via observable: " + storyId);
 
-           networkClient->viewStory(storyId, [observer, storyId](Outcome<juce::var> result) {
+           networkClient->viewStory(storyId, [observer, storyId](Outcome<nlohmann::json> result) {
              if (result.isOk()) {
                Util::logInfo("AppStore", "Story marked as viewed: " + storyId);
                observer.on_next(0);
@@ -319,7 +315,7 @@ rxcpp::observable<int> AppStore::deleteStoryObservable(const juce::String &story
 
            Util::logDebug("AppStore", "Deleting story via observable: " + storyId);
 
-           networkClient->deleteStory(storyId, [this, observer, storyId](Outcome<juce::var> result) {
+           networkClient->deleteStory(storyId, [this, observer, storyId](Outcome<nlohmann::json> result) {
              if (result.isOk()) {
                // Update state
                StoriesState deleteState = stateManager.stories->getState();

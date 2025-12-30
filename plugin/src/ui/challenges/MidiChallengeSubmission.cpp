@@ -6,6 +6,21 @@
 #include "../../util/Result.h"
 #include "../recording/Upload.h"
 #include "core/PluginProcessor.h"
+#include <nlohmann/json.hpp>
+
+namespace {
+// Helper to convert juce::var to nlohmann::json
+nlohmann::json varToNlohmannJson(const juce::var &v) {
+  if (v.isVoid())
+    return nlohmann::json();
+  auto jsonStr = juce::JSON::toString(v);
+  try {
+    return nlohmann::json::parse(jsonStr.toStdString());
+  } catch (...) {
+    return nlohmann::json();
+  }
+}
+} // namespace
 
 // ==============================================================================
 MidiChallengeSubmission::MidiChallengeSubmission(SidechainAudioProcessor &processor, NetworkClient &network,
@@ -25,7 +40,7 @@ MidiChallengeSubmission::MidiChallengeSubmission(SidechainAudioProcessor &proces
     if (!postId.isEmpty() && !challenge.id.isEmpty()) {
       // Submit the post to the challenge
       networkClient.submitMIDIChallengeEntry(
-          challenge.id, "", postId, midiData, "", [this](const Outcome<juce::var> &outcome) {
+          challenge.id, "", postId, varToNlohmannJson(midiData), "", [this](const Outcome<nlohmann::json> &outcome) {
             if (outcome.isOk()) {
               Log::info("MidiChallengeSubmission: Challenge submission successful");
               submissionState = SubmissionState::Success;
@@ -570,12 +585,12 @@ void MidiChallengeSubmission::submitEntry(const juce::String &postId, const juce
   // If we have MIDI data, upload it first to get a pattern ID
   if (!midiData.isVoid() && midiData.hasProperty("events")) {
     networkClient.uploadMIDI(
-        midiData, "MIDI Challenge Entry", "MIDI pattern for challenge entry", true,
-        [this, postId, audioUrl](Outcome<juce::var> uploadResult) {
+        varToNlohmannJson(midiData), "MIDI Challenge Entry", "MIDI pattern for challenge entry", true,
+        [this, postId, audioUrl](Outcome<nlohmann::json> uploadResult) {
           juce::MessageManager::callAsync([this, postId, audioUrl, uploadResult]() {
             juce::String midiPatternId = "";
-            if (uploadResult.isOk() && uploadResult.getValue().hasProperty("id")) {
-              midiPatternId = uploadResult.getValue()["id"].toString();
+            if (uploadResult.isOk() && uploadResult.getValue().contains("id")) {
+              midiPatternId = juce::String(uploadResult.getValue()["id"].get<std::string>());
               Log::info("MidiChallengeSubmission: MIDI pattern uploaded successfully, ID: " + midiPatternId);
             } else {
               Log::warn("MidiChallengeSubmission: MIDI upload failed, submitting without pattern ID");
@@ -593,8 +608,8 @@ void MidiChallengeSubmission::submitEntry(const juce::String &postId, const juce
 
 void MidiChallengeSubmission::submitChallengeEntry(const juce::String &postId, const juce::String &audioUrl,
                                                    const juce::String &midiPatternId) {
-  networkClient.submitMIDIChallengeEntry(challenge.id, audioUrl, postId, midiData, midiPatternId,
-                                         [this](Outcome<juce::var> result) {
+  networkClient.submitMIDIChallengeEntry(challenge.id, audioUrl, postId, varToNlohmannJson(midiData), midiPatternId,
+                                         [this](Outcome<nlohmann::json> result) {
                                            juce::MessageManager::callAsync([this, result]() {
                                              if (result.isOk()) {
                                                submissionState = SubmissionState::Success;

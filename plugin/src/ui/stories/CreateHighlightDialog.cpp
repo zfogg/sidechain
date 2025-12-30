@@ -2,6 +2,7 @@
 #include "../../network/NetworkClient.h"
 #include "../../util/Colors.h"
 #include "../../util/Log.h"
+#include <nlohmann/json.hpp>
 
 // ==============================================================================
 CreateHighlightDialog::CreateHighlightDialog() {
@@ -203,7 +204,7 @@ void CreateHighlightDialog::createHighlight() {
   juce::String description = descriptionInput->getText().trim();
 
   juce::Component::SafePointer<CreateHighlightDialog> safeThis(this);
-  networkClient->createHighlight(name, description, [safeThis](Outcome<juce::var> result) {
+  networkClient->createHighlight(name, description, [safeThis](Outcome<nlohmann::json> result) {
     if (safeThis == nullptr)
       return;
 
@@ -220,7 +221,7 @@ void CreateHighlightDialog::createHighlight() {
 
     // Extract highlight ID from response
     auto response = result.getValue();
-    juce::String highlightId = response.getProperty("highlight_id", "").toString();
+    juce::String highlightId = response.value("highlight_id", "");
 
     Log::info("CreateHighlightDialog: Created highlight " + highlightId);
 

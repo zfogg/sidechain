@@ -6,6 +6,7 @@
 #include "../../util/logging/Logger.h"
 #include "../../util/Result.h"
 #include <JuceHeader.h>
+#include <nlohmann/json.hpp>
 #include <functional>
 #include <memory>
 
@@ -41,7 +42,7 @@ public:
     std::function<void(FeedPost &, int)> setCount;
 
     // API calls (isActive -> callback)
-    std::function<void(const juce::String &, bool, std::function<void(Outcome<juce::var>)>)> apiCall;
+    std::function<void(const juce::String &, bool, std::function<void(Outcome<nlohmann::json>)>)> apiCall;
 
     // Logging context
     juce::String actionName;
@@ -149,7 +150,7 @@ public:
     Util::logDebug("PostInteractionHelper", config.actionName + " optimistic update: " + postId);
 
     // 3. Call API
-    config.apiCall(postId, wasActive, [state, postId, wasActive, toggleState, config](Outcome<juce::var> result) {
+    config.apiCall(postId, wasActive, [state, postId, wasActive, toggleState, config](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         Util::logInfo("PostInteractionHelper",
                       config.actionName + " " + (wasActive ? "undone" : "applied") + " successfully: " + postId);
@@ -170,8 +171,8 @@ public:
   /**
    * Create a ToggleConfig for like operations.
    */
-  static ToggleConfig
-  createLikeConfig(std::function<void(const juce::String &, bool, std::function<void(Outcome<juce::var>)>)> apiCall) {
+  static ToggleConfig createLikeConfig(
+      std::function<void(const juce::String &, bool, std::function<void(Outcome<nlohmann::json>)>)> apiCall) {
     return ToggleConfig{.getIsActive = [](const FeedPost &p) { return p.isLiked; },
                         .getCount = [](const FeedPost &p) { return p.likeCount; },
                         .setIsActive = [](FeedPost &p, bool active) { p.isLiked = active; },
@@ -183,8 +184,8 @@ public:
   /**
    * Create a ToggleConfig for save operations.
    */
-  static ToggleConfig
-  createSaveConfig(std::function<void(const juce::String &, bool, std::function<void(Outcome<juce::var>)>)> apiCall) {
+  static ToggleConfig createSaveConfig(
+      std::function<void(const juce::String &, bool, std::function<void(Outcome<nlohmann::json>)>)> apiCall) {
     return ToggleConfig{.getIsActive = [](const FeedPost &p) { return p.isSaved; },
                         .getCount = [](const FeedPost &p) { return p.saveCount; },
                         .setIsActive = [](FeedPost &p, bool active) { p.isSaved = active; },
@@ -196,8 +197,8 @@ public:
   /**
    * Create a ToggleConfig for repost operations.
    */
-  static ToggleConfig
-  createRepostConfig(std::function<void(const juce::String &, bool, std::function<void(Outcome<juce::var>)>)> apiCall) {
+  static ToggleConfig createRepostConfig(
+      std::function<void(const juce::String &, bool, std::function<void(Outcome<nlohmann::json>)>)> apiCall) {
     return ToggleConfig{.getIsActive = [](const FeedPost &p) { return p.isReposted; },
                         .getCount = [](const FeedPost &p) { return p.repostCount; },
                         .setIsActive = [](FeedPost &p, bool active) { p.isReposted = active; },

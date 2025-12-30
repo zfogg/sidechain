@@ -5,6 +5,7 @@
 #include "../EntityStore.h"
 #include "../../models/Comment.h"
 #include <rxcpp/rx.hpp>
+#include <nlohmann/json.hpp>
 
 namespace Sidechain {
 namespace Stores {
@@ -23,26 +24,27 @@ rxcpp::observable<juce::Array<juce::var>> AppStore::getCommentsObservable(const 
 
     Util::logInfo("AppStore", "Fetching comments for post: " + postId);
 
-    networkClient->getComments(postId, limit, offset, [observer, postId](Outcome<std::pair<juce::var, int>> result) {
-      if (result.isOk()) {
-        auto [commentsData, totalCount] = result.getValue();
-        juce::Array<juce::var> commentsList;
+    networkClient->getComments(
+        postId, limit, offset, [observer, postId](Outcome<std::pair<nlohmann::json, int>> result) {
+          if (result.isOk()) {
+            auto [commentsData, totalCount] = result.getValue();
+            juce::Array<juce::var> commentsList;
 
-        // Parse comments array
-        if (commentsData.isArray()) {
-          for (int i = 0; i < commentsData.size(); ++i) {
-            commentsList.add(commentsData[i]);
+            // Parse comments array
+            if (commentsData.is_array()) {
+              for (const auto &item : commentsData) {
+                commentsList.add(juce::var(item.dump()));
+              }
+            }
+
+            Util::logInfo("AppStore", "Loaded " + juce::String(commentsList.size()) + " comments for post: " + postId);
+            observer.on_next(commentsList);
+            observer.on_completed();
+          } else {
+            Util::logError("AppStore", "Failed to get comments: " + result.getError());
+            observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
           }
-        }
-
-        Util::logInfo("AppStore", "Loaded " + juce::String(commentsList.size()) + " comments for post: " + postId);
-        observer.on_next(commentsList);
-        observer.on_completed();
-      } else {
-        Util::logError("AppStore", "Failed to get comments: " + result.getError());
-        observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
-      }
-    });
+        });
   });
 }
 

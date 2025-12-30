@@ -4,6 +4,7 @@
 #include "../../util/Log.h"
 #include "../../util/Result.h"
 #include "../../util/UIHelpers.h"
+#include <nlohmann/json.hpp>
 
 // ==============================================================================
 NotificationSettings::NotificationSettings(AppStore *store)
@@ -71,23 +72,23 @@ void NotificationSettings::loadPreferences() {
   errorMessage = "";
   repaint();
 
-  networkClient->get("/notifications/preferences", [this](Outcome<juce::var> result) {
+  networkClient->get("/notifications/preferences", [this](Outcome<nlohmann::json> result) {
     juce::MessageManager::callAsync([this, result]() {
       isLoading = false;
 
       if (result.isOk()) {
         auto response = result.getValue();
-        if (response.hasProperty("preferences")) {
+        if (response.contains("preferences")) {
           auto prefs = response["preferences"];
 
-          likesEnabled = prefs.getProperty("likes_enabled", true);
-          commentsEnabled = prefs.getProperty("comments_enabled", true);
-          followsEnabled = prefs.getProperty("follows_enabled", true);
-          mentionsEnabled = prefs.getProperty("mentions_enabled", true);
-          dmsEnabled = prefs.getProperty("dms_enabled", true);
-          storiesEnabled = prefs.getProperty("stories_enabled", true);
-          repostsEnabled = prefs.getProperty("reposts_enabled", true);
-          challengesEnabled = prefs.getProperty("challenges_enabled", true);
+          likesEnabled = prefs.value("likes_enabled", true);
+          commentsEnabled = prefs.value("comments_enabled", true);
+          followsEnabled = prefs.value("follows_enabled", true);
+          mentionsEnabled = prefs.value("mentions_enabled", true);
+          dmsEnabled = prefs.value("dms_enabled", true);
+          storiesEnabled = prefs.value("stories_enabled", true);
+          repostsEnabled = prefs.value("reposts_enabled", true);
+          challengesEnabled = prefs.value("challenges_enabled", true);
 
           populateFromPreferences();
           Log::info("NotificationSettings: Preferences loaded successfully");
@@ -153,19 +154,17 @@ void NotificationSettings::savePreferences() {
   errorMessage = "";
 
   // Build update payload
-  auto *updateData = new juce::DynamicObject();
-  updateData->setProperty("likes_enabled", likesEnabled);
-  updateData->setProperty("comments_enabled", commentsEnabled);
-  updateData->setProperty("follows_enabled", followsEnabled);
-  updateData->setProperty("mentions_enabled", mentionsEnabled);
-  updateData->setProperty("dms_enabled", dmsEnabled);
-  updateData->setProperty("stories_enabled", storiesEnabled);
-  updateData->setProperty("reposts_enabled", repostsEnabled);
-  updateData->setProperty("challenges_enabled", challengesEnabled);
+  nlohmann::json payload;
+  payload["likes_enabled"] = likesEnabled;
+  payload["comments_enabled"] = commentsEnabled;
+  payload["follows_enabled"] = followsEnabled;
+  payload["mentions_enabled"] = mentionsEnabled;
+  payload["dms_enabled"] = dmsEnabled;
+  payload["stories_enabled"] = storiesEnabled;
+  payload["reposts_enabled"] = repostsEnabled;
+  payload["challenges_enabled"] = challengesEnabled;
 
-  juce::var payload(updateData);
-
-  networkClient->put("/notifications/preferences", payload, [this](Outcome<juce::var> result) {
+  networkClient->put("/notifications/preferences", payload, [this](Outcome<nlohmann::json> result) {
     juce::MessageManager::callAsync([this, result]() {
       isSaving = false;
 

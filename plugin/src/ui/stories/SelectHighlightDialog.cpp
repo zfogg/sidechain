@@ -5,6 +5,7 @@
 #include "../../util/Json.h"
 #include "../../util/Log.h"
 #include "../../util/StringUtils.h"
+#include <nlohmann/json.hpp>
 
 // ==============================================================================
 SelectHighlightDialog::SelectHighlightDialog() {
@@ -351,7 +352,7 @@ void SelectHighlightDialog::loadHighlights() {
 
   juce::Component::SafePointer<SelectHighlightDialog> safeThis(this);
 
-  networkClient->getHighlights(currentUserId, [safeThis](Outcome<juce::var> result) {
+  networkClient->getHighlights(currentUserId, [safeThis](Outcome<nlohmann::json> result) {
     if (safeThis == nullptr)
       return;
 
@@ -364,18 +365,19 @@ void SelectHighlightDialog::loadHighlights() {
     }
 
     auto response = result.getValue();
-    if (Json::isObject(response)) {
-      auto highlightsArray = Json::getArray(response, "highlights");
-      if (Json::isArray(highlightsArray)) {
-        safeThis->highlights.clear();
-        for (int i = 0; i < highlightsArray.size(); ++i) {
-          safeThis->highlights.add(Sidechain::StoryHighlight::fromJSON(highlightsArray[i]));
-        }
+    if (response.is_object() && response.contains("highlights") && response["highlights"].is_array()) {
+      auto highlightsArray = response["highlights"];
+      safeThis->highlights.clear();
+      for (const auto &item : highlightsArray) {
+        // Convert nlohmann::json to juce::var for fromJSON
+        auto jsonStr = item.dump();
+        auto varItem = juce::JSON::parse(jsonStr);
+        safeThis->highlights.add(Sidechain::StoryHighlight::fromJSON(varItem));
+      }
 
-        // Load cover images
-        for (const auto &highlight : safeThis->highlights) {
-          safeThis->loadCoverImage(highlight);
-        }
+      // Load cover images
+      for (const auto &highlight : safeThis->highlights) {
+        safeThis->loadCoverImage(highlight);
       }
     }
 
@@ -392,7 +394,7 @@ void SelectHighlightDialog::addStoryToHighlight(const juce::String &highlightId)
   repaint();
 
   juce::Component::SafePointer<SelectHighlightDialog> safeThis(this);
-  networkClient->addStoryToHighlight(highlightId, storyId, [safeThis, highlightId](Outcome<juce::var> result) {
+  networkClient->addStoryToHighlight(highlightId, storyId, [safeThis, highlightId](Outcome<nlohmann::json> result) {
     if (safeThis == nullptr)
       return;
 

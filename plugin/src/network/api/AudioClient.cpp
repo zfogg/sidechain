@@ -6,7 +6,6 @@
 #include "../../audio/KeyDetector.h"
 #include "../../util/Async.h"
 #include "../../util/Constants.h"
-#include "../../util/Json.h"
 #include "../../util/Log.h"
 #include "../NetworkClient.h"
 #include "Common.h"
@@ -120,10 +119,10 @@ void NetworkClient::uploadAudio(const juce::String &recordingId, const juce::Aud
     bool success = result.success;
     juce::String audioUrl;
 
-    if (result.data.isObject()) {
-      audioUrl = Json::getString(result.data, "audio_url");
+    if (result.data.is_object()) {
+      audioUrl = juce::String(result.data.value("audio_url", ""));
       if (audioUrl.isEmpty())
-        audioUrl = Json::getString(result.data, "url");
+        audioUrl = juce::String(result.data.value("url", ""));
     }
 
     if (callback) {
@@ -239,9 +238,9 @@ void NetworkClient::uploadAudioWithMetadata(const juce::AudioBuffer<float> &audi
     }
 
     // Include MIDI data if available
-    if (metadataCopy.includeMidi && !metadataCopy.midiData.isVoid()) {
+    if (metadataCopy.includeMidi && !metadataCopy.midiData.is_null() && !metadataCopy.midiData.empty()) {
       // Serialize MIDI data as JSON string for multipart field
-      juce::String midiJson = juce::JSON::toString(metadataCopy.midiData, true);
+      juce::String midiJson = juce::String(metadataCopy.midiData.dump());
       if (midiJson.isNotEmpty() && midiJson != "null") {
         fields["midi_data"] = midiJson;
         Log::debug("Including MIDI data in upload: " + juce::String(midiJson.length()) + " chars");
@@ -265,23 +264,23 @@ void NetworkClient::uploadAudioWithMetadata(const juce::AudioBuffer<float> &audi
     juce::String audioPostId;
 
     // Check for error messages in response body (even if HTTP status is 200)
-    if (result.data.isObject()) {
+    if (result.data.is_object()) {
       // Check if response contains an error
-      if (Json::hasKey(result.data, "error")) {
-        juce::String errorMsg = Json::getString(result.data, "error");
-        juce::String message = Json::getString(result.data, "message");
+      if (result.data.contains("error")) {
+        juce::String errorMsg = juce::String(result.data.value("error", ""));
+        juce::String message = juce::String(result.data.value("message", ""));
         if (errorMsg.isNotEmpty() || message.isNotEmpty()) {
           success = false;
           Log::warn("Upload response contains error: " + (errorMsg.isNotEmpty() ? errorMsg : message));
         }
       }
 
-      audioUrl = Json::getString(result.data, "audio_url");
+      audioUrl = juce::String(result.data.value("audio_url", ""));
       if (audioUrl.isEmpty())
-        audioUrl = Json::getString(result.data, "url");
-      audioPostId = Json::getString(result.data, "id");
+        audioUrl = juce::String(result.data.value("url", ""));
+      audioPostId = juce::String(result.data.value("id", ""));
       if (audioPostId.isEmpty())
-        audioPostId = Json::getString(result.data, "post_id");
+        audioPostId = juce::String(result.data.value("post_id", ""));
     }
 
     // If success is true but audioUrl is empty, treat as failure
@@ -325,23 +324,22 @@ void NetworkClient::uploadAudioWithMetadata(const juce::AudioBuffer<float> &audi
 
         if (projectUploadResult.success) {
           juce::String fileUrl;
-          if (projectUploadResult.data.isObject()) {
-            fileUrl = Json::getString(projectUploadResult.data, "url");
+          if (projectUploadResult.data.is_object()) {
+            fileUrl = juce::String(projectUploadResult.data.value("url", ""));
             if (fileUrl.isEmpty())
-              fileUrl = Json::getString(projectUploadResult.data, "file_url");
+              fileUrl = juce::String(projectUploadResult.data.value("file_url", ""));
           }
 
           if (fileUrl.isNotEmpty()) {
             // Create project file record linked to audio post
-            juce::var recordData = juce::var(new juce::DynamicObject());
-            recordData.getDynamicObject()->setProperty("filename", metadataCopy.projectFile.getFileName());
-            recordData.getDynamicObject()->setProperty("file_url", fileUrl);
-            recordData.getDynamicObject()->setProperty("file_size",
-                                                       static_cast<int64>(metadataCopy.projectFile.getSize()));
-            recordData.getDynamicObject()->setProperty("daw_type", dawType);
-            recordData.getDynamicObject()->setProperty("is_public", true);
+            nlohmann::json recordData;
+            recordData["filename"] = metadataCopy.projectFile.getFileName().toStdString();
+            recordData["file_url"] = fileUrl.toStdString();
+            recordData["file_size"] = static_cast<int64>(metadataCopy.projectFile.getSize());
+            recordData["daw_type"] = dawType.toStdString();
+            recordData["is_public"] = true;
             if (audioPostId.isNotEmpty())
-              recordData.getDynamicObject()->setProperty("audio_post_id", audioPostId);
+              recordData["audio_post_id"] = audioPostId.toStdString();
 
             auto recordResult = makeRequestWithRetry(buildApiPath("/project-files"), "POST", recordData, true);
             if (recordResult.success)

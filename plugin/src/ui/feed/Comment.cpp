@@ -407,24 +407,20 @@ void CommentsPanel::onCommentStoreChanged() {
   // No-op: State updates happen via NetworkClient callbacks
 }
 
-void CommentsPanel::handleCommentsLoaded(Outcome<std::pair<juce::var, int>> commentsResult) {
+void CommentsPanel::handleCommentsLoaded(Outcome<std::pair<nlohmann::json, int>> commentsResult) {
   isLoading = false;
 
   if (commentsResult.isOk()) {
     auto [commentsData, total] = commentsResult.getValue();
-    if (commentsData.isArray()) {
-      auto *arr = commentsData.getArray();
-      if (arr != nullptr) {
-        for (const auto &item : *arr) {
-          try {
-            auto json = nlohmann::json::parse(item.toString().toStdString());
-            auto normalized = EntityStore::getInstance().normalizeComment(json);
-            if (normalized) {
-              comments.push_back(normalized);
-            }
-          } catch (const std::exception &e) {
-            Sidechain::Util::logError("CommentsPanel", "Failed to parse comment: " + juce::String(e.what()));
+    if (commentsData.is_array()) {
+      for (const auto &item : commentsData) {
+        try {
+          auto normalized = EntityStore::getInstance().normalizeComment(item);
+          if (normalized) {
+            comments.push_back(normalized);
           }
+        } catch (const std::exception &e) {
+          Sidechain::Util::logError("CommentsPanel", "Failed to parse comment: " + juce::String(e.what()));
         }
       }
 
@@ -630,14 +626,13 @@ void CommentsPanel::handleCommentLikeToggled(const Sidechain::Comment &comment, 
   }
 }
 
-void CommentsPanel::handleCommentCreated(Outcome<juce::var> commentResult) {
+void CommentsPanel::handleCommentCreated(Outcome<nlohmann::json> commentResult) {
   if (commentResult.isOk()) {
     auto commentData = commentResult.getValue();
     Log::info("CommentsPanel::handleCommentCreated: Comment creation successful");
 
     try {
-      auto json = nlohmann::json::parse(commentData.toString().toStdString());
-      auto newComment = EntityStore::getInstance().normalizeComment(json);
+      auto newComment = EntityStore::getInstance().normalizeComment(commentData);
       if (newComment) {
         Log::info("CommentsPanel::handleCommentCreated: Adding new comment - id: " + newComment->id +
                   ", username: " + newComment->username);

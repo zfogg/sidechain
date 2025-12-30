@@ -72,13 +72,10 @@ rxcpp::observable<User> EntityStore::fetchUser(const juce::String &id) {
 
            Util::logDebug("EntityStore", "Cache miss for user: " + id + ", fetching from network");
 
-           networkClient_->getUser(id, [this, observer, id](Outcome<juce::var> result) {
+           networkClient_->getUser(id, [this, observer, id](Outcome<nlohmann::json> result) {
              if (result.isOk()) {
                try {
-                 // Convert juce::var to nlohmann::json for normalizeUser
-                 auto jsonStr = juce::JSON::toString(result.getValue());
-                 auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
-                 auto userPtr = normalizeUser(jsonObj);
+                 auto userPtr = normalizeUser(result.getValue());
                  if (userPtr) {
                    observer.on_next(*userPtr);
                    observer.on_completed();

@@ -20,15 +20,15 @@ using namespace Sidechain::Network::Api;
 void NetworkClient::followUser(const juce::String &userId, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, userId, callback]() {
-    auto data = createJsonObject({{"target_user_id", userId}});
+    nlohmann::json data = {{"target_user_id", userId.toStdString()}};
 
     auto result = makeRequestWithRetry(buildApiPath("/social/follow"), "POST", data, true);
-    Log::debug("Follow response: " + juce::JSON::toString(result.data));
+    Log::debug("Follow response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -42,15 +42,15 @@ void NetworkClient::followUser(const juce::String &userId, ResponseCallback call
 void NetworkClient::unfollowUser(const juce::String &userId, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, userId, callback]() {
-    auto data = createJsonObject({{"target_user_id", userId}});
+    nlohmann::json data = {{"target_user_id", userId.toStdString()}};
 
     auto result = makeRequestWithRetry(buildApiPath("/social/unfollow"), "POST", data, true);
-    Log::debug("Unfollow response: " + juce::JSON::toString(result.data));
+    Log::debug("Unfollow response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -64,15 +64,15 @@ void NetworkClient::unfollowUser(const juce::String &userId, ResponseCallback ca
 void NetworkClient::blockUser(const juce::String &userId, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, userId, callback]() {
-    auto data = createJsonObject({{"target_user_id", userId}});
+    nlohmann::json data = {{"target_user_id", userId.toStdString()}};
 
     auto result = makeRequestWithRetry(buildApiPath("/social/block"), "POST", data, true);
-    Log::debug("Block response: " + juce::JSON::toString(result.data));
+    Log::debug("Block response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -86,15 +86,15 @@ void NetworkClient::blockUser(const juce::String &userId, ResponseCallback callb
 void NetworkClient::unblockUser(const juce::String &userId, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, userId, callback]() {
-    auto data = createJsonObject({{"target_user_id", userId}});
+    nlohmann::json data = {{"target_user_id", userId.toStdString()}};
 
     auto result = makeRequestWithRetry(buildApiPath("/social/unblock"), "POST", data, true);
-    Log::debug("Unblock response: " + juce::JSON::toString(result.data));
+    Log::debug("Unblock response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -108,15 +108,15 @@ void NetworkClient::unblockUser(const juce::String &userId, ResponseCallback cal
 void NetworkClient::trackPlay(const juce::String &activityId, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, activityId, callback]() {
-    auto data = createJsonObject({{"activity_id", activityId}});
+    nlohmann::json data = {{"activity_id", activityId.toStdString()}};
 
     auto result = makeRequestWithRetry(buildApiPath("/social/play"), "POST", data, true);
-    Log::debug("Track play response: " + juce::JSON::toString(result.data));
+    Log::debug("Track play response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -131,22 +131,22 @@ void NetworkClient::trackListenDuration(const juce::String &activityId, double d
                                         ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   // Only track if duration is meaningful (at least 1 second)
   if (durationSeconds < 1.0) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, activityId, durationSeconds, callback]() {
-    auto data = createJsonObject({{"activity_id", activityId}, {"duration", durationSeconds}});
+    nlohmann::json data = {{"activity_id", activityId.toStdString()}, {"duration", durationSeconds}};
 
     auto result = makeRequestWithRetry(buildApiPath("/social/listen-duration"), "POST", data, true);
-    Log::debug("Track listen duration response: " + juce::JSON::toString(result.data));
+    Log::debug("Track listen duration response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -164,14 +164,14 @@ void NetworkClient::trackListenDuration(const juce::String &activityId, double d
 void NetworkClient::savePost(const juce::String &postId, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, postId, callback]() {
     juce::String endpoint = "/api/v1/posts/" + postId + "/save";
-    auto result = makeRequestWithRetry(endpoint, "POST", juce::var(), true);
-    Log::debug("Save post response: " + juce::JSON::toString(result.data));
+    auto result = makeRequestWithRetry(endpoint, "POST", nlohmann::json(), true);
+    Log::debug("Save post response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -185,14 +185,14 @@ void NetworkClient::savePost(const juce::String &postId, ResponseCallback callba
 void NetworkClient::unsavePost(const juce::String &postId, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, postId, callback]() {
     juce::String endpoint = "/api/v1/posts/" + postId + "/save";
-    auto result = makeRequestWithRetry(endpoint, "DELETE", juce::var(), true);
-    Log::debug("Unsave post response: " + juce::JSON::toString(result.data));
+    auto result = makeRequestWithRetry(endpoint, "DELETE", nlohmann::json(), true);
+    Log::debug("Unsave post response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -206,7 +206,7 @@ void NetworkClient::unsavePost(const juce::String &postId, ResponseCallback call
 void NetworkClient::getSavedPosts(int limit, int offset, FeedCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
@@ -214,8 +214,8 @@ void NetworkClient::getSavedPosts(int limit, int offset, FeedCallback callback) 
     juce::String endpoint =
         buildApiPath("/users/me/saved") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
 
-    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
-    Log::debug("Get saved posts response: " + juce::JSON::toString(result.data));
+    auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), true);
+    Log::debug("Get saved posts response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -233,19 +233,19 @@ void NetworkClient::getSavedPosts(int limit, int offset, FeedCallback callback) 
 void NetworkClient::repostPost(const juce::String &postId, const juce::String &quote, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, postId, quote, callback]() {
-    juce::var data = juce::var(new juce::DynamicObject());
+    nlohmann::json data = nlohmann::json::object();
     if (quote.isNotEmpty()) {
-      data.getDynamicObject()->setProperty("quote", quote);
+      data["quote"] = quote.toStdString();
     }
 
     juce::String endpoint = "/api/v1/posts/" + postId + "/repost";
     auto result = makeRequestWithRetry(endpoint, "POST", data, true);
-    Log::debug("Repost response: " + juce::JSON::toString(result.data));
+    Log::debug("Repost response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -259,14 +259,14 @@ void NetworkClient::repostPost(const juce::String &postId, const juce::String &q
 void NetworkClient::undoRepost(const juce::String &postId, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, postId, callback]() {
     juce::String endpoint = "/api/v1/posts/" + postId + "/repost";
-    auto result = makeRequestWithRetry(endpoint, "DELETE", juce::var(), true);
-    Log::debug("Undo repost response: " + juce::JSON::toString(result.data));
+    auto result = makeRequestWithRetry(endpoint, "DELETE", nlohmann::json(), true);
+    Log::debug("Undo repost response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -284,14 +284,14 @@ void NetworkClient::undoRepost(const juce::String &postId, ResponseCallback call
 void NetworkClient::archivePost(const juce::String &postId, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, postId, callback]() {
     juce::String endpoint = "/api/v1/posts/" + postId + "/archive";
-    auto result = makeRequestWithRetry(endpoint, "POST", juce::var(), true);
-    Log::debug("Archive post response: " + juce::JSON::toString(result.data));
+    auto result = makeRequestWithRetry(endpoint, "POST", nlohmann::json(), true);
+    Log::debug("Archive post response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -305,14 +305,14 @@ void NetworkClient::archivePost(const juce::String &postId, ResponseCallback cal
 void NetworkClient::unarchivePost(const juce::String &postId, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, postId, callback]() {
     juce::String endpoint = "/api/v1/posts/" + postId + "/unarchive";
-    auto result = makeRequestWithRetry(endpoint, "POST", juce::var(), true);
-    Log::debug("Unarchive post response: " + juce::JSON::toString(result.data));
+    auto result = makeRequestWithRetry(endpoint, "POST", nlohmann::json(), true);
+    Log::debug("Unarchive post response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -326,7 +326,7 @@ void NetworkClient::unarchivePost(const juce::String &postId, ResponseCallback c
 void NetworkClient::getArchivedPosts(int limit, int offset, FeedCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
@@ -334,8 +334,8 @@ void NetworkClient::getArchivedPosts(int limit, int offset, FeedCallback callbac
     juce::String endpoint =
         buildApiPath("/users/me/archived") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
 
-    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
-    Log::debug("Get archived posts response: " + juce::JSON::toString(result.data));
+    auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), true);
+    Log::debug("Get archived posts response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -353,14 +353,14 @@ void NetworkClient::getArchivedPosts(int limit, int offset, FeedCallback callbac
 void NetworkClient::muteUser(const juce::String &userId, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, userId, callback]() {
     juce::String endpoint = buildApiPath("/users/") + userId + "/mute";
-    auto result = makeRequestWithRetry(endpoint, "POST", juce::var(), true);
-    Log::debug("Mute user response: " + juce::JSON::toString(result.data));
+    auto result = makeRequestWithRetry(endpoint, "POST", nlohmann::json(), true);
+    Log::debug("Mute user response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -374,14 +374,14 @@ void NetworkClient::muteUser(const juce::String &userId, ResponseCallback callba
 void NetworkClient::unmuteUser(const juce::String &userId, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, userId, callback]() {
     juce::String endpoint = buildApiPath("/users/") + userId + "/mute";
-    auto result = makeRequestWithRetry(endpoint, "DELETE", juce::var(), true);
-    Log::debug("Unmute user response: " + juce::JSON::toString(result.data));
+    auto result = makeRequestWithRetry(endpoint, "DELETE", nlohmann::json(), true);
+    Log::debug("Unmute user response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -395,7 +395,7 @@ void NetworkClient::unmuteUser(const juce::String &userId, ResponseCallback call
 void NetworkClient::getMutedUsers(int limit, int offset, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
@@ -403,8 +403,8 @@ void NetworkClient::getMutedUsers(int limit, int offset, ResponseCallback callba
     juce::String endpoint =
         buildApiPath("/users/me/muted") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
 
-    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
-    Log::debug("Get muted users response: " + juce::JSON::toString(result.data));
+    auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), true);
+    Log::debug("Get muted users response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -418,14 +418,14 @@ void NetworkClient::getMutedUsers(int limit, int offset, ResponseCallback callba
 void NetworkClient::isUserMuted(const juce::String &userId, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, userId, callback]() {
     juce::String endpoint = buildApiPath("/users/") + userId + "/muted";
-    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
-    Log::debug("Is user muted response: " + juce::JSON::toString(result.data));
+    auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), true);
+    Log::debug("Is user muted response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -443,14 +443,14 @@ void NetworkClient::isUserMuted(const juce::String &userId, ResponseCallback cal
 void NetworkClient::pinPost(const juce::String &postId, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, postId, callback]() {
     juce::String endpoint = "/api/v1/posts/" + postId + "/pin";
-    auto result = makeRequestWithRetry(endpoint, "POST", juce::var(), true);
-    Log::debug("Pin post response: " + juce::JSON::toString(result.data));
+    auto result = makeRequestWithRetry(endpoint, "POST", nlohmann::json(), true);
+    Log::debug("Pin post response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -464,14 +464,14 @@ void NetworkClient::pinPost(const juce::String &postId, ResponseCallback callbac
 void NetworkClient::unpinPost(const juce::String &postId, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, postId, callback]() {
     juce::String endpoint = "/api/v1/posts/" + postId + "/pin";
-    auto result = makeRequestWithRetry(endpoint, "DELETE", juce::var(), true);
-    Log::debug("Unpin post response: " + juce::JSON::toString(result.data));
+    auto result = makeRequestWithRetry(endpoint, "DELETE", nlohmann::json(), true);
+    Log::debug("Unpin post response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -485,16 +485,16 @@ void NetworkClient::unpinPost(const juce::String &postId, ResponseCallback callb
 void NetworkClient::updatePinOrder(const juce::String &postId, int order, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, postId, order, callback]() {
-    auto data = createJsonObject({{"order", order}});
+    nlohmann::json data = {{"order", order}};
 
     juce::String endpoint = "/api/v1/posts/" + postId + "/pin-order";
     auto result = makeRequestWithRetry(endpoint, "PUT", data, true);
-    Log::debug("Update pin order response: " + juce::JSON::toString(result.data));
+    Log::debug("Update pin order response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -508,8 +508,8 @@ void NetworkClient::updatePinOrder(const juce::String &postId, int order, Respon
 void NetworkClient::isPostPinned(const juce::String &postId, ResponseCallback callback) {
   Async::runVoid([this, postId, callback]() {
     juce::String endpoint = "/api/v1/posts/" + postId + "/pinned";
-    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), false);
-    Log::debug("Is post pinned response: " + juce::JSON::toString(result.data));
+    auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), false);
+    Log::debug("Is post pinned response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -527,8 +527,8 @@ void NetworkClient::isPostPinned(const juce::String &postId, ResponseCallback ca
 void NetworkClient::getSound(const juce::String &soundId, ResponseCallback callback) {
   Async::runVoid([this, soundId, callback]() {
     juce::String endpoint = "/api/v1/sounds/" + soundId;
-    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), false);
-    Log::debug("Get sound response: " + juce::JSON::toString(result.data));
+    auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), false);
+    Log::debug("Get sound response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -543,8 +543,8 @@ void NetworkClient::getSoundPosts(const juce::String &soundId, int limit, int of
   Async::runVoid([this, soundId, limit, offset, callback]() {
     juce::String endpoint =
         "/api/v1/sounds/" + soundId + "/posts?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
-    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), false);
-    Log::debug("Get sound posts response: " + juce::JSON::toString(result.data));
+    auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), false);
+    Log::debug("Get sound posts response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -558,8 +558,8 @@ void NetworkClient::getSoundPosts(const juce::String &soundId, int limit, int of
 void NetworkClient::getTrendingSounds(int limit, ResponseCallback callback) {
   Async::runVoid([this, limit, callback]() {
     juce::String endpoint = "/api/v1/sounds/trending?limit=" + juce::String(limit);
-    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), false);
-    Log::debug("Get trending sounds response: " + juce::JSON::toString(result.data));
+    auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), false);
+    Log::debug("Get trending sounds response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -574,8 +574,8 @@ void NetworkClient::searchSounds(const juce::String &query, int limit, ResponseC
   Async::runVoid([this, query, limit, callback]() {
     juce::String endpoint =
         "/api/v1/sounds/search?q=" + juce::URL::addEscapeChars(query, true) + "&limit=" + juce::String(limit);
-    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), false);
-    Log::debug("Search sounds response: " + juce::JSON::toString(result.data));
+    auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), false);
+    Log::debug("Search sounds response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -589,8 +589,8 @@ void NetworkClient::searchSounds(const juce::String &query, int limit, ResponseC
 void NetworkClient::getSoundForPost(const juce::String &postId, ResponseCallback callback) {
   Async::runVoid([this, postId, callback]() {
     juce::String endpoint = "/api/v1/posts/" + postId + "/sound";
-    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), false);
-    Log::debug("Get post sound response: " + juce::JSON::toString(result.data));
+    auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), false);
+    Log::debug("Get post sound response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -606,15 +606,15 @@ void NetworkClient::updateSound(const juce::String &soundId, const juce::String 
   Async::runVoid([this, soundId, name, description, isPublic, callback]() {
     juce::String endpoint = "/api/v1/sounds/" + soundId;
 
-    auto body = new juce::DynamicObject();
+    nlohmann::json body = nlohmann::json::object();
     if (name.isNotEmpty())
-      body->setProperty("name", name);
+      body["name"] = name.toStdString();
     if (description.isNotEmpty())
-      body->setProperty("description", description);
-    body->setProperty("is_public", isPublic);
+      body["description"] = description.toStdString();
+    body["is_public"] = isPublic;
 
-    auto result = makeRequestWithRetry(endpoint, "PATCH", juce::var(body), true);
-    Log::debug("Update sound response: " + juce::JSON::toString(result.data));
+    auto result = makeRequestWithRetry(endpoint, "PATCH", body, true);
+    Log::debug("Update sound response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -629,7 +629,7 @@ void NetworkClient::toggleLike(const juce::String &postId, bool shouldLike, Resp
   if (callback == nullptr)
     return;
 
-  auto data = createJsonObject({{"activity_id", postId}});
+  nlohmann::json data = {{"activity_id", postId.toStdString()}};
 
   juce::String method = shouldLike ? "POST" : "DELETE";
 
@@ -649,7 +649,7 @@ void NetworkClient::toggleSave(const juce::String &postId, bool shouldSave, Resp
   juce::String method = shouldSave ? "POST" : "DELETE";
 
   Async::runVoid([this, endpoint, method, callback]() {
-    auto result = makeRequestWithRetry(endpoint, method, juce::var(), true);
+    auto result = makeRequestWithRetry(endpoint, method, nlohmann::json(), true);
     auto outcome = requestResultToOutcome(result);
 
     juce::MessageManager::callAsync([callback, outcome]() { callback(outcome); });
@@ -664,7 +664,7 @@ void NetworkClient::toggleRepost(const juce::String &postId, bool shouldRepost, 
   juce::String method = shouldRepost ? "POST" : "DELETE";
 
   Async::runVoid([this, endpoint, method, callback]() {
-    auto result = makeRequestWithRetry(endpoint, method, juce::var(), true);
+    auto result = makeRequestWithRetry(endpoint, method, nlohmann::json(), true);
     auto outcome = requestResultToOutcome(result);
 
     juce::MessageManager::callAsync([callback, outcome]() { callback(outcome); });
@@ -675,7 +675,7 @@ void NetworkClient::addEmojiReaction(const juce::String &postId, const juce::Str
   if (callback == nullptr)
     return;
 
-  auto data = createJsonObject({{"activity_id", postId}, {"emoji", emoji}});
+  nlohmann::json data = {{"activity_id", postId.toStdString()}, {"emoji", emoji.toStdString()}};
 
   Async::runVoid([this, data, callback]() {
     auto result = makeRequestWithRetry("/api/v1/social/react", "POST", data, true);
@@ -696,13 +696,13 @@ rxcpp::observable<NetworkClient::FollowResult> NetworkClient::followUserObservab
       return;
     }
 
-    followUser(userId, [observer](Outcome<juce::var> result) {
+    followUser(userId, [observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         FollowResult followResult;
         auto value = result.getValue();
-        if (value.isObject()) {
-          followResult.isFollowing = Json::getBool(value, "is_following", Json::getBool(value, "isFollowing", true));
-          followResult.followerCount = Json::getInt(value, "follower_count", Json::getInt(value, "followerCount", 0));
+        if (value.is_object()) {
+          followResult.isFollowing = value.value("is_following", value.value("isFollowing", true));
+          followResult.followerCount = value.value("follower_count", value.value("followerCount", 0));
         } else {
           // Default to following state if response doesn't include details
           followResult.isFollowing = true;
@@ -725,7 +725,7 @@ rxcpp::observable<int> NetworkClient::unfollowUserObservable(const juce::String 
       return;
     }
 
-    unfollowUser(userId, [observer](Outcome<juce::var> result) {
+    unfollowUser(userId, [observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         observer.on_next(0);
         observer.on_completed();
@@ -745,7 +745,7 @@ rxcpp::observable<int> NetworkClient::savePostObservable(const juce::String &pos
       return;
     }
 
-    savePost(postId, [observer](Outcome<juce::var> result) {
+    savePost(postId, [observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         observer.on_next(0);
         observer.on_completed();
@@ -765,7 +765,7 @@ rxcpp::observable<int> NetworkClient::unsavePostObservable(const juce::String &p
       return;
     }
 
-    unsavePost(postId, [observer](Outcome<juce::var> result) {
+    unsavePost(postId, [observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         observer.on_next(0);
         observer.on_completed();
@@ -786,25 +786,23 @@ rxcpp::observable<std::vector<Sidechain::FeedPost>> NetworkClient::getSavedPosts
       return;
     }
 
-    getSavedPosts(limit, offset, [observer](Outcome<juce::var> result) {
+    getSavedPosts(limit, offset, [observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         ResultType posts;
         auto data = result.getValue();
         // Parse posts array - check for "posts" or "saved" field, or direct array
-        juce::var postsArray = data;
-        if (data.hasProperty("posts")) {
+        nlohmann::json postsArray = data;
+        if (data.is_object() && data.contains("posts")) {
           postsArray = data["posts"];
-        } else if (data.hasProperty("saved")) {
+        } else if (data.is_object() && data.contains("saved")) {
           postsArray = data["saved"];
         }
 
-        if (postsArray.isArray()) {
-          for (int i = 0; i < postsArray.size(); ++i) {
+        if (postsArray.is_array()) {
+          for (const auto &item : postsArray) {
             try {
-              auto jsonStr = juce::JSON::toString(postsArray[i]);
-              auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
               Sidechain::FeedPost post;
-              from_json(jsonObj, post);
+              from_json(item, post);
               posts.push_back(std::move(post));
             } catch (const std::exception &e) {
               Log::warn("NetworkClient: Failed to parse saved post: " + juce::String(e.what()));
@@ -829,7 +827,7 @@ rxcpp::observable<int> NetworkClient::repostPostObservable(const juce::String &p
       return;
     }
 
-    repostPost(postId, quote, [observer](Outcome<juce::var> result) {
+    repostPost(postId, quote, [observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         observer.on_next(0);
         observer.on_completed();
@@ -849,7 +847,7 @@ rxcpp::observable<int> NetworkClient::undoRepostObservable(const juce::String &p
       return;
     }
 
-    undoRepost(postId, [observer](Outcome<juce::var> result) {
+    undoRepost(postId, [observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         observer.on_next(0);
         observer.on_completed();
@@ -870,25 +868,23 @@ rxcpp::observable<std::vector<Sidechain::FeedPost>> NetworkClient::getArchivedPo
       return;
     }
 
-    getArchivedPosts(limit, offset, [observer](Outcome<juce::var> result) {
+    getArchivedPosts(limit, offset, [observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         ResultType posts;
         auto data = result.getValue();
         // Parse posts array - check for "posts" or "archived" field, or direct array
-        juce::var postsArray = data;
-        if (data.hasProperty("posts")) {
+        nlohmann::json postsArray = data;
+        if (data.is_object() && data.contains("posts")) {
           postsArray = data["posts"];
-        } else if (data.hasProperty("archived")) {
+        } else if (data.is_object() && data.contains("archived")) {
           postsArray = data["archived"];
         }
 
-        if (postsArray.isArray()) {
-          for (int i = 0; i < postsArray.size(); ++i) {
+        if (postsArray.is_array()) {
+          for (const auto &item : postsArray) {
             try {
-              auto jsonStr = juce::JSON::toString(postsArray[i]);
-              auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
               Sidechain::FeedPost post;
-              from_json(jsonObj, post);
+              from_json(item, post);
               posts.push_back(std::move(post));
             } catch (const std::exception &e) {
               Log::warn("NetworkClient: Failed to parse archived post: " + juce::String(e.what()));
@@ -913,7 +909,7 @@ rxcpp::observable<int> NetworkClient::unarchivePostObservable(const juce::String
       return;
     }
 
-    unarchivePost(postId, [observer](Outcome<juce::var> result) {
+    unarchivePost(postId, [observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         observer.on_next(0);
         observer.on_completed();
@@ -933,7 +929,7 @@ rxcpp::observable<int> NetworkClient::muteUserObservable(const juce::String &use
       return;
     }
 
-    muteUser(userId, [observer](Outcome<juce::var> result) {
+    muteUser(userId, [observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         observer.on_next(0);
         observer.on_completed();
@@ -953,7 +949,7 @@ rxcpp::observable<int> NetworkClient::unmuteUserObservable(const juce::String &u
       return;
     }
 
-    unmuteUser(userId, [observer](Outcome<juce::var> result) {
+    unmuteUser(userId, [observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         observer.on_next(0);
         observer.on_completed();
@@ -973,7 +969,7 @@ rxcpp::observable<int> NetworkClient::pinPostObservable(const juce::String &post
       return;
     }
 
-    pinPost(postId, [observer](Outcome<juce::var> result) {
+    pinPost(postId, [observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         observer.on_next(0);
         observer.on_completed();
@@ -993,7 +989,7 @@ rxcpp::observable<int> NetworkClient::unpinPostObservable(const juce::String &po
       return;
     }
 
-    unpinPost(postId, [observer](Outcome<juce::var> result) {
+    unpinPost(postId, [observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         observer.on_next(0);
         observer.on_completed();

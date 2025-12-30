@@ -4,7 +4,6 @@
 // ==============================================================================
 
 #include "../../util/Async.h"
-#include "../../util/Json.h"
 #include "../../util/Log.h"
 #include "../NetworkClient.h"
 #include "Common.h"
@@ -12,27 +11,79 @@
 using namespace Sidechain::Network::Api;
 
 // ==============================================================================
+// Helper to safely get string from nlohmann::json
+static juce::String getJsonString(const nlohmann::json &json, const std::string &key,
+                                  const juce::String &defaultVal = {}) {
+  if (json.is_object() && json.contains(key) && json[key].is_string()) {
+    return juce::String(json[key].get<std::string>());
+  }
+  return defaultVal;
+}
+
+// Helper to safely get bool from nlohmann::json
+static bool getJsonBool(const nlohmann::json &json, const std::string &key, bool defaultVal = false) {
+  if (json.is_object() && json.contains(key) && json[key].is_boolean()) {
+    return json[key].get<bool>();
+  }
+  return defaultVal;
+}
+
+// Helper to safely get int from nlohmann::json
+static int getJsonInt(const nlohmann::json &json, const std::string &key, int defaultVal = 0) {
+  if (json.is_object() && json.contains(key) && json[key].is_number_integer()) {
+    return json[key].get<int>();
+  }
+  return defaultVal;
+}
+
+// Helper to safely get int64 from nlohmann::json
+static int64_t getJsonInt64(const nlohmann::json &json, const std::string &key, int64_t defaultVal = 0) {
+  if (json.is_object() && json.contains(key) && json[key].is_number()) {
+    return json[key].get<int64_t>();
+  }
+  return defaultVal;
+}
+
+// Helper to safely get nested object from nlohmann::json
+static nlohmann::json getJsonObject(const nlohmann::json &json, const std::string &key) {
+  if (json.is_object() && json.contains(key) && json[key].is_object()) {
+    return json[key];
+  }
+  return nlohmann::json();
+}
+
+// Helper to safely get array from nlohmann::json
+static nlohmann::json getJsonArray(const nlohmann::json &json, const std::string &key) {
+  if (json.is_object() && json.contains(key) && json[key].is_array()) {
+    return json[key];
+  }
+  return nlohmann::json::array();
+}
+
+// ==============================================================================
 void NetworkClient::registerAccount(const juce::String &email, const juce::String &username,
                                     const juce::String &password, const juce::String &displayName,
                                     AuthenticationCallback callback) {
   Async::runVoid([this, email, username, password, displayName, callback]() {
-    auto registerData = createJsonObject(
-        {{"email", email}, {"username", username}, {"password", password}, {"display_name", displayName}});
+    nlohmann::json registerData = {{"email", email.toStdString()},
+                                   {"username", username.toStdString()},
+                                   {"password", password.toStdString()},
+                                   {"display_name", displayName.toStdString()}};
 
     auto response = makeRequest(buildApiPath("/auth/register"), "POST", registerData, false);
 
     juce::String token, userId, responseUsername;
     bool success = false;
 
-    if (response.isObject()) {
-      auto authData = Json::getObject(response, "auth");
-      if (authData.isObject()) {
-        token = Json::getString(authData, "token");
-        auto user = Json::getObject(authData, "user");
+    if (response.is_object()) {
+      auto authData = getJsonObject(response, "auth");
+      if (authData.is_object()) {
+        token = getJsonString(authData, "token");
+        auto user = getJsonObject(authData, "user");
 
-        if (!token.isEmpty() && user.isObject()) {
-          userId = Json::getString(user, "id");
-          responseUsername = Json::getString(user, "username");
+        if (!token.isEmpty() && user.is_object()) {
+          userId = getJsonString(user, "id");
+          responseUsername = getJsonString(user, "username");
           success = true;
         }
       }
@@ -61,22 +112,22 @@ void NetworkClient::registerAccount(const juce::String &email, const juce::Strin
 void NetworkClient::loginAccount(const juce::String &email, const juce::String &password,
                                  AuthenticationCallback callback) {
   Async::runVoid([this, email, password, callback]() {
-    auto loginData = createJsonObject({{"email", email}, {"password", password}});
+    nlohmann::json loginData = {{"email", email.toStdString()}, {"password", password.toStdString()}};
 
     auto response = makeRequest(buildApiPath("/auth/login"), "POST", loginData, false);
 
     juce::String token, userId, username;
     bool success = false;
 
-    if (response.isObject()) {
-      auto authData = Json::getObject(response, "auth");
-      if (authData.isObject()) {
-        token = Json::getString(authData, "token");
-        auto user = Json::getObject(authData, "user");
+    if (response.is_object()) {
+      auto authData = getJsonObject(response, "auth");
+      if (authData.is_object()) {
+        token = getJsonString(authData, "token");
+        auto user = getJsonObject(authData, "user");
 
-        if (!token.isEmpty() && user.isObject()) {
-          userId = Json::getString(user, "id");
-          username = Json::getString(user, "username");
+        if (!token.isEmpty() && user.is_object()) {
+          userId = getJsonString(user, "id");
+          username = getJsonString(user, "username");
           success = true;
         }
       }
@@ -84,12 +135,12 @@ void NetworkClient::loginAccount(const juce::String &email, const juce::String &
 
     // Extract email_verified status separately
     bool emailVerified = true;
-    if (response.isObject()) {
-      auto authData = Json::getObject(response, "auth");
-      if (authData.isObject()) {
-        auto user = Json::getObject(authData, "user");
-        if (user.isObject()) {
-          emailVerified = Json::getBool(user, "email_verified", true);
+    if (response.is_object()) {
+      auto authData = getJsonObject(response, "auth");
+      if (authData.is_object()) {
+        auto user = getJsonObject(authData, "user");
+        if (user.is_object()) {
+          emailVerified = getJsonBool(user, "email_verified", true);
         }
       }
     }
@@ -120,10 +171,10 @@ void NetworkClient::setAuthenticationCallback(AuthenticationCallback callback) {
 
 void NetworkClient::requestPasswordReset(const juce::String &email, ResponseCallback callback) {
   Async::runVoid([this, email, callback]() {
-    auto resetData = createJsonObject({{"email", email}});
+    nlohmann::json resetData = {{"email", email.toStdString()}};
 
     auto result = makeRequestWithRetry(buildApiPath("/auth/reset-password"), "POST", resetData, false);
-    Log::debug("Password reset request response: " + juce::JSON::toString(result.data));
+    Log::debug("Password reset request response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -137,10 +188,10 @@ void NetworkClient::requestPasswordReset(const juce::String &email, ResponseCall
 void NetworkClient::resetPassword(const juce::String &token, const juce::String &newPassword,
                                   ResponseCallback callback) {
   Async::runVoid([this, token, newPassword, callback]() {
-    auto resetData = createJsonObject({{"token", token}, {"new_password", newPassword}});
+    nlohmann::json resetData = {{"token", token.toStdString()}, {"new_password", newPassword.toStdString()}};
 
     auto result = makeRequestWithRetry(buildApiPath("/auth/reset-password/confirm"), "POST", resetData, false);
-    Log::debug("Password reset confirm response: " + juce::JSON::toString(result.data));
+    Log::debug("Password reset confirm response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -157,30 +208,30 @@ void NetworkClient::resetPassword(const juce::String &token, const juce::String 
 void NetworkClient::loginWithTwoFactor(const juce::String &email, const juce::String &password,
                                        LoginCallback callback) {
   Async::runVoid([this, email, password, callback]() {
-    auto loginData = createJsonObject({{"email", email}, {"password", password}});
+    nlohmann::json loginData = {{"email", email.toStdString()}, {"password", password.toStdString()}};
 
     auto response = makeRequest(buildApiPath("/auth/login"), "POST", loginData, false);
 
     LoginResult result;
 
-    if (response.isObject()) {
+    if (response.is_object()) {
       // Check if 2FA is required
-      if (Json::getBool(response, "requires_2fa")) {
+      if (getJsonBool(response, "requires_2fa")) {
         result.requires2FA = true;
-        result.userId = Json::getString(response, "user_id");
-        result.twoFactorType = Json::getString(response, "two_factor_type", "totp");
+        result.userId = getJsonString(response, "user_id");
+        result.twoFactorType = getJsonString(response, "two_factor_type", "totp");
         Log::info("Login requires 2FA verification (type: " + result.twoFactorType + ")");
       } else {
         // Normal login success
-        auto authData = Json::getObject(response, "auth");
-        if (authData.isObject()) {
-          result.token = Json::getString(authData, "token");
-          auto user = Json::getObject(authData, "user");
+        auto authData = getJsonObject(response, "auth");
+        if (authData.is_object()) {
+          result.token = getJsonString(authData, "token");
+          auto user = getJsonObject(authData, "user");
 
-          if (!result.token.isEmpty() && user.isObject()) {
+          if (!result.token.isEmpty() && user.is_object()) {
             result.success = true;
-            result.userId = Json::getString(user, "id");
-            result.username = Json::getString(user, "username");
+            result.userId = getJsonString(user, "id");
+            result.username = getJsonString(user, "username");
           }
         }
       }
@@ -206,22 +257,22 @@ void NetworkClient::loginWithTwoFactor(const juce::String &email, const juce::St
 void NetworkClient::verify2FALogin(const juce::String &userId, const juce::String &code,
                                    AuthenticationCallback callback) {
   Async::runVoid([this, userId, code, callback]() {
-    auto verifyData = createJsonObject({{"user_id", userId}, {"code", code}});
+    nlohmann::json verifyData = {{"user_id", userId.toStdString()}, {"code", code.toStdString()}};
 
     auto response = makeRequest(buildApiPath("/auth/2fa/login"), "POST", verifyData, false);
 
     juce::String token, returnedUserId, username;
     bool success = false;
 
-    if (response.isObject()) {
-      auto authData = Json::getObject(response, "auth");
-      if (authData.isObject()) {
-        token = Json::getString(authData, "token");
-        auto user = Json::getObject(authData, "user");
+    if (response.is_object()) {
+      auto authData = getJsonObject(response, "auth");
+      if (authData.is_object()) {
+        token = getJsonString(authData, "token");
+        auto user = getJsonObject(authData, "user");
 
-        if (!token.isEmpty() && user.isObject()) {
-          returnedUserId = Json::getString(user, "id");
-          username = Json::getString(user, "username");
+        if (!token.isEmpty() && user.is_object()) {
+          returnedUserId = getJsonString(user, "id");
+          username = getJsonString(user, "username");
           success = true;
         }
       }
@@ -247,15 +298,15 @@ void NetworkClient::verify2FALogin(const juce::String &userId, const juce::Strin
 
 void NetworkClient::get2FAStatus(TwoFactorStatusCallback callback) {
   Async::runVoid([this, callback]() {
-    auto result = makeRequestWithRetry(buildApiPath("/auth/2fa/status"), "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(buildApiPath("/auth/2fa/status"), "GET", nlohmann::json(), true);
 
     TwoFactorStatus status;
     bool success = false;
 
-    if (result.success && result.data.isObject()) {
-      status.enabled = Json::getBool(result.data, "enabled");
-      status.type = Json::getString(result.data, "type");
-      status.backupCodesRemaining = Json::getInt(result.data, "backup_codes_remaining");
+    if (result.success && result.data.is_object()) {
+      status.enabled = getJsonBool(result.data, "enabled");
+      status.type = getJsonString(result.data, "type");
+      status.backupCodesRemaining = getJsonInt(result.data, "backup_codes_remaining");
       success = true;
     }
 
@@ -271,23 +322,25 @@ void NetworkClient::get2FAStatus(TwoFactorStatusCallback callback) {
 
 void NetworkClient::enable2FA(const juce::String &password, const juce::String &type, TwoFactorSetupCallback callback) {
   Async::runVoid([this, password, type, callback]() {
-    auto enableData = createJsonObject({{"password", password}, {"type", type}});
+    nlohmann::json enableData = {{"password", password.toStdString()}, {"type", type.toStdString()}};
 
     auto result = makeRequestWithRetry(buildApiPath("/auth/2fa/enable"), "POST", enableData, true);
 
     TwoFactorSetup setup;
     bool success = false;
 
-    if (result.success && result.data.isObject()) {
-      setup.type = Json::getString(result.data, "type", "totp");
-      setup.secret = Json::getString(result.data, "secret");
-      setup.qrCodeUrl = Json::getString(result.data, "qr_code_url");
-      setup.counter = static_cast<uint64_t>(Json::getInt64(result.data, "counter"));
+    if (result.success && result.data.is_object()) {
+      setup.type = getJsonString(result.data, "type", "totp");
+      setup.secret = getJsonString(result.data, "secret");
+      setup.qrCodeUrl = getJsonString(result.data, "qr_code_url");
+      setup.counter = static_cast<uint64_t>(getJsonInt64(result.data, "counter"));
 
-      auto codes = Json::getArray(result.data, "backup_codes");
-      if (codes.isArray()) {
-        for (int i = 0; i < codes.size(); ++i) {
-          setup.backupCodes.add(codes[i].toString());
+      auto codes = getJsonArray(result.data, "backup_codes");
+      if (codes.is_array()) {
+        for (const auto &code : codes) {
+          if (code.is_string()) {
+            setup.backupCodes.add(juce::String(code.get<std::string>()));
+          }
         }
       }
       success = !setup.secret.isEmpty();
@@ -306,7 +359,7 @@ void NetworkClient::enable2FA(const juce::String &password, const juce::String &
 
 void NetworkClient::verify2FASetup(const juce::String &code, ResponseCallback callback) {
   Async::runVoid([this, code, callback]() {
-    auto verifyData = createJsonObject({{"code", code}});
+    nlohmann::json verifyData = {{"code", code.toStdString()}};
 
     auto result = makeRequestWithRetry(buildApiPath("/auth/2fa/verify"), "POST", verifyData, true);
 
@@ -324,13 +377,13 @@ void NetworkClient::verify2FASetup(const juce::String &code, ResponseCallback ca
 
 void NetworkClient::disable2FA(const juce::String &codeOrPassword, ResponseCallback callback) {
   Async::runVoid([this, codeOrPassword, callback]() {
-    juce::var disableData = juce::var(new juce::DynamicObject());
+    nlohmann::json disableData;
     // The backend accepts either code or password
     // If it looks like a 6-digit code or backup code format, send as code
     if (codeOrPassword.length() == 6 || codeOrPassword.contains("-")) {
-      disableData.getDynamicObject()->setProperty("code", codeOrPassword);
+      disableData["code"] = codeOrPassword.toStdString();
     } else {
-      disableData.getDynamicObject()->setProperty("password", codeOrPassword);
+      disableData["password"] = codeOrPassword.toStdString();
     }
 
     auto result = makeRequestWithRetry(buildApiPath("/auth/2fa/disable"), "POST", disableData, true);
@@ -349,7 +402,7 @@ void NetworkClient::disable2FA(const juce::String &codeOrPassword, ResponseCallb
 
 void NetworkClient::regenerateBackupCodes(const juce::String &code, ResponseCallback callback) {
   Async::runVoid([this, code, callback]() {
-    auto regenData = createJsonObject({{"code", code}});
+    nlohmann::json regenData = {{"code", code.toStdString()}};
 
     auto result = makeRequestWithRetry(buildApiPath("/auth/2fa/backup-codes"), "POST", regenData, true);
 
@@ -372,7 +425,7 @@ void NetworkClient::regenerateBackupCodes(const juce::String &code, ResponseCall
 void NetworkClient::refreshAuthToken(const juce::String &currentToken, AuthenticationCallback callback) {
   Async::runVoid([this, currentToken, callback]() {
     // Create request with current token in Authorization header
-    auto refreshData = createJsonObject({{"token", currentToken}});
+    nlohmann::json refreshData = {{"token", currentToken.toStdString()}};
 
     // Don't use current authToken for this request - use the provided token
     auto tempToken = authToken;
@@ -388,12 +441,12 @@ void NetworkClient::refreshAuthToken(const juce::String &currentToken, Authentic
     juce::String newToken, userId;
     bool success = false;
 
-    if (result.success && result.data.isObject()) {
-      newToken = Json::getString(result.data, "token");
-      auto user = Json::getObject(result.data, "user");
+    if (result.success && result.data.is_object()) {
+      newToken = getJsonString(result.data, "token");
+      auto user = getJsonObject(result.data, "user");
 
-      if (!newToken.isEmpty() && user.isObject()) {
-        userId = Json::getString(user, "id");
+      if (!newToken.isEmpty() && user.is_object()) {
+        userId = getJsonString(user, "id");
         success = true;
       }
     }
@@ -409,8 +462,8 @@ void NetworkClient::refreshAuthToken(const juce::String &currentToken, Authentic
         Log::info("Auth token refreshed successfully");
       } else {
         juce::String errorMsg = "Token refresh failed";
-        if (result.data.isObject()) {
-          auto error = Json::getString(result.data, "error");
+        if (result.data.is_object()) {
+          auto error = getJsonString(result.data, "error");
           if (!error.isEmpty()) {
             errorMsg = error;
           }

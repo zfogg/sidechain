@@ -5,7 +5,6 @@
 
 #include "../../util/Async.h"
 #include "../../util/Constants.h"
-#include "../../util/Json.h"
 #include "../../util/Log.h"
 #include "../NetworkClient.h"
 #include "Common.h"
@@ -22,20 +21,17 @@ void NetworkClient::getPostDownloadInfo(const juce::String &postId, DownloadInfo
 
   Async::runVoid([this, postId, callback]() {
     juce::String endpoint = "/posts/" + postId + "/download";
-    auto result = makeRequestWithRetry(buildApiPath(endpoint.toRawUTF8()), "POST", juce::var(), true);
-    Log::debug("Get download info response: " + juce::JSON::toString(result.data));
+    auto result = makeRequestWithRetry(buildApiPath(endpoint.toRawUTF8()), "POST", nlohmann::json(), true);
+    Log::debug("Get download info response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
-        if (result.success && result.data.isObject()) {
+        if (result.success && result.data.is_object()) {
           DownloadInfo info;
-          auto *obj = result.data.getDynamicObject();
-          if (obj != nullptr) {
-            info.downloadUrl = obj->getProperty("download_url").toString();
-            info.filename = obj->getProperty("filename").toString();
-            info.metadata = obj->getProperty("metadata");
-            info.downloadCount = static_cast<int>(obj->getProperty("download_count"));
-          }
+          info.downloadUrl = juce::String(result.data.value("download_url", ""));
+          info.filename = juce::String(result.data.value("filename", ""));
+          info.metadata = result.data.value("metadata", nlohmann::json());
+          info.downloadCount = result.data.value("download_count", 0);
           callback(Outcome<DownloadInfo>::ok(info));
         } else {
           auto outcome = requestResultToOutcome(result);
@@ -52,8 +48,8 @@ void NetworkClient::downloadFile(const juce::String &url, const juce::File &targ
   if (!targetFile.getParentDirectory().createDirectory()) {
     if (callback) {
       juce::MessageManager::callAsync([callback, targetFile]() {
-        callback(Outcome<juce::var>::error("Failed to create directory: " +
-                                           targetFile.getParentDirectory().getFullPathName()));
+        callback(Outcome<nlohmann::json>::error("Failed to create directory: " +
+                                                targetFile.getParentDirectory().getFullPathName()));
       });
     }
     return;
@@ -130,10 +126,10 @@ void NetworkClient::downloadFile(const juce::String &url, const juce::File &targ
       juce::MessageManager::callAsync([callback, success, targetFile, errorMessage]() {
         if (success) {
           Log::info("File downloaded successfully to: " + targetFile.getFullPathName());
-          callback(Outcome<juce::var>::ok(juce::var()));
+          callback(Outcome<nlohmann::json>::ok(nlohmann::json()));
         } else {
           Log::error(errorMessage);
-          callback(Outcome<juce::var>::error(errorMessage));
+          callback(Outcome<nlohmann::json>::error(errorMessage));
         }
       });
     }
@@ -144,7 +140,7 @@ void NetworkClient::downloadFile(const juce::String &url, const juce::File &targ
 void NetworkClient::downloadMIDI(const juce::String &midiId, const juce::File &targetFile, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
@@ -187,10 +183,10 @@ void NetworkClient::downloadMIDI(const juce::String &midiId, const juce::File &t
       juce::MessageManager::callAsync([callback, success, targetFile, midiUrlCopy]() {
         if (success) {
           Log::info("MIDI downloaded successfully to: " + targetFile.getFullPathName());
-          callback(Outcome<juce::var>::ok(juce::var()));
+          callback(Outcome<nlohmann::json>::ok(nlohmann::json()));
         } else {
           Log::error("Failed to download MIDI from: " + midiUrlCopy);
-          callback(Outcome<juce::var>::error("MIDI download failed"));
+          callback(Outcome<nlohmann::json>::error("MIDI download failed"));
         }
       });
     }
@@ -198,62 +194,55 @@ void NetworkClient::downloadMIDI(const juce::String &midiId, const juce::File &t
 }
 
 // ==============================================================================
-void NetworkClient::uploadMIDI(const juce::var &midiData, const juce::String &name, const juce::String &description,
-                               bool isPublic, ResponseCallback callback) {
+void NetworkClient::uploadMIDI(const nlohmann::json &midiData, const juce::String &name,
+                               const juce::String &description, bool isPublic, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, midiData, name, description, isPublic, callback]() {
     // Build request body
-    auto *requestObj = new juce::DynamicObject();
+    nlohmann::json requestBody;
 
     // Extract events from midiData
-    if (midiData.hasProperty("events"))
-      requestObj->setProperty("events", midiData["events"]);
+    if (midiData.is_object() && midiData.contains("events"))
+      requestBody["events"] = midiData["events"];
     else
-      requestObj->setProperty("events",
-                              midiData); // Assume midiData is the events array
+      requestBody["events"] = midiData; // Assume midiData is the events array
 
     // Extract or set tempo
-    if (midiData.hasProperty("tempo"))
-      requestObj->setProperty("tempo", midiData["tempo"]);
+    if (midiData.is_object() && midiData.contains("tempo"))
+      requestBody["tempo"] = midiData["tempo"];
     else
-      requestObj->setProperty("tempo", 120);
+      requestBody["tempo"] = 120;
 
     // Extract or set time signature
-    if (midiData.hasProperty("time_signature"))
-      requestObj->setProperty("time_signature", midiData["time_signature"]);
-    else {
-      juce::Array<juce::var> defaultTimeSig;
-      defaultTimeSig.add(4);
-      defaultTimeSig.add(4);
-      requestObj->setProperty("time_signature", defaultTimeSig);
-    }
+    if (midiData.is_object() && midiData.contains("time_signature"))
+      requestBody["time_signature"] = midiData["time_signature"];
+    else
+      requestBody["time_signature"] = nlohmann::json::array({4, 4});
 
     // Extract or calculate total_time
-    if (midiData.hasProperty("total_time"))
-      requestObj->setProperty("total_time", midiData["total_time"]);
+    if (midiData.is_object() && midiData.contains("total_time"))
+      requestBody["total_time"] = midiData["total_time"];
 
     // Optional fields
     if (name.isNotEmpty())
-      requestObj->setProperty("name", name);
+      requestBody["name"] = name.toStdString();
     if (description.isNotEmpty())
-      requestObj->setProperty("description", description);
-    requestObj->setProperty("is_public", isPublic);
-
-    juce::var requestBody(requestObj);
+      requestBody["description"] = description.toStdString();
+    requestBody["is_public"] = isPublic;
 
     auto result = makeRequestWithRetry(buildApiPath("/midi"), "POST", requestBody, true);
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
         if (result.success) {
-          callback(Outcome<juce::var>::ok(result.data));
+          callback(Outcome<nlohmann::json>::ok(result.data));
         } else {
-          callback(Outcome<juce::var>::error(result.errorMessage));
+          callback(Outcome<nlohmann::json>::error(result.errorMessage));
         }
       });
     }
@@ -267,7 +256,7 @@ void NetworkClient::downloadProjectFile(const juce::String &projectFileId, const
                                         DownloadProgressCallback progressCallback, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
@@ -281,7 +270,7 @@ void NetworkClient::downloadProjectFile(const juce::String &projectFileId, const
     if (!targetFile.getParentDirectory().createDirectory()) {
       if (callback) {
         juce::MessageManager::callAsync(
-            [callback]() { callback(Outcome<juce::var>::error("Failed to create directory")); });
+            [callback]() { callback(Outcome<nlohmann::json>::error("Failed to create directory")); });
       }
       return;
     }
@@ -301,7 +290,7 @@ void NetworkClient::downloadProjectFile(const juce::String &projectFileId, const
     if (stream == nullptr) {
       if (callback) {
         juce::MessageManager::callAsync(
-            [callback]() { callback(Outcome<juce::var>::error("Failed to connect to server")); });
+            [callback]() { callback(Outcome<nlohmann::json>::error("Failed to connect to server")); });
       }
       return;
     }
@@ -311,7 +300,7 @@ void NetworkClient::downloadProjectFile(const juce::String &projectFileId, const
     if (!output.openedOk()) {
       if (callback) {
         juce::MessageManager::callAsync(
-            [callback]() { callback(Outcome<juce::var>::error("Failed to create output file")); });
+            [callback]() { callback(Outcome<nlohmann::json>::error("Failed to create output file")); });
       }
       return;
     }
@@ -343,13 +332,14 @@ void NetworkClient::downloadProjectFile(const juce::String &projectFileId, const
     if (writeError) {
       output.flush(); // Best effort flush
       if (callback) {
-        juce::MessageManager::callAsync([callback]() { callback(Outcome<juce::var>::error("Failed to write file")); });
+        juce::MessageManager::callAsync(
+            [callback]() { callback(Outcome<nlohmann::json>::error("Failed to write file")); });
       }
       return;
     }
 
     if (callback) {
-      juce::MessageManager::callAsync([callback]() { callback(Outcome<juce::var>::ok(juce::var())); });
+      juce::MessageManager::callAsync([callback]() { callback(Outcome<nlohmann::json>::ok(nlohmann::json())); });
     }
   });
 }
@@ -436,10 +426,11 @@ void NetworkClient::uploadProjectFile(const juce::File &projectFile, const juce:
 
     // Get CDN URL from response
     juce::String fileUrl;
-    if (uploadResult.data.isObject()) {
-      fileUrl = Json::getString(uploadResult.data, "url");
-      if (fileUrl.isEmpty())
-        fileUrl = Json::getString(uploadResult.data, "file_url");
+    if (uploadResult.data.is_object()) {
+      if (uploadResult.data.contains("url"))
+        fileUrl = juce::String(uploadResult.data.value("url", ""));
+      if (fileUrl.isEmpty() && uploadResult.data.contains("file_url"))
+        fileUrl = juce::String(uploadResult.data.value("file_url", ""));
     }
 
     if (fileUrl.isEmpty()) {
@@ -451,18 +442,18 @@ void NetworkClient::uploadProjectFile(const juce::File &projectFile, const juce:
     }
 
     // Now create the project file record
-    juce::var recordData = juce::var(new juce::DynamicObject());
-    recordData.getDynamicObject()->setProperty("filename", filename);
-    recordData.getDynamicObject()->setProperty("file_url", fileUrl);
-    recordData.getDynamicObject()->setProperty("file_size", static_cast<int64>(fileSize));
-    recordData.getDynamicObject()->setProperty("daw_type", dawType);
-    recordData.getDynamicObject()->setProperty("is_public", isPublic);
+    nlohmann::json recordData;
+    recordData["filename"] = filename.toStdString();
+    recordData["file_url"] = fileUrl.toStdString();
+    recordData["file_size"] = fileSize;
+    recordData["daw_type"] = dawType.toStdString();
+    recordData["is_public"] = isPublic;
 
     if (description.isNotEmpty())
-      recordData.getDynamicObject()->setProperty("description", description);
+      recordData["description"] = description.toStdString();
 
     if (audioPostId.isNotEmpty())
-      recordData.getDynamicObject()->setProperty("audio_post_id", audioPostId);
+      recordData["audio_post_id"] = audioPostId.toStdString();
 
     auto recordResult = makeRequestWithRetry(buildApiPath("/project-files"), "POST", recordData, true);
 
@@ -470,8 +461,8 @@ void NetworkClient::uploadProjectFile(const juce::File &projectFile, const juce:
       juce::MessageManager::callAsync([callback, recordResult]() {
         if (recordResult.success) {
           juce::String projectFileId;
-          if (recordResult.data.isObject())
-            projectFileId = Json::getString(recordResult.data, "id");
+          if (recordResult.data.is_object() && recordResult.data.contains("id"))
+            projectFileId = juce::String(recordResult.data.value("id", ""));
           callback(Outcome<juce::String>::ok(projectFileId));
         } else {
           callback(Outcome<juce::String>::error(recordResult.getUserFriendlyError()));

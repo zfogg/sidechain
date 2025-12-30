@@ -7,6 +7,7 @@
 #include "../../util/StringUtils.h"
 #include "../../util/WaveformGenerator.h"
 #include <JuceHeader.h>
+#include <nlohmann/json.hpp>
 
 namespace StoryViewerColors {
 const juce::Colour background(0xff0a0a14);
@@ -784,7 +785,7 @@ void StoryViewer::handleDeleteStory(const juce::String &storyId) {
 
       // Fallback to direct network call
       if (networkClient) {
-        networkClient->deleteStory(storyId, [storyId](Outcome<juce::var> deleteResult) {
+        networkClient->deleteStory(storyId, [storyId](Outcome<nlohmann::json> deleteResult) {
           if (deleteResult.isOk()) {
             Log::info("StoryViewer: Story deleted successfully: " + storyId);
           } else {
@@ -844,7 +845,7 @@ void StoryViewer::handleDownloadMIDI(const StoryData &story) {
 
   // Download the MIDI file
   networkClient->downloadMIDI(
-      story.midiPatternId, targetFile, [targetFile, notificationMessage](Outcome<juce::var> result) {
+      story.midiPatternId, targetFile, [targetFile, notificationMessage](Outcome<nlohmann::json> result) {
         if (result.isOk()) {
           Log::info("Story MIDI downloaded: " + targetFile.getFullPathName());
           juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon, "MIDI Downloaded",
@@ -907,7 +908,7 @@ void StoryViewer::handleDownloadAudio(const StoryData &story) {
         // Download the audio file
         networkClient->downloadFile(info.downloadUrl, targetFile,
                                     nullptr, // No progress callback for now
-                                    [targetFile, notificationMessage](Outcome<juce::var> result) {
+                                    [targetFile, notificationMessage](Outcome<nlohmann::json> result) {
                                       if (result.isOk()) {
                                         Log::info("Story audio downloaded: " + targetFile.getFullPathName());
                                         juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon,
@@ -1012,7 +1013,7 @@ void StoryViewer::markStoryAsViewed() {
   if (!networkClient)
     return;
 
-  networkClient->viewStory(story->id, [](Outcome<juce::var> result) {
+  networkClient->viewStory(story->id, [](Outcome<nlohmann::json> result) {
     if (result.isOk())
       Log::debug("Story marked as viewed");
     else

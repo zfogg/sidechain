@@ -4,6 +4,7 @@
 #include "../../util/Log.h"
 #include "../../util/Result.h"
 #include "../../util/UIHelpers.h"
+#include <nlohmann/json.hpp>
 
 // ==============================================================================
 ActivityStatusSettings::ActivityStatusSettings(AppStore *store)
@@ -58,15 +59,15 @@ void ActivityStatusSettings::loadSettings() {
   errorMessage = "";
   repaint();
 
-  networkClient->get("/settings/activity-status", [this](Outcome<juce::var> result) {
+  networkClient->get("/settings/activity-status", [this](Outcome<nlohmann::json> result) {
     juce::MessageManager::callAsync([this, result]() {
       isLoading = false;
 
       if (result.isOk()) {
         auto response = result.getValue();
 
-        showActivityStatus = response.getProperty("show_activity_status", true);
-        showLastActive = response.getProperty("show_last_active", true);
+        showActivityStatus = response.value("show_activity_status", true);
+        showLastActive = response.value("show_last_active", true);
 
         populateFromSettings();
         Log::info("ActivityStatusSettings: Settings loaded successfully");
@@ -104,13 +105,11 @@ void ActivityStatusSettings::saveSettings() {
   errorMessage = "";
 
   // Build update payload
-  auto *updateData = new juce::DynamicObject();
-  updateData->setProperty("show_activity_status", showActivityStatus);
-  updateData->setProperty("show_last_active", showLastActive);
+  nlohmann::json payload;
+  payload["show_activity_status"] = showActivityStatus;
+  payload["show_last_active"] = showLastActive;
 
-  juce::var payload(updateData);
-
-  networkClient->put("/settings/activity-status", payload, [this](Outcome<juce::var> result) {
+  networkClient->put("/settings/activity-status", payload, [this](Outcome<nlohmann::json> result) {
     juce::MessageManager::callAsync([this, result]() {
       isSaving = false;
 

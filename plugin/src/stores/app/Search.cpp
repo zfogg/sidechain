@@ -9,6 +9,7 @@ namespace Stores {
 
 using Utils::JsonArrayParser;
 using Utils::NetworkClientGuard;
+using Utils::NlohmannJsonArrayParser;
 
 void AppStore::searchPosts(const juce::String &query) {
   if (!NetworkClientGuard::check(networkClient, "search posts")) {
@@ -31,19 +32,19 @@ void AppStore::searchPosts(const juce::String &query) {
   auto currentGenre = searchState->getState().results.currentGenre;
 
   // searchPosts signature: query, genre="", bpmMin=0, bpmMax=200, key="", limit=20, offset=0, callback
-  networkClient->searchPosts(query, currentGenre, 0, 200, "", 20, 0, [this, query](Outcome<juce::var> result) {
+  networkClient->searchPosts(query, currentGenre, 0, 200, "", 20, 0, [this, query](Outcome<nlohmann::json> result) {
     if (result.isOk()) {
       const auto data = result.getValue();
-      auto postsArray = data.getProperty("posts", juce::var());
+      auto postsArray = data.contains("posts") ? data["posts"] : nlohmann::json();
 
-      // Use JsonArrayParser
-      auto postsList = JsonArrayParser<FeedPost>::parse(postsArray, "search posts");
+      // Use NlohmannJsonArrayParser
+      auto postsList = NlohmannJsonArrayParser<FeedPost>::parse(postsArray, "search posts");
 
       SearchState successState = stateManager.search->getState();
       successState.results.posts = std::move(postsList);
       successState.results.isSearching = false;
-      successState.results.totalResults = static_cast<int>(
-          data.getProperty("total_count", static_cast<juce::var>(static_cast<int>(successState.results.posts.size()))));
+      successState.results.totalResults =
+          data.value("total_count", static_cast<int>(successState.results.posts.size()));
       successState.results.hasMoreResults =
           successState.results.posts.size() < static_cast<size_t>(successState.results.totalResults);
       successState.results.offset = static_cast<int>(successState.results.posts.size());
@@ -120,13 +121,14 @@ void AppStore::loadMoreSearchResults() {
   // Search for posts if there were posts in the last search
   if (!currentState.results.posts.empty()) {
     networkClient->searchPosts(currentState.results.searchQuery, currentState.results.currentGenre, 0, 200, "", 20,
-                               currentState.results.offset, [this](Outcome<juce::var> result) {
+                               currentState.results.offset, [this](Outcome<nlohmann::json> result) {
                                  if (result.isOk()) {
                                    const auto data = result.getValue();
-                                   auto postsArray = data.getProperty("posts", juce::var());
+                                   auto postsArray = data.contains("posts") ? data["posts"] : nlohmann::json();
 
-                                   // Use JsonArrayParser
-                                   auto newPosts = JsonArrayParser<FeedPost>::parse(postsArray, "search more posts");
+                                   // Use NlohmannJsonArrayParser
+                                   auto newPosts =
+                                       NlohmannJsonArrayParser<FeedPost>::parse(postsArray, "search more posts");
 
                                    SearchState moreState = stateManager.search->getState();
                                    for (const auto &post : newPosts) {
@@ -163,14 +165,14 @@ void AppStore::loadGenres() {
   loadingState.genres.isLoading = true;
   stateManager.search->setState(loadingState);
 
-  networkClient->getAvailableGenres([this](Outcome<juce::var> result) {
+  networkClient->getAvailableGenres([this](Outcome<nlohmann::json> result) {
     if (result.isOk()) {
       const auto data = result.getValue();
       juce::StringArray genresList;
 
-      if (data.isArray()) {
-        for (int i = 0; i < data.size(); ++i) {
-          genresList.add(data[i].toString());
+      if (data.is_array()) {
+        for (const auto &item : data) {
+          genresList.add(juce::String(item.get<std::string>()));
         }
       }
 
@@ -230,14 +232,14 @@ void AppStore::autocompleteUsers(const juce::String &query,
     return;
   }
 
-  networkClient->autocompleteUsers(query, 10, [callback](Outcome<juce::var> result) {
+  networkClient->autocompleteUsers(query, 10, [callback](Outcome<nlohmann::json> result) {
     juce::Array<juce::String> suggestions;
 
     if (result.isOk()) {
       auto data = result.getValue();
-      if (data.isArray()) {
-        for (int i = 0; i < data.size(); ++i) {
-          suggestions.add(data[i].toString());
+      if (data.is_array()) {
+        for (const auto &item : data) {
+          suggestions.add(juce::String(item.get<std::string>()));
         }
       }
       Util::logInfo("AppStore", "Autocomplete users returned " + juce::String(suggestions.size()) + " suggestions");
@@ -265,14 +267,14 @@ void AppStore::autocompleteGenres(const juce::String &query,
     return;
   }
 
-  networkClient->autocompleteGenres(query, 10, [callback](Outcome<juce::var> result) {
+  networkClient->autocompleteGenres(query, 10, [callback](Outcome<nlohmann::json> result) {
     juce::Array<juce::String> suggestions;
 
     if (result.isOk()) {
       auto data = result.getValue();
-      if (data.isArray()) {
-        for (int i = 0; i < data.size(); ++i) {
-          suggestions.add(data[i].toString());
+      if (data.is_array()) {
+        for (const auto &item : data) {
+          suggestions.add(juce::String(item.get<std::string>()));
         }
       }
       Util::logInfo("AppStore", "Autocomplete genres returned " + juce::String(suggestions.size()) + " suggestions");
@@ -344,11 +346,12 @@ rxcpp::observable<std::vector<FeedPost>> AppStore::searchPostsObservable(const j
            auto currentGenre = searchState->getState().results.currentGenre;
 
            networkClient->searchPosts(
-               query, currentGenre, 0, 200, "", 20, 0, [observer, query](Outcome<juce::var> result) {
+               query, currentGenre, 0, 200, "", 20, 0, [observer, query](Outcome<nlohmann::json> result) {
                  if (result.isOk()) {
                    const auto data = result.getValue();
-                   auto postsArray = data.getProperty("posts", juce::var());
-                   auto parsedPosts = Utils::JsonArrayParser<FeedPost>::parse(postsArray, "search posts observable");
+                   auto postsArray = data.contains("posts") ? data["posts"] : nlohmann::json();
+                   auto parsedPosts =
+                       Utils::NlohmannJsonArrayParser<FeedPost>::parse(postsArray, "search posts observable");
 
                    // Convert shared_ptr vector to value vector
                    ResultType posts;
@@ -418,14 +421,14 @@ rxcpp::observable<juce::Array<juce::String>> AppStore::autocompleteUsersObservab
              return;
            }
 
-           networkClient->autocompleteUsers(query, 10, [observer, query](Outcome<juce::var> result) {
+           networkClient->autocompleteUsers(query, 10, [observer, query](Outcome<nlohmann::json> result) {
              juce::Array<juce::String> suggestions;
 
              if (result.isOk()) {
                auto data = result.getValue();
-               if (data.isArray()) {
-                 for (int i = 0; i < data.size(); ++i) {
-                   suggestions.add(data[i].toString());
+               if (data.is_array()) {
+                 for (const auto &item : data) {
+                   suggestions.add(juce::String(item.get<std::string>()));
                  }
                }
                Util::logDebug("AppStore",
@@ -461,14 +464,14 @@ rxcpp::observable<juce::Array<juce::String>> AppStore::autocompleteGenresObserva
              return;
            }
 
-           networkClient->autocompleteGenres(query, 10, [observer, query](Outcome<juce::var> result) {
+           networkClient->autocompleteGenres(query, 10, [observer, query](Outcome<nlohmann::json> result) {
              juce::Array<juce::String> suggestions;
 
              if (result.isOk()) {
                auto data = result.getValue();
-               if (data.isArray()) {
-                 for (int i = 0; i < data.size(); ++i) {
-                   suggestions.add(data[i].toString());
+               if (data.is_array()) {
+                 for (const auto &item : data) {
+                   suggestions.add(juce::String(item.get<std::string>()));
                  }
                }
                Util::logDebug("AppStore", "Genre autocomplete observable returned " + juce::String(suggestions.size()) +

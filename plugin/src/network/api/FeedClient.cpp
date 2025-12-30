@@ -17,41 +17,37 @@ using namespace Sidechain::Network::Api;
 
 // ==============================================================================
 // Helper function to parse feed response into typed FeedResult
-static NetworkClient::FeedResult parseFeedResponse(const juce::var &json) {
+static NetworkClient::FeedResult parseFeedResponse(const nlohmann::json &json) {
   NetworkClient::FeedResult result;
 
-  if (!json.isObject()) {
+  if (!json.is_object()) {
     return result;
   }
 
   // Try "activities" first (unified feed format), then "posts" (fallback)
-  auto postsArray = json.getProperty("activities", juce::var());
-  if (!postsArray.isArray()) {
-    postsArray = json.getProperty("posts", juce::var());
+  nlohmann::json postsArray;
+  if (json.contains("activities") && json["activities"].is_array()) {
+    postsArray = json["activities"];
+  } else if (json.contains("posts") && json["posts"].is_array()) {
+    postsArray = json["posts"];
   }
 
   // Extract total from meta.count or total field
-  auto metaObj = json.getProperty("meta", juce::var());
-  if (metaObj.isObject() && metaObj.hasProperty("count")) {
-    result.total = static_cast<int>(metaObj.getProperty("count", 0));
+  if (json.contains("meta") && json["meta"].is_object()) {
+    const auto &metaObj = json["meta"];
+    result.total = metaObj.value("count", 0);
+    result.hasMore = metaObj.value("has_more", false);
   } else {
-    result.total = static_cast<int>(json.getProperty("total", 0));
-  }
-
-  // Extract has_more flag for pagination
-  if (metaObj.isObject()) {
-    result.hasMore = metaObj.getProperty("has_more", false);
+    result.total = json.value("total", 0);
   }
 
   // Parse each post into typed FeedPost
-  if (postsArray.isArray()) {
-    result.posts.reserve(static_cast<size_t>(postsArray.size()));
-    for (int i = 0; i < postsArray.size(); ++i) {
+  if (postsArray.is_array()) {
+    result.posts.reserve(postsArray.size());
+    for (const auto &postJson : postsArray) {
       try {
-        auto jsonStr = juce::JSON::toString(postsArray[i]);
-        auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
         Sidechain::FeedPost post;
-        from_json(jsonObj, post);
+        from_json(postJson, post);
         if (post.isValid()) {
           result.posts.push_back(std::move(post));
         }
@@ -75,7 +71,7 @@ void NetworkClient::getGlobalFeed(int limit, int offset, FeedCallback callback) 
     // getstream.io
     juce::String endpoint =
         buildApiPath("/feed/global/enriched") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
-    auto response = makeRequest(endpoint, "GET", juce::var(), true);
+    auto response = makeRequest(endpoint, "GET", nlohmann::json(), true);
 
     if (callback) {
       juce::MessageManager::callAsync(
@@ -94,7 +90,7 @@ void NetworkClient::getTimelineFeed(int limit, int offset, FeedCallback callback
     // content even when not following anyone
     juce::String endpoint =
         buildApiPath("/feed/unified") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
-    auto response = makeRequest(endpoint, "GET", juce::var(), true);
+    auto response = makeRequest(endpoint, "GET", nlohmann::json(), true);
 
     if (callback) {
       juce::MessageManager::callAsync(
@@ -112,7 +108,7 @@ void NetworkClient::getTrendingFeed(int limit, int offset, FeedCallback callback
     // recency)
     juce::String endpoint =
         buildApiPath("/feed/trending") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
-    auto response = makeRequest(endpoint, "GET", juce::var(), true);
+    auto response = makeRequest(endpoint, "GET", nlohmann::json(), true);
 
     if (callback) {
       juce::MessageManager::callAsync(
@@ -124,7 +120,7 @@ void NetworkClient::getTrendingFeed(int limit, int offset, FeedCallback callback
 void NetworkClient::getForYouFeed(int limit, int offset, FeedCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
@@ -132,7 +128,7 @@ void NetworkClient::getForYouFeed(int limit, int offset, FeedCallback callback) 
     // For You feed uses personalized recommendations
     juce::String endpoint =
         buildApiPath("/recommendations/for-you") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
-    auto response = makeRequest(endpoint, "GET", juce::var(), true);
+    auto response = makeRequest(endpoint, "GET", nlohmann::json(), true);
 
     if (callback) {
       juce::MessageManager::callAsync(
@@ -144,14 +140,14 @@ void NetworkClient::getForYouFeed(int limit, int offset, FeedCallback callback) 
 void NetworkClient::getSimilarPosts(const juce::String &postId, int limit, FeedCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, postId, limit, callback]() {
     juce::String path = "/recommendations/similar-posts/" + postId;
     juce::String endpoint = buildApiPath(path.toRawUTF8()) + "?limit=" + juce::String(limit);
-    auto response = makeRequest(endpoint, "GET", juce::var(), true);
+    auto response = makeRequest(endpoint, "GET", nlohmann::json(), true);
 
     if (callback) {
       juce::MessageManager::callAsync(
@@ -163,14 +159,14 @@ void NetworkClient::getSimilarPosts(const juce::String &postId, int limit, FeedC
 void NetworkClient::likePost(const juce::String &activityId, const juce::String &emoji, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, activityId, emoji, callback]() {
-    auto data = createJsonObject({{"activity_id", activityId}});
+    nlohmann::json data = {{"activity_id", activityId.toStdString()}};
     if (!emoji.isEmpty())
-      data.getDynamicObject()->setProperty("emoji", emoji);
+      data["emoji"] = emoji.toStdString();
 
     auto result = makeRequestWithRetry(buildApiPath("/feed/like"), "POST", data, true);
 
@@ -186,12 +182,12 @@ void NetworkClient::likePost(const juce::String &activityId, const juce::String 
 void NetworkClient::unlikePost(const juce::String &activityId, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, activityId, callback]() {
-    auto data = createJsonObject({{"activity_id", activityId}});
+    nlohmann::json data = {{"activity_id", activityId.toStdString()}};
     auto result = makeRequestWithRetry(buildApiPath("/feed/unlike"), "POST", data, true);
 
     if (callback) {
@@ -206,13 +202,13 @@ void NetworkClient::unlikePost(const juce::String &activityId, ResponseCallback 
 void NetworkClient::deletePost(const juce::String &postId, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, postId, callback]() {
     juce::String endpoint = buildApiPath("/posts/") + postId;
-    auto result = makeRequestWithRetry(endpoint, "DELETE", juce::var(), true);
+    auto result = makeRequestWithRetry(endpoint, "DELETE", nlohmann::json(), true);
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -227,14 +223,14 @@ void NetworkClient::reportPost(const juce::String &postId, const juce::String &r
                                ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, postId, reason, description, callback]() {
-    auto data = createJsonObject({{"post_id", postId}, {"reason", reason}});
+    nlohmann::json data = {{"post_id", postId.toStdString()}, {"reason", reason.toStdString()}};
     if (!description.isEmpty())
-      data.getDynamicObject()->setProperty("description", description);
+      data["description"] = description.toStdString();
 
     auto result = makeRequestWithRetry(buildApiPath("/reports"), "POST", data, true);
 
@@ -250,13 +246,13 @@ void NetworkClient::reportPost(const juce::String &postId, const juce::String &r
 void NetworkClient::getRemixChain(const juce::String &postId, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, postId, callback]() {
     juce::String endpoint = buildApiPath("/posts/") + postId + "/remix-chain";
-    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), true);
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -270,13 +266,13 @@ void NetworkClient::getRemixChain(const juce::String &postId, ResponseCallback c
 void NetworkClient::getPostRemixes(const juce::String &postId, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, postId, callback]() {
     juce::String endpoint = buildApiPath("/posts/") + postId + "/remixes";
-    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), true);
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -290,13 +286,13 @@ void NetworkClient::getPostRemixes(const juce::String &postId, ResponseCallback 
 void NetworkClient::getRemixSource(const juce::String &postId, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, postId, callback]() {
     juce::String endpoint = buildApiPath("/posts/") + postId + "/remix-source";
-    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), true);
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -311,12 +307,12 @@ void NetworkClient::createRemixPost(const juce::String &sourcePostId, const juce
                                     ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, sourcePostId, remixType, callback]() {
-    auto data = createJsonObject({{"source_post_id", sourcePostId}, {"remix_type", remixType}});
+    nlohmann::json data = {{"source_post_id", sourcePostId.toStdString()}, {"remix_type", remixType.toStdString()}};
     auto result = makeRequestWithRetry(buildApiPath("/remixes"), "POST", data, true);
 
     if (callback) {
@@ -332,24 +328,20 @@ void NetworkClient::trackRecommendationClick(const juce::String &postId, const j
                                              double playDuration, bool completed, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, postId, source, position, playDuration, completed, callback]() {
-    juce::var data = juce::var(new juce::DynamicObject());
-    auto *obj = data.getDynamicObject();
-    if (obj != nullptr) {
-      obj->setProperty("post_id", postId);
-      obj->setProperty("source", source);
-      obj->setProperty("position", position);
-      if (playDuration > 0.0)
-        obj->setProperty("play_duration", playDuration);
-      obj->setProperty("completed", completed);
-    }
+    nlohmann::json data = {{"post_id", postId.toStdString()},
+                           {"source", source.toStdString()},
+                           {"position", position},
+                           {"completed", completed}};
+    if (playDuration > 0.0)
+      data["play_duration"] = playDuration;
 
     auto result = makeRequestWithRetry(buildApiPath("/recommendations/click"), "POST", data, true);
-    Log::debug("Track recommendation click response: " + juce::JSON::toString(result.data));
+    Log::debug("Track recommendation click response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -373,15 +365,15 @@ void NetworkClient::getGlobalFeedModels(int limit, int offset, FeedPostsCallback
   Async::runVoid([this, limit, offset, callback]() {
     juce::String endpoint =
         buildApiPath("/feed/global/enriched") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
-    auto response = makeRequest(endpoint, "GET", juce::var(), true);
+    auto response = makeRequest(endpoint, "GET", nlohmann::json(), true);
 
     if (callback) {
       juce::MessageManager::callAsync([callback, response]() {
         // Check for error in response
-        if (response.isObject() && response.hasProperty("error")) {
-          juce::String errorMsg = response["error"].toString();
-          callback(Outcome<std::vector<std::shared_ptr<Sidechain::FeedPost>>>::error(errorMsg));
-        } else if (response.isArray() || response.isObject()) {
+        if (response.is_object() && response.contains("error")) {
+          std::string errorMsg = response.value("error", "Unknown error");
+          callback(Outcome<std::vector<std::shared_ptr<Sidechain::FeedPost>>>::error(juce::String(errorMsg)));
+        } else if (response.is_array() || response.is_object()) {
           // Parse the response into shared_ptr FeedPost objects
           auto outcome = parseFeedPostsResponse(response);
           callback(outcome);
@@ -403,15 +395,15 @@ void NetworkClient::getTimelineFeedModels(int limit, int offset, FeedPostsCallba
   Async::runVoid([this, limit, offset, callback]() {
     juce::String endpoint =
         buildApiPath("/feed/unified") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
-    auto response = makeRequest(endpoint, "GET", juce::var(), true);
+    auto response = makeRequest(endpoint, "GET", nlohmann::json(), true);
 
     if (callback) {
       juce::MessageManager::callAsync([callback, response]() {
         // Check for error in response
-        if (response.isObject() && response.hasProperty("error")) {
-          juce::String errorMsg = response["error"].toString();
-          callback(Outcome<std::vector<std::shared_ptr<Sidechain::FeedPost>>>::error(errorMsg));
-        } else if (response.isArray() || response.isObject()) {
+        if (response.is_object() && response.contains("error")) {
+          std::string errorMsg = response.value("error", "Unknown error");
+          callback(Outcome<std::vector<std::shared_ptr<Sidechain::FeedPost>>>::error(juce::String(errorMsg)));
+        } else if (response.is_array() || response.is_object()) {
           // Parse the response into shared_ptr FeedPost objects
           auto outcome = parseFeedPostsResponse(response);
           callback(outcome);
@@ -433,15 +425,15 @@ void NetworkClient::getTrendingFeedModels(int limit, int offset, FeedPostsCallba
   Async::runVoid([this, limit, offset, callback]() {
     juce::String endpoint =
         buildApiPath("/feed/trending") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
-    auto response = makeRequest(endpoint, "GET", juce::var(), true);
+    auto response = makeRequest(endpoint, "GET", nlohmann::json(), true);
 
     if (callback) {
       juce::MessageManager::callAsync([callback, response]() {
         // Check for error in response
-        if (response.isObject() && response.hasProperty("error")) {
-          juce::String errorMsg = response["error"].toString();
-          callback(Outcome<std::vector<std::shared_ptr<Sidechain::FeedPost>>>::error(errorMsg));
-        } else if (response.isArray() || response.isObject()) {
+        if (response.is_object() && response.contains("error")) {
+          std::string errorMsg = response.value("error", "Unknown error");
+          callback(Outcome<std::vector<std::shared_ptr<Sidechain::FeedPost>>>::error(juce::String(errorMsg)));
+        } else if (response.is_array() || response.is_object()) {
           // Parse the response into shared_ptr FeedPost objects
           auto outcome = parseFeedPostsResponse(response);
           callback(outcome);
@@ -463,15 +455,15 @@ void NetworkClient::getForYouFeedModels(int limit, int offset, FeedPostsCallback
   Async::runVoid([this, limit, offset, callback]() {
     juce::String endpoint =
         buildApiPath("/recommendations/for-you") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
-    auto response = makeRequest(endpoint, "GET", juce::var(), true);
+    auto response = makeRequest(endpoint, "GET", nlohmann::json(), true);
 
     if (callback) {
       juce::MessageManager::callAsync([callback, response]() {
         // Check for error in response
-        if (response.isObject() && response.hasProperty("error")) {
-          juce::String errorMsg = response["error"].toString();
-          callback(Outcome<std::vector<std::shared_ptr<Sidechain::FeedPost>>>::error(errorMsg));
-        } else if (response.isArray() || response.isObject()) {
+        if (response.is_object() && response.contains("error")) {
+          std::string errorMsg = response.value("error", "Unknown error");
+          callback(Outcome<std::vector<std::shared_ptr<Sidechain::FeedPost>>>::error(juce::String(errorMsg)));
+        } else if (response.is_array() || response.is_object()) {
           // Parse the response into shared_ptr FeedPost objects
           auto outcome = parseFeedPostsResponse(response);
           callback(outcome);
@@ -497,7 +489,7 @@ rxcpp::observable<NetworkClient::FeedResult> NetworkClient::getGlobalFeedObserva
       return;
     }
 
-    getGlobalFeed(limit, offset, [observer](Outcome<juce::var> result) {
+    getGlobalFeed(limit, offset, [observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         auto feedResult = parseFeedResponse(result.getValue());
         observer.on_next(std::move(feedResult));
@@ -519,7 +511,7 @@ rxcpp::observable<NetworkClient::FeedResult> NetworkClient::getTimelineFeedObser
       return;
     }
 
-    getTimelineFeed(limit, offset, [observer](Outcome<juce::var> result) {
+    getTimelineFeed(limit, offset, [observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         auto feedResult = parseFeedResponse(result.getValue());
         observer.on_next(std::move(feedResult));
@@ -540,7 +532,7 @@ rxcpp::observable<NetworkClient::FeedResult> NetworkClient::getTrendingFeedObser
       return;
     }
 
-    getTrendingFeed(limit, offset, [observer](Outcome<juce::var> result) {
+    getTrendingFeed(limit, offset, [observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         auto feedResult = parseFeedResponse(result.getValue());
         observer.on_next(std::move(feedResult));
@@ -561,7 +553,7 @@ rxcpp::observable<NetworkClient::FeedResult> NetworkClient::getForYouFeedObserva
       return;
     }
 
-    getForYouFeed(limit, offset, [observer](Outcome<juce::var> result) {
+    getForYouFeed(limit, offset, [observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         auto feedResult = parseFeedResponse(result.getValue());
         observer.on_next(std::move(feedResult));
@@ -582,7 +574,7 @@ rxcpp::observable<NetworkClient::FeedResult> NetworkClient::getPopularFeedObserv
       return;
     }
 
-    getPopularFeed(limit, offset, [observer](Outcome<juce::var> result) {
+    getPopularFeed(limit, offset, [observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         auto feedResult = parseFeedResponse(result.getValue());
         observer.on_next(std::move(feedResult));
@@ -603,7 +595,7 @@ rxcpp::observable<NetworkClient::FeedResult> NetworkClient::getLatestFeedObserva
       return;
     }
 
-    getLatestFeed(limit, offset, [observer](Outcome<juce::var> result) {
+    getLatestFeed(limit, offset, [observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         auto feedResult = parseFeedResponse(result.getValue());
         observer.on_next(std::move(feedResult));
@@ -624,7 +616,7 @@ rxcpp::observable<NetworkClient::FeedResult> NetworkClient::getDiscoveryFeedObse
       return;
     }
 
-    getDiscoveryFeed(limit, offset, [observer](Outcome<juce::var> result) {
+    getDiscoveryFeed(limit, offset, [observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         auto feedResult = parseFeedResponse(result.getValue());
         observer.on_next(std::move(feedResult));
@@ -646,13 +638,13 @@ rxcpp::observable<NetworkClient::LikeResult> NetworkClient::likePostObservable(c
       return;
     }
 
-    likePost(activityId, emoji, [observer](Outcome<juce::var> result) {
+    likePost(activityId, emoji, [observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         LikeResult likeResult;
-        auto value = result.getValue();
-        if (value.isObject()) {
-          likeResult.likeCount = Json::getInt(value, "like_count", Json::getInt(value, "likeCount", 0));
-          likeResult.isLiked = Json::getBool(value, "is_liked", Json::getBool(value, "isLiked", true));
+        const auto &value = result.getValue();
+        if (value.is_object()) {
+          likeResult.likeCount = value.value("like_count", value.value("likeCount", 0));
+          likeResult.isLiked = value.value("is_liked", value.value("isLiked", true));
         } else {
           // Default to liked state if response doesn't include details
           likeResult.isLiked = true;
@@ -675,7 +667,7 @@ rxcpp::observable<int> NetworkClient::unlikePostObservable(const juce::String &a
       return;
     }
 
-    unlikePost(activityId, [observer](Outcome<juce::var> result) {
+    unlikePost(activityId, [observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         observer.on_next(0);
         observer.on_completed();

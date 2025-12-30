@@ -4,6 +4,7 @@
 #include "../util/PostInteractionHelper.h"
 #include "../../util/logging/Logger.h"
 #include "../../util/rx/JuceScheduler.h"
+#include <nlohmann/json.hpp>
 
 namespace Sidechain {
 namespace Stores {
@@ -384,31 +385,31 @@ void AppStore::toggleLike(const juce::String &postId) {
   }
 
   auto config = PostInteractionHelper::createLikeConfig(
-      [this](const juce::String &id, bool wasLiked, std::function<void(Outcome<juce::var>)> callback) {
+      [this](const juce::String &id, bool wasLiked, std::function<void(Outcome<nlohmann::json>)> callback) {
         if (wasLiked) {
           networkClient->unlikePostObservable(id).subscribe(
-              [callback](int) { callback(Outcome<juce::var>::ok(juce::var())); },
+              [callback](int) { callback(Outcome<nlohmann::json>::ok(nlohmann::json())); },
               [callback](std::exception_ptr ep) {
                 try {
                   std::rethrow_exception(ep);
                 } catch (const std::exception &e) {
-                  callback(Outcome<juce::var>::error(juce::String(e.what())));
+                  callback(Outcome<nlohmann::json>::error(juce::String(e.what())));
                 }
               });
         } else {
           networkClient->likePostObservable(id, "").subscribe(
               [callback](const NetworkClient::LikeResult &result) {
-                // Convert LikeResult to juce::var for legacy callback interface
-                auto varResult = juce::var(new juce::DynamicObject());
-                varResult.getDynamicObject()->setProperty("like_count", result.likeCount);
-                varResult.getDynamicObject()->setProperty("is_liked", result.isLiked);
-                callback(Outcome<juce::var>::ok(varResult));
+                // Convert LikeResult to nlohmann::json for callback interface
+                nlohmann::json jsonResult;
+                jsonResult["like_count"] = result.likeCount;
+                jsonResult["is_liked"] = result.isLiked;
+                callback(Outcome<nlohmann::json>::ok(jsonResult));
               },
               [callback](std::exception_ptr ep) {
                 try {
                   std::rethrow_exception(ep);
                 } catch (const std::exception &e) {
-                  callback(Outcome<juce::var>::error(juce::String(e.what())));
+                  callback(Outcome<nlohmann::json>::error(juce::String(e.what())));
                 }
               });
         }
@@ -423,14 +424,14 @@ void AppStore::toggleSave(const juce::String &postId) {
   }
 
   auto config = PostInteractionHelper::createSaveConfig(
-      [this](const juce::String &id, bool wasSaved, std::function<void(Outcome<juce::var>)> callback) {
+      [this](const juce::String &id, bool wasSaved, std::function<void(Outcome<nlohmann::json>)> callback) {
         auto observable = wasSaved ? networkClient->unsavePostObservable(id) : networkClient->savePostObservable(id);
-        observable.subscribe([callback](int) { callback(Outcome<juce::var>::ok(juce::var())); },
+        observable.subscribe([callback](int) { callback(Outcome<nlohmann::json>::ok(nlohmann::json())); },
                              [callback](std::exception_ptr ep) {
                                try {
                                  std::rethrow_exception(ep);
                                } catch (const std::exception &e) {
-                                 callback(Outcome<juce::var>::error(juce::String(e.what())));
+                                 callback(Outcome<nlohmann::json>::error(juce::String(e.what())));
                                }
                              });
       });
@@ -444,15 +445,15 @@ void AppStore::toggleRepost(const juce::String &postId) {
   }
 
   auto config = PostInteractionHelper::createRepostConfig(
-      [this](const juce::String &id, bool wasReposted, std::function<void(Outcome<juce::var>)> callback) {
+      [this](const juce::String &id, bool wasReposted, std::function<void(Outcome<nlohmann::json>)> callback) {
         auto observable =
             wasReposted ? networkClient->undoRepostObservable(id) : networkClient->repostPostObservable(id, "");
-        observable.subscribe([callback](int) { callback(Outcome<juce::var>::ok(juce::var())); },
+        observable.subscribe([callback](int) { callback(Outcome<nlohmann::json>::ok(nlohmann::json())); },
                              [callback](std::exception_ptr ep) {
                                try {
                                  std::rethrow_exception(ep);
                                } catch (const std::exception &e) {
-                                 callback(Outcome<juce::var>::error(juce::String(e.what())));
+                                 callback(Outcome<nlohmann::json>::error(juce::String(e.what())));
                                }
                              });
       });
@@ -592,26 +593,28 @@ void AppStore::performFetch(FeedType feedType, int limit, int offset) {
 
   // Handle aggregated feeds separately (they still use callbacks)
   if (feedType == FeedType::TimelineAggregated) {
-    networkClient->getAggregatedTimeline(limit, offset, [this, feedType, limit, offset](Outcome<juce::var> result) {
-      if (result.isOk()) {
-        handleFetchSuccess(feedType, result.getValue(), limit, offset);
-      } else {
-        handleFetchError(feedType, result.getError());
-      }
-    });
+    networkClient->getAggregatedTimeline(limit, offset,
+                                         [this, feedType, limit, offset](Outcome<nlohmann::json> result) {
+                                           if (result.isOk()) {
+                                             handleFetchSuccess(feedType, result.getValue(), limit, offset);
+                                           } else {
+                                             handleFetchError(feedType, result.getError());
+                                           }
+                                         });
     return;
   } else if (feedType == FeedType::TrendingAggregated) {
-    networkClient->getTrendingFeedGrouped(limit, offset, [this, feedType, limit, offset](Outcome<juce::var> result) {
-      if (result.isOk()) {
-        handleFetchSuccess(feedType, result.getValue(), limit, offset);
-      } else {
-        handleFetchError(feedType, result.getError());
-      }
-    });
+    networkClient->getTrendingFeedGrouped(limit, offset,
+                                          [this, feedType, limit, offset](Outcome<nlohmann::json> result) {
+                                            if (result.isOk()) {
+                                              handleFetchSuccess(feedType, result.getValue(), limit, offset);
+                                            } else {
+                                              handleFetchError(feedType, result.getError());
+                                            }
+                                          });
     return;
   } else if (feedType == FeedType::NotificationAggregated) {
     networkClient->getNotificationsAggregated(limit, offset,
-                                              [this, feedType, limit, offset](Outcome<juce::var> result) {
+                                              [this, feedType, limit, offset](Outcome<nlohmann::json> result) {
                                                 if (result.isOk()) {
                                                   handleFetchSuccess(feedType, result.getValue(), limit, offset);
                                                 } else {
@@ -664,7 +667,7 @@ void AppStore::performFetch(FeedType feedType, int limit, int offset) {
       });
 }
 
-void AppStore::handleFetchSuccess(FeedType feedType, const juce::var &data, int limit, int offset) {
+void AppStore::handleFetchSuccess(FeedType feedType, const nlohmann::json &data, int limit, int offset) {
   // Log pagination info for debugging
   Log::info("========== handleFetchSuccess ENTRY ==========");
   Log::info("handleFetchSuccess called for feedType=" + feedTypeToString(feedType));
@@ -950,58 +953,61 @@ bool AppStore::isCurrentFeedCached() const {
   return false;
 }
 
-FeedResponse AppStore::parseJsonResponse(const juce::var &json) {
+FeedResponse AppStore::parseJsonResponse(const nlohmann::json &json) {
   FeedResponse response;
 
-  if (!json.isObject()) {
+  if (!json.is_object()) {
     return response;
   }
 
   // Try "activities" first (unified feed format), then "posts" (fallback for other endpoints)
-  auto postsArray = json.getProperty("activities", juce::var());
-  if (!postsArray.isArray()) {
-    postsArray = json.getProperty("posts", juce::var());
+  nlohmann::json postsArray;
+  if (json.contains("activities") && json["activities"].is_array()) {
+    postsArray = json["activities"];
+  } else if (json.contains("posts") && json["posts"].is_array()) {
+    postsArray = json["posts"];
+  } else {
+    postsArray = nlohmann::json::array();
   }
 
   // Extract total from meta.count or total field
-  auto metaObj = json.getProperty("meta", juce::var());
-  if (metaObj.isObject() && metaObj.hasProperty("count")) {
-    response.total = static_cast<int>(metaObj.getProperty("count", 0));
+  if (json.contains("meta") && json["meta"].is_object()) {
+    const auto &metaObj = json["meta"];
+    if (metaObj.contains("count")) {
+      response.total = metaObj.value("count", 0);
+    } else {
+      response.total = json.value("total", 0);
+    }
+    // Extract has_more flag for pagination
+    response.hasMore = metaObj.value("has_more", false);
   } else {
-    response.total = static_cast<int>(json.getProperty("total", 0));
+    response.total = json.value("total", 0);
   }
 
-  // Extract has_more flag for pagination
-  if (metaObj.isObject()) {
-    response.hasMore = metaObj.getProperty("has_more", false);
-  }
-
-  // Use JsonArrayParser with validation
-  auto parsedPosts = JsonArrayParser<FeedPost>::parseWithValidation(
-      postsArray, [](const FeedPost &post) { return post.isValid(); }, "feed");
-
-  // Convert to juce::Array for FeedResponse
-  for (const auto &postPtr : parsedPosts) {
-    response.posts.add(*postPtr);
+  // Parse posts from JSON array
+  for (const auto &postJson : postsArray) {
+    auto post = FeedPost::fromJson(postJson);
+    if (post.isValid()) {
+      response.posts.add(post);
+    }
   }
 
   Util::logDebug("AppStore", "Parsed " + juce::String(response.posts.size()) + " posts from feed response");
   return response;
 }
 
-AggregatedFeedResponse AppStore::parseAggregatedJsonResponse(const juce::var &json) {
+AggregatedFeedResponse AppStore::parseAggregatedJsonResponse(const nlohmann::json &json) {
   AggregatedFeedResponse response;
 
-  if (!json.isObject()) {
+  if (!json.is_object()) {
     return response;
   }
 
-  auto groupsArray = json.getProperty("groups", juce::var());
-  response.total = static_cast<int>(json.getProperty("total", 0));
+  response.total = json.value("total", 0);
 
-  if (groupsArray.isArray()) {
-    for (int i = 0; i < groupsArray.size(); ++i) {
-      auto group = AggregatedFeedGroup::fromJson(groupsArray[i]);
+  if (json.contains("groups") && json["groups"].is_array()) {
+    for (const auto &groupJson : json["groups"]) {
+      auto group = AggregatedFeedGroup::fromJson(groupJson);
       response.groups.add(group);
     }
   }
@@ -1015,8 +1021,8 @@ AggregatedFeedResponse AppStore::parseAggregatedJsonResponse(const juce::var &js
 // These methods implement loadFeedObservable and likePostObservable
 // using RxCpp observables with automatic cache invalidation strategies.
 
-rxcpp::observable<juce::var> AppStore::loadFeedObservable(FeedType feedType) {
-  return rxcpp::sources::create<juce::var>([this, feedType](auto observer) {
+rxcpp::observable<nlohmann::json> AppStore::loadFeedObservable(FeedType feedType) {
+  return rxcpp::sources::create<nlohmann::json>([this, feedType](auto observer) {
            // Fetch from network
            if (!networkClient) {
              Util::logError("AppStore", "Network client not initialized");
@@ -1027,7 +1033,7 @@ rxcpp::observable<juce::var> AppStore::loadFeedObservable(FeedType feedType) {
            Util::logDebug("AppStore", "Loading feed from network: " + feedTypeToString(feedType));
 
            // Create callback to handle network response
-           auto callback = [feedType, observer](Outcome<juce::var> result) {
+           auto callback = [feedType, observer](Outcome<nlohmann::json> result) {
              if (result.isOk()) {
                // Cache the response (30 seconds for feeds - they update frequently)
                auto data = result.getValue();
@@ -1113,7 +1119,7 @@ rxcpp::observable<int> AppStore::likePostObservable(const juce::String &postId) 
 
            // Send to server - like or unlike based on previous state
            if (isCurrentlyLiked) {
-             networkClient->unlikePost(postId, [this, postId, previousState, observer](Outcome<juce::var> result) {
+             networkClient->unlikePost(postId, [this, postId, previousState, observer](Outcome<nlohmann::json> result) {
                if (result.isOk()) {
                  Util::logInfo("AppStore", "Post unliked successfully: " + postId);
                  // Invalidate feed caches on successful unlike
@@ -1137,29 +1143,30 @@ rxcpp::observable<int> AppStore::likePostObservable(const juce::String &postId) 
                }
              });
            } else {
-             networkClient->likePost(postId, "", [this, postId, previousState, observer](Outcome<juce::var> result) {
-               if (result.isOk()) {
-                 Util::logInfo("AppStore", "Post liked successfully: " + postId);
-                 // Invalidate feed caches on successful like
-                 observer.on_next(0);
-                 observer.on_completed();
-               } else {
-                 Util::logError("AppStore", "Failed to like post: " + result.getError());
-                 // Rollback optimistic update on error
-                 PostsState rollbackState = stateManager.posts->getState();
-                 for (auto &[feedType, feedState] : rollbackState.feeds) {
-                   for (auto &post : feedState.posts) {
-                     if (post->id == postId) {
-                       post->isLiked = previousState;
-                       // BUG FIX: Prevent negative like counts on rollback
-                       post->likeCount = previousState ? post->likeCount + 1 : std::max(0, post->likeCount - 1);
+             networkClient->likePost(
+                 postId, "", [this, postId, previousState, observer](Outcome<nlohmann::json> result) {
+                   if (result.isOk()) {
+                     Util::logInfo("AppStore", "Post liked successfully: " + postId);
+                     // Invalidate feed caches on successful like
+                     observer.on_next(0);
+                     observer.on_completed();
+                   } else {
+                     Util::logError("AppStore", "Failed to like post: " + result.getError());
+                     // Rollback optimistic update on error
+                     PostsState rollbackState = stateManager.posts->getState();
+                     for (auto &[feedType, feedState] : rollbackState.feeds) {
+                       for (auto &post : feedState.posts) {
+                         if (post->id == postId) {
+                           post->isLiked = previousState;
+                           // BUG FIX: Prevent negative like counts on rollback
+                           post->likeCount = previousState ? post->likeCount + 1 : std::max(0, post->likeCount - 1);
+                         }
+                       }
                      }
+                     stateManager.posts->setState(rollbackState);
+                     observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
                    }
-                 }
-                 stateManager.posts->setState(rollbackState);
-                 observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
-               }
-             });
+                 });
            }
          })
       .observe_on(Rx::observe_on_juce_thread());
@@ -1225,7 +1232,7 @@ rxcpp::observable<int> AppStore::toggleSaveObservable(const juce::String &postId
 
            // Send to server
            if (previousState) {
-             networkClient->unsavePost(postId, [this, postId, previousState, observer](Outcome<juce::var> result) {
+             networkClient->unsavePost(postId, [this, postId, previousState, observer](Outcome<nlohmann::json> result) {
                if (result.isOk()) {
                  Util::logInfo("AppStore", "Post unsaved successfully: " + postId);
                  observer.on_next(0);
@@ -1262,7 +1269,7 @@ rxcpp::observable<int> AppStore::toggleSaveObservable(const juce::String &postId
                }
              });
            } else {
-             networkClient->savePost(postId, [this, postId, previousState, observer](Outcome<juce::var> result) {
+             networkClient->savePost(postId, [this, postId, previousState, observer](Outcome<nlohmann::json> result) {
                if (result.isOk()) {
                  Util::logInfo("AppStore", "Post saved successfully: " + postId);
                  observer.on_next(0);
@@ -1338,7 +1345,7 @@ rxcpp::observable<int> AppStore::toggleRepostObservable(const juce::String &post
            Util::logDebug("AppStore", "Repost optimistic update: " + postId);
 
            // Call API and wait for response
-           auto callback = [this, postId, wasReposted, toggleState, observer](Outcome<juce::var> result) {
+           auto callback = [this, postId, wasReposted, toggleState, observer](Outcome<nlohmann::json> result) {
              if (result.isOk()) {
                Util::logInfo("AppStore",
                              "Repost " + juce::String(wasReposted ? "undone" : "applied") + " successfully: " + postId);
@@ -1415,13 +1422,13 @@ rxcpp::observable<int> AppStore::addReactionObservable(const juce::String &postI
       .observe_on(Rx::observe_on_juce_thread());
 }
 
-rxcpp::observable<juce::var> AppStore::loadMultipleFeedsObservable(const std::vector<FeedType> &feedTypes) {
+rxcpp::observable<nlohmann::json> AppStore::loadMultipleFeedsObservable(const std::vector<FeedType> &feedTypes) {
   if (feedTypes.empty()) {
-    return rxcpp::observable<>::empty<juce::var>();
+    return rxcpp::observable<>::empty<nlohmann::json>();
   }
 
   // Create observables for each feed type and merge them
-  std::vector<rxcpp::observable<juce::var>> feedObservables;
+  std::vector<rxcpp::observable<nlohmann::json>> feedObservables;
   feedObservables.reserve(feedTypes.size());
 
   for (const auto &feedType : feedTypes) {

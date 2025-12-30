@@ -6,6 +6,7 @@
 #include "../../stores/AppStore.h"
 #include "../common/AppStoreComponent.h"
 #include <JuceHeader.h>
+#include <nlohmann/json.hpp>
 
 namespace Sidechain {
 namespace Stores {
@@ -257,8 +258,8 @@ private:
   void insertEmoji(const juce::String &emoji);
 
   // API callbacks
-  void handleCommentsLoaded(Outcome<std::pair<juce::var, int>> commentsResult);
-  void handleCommentCreated(Outcome<juce::var> commentResult);
+  void handleCommentsLoaded(Outcome<std::pair<nlohmann::json, int>> commentsResult);
+  void handleCommentCreated(Outcome<nlohmann::json> commentResult);
   void handleCommentDeleted(bool success, const juce::String &commentId);
   void handleCommentLikeToggled(const Sidechain::Comment &comment, bool liked);
 

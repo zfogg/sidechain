@@ -4,6 +4,7 @@
 #include "../util/Constants.h"
 #include "../util/Log.h"
 #include <memory>
+#include <nlohmann/json.hpp>
 
 // ==============================================================================
 HttpAudioPlayer::HttpAudioPlayer() {
@@ -375,8 +376,8 @@ void HttpAudioPlayer::preloadAudio(const juce::String &postId, const juce::Strin
 
     // Use NetworkClient if available, otherwise fall back to JUCE URL
     if (networkClient != nullptr) {
-      auto result =
-          networkClient->makeAbsoluteRequestSync(audioUrl, "GET", juce::var(), false, juce::StringPairArray(), &data);
+      auto result = networkClient->makeAbsoluteRequestSync(audioUrl, "GET", nlohmann::json(), false,
+                                                           juce::StringPairArray(), &data);
       success = result.success && data.getSize() > 0;
     } else {
       // Fallback to JUCE URL
@@ -462,8 +463,8 @@ void HttpAudioPlayer::downloadAudio(const juce::String &postId, const juce::Stri
     // Use NetworkClient if available - it handles HTTPS properly on Linux
     if (networkClient != nullptr) {
       Log::debug("HttpAudioPlayer: Using NetworkClient for download");
-      auto result =
-          networkClient->makeAbsoluteRequestSync(url, "GET", juce::var(), false, juce::StringPairArray(), data.get());
+      auto result = networkClient->makeAbsoluteRequestSync(url, "GET", nlohmann::json(), false, juce::StringPairArray(),
+                                                           data.get());
       success = result.success && data->getSize() > 0;
 
       Log::debug("HttpAudioPlayer: NetworkClient returned - success: " +

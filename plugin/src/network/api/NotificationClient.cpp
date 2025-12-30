@@ -4,7 +4,6 @@
 // ==============================================================================
 
 #include "../../util/Async.h"
-#include "../../util/Json.h"
 #include "../../util/Log.h"
 #include "../../util/rx/JuceScheduler.h"
 #include "../../models/Notification.h"
@@ -24,24 +23,22 @@ void NetworkClient::getNotifications(int limit, int offset, NotificationCallback
       buildApiPath("/notifications") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
 
   Async::runVoid([this, endpoint, callback]() {
-    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), true);
 
     int unseen = 0;
     int unread = 0;
     std::vector<Sidechain::Notification> notifications;
 
-    if (result.success && result.data.isObject()) {
-      unseen = Json::getInt(result.data, "unseen");
-      unread = Json::getInt(result.data, "unread");
+    if (result.success && result.data.is_object()) {
+      unseen = result.data.value("unseen", 0);
+      unread = result.data.value("unread", 0);
 
-      auto groups = Json::getArray(result.data, "groups");
-      if (groups.isArray()) {
-        for (int i = 0; i < groups.size(); ++i) {
+      if (result.data.contains("groups") && result.data["groups"].is_array()) {
+        const auto &groups = result.data["groups"];
+        for (const auto &group : groups) {
           try {
-            auto jsonStr = juce::JSON::toString(groups[i]);
-            auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
             Sidechain::Notification notif;
-            from_json(jsonObj, notif);
+            from_json(group, notif);
             if (notif.isValid()) {
               notifications.push_back(std::move(notif));
             }
@@ -72,14 +69,14 @@ void NetworkClient::getNotificationCounts(std::function<void(int unseen, int unr
     return;
 
   Async::runVoid([this, callback]() {
-    auto result = makeRequestWithRetry(buildApiPath("/notifications/counts"), "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(buildApiPath("/notifications/counts"), "GET", nlohmann::json(), true);
 
     int unseen = 0;
     int unread = 0;
 
-    if (result.success && result.data.isObject()) {
-      unseen = Json::getInt(result.data, "unseen");
-      unread = Json::getInt(result.data, "unread");
+    if (result.success && result.data.is_object()) {
+      unseen = result.data.value("unseen", 0);
+      unread = result.data.value("unread", 0);
     }
 
     juce::MessageManager::callAsync([callback, unseen, unread]() { callback(unseen, unread); });
@@ -88,7 +85,7 @@ void NetworkClient::getNotificationCounts(std::function<void(int unseen, int unr
 
 void NetworkClient::markNotificationsRead(ResponseCallback callback) {
   Async::runVoid([this, callback]() {
-    auto result = makeRequestWithRetry(buildApiPath("/notifications/read"), "POST", juce::var(), true);
+    auto result = makeRequestWithRetry(buildApiPath("/notifications/read"), "POST", nlohmann::json(), true);
 
     if (callback != nullptr) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -101,7 +98,7 @@ void NetworkClient::markNotificationsRead(ResponseCallback callback) {
 
 void NetworkClient::markNotificationsSeen(ResponseCallback callback) {
   Async::runVoid([this, callback]() {
-    auto result = makeRequestWithRetry(buildApiPath("/notifications/seen"), "POST", juce::var(), true);
+    auto result = makeRequestWithRetry(buildApiPath("/notifications/seen"), "POST", nlohmann::json(), true);
 
     if (callback != nullptr) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -117,11 +114,11 @@ void NetworkClient::getFollowRequestCount(std::function<void(int count)> callbac
     return;
 
   Async::runVoid([this, callback]() {
-    auto result = makeRequestWithRetry(buildApiPath("/users/me/follow-requests/count"), "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(buildApiPath("/users/me/follow-requests/count"), "GET", nlohmann::json(), true);
 
     int count = 0;
-    if (result.success && result.data.isObject()) {
-      count = Json::getInt(result.data, "count");
+    if (result.success && result.data.is_object()) {
+      count = result.data.value("count", 0);
     }
 
     juce::MessageManager::callAsync([callback, count]() { callback(count); });
@@ -135,14 +132,14 @@ void NetworkClient::getFollowRequestCount(std::function<void(int count)> callbac
 rxcpp::observable<std::pair<int, int>> NetworkClient::getNotificationCountsObservable() {
   auto source = rxcpp::sources::create<std::pair<int, int>>([this](auto observer) {
     Async::runVoid([this, observer]() {
-      auto result = makeRequestWithRetry(buildApiPath("/notifications/counts"), "GET", juce::var(), true);
+      auto result = makeRequestWithRetry(buildApiPath("/notifications/counts"), "GET", nlohmann::json(), true);
 
       int unseen = 0;
       int unread = 0;
 
-      if (result.success && result.data.isObject()) {
-        unseen = Json::getInt(result.data, "unseen");
-        unread = Json::getInt(result.data, "unread");
+      if (result.success && result.data.is_object()) {
+        unseen = result.data.value("unseen", 0);
+        unread = result.data.value("unread", 0);
       }
 
       juce::MessageManager::callAsync([observer, result, unseen, unread]() {
@@ -162,11 +159,12 @@ rxcpp::observable<std::pair<int, int>> NetworkClient::getNotificationCountsObser
 rxcpp::observable<int> NetworkClient::getFollowRequestCountObservable() {
   auto source = rxcpp::sources::create<int>([this](auto observer) {
     Async::runVoid([this, observer]() {
-      auto result = makeRequestWithRetry(buildApiPath("/users/me/follow-requests/count"), "GET", juce::var(), true);
+      auto result =
+          makeRequestWithRetry(buildApiPath("/users/me/follow-requests/count"), "GET", nlohmann::json(), true);
 
       int count = 0;
-      if (result.success && result.data.isObject()) {
-        count = Json::getInt(result.data, "count");
+      if (result.success && result.data.is_object()) {
+        count = result.data.value("count", 0);
       }
 
       juce::MessageManager::callAsync([observer, result, count]() {
@@ -200,7 +198,7 @@ rxcpp::observable<NetworkClient::NotificationResult> NetworkClient::getNotificat
 
 rxcpp::observable<int> NetworkClient::markNotificationsReadObservable() {
   auto source = rxcpp::sources::create<int>([this](auto observer) {
-    markNotificationsRead([observer](Outcome<juce::var> result) {
+    markNotificationsRead([observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         observer.on_next(0);
         observer.on_completed();
@@ -215,7 +213,7 @@ rxcpp::observable<int> NetworkClient::markNotificationsReadObservable() {
 
 rxcpp::observable<int> NetworkClient::markNotificationsSeenObservable() {
   auto source = rxcpp::sources::create<int>([this](auto observer) {
-    markNotificationsSeen([observer](Outcome<juce::var> result) {
+    markNotificationsSeen([observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
         observer.on_next(0);
         observer.on_completed();

@@ -43,7 +43,7 @@ void NetworkClient::searchPosts(const juce::String &query, const juce::String &g
   }
 
   Async::runVoid([this, endpoint, callback]() {
-    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), true);
 
     juce::MessageManager::callAsync([callback, result]() {
       auto outcome = requestResultToOutcome(result);
@@ -61,15 +61,15 @@ void NetworkClient::autocompleteUsers(const juce::String &query, int limit, Resp
       buildApiPath("/search/autocomplete/users") + "?q=" + encodedQuery + "&limit=" + juce::String(limit);
 
   Async::runVoid([this, endpoint, callback]() {
-    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), true);
 
     juce::MessageManager::callAsync([callback, result]() {
       auto outcome = requestResultToOutcome(result);
 
       if (outcome.isOk()) {
-        auto data = outcome.getValue();
-        if (data.isObject() && data.hasProperty("suggestions")) {
-          outcome = Outcome<juce::var>::ok(data.getProperty("suggestions", juce::var()));
+        const auto &data = outcome.getValue();
+        if (data.is_object() && data.contains("suggestions")) {
+          outcome = Outcome<nlohmann::json>::ok(data["suggestions"]);
         }
       }
 
@@ -87,15 +87,15 @@ void NetworkClient::autocompleteGenres(const juce::String &query, int limit, Res
       buildApiPath("/search/autocomplete/genres") + "?q=" + encodedQuery + "&limit=" + juce::String(limit);
 
   Async::runVoid([this, endpoint, callback]() {
-    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), true);
 
     juce::MessageManager::callAsync([callback, result]() {
       auto outcome = requestResultToOutcome(result);
 
       if (outcome.isOk()) {
-        auto data = outcome.getValue();
-        if (data.isObject() && data.hasProperty("suggestions")) {
-          outcome = Outcome<juce::var>::ok(data.getProperty("suggestions", juce::var()));
+        const auto &data = outcome.getValue();
+        if (data.is_object() && data.contains("suggestions")) {
+          outcome = Outcome<nlohmann::json>::ok(data["suggestions"]);
         }
       }
 
@@ -112,7 +112,7 @@ void NetworkClient::getSearchSuggestions(const juce::String &query, int limit, R
   juce::String endpoint = buildApiPath("/search/suggestions") + "?q=" + encodedQuery + "&limit=" + juce::String(limit);
 
   Async::runVoid([this, endpoint, callback]() {
-    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), true);
 
     juce::MessageManager::callAsync([callback, result]() {
       auto outcome = requestResultToOutcome(result);
@@ -135,28 +135,26 @@ rxcpp::observable<std::vector<Sidechain::FeedPost>> NetworkClient::searchPostsOb
                             "&offset=" + juce::String(offset);
 
     Async::runVoid([this, endpoint, observer]() {
-      auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+      auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), true);
 
       juce::MessageManager::callAsync([result, observer]() {
         auto outcome = requestResultToOutcome(result);
         if (outcome.isOk()) {
           ResultType posts;
-          auto data = outcome.getValue();
+          const auto &data = outcome.getValue();
           // Parse posts array - check for "posts" or "results" field, or direct array
-          juce::var postsArray = data;
-          if (data.hasProperty("posts")) {
+          nlohmann::json postsArray = data;
+          if (data.is_object() && data.contains("posts")) {
             postsArray = data["posts"];
-          } else if (data.hasProperty("results")) {
+          } else if (data.is_object() && data.contains("results")) {
             postsArray = data["results"];
           }
 
-          if (postsArray.isArray()) {
-            for (int i = 0; i < postsArray.size(); ++i) {
+          if (postsArray.is_array()) {
+            for (const auto &postJson : postsArray) {
               try {
-                auto jsonStr = juce::JSON::toString(postsArray[i]);
-                auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
                 Sidechain::FeedPost post;
-                from_json(jsonObj, post);
+                from_json(postJson, post);
                 posts.push_back(std::move(post));
               } catch (const std::exception &e) {
                 Log::warn("NetworkClient: Failed to parse search post: " + juce::String(e.what()));

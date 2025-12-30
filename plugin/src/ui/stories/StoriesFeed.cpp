@@ -4,6 +4,7 @@
 #include "../../util/Log.h"
 #include "../../util/Result.h"
 #include "../../util/StringUtils.h"
+#include <nlohmann/json.hpp>
 
 namespace StoryFeedColors {
 const juce::Colour background(0xff1a1a2e);
@@ -136,7 +137,7 @@ void StoriesFeed::loadStories() {
 
   Log::info("StoriesFeed: Loading stories...");
 
-  networkClient->getStoriesFeed([this](Outcome<juce::var> result) {
+  networkClient->getStoriesFeed([this](Outcome<nlohmann::json> result) {
     juce::MessageManager::callAsync([this, result]() {
       if (!result.isOk()) {
         Log::warn("StoriesFeed: Failed to load stories: " + result.getError());
@@ -144,39 +145,41 @@ void StoriesFeed::loadStories() {
       }
 
       auto response = result.getValue();
-      if (response.hasProperty("stories")) {
-        auto *storiesArray = response["stories"].getArray();
-        if (storiesArray) {
-          std::vector<StoryData> stories;
-          for (const auto &storyVar : *storiesArray) {
-            StoryData story;
-            story.id = storyVar["id"].toString();
-            story.userId = storyVar["user_id"].toString();
-            story.audioUrl = storyVar["audio_url"].toString();
-            story.filename = storyVar["filename"].toString();
-            story.midiFilename = storyVar["midi_filename"].toString();
-            story.audioDuration = static_cast<float>(storyVar["audio_duration"]);
-            story.midiData = storyVar["midi_data"];
-            story.midiPatternId = storyVar["midi_pattern_id"].toString(); // - MIDI download support
-            story.viewCount = static_cast<int>(storyVar["view_count"]);
-            story.viewed = static_cast<bool>(storyVar["viewed"]);
+      if (response.is_object() && response.contains("stories") && response["stories"].is_array()) {
+        auto storiesArray = response["stories"];
+        std::vector<StoryData> stories;
+        for (const auto &storyJson : storiesArray) {
+          StoryData story;
+          story.id = storyJson.value("id", "");
+          story.userId = storyJson.value("user_id", "");
+          story.audioUrl = storyJson.value("audio_url", "");
+          story.filename = storyJson.value("filename", "");
+          story.midiFilename = storyJson.value("midi_filename", "");
+          story.audioDuration = storyJson.value("audio_duration", 0.0f);
+          // Convert midi_data back to juce::var for compatibility
+          if (storyJson.contains("midi_data") && !storyJson["midi_data"].is_null()) {
+            auto midiDataStr = storyJson["midi_data"].dump();
+            story.midiData = juce::JSON::parse(midiDataStr);
+          }
+          story.midiPatternId = storyJson.value("midi_pattern_id", ""); // - MIDI download support
+          story.viewCount = storyJson.value("view_count", 0);
+          story.viewed = storyJson.value("viewed", false);
 
-            // Parse user info
-            if (storyVar.hasProperty("user")) {
-              story.username = storyVar["user"]["username"].toString();
-              story.userAvatarUrl = storyVar["user"]["avatar_url"].toString();
-            }
-
-            // Parse timestamps (ISO 8601 format)
-            // Simplified - would need proper date parsing
-            story.expiresAt = juce::Time::getCurrentTime() + juce::RelativeTime::hours(24);
-
-            stories.push_back(story);
+          // Parse user info
+          if (storyJson.contains("user") && storyJson["user"].is_object()) {
+            story.username = storyJson["user"].value("username", "");
+            story.userAvatarUrl = storyJson["user"].value("avatar_url", "");
           }
 
-          setStories(stories);
-          Log::info("StoriesFeed: Loaded " + juce::String(stories.size()) + " stories");
+          // Parse timestamps (ISO 8601 format)
+          // Simplified - would need proper date parsing
+          story.expiresAt = juce::Time::getCurrentTime() + juce::RelativeTime::hours(24);
+
+          stories.push_back(story);
         }
+
+        setStories(stories);
+        Log::info("StoriesFeed: Loaded " + juce::String(stories.size()) + " stories");
       }
     });
   });

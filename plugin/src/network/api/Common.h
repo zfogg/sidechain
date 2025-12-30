@@ -2,6 +2,7 @@
 
 #include "../../util/Result.h"
 #include "../NetworkClient.h"
+#include <nlohmann/json.hpp>
 
 namespace Sidechain::Network::Api {
 
@@ -15,18 +16,27 @@ inline juce::String buildApiPath(const char *path) {
 }
 
 /**
- * Convert a NetworkClient::RequestResult to an Outcome<juce::var>
+ * Convert a NetworkClient::RequestResult to an Outcome<nlohmann::json>
  * @param result The request result from NetworkClient
  * @return Outcome with the response data or error message
  */
-inline Outcome<juce::var> requestResultToOutcome(const NetworkClient::RequestResult &result) {
-  if (result.success && result.isSuccess()) {
-    return Outcome<juce::var>::ok(result.data);
+inline Outcome<nlohmann::json> requestResultToOutcome(const NetworkClient::RequestResult &result) {
+  // Check for error in response body
+  bool hasErrorInBody = false;
+  if (result.data.is_object() && result.data.contains("error")) {
+    auto errorField = result.data["error"];
+    if (errorField.is_string()) {
+      hasErrorInBody = !errorField.get<std::string>().empty();
+    }
+  }
+
+  if (result.success && result.isSuccess() && !hasErrorInBody) {
+    return Outcome<nlohmann::json>::ok(result.data);
   } else {
     juce::String errorMsg = result.getUserFriendlyError();
     if (errorMsg.isEmpty())
       errorMsg = "Request failed (HTTP " + juce::String(result.httpStatus) + ")";
-    return Outcome<juce::var>::error(errorMsg);
+    return Outcome<nlohmann::json>::error(errorMsg);
   }
 }
 
@@ -39,18 +49,18 @@ inline Outcome<juce::var> requestResultToOutcome(const NetworkClient::RequestRes
  * @param invalidResponseMsg Message to use if response is not valid JSON object/array
  * @return Outcome with the response data or error message
  */
-inline Outcome<juce::var> parseJsonResponse(const juce::var &response,
-                                            const juce::String &invalidResponseMsg = "Invalid response") {
-  if (response.isObject() && response.hasProperty("error")) {
-    juce::String errorMsg = response["error"].toString();
-    juce::String fullMsg = errorMsg;
-    if (response.hasProperty("message"))
-      fullMsg = response["message"].toString();
-    return Outcome<juce::var>::error(fullMsg);
-  } else if (response.isObject() || response.isArray()) {
-    return Outcome<juce::var>::ok(response);
+inline Outcome<nlohmann::json> parseJsonResponse(const nlohmann::json &response,
+                                                 const juce::String &invalidResponseMsg = "Invalid response") {
+  if (response.is_object() && response.contains("error")) {
+    std::string errorMsg = response.value("error", "");
+    std::string fullMsg = errorMsg;
+    if (response.contains("message"))
+      fullMsg = response.value("message", errorMsg);
+    return Outcome<nlohmann::json>::error(juce::String(fullMsg));
+  } else if (response.is_object() || response.is_array()) {
+    return Outcome<nlohmann::json>::ok(response);
   } else {
-    return Outcome<juce::var>::error(invalidResponseMsg);
+    return Outcome<nlohmann::json>::error(invalidResponseMsg);
   }
 }
 
@@ -63,38 +73,16 @@ inline Outcome<juce::var> parseJsonResponse(const juce::var &response,
  * @param propertyName The property name to extract
  * @return Modified outcome with the extracted property, or original if not found
  */
-inline Outcome<juce::var> extractProperty(const Outcome<juce::var> &outcome, const juce::String &propertyName) {
+inline Outcome<nlohmann::json> extractProperty(const Outcome<nlohmann::json> &outcome,
+                                               const juce::String &propertyName) {
   if (outcome.isOk()) {
-    auto data = outcome.getValue();
-    if (data.isObject() && data.hasProperty(propertyName)) {
-      return Outcome<juce::var>::ok(data.getProperty(propertyName, juce::var()));
+    const auto &data = outcome.getValue();
+    std::string key = propertyName.toStdString();
+    if (data.is_object() && data.contains(key)) {
+      return Outcome<nlohmann::json>::ok(data[key]);
     }
   }
   return outcome;
-}
-
-/**
- * Create a juce::var object with the given properties.
- * Simplifies the common pattern of creating DynamicObject and setting properties.
- *
- * Usage:
- *   auto data = createJsonObject({
- *     {"activity_id", activityId},
- *     {"emoji", emoji}
- *   });
- *
- * @param properties Vector of key-value pairs to set
- * @return juce::var containing a DynamicObject with the properties
- */
-inline juce::var createJsonObject(std::initializer_list<std::pair<juce::String, juce::var>> properties) {
-  juce::var data(new juce::DynamicObject());
-  auto *obj = data.getDynamicObject();
-  if (obj != nullptr) {
-    for (const auto &[key, value] : properties) {
-      obj->setProperty(key, value);
-    }
-  }
-  return data;
 }
 
 } // namespace Sidechain::Network::Api

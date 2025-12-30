@@ -4,6 +4,7 @@
 #include "../../util/Log.h"
 #include "../../util/Result.h"
 #include "../../util/UIHelpers.h"
+#include <nlohmann/json.hpp>
 
 // ==============================================================================
 PrivacySettings::PrivacySettings(AppStore *store)
@@ -53,14 +54,14 @@ void PrivacySettings::loadSettings() {
   errorMessage = "";
   repaint();
 
-  networkClient->get("/settings/privacy", [this](Outcome<juce::var> result) {
+  networkClient->get("/settings/privacy", [this](Outcome<nlohmann::json> result) {
     juce::MessageManager::callAsync([this, result]() {
       isLoading = false;
 
       if (result.isOk()) {
         auto response = result.getValue();
 
-        isPrivate = response.getProperty("is_private", false);
+        isPrivate = response.value("is_private", false);
 
         populateFromSettings();
         Log::info("PrivacySettings: Settings loaded successfully");
@@ -95,12 +96,10 @@ void PrivacySettings::saveSettings() {
   errorMessage = "";
 
   // Build update payload
-  auto *updateData = new juce::DynamicObject();
-  updateData->setProperty("is_private", isPrivate);
+  nlohmann::json payload;
+  payload["is_private"] = isPrivate;
 
-  juce::var payload(updateData);
-
-  networkClient->put("/users/me", payload, [this](Outcome<juce::var> result) {
+  networkClient->put("/users/me", payload, [this](Outcome<nlohmann::json> result) {
     juce::MessageManager::callAsync([this, result]() {
       isSaving = false;
 

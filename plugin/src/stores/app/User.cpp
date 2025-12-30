@@ -457,7 +457,7 @@ void AppStore::loadTrendingUsers() {
   newState.results.searchError = "";
   searchState->setState(newState);
 
-  networkClient->getTrendingUsers(20, [this](Outcome<juce::var> result) {
+  networkClient->getTrendingUsers(20, [this](Outcome<nlohmann::json> result) {
     juce::MessageManager::callAsync([this, result]() {
       if (result.isOk()) {
         handleTrendingUsersSuccess(result.getValue());
@@ -482,7 +482,7 @@ void AppStore::loadFeaturedProducers() {
   newState.results.searchError = "";
   searchState->setState(newState);
 
-  networkClient->getFeaturedProducers(20, [this](Outcome<juce::var> result) {
+  networkClient->getFeaturedProducers(20, [this](Outcome<nlohmann::json> result) {
     juce::MessageManager::callAsync([this, result]() {
       if (result.isOk()) {
         handleFeaturedProducersSuccess(result.getValue());
@@ -507,7 +507,7 @@ void AppStore::loadSuggestedUsers() {
   newState.results.searchError = "";
   searchState->setState(newState);
 
-  networkClient->getSuggestedUsers(20, [this](Outcome<juce::var> result) {
+  networkClient->getSuggestedUsers(20, [this](Outcome<nlohmann::json> result) {
     juce::MessageManager::callAsync([this, result]() {
       if (result.isOk()) {
         handleSuggestedUsersSuccess(result.getValue());
@@ -521,21 +521,17 @@ void AppStore::loadSuggestedUsers() {
 // ==============================================================================
 // Discovery Success Handlers
 
-void AppStore::handleTrendingUsersSuccess(const juce::var &data) {
-  if (!data.isArray())
+void AppStore::handleTrendingUsersSuccess(const nlohmann::json &data) {
+  if (!data.is_array())
     return;
 
   auto &entityStore = EntityStore::getInstance();
   std::vector<std::shared_ptr<Sidechain::User>> users;
 
-  for (int i = 0; i < data.size(); ++i) {
+  for (const auto &item : data) {
     try {
-      // Convert juce::var to nlohmann::json
-      auto jsonStr = data[i].toString().toStdString();
-      auto json = nlohmann::json::parse(jsonStr);
-
       // Normalize user (creates/updates shared_ptr in EntityStore)
-      auto normalized = entityStore.normalizeUser(json);
+      auto normalized = entityStore.normalizeUser(item);
       if (normalized) {
         users.push_back(normalized);
       }
@@ -555,21 +551,17 @@ void AppStore::handleTrendingUsersSuccess(const juce::var &data) {
   Util::logInfo("AppStore", "Loaded " + juce::String(users.size()) + " trending users");
 }
 
-void AppStore::handleFeaturedProducersSuccess(const juce::var &data) {
-  if (!data.isArray())
+void AppStore::handleFeaturedProducersSuccess(const nlohmann::json &data) {
+  if (!data.is_array())
     return;
 
   auto &entityStore = EntityStore::getInstance();
   std::vector<std::shared_ptr<Sidechain::User>> users;
 
-  for (int i = 0; i < data.size(); ++i) {
+  for (const auto &item : data) {
     try {
-      // Convert juce::var to nlohmann::json
-      auto jsonStr = data[i].toString().toStdString();
-      auto json = nlohmann::json::parse(jsonStr);
-
       // Normalize user (creates/updates shared_ptr in EntityStore)
-      auto normalized = entityStore.normalizeUser(json);
+      auto normalized = entityStore.normalizeUser(item);
       if (normalized) {
         users.push_back(normalized);
       }
@@ -589,21 +581,17 @@ void AppStore::handleFeaturedProducersSuccess(const juce::var &data) {
   Util::logInfo("AppStore", "Loaded " + juce::String(users.size()) + " featured producers");
 }
 
-void AppStore::handleSuggestedUsersSuccess(const juce::var &data) {
-  if (!data.isArray())
+void AppStore::handleSuggestedUsersSuccess(const nlohmann::json &data) {
+  if (!data.is_array())
     return;
 
   auto &entityStore = EntityStore::getInstance();
   std::vector<std::shared_ptr<Sidechain::User>> users;
 
-  for (int i = 0; i < data.size(); ++i) {
+  for (const auto &item : data) {
     try {
-      // Convert juce::var to nlohmann::json
-      auto jsonStr = data[i].toString().toStdString();
-      auto json = nlohmann::json::parse(jsonStr);
-
       // Normalize user (creates/updates shared_ptr in EntityStore)
-      auto normalized = entityStore.normalizeUser(json);
+      auto normalized = entityStore.normalizeUser(item);
       if (normalized) {
         users.push_back(normalized);
       }
@@ -922,27 +910,27 @@ rxcpp::observable<User> AppStore::fetchUserProfileObservable(bool forceRefresh) 
 
            Util::logDebug("AppStore", "Fetching user profile via observable");
 
-           networkClient->getCurrentUser([this, observer](Outcome<juce::var> result) {
+           networkClient->getCurrentUser([this, observer](Outcome<nlohmann::json> result) {
              if (result.isOk()) {
                const auto &data = result.getValue();
-               if (!data.isObject()) {
+               if (!data.is_object()) {
                  observer.on_error(std::make_exception_ptr(std::runtime_error("Invalid profile data")));
                  return;
                }
 
                User user;
-               user.id = data.getProperty("id", "").toString();
-               user.username = data.getProperty("username", "").toString();
-               user.displayName = data.getProperty("display_name", "").toString();
-               user.bio = data.getProperty("bio", "").toString();
+               user.id = juce::String(data.value("id", ""));
+               user.username = juce::String(data.value("username", ""));
+               user.displayName = juce::String(data.value("display_name", ""));
+               user.bio = juce::String(data.value("bio", ""));
 
                // Get profile picture URL
-               juce::String profileUrl = data.getProperty("avatar_url", "").toString();
+               juce::String profileUrl = juce::String(data.value("avatar_url", ""));
                if (profileUrl.isEmpty()) {
-                 profileUrl = data.getProperty("profile_picture_url", "").toString();
+                 profileUrl = juce::String(data.value("profile_picture_url", ""));
                }
                if (profileUrl.isEmpty()) {
-                 profileUrl = data.getProperty("oauth_profile_picture_url", "").toString();
+                 profileUrl = juce::String(data.value("oauth_profile_picture_url", ""));
                }
                user.avatarUrl = profileUrl;
 
@@ -951,7 +939,7 @@ rxcpp::observable<User> AppStore::fetchUserProfileObservable(bool forceRefresh) 
                newState.userId = user.id;
                newState.username = user.username;
                newState.displayName = user.displayName;
-               newState.email = data.getProperty("email", "").toString();
+               newState.email = juce::String(data.value("email", ""));
                newState.bio = user.bio;
                newState.profilePictureUrl = profileUrl;
                newState.userError = "";
@@ -996,7 +984,7 @@ rxcpp::observable<int> AppStore::updateProfileObservable(const juce::String &use
            userState->setState(optimisticState);
 
            networkClient->updateUserProfile(
-               username, displayName, bio, [this, observer, previousState](Outcome<juce::var> result) {
+               username, displayName, bio, [this, observer, previousState](Outcome<nlohmann::json> result) {
                  if (result.isOk()) {
                    Util::logInfo("AppStore", "Profile updated successfully");
                    observer.on_next(0);
@@ -1027,7 +1015,7 @@ rxcpp::observable<int> AppStore::changeUsernameObservable(const juce::String &ne
 
            Util::logDebug("AppStore", "Changing username via observable to: " + newUsername);
 
-           networkClient->changeUsername(newUsername, [this, observer, newUsername](Outcome<juce::var> result) {
+           networkClient->changeUsername(newUsername, [this, observer, newUsername](Outcome<nlohmann::json> result) {
              if (result.isOk()) {
                UserState newState = stateManager.user->getState();
                newState.username = newUsername;

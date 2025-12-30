@@ -14,28 +14,29 @@
 #include "../util/profiling/PerformanceMonitor.h"
 
 // ==============================================================================
-// Helper to create JSON POST body from juce::var without null terminator issues
-// See: https://forum.juce.com/t/posting-json-in-url-body/25240
-// JSON::toString can add a null terminator that breaks backend parsers.
+// Helper to create JSON POST body from nlohmann::json
 // This function ensures clean JSON string for POST bodies.
-static juce::MemoryBlock createJsonPostBody(const juce::var &data) {
-  juce::String jsonString = juce::JSON::toString(data, true); // compact format
-  // Create MemoryBlock without null terminator - use exact byte length
-  return juce::MemoryBlock(jsonString.toRawUTF8(), jsonString.getNumBytesAsUTF8());
+static juce::MemoryBlock createJsonPostBody(const nlohmann::json &data) {
+  if (data.is_null() || data.empty()) {
+    return juce::MemoryBlock();
+  }
+  std::string jsonString = data.dump();
+  return juce::MemoryBlock(jsonString.data(), jsonString.size());
 }
 
 // ==============================================================================
-// Helper to convert RequestResult to Outcome<juce::var> for type-safe error
-// handling
-static Outcome<juce::var> requestResultToOutcome(const NetworkClient::RequestResult &result) {
+// Helper to convert RequestResult to Outcome<nlohmann::json> for type-safe error handling
+static Outcome<nlohmann::json> requestResultToOutcome(const NetworkClient::RequestResult &result) {
   // Check if response JSON contains an error field (even if HTTP status looks successful)
-  // This handles cases where HTTP status parsing fails and defaults to 200, but response is actually an error
   bool hasErrorInBody = false;
-  if (result.data.isObject()) {
-    auto error = Json::getString(result.data, "error");
-    hasErrorInBody = !error.isEmpty();
-    if (hasErrorInBody) {
-      Log::debug("requestResultToOutcome: Detected error in response body: " + error);
+  if (result.data.is_object() && result.data.contains("error")) {
+    auto errorField = result.data["error"];
+    if (errorField.is_string()) {
+      hasErrorInBody = !errorField.get<std::string>().empty();
+      if (hasErrorInBody) {
+        Log::debug("requestResultToOutcome: Detected error in response body: " +
+                   juce::String(errorField.get<std::string>()));
+      }
     }
   }
 
@@ -44,13 +45,13 @@ static Outcome<juce::var> requestResultToOutcome(const NetworkClient::RequestRes
              ", hasErrorInBody=" + juce::String(hasErrorInBody ? "true" : "false"));
 
   if (result.success && result.isSuccess() && !hasErrorInBody) {
-    return Outcome<juce::var>::ok(result.data);
+    return Outcome<nlohmann::json>::ok(result.data);
   } else {
     juce::String errorMsg = result.getUserFriendlyError();
     if (errorMsg.isEmpty())
       errorMsg = "Request failed (HTTP " + juce::String(result.httpStatus) + ")";
     Log::debug("requestResultToOutcome: Returning error: " + errorMsg);
-    return Outcome<juce::var>::error(errorMsg);
+    return Outcome<nlohmann::json>::error(errorMsg);
   }
 }
 
@@ -58,22 +59,33 @@ static Outcome<juce::var> requestResultToOutcome(const NetworkClient::RequestRes
 // RequestResult helper methods
 juce::String NetworkClient::RequestResult::getUserFriendlyError() const {
   // Try to extract error message from JSON response
-  if (data.isObject()) {
+  if (data.is_object()) {
     // Check common error field names - first try string error
-    auto errorStr = Json::getString(data, "error");
-    if (!errorStr.isEmpty())
-      return errorStr;
+    if (data.contains("error")) {
+      auto errorField = data["error"];
+      if (errorField.is_string()) {
+        juce::String errorStr(errorField.get<std::string>());
+        if (!errorStr.isEmpty())
+          return errorStr;
+      }
+      // Nested error object
+      if (errorField.is_object() && errorField.contains("message")) {
+        auto msgField = errorField["message"];
+        if (msgField.is_string()) {
+          juce::String errorMsg(msgField.get<std::string>());
+          if (!errorMsg.isEmpty())
+            return errorMsg;
+        }
+      }
+    }
 
-    auto message = Json::getString(data, "message");
-    if (!message.isEmpty())
-      return message;
-
-    // Nested error object
-    auto errorObj = Json::getObject(data, "error");
-    if (errorObj.isObject()) {
-      auto errorMsg = Json::getString(errorObj, "message");
-      if (!errorMsg.isEmpty())
-        return errorMsg;
+    if (data.contains("message")) {
+      auto msgField = data["message"];
+      if (msgField.is_string()) {
+        juce::String message(msgField.get<std::string>());
+        if (!message.isEmpty())
+          return message;
+      }
     }
   }
 
@@ -177,7 +189,7 @@ void NetworkClient::checkConnection() {
     if (shuttingDown.load())
       return;
 
-    auto result = makeRequestWithRetry("/health", "GET", juce::var(), false);
+    auto result = makeRequestWithRetry("/health", "GET", nlohmann::json(), false);
 
     juce::MessageManager::callAsync([this, result]() {
       if (result.success) {
@@ -214,7 +226,7 @@ void NetworkClient::setAuthToken(const juce::String &token) {
 // ==============================================================================
 // Core request method with retry logic
 NetworkClient::RequestResult NetworkClient::makeRequestWithRetry(const juce::String &endpoint,
-                                                                 const juce::String &method, const juce::var &data,
+                                                                 const juce::String &method, const nlohmann::json &data,
                                                                  bool requireAuth) {
   SCOPED_TIMER_THRESHOLD("network::api_call", 2000.0);
   RequestResult result;
@@ -239,19 +251,17 @@ NetworkClient::RequestResult NetworkClient::makeRequestWithRetry(const juce::Str
       result.errorMessage = "Too many requests" + retryMsg;
 
       // Create error response JSON
-      auto *errorObj = new juce::DynamicObject();
-      errorObj->setProperty("error", "rate_limit_exceeded");
-      errorObj->setProperty("message", result.errorMessage);
-      errorObj->setProperty("retry_after", retrySeconds);
-      errorObj->setProperty("limit", rateLimitStatus.limit);
-      errorObj->setProperty("remaining", rateLimitStatus.remaining);
-      result.data = juce::var(errorObj);
+      result.data = {{"error", "rate_limit_exceeded"},
+                     {"message", result.errorMessage.toStdString()},
+                     {"retry_after", retrySeconds},
+                     {"limit", rateLimitStatus.limit},
+                     {"remaining", rateLimitStatus.remaining}};
 
       Log::warn("Rate limit exceeded for " + identifier + ": " + result.errorMessage);
 
       // Report rate limit error
       HttpErrorHandler::getInstance().reportError(endpoint, method, 429, result.errorMessage,
-                                                  juce::JSON::toString(result.data));
+                                                  juce::String(result.data.dump()));
 
       // Track rate limit error
       using namespace Sidechain::Util::Error;
@@ -296,13 +306,14 @@ NetworkClient::RequestResult NetworkClient::makeRequestWithRetry(const juce::Str
 
     // For POST/PUT/DELETE requests, add data to URL
     if (method == "POST" || method == "PUT" || method == "DELETE") {
-      if (!data.isVoid()) {
-        // Log JSON string before converting to MemoryBlock (avoid UTF-8 issues)
-        juce::String jsonString = juce::JSON::toString(data, true);
-        Log::debug("POST data: " + jsonString + " (size: " + juce::String(jsonString.getNumBytesAsUTF8()) + " bytes)");
+      if (!data.is_null() && !data.empty()) {
+        // Serialize nlohmann::json to string
+        std::string jsonString = data.dump();
+        Log::debug("POST data: " + juce::String(jsonString) +
+                   " (size: " + juce::String(static_cast<int>(jsonString.size())) + " bytes)");
 
-        // Use helper function to avoid null terminator issues with JSON
-        juce::MemoryBlock jsonBody(jsonString.toRawUTF8(), jsonString.getNumBytesAsUTF8());
+        // Create MemoryBlock from JSON string
+        juce::MemoryBlock jsonBody(jsonString.data(), jsonString.size());
         url = url.withPOSTData(jsonBody);
       } else if (method == "POST") {
         // Empty POST body
@@ -360,8 +371,13 @@ NetworkClient::RequestResult NetworkClient::makeRequestWithRetry(const juce::Str
     if (result.httpStatus == 0)
       result.httpStatus = 200;
 
-    // Parse JSON response
-    result.data = juce::JSON::parse(response);
+    // Parse JSON response using nlohmann::json
+    try {
+      result.data = nlohmann::json::parse(response.toStdString());
+    } catch (const nlohmann::json::parse_error &e) {
+      result.data = nlohmann::json();
+      Log::warn("JSON parse error: " + juce::String(e.what()));
+    }
     result.success = result.isSuccess();
 
     Log::debug("API Response from " + endpoint + " (HTTP " + juce::String(result.httpStatus) + "): " + response);
@@ -397,8 +413,9 @@ NetworkClient::RequestResult NetworkClient::makeRequestWithRetry(const juce::Str
 
     // Report HTTP errors (4xx and 5xx status codes)
     if (result.httpStatus >= 400) {
+      std::string dataStr = result.data.dump();
       HttpErrorHandler::getInstance().reportError(endpoint, method, result.httpStatus, result.getUserFriendlyError(),
-                                                  juce::JSON::toString(result.data));
+                                                  juce::String(dataStr));
 
       // Track HTTP errors
       using namespace Sidechain::Util::Error;
@@ -420,7 +437,7 @@ NetworkClient::RequestResult NetworkClient::makeRequestWithRetry(const juce::Str
                                     {"endpoint", endpoint},
                                     {"method", method},
                                     {"status_code", juce::String(result.httpStatus)},
-                                    {"response", juce::JSON::toString(result.data).substring(0, 200)} // First 200 chars
+                                    {"response", juce::String(dataStr).substring(0, 200)} // First 200 chars
                                 });
     }
 
@@ -439,7 +456,7 @@ NetworkClient::RequestResult NetworkClient::makeRequestWithRetry(const juce::Str
 
 NetworkClient::RequestResult NetworkClient::makeAbsoluteRequestWithRetry(const juce::String &absoluteUrl,
                                                                          const juce::String &method,
-                                                                         const juce::var &data, bool requireAuth,
+                                                                         const nlohmann::json &data, bool requireAuth,
                                                                          const juce::StringPairArray &customHeaders,
                                                                          juce::MemoryBlock *binaryData) {
   RequestResult result;
@@ -474,8 +491,8 @@ NetworkClient::RequestResult NetworkClient::makeAbsoluteRequestWithRetry(const j
 
     // For POST/PUT/DELETE requests, add data to URL
     if (method == "POST" || method == "PUT" || method == "DELETE") {
-      if (!data.isVoid()) {
-        // Use helper function to avoid null terminator issues with JSON
+      if (!data.is_null() && !data.empty()) {
+        // Use helper function to serialize nlohmann::json
         url = url.withPOSTData(createJsonPostBody(data));
       } else if (method == "POST") {
         // Empty POST body
@@ -523,7 +540,12 @@ NetworkClient::RequestResult NetworkClient::makeAbsoluteRequestWithRetry(const j
       result.success = result.isSuccess() && binaryData->getSize() > 0;
     } else {
       auto response = stream->readEntireStreamAsString();
-      result.data = juce::JSON::parse(response);
+      try {
+        result.data = nlohmann::json::parse(response.toStdString());
+      } catch (const nlohmann::json::parse_error &e) {
+        result.data = nlohmann::json();
+        Log::warn("JSON parse error: " + juce::String(e.what()));
+      }
       result.success = result.isSuccess();
       Log::debug("Absolute URL Response from " + absoluteUrl + " (HTTP " + juce::String(result.httpStatus) + ")");
     }
@@ -550,8 +572,8 @@ NetworkClient::RequestResult NetworkClient::makeAbsoluteRequestWithRetry(const j
 }
 
 NetworkClient::RequestResult NetworkClient::makeAbsoluteRequestSync(const juce::String &absoluteUrl,
-                                                                    const juce::String &method, const juce::var &data,
-                                                                    bool requireAuth,
+                                                                    const juce::String &method,
+                                                                    const nlohmann::json &data, bool requireAuth,
                                                                     const juce::StringPairArray &customHeaders,
                                                                     juce::MemoryBlock *binaryData) {
   RequestResult result;
@@ -588,8 +610,8 @@ NetworkClient::RequestResult NetworkClient::makeAbsoluteRequestSync(const juce::
 
   // For POST/PUT/DELETE requests, add data to URL
   if (method == "POST" || method == "PUT" || method == "DELETE") {
-    if (!data.isVoid()) {
-      // Use helper function to avoid null terminator issues with JSON
+    if (!data.is_null() && !data.empty()) {
+      // Use helper function to serialize nlohmann::json
       url = url.withPOSTData(createJsonPostBody(data));
     } else if (method == "POST") {
       // Empty POST body
@@ -636,15 +658,20 @@ NetworkClient::RequestResult NetworkClient::makeAbsoluteRequestSync(const juce::
     }
   } else {
     auto response = stream->readEntireStreamAsString();
-    result.data = juce::JSON::parse(response);
+    try {
+      result.data = nlohmann::json::parse(response.toStdString());
+    } catch (const nlohmann::json::parse_error &e) {
+      result.data = nlohmann::json();
+      Log::warn("JSON parse error: " + juce::String(e.what()));
+    }
     result.success = result.isSuccess();
   }
 
   return result;
 }
 
-juce::var NetworkClient::makeRequest(const juce::String &endpoint, const juce::String &method, const juce::var &data,
-                                     bool requireAuth) {
+nlohmann::json NetworkClient::makeRequest(const juce::String &endpoint, const juce::String &method,
+                                          const nlohmann::json &data, bool requireAuth) {
   auto result = makeRequestWithRetry(endpoint, method, data, requireAuth);
   return result.data;
 }
@@ -672,10 +699,17 @@ juce::String NetworkClient::buildApiPath(const char *path) {
   return juce::String(Constants::Endpoints::API_VERSION) + "/" + pathStr;
 }
 
-void NetworkClient::handleAuthResponse(const juce::var &response) {
-  if (response.isObject()) {
-    auto token = Json::getString(response, "token");
-    auto userId = Json::getString(response, "user_id");
+void NetworkClient::handleAuthResponse(const nlohmann::json &response) {
+  if (response.is_object()) {
+    juce::String token;
+    juce::String userId;
+
+    if (response.contains("token") && response["token"].is_string()) {
+      token = juce::String(response["token"].get<std::string>());
+    }
+    if (response.contains("user_id") && response["user_id"].is_string()) {
+      userId = juce::String(response["user_id"].get<std::string>());
+    }
 
     if (!token.isEmpty() && !userId.isEmpty()) {
       setAuthToken(token);
@@ -859,18 +893,16 @@ NetworkClient::uploadMultipartData(const juce::String &endpoint, const juce::Str
 
       result.errorMessage = "Upload rate limit exceeded" + retryMsg;
 
-      auto *errorObj = new juce::DynamicObject();
-      errorObj->setProperty("error", "upload_rate_limit_exceeded");
-      errorObj->setProperty("message", result.errorMessage);
-      errorObj->setProperty("retry_after", retrySeconds);
-      errorObj->setProperty("limit", rateLimitStatus.limit);
-      errorObj->setProperty("remaining", rateLimitStatus.remaining);
-      result.data = juce::var(errorObj);
+      result.data = {{"error", "upload_rate_limit_exceeded"},
+                     {"message", result.errorMessage.toStdString()},
+                     {"retry_after", retrySeconds},
+                     {"limit", rateLimitStatus.limit},
+                     {"remaining", rateLimitStatus.remaining}};
 
       Log::warn("Upload rate limit exceeded for " + identifier + ": " + result.errorMessage);
 
       HttpErrorHandler::getInstance().reportError(endpoint, "POST", 429, result.errorMessage,
-                                                  juce::JSON::toString(result.data));
+                                                  juce::String(result.data.dump()));
 
       // Track error
       using namespace Sidechain::Util::Error;
@@ -968,7 +1000,12 @@ NetworkClient::uploadMultipartData(const juce::String &endpoint, const juce::Str
   if (result.httpStatus == 0)
     result.httpStatus = 200;
 
-  result.data = juce::JSON::parse(response);
+  try {
+    result.data = nlohmann::json::parse(response.toStdString());
+  } catch (const nlohmann::json::parse_error &e) {
+    result.data = nlohmann::json();
+    Log::warn("JSON parse error in multipart response: " + juce::String(e.what()));
+  }
   result.success = result.isSuccess();
 
   Log::debug("Multipart upload to " + endpoint + " (HTTP " + juce::String(result.httpStatus) + "): " + response);
@@ -976,7 +1013,7 @@ NetworkClient::uploadMultipartData(const juce::String &endpoint, const juce::Str
   // Report HTTP errors
   if (result.httpStatus >= 400) {
     HttpErrorHandler::getInstance().reportError(endpoint, "POST (multipart)", result.httpStatus,
-                                                result.getUserFriendlyError(), juce::JSON::toString(result.data));
+                                                result.getUserFriendlyError(), juce::String(result.data.dump()));
   }
 
   updateConnectionStatus(result.success ? ConnectionStatus::Connected : ConnectionStatus::Disconnected);
@@ -1082,7 +1119,12 @@ NetworkClient::RequestResult NetworkClient::uploadMultipartDataAbsolute(
   if (result.httpStatus == 0)
     result.httpStatus = 200;
 
-  result.data = juce::JSON::parse(response);
+  try {
+    result.data = nlohmann::json::parse(response.toStdString());
+  } catch (const nlohmann::json::parse_error &e) {
+    result.data = nlohmann::json();
+    Log::warn("JSON parse error in multipart absolute response: " + juce::String(e.what()));
+  }
   result.success = result.isSuccess();
 
   Log::debug("Multipart upload to " + absoluteUrl + " (HTTP " + juce::String(result.httpStatus) + "): " + response);
@@ -1100,14 +1142,14 @@ void NetworkClient::get(const juce::String &endpoint, ResponseCallback callback)
     return;
 
   Async::runVoid([this, endpoint, callback]() {
-    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(endpoint, "GET", nlohmann::json(), true);
     auto outcome = requestResultToOutcome(result);
 
     juce::MessageManager::callAsync([callback, outcome]() { callback(outcome); });
   });
 }
 
-void NetworkClient::post(const juce::String &endpoint, const juce::var &data, ResponseCallback callback) {
+void NetworkClient::post(const juce::String &endpoint, const nlohmann::json &data, ResponseCallback callback) {
   if (callback == nullptr)
     return;
 
@@ -1119,7 +1161,7 @@ void NetworkClient::post(const juce::String &endpoint, const juce::var &data, Re
   });
 }
 
-void NetworkClient::put(const juce::String &endpoint, const juce::var &data, ResponseCallback callback) {
+void NetworkClient::put(const juce::String &endpoint, const nlohmann::json &data, ResponseCallback callback) {
   if (callback == nullptr)
     return;
 
@@ -1136,7 +1178,7 @@ void NetworkClient::del(const juce::String &endpoint, ResponseCallback callback)
     return;
 
   Async::runVoid([this, endpoint, callback]() {
-    auto result = makeRequestWithRetry(endpoint, "DELETE", juce::var(), true);
+    auto result = makeRequestWithRetry(endpoint, "DELETE", nlohmann::json(), true);
     auto outcome = requestResultToOutcome(result);
 
     juce::MessageManager::callAsync([callback, outcome]() { callback(outcome); });
@@ -1152,14 +1194,14 @@ void NetworkClient::getAbsolute(const juce::String &absoluteUrl, ResponseCallbac
     return;
 
   Async::runVoid([this, absoluteUrl, callback, customHeaders]() {
-    RequestResult result = makeAbsoluteRequestWithRetry(absoluteUrl, "GET", juce::var(), false, customHeaders);
+    RequestResult result = makeAbsoluteRequestWithRetry(absoluteUrl, "GET", nlohmann::json(), false, customHeaders);
     auto outcome = requestResultToOutcome(result);
 
     juce::MessageManager::callAsync([callback, outcome]() { callback(outcome); });
   });
 }
 
-void NetworkClient::postAbsolute(const juce::String &absoluteUrl, const juce::var &data, ResponseCallback callback,
+void NetworkClient::postAbsolute(const juce::String &absoluteUrl, const nlohmann::json &data, ResponseCallback callback,
                                  const juce::StringPairArray &customHeaders) {
   if (callback == nullptr)
     return;
@@ -1199,7 +1241,8 @@ void NetworkClient::getBinaryAbsolute(const juce::String &absoluteUrl, BinaryDat
     juce::MemoryBlock data;
     bool success = false;
 
-    RequestResult result = makeAbsoluteRequestWithRetry(absoluteUrl, "GET", juce::var(), false, customHeaders, &data);
+    RequestResult result =
+        makeAbsoluteRequestWithRetry(absoluteUrl, "GET", nlohmann::json(), false, customHeaders, &data);
 
     if (result.success && data.getSize() > 0) {
       success = true;
@@ -1222,7 +1265,7 @@ void NetworkClient::getCurrentUser(ResponseCallback callback) {
     return;
 
   Async::runVoid([this, callback]() {
-    auto result = makeRequestWithRetry("/api/v1/users/me", "GET", juce::var(), true);
+    auto result = makeRequestWithRetry("/api/v1/users/me", "GET", nlohmann::json(), true);
     auto outcome = requestResultToOutcome(result);
 
     juce::MessageManager::callAsync([callback, outcome]() { callback(outcome); });
@@ -1234,13 +1277,13 @@ void NetworkClient::updateUserProfile(const juce::String &username, const juce::
   if (callback == nullptr)
     return;
 
-  juce::var data(new juce::DynamicObject());
+  nlohmann::json data;
   if (!username.isEmpty())
-    data.getDynamicObject()->setProperty("username", username);
+    data["username"] = username.toStdString();
   if (!displayName.isEmpty())
-    data.getDynamicObject()->setProperty("display_name", displayName);
+    data["display_name"] = displayName.toStdString();
   if (!bio.isEmpty())
-    data.getDynamicObject()->setProperty("bio", bio);
+    data["bio"] = bio.toStdString();
 
   Async::runVoid([this, data, callback]() {
     auto result = makeRequestWithRetry("/api/v1/users/me", "PUT", data, true);
@@ -1254,17 +1297,15 @@ void NetworkClient::updateUserProfile(const juce::String &username, const juce::
 // User Profile Observable Methods
 
 // Helper function to parse a single user from JSON response
-static Sidechain::User parseUserFromVar(const juce::var &json) {
+static Sidechain::User parseUserFromJson(const nlohmann::json &json) {
   Sidechain::User user;
 
-  if (!json.isObject()) {
+  if (!json.is_object()) {
     return user;
   }
 
   try {
-    auto jsonStr = juce::JSON::toString(json);
-    auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
-    from_json(jsonObj, user);
+    from_json(json, user);
   } catch (const std::exception &e) {
     Log::warn("NetworkClient: Failed to parse user: " + juce::String(e.what()));
   }
@@ -1279,9 +1320,9 @@ rxcpp::observable<Sidechain::User> NetworkClient::getCurrentUserObservable() {
       return;
     }
 
-    getCurrentUser([observer](Outcome<juce::var> result) {
+    getCurrentUser([observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
-        auto user = parseUserFromVar(result.getValue());
+        auto user = parseUserFromJson(result.getValue());
         if (user.isValid()) {
           observer.on_next(std::move(user));
           observer.on_completed();
@@ -1306,9 +1347,9 @@ rxcpp::observable<Sidechain::User> NetworkClient::updateUserProfileObservable(co
       return;
     }
 
-    updateUserProfile(username, displayName, bio, [observer](Outcome<juce::var> result) {
+    updateUserProfile(username, displayName, bio, [observer](Outcome<nlohmann::json> result) {
       if (result.isOk()) {
-        auto user = parseUserFromVar(result.getValue());
+        auto user = parseUserFromJson(result.getValue());
         observer.on_next(std::move(user));
         observer.on_completed();
       } else {
@@ -1324,51 +1365,42 @@ rxcpp::observable<Sidechain::User> NetworkClient::updateUserProfileObservable(co
 // Model parsing helpers (Phase 3 refactoring)
 
 Outcome<std::vector<std::shared_ptr<Sidechain::FeedPost>>>
-NetworkClient::parseFeedPostsResponse(const juce::var &response) {
+NetworkClient::parseFeedPostsResponse(const nlohmann::json &response) {
   // Response should be an array of FeedPost objects
-  if (!response.isArray()) {
-    return Outcome<std::vector<std::shared_ptr<Sidechain::FeedPost>>>::error(
-        "Expected array response, got " + Json::getString(response, "type", "unknown"));
+  if (!response.is_array()) {
+    return Outcome<std::vector<std::shared_ptr<Sidechain::FeedPost>>>::error("Expected array response for feed posts");
   }
 
-  // Convert juce::var array to nlohmann::json array
-  juce::String jsonString = juce::JSON::toString(response, false);
   try {
-    auto jsonArray = nlohmann::json::parse(jsonString.toStdString());
-    return Sidechain::FeedPost::createFromJsonArray(jsonArray);
+    return Sidechain::FeedPost::createFromJsonArray(response);
   } catch (const std::exception &e) {
     return Outcome<std::vector<std::shared_ptr<Sidechain::FeedPost>>>::error("Failed to parse feed posts: " +
                                                                              juce::String(e.what()));
   }
 }
 
-Outcome<std::shared_ptr<Sidechain::User>> NetworkClient::parseUserResponse(const juce::var &response) {
+Outcome<std::shared_ptr<Sidechain::User>> NetworkClient::parseUserResponse(const nlohmann::json &response) {
   // Response should be a User object
-  if (!response.isObject()) {
+  if (!response.is_object()) {
     return Outcome<std::shared_ptr<Sidechain::User>>::error("Expected object response for user");
   }
 
-  // Convert juce::var to nlohmann::json
-  juce::String jsonString = juce::JSON::toString(response, false);
   try {
-    auto jsonObject = nlohmann::json::parse(jsonString.toStdString());
-    return Sidechain::User::createFromJson(jsonObject);
+    return Sidechain::User::createFromJson(response);
   } catch (const std::exception &e) {
     return Outcome<std::shared_ptr<Sidechain::User>>::error("Failed to parse user: " + juce::String(e.what()));
   }
 }
 
-Outcome<std::vector<std::shared_ptr<Sidechain::User>>> NetworkClient::parseUsersResponse(const juce::var &response) {
+Outcome<std::vector<std::shared_ptr<Sidechain::User>>>
+NetworkClient::parseUsersResponse(const nlohmann::json &response) {
   // Response should be an array of User objects
-  if (!response.isArray()) {
+  if (!response.is_array()) {
     return Outcome<std::vector<std::shared_ptr<Sidechain::User>>>::error("Expected array response for users");
   }
 
-  // Convert juce::var array to nlohmann::json array
-  juce::String jsonString = juce::JSON::toString(response, false);
   try {
-    auto jsonArray = nlohmann::json::parse(jsonString.toStdString());
-    return Sidechain::User::createFromJsonArray(jsonArray);
+    return Sidechain::User::createFromJsonArray(response);
   } catch (const std::exception &e) {
     return Outcome<std::vector<std::shared_ptr<Sidechain::User>>>::error("Failed to parse users: " +
                                                                          juce::String(e.what()));
@@ -1382,30 +1414,27 @@ Outcome<std::vector<std::shared_ptr<Sidechain::User>>> NetworkClient::parseUsers
 // Additional model parsing helpers (Phase 3 refactoring)
 
 Outcome<std::vector<std::shared_ptr<Sidechain::Playlist>>>
-NetworkClient::parsePlaylistsResponse(const juce::var &response) {
-  if (!response.isArray()) {
+NetworkClient::parsePlaylistsResponse(const nlohmann::json &response) {
+  if (!response.is_array()) {
     return Outcome<std::vector<std::shared_ptr<Sidechain::Playlist>>>::error("Expected array response for playlists");
   }
 
-  juce::String jsonString = juce::JSON::toString(response, false);
   try {
-    auto jsonArray = nlohmann::json::parse(jsonString.toStdString());
-    return Sidechain::Playlist::createFromJsonArray(jsonArray);
+    return Sidechain::Playlist::createFromJsonArray(response);
   } catch (const std::exception &e) {
     return Outcome<std::vector<std::shared_ptr<Sidechain::Playlist>>>::error("Failed to parse playlists: " +
                                                                              juce::String(e.what()));
   }
 }
 
-Outcome<std::vector<std::shared_ptr<Sidechain::Story>>> NetworkClient::parseStoriesResponse(const juce::var &response) {
-  if (!response.isArray()) {
+Outcome<std::vector<std::shared_ptr<Sidechain::Story>>>
+NetworkClient::parseStoriesResponse(const nlohmann::json &response) {
+  if (!response.is_array()) {
     return Outcome<std::vector<std::shared_ptr<Sidechain::Story>>>::error("Expected array response for stories");
   }
 
-  juce::String jsonString = juce::JSON::toString(response, false);
   try {
-    auto jsonArray = nlohmann::json::parse(jsonString.toStdString());
-    return Sidechain::Story::createFromJsonArray(jsonArray);
+    return Sidechain::Story::createFromJsonArray(response);
   } catch (const std::exception &e) {
     return Outcome<std::vector<std::shared_ptr<Sidechain::Story>>>::error("Failed to parse stories: " +
                                                                           juce::String(e.what()));
@@ -1421,7 +1450,7 @@ void NetworkClient::getLatestFeed(int limit, int offset, FeedCallback callback) 
 
   Async::runVoid([this, limit, offset, callback]() {
     juce::String path = "/api/v1/feed/latest?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
-    auto result = makeRequestWithRetry(path, "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(path, "GET", nlohmann::json(), true);
     auto outcome = requestResultToOutcome(result);
 
     juce::MessageManager::callAsync([callback, outcome]() { callback(outcome); });
@@ -1434,7 +1463,7 @@ void NetworkClient::getPopularFeed(int limit, int offset, FeedCallback callback)
 
   Async::runVoid([this, limit, offset, callback]() {
     juce::String path = "/api/v1/feed/popular?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
-    auto result = makeRequestWithRetry(path, "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(path, "GET", nlohmann::json(), true);
     auto outcome = requestResultToOutcome(result);
 
     juce::MessageManager::callAsync([callback, outcome]() { callback(outcome); });
@@ -1447,7 +1476,7 @@ void NetworkClient::getDiscoveryFeed(int limit, int offset, FeedCallback callbac
 
   Async::runVoid([this, limit, offset, callback]() {
     juce::String path = "/api/v1/feed/discovery?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
-    auto result = makeRequestWithRetry(path, "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(path, "GET", nlohmann::json(), true);
     auto outcome = requestResultToOutcome(result);
 
     juce::MessageManager::callAsync([callback, outcome]() { callback(outcome); });
@@ -1461,7 +1490,7 @@ void NetworkClient::getAggregatedTimeline(int limit, int offset, AggregatedFeedC
   Async::runVoid([this, limit, offset, callback]() {
     juce::String path =
         "/api/v1/feed/timeline/aggregated?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
-    auto result = makeRequestWithRetry(path, "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(path, "GET", nlohmann::json(), true);
     auto outcome = requestResultToOutcome(result);
 
     juce::MessageManager::callAsync([callback, outcome]() { callback(outcome); });
@@ -1475,7 +1504,7 @@ void NetworkClient::getTrendingFeedGrouped(int limit, int offset, AggregatedFeed
   Async::runVoid([this, limit, offset, callback]() {
     juce::String path =
         "/api/v1/feed/trending/grouped?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
-    auto result = makeRequestWithRetry(path, "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(path, "GET", nlohmann::json(), true);
     auto outcome = requestResultToOutcome(result);
 
     juce::MessageManager::callAsync([callback, outcome]() { callback(outcome); });
@@ -1489,7 +1518,7 @@ void NetworkClient::getNotificationsAggregated(int limit, int offset, Aggregated
   Async::runVoid([this, limit, offset, callback]() {
     juce::String path =
         "/api/v1/notifications/aggregated?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
-    auto result = makeRequestWithRetry(path, "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(path, "GET", nlohmann::json(), true);
     auto outcome = requestResultToOutcome(result);
 
     juce::MessageManager::callAsync([callback, outcome]() { callback(outcome); });
@@ -1500,16 +1529,11 @@ void NetworkClient::getNotificationsAggregated(int limit, int offset, Aggregated
 // Telemetry / Distributed Tracing
 // ==============================================================================
 
-void NetworkClient::sendTelemetrySpans(const juce::var &spans, ResponseCallback callback) {
+void NetworkClient::sendTelemetrySpans(const nlohmann::json &spans, ResponseCallback callback) {
   // Send spans asynchronously on background thread to avoid blocking UI
   Async::runVoid([this, spans, callback]() {
     // Build telemetry payload
-    auto payload = juce::var(new juce::DynamicObject());
-    if (auto obj = payload.getDynamicObject()) {
-      obj->setProperty("spans", spans);
-      obj->setProperty("clientType", "plugin");
-      obj->setProperty("clientVersion", "1.0.0");
-    }
+    nlohmann::json payload = {{"spans", spans}, {"clientType", "plugin"}, {"clientVersion", "1.0.0"}};
 
     // Send to /api/v1/telemetry/spans endpoint
     auto result = makeRequestWithRetry("/api/v1/telemetry/spans", "POST", payload, true);

@@ -15,12 +15,12 @@ using namespace Sidechain::Network::Api;
 void NetworkClient::getStoriesFeed(ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, callback]() {
-    auto result = makeRequestWithRetry(buildApiPath("/stories"), "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(buildApiPath("/stories"), "GET", nlohmann::json(), true);
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -34,13 +34,13 @@ void NetworkClient::getStoriesFeed(ResponseCallback callback) {
 void NetworkClient::viewStory(const juce::String &storyId, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, storyId, callback]() {
     juce::String endpoint = buildApiPath("/stories/") + storyId + "/view";
-    auto result = makeRequestWithRetry(endpoint, "POST", juce::var(), true);
+    auto result = makeRequestWithRetry(endpoint, "POST", nlohmann::json(), true);
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -54,13 +54,13 @@ void NetworkClient::viewStory(const juce::String &storyId, ResponseCallback call
 void NetworkClient::deleteStory(const juce::String &storyId, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, storyId, callback]() {
     juce::String endpoint = buildApiPath("/stories/") + storyId;
-    auto result = makeRequestWithRetry(endpoint, "DELETE", juce::var(), true);
+    auto result = makeRequestWithRetry(endpoint, "DELETE", nlohmann::json(), true);
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -72,11 +72,11 @@ void NetworkClient::deleteStory(const juce::String &storyId, ResponseCallback ca
 }
 
 void NetworkClient::uploadStory(const juce::AudioBuffer<float> &audioBuffer, double sampleRate,
-                                const juce::var &midiData, int bpm, const juce::String &key,
+                                const nlohmann::json &midiData, int bpm, const juce::String &key,
                                 const juce::StringArray &genres, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
@@ -96,7 +96,7 @@ void NetworkClient::uploadStory(const juce::AudioBuffer<float> &audioBuffer, dou
       Log::warn("Story upload rate limit exceeded for " + identifier + ": " + errorMsg);
 
       if (callback) {
-        juce::MessageManager::callAsync([callback, errorMsg]() { callback(Outcome<juce::var>::error(errorMsg)); });
+        juce::MessageManager::callAsync([callback, errorMsg]() { callback(Outcome<nlohmann::json>::error(errorMsg)); });
       }
       return;
     }
@@ -113,15 +113,15 @@ void NetworkClient::uploadStory(const juce::AudioBuffer<float> &audioBuffer, dou
       Log::error("NetworkClient::uploadStory: Failed to encode audio");
       if (callback) {
         juce::MessageManager::callAsync(
-            [callback]() { callback(Outcome<juce::var>::error("Failed to encode audio")); });
+            [callback]() { callback(Outcome<nlohmann::json>::error("Failed to encode audio")); });
       }
       return;
     }
 
     // Build request with audio and MIDI data
     std::map<juce::String, juce::String> extraFields;
-    if (midiData.isObject()) {
-      extraFields["midi_data"] = juce::JSON::toString(midiData);
+    if (midiData.is_object() && !midiData.empty()) {
+      extraFields["midi_data"] = midiData.dump();
     }
 
     // Calculate duration
@@ -151,13 +151,13 @@ void NetworkClient::uploadStory(const juce::AudioBuffer<float> &audioBuffer, dou
 void NetworkClient::getStoryViews(const juce::String &storyId, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, storyId, callback]() {
     juce::String path = "/stories/" + storyId + "/views";
-    auto result = makeRequestWithRetry(buildApiPath(path.toRawUTF8()), "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(buildApiPath(path.toRawUTF8()), "GET", nlohmann::json(), true);
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -177,21 +177,23 @@ void NetworkClient::getStoryDownloadInfo(const juce::String &storyId, DownloadIn
 
   Async::runVoid([this, storyId, callback]() {
     juce::String endpoint = "/stories/" + storyId + "/download";
-    auto result = makeRequestWithRetry(buildApiPath(endpoint.toRawUTF8()), "POST", juce::var(), true);
-    Log::debug("Get story download info response: " + juce::JSON::toString(result.data));
+    auto result = makeRequestWithRetry(buildApiPath(endpoint.toRawUTF8()), "POST", nlohmann::json(), true);
+    Log::debug("Get story download info response: " + juce::String(result.data.dump()));
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
-        if (result.success && result.data.isObject()) {
+        if (result.success && result.data.is_object()) {
           DownloadInfo info;
-          auto *obj = result.data.getDynamicObject();
-          if (obj != nullptr) {
-            info.downloadUrl = obj->getProperty("audio_url").toString();
-            info.filename = obj->getProperty("audio_filename").toString();
-            info.metadata = obj->getProperty("metadata");
-            // Note: download_count not tracked in response, but incremented
-            // server-side
+          if (result.data.contains("audio_url")) {
+            info.downloadUrl = juce::String(result.data["audio_url"].get<std::string>());
           }
+          if (result.data.contains("audio_filename")) {
+            info.filename = juce::String(result.data["audio_filename"].get<std::string>());
+          }
+          if (result.data.contains("metadata")) {
+            info.metadata = result.data["metadata"];
+          }
+          // Note: download_count not tracked in response, but incremented server-side
           callback(Outcome<DownloadInfo>::ok(info));
         } else {
           auto outcome = requestResultToOutcome(result);
@@ -208,13 +210,13 @@ void NetworkClient::getStoryDownloadInfo(const juce::String &storyId, DownloadIn
 void NetworkClient::getHighlights(const juce::String &userId, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, userId, callback]() {
     juce::String endpoint = "/users/" + userId + "/highlights";
-    auto result = makeRequestWithRetry(buildApiPath(endpoint.toRawUTF8()), "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(buildApiPath(endpoint.toRawUTF8()), "GET", nlohmann::json(), true);
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -228,13 +230,13 @@ void NetworkClient::getHighlights(const juce::String &userId, ResponseCallback c
 void NetworkClient::getHighlight(const juce::String &highlightId, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, highlightId, callback]() {
     juce::String endpoint = "/highlights/" + highlightId;
-    auto result = makeRequestWithRetry(buildApiPath(endpoint.toRawUTF8()), "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(buildApiPath(endpoint.toRawUTF8()), "GET", nlohmann::json(), true);
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -249,16 +251,15 @@ void NetworkClient::createHighlight(const juce::String &name, const juce::String
                                     ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, name, description, callback]() {
-    auto *obj = new juce::DynamicObject();
-    obj->setProperty("name", name);
+    nlohmann::json body;
+    body["name"] = name.toStdString();
     if (description.isNotEmpty())
-      obj->setProperty("description", description);
-    juce::var body(obj);
+      body["description"] = description.toStdString();
 
     auto result = makeRequestWithRetry(buildApiPath("/highlights"), "POST", body, true);
 
@@ -275,17 +276,16 @@ void NetworkClient::updateHighlight(const juce::String &highlightId, const juce:
                                     const juce::String &description, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, highlightId, name, description, callback]() {
-    auto *obj = new juce::DynamicObject();
+    nlohmann::json body;
     if (name.isNotEmpty())
-      obj->setProperty("name", name);
+      body["name"] = name.toStdString();
     if (description.isNotEmpty())
-      obj->setProperty("description", description);
-    juce::var body(obj);
+      body["description"] = description.toStdString();
 
     juce::String endpoint = "/highlights/" + highlightId;
     auto result = makeRequestWithRetry(buildApiPath(endpoint.toRawUTF8()), "PUT", body, true);
@@ -302,13 +302,13 @@ void NetworkClient::updateHighlight(const juce::String &highlightId, const juce:
 void NetworkClient::deleteHighlight(const juce::String &highlightId, ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, highlightId, callback]() {
     juce::String endpoint = "/highlights/" + highlightId;
-    auto result = makeRequestWithRetry(buildApiPath(endpoint.toRawUTF8()), "DELETE", juce::var(), true);
+    auto result = makeRequestWithRetry(buildApiPath(endpoint.toRawUTF8()), "DELETE", nlohmann::json(), true);
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {
@@ -323,14 +323,12 @@ void NetworkClient::addStoryToHighlight(const juce::String &highlightId, const j
                                         ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, highlightId, storyId, callback]() {
-    auto *obj = new juce::DynamicObject();
-    obj->setProperty("story_id", storyId);
-    juce::var body(obj);
+    nlohmann::json body = {{"story_id", storyId.toStdString()}};
 
     juce::String endpoint = "/highlights/" + highlightId + "/stories";
     auto result = makeRequestWithRetry(buildApiPath(endpoint.toRawUTF8()), "POST", body, true);
@@ -348,13 +346,13 @@ void NetworkClient::removeStoryFromHighlight(const juce::String &highlightId, co
                                              ResponseCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
-      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+      callback(Outcome<nlohmann::json>::error(Constants::Errors::NOT_AUTHENTICATED));
     return;
   }
 
   Async::runVoid([this, highlightId, storyId, callback]() {
     juce::String endpoint = "/highlights/" + highlightId + "/stories/" + storyId;
-    auto result = makeRequestWithRetry(buildApiPath(endpoint.toRawUTF8()), "DELETE", juce::var(), true);
+    auto result = makeRequestWithRetry(buildApiPath(endpoint.toRawUTF8()), "DELETE", nlohmann::json(), true);
 
     if (callback) {
       juce::MessageManager::callAsync([callback, result]() {

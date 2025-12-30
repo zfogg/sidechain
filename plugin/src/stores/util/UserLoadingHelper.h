@@ -48,7 +48,7 @@ public:
   using StateRef = Rx::State<StateType>;
   using UserList = std::vector<std::shared_ptr<const User>>;
   using SetLoadingFn = std::function<void(StateType &)>;
-  using NetworkCallFn = std::function<void(std::function<void(Outcome<juce::var>)>)>;
+  using NetworkCallFn = std::function<void(std::function<void(Outcome<nlohmann::json>)>)>;
   using OnSuccessFn = std::function<void(StateType &, UserList)>;
   using OnErrorFn = std::function<void(StateType &, const juce::String &)>;
 
@@ -60,7 +60,7 @@ public:
     state->setState(loadingState);
 
     // Make network request
-    networkCall([state, onSuccess, onError, logContext](Outcome<juce::var> result) {
+    networkCall([state, onSuccess, onError, logContext](Outcome<nlohmann::json> result) {
       if (result.isError()) {
         StateType errorState = state->getState();
         onError(errorState, result.getError());
@@ -70,18 +70,16 @@ public:
       }
 
       try {
-        auto jsonArray = result.getValue().getArray();
-        if (!jsonArray) {
+        const auto &jsonValue = result.getValue();
+        if (!jsonValue.is_array()) {
           throw std::runtime_error("Response is not an array");
         }
 
         // Normalize and cache users in EntityStore
         std::vector<std::shared_ptr<User>> mutableUsers;
-        for (int i = 0; i < jsonArray->size(); ++i) {
+        for (const auto &item : jsonValue) {
           try {
-            auto jsonStr = (*jsonArray)[i].toString().toStdString();
-            auto json = nlohmann::json::parse(jsonStr);
-            auto user = EntityStore::getInstance().normalizeUser(json);
+            auto user = EntityStore::getInstance().normalizeUser(item);
             if (user) {
               mutableUsers.push_back(user);
             }
@@ -130,8 +128,8 @@ public:
   using StateRef = Rx::State<StateType>;
   using ModelList = std::vector<std::shared_ptr<ModelType>>;
   using SetLoadingFn = std::function<void(StateType &)>;
-  using NetworkCallFn = std::function<void(std::function<void(Outcome<juce::var>)>)>;
-  using ParseFn = std::function<ModelList(const juce::var &)>;
+  using NetworkCallFn = std::function<void(std::function<void(Outcome<nlohmann::json>)>)>;
+  using ParseFn = std::function<ModelList(const nlohmann::json &)>;
   using OnSuccessFn = std::function<void(StateType &, ModelList)>;
   using OnErrorFn = std::function<void(StateType &, const juce::String &)>;
 
@@ -143,7 +141,7 @@ public:
     state->setState(loadingState);
 
     // Make network request
-    networkCall([state, parse, onSuccess, onError, logContext](Outcome<juce::var> result) {
+    networkCall([state, parse, onSuccess, onError, logContext](Outcome<nlohmann::json> result) {
       if (result.isError()) {
         StateType errorState = state->getState();
         onError(errorState, result.getError());

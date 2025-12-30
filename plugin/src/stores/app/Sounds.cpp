@@ -7,8 +7,8 @@
 namespace Sidechain {
 namespace Stores {
 
-using Utils::JsonArrayParser;
 using Utils::NetworkClientGuard;
+using Utils::NlohmannJsonArrayParser;
 
 void AppStore::loadFeaturedSounds() {
   if (!NetworkClientGuard::check(networkClient, "load featured sounds")) {
@@ -148,12 +148,12 @@ rxcpp::observable<std::vector<Sound>> AppStore::loadFeaturedSoundsObservable() {
 
            Util::logInfo("AppStore", "Loading featured sounds observable");
 
-           networkClient->getTrendingSounds(20, [observer](Outcome<juce::var> result) {
+           networkClient->getTrendingSounds(20, [observer](Outcome<nlohmann::json> result) {
              if (result.isOk()) {
                const auto data = result.getValue();
 
-               // Parse using JsonArrayParser and convert to value types
-               auto sharedSounds = JsonArrayParser<Sound>::parse(data, "featured sounds");
+               // Parse using NlohmannJsonArrayParser and convert to value types
+               auto sharedSounds = NlohmannJsonArrayParser<Sound>::parse(data, "featured sounds");
                std::vector<Sound> sounds;
                sounds.reserve(sharedSounds.size());
                for (const auto &ptr : sharedSounds) {
@@ -185,12 +185,12 @@ rxcpp::observable<std::vector<Sound>> AppStore::loadRecentSoundsObservable() {
            Util::logInfo("AppStore", "Loading recent sounds observable");
 
            // Use searchSounds with empty query to get recent sounds
-           networkClient->searchSounds("", 20, [observer](Outcome<juce::var> result) {
+           networkClient->searchSounds("", 20, [observer](Outcome<nlohmann::json> result) {
              if (result.isOk()) {
                const auto data = result.getValue();
 
-               // Parse using JsonArrayParser and convert to value types
-               auto sharedSounds = JsonArrayParser<Sound>::parse(data, "recent sounds");
+               // Parse using NlohmannJsonArrayParser and convert to value types
+               auto sharedSounds = NlohmannJsonArrayParser<Sound>::parse(data, "recent sounds");
                std::vector<Sound> sounds;
                sounds.reserve(sharedSounds.size());
                for (const auto &ptr : sharedSounds) {
@@ -221,10 +221,10 @@ rxcpp::observable<Sound> AppStore::getSoundObservable(const juce::String &soundI
 
            Util::logInfo("AppStore", "Getting sound via observable: " + soundId);
 
-           networkClient->getSound(soundId, [observer](Outcome<juce::var> result) {
+           networkClient->getSound(soundId, [observer](Outcome<nlohmann::json> result) {
              if (result.isOk()) {
                try {
-                 nlohmann::json soundJson = nlohmann::json::parse(result.getValue().toString().toStdString());
+                 const auto &soundJson = result.getValue();
                  auto soundResult = Sound::createFromJson(soundJson);
                  if (soundResult.isOk() && soundResult.getValue()) {
                    Util::logInfo("AppStore", "Got sound via observable");
@@ -255,10 +255,10 @@ rxcpp::observable<Sound> AppStore::getSoundForPostObservable(const juce::String 
 
            Util::logInfo("AppStore", "Getting sound for post via observable: " + postId);
 
-           networkClient->getSoundForPost(postId, [observer](Outcome<juce::var> result) {
+           networkClient->getSoundForPost(postId, [observer](Outcome<nlohmann::json> result) {
              if (result.isOk()) {
                try {
-                 nlohmann::json soundJson = nlohmann::json::parse(result.getValue().toString().toStdString());
+                 const auto &soundJson = result.getValue();
                  auto soundResult = Sound::createFromJson(soundJson);
                  if (soundResult.isOk() && soundResult.getValue()) {
                    Util::logInfo("AppStore", "Got sound for post via observable");
@@ -290,16 +290,14 @@ rxcpp::observable<std::vector<SoundPost>> AppStore::getSoundPostsObservable(cons
 
            Util::logInfo("AppStore", "Getting sound posts via observable: " + soundId);
 
-           networkClient->getSoundPosts(soundId, limit, offset, [observer](Outcome<juce::var> result) {
+           networkClient->getSoundPosts(soundId, limit, offset, [observer](Outcome<nlohmann::json> result) {
              if (result.isOk()) {
-               auto response = result.getValue();
-               auto postsArray = response.getProperty("posts", juce::var());
+               const auto &response = result.getValue();
 
                std::vector<SoundPost> posts;
-               if (postsArray.isArray()) {
-                 for (int i = 0; i < postsArray.size(); ++i) {
+               if (response.contains("posts") && response["posts"].is_array()) {
+                 for (const auto &postJson : response["posts"]) {
                    try {
-                     nlohmann::json postJson = nlohmann::json::parse(postsArray[i].toString().toStdString());
                      auto postResult = SoundPost::createFromJson(postJson);
                      if (postResult.isOk() && postResult.getValue()) {
                        posts.push_back(*postResult.getValue());

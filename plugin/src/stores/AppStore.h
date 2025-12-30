@@ -16,6 +16,7 @@
 #include <functional>
 #include <optional>
 #include <mutex>
+#include <nlohmann/json.hpp>
 #include <rxcpp/rx.hpp>
 
 namespace Sidechain {
@@ -1080,7 +1081,7 @@ public:
    * - Cache result for 30 seconds (feeds update frequently)
    * - Automatically invalidated by likePost/unlikePost/savePost mutations
    */
-  rxcpp::observable<juce::var> loadFeedObservable(FeedType feedType);
+  rxcpp::observable<nlohmann::json> loadFeedObservable(FeedType feedType);
 
   /**
    * Load multiple feed types in parallel using merge (Reactive).
@@ -1092,7 +1093,7 @@ public:
    *   appStore.loadMultipleFeedsObservable({FeedType::Timeline, FeedType::Trending})
    *       .subscribe([](auto feedData) { processFeed(feedData); });
    */
-  rxcpp::observable<juce::var> loadMultipleFeedsObservable(const std::vector<FeedType> &feedTypes);
+  rxcpp::observable<nlohmann::json> loadMultipleFeedsObservable(const std::vector<FeedType> &feedTypes);
 
   /**
    * Like a post with automatic cache invalidation (Reactive).
@@ -1450,13 +1451,13 @@ private:
 
   // Feed helpers
   void performFetch(FeedType feedType, int limit, int offset);
-  void handleFetchSuccess(FeedType feedType, const juce::var &data, int limit, int offset);
+  void handleFetchSuccess(FeedType feedType, const nlohmann::json &data, int limit, int offset);
   void handleTypedFetchSuccess(FeedType feedType, const NetworkClient::FeedResult &result, int limit, int offset);
   void handleFetchError(FeedType feedType, const juce::String &error);
   void handleSavedPostsLoaded(Outcome<juce::var> result);
   void handleArchivedPostsLoaded(Outcome<juce::var> result);
-  FeedResponse parseJsonResponse(const juce::var &json);
-  AggregatedFeedResponse parseAggregatedJsonResponse(const juce::var &json);
+  FeedResponse parseJsonResponse(const nlohmann::json &json);
+  AggregatedFeedResponse parseAggregatedJsonResponse(const nlohmann::json &json);
   bool isCurrentFeedCached() const;
   bool currentFeedIsFromCache_ = false;
 
@@ -1467,11 +1468,11 @@ private:
   void handleProfileFetchError(const juce::String &error);
 
   // Discovery handlers
-  void handleTrendingUsersSuccess(const juce::var &data);
+  void handleTrendingUsersSuccess(const nlohmann::json &data);
   void handleTrendingUsersError(const juce::String &error);
-  void handleFeaturedProducersSuccess(const juce::var &data);
+  void handleFeaturedProducersSuccess(const nlohmann::json &data);
   void handleFeaturedProducersError(const juce::String &error);
-  void handleSuggestedUsersSuccess(const juce::var &data);
+  void handleSuggestedUsersSuccess(const nlohmann::json &data);
   void handleSuggestedUsersError(const juce::String &error);
 
   // Token refresh timer

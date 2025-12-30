@@ -14,6 +14,7 @@
 #include "../models/Comment.h"
 #include "../models/MidiChallenge.h"
 #include <JuceHeader.h>
+#include <nlohmann/json.hpp>
 #include <atomic>
 #include <functional>
 #include <map>
@@ -86,11 +87,11 @@ public:
   // Authentication callback: returns Outcome with pair<token, userId> or error
   using AuthenticationCallback = std::function<void(Outcome<std::pair<juce::String, juce::String>>)>;
   using UploadCallback = std::function<void(Outcome<juce::String> audioUrl)>;
-  using FeedCallback = std::function<void(Outcome<juce::var> feedData)>;
-  using AggregatedFeedCallback = std::function<void(Outcome<juce::var> aggregatedData)>;
+  using FeedCallback = std::function<void(Outcome<nlohmann::json> feedData)>;
+  using AggregatedFeedCallback = std::function<void(Outcome<nlohmann::json> aggregatedData)>;
   using ProfilePictureCallback = std::function<void(Outcome<juce::String> pictureUrl)>;
   using ConnectionStatusCallback = std::function<void(ConnectionStatus status)>;
-  using ResponseCallback = std::function<void(Outcome<juce::var> response)>;
+  using ResponseCallback = std::function<void(Outcome<nlohmann::json> response)>;
 
   // =========================================================================
   // Model-based callback types (new - Phase 3 refactoring)
@@ -153,7 +154,7 @@ public:
     int numChannels = 2;          // /< Number of audio channels
 
     // MIDI data
-    juce::var midiData;      // /< MIDI events captured during recording (optional)
+    nlohmann::json midiData; // /< MIDI events captured during recording (optional)
     bool includeMidi = true; // /< Whether to upload MIDI with the post
 
     // Project file data
@@ -880,7 +881,7 @@ public:
   struct DownloadInfo {
     juce::String downloadUrl;
     juce::String filename;
-    juce::var metadata; // Contains BPM, key, duration, genre, daw
+    nlohmann::json metadata; // Contains BPM, key, duration, genre, daw
     int downloadCount = 0;
   };
 
@@ -920,7 +921,7 @@ public:
    * @param isPublic Whether the pattern is publicly visible (default true)
    * @param callback Called with created pattern ID or error
    */
-  void uploadMIDI(const juce::var &midiData, const juce::String &name = "", const juce::String &description = "",
+  void uploadMIDI(const nlohmann::json &midiData, const juce::String &name = "", const juce::String &description = "",
                   bool isPublic = true, ResponseCallback callback = nullptr);
 
   // ==========================================================================
@@ -1013,7 +1014,7 @@ public:
    * @param callback Called with entry data or error
    */
   void submitMIDIChallengeEntry(const juce::String &challengeId, const juce::String &audioUrl,
-                                const juce::String &postId = "", const juce::var &midiData = juce::var(),
+                                const juce::String &postId = "", const nlohmann::json &midiData = nlohmann::json(),
                                 const juce::String &midiPatternId = "", ResponseCallback callback = nullptr);
 
   /** Get entries for a MIDI challenge
@@ -1293,10 +1294,10 @@ public:
   // ==========================================================================
   // Comment operations
   // NOTE: Callback-based methods are deprecated. Use observable versions instead.
-  using CommentCallback = std::function<void(Outcome<juce::var> comment)>;
+  using CommentCallback = std::function<void(Outcome<nlohmann::json> comment)>;
   // CommentsListCallback: returns Outcome with pair<comments, totalCount> or
   // error
-  using CommentsListCallback = std::function<void(Outcome<std::pair<juce::var, int>>)>;
+  using CommentsListCallback = std::function<void(Outcome<std::pair<nlohmann::json, int>>)>;
 
   /** Get comments for a post
    * @deprecated Use getCommentsObservable() instead
@@ -1375,14 +1376,14 @@ public:
    *  @param data JSON data to send in request body
    *  @param callback Called with response data or error
    */
-  void post(const juce::String &endpoint, const juce::var &data, ResponseCallback callback);
+  void post(const juce::String &endpoint, const nlohmann::json &data, ResponseCallback callback);
 
   /** Make a PUT request to an endpoint
    *  @param endpoint Relative endpoint path
    *  @param data JSON data to send in request body
    *  @param callback Called with response data or error
    */
-  void put(const juce::String &endpoint, const juce::var &data, ResponseCallback callback);
+  void put(const juce::String &endpoint, const nlohmann::json &data, ResponseCallback callback);
 
   /** Make a DELETE request to an endpoint
    *  @param endpoint Relative endpoint path
@@ -1409,7 +1410,7 @@ public:
    *  @param callback Called with response data or error
    *  @param customHeaders Optional custom HTTP headers
    */
-  void postAbsolute(const juce::String &absoluteUrl, const juce::var &data, ResponseCallback callback,
+  void postAbsolute(const juce::String &absoluteUrl, const nlohmann::json &data, ResponseCallback callback,
                     const juce::StringPairArray &customHeaders = juce::StringPairArray());
 
   /** Make a GET request to an absolute URL and receive binary data
@@ -1422,7 +1423,7 @@ public:
 
   // Multipart form upload to absolute URL (for external APIs like getstream.io,
   // CDN uploads, etc.)
-  using MultipartUploadCallback = std::function<void(Outcome<juce::var> response)>;
+  using MultipartUploadCallback = std::function<void(Outcome<nlohmann::json> response)>;
   void uploadMultipartAbsolute(const juce::String &absoluteUrl, const juce::String &fieldName,
                                const juce::MemoryBlock &fileData, const juce::String &fileName,
                                const juce::String &mimeType, const std::map<juce::String, juce::String> &extraFields,
@@ -1576,7 +1577,7 @@ public:
   void getStoryViews(const juce::String &storyId, ResponseCallback callback = nullptr);
 
   // Upload a new story
-  void uploadStory(const juce::AudioBuffer<float> &audioBuffer, double sampleRate, const juce::var &midiData,
+  void uploadStory(const juce::AudioBuffer<float> &audioBuffer, double sampleRate, const nlohmann::json &midiData,
                    int bpm = 0, const juce::String &key = "", const juce::StringArray &genres = juce::StringArray(),
                    ResponseCallback callback = nullptr);
 
@@ -1756,7 +1757,7 @@ public:
 
   // HTTP helpers with retry logic
   struct RequestResult {
-    juce::var data;
+    nlohmann::json data; // JSON response data (replaces juce::var)
     int httpStatus = 0;
     bool success = false;
     juce::String errorMessage;
@@ -1775,7 +1776,7 @@ public:
   // Synchronous request method for use from background threads
   // (Use sparingly - prefer async methods for UI code)
   RequestResult makeAbsoluteRequestSync(const juce::String &absoluteUrl, const juce::String &method = "GET",
-                                        const juce::var &data = juce::var(), bool requireAuth = false,
+                                        const nlohmann::json &data = nlohmann::json(), bool requireAuth = false,
                                         const juce::StringPairArray &customHeaders = juce::StringPairArray(),
                                         juce::MemoryBlock *binaryData = nullptr);
 
@@ -1803,7 +1804,7 @@ public:
    * );
    * @endcode
    */
-  void sendTelemetrySpans(const juce::var &spans, ResponseCallback callback = nullptr);
+  void sendTelemetrySpans(const nlohmann::json &spans, ResponseCallback callback = nullptr);
 
   // ==========================================================================
   // DAW Detection
@@ -1818,38 +1819,40 @@ public:
   static juce::String detectDAWName();
 
   // ==========================================================================
-  // Model parsing helpers (Phase 3 refactoring - for new model-based callbacks)
+  // Model parsing helpers (for typed model callbacks)
 
   /**
-   * Parse a juce::var response into a vector of FeedPost shared_ptrs
+   * Parse a JSON response into a vector of FeedPost shared_ptrs
    * Handles JSON array responses from feed endpoints.
    *
-   * @param response The juce::var response from API
+   * @param response The nlohmann::json response from API
    * @return Outcome with vector of shared_ptr<FeedPost> or error message
    */
-  static Outcome<std::vector<std::shared_ptr<Sidechain::FeedPost>>> parseFeedPostsResponse(const juce::var &response);
+  static Outcome<std::vector<std::shared_ptr<Sidechain::FeedPost>>>
+  parseFeedPostsResponse(const nlohmann::json &response);
 
   /**
-   * Parse a juce::var response into a single User shared_ptr
+   * Parse a JSON response into a single User shared_ptr
    * Handles JSON object responses from user endpoints.
    *
-   * @param response The juce::var response from API
+   * @param response The nlohmann::json response from API
    * @return Outcome with shared_ptr<User> or error message
    */
-  static Outcome<std::shared_ptr<Sidechain::User>> parseUserResponse(const juce::var &response);
+  static Outcome<std::shared_ptr<Sidechain::User>> parseUserResponse(const nlohmann::json &response);
 
   /**
-   * Parse a juce::var response into a vector of User shared_ptrs
+   * Parse a JSON response into a vector of User shared_ptrs
    * Handles JSON array responses from user list endpoints.
    *
-   * @param response The juce::var response from API
+   * @param response The nlohmann::json response from API
    * @return Outcome with vector of shared_ptr<User> or error message
    */
-  static Outcome<std::vector<std::shared_ptr<Sidechain::User>>> parseUsersResponse(const juce::var &response);
+  static Outcome<std::vector<std::shared_ptr<Sidechain::User>>> parseUsersResponse(const nlohmann::json &response);
 
   // Parse helpers for additional model types
-  static Outcome<std::vector<std::shared_ptr<Sidechain::Playlist>>> parsePlaylistsResponse(const juce::var &response);
-  static Outcome<std::vector<std::shared_ptr<Sidechain::Story>>> parseStoriesResponse(const juce::var &response);
+  static Outcome<std::vector<std::shared_ptr<Sidechain::Playlist>>>
+  parsePlaylistsResponse(const nlohmann::json &response);
+  static Outcome<std::vector<std::shared_ptr<Sidechain::Story>>> parseStoriesResponse(const nlohmann::json &response);
 
 private:
   Config config;
@@ -1871,15 +1874,15 @@ private:
 
   // ==========================================================================
   RequestResult makeRequestWithRetry(const juce::String &endpoint, const juce::String &method = "GET",
-                                     const juce::var &data = juce::var(), bool requireAuth = false);
+                                     const nlohmann::json &data = nlohmann::json(), bool requireAuth = false);
 
   RequestResult makeAbsoluteRequestWithRetry(const juce::String &absoluteUrl, const juce::String &method = "GET",
-                                             const juce::var &data = juce::var(), bool requireAuth = false,
+                                             const nlohmann::json &data = nlohmann::json(), bool requireAuth = false,
                                              const juce::StringPairArray &customHeaders = juce::StringPairArray(),
                                              juce::MemoryBlock *binaryData = nullptr);
 
-  juce::var makeRequest(const juce::String &endpoint, const juce::String &method = "GET",
-                        const juce::var &data = juce::var(), bool requireAuth = false);
+  nlohmann::json makeRequest(const juce::String &endpoint, const juce::String &method = "GET",
+                             const nlohmann::json &data = nlohmann::json(), bool requireAuth = false);
 
   // Multipart form data upload helper
   RequestResult uploadMultipartData(const juce::String &endpoint, const juce::String &fieldName,
@@ -1895,7 +1898,7 @@ private:
                                             const juce::StringPairArray &customHeaders = juce::StringPairArray());
 
   juce::String getAuthHeader() const;
-  void handleAuthResponse(const juce::var &response);
+  void handleAuthResponse(const nlohmann::json &response);
   void updateConnectionStatus(ConnectionStatus status);
 
   // Helper to check authentication and return error if not authenticated

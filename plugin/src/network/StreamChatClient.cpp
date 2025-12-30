@@ -5,6 +5,7 @@
 #include "../util/OSNotification.h"
 #include "../util/Result.h"
 #include <JuceHeader.h>
+#include <nlohmann/json.hpp>
 #include <chrono>
 #include <thread>
 #include <websocketpp/common/memory.hpp>
@@ -35,13 +36,19 @@ void StreamChatClient::fetchToken(const juce::String &backendAuthTokenParam, Tok
 
   networkClient->getAbsolute(
       config.backendBaseUrl + "/api/v1/auth/stream-token",
-      [this, callback](Outcome<juce::var> responseOutcome) {
+      [this, callback](Outcome<nlohmann::json> responseOutcome) {
         if (responseOutcome.isOk()) {
-          auto response = responseOutcome.getValue();
-          if (response.isObject()) {
-            auto authToken = Json::getString(response, "token");
-            auto streamApiKey = Json::getString(response, "api_key");
-            auto streamUserId = Json::getString(response, "user_id");
+          const auto &response = responseOutcome.getValue();
+          if (response.is_object()) {
+            juce::String authToken = response.contains("token") && response["token"].is_string()
+                                         ? juce::String(response["token"].get<std::string>())
+                                         : juce::String();
+            juce::String streamApiKey = response.contains("api_key") && response["api_key"].is_string()
+                                            ? juce::String(response["api_key"].get<std::string>())
+                                            : juce::String();
+            juce::String streamUserId = response.contains("user_id") && response["user_id"].is_string()
+                                            ? juce::String(response["user_id"].get<std::string>())
+                                            : juce::String();
 
             if (!authToken.isEmpty() && !streamApiKey.isEmpty() && !streamUserId.isEmpty()) {
               setToken(authToken, streamApiKey, streamUserId);
@@ -1583,13 +1590,17 @@ void StreamChatClient::uploadAudioSnippet(const juce::AudioBuffer<float> &audioB
     // Note: uploadMultipartAbsolute's callback is already on message thread
     networkClient->uploadMultipartAbsolute(
         config.backendBaseUrl + "/api/v1/audio/upload", "audio", audioDataBlock, "snippet.wav", "audio/wav", metadata,
-        [callback, durationSecs](Outcome<juce::var> responseOutcome) {
+        [callback, durationSecs](Outcome<nlohmann::json> responseOutcome) {
           if (responseOutcome.isOk()) {
-            auto response = responseOutcome.getValue();
-            if (response.isObject()) {
-              auto audioUrl = response.getProperty("audio_url", "").toString();
-              if (audioUrl.isEmpty())
-                audioUrl = response.getProperty("url", "").toString();
+            const auto &response = responseOutcome.getValue();
+            if (response.is_object()) {
+              juce::String audioUrl;
+              if (response.contains("audio_url") && response["audio_url"].is_string()) {
+                audioUrl = juce::String(response["audio_url"].get<std::string>());
+              }
+              if (audioUrl.isEmpty() && response.contains("url") && response["url"].is_string()) {
+                audioUrl = juce::String(response["url"].get<std::string>());
+              }
 
               if (!audioUrl.isEmpty()) {
                 AudioSnippetResult result;

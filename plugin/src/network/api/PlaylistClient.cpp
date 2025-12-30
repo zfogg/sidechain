@@ -16,14 +16,14 @@ void NetworkClient::createPlaylist(const juce::String &name, const juce::String 
   if (callback == nullptr)
     return;
 
-  auto *obj = new juce::DynamicObject();
-  obj->setProperty("name", name);
+  nlohmann::json body;
+  body["name"] = name.toStdString();
   if (description.isNotEmpty())
-    obj->setProperty("description", description);
-  obj->setProperty("is_collaborative", isCollaborative);
-  obj->setProperty("is_public", isPublic);
+    body["description"] = description.toStdString();
+  body["is_collaborative"] = isCollaborative;
+  body["is_public"] = isPublic;
 
-  post(buildApiPath("/playlists"), juce::var(obj), callback);
+  post(buildApiPath("/playlists"), body, callback);
 }
 
 void NetworkClient::deletePlaylist(const juce::String &playlistId, ResponseCallback callback) {
@@ -53,12 +53,12 @@ void NetworkClient::getPlaylist(const juce::String &playlistId, ResponseCallback
 
 void NetworkClient::addPlaylistEntry(const juce::String &playlistId, const juce::String &postId, int position,
                                      ResponseCallback callback) {
-  auto *obj = new juce::DynamicObject();
-  obj->setProperty("post_id", postId);
+  nlohmann::json body;
+  body["post_id"] = postId.toStdString();
   if (position >= 0)
-    obj->setProperty("position", position);
+    body["position"] = position;
 
-  post(buildApiPath("/playlists/") + playlistId + "/entries", juce::var(obj), callback);
+  post(buildApiPath("/playlists/") + playlistId + "/entries", body, callback);
 }
 
 void NetworkClient::removePlaylistEntry(const juce::String &playlistId, const juce::String &entryId,
@@ -68,11 +68,11 @@ void NetworkClient::removePlaylistEntry(const juce::String &playlistId, const ju
 
 void NetworkClient::addPlaylistCollaborator(const juce::String &playlistId, const juce::String &userId,
                                             const juce::String &role, ResponseCallback callback) {
-  auto *obj = new juce::DynamicObject();
-  obj->setProperty("user_id", userId);
-  obj->setProperty("role", role);
+  nlohmann::json body;
+  body["user_id"] = userId.toStdString();
+  body["role"] = role.toStdString();
 
-  post(buildApiPath("/playlists/") + playlistId + "/collaborators", juce::var(obj), callback);
+  post(buildApiPath("/playlists/") + playlistId + "/collaborators", body, callback);
 }
 
 void NetworkClient::removePlaylistCollaborator(const juce::String &playlistId, const juce::String &userId,

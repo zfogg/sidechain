@@ -1,6 +1,7 @@
 #include "../AppStore.h"
 #include "../../util/logging/Logger.h"
 #include "../../util/rx/JuceScheduler.h"
+#include <nlohmann/json.hpp>
 #include <rxcpp/rx.hpp>
 
 namespace Sidechain {
@@ -177,7 +178,7 @@ void AppStore::requestPasswordReset(const juce::String &email) {
   resetState.isResettingPassword = true;
   authState->setState(resetState);
 
-  networkClient->requestPasswordReset(email, [authState](Outcome<juce::var> result) {
+  networkClient->requestPasswordReset(email, [authState](Outcome<nlohmann::json> result) {
     if (!result.isOk()) {
       AuthState errorState = authState->getState();
       errorState.isResettingPassword = false;
@@ -209,7 +210,7 @@ void AppStore::resetPassword(const juce::String &token, const juce::String &newP
   resetState.isResettingPassword = true;
   authState->setState(resetState);
 
-  networkClient->resetPassword(token, newPassword, [this](Outcome<juce::var> result) {
+  networkClient->resetPassword(token, newPassword, [this](Outcome<nlohmann::json> result) {
     auto authStatePtr = stateManager.auth;
 
     if (!result.isOk()) {
@@ -542,7 +543,7 @@ rxcpp::observable<int> AppStore::requestPasswordResetObservable(const juce::Stri
 
            Util::logDebug("AppStore", "Request password reset via observable for: " + email);
 
-           networkClient->requestPasswordReset(email, [observer](Outcome<juce::var> result) {
+           networkClient->requestPasswordReset(email, [observer](Outcome<nlohmann::json> result) {
              if (result.isOk()) {
                Util::logInfo("AppStore", "Password reset email sent successfully");
                observer.on_next(0);
@@ -566,7 +567,7 @@ rxcpp::observable<int> AppStore::resetPasswordObservable(const juce::String &tok
 
            Util::logDebug("AppStore", "Reset password via observable");
 
-           networkClient->resetPassword(token, newPassword, [observer](Outcome<juce::var> result) {
+           networkClient->resetPassword(token, newPassword, [observer](Outcome<nlohmann::json> result) {
              if (result.isOk()) {
                Util::logInfo("AppStore", "Password reset successful");
                observer.on_next(0);

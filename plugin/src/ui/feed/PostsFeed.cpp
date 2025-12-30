@@ -12,6 +12,7 @@
 #include "../../util/Result.h"
 #include "../../util/UIHelpers.h"
 #include "../common/ToastNotification.h"
+#include <nlohmann/json.hpp>
 #include <set>
 #include <vector>
 
@@ -208,12 +209,12 @@ void PostsFeed::setAudioPlayer(HttpAudioPlayer *player) {
       // Track the play in the backend
       if (networkClient != nullptr) {
         Log::debug("PostsFeedComponent: Tracking play in backend for postId: " + postId);
-        networkClient->trackPlay(postId, [postId](Outcome<juce::var> responseOutcome) {
+        networkClient->trackPlay(postId, [postId](Outcome<nlohmann::json> responseOutcome) {
           if (responseOutcome.isOk()) {
             Log::debug("PostsFeedComponent: Play tracking successful for postId: " + postId);
             // Update play count in UI if returned in response
             auto response = responseOutcome.getValue();
-            int newPlayCount = Json::getInt(response, "play_count", -1);
+            int newPlayCount = response.value("play_count", -1);
             if (newPlayCount >= 0) {
               Log::debug("PostsFeedComponent: Updating play count to " + juce::String(newPlayCount) +
                          " for postId: " + postId);
@@ -324,17 +325,18 @@ void PostsFeed::setAudioPlayer(HttpAudioPlayer *player) {
         // Only track if duration is meaningful (at least 1 second)
         if (durationSeconds >= 1.0) {
           Log::debug("PostsFeedComponent: Tracking listen duration for postId: " + postId);
-          networkClient->trackListenDuration(postId, durationSeconds, [postId](Outcome<juce::var> responseOutcome) {
-            if (responseOutcome.isOk()) {
-              Log::debug("PostsFeedComponent: Listen duration tracked "
-                         "successfully for postId: " +
-                         postId);
-            } else {
-              Log::warn("PostsFeedComponent: Listen duration tracking "
-                        "failed for postId: " +
-                        postId);
-            }
-          });
+          networkClient->trackListenDuration(postId, durationSeconds,
+                                             [postId](Outcome<nlohmann::json> responseOutcome) {
+                                               if (responseOutcome.isOk()) {
+                                                 Log::debug("PostsFeedComponent: Listen duration tracked "
+                                                            "successfully for postId: " +
+                                                            postId);
+                                               } else {
+                                                 Log::warn("PostsFeedComponent: Listen duration tracking "
+                                                           "failed for postId: " +
+                                                           postId);
+                                               }
+                                             });
         } else {
           Log::debug("PostsFeedComponent: Listen duration too short to track (" + juce::String(durationSeconds, 2) +
                      "s < 1.0s)");
@@ -1135,33 +1137,29 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
         Log::info("PostsFeedComponent: More like this clicked for post: " + post.id);
         if (networkClient != nullptr) {
           // Fetch similar posts and show in feed
-          networkClient->getSimilarPosts(post.id, 20, [post](Outcome<juce::var> similarResult) {
+          networkClient->getSimilarPosts(post.id, 20, [post](Outcome<nlohmann::json> similarResult) {
             if (similarResult.isOk()) {
               // Parse similar posts and show in feed
               auto data = similarResult.getValue();
-              if (data.isObject()) {
-                auto activities = data.getProperty("activities", juce::var());
-                if (activities.isArray()) {
-                  // Convert to Sidechain::FeedResponse format
-                  Sidechain::FeedResponse response;
-                  for (int i = 0; i < activities.size(); ++i) {
-                    try {
-                      auto jsonStr = juce::JSON::toString(activities[i]);
-                      auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
-                      auto postResult = Sidechain::SerializableModel<Sidechain::FeedPost>::createFromJson(jsonObj);
-                      if (postResult.isOk()) {
-                        auto feedPost = *postResult.getValue();
-                        if (feedPost.isValid())
-                          response.posts.add(feedPost);
-                      }
-                    } catch (const std::exception &) {
-                      // Skip invalid posts
+              if (data.is_object() && data.contains("activities") && data["activities"].is_array()) {
+                auto activities = data["activities"];
+                // Convert to Sidechain::FeedResponse format
+                Sidechain::FeedResponse response;
+                for (const auto &activity : activities) {
+                  try {
+                    auto postResult = Sidechain::SerializableModel<Sidechain::FeedPost>::createFromJson(activity);
+                    if (postResult.isOk()) {
+                      auto feedPost = *postResult.getValue();
+                      if (feedPost.isValid())
+                        response.posts.add(feedPost);
                     }
+                  } catch (const std::exception &) {
+                    // Skip invalid posts
                   }
-                  response.hasMore = false; // Similar posts don't paginate
-                  // onFeedLoaded(response); // Refactored to use FeedStore subscription
-                  Log::info("PostsFeedComponent: Loaded " + juce::String(response.posts.size()) + " similar posts");
                 }
+                response.hasMore = false; // Similar posts don't paginate
+                // onFeedLoaded(response); // Refactored to use FeedStore subscription
+                Log::info("PostsFeedComponent: Loaded " + juce::String(response.posts.size()) + " similar posts");
               }
             } else {
               Log::error("PostsFeedComponent: Failed to get similar posts: " + similarResult.getError());
@@ -1186,7 +1184,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
 
         juce::AlertWindow::showAsync(options, [this, post](int confirmResult) {
           if (confirmResult == 1 && networkClient != nullptr) {
-            networkClient->deletePost(post.id, [postId = post.id](Outcome<juce::var> deleteResult) {
+            networkClient->deletePost(post.id, [postId = post.id](Outcome<nlohmann::json> deleteResult) {
               if (deleteResult.isOk()) {
                 Log::info("PostsFeedComponent: Post deleted successfully - " + postId);
                 // Post deletion now handled by FeedStore subscription
@@ -1223,7 +1221,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
             juce::String description = "Reported post: " + post.id;
 
             networkClient->reportPost(
-                post.id, reason, description, [postId = post.id, reason](Outcome<juce::var> reportApiResult) {
+                post.id, reason, description, [postId = post.id, reason](Outcome<nlohmann::json> reportApiResult) {
                   if (reportApiResult.isOk()) {
                     Log::info("PostsFeedComponent: Post reported successfully - " + postId + ", reason: " + reason);
                     juce::MessageManager::callAsync([]() {
@@ -1353,7 +1351,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
                 if (card != nullptr)
                   card->setDownloadProgress(progress);
               },
-              [card, targetFile, info](Outcome<juce::var> result) {
+              [card, targetFile, info](Outcome<nlohmann::json> result) {
                 if (result.isOk()) {
                   // Reset download progress
                   if (card != nullptr)
@@ -1425,17 +1423,18 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
     }
 
     // Download the MIDI file
-    networkClient->downloadMIDI(post.midiId, targetFile, [targetFile, notificationMessage](Outcome<juce::var> result) {
-      if (result.isOk()) {
-        Log::info("MIDI downloaded: " + targetFile.getFullPathName());
-        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon, "MIDI Downloaded",
-                                               notificationMessage);
-      } else {
-        Log::error("Failed to download MIDI: " + result.getError());
-        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Error",
-                                               "Failed to download MIDI. Please try again.");
-      }
-    });
+    networkClient->downloadMIDI(
+        post.midiId, targetFile, [targetFile, notificationMessage](Outcome<nlohmann::json> result) {
+          if (result.isOk()) {
+            Log::info("MIDI downloaded: " + targetFile.getFullPathName());
+            juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon, "MIDI Downloaded",
+                                                   notificationMessage);
+          } else {
+            Log::error("Failed to download MIDI: " + result.getError());
+            juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Error",
+                                                   "Failed to download MIDI. Please try again.");
+          }
+        });
   };
 
   card->onAddToPlaylistClicked = [this](const Sidechain::FeedPost &post) {
@@ -1554,7 +1553,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
     networkClient->downloadProjectFile(
         post.projectFileId, targetFile,
         nullptr, // No progress callback for now
-        [targetFile](Outcome<juce::var> result) {
+        [targetFile](Outcome<nlohmann::json> result) {
           if (result.isOk()) {
             Log::info("Project file downloaded: " + targetFile.getFullPathName());
             juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon, "Project Downloaded",
@@ -1608,7 +1607,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
     }
 
     // Fetch and display the remix chain
-    networkClient->getRemixChain(post.id, [postId = post.id](Outcome<juce::var> result) {
+    networkClient->getRemixChain(post.id, [postId = post.id](Outcome<nlohmann::json> result) {
       juce::MessageManager::callAsync([result, postId]() {
         if (!result.isOk()) {
           Log::warn("PostsFeed: Failed to fetch remix chain: " + result.getError());
@@ -1618,23 +1617,23 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
         }
 
         auto data = result.getValue();
-        auto chain = data["chain"];
-        int totalDepth = Json::getInt(data, "total_depth", 0);
-
-        if (!chain.isArray() || chain.size() == 0) {
+        if (!data.contains("chain") || !data["chain"].is_array() || data["chain"].empty()) {
           Log::debug("PostsFeed: Remix chain is empty for post: " + postId);
           return;
         }
 
+        auto chain = data["chain"];
+        int totalDepth = data.value("total_depth", 0);
+
         // Build a visual representation of the remix chain
         juce::String chainText = "Remix Chain (depth " + juce::String(totalDepth) + "):\n\n";
 
-        for (int i = 0; i < chain.size(); ++i) {
+        for (size_t i = 0; i < chain.size(); ++i) {
           auto item = chain[i];
-          juce::String itemType = Json::getString(item, "type");
-          juce::String itemUsername = Json::getString(item, "username");
-          bool isCurrent = Json::getBool(item, "is_current");
-          int depth = Json::getInt(item, "depth", 0);
+          juce::String itemType = juce::String(item.value("type", "").c_str());
+          juce::String itemUsername = juce::String(item.value("username", "").c_str());
+          bool isCurrent = item.value("is_current", false);
+          int depth = item.value("depth", 0);
 
           // Indent based on depth
           juce::String indent = "";

@@ -3,6 +3,7 @@
 #include "../../stores/AppStore.h"
 #include "../../util/Log.h"
 #include "../feed/PostCard.h"
+#include <nlohmann/json.hpp>
 
 // Local color aliases for this component
 namespace {
@@ -253,7 +254,7 @@ void SavedPosts::fetchSavedPosts() {
   isLoading = true;
   repaint();
 
-  networkClient->getSavedPosts(PAGE_SIZE, currentOffset, [this](Outcome<juce::var> result) {
+  networkClient->getSavedPosts(PAGE_SIZE, currentOffset, [this](Outcome<nlohmann::json> result) {
     isLoading = false;
 
     if (result.isError()) {
@@ -264,15 +265,11 @@ void SavedPosts::fetchSavedPosts() {
     }
 
     auto data = result.getValue();
-    auto postsArray = data["posts"];
 
-    if (postsArray.isArray()) {
-      for (int i = 0; i < postsArray.size(); ++i) {
-        auto postData = postsArray[i];
+    if (data.contains("posts") && data["posts"].is_array()) {
+      for (const auto &postData : data["posts"]) {
         try {
-          auto jsonStr = juce::JSON::toString(postData);
-          auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
-          auto postResult = Sidechain::SerializableModel<Sidechain::FeedPost>::createFromJson(jsonObj);
+          auto postResult = Sidechain::SerializableModel<Sidechain::FeedPost>::createFromJson(postData);
           if (postResult.isOk()) {
             auto post = *postResult.getValue();
             if (post.isValid()) {
@@ -286,7 +283,7 @@ void SavedPosts::fetchSavedPosts() {
     }
 
     // Check for more results
-    hasMore = data["has_more"].operator bool();
+    hasMore = data.value("has_more", false);
     currentOffset = savedPosts.size();
 
     Log::debug("SavedPosts: Loaded " + juce::String(savedPosts.size()) +
