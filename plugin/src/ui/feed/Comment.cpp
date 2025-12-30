@@ -451,24 +451,17 @@ void CommentsPanel::loadMoreComments() {
 
   auto &appStoreRef = AppStore::getInstance();
   juce::Component::SafePointer<CommentsPanel> safeThis(this);
-  appStoreRef.getCommentsObservable(currentPostId, 20, currentOffset)
+  appStoreRef.loadCommentsObservable(currentPostId, 20, currentOffset)
       .subscribe(
-          [safeThis](const juce::Array<juce::var> &commentsArray) {
+          [safeThis](const std::vector<Sidechain::Comment> &commentsVec) {
             if (safeThis == nullptr)
               return;
             safeThis->isLoading = false;
 
-            if (commentsArray.size() > 0) {
-              for (const auto &item : commentsArray) {
-                try {
-                  auto json = nlohmann::json::parse(item.toString().toStdString());
-                  auto normalized = EntityStore::getInstance().normalizeComment(json);
-                  if (normalized) {
-                    safeThis->comments.push_back(normalized);
-                  }
-                } catch (const std::exception &e) {
-                  Sidechain::Util::logError("CommentsPanel", "Failed to parse comment: " + juce::String(e.what()));
-                }
+            if (!commentsVec.empty()) {
+              for (const auto &comment : commentsVec) {
+                // Create shared_ptr from value type
+                safeThis->comments.push_back(std::make_shared<Sidechain::Comment>(comment));
               }
 
               safeThis->totalCommentCount = (int)safeThis->comments.size();
