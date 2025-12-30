@@ -3,12 +3,14 @@
 // Part of NetworkClient implementation split
 // ==============================================================================
 
+#include "../../models/FeedPost.h"
 #include "../../util/Async.h"
 #include "../../util/Constants.h"
 #include "../../util/Log.h"
 #include "../../util/rx/JuceScheduler.h"
 #include "../NetworkClient.h"
 #include "Common.h"
+#include <nlohmann/json.hpp>
 #include <rxcpp/rx.hpp>
 
 using namespace Sidechain::Network::Api;
@@ -123,8 +125,10 @@ void NetworkClient::getSearchSuggestions(const juce::String &query, int limit, R
 // Reactive Observable Methods (Phase 5)
 // ==============================================================================
 
-rxcpp::observable<juce::var> NetworkClient::searchPostsObservable(const juce::String &query, int limit, int offset) {
-  auto source = rxcpp::sources::create<juce::var>([this, query, limit, offset](auto observer) {
+rxcpp::observable<std::vector<Sidechain::FeedPost>> NetworkClient::searchPostsObservable(const juce::String &query,
+                                                                                         int limit, int offset) {
+  using ResultType = std::vector<Sidechain::FeedPost>;
+  auto source = rxcpp::sources::create<ResultType>([this, query, limit, offset](auto observer) {
     // Build query string
     juce::String encodedQuery = juce::URL::addEscapeChars(query, true);
     juce::String endpoint = buildApiPath("/search/posts") + "?q=" + encodedQuery + "&limit=" + juce::String(limit) +
@@ -136,7 +140,30 @@ rxcpp::observable<juce::var> NetworkClient::searchPostsObservable(const juce::St
       juce::MessageManager::callAsync([result, observer]() {
         auto outcome = requestResultToOutcome(result);
         if (outcome.isOk()) {
-          observer.on_next(outcome.getValue());
+          ResultType posts;
+          auto data = outcome.getValue();
+          // Parse posts array - check for "posts" or "results" field, or direct array
+          juce::var postsArray = data;
+          if (data.hasProperty("posts")) {
+            postsArray = data["posts"];
+          } else if (data.hasProperty("results")) {
+            postsArray = data["results"];
+          }
+
+          if (postsArray.isArray()) {
+            for (int i = 0; i < postsArray.size(); ++i) {
+              try {
+                auto jsonStr = juce::JSON::toString(postsArray[i]);
+                auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+                Sidechain::FeedPost post;
+                from_json(jsonObj, post);
+                posts.push_back(std::move(post));
+              } catch (const std::exception &e) {
+                Log::warn("NetworkClient: Failed to parse search post: " + juce::String(e.what()));
+              }
+            }
+          }
+          observer.on_next(std::move(posts));
           observer.on_completed();
         } else {
           observer.on_error(std::make_exception_ptr(std::runtime_error(outcome.getError().toStdString())));

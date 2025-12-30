@@ -3,6 +3,7 @@
 // Part of NetworkClient implementation split
 // ==============================================================================
 
+#include "../../models/FeedPost.h"
 #include "../../util/Async.h"
 #include "../../util/Constants.h"
 #include "../../util/Json.h"
@@ -10,6 +11,7 @@
 #include "../../util/rx/JuceScheduler.h"
 #include "../NetworkClient.h"
 #include "Common.h"
+#include <nlohmann/json.hpp>
 #include <rxcpp/rx.hpp>
 
 using namespace Sidechain::Network::Api;
@@ -776,8 +778,9 @@ rxcpp::observable<int> NetworkClient::unsavePostObservable(const juce::String &p
   return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
 }
 
-rxcpp::observable<juce::var> NetworkClient::getSavedPostsObservable(int limit, int offset) {
-  auto source = rxcpp::sources::create<juce::var>([this, limit, offset](auto observer) {
+rxcpp::observable<std::vector<Sidechain::FeedPost>> NetworkClient::getSavedPostsObservable(int limit, int offset) {
+  using ResultType = std::vector<Sidechain::FeedPost>;
+  auto source = rxcpp::sources::create<ResultType>([this, limit, offset](auto observer) {
     if (!isAuthenticated()) {
       observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
       return;
@@ -785,7 +788,30 @@ rxcpp::observable<juce::var> NetworkClient::getSavedPostsObservable(int limit, i
 
     getSavedPosts(limit, offset, [observer](Outcome<juce::var> result) {
       if (result.isOk()) {
-        observer.on_next(result.getValue());
+        ResultType posts;
+        auto data = result.getValue();
+        // Parse posts array - check for "posts" or "saved" field, or direct array
+        juce::var postsArray = data;
+        if (data.hasProperty("posts")) {
+          postsArray = data["posts"];
+        } else if (data.hasProperty("saved")) {
+          postsArray = data["saved"];
+        }
+
+        if (postsArray.isArray()) {
+          for (int i = 0; i < postsArray.size(); ++i) {
+            try {
+              auto jsonStr = juce::JSON::toString(postsArray[i]);
+              auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+              Sidechain::FeedPost post;
+              from_json(jsonObj, post);
+              posts.push_back(std::move(post));
+            } catch (const std::exception &e) {
+              Log::warn("NetworkClient: Failed to parse saved post: " + juce::String(e.what()));
+            }
+          }
+        }
+        observer.on_next(std::move(posts));
         observer.on_completed();
       } else {
         observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
@@ -836,8 +862,9 @@ rxcpp::observable<int> NetworkClient::undoRepostObservable(const juce::String &p
   return Sidechain::Rx::retryWithBackoff(source.as_dynamic()).observe_on(Sidechain::Rx::observe_on_juce_thread());
 }
 
-rxcpp::observable<juce::var> NetworkClient::getArchivedPostsObservable(int limit, int offset) {
-  auto source = rxcpp::sources::create<juce::var>([this, limit, offset](auto observer) {
+rxcpp::observable<std::vector<Sidechain::FeedPost>> NetworkClient::getArchivedPostsObservable(int limit, int offset) {
+  using ResultType = std::vector<Sidechain::FeedPost>;
+  auto source = rxcpp::sources::create<ResultType>([this, limit, offset](auto observer) {
     if (!isAuthenticated()) {
       observer.on_error(std::make_exception_ptr(std::runtime_error(Constants::Errors::NOT_AUTHENTICATED)));
       return;
@@ -845,7 +872,30 @@ rxcpp::observable<juce::var> NetworkClient::getArchivedPostsObservable(int limit
 
     getArchivedPosts(limit, offset, [observer](Outcome<juce::var> result) {
       if (result.isOk()) {
-        observer.on_next(result.getValue());
+        ResultType posts;
+        auto data = result.getValue();
+        // Parse posts array - check for "posts" or "archived" field, or direct array
+        juce::var postsArray = data;
+        if (data.hasProperty("posts")) {
+          postsArray = data["posts"];
+        } else if (data.hasProperty("archived")) {
+          postsArray = data["archived"];
+        }
+
+        if (postsArray.isArray()) {
+          for (int i = 0; i < postsArray.size(); ++i) {
+            try {
+              auto jsonStr = juce::JSON::toString(postsArray[i]);
+              auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
+              Sidechain::FeedPost post;
+              from_json(jsonObj, post);
+              posts.push_back(std::move(post));
+            } catch (const std::exception &e) {
+              Log::warn("NetworkClient: Failed to parse archived post: " + juce::String(e.what()));
+            }
+          }
+        }
+        observer.on_next(std::move(posts));
         observer.on_completed();
       } else {
         observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));

@@ -560,9 +560,10 @@ public:
    * @param query Search query string
    * @param limit Maximum number of results
    * @param offset Pagination offset
-   * @return Observable that emits search results on JUCE message thread
+   * @return Observable that emits typed FeedPost vector on JUCE message thread
    */
-  rxcpp::observable<juce::var> searchPostsObservable(const juce::String &query, int limit = 20, int offset = 0);
+  rxcpp::observable<std::vector<Sidechain::FeedPost>> searchPostsObservable(const juce::String &query, int limit = 20,
+                                                                            int offset = 0);
 
   /** Search users as an observable
    * @param query Search query string
@@ -690,9 +691,9 @@ public:
   /** Get saved posts as an observable
    * @param limit Number of posts to fetch
    * @param offset Pagination offset
-   * @return Observable that emits saved posts data
+   * @return Observable that emits typed FeedPost vector
    */
-  rxcpp::observable<juce::var> getSavedPostsObservable(int limit = 20, int offset = 0);
+  rxcpp::observable<std::vector<Sidechain::FeedPost>> getSavedPostsObservable(int limit = 20, int offset = 0);
 
   /** Repost a post as an observable
    * @param postId The post ID to repost
@@ -710,9 +711,9 @@ public:
   /** Get archived posts as an observable
    * @param limit Number of posts to fetch
    * @param offset Pagination offset
-   * @return Observable that emits archived posts data
+   * @return Observable that emits typed FeedPost vector
    */
-  rxcpp::observable<juce::var> getArchivedPostsObservable(int limit = 20, int offset = 0);
+  rxcpp::observable<std::vector<Sidechain::FeedPost>> getArchivedPostsObservable(int limit = 20, int offset = 0);
 
   /** Unarchive a post as an observable
    * @param postId The post ID to unarchive

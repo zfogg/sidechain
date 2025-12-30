@@ -143,13 +143,35 @@ void AppStore::loadSavedPosts() {
   stateManager.posts->setState(loadingState);
 
   networkClient->getSavedPostsObservable(20, 0).subscribe(
-      [this](const juce::var &data) { handleSavedPostsLoaded(Outcome<juce::var>::ok(data)); },
+      [this](const std::vector<FeedPost> &posts) {
+        // Convert to shared_ptr for state
+        std::vector<std::shared_ptr<FeedPost>> postList;
+        postList.reserve(posts.size());
+        for (const auto &p : posts) {
+          postList.push_back(std::make_shared<FeedPost>(p));
+        }
+
+        PostsState state = stateManager.posts->getState();
+        state.savedPosts.posts = std::move(postList);
+        state.savedPosts.isLoading = false;
+        state.savedPosts.hasMore = posts.size() >= 20;
+        state.savedPosts.offset = static_cast<int>(posts.size());
+        state.savedPosts.error = "";
+        stateManager.posts->setState(state);
+        Util::logInfo("AppStore", "Loaded " + juce::String(static_cast<int>(posts.size())) + " saved posts");
+      },
       [this](std::exception_ptr ep) {
+        juce::String errorMsg;
         try {
           std::rethrow_exception(ep);
         } catch (const std::exception &e) {
-          handleSavedPostsLoaded(Outcome<juce::var>::error(juce::String(e.what())));
+          errorMsg = e.what();
         }
+        PostsState state = stateManager.posts->getState();
+        state.savedPosts.isLoading = false;
+        state.savedPosts.error = errorMsg;
+        stateManager.posts->setState(state);
+        Util::logError("AppStore", "Failed to load saved posts: " + errorMsg);
       });
 }
 
@@ -166,14 +188,33 @@ void AppStore::loadMoreSavedPosts() {
   stateManager.posts->setState(loadingState);
 
   networkClient->getSavedPostsObservable(currentState.savedPosts.limit, currentState.savedPosts.offset)
-      .subscribe([this](const juce::var &data) { handleSavedPostsLoaded(Outcome<juce::var>::ok(data)); },
-                 [this](std::exception_ptr ep) {
-                   try {
-                     std::rethrow_exception(ep);
-                   } catch (const std::exception &e) {
-                     handleSavedPostsLoaded(Outcome<juce::var>::error(juce::String(e.what())));
-                   }
-                 });
+      .subscribe(
+          [this](const std::vector<FeedPost> &posts) {
+            // Convert to shared_ptr and append to existing
+            PostsState state = stateManager.posts->getState();
+            for (const auto &p : posts) {
+              state.savedPosts.posts.push_back(std::make_shared<FeedPost>(p));
+            }
+            state.savedPosts.isLoading = false;
+            state.savedPosts.hasMore = posts.size() >= static_cast<size_t>(state.savedPosts.limit);
+            state.savedPosts.offset += static_cast<int>(posts.size());
+            state.savedPosts.error = "";
+            stateManager.posts->setState(state);
+            Util::logInfo("AppStore", "Loaded " + juce::String(static_cast<int>(posts.size())) + " more saved posts");
+          },
+          [this](std::exception_ptr ep) {
+            juce::String errorMsg;
+            try {
+              std::rethrow_exception(ep);
+            } catch (const std::exception &e) {
+              errorMsg = e.what();
+            }
+            PostsState state = stateManager.posts->getState();
+            state.savedPosts.isLoading = false;
+            state.savedPosts.error = errorMsg;
+            stateManager.posts->setState(state);
+            Util::logError("AppStore", "Failed to load more saved posts: " + errorMsg);
+          });
 }
 
 void AppStore::unsavePost(const juce::String &postId) {
@@ -227,13 +268,35 @@ void AppStore::loadArchivedPosts() {
   stateManager.posts->setState(loadingState);
 
   networkClient->getArchivedPostsObservable(20, 0).subscribe(
-      [this](const juce::var &data) { handleArchivedPostsLoaded(Outcome<juce::var>::ok(data)); },
+      [this](const std::vector<FeedPost> &posts) {
+        // Convert to shared_ptr for state
+        std::vector<std::shared_ptr<FeedPost>> postList;
+        postList.reserve(posts.size());
+        for (const auto &p : posts) {
+          postList.push_back(std::make_shared<FeedPost>(p));
+        }
+
+        PostsState state = stateManager.posts->getState();
+        state.archivedPosts.posts = std::move(postList);
+        state.archivedPosts.isLoading = false;
+        state.archivedPosts.hasMore = posts.size() >= 20;
+        state.archivedPosts.offset = static_cast<int>(posts.size());
+        state.archivedPosts.error = "";
+        stateManager.posts->setState(state);
+        Util::logInfo("AppStore", "Loaded " + juce::String(static_cast<int>(posts.size())) + " archived posts");
+      },
       [this](std::exception_ptr ep) {
+        juce::String errorMsg;
         try {
           std::rethrow_exception(ep);
         } catch (const std::exception &e) {
-          handleArchivedPostsLoaded(Outcome<juce::var>::error(juce::String(e.what())));
+          errorMsg = e.what();
         }
+        PostsState state = stateManager.posts->getState();
+        state.archivedPosts.isLoading = false;
+        state.archivedPosts.error = errorMsg;
+        stateManager.posts->setState(state);
+        Util::logError("AppStore", "Failed to load archived posts: " + errorMsg);
       });
 }
 
@@ -250,59 +313,35 @@ void AppStore::loadMoreArchivedPosts() {
   stateManager.posts->setState(loadingState);
 
   // Fetch archived posts from NetworkClient
-  // Note: offset field already represents how many posts have been loaded,
-  // so we use it directly without adding posts.size() again
   int offset = currentState.archivedPosts.offset;
   networkClient->getArchivedPostsObservable(20, offset)
       .subscribe(
-          [this, offset](const juce::var &data) {
-            // Parse the response
-            if (!data.isArray()) {
-              Util::logError("AppStore", "Invalid archived posts response format");
-              PostsState errorState = stateManager.posts->getState();
-              errorState.archivedPosts.isLoading = false;
-              stateManager.posts->setState(errorState);
-              return;
+          [this](const std::vector<FeedPost> &posts) {
+            // Convert to shared_ptr and append to existing
+            PostsState state = stateManager.posts->getState();
+            for (const auto &p : posts) {
+              state.archivedPosts.posts.push_back(std::make_shared<FeedPost>(p));
             }
-
-            // Update state with fetched archived posts
-            PostsState newState = stateManager.posts->getState();
-            newState.archivedPosts.isLoading = false;
-
-            // Parse each archived post from the response
-            for (int i = 0; i < data.size(); ++i) {
-              try {
-                // Convert juce::var to nlohmann::json
-                auto jsonStr = juce::JSON::toString(data[i]);
-                auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
-
-                // Use new SerializableModel API
-                auto postResult = Sidechain::SerializableModel<FeedPost>::createFromJson(jsonObj);
-                if (postResult.isOk()) {
-                  newState.archivedPosts.posts.push_back(postResult.getValue());
-                }
-              } catch (...) {
-                // Skip invalid posts
-              }
-            }
-
-            // Update pagination info
-            newState.archivedPosts.offset = offset;
-            newState.archivedPosts.hasMore = (data.size() >= 20); // Has more if got full page
-
-            stateManager.posts->setState(newState);
-            Util::logDebug("AppStore", "Loaded " + juce::String(data.size()) + " archived posts");
+            state.archivedPosts.isLoading = false;
+            state.archivedPosts.hasMore = posts.size() >= 20;
+            state.archivedPosts.offset += static_cast<int>(posts.size());
+            state.archivedPosts.error = "";
+            stateManager.posts->setState(state);
+            Util::logInfo("AppStore",
+                          "Loaded " + juce::String(static_cast<int>(posts.size())) + " more archived posts");
           },
           [this](std::exception_ptr ep) {
+            juce::String errorMsg;
             try {
               std::rethrow_exception(ep);
             } catch (const std::exception &e) {
-              Util::logError("AppStore", "Failed to load archived posts: " + juce::String(e.what()));
-              PostsState errorState = stateManager.posts->getState();
-              errorState.archivedPosts.isLoading = false;
-              errorState.archivedPosts.error = juce::String(e.what());
-              stateManager.posts->setState(errorState);
+              errorMsg = e.what();
             }
+            PostsState state = stateManager.posts->getState();
+            state.archivedPosts.isLoading = false;
+            state.archivedPosts.error = errorMsg;
+            stateManager.posts->setState(state);
+            Util::logError("AppStore", "Failed to load more archived posts: " + errorMsg);
           });
 }
 
