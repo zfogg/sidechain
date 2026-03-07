@@ -6,9 +6,7 @@ services:
     container_name: sidechain-caddy
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
+      - "8080:8080"
     environment:
       - DOMAIN=${DOMAIN:-example.com}
       - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL:-hi@sidechain.live}
