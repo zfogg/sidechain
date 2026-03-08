@@ -16,7 +16,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -mod=mod -ldflags="-s -w" -o server ./cmd/
 # Runtime stage
 FROM alpine:3.19
 
-RUN apk add --no-cache ca-certificates tzdata ffmpeg \
+RUN apk add --no-cache ca-certificates tzdata ffmpeg curl \
     && adduser -D -g '' appuser
 
 WORKDIR /app
@@ -29,7 +29,7 @@ USER appuser
 
 EXPOSE 8787
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8787/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=5 \
+    CMD curl -f http://localhost:8787/health || exit 1
 
 CMD ["./server"]
