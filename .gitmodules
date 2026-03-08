@@ -3,16 +3,16 @@
 	url = https://github.com/mixxxdj/libkeyfinder.git
 [submodule "deps/websocketpp"]
 	path = deps/websocketpp
-	url = git@github.com:zfogg/websocketpp.git
+	url = https://github.com/zfogg/websocketpp.git
 [submodule "deps/asio"]
 	path = deps/asio
-	url = git@github.com:chriskohlhoff/asio.git
+	url = https://github.com/chriskohlhoff/asio.git
 [submodule "deps/RxCpp"]
 	path = deps/RxCpp
-	url = git@github.com:zfogg/RxCpp.git
+	url = https://github.com/zfogg/RxCpp.git
 [submodule "deps/uuid"]
 	path = deps/uuid
 	url = https://github.com/mariusbancila/stduuid.git
 [submodule "deps/json"]
 	path = deps/json
-	url = git@github.com:nlohmann/json.git
+	url = https://github.com/nlohmann/json.git
