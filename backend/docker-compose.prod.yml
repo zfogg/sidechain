@@ -251,7 +251,10 @@ services:
       - sidechain
 
   prometheus:
-    image: prom/prometheus:latest
+    image: zfogg/sidechain-prometheus:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.prometheus
     container_name: sidechain-prometheus
     restart: unless-stopped
     cpus: 0.25
@@ -260,7 +263,6 @@ services:
     expose:
       - "9090"
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
