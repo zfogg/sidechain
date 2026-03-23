@@ -1,15 +1,10 @@
-version: "3.8"
-
 services:
   caddy:
     image: caddy:2-alpine
     container_name: sidechain-caddy
     restart: unless-stopped
     ports:
-      - "8080:8080"
-    environment:
-      - DOMAIN=${DOMAIN:-example.com}
-      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL:-hi@sidechain.live}
+      - "8290:8080"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
@@ -19,10 +14,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
+          cpus: "0.5"
           memory: 128M
         reservations:
-          cpus: '0.25'
+          cpus: "0.25"
           memory: 64M
     networks:
       - sidechain
@@ -39,11 +34,63 @@ services:
     mem_limit: 1g
     memswap_limit: 1g
     env_file: ./.env
-    volumes: !reset []
     command: ["./server"]
     environment:
       - ELASTICSEARCH_URL=${ELASTICSEARCH_URL:-http://elasticsearch:9200}
       - AUDIO_ANALYSIS_URL=${AUDIO_ANALYSIS_URL:-http://audio-analysis:8090}
+      # Production Environment Configuration
+      - GF_ADMIN_USER=${GF_ADMIN_USER:-admin}
+      - GF_ADMIN_PASSWORD=${GF_ADMIN_PASSWORD:-CHANGE_IN_PRODUCTION}
+      - GF_SERVER_ROOT_URL=${GF_SERVER_ROOT_URL:-https://grafana.sidechain.live/}
+
+      - GF_SMTP_ENABLED=${GF_SMTP_ENABLED:-false}
+      - GF_SMTP_HOST=${GF_SMTP_HOST:-smtp.example.com}
+      - GF_SMTP_PORT=${GF_SMTP_PORT:-587}
+      - GF_SMTP_USER=${GF_SMTP_USER:-alerts@sidechain.live}
+      - GF_SMTP_PASSWORD=${GF_SMTP_PASSWORD:-CHANGE_IN_PRODUCTION}
+      - GF_SMTP_FROM_ADDRESS=${GF_SMTP_FROM_ADDRESS:-alerts@sidechain.live}
+
+      - POSTGRES_USER=${POSTGRES_USER:-sidechain}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-CHANGE_IN_PRODUCTION}
+      - POSTGRES_DB=${POSTGRES_DB:-sidechain}
+      - DATABASE_URL=${DATABASE_URL:-postgres://sidechain:PASSWORD_HERE@postgres:5432/sidechain_prod?sslmode=require}
+
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-CHANGE_IN_PRODUCTION}
+
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - PORT=${PORT:-8787}
+      - HOST=${HOST:-0.0.0.0}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_FILE=${LOG_FILE:-/var/log/sidechain/server.log}
+
+      - JWT_SECRET=${JWT_SECRET:-GENERATE_SECURE_JWT_SECRET_HERE}
+      - CORS_ORIGINS=${CORS_ORIGINS:-https://sidechain.live,https://www.sidechain.live}
+
+      - STREAM_API_KEY=${STREAM_API_KEY:-CHANGEME}
+      - STREAM_API_SECRET=${STREAM_API_SECRET:-CHANGEME_SECRET}
+
+      - GORSE_URL=${GORSE_URL:-http://gorse:8088}
+      - GORSE_API_KEY=${GORSE_API_KEY:-sidechain_gorse_api_key}
+
+      - STORAGE_PROVIDER=${STORAGE_PROVIDER:-s3}
+      - AWS_REGION=${AWS_REGION:-us-west-2}
+      - AWS_BUCKET=${AWS_BUCKET:-sidechain-prod-media}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-AKIAIOSFODNN7EXAMPLE}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY}
+      - CDN_BASE_URL=${CDN_BASE_URL:-https://cdn.sidechain.live}
+
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-123456}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-hunter2}
+      - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID:-123456}
+      - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET:-hunter2}
+      - OAUTH_REDIRECT_URL=${OAUTH_REDIRECT_URL:-https://sidechain.live/auth/callback}
+
+      - SES_FROM_EMAIL=${SES_FROM_EMAIL:-noreply@sidechain.live}
+      - SES_FROM_NAME=${SES_FROM_NAME:-Sidechain}
+      - BASE_URL=${BASE_URL:-https://sidechain.live}
+
     depends_on:
       postgres:
         condition: service_healthy
@@ -57,7 +104,11 @@ services:
         condition: service_healthy
 
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8787/health || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget --no-verbose --tries=1 --spider http://localhost:8787/health || exit 1",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -135,7 +186,8 @@ services:
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      test:
+        ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
       interval: 15s
       timeout: 10s
       retries: 10
@@ -171,7 +223,11 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "timeout 1 bash -c '</dev/tcp/localhost/8088' 2>/dev/null"]
+      test:
+        [
+          "CMD-SHELL",
+          "timeout 1 bash -c '</dev/tcp/localhost/8088' 2>/dev/null",
+        ]
       interval: 5s
       timeout: 3s
       retries: 5
@@ -209,11 +265,19 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention.time=7d'
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=7d"
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:9090/-/healthy",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -251,7 +315,15 @@ services:
     depends_on:
       - prometheus
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3000/api/health",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
