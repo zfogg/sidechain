@@ -4,6 +4,7 @@
 #include "../util/rx/JuceScheduler.h"
 #include "NetworkClient.h"
 #include <JuceHeader.h>
+#include <nlohmann/json.hpp>
 #include <atomic>
 #include <functional>
 #include <memory>
@@ -83,11 +84,11 @@ public:
     juce::String id;            // /< Unique channel identifier
     juce::String type;          // /< Channel type ("messaging" or "team")
     juce::String name;          // /< Channel display name
-    juce::var members;          // /< Array of member objects
-    juce::var lastMessage;      // /< Last message in the channel
+    nlohmann::json members;     // /< Array of member objects
+    nlohmann::json lastMessage; // /< Last message in the channel
     int unreadCount = 0;        // /< Number of unread messages
     juce::String lastMessageAt; // /< Timestamp of last message
-    juce::var extraData;        // /< Additional channel metadata
+    nlohmann::json extraData;   // /< Additional channel metadata
 
     // Equality comparison (required for RxCpp)
     bool operator==(const Channel &other) const {
@@ -100,14 +101,14 @@ public:
 
   /** Chat message information */
   struct Message {
-    juce::String id;        // /< Unique message identifier
-    juce::String text;      // /< Message text content
-    juce::String userId;    // /< ID of the message author
-    juce::String userName;  // /< Display name of the message author
-    juce::String createdAt; // /< Message creation timestamp
-    juce::var reactions;    // /< Message reactions (emoji, etc.)
-    juce::var extraData;    // /< Additional data (audio_url, reply_to, etc.)
-    bool isDeleted = false; // /< Whether the message has been deleted
+    juce::String id;          // /< Unique message identifier
+    juce::String text;        // /< Message text content
+    juce::String userId;      // /< ID of the message author
+    juce::String userName;    // /< Display name of the message author
+    juce::String createdAt;   // /< Message creation timestamp
+    nlohmann::json reactions; // /< Message reactions (emoji, etc.)
+    nlohmann::json extraData; // /< Additional data (audio_url, reply_to, etc.)
+    bool isDeleted = false;   // /< Whether the message has been deleted
 
     // Equality comparison (required for RxCpp)
     bool operator==(const Message &other) const {
@@ -298,7 +299,7 @@ public:
    * @param callback Called with updated channel or error
    */
   void updateChannel(const juce::String &channelType, const juce::String &channelId, const juce::String &name,
-                     const juce::var &extraData, std::function<void(Outcome<Channel>)> callback);
+                     const nlohmann::json &extraData, std::function<void(Outcome<Channel>)> callback);
 
   // ==========================================================================
   // Message Operations (REST API)
@@ -314,7 +315,7 @@ public:
    */
   [[deprecated("Use sendMessageObservable() instead")]]
   void sendMessage(const juce::String &channelType, const juce::String &channelId, const juce::String &text,
-                   const juce::var &extraData, MessageCallback callback);
+                   const nlohmann::json &extraData, MessageCallback callback);
 
   /** Query messages from a channel
    * @deprecated Use queryMessagesObservable() instead
@@ -415,7 +416,7 @@ public:
    * @deprecated Use searchMessagesObservable() instead
    */
   [[deprecated("Use searchMessagesObservable() instead")]]
-  void searchMessages(const juce::String &query, const juce::var &channelFilters, int limit, int offset,
+  void searchMessages(const juce::String &query, const nlohmann::json &channelFilters, int limit, int offset,
                       MessagesCallback callback);
 
   // ==========================================================================
@@ -435,19 +436,19 @@ public:
    * @param extraData Additional user data
    * @param callback Called with result or error
    */
-  void updateStatus(const juce::String &status, const juce::var &extraData,
+  void updateStatus(const juce::String &status, const nlohmann::json &extraData,
                     std::function<void(Outcome<void>)> callback);
 
   /** Upsert user data to GetStream.io (for presence updates)
    * @param userData User data including id, name, status, invisible flag
    * @param callback Called with result or error
    */
-  void upsertUser(std::shared_ptr<juce::DynamicObject> userData, std::function<void(Outcome<juce::var>)> callback);
+  void upsertUser(const nlohmann::json &userData, std::function<void(Outcome<nlohmann::json>)> callback);
 
   /** Subscribe to presence change events from GetStream.io
    * @param callback Called whenever a presence event occurs (user comes online/offline)
    */
-  void subscribeToPresenceEvents(std::function<void(const juce::var &event)> callback);
+  void subscribeToPresenceEvents(std::function<void(const nlohmann::json &event)> callback);
 
   // ==========================================================================
   // Real-time Updates (Polling-based until WebSocket is fixed)
@@ -587,7 +588,8 @@ public:
    * @return Observable that emits the sent Message
    */
   rxcpp::observable<Message> sendMessageObservable(const juce::String &channelType, const juce::String &channelId,
-                                                   const juce::String &text, const juce::var &extraData = juce::var());
+                                                   const juce::String &text,
+                                                   const nlohmann::json &extraData = nlohmann::json());
 
   /**
    * Search messages with reactive observable pattern.
@@ -597,9 +599,9 @@ public:
    * @param offset Pagination offset (default 0)
    * @return Observable that emits vector of Message
    */
-  rxcpp::observable<std::vector<Message>> searchMessagesObservable(const juce::String &query,
-                                                                   const juce::var &channelFilters = juce::var(),
-                                                                   int limit = 20, int offset = 0);
+  rxcpp::observable<std::vector<Message>>
+  searchMessagesObservable(const juce::String &query, const nlohmann::json &channelFilters = nlohmann::json(),
+                           int limit = 20, int offset = 0);
 
   //
   // Presence Operations
@@ -750,11 +752,11 @@ private:
     return "https://chat.stream-io-api.com";
   }
   juce::String buildAuthHeaders() const;
-  juce::var makeStreamRequest(const juce::String &endpoint, const juce::String &method,
-                              const juce::var &data = juce::var());
+  nlohmann::json makeStreamRequest(const juce::String &endpoint, const juce::String &method,
+                                   const nlohmann::json &data = nlohmann::json());
   void updateConnectionStatus(ConnectionStatus status);
   void handleWebSocketMessage(const juce::String &message);
-  void parseWebSocketEvent(const juce::var &event);
+  void parseWebSocketEvent(const nlohmann::json &event);
 
   // WebSocket event handlers (websocketpp callbacks)
   void onWsOpen(connection_hdl hdl);
@@ -767,7 +769,7 @@ private:
   juce::String generateDirectChannelId(const juce::String &userId1, const juce::String &userId2);
 
   // Parsing helpers
-  Channel parseChannel(const juce::var &channelData);
-  Message parseMessage(const juce::var &messageData);
-  UserPresence parsePresence(const juce::var &userData);
+  Channel parseChannel(const nlohmann::json &channelData);
+  Message parseMessage(const nlohmann::json &messageData);
+  UserPresence parsePresence(const nlohmann::json &userData);
 };

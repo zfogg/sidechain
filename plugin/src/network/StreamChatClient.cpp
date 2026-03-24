@@ -91,11 +91,11 @@ juce::String StreamChatClient::buildAuthHeaders() const {
   return headers;
 }
 
-juce::var StreamChatClient::makeStreamRequest(const juce::String &endpoint, const juce::String &method,
-                                              const juce::var &data) {
+nlohmann::json StreamChatClient::makeStreamRequest(const juce::String &endpoint, const juce::String &method,
+                                                   const nlohmann::json &data) {
   if (!isAuthenticated()) {
     Log::warn("StreamChatClient: Not authenticated, cannot make request");
-    return juce::var();
+    return nlohmann::json();
   }
 
   // Debug authentication
@@ -118,8 +118,8 @@ juce::var StreamChatClient::makeStreamRequest(const juce::String &endpoint, cons
 
   // For POST/PUT/DELETE, include request body
   if (method == "POST" || method == "PUT" || method == "DELETE") {
-    if (!data.isVoid()) {
-      juce::String jsonString = juce::JSON::toString(data, true);
+    if (!data.is_null()) {
+      juce::String jsonString = juce::String(data.dump());
       Log::debug("StreamChatClient: " + method + " data: " + jsonString);
 
       // Use MemoryBlock like NetworkClient does
@@ -138,12 +138,18 @@ juce::var StreamChatClient::makeStreamRequest(const juce::String &endpoint, cons
 
   if (stream == nullptr) {
     Log::error("StreamChatClient: Request failed - " + endpoint);
-    return juce::var();
+    return nlohmann::json();
   }
 
   auto response = stream->readEntireStreamAsString();
   Log::debug("StreamChatClient: Response: " + response);
-  return juce::JSON::parse(response);
+
+  try {
+    return nlohmann::json::parse(response.toStdString());
+  } catch (const nlohmann::json::parse_error &e) {
+    Log::error("StreamChatClient: JSON parse error - " + juce::String(e.what()));
+    return nlohmann::json();
+  }
 }
 
 // ==============================================================================
@@ -163,37 +169,36 @@ void StreamChatClient::createDirectChannel(const juce::String &targetUserId,
         // channel
         juce::String endpoint = "/channels/messaging/" + channelId + "/query";
 
-        juce::var requestData = juce::var(new juce::DynamicObject());
-        auto *obj = requestData.getDynamicObject();
+        nlohmann::json requestData = nlohmann::json::object();
 
         // Build members as an OBJECT (not array): {"user_id": {}, "user_id":
         // {}} Stream.io API expects members field to be an object
-        juce::var members = juce::var(new juce::DynamicObject());
-        members.getDynamicObject()->setProperty(currentUserId, juce::var(new juce::DynamicObject()));
-        members.getDynamicObject()->setProperty(targetUserId, juce::var(new juce::DynamicObject()));
+        nlohmann::json members = nlohmann::json::object();
+        members[currentUserId.toStdString()] = nlohmann::json::object();
+        members[targetUserId.toStdString()] = nlohmann::json::object();
 
-        obj->setProperty("members", members);
-        obj->setProperty("created_by_id", currentUserId);
+        requestData["members"] = members;
+        requestData["created_by_id"] = currentUserId.toStdString();
 
         Log::debug("StreamChatClient: Creating direct channel with " + targetUserId + ", channel ID: " + channelId);
-        Log::debug("StreamChatClient: Request data - " + juce::JSON::toString(requestData));
+        Log::debug("StreamChatClient: Request data - " + juce::String(requestData.dump()));
 
         auto response = makeStreamRequest(endpoint, "POST", requestData);
 
-        Log::debug("StreamChatClient: Create channel response - " + juce::JSON::toString(response));
+        Log::debug("StreamChatClient: Create channel response - " + juce::String(response.dump()));
 
         // Response from stream.io has channel wrapped in "channel" property
-        juce::var channelData = response;
-        if (response.isObject() && response.hasProperty("channel")) {
-          channelData = response.getProperty("channel", juce::var());
+        nlohmann::json channelData = response;
+        if (response.is_object() && response.contains("channel")) {
+          channelData = response["channel"];
         }
 
-        if (channelData.isObject() && channelData.hasProperty("id")) {
-          Log::debug("StreamChatClient: Direct channel created: " + channelData.getProperty("id", "").toString());
+        if (channelData.is_object() && channelData.contains("id")) {
+          Log::debug("StreamChatClient: Direct channel created: " + juce::String(channelData.value("id", "")));
           return parseChannel(channelData);
         }
 
-        Log::error("StreamChatClient: Failed to create direct channel. Response: " + juce::JSON::toString(response));
+        Log::error("StreamChatClient: Failed to create direct channel. Response: " + juce::String(response.dump()));
         return Channel{};
       },
       [callback](const Channel &channel) {
@@ -221,44 +226,43 @@ void StreamChatClient::createGroupChannel(const juce::String &channelId, const j
         // channel
         juce::String endpoint = "/channels/team/" + channelId + "/query";
 
-        juce::var requestData = juce::var(new juce::DynamicObject());
-        auto *obj = requestData.getDynamicObject();
+        nlohmann::json requestData = nlohmann::json::object();
 
         // Build members as an OBJECT (not array): {"user_id": {}, "user_id":
         // {}} Stream.io API expects members field to be an object
-        juce::var members = juce::var(new juce::DynamicObject());
+        nlohmann::json members = nlohmann::json::object();
         for (const auto &memberId : memberIds) {
-          members.getDynamicObject()->setProperty(memberId, juce::var(new juce::DynamicObject()));
+          members[memberId.toStdString()] = nlohmann::json::object();
         }
-        obj->setProperty("members", members);
+        requestData["members"] = members;
 
         // Add channel data with name
-        juce::var data = juce::var(new juce::DynamicObject());
-        data.getDynamicObject()->setProperty("name", name);
-        obj->setProperty("data", data);
+        nlohmann::json data = nlohmann::json::object();
+        data["name"] = name.toStdString();
+        requestData["data"] = data;
 
-        obj->setProperty("created_by_id", currentUserId);
+        requestData["created_by_id"] = currentUserId.toStdString();
 
         Log::debug("StreamChatClient: Creating group channel " + channelId + " with " + juce::String(memberIds.size()) +
                    " members");
-        Log::debug("StreamChatClient: Request data - " + juce::JSON::toString(requestData));
+        Log::debug("StreamChatClient: Request data - " + juce::String(requestData.dump()));
 
         auto response = makeStreamRequest(endpoint, "POST", requestData);
 
-        Log::debug("StreamChatClient: Create group channel response - " + juce::JSON::toString(response));
+        Log::debug("StreamChatClient: Create group channel response - " + juce::String(response.dump()));
 
         // Response from stream.io has channel wrapped in "channel" property
-        juce::var channelData = response;
-        if (response.isObject() && response.hasProperty("channel")) {
-          channelData = response.getProperty("channel", juce::var());
+        nlohmann::json channelData = response;
+        if (response.is_object() && response.contains("channel")) {
+          channelData = response["channel"];
         }
 
-        if (channelData.isObject() && channelData.hasProperty("id")) {
-          Log::debug("StreamChatClient: Group channel created: " + channelData.getProperty("id", "").toString());
+        if (channelData.is_object() && channelData.contains("id")) {
+          Log::debug("StreamChatClient: Group channel created: " + juce::String(channelData.value("id", "")));
           return parseChannel(channelData);
         }
 
-        Log::error("StreamChatClient: Failed to create group channel. Response: " + juce::JSON::toString(response));
+        Log::error("StreamChatClient: Failed to create group channel. Response: " + juce::String(response.dump()));
         return Channel{};
       },
       [callback](const Channel &channel) {
@@ -283,60 +287,53 @@ void StreamChatClient::queryChannels(ChannelsCallback callback, int limit, int o
         juce::String endpoint = "/channels";
 
         // Build request body with filter, sort, limit, offset
-        juce::var requestData = juce::var(new juce::DynamicObject());
-        auto *obj = requestData.getDynamicObject();
+        nlohmann::json requestData = nlohmann::json::object();
 
         // Filter channels - query for channels where current user is a member
         // Format per getstream.io docs: {members: {$in: [userID]}}
-        juce::var filter = juce::var(new juce::DynamicObject());
-        auto *filterObj = filter.getDynamicObject();
+        nlohmann::json filter = nlohmann::json::object();
 
         // Create the members.$in array
-        juce::var membersFilter = juce::var(new juce::DynamicObject());
-        juce::var userIds = juce::var(juce::Array<juce::var>());
-        userIds.getArray()->add(currentUserId);
-        membersFilter.getDynamicObject()->setProperty("$in", userIds);
+        nlohmann::json membersFilter = nlohmann::json::object();
+        membersFilter["$in"] = nlohmann::json::array({currentUserId.toStdString()});
 
         // Set members filter
-        filterObj->setProperty("members", membersFilter);
-        obj->setProperty("filter_conditions", filter);
+        filter["members"] = membersFilter;
+        requestData["filter_conditions"] = filter;
 
         // Set state to true to get full channel data (required for queryChannels to work)
-        obj->setProperty("state", true);
+        requestData["state"] = true;
 
         // Build sort
-        juce::var sort = juce::var(juce::Array<juce::var>());
-        juce::var sortItem = juce::var(new juce::DynamicObject());
-        sortItem.getDynamicObject()->setProperty("field", "last_message_at");
-        sortItem.getDynamicObject()->setProperty("direction", -1);
-        sort.getArray()->add(sortItem);
-        obj->setProperty("sort", sort);
+        nlohmann::json sort = nlohmann::json::array();
+        nlohmann::json sortItem = nlohmann::json::object();
+        sortItem["field"] = "last_message_at";
+        sortItem["direction"] = -1;
+        sort.push_back(sortItem);
+        requestData["sort"] = sort;
 
-        obj->setProperty("limit", limit);
-        obj->setProperty("offset", offset);
+        requestData["limit"] = limit;
+        requestData["offset"] = offset;
 
-        Log::debug("StreamChatClient: Querying channels with filter - " + juce::JSON::toString(requestData));
+        Log::debug("StreamChatClient: Querying channels with filter - " + juce::String(requestData.dump()));
 
         auto response = makeStreamRequest(endpoint, "POST", requestData);
 
-        Log::debug("StreamChatClient: queryChannels response - " + juce::JSON::toString(response));
+        Log::debug("StreamChatClient: queryChannels response - " + juce::String(response.dump()));
 
         std::vector<Channel> channels;
 
-        if (response.isObject()) {
-          auto channelsArray = response.getProperty("channels", juce::var());
-          if (channelsArray.isArray()) {
-            auto *arr = channelsArray.getArray();
-            if (arr != nullptr) {
-              Log::debug("StreamChatClient: Found channels array with " + juce::String(arr->size()) + " channels");
-              // Note: Stream.io queryChannels doesn't return member data in the
-              // list response, so we can't filter by members. Just return all
-              // channels - the API already restricts access to channels the user
-              // has permission to view.
-              for (int i = 0; i < arr->size(); i++) {
-                auto channelData = arr->getReference(i);
-                channels.push_back(parseChannel(channelData));
-              }
+        if (response.is_object()) {
+          if (response.contains("channels") && response["channels"].is_array()) {
+            const auto &channelsArray = response["channels"];
+            Log::debug("StreamChatClient: Found channels array with " + juce::String(channelsArray.size()) +
+                       " channels");
+            // Note: Stream.io queryChannels doesn't return member data in the
+            // list response, so we can't filter by members. Just return all
+            // channels - the API already restricts access to channels the user
+            // has permission to view.
+            for (const auto &channelData : channelsArray) {
+              channels.push_back(parseChannel(channelData));
             }
           } else {
             Log::debug("StreamChatClient: No 'channels' property in response "
@@ -358,7 +355,8 @@ void StreamChatClient::queryChannels(ChannelsCallback callback, int limit, int o
 
 // ==============================================================================
 void StreamChatClient::sendMessage(const juce::String &channelType, const juce::String &channelId,
-                                   const juce::String &text, const juce::var &extraData, MessageCallback callback) {
+                                   const juce::String &text, const nlohmann::json &extraData,
+                                   MessageCallback callback) {
   if (!isAuthenticated()) {
     if (callback)
       callback(Outcome<Message>::error("Not authenticated"));
@@ -375,37 +373,32 @@ void StreamChatClient::sendMessage(const juce::String &channelType, const juce::
         Log::debug("StreamChatClient::sendMessage - text: " + text);
         Log::debug("StreamChatClient::sendMessage - channelType: " + actualChannelType);
 
-        juce::var requestData = juce::var(new juce::DynamicObject());
-        auto *obj = requestData.getDynamicObject();
-
-        juce::var message = juce::var(new juce::DynamicObject());
-        auto *msgObj = message.getDynamicObject();
+        nlohmann::json requestData = nlohmann::json::object();
+        nlohmann::json message = nlohmann::json::object();
 
         // Message type is required by stream.io - use "regular" for user
         // messages
-        msgObj->setProperty("type", "regular");
-        msgObj->setProperty("text", text);
+        message["type"] = "regular";
+        message["text"] = text.toStdString();
 
-        if (!extraData.isVoid()) {
-          msgObj->setProperty("extra_data", extraData);
+        if (!extraData.is_null()) {
+          message["extra_data"] = extraData;
         }
 
-        obj->setProperty("message", message);
+        requestData["message"] = message;
 
-        Log::debug("StreamChatClient::sendMessage - request data: " + juce::JSON::toString(requestData));
+        Log::debug("StreamChatClient::sendMessage - request data: " + juce::String(requestData.dump()));
 
         auto response = makeStreamRequest(endpoint, "POST", requestData);
 
-        Log::debug("StreamChatClient::sendMessage - response: " + juce::JSON::toString(response));
+        Log::debug("StreamChatClient::sendMessage - response: " + juce::String(response.dump()));
 
-        if (response.isObject()) {
-          auto messageData = response.getProperty("message", juce::var());
-          if (messageData.isObject()) {
-            Log::debug("StreamChatClient::sendMessage - message sent "
-                       "successfully with ID: " +
-                       messageData.getProperty("id", "").toString());
-            return parseMessage(messageData);
-          }
+        if (response.is_object() && response.contains("message") && response["message"].is_object()) {
+          const auto &messageData = response["message"];
+          Log::debug("StreamChatClient::sendMessage - message sent "
+                     "successfully with ID: " +
+                     juce::String(messageData.value("id", "")));
+          return parseMessage(messageData);
         }
 
         Log::error("StreamChatClient::sendMessage - failed to parse response");
@@ -439,52 +432,44 @@ void StreamChatClient::queryMessages(const juce::String &channelType, const juce
         juce::String endpoint = "/channels/" + actualChannelType + "/" + channelId + "/query";
 
         // Build request body with message query parameters
-        juce::var requestData = juce::var(new juce::DynamicObject());
-        auto *obj = requestData.getDynamicObject();
+        nlohmann::json requestData = nlohmann::json::object();
 
         // Build the messages pagination parameters
         // According to getstream.io API, messages should be a nested object with limit and offset
-        juce::var messagesObj = juce::var(new juce::DynamicObject());
-        messagesObj.getDynamicObject()->setProperty("limit", limit);
-        messagesObj.getDynamicObject()->setProperty("offset", offset);
-        obj->setProperty("messages", messagesObj);
+        nlohmann::json messagesObj = nlohmann::json::object();
+        messagesObj["limit"] = limit;
+        messagesObj["offset"] = offset;
+        requestData["messages"] = messagesObj;
 
         // Set state to true to get full response with messages
         // Note: watch requires active WebSocket connection, so we don't set it here
-        obj->setProperty("state", true);
+        requestData["state"] = true;
 
         Log::debug("StreamChatClient::queryMessages - endpoint: " + endpoint);
-        Log::debug("StreamChatClient::queryMessages - request: " + juce::JSON::toString(requestData));
+        Log::debug("StreamChatClient::queryMessages - request: " + juce::String(requestData.dump()));
 
         auto response = makeStreamRequest(endpoint, "POST", requestData);
 
-        Log::debug("StreamChatClient::queryMessages - response: " + juce::JSON::toString(response));
+        Log::debug("StreamChatClient::queryMessages - response: " + juce::String(response.dump()));
 
         std::vector<Message> messages;
 
-        // Parse response using proper JSON object access instead of string manipulation
-        if (response.isObject()) {
-          auto messagesVar = response["messages"];
+        // Parse response using proper JSON object access
+        if (response.is_object()) {
+          if (response.contains("messages") && response["messages"].is_array()) {
+            const auto &messagesArray = response["messages"];
+            Log::debug("StreamChatClient::queryMessages - found " + juce::String(messagesArray.size()) + " messages");
 
-          if (!messagesVar.isVoid() && messagesVar.isArray()) {
-            auto messagesArray = messagesVar.getArray();
-            if (messagesArray == nullptr) {
-              Log::warn("StreamChatClient::queryMessages - getArray() returned null despite isArray() check");
-            } else {
-              Log::debug("StreamChatClient::queryMessages - found " + juce::String(messagesArray->size()) +
-                         " messages");
-
-              for (int i = 0; i < messagesArray->size(); i++) {
-                auto messageData = messagesArray->getReference(i);
-                if (messageData.isObject()) {
-                  messages.push_back(parseMessage(messageData));
-                } else {
-                  Log::warn("StreamChatClient::queryMessages - message at index " + juce::String(i) +
-                            " is not an object");
-                }
+            for (size_t i = 0; i < messagesArray.size(); i++) {
+              const auto &messageData = messagesArray[i];
+              if (messageData.is_object()) {
+                messages.push_back(parseMessage(messageData));
+              } else {
+                Log::warn("StreamChatClient::queryMessages - message at index " + juce::String(i) +
+                          " is not an object");
               }
             }
-          } else if (messagesVar.isVoid()) {
+          } else if (!response.contains("messages")) {
             Log::debug("StreamChatClient::queryMessages - 'messages' field not found in response");
           } else {
             Log::warn("StreamChatClient::queryMessages - 'messages' field exists but is not an array");
@@ -503,8 +488,8 @@ void StreamChatClient::queryMessages(const juce::String &channelType, const juce
 }
 
 // ==============================================================================
-void StreamChatClient::searchMessages(const juce::String &query, const juce::var &channelFilters, int limit, int offset,
-                                      MessagesCallback callback) {
+void StreamChatClient::searchMessages(const juce::String &query, const nlohmann::json &channelFilters, int limit,
+                                      int offset, MessagesCallback callback) {
   if (!isAuthenticated() || query.isEmpty()) {
     if (callback)
       callback(Outcome<std::vector<Message>>::error("Not authenticated or query is empty"));
@@ -520,24 +505,18 @@ void StreamChatClient::searchMessages(const juce::String &query, const juce::var
         endpoint += "&limit=" + juce::String(limit);
         endpoint += "&offset=" + juce::String(offset);
 
-        if (!channelFilters.isVoid()) {
-          endpoint += "&filter_conditions=" + juce::URL::addEscapeChars(juce::JSON::toString(channelFilters), true);
+        if (!channelFilters.is_null()) {
+          endpoint += "&filter_conditions=" + juce::URL::addEscapeChars(juce::String(channelFilters.dump()), true);
         }
 
-        auto response = makeStreamRequest(endpoint, "GET", juce::var());
+        auto response = makeStreamRequest(endpoint, "GET", nlohmann::json());
 
         std::vector<Message> messages;
 
-        if (response.isObject()) {
-          auto results = response.getProperty("results", juce::var());
-          if (results.isArray()) {
-            auto *arr = results.getArray();
-            if (arr != nullptr) {
-              for (int i = 0; i < arr->size(); i++) {
-                auto messageData = arr->getReference(i);
-                messages.push_back(parseMessage(messageData));
-              }
-            }
+        if (response.is_object() && response.contains("results") && response["results"].is_array()) {
+          const auto &results = response["results"];
+          for (const auto &messageData : results) {
+            messages.push_back(parseMessage(messageData));
           }
         }
 
@@ -563,33 +542,26 @@ void StreamChatClient::queryPresence(const std::vector<juce::String> &userIds, P
         juce::String endpoint = "/users";
 
         // Build filter: {"id": {"$in": [userIds]}}
-        juce::var filter = juce::var(new juce::DynamicObject());
-        auto *filterObj = filter.getDynamicObject();
-        juce::var inArray = juce::var(juce::Array<juce::var>());
+        nlohmann::json filter = nlohmann::json::object();
+        nlohmann::json inArray = nlohmann::json::array();
         for (const auto &userId : userIds) {
-          inArray.getArray()->add(juce::var(userId));
+          inArray.push_back(userId.toStdString());
         }
-        juce::var inObj = juce::var(new juce::DynamicObject());
-        inObj.getDynamicObject()->setProperty("$in", inArray);
-        filterObj->setProperty("id", inObj);
+        nlohmann::json inObj = nlohmann::json::object();
+        inObj["$in"] = inArray;
+        filter["id"] = inObj;
 
-        endpoint += "?filter=" + juce::URL::addEscapeChars(juce::JSON::toString(filter, true), true);
+        endpoint += "?filter=" + juce::URL::addEscapeChars(juce::String(filter.dump()), true);
         endpoint += "&presence=true";
 
-        auto response = makeStreamRequest(endpoint, "GET", juce::var());
+        auto response = makeStreamRequest(endpoint, "GET", nlohmann::json());
 
         std::vector<UserPresence> presenceList;
 
-        if (response.isObject()) {
-          auto usersArray = response.getProperty("users", juce::var());
-          if (usersArray.isArray()) {
-            auto *arr = usersArray.getArray();
-            if (arr != nullptr) {
-              for (int i = 0; i < arr->size(); i++) {
-                auto userData = arr->getReference(i);
-                presenceList.push_back(parsePresence(userData));
-              }
-            }
+        if (response.is_object() && response.contains("users") && response["users"].is_array()) {
+          const auto &usersArray = response["users"];
+          for (const auto &userData : usersArray) {
+            presenceList.push_back(parsePresence(userData));
           }
         }
 
@@ -807,58 +779,68 @@ juce::String StreamChatClient::generateDirectChannelId(const juce::String &userI
 }
 
 // ==============================================================================
-StreamChatClient::Channel StreamChatClient::parseChannel(const juce::var &channelData) {
+StreamChatClient::Channel StreamChatClient::parseChannel(const nlohmann::json &channelData) {
   Channel channel;
 
-  if (channelData.isObject()) {
-    channel.id = Json::getString(channelData, "id");
-    channel.type = Json::getString(channelData, "type");
-    channel.members = Json::getArray(channelData, "members");
+  if (channelData.is_object()) {
+    channel.id = juce::String(channelData.value("id", ""));
+    channel.type = juce::String(channelData.value("type", ""));
 
-    auto data = Json::getObject(channelData, "data");
-    if (data.isObject()) {
-      channel.name = Json::getString(data, "name");
+    // Store members array as nlohmann::json
+    if (channelData.contains("members") && channelData["members"].is_array()) {
+      channel.members = channelData["members"];
+    }
+
+    if (channelData.contains("data") && channelData["data"].is_object()) {
+      const auto &data = channelData["data"];
+      channel.name = juce::String(data.value("name", ""));
       channel.extraData = data;
     }
 
-    channel.lastMessage = Json::getObject(channelData, "last_message");
-    channel.unreadCount = Json::getInt(channelData, "unread_count");
-    channel.lastMessageAt = Json::getString(channelData, "last_message_at");
+    if (channelData.contains("last_message") && channelData["last_message"].is_object()) {
+      channel.lastMessage = channelData["last_message"];
+    }
+    channel.unreadCount = channelData.value("unread_count", 0);
+    channel.lastMessageAt = juce::String(channelData.value("last_message_at", ""));
   }
 
   return channel;
 }
 
-StreamChatClient::Message StreamChatClient::parseMessage(const juce::var &messageData) {
+StreamChatClient::Message StreamChatClient::parseMessage(const nlohmann::json &messageData) {
   Message message;
 
-  if (messageData.isObject()) {
-    message.id = Json::getString(messageData, "id");
-    message.text = Json::getString(messageData, "text");
-    message.createdAt = Json::getString(messageData, "created_at");
-    message.reactions = Json::getObject(messageData, "reactions");
-    message.extraData = Json::getObject(messageData, "extra_data");
-    message.isDeleted =
-        Json::hasKey(messageData, "deleted_at") && messageData.getProperty("deleted_at", juce::var()).isString();
+  if (messageData.is_object()) {
+    message.id = juce::String(messageData.value("id", ""));
+    message.text = juce::String(messageData.value("text", ""));
+    message.createdAt = juce::String(messageData.value("created_at", ""));
 
-    auto user = Json::getObject(messageData, "user");
-    if (user.isObject()) {
-      message.userId = Json::getString(user, "id");
-      message.userName = Json::getString(user, "name");
+    if (messageData.contains("reactions") && messageData["reactions"].is_object()) {
+      message.reactions = messageData["reactions"];
+    }
+    if (messageData.contains("extra_data") && messageData["extra_data"].is_object()) {
+      message.extraData = messageData["extra_data"];
+    }
+    message.isDeleted = messageData.contains("deleted_at") && messageData["deleted_at"].is_string();
+
+    if (messageData.contains("user") && messageData["user"].is_object()) {
+      const auto &user = messageData["user"];
+      message.userId = juce::String(user.value("id", ""));
+      message.userName = juce::String(user.value("name", ""));
     }
   }
 
   return message;
 }
 
-StreamChatClient::UserPresence StreamChatClient::parsePresence(const juce::var &userData) {
+StreamChatClient::UserPresence StreamChatClient::parsePresence(const nlohmann::json &userData) {
   UserPresence presence;
 
-  if (userData.isObject()) {
-    presence.userId = Json::getString(userData, "id");
-    presence.online = Json::getBool(userData, "online");
-    presence.lastActive = Json::getString(userData, "last_active");
-    presence.status = Json::getString(userData, "status");
+  if (userData.is_object()) {
+    presence.userId = juce::String(userData.value("id", ""));
+    presence.online = userData.value("online", false);
+    presence.lastActive = juce::String(userData.value("last_active", ""));
+    presence.status = juce::String(userData.value("status", ""));
   }
 
   return presence;
@@ -888,13 +870,10 @@ void StreamChatClient::getChannel(const juce::String &channelType, const juce::S
       [this, channelType, channelId]() -> Channel {
         juce::String endpoint = "/channels/" + channelType + "/" + channelId;
 
-        auto response = makeStreamRequest(endpoint, "GET", juce::var());
+        auto response = makeStreamRequest(endpoint, "GET", nlohmann::json());
 
-        if (response.isObject()) {
-          auto channelData = response.getProperty("channel", juce::var());
-          if (channelData.isObject()) {
-            return parseChannel(channelData);
-          }
+        if (response.is_object() && response.contains("channel") && response["channel"].is_object()) {
+          return parseChannel(response["channel"]);
         }
 
         return Channel{};
@@ -921,9 +900,9 @@ void StreamChatClient::deleteChannel(const juce::String &channelType, const juce
       [this, channelType, channelId]() -> bool {
         juce::String endpoint = "/channels/" + channelType + "/" + channelId;
 
-        auto response = makeStreamRequest(endpoint, "DELETE", juce::var());
+        auto response = makeStreamRequest(endpoint, "DELETE", nlohmann::json());
 
-        return response.isObject() && !response.getProperty("channel", juce::var()).isVoid();
+        return response.is_object() && response.contains("channel");
       },
       [callback](bool success) {
         if (callback) {
@@ -954,17 +933,16 @@ void StreamChatClient::addMembers(const juce::String &channelType, const juce::S
       [this, channelType, channelId, memberIds]() -> bool {
         juce::String endpoint = "/channels/" + channelType + "/" + channelId + "/add_members";
 
-        juce::var requestData = juce::var(new juce::DynamicObject());
-        auto *obj = requestData.getDynamicObject();
-        juce::var members = juce::var(juce::Array<juce::var>());
+        nlohmann::json requestData = nlohmann::json::object();
+        nlohmann::json members = nlohmann::json::array();
         for (const auto &memberId : memberIds) {
-          members.getArray()->add(juce::var(memberId));
+          members.push_back(memberId.toStdString());
         }
-        obj->setProperty("user_ids", members);
+        requestData["user_ids"] = members;
 
         auto response = makeStreamRequest(endpoint, "POST", requestData);
 
-        return response.isObject() && !response.getProperty("channel", juce::var()).isVoid();
+        return response.is_object() && response.contains("channel");
       },
       [callback](bool success) {
         if (callback) {
@@ -989,17 +967,16 @@ void StreamChatClient::removeMembers(const juce::String &channelType, const juce
       [this, channelType, channelId, memberIds]() -> bool {
         juce::String endpoint = "/channels/" + channelType + "/" + channelId + "/remove_members";
 
-        juce::var requestData = juce::var(new juce::DynamicObject());
-        auto *obj = requestData.getDynamicObject();
-        juce::var members = juce::var(juce::Array<juce::var>());
+        nlohmann::json requestData = nlohmann::json::object();
+        nlohmann::json members = nlohmann::json::array();
         for (const auto &memberId : memberIds) {
-          members.getArray()->add(juce::var(memberId));
+          members.push_back(memberId.toStdString());
         }
-        obj->setProperty("user_ids", members);
+        requestData["user_ids"] = members;
 
         auto response = makeStreamRequest(endpoint, "POST", requestData);
 
-        return response.isObject() && !response.getProperty("channel", juce::var()).isVoid();
+        return response.is_object() && response.contains("channel");
       },
       [callback](bool success) {
         if (callback) {
@@ -1012,7 +989,7 @@ void StreamChatClient::removeMembers(const juce::String &channelType, const juce
 }
 
 void StreamChatClient::updateChannel(const juce::String &channelType, const juce::String &channelId,
-                                     const juce::String &name, const juce::var &extraData,
+                                     const juce::String &name, const nlohmann::json &extraData,
                                      std::function<void(Outcome<Channel>)> callback) {
   if (!isAuthenticated()) {
     if (callback)
@@ -1024,38 +1001,28 @@ void StreamChatClient::updateChannel(const juce::String &channelType, const juce
       [this, channelType, channelId, name, extraData]() -> Channel {
         juce::String endpoint = "/channels/" + channelType + "/" + channelId;
 
-        juce::var requestData = juce::var(new juce::DynamicObject());
-        auto *obj = requestData.getDynamicObject();
-
-        juce::var data = juce::var(new juce::DynamicObject());
-        auto *dataObj = data.getDynamicObject();
+        nlohmann::json requestData = nlohmann::json::object();
+        nlohmann::json data = nlohmann::json::object();
 
         if (!name.isEmpty()) {
-          dataObj->setProperty("name", name);
+          data["name"] = name.toStdString();
         }
 
         // Merge extra data if provided
-        if (!extraData.isVoid() && extraData.isObject()) {
-          auto *extraObj = extraData.getDynamicObject();
-          auto props = extraObj->getProperties();
-          for (int i = 0; i < props.size(); ++i) {
-            auto propName = props.getName(i);
-            if (propName != juce::Identifier("name")) // Don't override name if already set
-            {
-              dataObj->setProperty(propName, props.getValueAt(i));
+        if (!extraData.is_null() && extraData.is_object()) {
+          for (auto &[key, value] : extraData.items()) {
+            if (key != "name") { // Don't override name if already set
+              data[key] = value;
             }
           }
         }
 
-        obj->setProperty("data", data);
+        requestData["data"] = data;
 
         auto response = makeStreamRequest(endpoint, "POST", requestData);
 
-        if (response.isObject()) {
-          auto channelData = response.getProperty("channel", juce::var());
-          if (channelData.isObject()) {
-            return parseChannel(channelData);
-          }
+        if (response.is_object() && response.contains("channel") && response["channel"].is_object()) {
+          return parseChannel(response["channel"]);
         }
 
         return Channel{};
@@ -1083,23 +1050,16 @@ void StreamChatClient::updateMessage(const juce::String &channelType, const juce
       [this, channelType, channelId, messageId, newText]() -> Message {
         juce::String endpoint = "/channels/" + channelType + "/" + channelId + "/message";
 
-        juce::var requestData = juce::var(new juce::DynamicObject());
-        auto *obj = requestData.getDynamicObject();
-
-        juce::var message = juce::var(new juce::DynamicObject());
-        auto *msgObj = message.getDynamicObject();
-        msgObj->setProperty("id", messageId);
-        msgObj->setProperty("text", newText);
-
-        obj->setProperty("message", message);
+        nlohmann::json requestData = nlohmann::json::object();
+        nlohmann::json message = nlohmann::json::object();
+        message["id"] = messageId.toStdString();
+        message["text"] = newText.toStdString();
+        requestData["message"] = message;
 
         auto response = makeStreamRequest(endpoint, "POST", requestData);
 
-        if (response.isObject()) {
-          auto messageData = response.getProperty("message", juce::var());
-          if (messageData.isObject()) {
-            return parseMessage(messageData);
-          }
+        if (response.is_object() && response.contains("message") && response["message"].is_object()) {
+          return parseMessage(response["message"]);
         }
 
         return Message{};
@@ -1126,9 +1086,9 @@ void StreamChatClient::deleteMessage(const juce::String &channelType, const juce
       [this, channelType, channelId, messageId]() -> bool {
         juce::String endpoint = "/channels/" + channelType + "/" + channelId + "/message/" + messageId;
 
-        auto response = makeStreamRequest(endpoint, "DELETE", juce::var());
+        auto response = makeStreamRequest(endpoint, "DELETE", nlohmann::json());
 
-        return response.isObject() && !response.getProperty("message", juce::var()).isVoid();
+        return response.is_object() && response.contains("message");
       },
       [callback](bool success) {
         if (callback) {
@@ -1153,16 +1113,14 @@ void StreamChatClient::addReaction(const juce::String &channelType, const juce::
       [this, channelType, channelId, messageId, reactionType]() -> bool {
         juce::String endpoint = "/channels/" + channelType + "/" + channelId + "/message/" + messageId + "/reaction";
 
-        juce::var requestData = juce::var(new juce::DynamicObject());
-        auto *obj = requestData.getDynamicObject();
-
-        juce::var reaction = juce::var(new juce::DynamicObject());
-        reaction.getDynamicObject()->setProperty("type", reactionType);
-        obj->setProperty("reaction", reaction);
+        nlohmann::json requestData = nlohmann::json::object();
+        nlohmann::json reaction = nlohmann::json::object();
+        reaction["type"] = reactionType.toStdString();
+        requestData["reaction"] = reaction;
 
         auto response = makeStreamRequest(endpoint, "POST", requestData);
 
-        return response.isObject() && !response.getProperty("message", juce::var()).isVoid();
+        return response.is_object() && response.contains("message");
       },
       [callback](bool success) {
         if (callback) {
@@ -1188,9 +1146,9 @@ void StreamChatClient::removeReaction(const juce::String &channelType, const juc
         juce::String endpoint =
             "/channels/" + channelType + "/" + channelId + "/message/" + messageId + "/reaction/" + reactionType;
 
-        auto response = makeStreamRequest(endpoint, "DELETE", juce::var());
+        auto response = makeStreamRequest(endpoint, "DELETE", nlohmann::json());
 
-        return response.isObject() && !response.getProperty("message", juce::var()).isVoid();
+        return response.is_object() && response.contains("message");
       },
       [callback](bool success) {
         if (callback) {
@@ -1214,9 +1172,9 @@ void StreamChatClient::markChannelRead(const juce::String &channelType, const ju
       [this, channelType, channelId]() -> bool {
         juce::String endpoint = "/channels/" + channelType + "/" + channelId + "/read";
 
-        auto response = makeStreamRequest(endpoint, "POST", juce::var());
+        auto response = makeStreamRequest(endpoint, "POST", nlohmann::json());
 
-        return response.isObject();
+        return response.is_object();
       },
       [callback](bool success) {
         if (callback) {
@@ -1228,7 +1186,7 @@ void StreamChatClient::markChannelRead(const juce::String &channelType, const ju
       });
 }
 
-void StreamChatClient::updateStatus(const juce::String &status, const juce::var &extraData,
+void StreamChatClient::updateStatus(const juce::String &status, const nlohmann::json &extraData,
                                     std::function<void(Outcome<void>)> callback) {
   if (!isAuthenticated()) {
     if (callback)
@@ -1240,17 +1198,16 @@ void StreamChatClient::updateStatus(const juce::String &status, const juce::var 
       [this, status, extraData]() -> bool {
         juce::String endpoint = "/users/" + currentUserId;
 
-        juce::var requestData = juce::var(new juce::DynamicObject());
-        auto *obj = requestData.getDynamicObject();
-        obj->setProperty("status", status);
+        nlohmann::json requestData = nlohmann::json::object();
+        requestData["status"] = status.toStdString();
 
-        if (!extraData.isVoid()) {
-          obj->setProperty("extra_data", extraData);
+        if (!extraData.is_null()) {
+          requestData["extra_data"] = extraData;
         }
 
         auto response = makeStreamRequest(endpoint, "POST", requestData);
 
-        return response.isObject() && !response.getProperty("user", juce::var()).isVoid();
+        return response.is_object() && response.contains("user");
       },
       [callback](bool success) {
         if (callback) {
@@ -1407,18 +1364,14 @@ void StreamChatClient::sendTypingIndicator(const juce::String &channelType, cons
     juce::String actualChannelType = channelType.isEmpty() ? "messaging" : channelType;
     juce::String endpoint = "/channels/" + actualChannelType + "/" + channelId + "/event";
 
-    juce::var requestData = juce::var(new juce::DynamicObject());
-    auto *obj = requestData.getDynamicObject();
-
-    juce::var eventData = juce::var(new juce::DynamicObject());
-    auto *eventObj = eventData.getDynamicObject();
-    eventObj->setProperty("type", isTyping ? "typing.start" : "typing.stop");
-
-    obj->setProperty("event", eventData);
+    nlohmann::json requestData = nlohmann::json::object();
+    nlohmann::json eventData = nlohmann::json::object();
+    eventData["type"] = isTyping ? "typing.start" : "typing.stop";
+    requestData["event"] = eventData;
 
     auto response = makeStreamRequest(endpoint, "POST", requestData);
 
-    if (response.isVoid()) {
+    if (response.is_null()) {
       Log::warn("StreamChatClient: Failed to send typing indicator");
     }
   });
@@ -1426,20 +1379,23 @@ void StreamChatClient::sendTypingIndicator(const juce::String &channelType, cons
 
 void StreamChatClient::handleWebSocketMessage(const juce::String &message) {
   // Parse JSON message
-  auto event = juce::JSON::parse(message);
-  if (event.isObject()) {
-    parseWebSocketEvent(event);
+  try {
+    auto event = nlohmann::json::parse(message.toStdString());
+    if (event.is_object()) {
+      parseWebSocketEvent(event);
+    }
+  } catch (const nlohmann::json::parse_error &e) {
+    Log::error("StreamChatClient: WebSocket message parse error - " + juce::String(e.what()));
   }
 }
 
-void StreamChatClient::parseWebSocketEvent(const juce::var &event) {
-  auto eventType = Json::getString(event, "type");
+void StreamChatClient::parseWebSocketEvent(const nlohmann::json &event) {
+  juce::String eventType = juce::String(event.value("type", ""));
 
   if (eventType == "message.new") {
-    auto messageData = Json::getObject(event, "message");
-    if (messageData.isObject()) {
-      auto message = parseMessage(messageData);
-      auto channelId = Json::getString(event, "channel_id");
+    if (event.contains("message") && event["message"].is_object()) {
+      auto message = parseMessage(event["message"]);
+      juce::String channelId = juce::String(event.value("channel_id", ""));
 
       // Push to RxCpp subject for reactive subscribers
       MessageEvent msgEvent{message, channelId};
@@ -1481,10 +1437,10 @@ void StreamChatClient::parseWebSocketEvent(const juce::var &event) {
       }
     }
   } else if (eventType == "typing.start" || eventType == "typing.stop") {
-    auto userData = Json::getObject(event, "user");
-    if (userData.isObject()) {
-      auto userId = Json::getString(userData, "id");
-      auto channelId = Json::getString(event, "channel_id");
+    if (event.contains("user") && event["user"].is_object()) {
+      const auto &userData = event["user"];
+      juce::String userId = juce::String(userData.value("id", ""));
+      juce::String channelId = juce::String(event.value("channel_id", ""));
       bool isTyping = eventType == "typing.start";
 
       // Push to RxCpp subject for reactive subscribers
@@ -1500,9 +1456,8 @@ void StreamChatClient::parseWebSocketEvent(const juce::var &event) {
       }
     }
   } else if (eventType == "user.presence.changed") {
-    auto userData = Json::getObject(event, "user");
-    if (userData.isObject()) {
-      auto presence = parsePresence(userData);
+    if (event.contains("user") && event["user"].is_object()) {
+      auto presence = parsePresence(event["user"]);
 
       // Push to RxCpp subject for reactive subscribers
       presenceSubject_.get_subscriber().on_next(presence);
@@ -1636,10 +1591,9 @@ void StreamChatClient::sendMessageWithAudio(const juce::String &channelType, con
 
         auto audioResult = uploadResult.getValue();
         // Then send message with audio URL in extra_data
-        juce::var extraData = juce::var(new juce::DynamicObject());
-        auto *obj = extraData.getDynamicObject();
-        obj->setProperty("audio_url", audioResult.audioUrl);
-        obj->setProperty("audio_duration", audioResult.duration);
+        nlohmann::json extraData = nlohmann::json::object();
+        extraData["audio_url"] = audioResult.audioUrl.toStdString();
+        extraData["audio_duration"] = audioResult.duration;
 
         sendMessage(channelType, channelId, text, extraData, callback);
       });
@@ -1715,7 +1669,7 @@ StreamChatClient::queryMessagesObservable(const juce::String &channelType, const
 rxcpp::observable<StreamChatClient::Message> StreamChatClient::sendMessageObservable(const juce::String &channelType,
                                                                                      const juce::String &channelId,
                                                                                      const juce::String &text,
-                                                                                     const juce::var &extraData) {
+                                                                                     const nlohmann::json &extraData) {
   return rxcpp::sources::create<Message>([this, channelType, channelId, text, extraData](auto observer) {
            sendMessage(channelType, channelId, text, extraData, [observer](Outcome<Message> result) {
              if (result.isOk()) {
@@ -1730,7 +1684,7 @@ rxcpp::observable<StreamChatClient::Message> StreamChatClient::sendMessageObserv
 }
 
 rxcpp::observable<std::vector<StreamChatClient::Message>>
-StreamChatClient::searchMessagesObservable(const juce::String &query, const juce::var &channelFilters, int limit,
+StreamChatClient::searchMessagesObservable(const juce::String &query, const nlohmann::json &channelFilters, int limit,
                                            int offset) {
   return rxcpp::sources::create<std::vector<Message>>([this, query, channelFilters, limit, offset](auto observer) {
            searchMessages(query, channelFilters, limit, offset, [observer](Outcome<std::vector<Message>> result) {

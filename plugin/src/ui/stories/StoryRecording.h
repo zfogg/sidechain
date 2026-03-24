@@ -45,7 +45,7 @@ public:
 
   // Called when recording is complete and ready for upload
   // Provides audio buffer, MIDI data, and optional metadata
-  std::function<void(const juce::AudioBuffer<float> &, const juce::var &midiData, int bpm, const juce::String &key,
+  std::function<void(const juce::AudioBuffer<float> &, const MIDIData &midiData, int bpm, const juce::String &key,
                      const juce::StringArray &genres)>
       onRecordingComplete;
 

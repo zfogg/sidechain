@@ -88,10 +88,10 @@ void Upload::onAppStateChanged(const Sidechain::Stores::UploadState &state) {
 // ==============================================================================
 void Upload::setAudioToUpload(const juce::AudioBuffer<float> &audio, double sampleRate) {
   // Call overloaded version with empty MIDI data
-  setAudioToUpload(audio, sampleRate, juce::var());
+  setAudioToUpload(audio, sampleRate, MIDIData());
 }
 
-void Upload::setAudioToUpload(const juce::AudioBuffer<float> &audio, double sampleRate, const juce::var &midi) {
+void Upload::setAudioToUpload(const juce::AudioBuffer<float> &audio, double sampleRate, const MIDIData &midi) {
   audioBuffer = audio;
   audioSampleRate = sampleRate;
   midiData = midi; // Store MIDI data for upload
@@ -116,11 +116,8 @@ void Upload::setAudioToUpload(const juce::AudioBuffer<float> &audio, double samp
   includeMidi = true; // Default to including MIDI if available
 
   // Log MIDI info
-  if (!midiData.isVoid() && midiData.hasProperty("events")) {
-    auto events = midiData["events"];
-    if (events.isArray()) {
-      Log::info("Upload::setAudioToUpload: Received " + juce::String(events.size()) + " MIDI events");
-    }
+  if (midiData.hasEvents()) {
+    Log::info("Upload::setAudioToUpload: Received " + juce::String(midiData.events.size()) + " MIDI events");
   }
 
   repaint();
@@ -153,7 +150,7 @@ void Upload::reset() {
   errorMessage = "";
   activeField = -1;
   tapTimes.clear();
-  midiData = juce::var(); // Clear MIDI data
+  midiData = MIDIData(); // Clear MIDI data
   includeMidi = true;
   projectFile = juce::File(); // Clear project file
   includeProjectFile = false;

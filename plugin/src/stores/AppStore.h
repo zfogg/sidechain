@@ -506,7 +506,7 @@ public:
   void recordUserActivity();
   void connectPresence();
   void disconnectPresence();
-  void handlePresenceUpdate(const juce::String &userId, const juce::var &presenceData);
+  void handlePresenceUpdate(const juce::String &userId, const nlohmann::json &presenceData);
 
   // ==============================================================================
   // Stories Methods (Stories.cpp)
@@ -1454,8 +1454,6 @@ private:
   void handleFetchSuccess(FeedType feedType, const nlohmann::json &data, int limit, int offset);
   void handleTypedFetchSuccess(FeedType feedType, const NetworkClient::FeedResult &result, int limit, int offset);
   void handleFetchError(FeedType feedType, const juce::String &error);
-  void handleSavedPostsLoaded(Outcome<juce::var> result);
-  void handleArchivedPostsLoaded(Outcome<juce::var> result);
   FeedResponse parseJsonResponse(const nlohmann::json &json);
   AggregatedFeedResponse parseAggregatedJsonResponse(const nlohmann::json &json);
   bool isCurrentFeedCached() const;

@@ -12,13 +12,13 @@
 // NotificationItem implementation
 // ==============================================================================
 
-NotificationItem NotificationItem::fromJson(const juce::var &json) {
+NotificationItem NotificationItem::fromJson(const nlohmann::json &json) {
   NotificationItem item;
 
   // Parse as AggregatedFeedGroup first
   item.group = Sidechain::AggregatedFeedGroup::fromJson(json);
-  item.isRead = Json::getBool(json, "is_read");
-  item.isSeen = Json::getBool(json, "is_seen");
+  item.isRead = json.value("is_read", false);
+  item.isSeen = json.value("is_seen", false);
 
   // Extract actor info from first activity
   if (!item.group.activities.isEmpty()) {
@@ -351,13 +351,11 @@ void NotificationList::onAppStateChanged(const Sidechain::Stores::NotificationSt
   juce::Array<NotificationItem> notificationItems;
   for (const auto &notif : state.notifications) {
     if (notif) {
-      // Create NotificationItem from Notification by converting to JSON first
+      // Create NotificationItem from Notification by converting to JSON
       try {
         nlohmann::json j;
         to_json(j, *notif);
-        auto jsonStr = j.dump();
-        auto jVar = juce::JSON::parse(jsonStr);
-        notificationItems.add(NotificationItem::fromJson(jVar));
+        notificationItems.add(NotificationItem::fromJson(j));
       } catch (...) {
         // Skip invalid items
       }

@@ -137,20 +137,14 @@ rxcpp::observable<int> AppStore::submitChallengeObservable(const juce::String &c
              return;
            }
 
-           // Parse as JSON var (if MIDI data is in JSON format) or convert to base64
-           juce::var midiData;
+           // Parse as JSON (if MIDI data is in JSON format) or convert to string
+           nlohmann::json midiData;
            try {
              // Try to parse as JSON first
-             juce::var parsed = juce::JSON::parse(midiContent);
-             if (!parsed.isVoid()) {
-               midiData = parsed;
-             } else {
-               // If not JSON, store as string
-               midiData = midiContent;
-             }
+             midiData = nlohmann::json::parse(midiContent.toStdString());
            } catch (...) {
              // If parsing fails, just use as string
-             midiData = midiContent;
+             midiData = midiContent.toStdString();
            }
 
            networkClient->submitMIDIChallengeEntry(

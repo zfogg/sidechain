@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include <atomic>
+#include <nlohmann/json.hpp>
 #include <vector>
 
 // ==============================================================================
@@ -19,20 +20,53 @@
  * - Stores velocity, channel, and note number
  * - Syncs MIDI events with audio timeline
  */
+// ==============================================================================
+/** MIDI event structure for captured MIDI data */
+struct MIDIEvent {
+  double time;       ///< Relative time in seconds from recording start
+  juce::String type; ///< Event type ("note_on" or "note_off")
+  int note;          ///< MIDI note number (0-127)
+  int velocity;      ///< Note velocity (0-127)
+  int channel;       ///< MIDI channel (0-15)
+};
+
+// ==============================================================================
+/** Complete MIDI data structure for UI and storage */
+struct MIDIData {
+  double totalTime = 0.0;           ///< Total duration in seconds
+  std::vector<MIDIEvent> events;    ///< All MIDI events
+  int timeSignatureNumerator = 4;   ///< Time signature numerator
+  int timeSignatureDenominator = 4; ///< Time signature denominator
+  double tempo = 120.0;             ///< Tempo in BPM
+
+  /** Check if there are any MIDI events */
+  bool hasEvents() const {
+    return !events.empty();
+  }
+
+  /** Check if the data is empty */
+  bool isEmpty() const {
+    return events.empty();
+  }
+
+  /** Convert to JSON for storage/network */
+  nlohmann::json toJson() const;
+
+  /** Create from JSON */
+  static MIDIData fromJson(const nlohmann::json &json);
+};
+
+// JSON serialization for MIDIEvent
+void to_json(nlohmann::json &j, const MIDIEvent &event);
+void from_json(const nlohmann::json &j, MIDIEvent &event);
+
+// JSON serialization for MIDIData
+void to_json(nlohmann::json &j, const MIDIData &data);
+void from_json(const nlohmann::json &j, MIDIData &data);
+
+// ==============================================================================
 class MIDICapture {
 public:
-  // ==============================================================================
-  // MIDI Event structure (matches backend MIDIEvent)
-
-  /** MIDI event structure for captured MIDI data */
-  struct MIDIEvent {
-    double time;       // /< Relative time in seconds from recording start
-    juce::String type; // /< Event type ("note_on" or "note_off")
-    int note;          // /< MIDI note number (0-127)
-    int velocity;      // /< Note velocity (0-127)
-    int channel;       // /< MIDI channel (0-15)
-  };
-
   // ==============================================================================
   /** Constructor */
   MIDICapture();
@@ -110,9 +144,9 @@ public:
   // MIDI data export - thread-safe
 
   /** Get all captured MIDI events as JSON
-   *  @return JSON var containing array of MIDI events
+   *  @return JSON object containing array of MIDI events
    */
-  juce::var getMIDIDataAsJSON() const;
+  nlohmann::json getMIDIDataAsJSON() const;
 
   /** Get total recording time in seconds
    *  @return Total time of the captured MIDI sequence
@@ -143,9 +177,20 @@ public:
 
   /** Get normalized and validated MIDI data as JSON
    *  Convenience method that applies both normalization and validation
-   *  @return JSON var containing normalized and validated MIDI events
+   *  @return JSON object containing normalized and validated MIDI events
    */
-  juce::var getNormalizedMIDIDataAsJSON() const;
+  nlohmann::json getNormalizedMIDIDataAsJSON() const;
+
+  /** Get captured MIDI data as typed struct
+   *  @return MIDIData struct containing all captured MIDI data
+   */
+  MIDIData getMIDIData() const;
+
+  /** Get normalized and validated MIDI data as typed struct
+   *  Convenience method that applies both normalization and validation
+   *  @return MIDIData struct containing normalized and validated MIDI data
+   */
+  MIDIData getNormalizedMIDIData() const;
 
   /** Set tempo from DAW for proper timing normalization
    *  @param bpm Tempo in beats per minute

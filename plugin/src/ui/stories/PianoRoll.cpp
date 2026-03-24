@@ -1,7 +1,8 @@
 #include "PianoRoll.h"
 #include "../../util/Colors.h"
-#include "../../util/Json.h"
 #include "../../util/Log.h"
+
+#include <nlohmann/json.hpp>
 
 namespace PianoRollColors {
 // Colors that don't have direct equivalents in SidechainColors
@@ -76,22 +77,16 @@ void PianoRoll::timerCallback() {
 }
 
 // ==============================================================================
-void PianoRoll::setMIDIData(const juce::var &midiData) {
+void PianoRoll::setMIDIData(const MIDIData &midiData) {
   notes.clear();
 
-  if (!midiData.isObject()) {
-    Log::warn("PianoRoll: Invalid MIDI data format");
-    return;
-  }
+  // Get total duration and tempo from typed struct
+  totalDuration = midiData.totalTime;
+  tempo = midiData.tempo;
 
-  // Get total duration
-  totalDuration = Json::getDouble(midiData, "total_time", 0.0);
-  tempo = Json::getDouble(midiData, "tempo", 120.0);
-
-  // Parse events
-  auto events = Json::getArray(midiData, "events");
-  if (Json::isArray(events)) {
-    parseMIDIEvents(events);
+  // Parse events from typed struct
+  if (!midiData.events.empty()) {
+    parseMIDIEvents(midiData.events);
   }
 
   // Auto-adjust note range based on content
@@ -401,35 +396,25 @@ juce::Colour PianoRoll::getChannelColor(int channel) const {
   return SidechainColors::getMidiNoteColor(channel);
 }
 
-void PianoRoll::parseMIDIEvents(const juce::var &events) {
-  if (!Json::isArray(events))
-    return;
-
+void PianoRoll::parseMIDIEvents(const std::vector<MIDIEvent> &events) {
   // Track active notes: (channel << 8 | note) -> Note with start time set
   std::map<int, Note> activeNotes;
 
-  auto *eventsArray = events.getArray();
-  for (const auto &eventVar : *eventsArray) {
-    double time = Json::getDouble(eventVar, "time", 0.0);
-    juce::String type = Json::getString(eventVar, "type");
-    int noteNum = Json::getInt(eventVar, "note", 0);
-    int velocity = Json::getInt(eventVar, "velocity", 0);
-    int channel = Json::getInt(eventVar, "channel", 0);
+  for (const auto &midiEvent : events) {
+    int noteKey = (midiEvent.channel << 8) | midiEvent.note;
 
-    int noteKey = (channel << 8) | noteNum;
-
-    if (type == "note_on" && velocity > 0) {
+    if (midiEvent.type == "note_on" && midiEvent.velocity > 0) {
       Note note;
-      note.startTime = time;
-      note.endTime = time; // Will be updated on note_off
-      note.noteNumber = noteNum;
-      note.velocity = velocity;
-      note.channel = channel;
+      note.startTime = midiEvent.time;
+      note.endTime = midiEvent.time; // Will be updated on note_off
+      note.noteNumber = midiEvent.note;
+      note.velocity = midiEvent.velocity;
+      note.channel = midiEvent.channel;
       activeNotes[noteKey] = note;
-    } else if (type == "note_off" || (type == "note_on" && velocity == 0)) {
+    } else if (midiEvent.type == "note_off" || (midiEvent.type == "note_on" && midiEvent.velocity == 0)) {
       auto it = activeNotes.find(noteKey);
       if (it != activeNotes.end()) {
-        it->second.endTime = time;
+        it->second.endTime = midiEvent.time;
         notes.push_back(it->second);
         activeNotes.erase(it);
       }

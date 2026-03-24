@@ -156,10 +156,9 @@ void StoriesFeed::loadStories() {
           story.filename = storyJson.value("filename", "");
           story.midiFilename = storyJson.value("midi_filename", "");
           story.audioDuration = storyJson.value("audio_duration", 0.0f);
-          // Convert midi_data back to juce::var for compatibility
-          if (storyJson.contains("midi_data") && !storyJson["midi_data"].is_null()) {
-            auto midiDataStr = storyJson["midi_data"].dump();
-            story.midiData = juce::JSON::parse(midiDataStr);
+          // Parse midi_data into typed MIDIData struct
+          if (storyJson.contains("midi_data") && storyJson["midi_data"].is_object()) {
+            story.midiData = MIDIData::fromJson(storyJson["midi_data"]);
           }
           story.midiPatternId = storyJson.value("midi_pattern_id", ""); // - MIDI download support
           story.viewCount = storyJson.value("view_count", 0);

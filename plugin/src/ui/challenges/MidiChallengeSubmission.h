@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../../audio/MIDICapture.h"
 #include "../../models/MidiChallenge.h"
 #include "../../util/Colors.h"
 #include "../common/AppStoreComponent.h"
@@ -36,7 +37,7 @@ public:
   void setChallenge(const Sidechain::MIDIChallenge &challenge);
 
   // Set the audio and MIDI data (from Recording component)
-  void setAudioToUpload(const juce::AudioBuffer<float> &audio, double sampleRate, const juce::var &midiData);
+  void setAudioToUpload(const juce::AudioBuffer<float> &audio, double sampleRate, const MIDIData &midiData);
 
   // Reset state
   void reset();
@@ -63,7 +64,7 @@ private:
   // Audio/MIDI data
   juce::AudioBuffer<float> audioBuffer;
   double audioSampleRate = 44100.0;
-  juce::var midiData;
+  MIDIData midiData;
 
   // Submission state
   enum class SubmissionState {
@@ -107,10 +108,10 @@ private:
 
   // ==============================================================================
   // Constraint validation
-  void validateConstraints(double bpm, const juce::String &key, const juce::var &midiData, double durationSeconds);
+  void validateConstraints(double bpm, const juce::String &key, const MIDIData &midiData, double durationSeconds);
   bool allConstraintsPassed() const;
-  int countMIDINotes(const juce::var &midiData) const;
-  bool checkMIDIScale(const juce::var &midiData, const juce::String &requiredScale) const;
+  int countMIDINotes(const MIDIData &midiData) const;
+  bool checkMIDIScale(const MIDIData &midiData, const juce::String &requiredScale) const;
 
   // ==============================================================================
   // Network operations

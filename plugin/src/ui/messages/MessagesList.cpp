@@ -115,12 +115,12 @@ void MessagesList::onAppStateChanged(const Sidechain::Stores::ChatState &state) 
         if (!channelState.messages.empty()) {
           auto lastMsg = channelState.messages.back();
           if (lastMsg) {
-            auto *msgObj = new juce::DynamicObject();
-            msgObj->setProperty("id", lastMsg->id);
-            msgObj->setProperty("text", lastMsg->text);
-            msgObj->setProperty("user_id", lastMsg->senderId);
-            msgObj->setProperty("created_at", lastMsg->createdAt.toISO8601(true));
-            channel.lastMessage = juce::var(msgObj);
+            nlohmann::json msgObj = nlohmann::json::object();
+            msgObj["id"] = lastMsg->id.toStdString();
+            msgObj["text"] = lastMsg->text.toStdString();
+            msgObj["user_id"] = lastMsg->senderId.toStdString();
+            msgObj["created_at"] = lastMsg->createdAt.toISO8601(true).toStdString();
+            channel.lastMessage = msgObj;
 
             // lastMessageAt: Use the timestamp from the last message (convert to string)
             channel.lastMessageAt = lastMsg->createdAt.toISO8601(true);
@@ -129,19 +129,16 @@ void MessagesList::onAppStateChanged(const Sidechain::Stores::ChatState &state) 
 
         // extraData: Store typing indicators and loading state
         {
-          auto *extraDataObj = new juce::DynamicObject();
+          nlohmann::json extraDataObj = nlohmann::json::object();
           if (!channelState.usersTyping.empty()) {
-            juce::var typingUsers = juce::var(juce::Array<juce::var>());
-            auto *typingArray = typingUsers.getArray();
+            nlohmann::json typingUsers = nlohmann::json::array();
             for (const auto &userId : channelState.usersTyping) {
-              if (typingArray != nullptr) {
-                typingArray->add(userId);
-              }
+              typingUsers.push_back(userId.toStdString());
             }
-            extraDataObj->setProperty("users_typing", typingUsers);
+            extraDataObj["users_typing"] = typingUsers;
           }
-          extraDataObj->setProperty("is_loading_messages", channelState.isLoadingMessages);
-          channel.extraData = juce::var(extraDataObj);
+          extraDataObj["is_loading_messages"] = channelState.isLoadingMessages;
+          channel.extraData = extraDataObj;
         }
 
         channels.push_back(channel);
@@ -387,28 +384,22 @@ void MessagesList::loadPresenceForChannels() {
 }
 
 juce::String MessagesList::getOtherUserId(const StreamChatClient::Channel &channel) const {
-  if (!channel.members.isArray())
+  if (!channel.members.is_array())
     return {};
 
-  auto *membersArray = channel.members.getArray();
-  if (membersArray == nullptr)
-    return {};
-
-  for (int i = 0; i < membersArray->size(); ++i) {
-    auto member = (*membersArray)[i];
+  for (const auto &member : channel.members) {
     juce::String memberId;
 
-    if (member.isObject()) {
-      memberId = member.getProperty("user_id", "").toString();
+    if (member.is_object()) {
+      memberId = juce::String(member.value("user_id", ""));
       if (memberId.isEmpty())
-        memberId = member.getProperty("id", "").toString();
+        memberId = juce::String(member.value("id", ""));
 
       // Also try nested user object
-      auto user = member.getProperty("user", juce::var());
-      if (user.isObject() && memberId.isEmpty())
-        memberId = user.getProperty("id", "").toString();
-    } else if (member.isString()) {
-      memberId = member.toString();
+      if (member.contains("user") && member["user"].is_object() && memberId.isEmpty())
+        memberId = juce::String(member["user"].value("id", ""));
+    } else if (member.is_string()) {
+      memberId = juce::String(member.get<std::string>());
     }
 
     if (memberId.isNotEmpty() && memberId != currentUserId)
@@ -740,32 +731,30 @@ juce::String MessagesList::getChannelName(const StreamChatClient::Channel &chann
     return channel.name;
 
   // For direct messages, extract other user's name from members
-  if (channel.type == "messaging" && channel.members.isArray()) {
-    auto *membersArray = channel.members.getArray();
-    if (membersArray != nullptr && membersArray->size() >= 2) {
+  if (channel.type == "messaging" && channel.members.is_array()) {
+    if (channel.members.size() >= 2) {
       // Find the other member (not the current user)
       // Members array contains objects with user_id or just user IDs
-      for (int i = 0; i < membersArray->size(); ++i) {
-        auto member = (*membersArray)[i];
+      for (const auto &member : channel.members) {
         juce::String memberId;
 
         // Check if member is an object with user_id property
-        if (member.isObject()) {
-          memberId = member.getProperty("user_id", "").toString();
+        if (member.is_object()) {
+          memberId = juce::String(member.value("user_id", ""));
           if (memberId.isEmpty())
-            memberId = member.getProperty("id", "").toString();
+            memberId = juce::String(member.value("id", ""));
 
           // If we have a user object with name, use it
-          auto user = member.getProperty("user", juce::var());
-          if (user.isObject()) {
-            juce::String userName = user.getProperty("name", "").toString();
+          if (member.contains("user") && member["user"].is_object()) {
+            const auto &user = member["user"];
+            juce::String userName = juce::String(user.value("name", ""));
             if (userName.isEmpty())
-              userName = user.getProperty("username", "").toString();
+              userName = juce::String(user.value("username", ""));
             if (userName.isNotEmpty())
               return userName;
           }
-        } else if (member.isString()) {
-          memberId = member.toString();
+        } else if (member.is_string()) {
+          memberId = juce::String(member.get<std::string>());
         }
 
         // If we found a member ID that's not empty, use it as fallback
@@ -784,8 +773,8 @@ juce::String MessagesList::getChannelName(const StreamChatClient::Channel &chann
 }
 
 juce::String MessagesList::getLastMessagePreview(const StreamChatClient::Channel &channel) {
-  if (channel.lastMessage.isObject()) {
-    auto text = channel.lastMessage.getProperty("text", "").toString();
+  if (channel.lastMessage.is_object()) {
+    juce::String text = juce::String(channel.lastMessage.value("text", ""));
     if (text.length() > 50)
       return text.substring(0, 47) + "...";
     return text;
@@ -829,11 +818,11 @@ juce::Rectangle<int> MessagesList::getChannelItemBounds(int index) const {
 }
 
 bool MessagesList::isGroupChannel(const StreamChatClient::Channel &channel) const {
-  return channel.type == "team" || (!channel.name.isEmpty() && channel.members.isArray());
+  return channel.type == "team" || (!channel.name.isEmpty() && channel.members.is_array());
 }
 
 int MessagesList::getMemberCount(const StreamChatClient::Channel &channel) const {
-  if (channel.members.isArray()) {
+  if (channel.members.is_array()) {
     return static_cast<int>(channel.members.size());
   }
   return 0;

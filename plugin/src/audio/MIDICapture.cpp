@@ -2,7 +2,81 @@
 #include "../util/Log.h"
 #include <cmath>
 #include <limits>
+#include <nlohmann/json.hpp>
 #include <set>
+
+// ==============================================================================
+// MIDIEvent JSON serialization
+// ==============================================================================
+void to_json(nlohmann::json &j, const MIDIEvent &event) {
+  j = nlohmann::json{{"time", event.time},
+                     {"type", event.type.toStdString()},
+                     {"note", event.note},
+                     {"velocity", event.velocity},
+                     {"channel", event.channel}};
+}
+
+void from_json(const nlohmann::json &j, MIDIEvent &event) {
+  event.time = j.value("time", 0.0);
+  if (j.contains("type") && j["type"].is_string()) {
+    event.type = juce::String(j["type"].get<std::string>());
+  } else {
+    event.type = "note_on";
+  }
+  event.note = j.value("note", 0);
+  event.velocity = j.value("velocity", 0);
+  event.channel = j.value("channel", 0);
+}
+
+// ==============================================================================
+// MIDIData JSON serialization
+// ==============================================================================
+void to_json(nlohmann::json &j, const MIDIData &data) {
+  j = data.toJson();
+}
+
+void from_json(const nlohmann::json &j, MIDIData &data) {
+  data = MIDIData::fromJson(j);
+}
+
+nlohmann::json MIDIData::toJson() const {
+  nlohmann::json j;
+  j["total_time"] = totalTime;
+  j["tempo"] = tempo;
+  j["time_signature"] = nlohmann::json::array({timeSignatureNumerator, timeSignatureDenominator});
+
+  nlohmann::json eventsArray = nlohmann::json::array();
+  for (const auto &event : events) {
+    nlohmann::json eventObj;
+    to_json(eventObj, event);
+    eventsArray.push_back(eventObj);
+  }
+  j["events"] = eventsArray;
+
+  return j;
+}
+
+MIDIData MIDIData::fromJson(const nlohmann::json &j) {
+  MIDIData data;
+
+  data.totalTime = j.value("total_time", 0.0);
+  data.tempo = j.value("tempo", 120.0);
+
+  if (j.contains("time_signature") && j["time_signature"].is_array() && j["time_signature"].size() >= 2) {
+    data.timeSignatureNumerator = j["time_signature"][0].get<int>();
+    data.timeSignatureDenominator = j["time_signature"][1].get<int>();
+  }
+
+  if (j.contains("events") && j["events"].is_array()) {
+    for (const auto &eventObj : j["events"]) {
+      MIDIEvent event;
+      from_json(eventObj, event);
+      data.events.push_back(event);
+    }
+  }
+
+  return data;
+}
 
 // ==============================================================================
 MIDICapture::MIDICapture() {}
@@ -49,7 +123,7 @@ void MIDICapture::startCapture() {
   Log::info("Started MIDI capture");
 }
 
-std::vector<MIDICapture::MIDIEvent> MIDICapture::stopCapture() {
+std::vector<MIDIEvent> MIDICapture::stopCapture() {
   if (!capturing.load()) {
     Log::warn("MIDI capture not in progress, returning empty events");
     return std::vector<MIDIEvent>();
@@ -117,37 +191,31 @@ void MIDICapture::captureMIDI(const juce::MidiBuffer &midiMessages, int numSampl
 }
 
 // ==============================================================================
-juce::var MIDICapture::getMIDIDataAsJSON() const {
+nlohmann::json MIDICapture::getMIDIDataAsJSON() const {
   juce::ScopedLock lock(eventsLock);
 
-  auto *midiDataObj = new juce::DynamicObject();
-  juce::var midiData(midiDataObj);
-  midiDataObj->setProperty("total_time", totalTimeSeconds.load());
+  nlohmann::json midiData;
+  midiData["total_time"] = totalTimeSeconds.load();
 
   // Convert events to JSON array
-  juce::var eventsArray = juce::var(juce::Array<juce::var>());
-  auto *events = eventsArray.getArray();
+  nlohmann::json eventsArray = nlohmann::json::array();
 
   for (const auto &event : midiEvents) {
-    auto *obj = new juce::DynamicObject();
-    juce::var eventObj(obj);
-    obj->setProperty("time", event.time);
-    obj->setProperty("type", event.type);
-    obj->setProperty("note", event.note);
-    obj->setProperty("velocity", event.velocity);
-    obj->setProperty("channel", event.channel);
+    nlohmann::json eventObj;
+    eventObj["time"] = event.time;
+    eventObj["type"] = event.type.toStdString();
+    eventObj["note"] = event.note;
+    eventObj["velocity"] = event.velocity;
+    eventObj["channel"] = event.channel;
 
-    events->add(eventObj);
+    eventsArray.push_back(eventObj);
   }
 
-  midiDataObj->setProperty("events", eventsArray);
+  midiData["events"] = eventsArray;
 
   // Add tempo and time signature from DAW
-  juce::var timeSig = juce::var(juce::Array<juce::var>());
-  timeSig.getArray()->add(timeSignatureNumerator.load());
-  timeSig.getArray()->add(timeSignatureDenominator.load());
-  midiDataObj->setProperty("time_signature", timeSig);
-  midiDataObj->setProperty("tempo", currentTempo.load());
+  midiData["time_signature"] = nlohmann::json::array({timeSignatureNumerator.load(), timeSignatureDenominator.load()});
+  midiData["tempo"] = currentTempo.load();
 
   return midiData;
 }
@@ -156,7 +224,7 @@ juce::var MIDICapture::getMIDIDataAsJSON() const {
 // MIDI Data Processing
 // ==============================================================================
 
-std::vector<MIDICapture::MIDIEvent> MIDICapture::normalizeTiming(const std::vector<MIDIEvent> &events) {
+std::vector<MIDIEvent> MIDICapture::normalizeTiming(const std::vector<MIDIEvent> &events) {
   if (events.empty())
     return events;
 
@@ -183,7 +251,7 @@ std::vector<MIDICapture::MIDIEvent> MIDICapture::normalizeTiming(const std::vect
   return normalized;
 }
 
-std::vector<MIDICapture::MIDIEvent> MIDICapture::validateEvents(const std::vector<MIDIEvent> &events) {
+std::vector<MIDIEvent> MIDICapture::validateEvents(const std::vector<MIDIEvent> &events) {
   std::vector<MIDIEvent> validated;
   validated.reserve(events.size());
 
@@ -269,7 +337,7 @@ std::vector<MIDICapture::MIDIEvent> MIDICapture::validateEvents(const std::vecto
   return validated;
 }
 
-juce::var MIDICapture::getNormalizedMIDIDataAsJSON() const {
+nlohmann::json MIDICapture::getNormalizedMIDIDataAsJSON() const {
   juce::ScopedLock lock(eventsLock);
 
   // Get normalized and validated events
@@ -277,34 +345,28 @@ juce::var MIDICapture::getNormalizedMIDIDataAsJSON() const {
   auto validated = validateEvents(normalized);
 
   // Build JSON
-  auto *midiDataObj = new juce::DynamicObject();
-  juce::var midiData(midiDataObj);
-  midiDataObj->setProperty("total_time", totalTimeSeconds.load());
+  nlohmann::json midiData;
+  midiData["total_time"] = totalTimeSeconds.load();
 
   // Convert events to JSON array
-  juce::var eventsArray = juce::var(juce::Array<juce::var>());
-  auto *events = eventsArray.getArray();
+  nlohmann::json eventsArray = nlohmann::json::array();
 
   for (const auto &event : validated) {
-    auto *obj = new juce::DynamicObject();
-    juce::var eventObj(obj);
-    obj->setProperty("time", event.time);
-    obj->setProperty("type", event.type);
-    obj->setProperty("note", event.note);
-    obj->setProperty("velocity", event.velocity);
-    obj->setProperty("channel", event.channel);
+    nlohmann::json eventObj;
+    eventObj["time"] = event.time;
+    eventObj["type"] = event.type.toStdString();
+    eventObj["note"] = event.note;
+    eventObj["velocity"] = event.velocity;
+    eventObj["channel"] = event.channel;
 
-    events->add(eventObj);
+    eventsArray.push_back(eventObj);
   }
 
-  midiDataObj->setProperty("events", eventsArray);
+  midiData["events"] = eventsArray;
 
   // Add tempo and time signature from DAW
-  juce::var timeSig = juce::var(juce::Array<juce::var>());
-  timeSig.getArray()->add(timeSignatureNumerator.load());
-  timeSig.getArray()->add(timeSignatureDenominator.load());
-  midiDataObj->setProperty("time_signature", timeSig);
-  midiDataObj->setProperty("tempo", currentTempo.load());
+  midiData["time_signature"] = nlohmann::json::array({timeSignatureNumerator.load(), timeSignatureDenominator.load()});
+  midiData["tempo"] = currentTempo.load();
 
   return midiData;
 }
@@ -328,4 +390,38 @@ double MIDICapture::samplePositionToTime(int samplePosition) const {
   if (currentSampleRate > 0.0)
     return static_cast<double>(samplePosition) / currentSampleRate;
   return 0.0;
+}
+
+// ==============================================================================
+// Typed MIDIData accessors
+// ==============================================================================
+
+MIDIData MIDICapture::getMIDIData() const {
+  juce::ScopedLock lock(eventsLock);
+
+  MIDIData data;
+  data.totalTime = totalTimeSeconds.load();
+  data.tempo = currentTempo.load();
+  data.timeSignatureNumerator = timeSignatureNumerator.load();
+  data.timeSignatureDenominator = timeSignatureDenominator.load();
+  data.events = midiEvents;
+
+  return data;
+}
+
+MIDIData MIDICapture::getNormalizedMIDIData() const {
+  juce::ScopedLock lock(eventsLock);
+
+  // Get normalized and validated events
+  auto normalized = normalizeTiming(midiEvents);
+  auto validated = validateEvents(normalized);
+
+  MIDIData data;
+  data.totalTime = totalTimeSeconds.load();
+  data.tempo = currentTempo.load();
+  data.timeSignatureNumerator = timeSignatureNumerator.load();
+  data.timeSignatureDenominator = timeSignatureDenominator.load();
+  data.events = validated;
+
+  return data;
 }

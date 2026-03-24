@@ -8,6 +8,7 @@
 #include "audio/SynthEngine.h"
 #include "util/Log.h"
 #include <JuceHeader.h>
+#include <nlohmann/json.hpp>
 
 // ==============================================================================
 /**
@@ -166,11 +167,11 @@ public:
    */
   juce::AudioBuffer<float> getRecordedAudio();
 
-  /** Get captured MIDI data as JSON
-   * @return JSON representation of captured MIDI events
+  /** Get captured MIDI data
+   * @return MIDIData struct containing captured MIDI events
    */
-  juce::var getCapturedMIDIData() const {
-    return midiCapture.getMIDIDataAsJSON();
+  MIDIData getCapturedMIDIData() const {
+    return midiCapture.getNormalizedMIDIData();
   }
 
   /** Check if MIDI data has been captured

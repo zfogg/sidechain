@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../audio/KeyDetector.h"
+#include "../../audio/MIDICapture.h"
 #include "../../network/NetworkClient.h"
 #include "../../stores/AppStore.h"
 #include "../../ui/common/AppStoreComponent.h"
@@ -61,7 +62,7 @@ public:
   void setAudioToUpload(const juce::AudioBuffer<float> &audio, double sampleRate);
 
   // Set the audio and MIDI data to upload
-  void setAudioToUpload(const juce::AudioBuffer<float> &audio, double sampleRate, const juce::var &midiData);
+  void setAudioToUpload(const juce::AudioBuffer<float> &audio, double sampleRate, const MIDIData &midiData);
 
   // Clear state and prepare for new upload
   void reset();
@@ -85,7 +86,7 @@ public:
   int getCommentAudienceIndex() const {
     return selectedCommentAudienceIndex;
   }
-  const juce::var &getMidiData() const {
+  const MIDIData &getMidiData() const {
     return midiData;
   }
   const juce::AudioBuffer<float> &getAudioBuffer() const {
@@ -150,7 +151,7 @@ private:
   int selectedCommentAudienceIndex = 0; // 0 = "Everyone"
 
   // MIDI data
-  juce::var midiData;      // Captured MIDI events from recording
+  MIDIData midiData;       // Captured MIDI events from recording
   bool includeMidi = true; // Whether to include MIDI in upload
 
   // Project file data

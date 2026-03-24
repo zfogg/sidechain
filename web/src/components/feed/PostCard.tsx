@@ -196,7 +196,7 @@ export function PostCard({ post }: PostCardProps) {
 
   return (
     <>
-      <div className="bg-card border border-border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+      <div className="bg-card border border-border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow" data-testid="post-card">
       {/* User Info Header */}
       <div className="p-4 flex items-center gap-3 border-b border-border">
         <img
@@ -310,6 +310,7 @@ export function PostCard({ post }: PostCardProps) {
           onClick={handleLike}
           disabled={isLikePending}
           className="flex-1 min-w-0 gap-2"
+          data-testid="like-button"
         >
           {isLikePending ? (
             <Spinner size="sm" />
@@ -336,6 +337,7 @@ export function PostCard({ post }: PostCardProps) {
           size="sm"
           onClick={handleComment}
           className="flex-1 min-w-0 gap-2"
+          data-testid="comment-button"
         >
           <svg
             className="w-4 h-4"
@@ -359,6 +361,7 @@ export function PostCard({ post }: PostCardProps) {
           onClick={handleSave}
           disabled={isSavePending}
           className="flex-1 min-w-0 gap-2"
+          data-testid="save-button"
         >
           {isSavePending ? (
             <Spinner size="sm" />
@@ -386,6 +389,7 @@ export function PostCard({ post }: PostCardProps) {
           onClick={() => setIsRepostQuoteOpen(true)}
           className="flex-1 min-w-0 gap-2"
           disabled={socialActionLoading === 'repost'}
+          data-testid="repost-button"
         >
           {socialActionLoading === 'repost' ? (
             <Spinner size="sm" />

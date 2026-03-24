@@ -2,6 +2,7 @@
 
 #include "FeedPost.h"
 #include <JuceHeader.h>
+#include <nlohmann/json.hpp>
 
 namespace Sidechain {
 
@@ -27,23 +28,29 @@ struct AggregatedFeedGroup {
   juce::Time createdAt;
   juce::Time updatedAt;
 
-  // Factory method to create from JSON
-  static AggregatedFeedGroup fromJson(const juce::var &json) {
+  // Factory method to create from JSON (nlohmann::json)
+  static AggregatedFeedGroup fromJson(const nlohmann::json &json) {
     AggregatedFeedGroup group;
-    group.id = json.getProperty("id", "").toString();
-    group.groupKey = json.getProperty("group", "").toString();
-    group.verb = json.getProperty("verb", "").toString();
-    group.activityCount = static_cast<int>(json.getProperty("activity_count", 0));
-    group.actorCount = static_cast<int>(json.getProperty("actor_count", 0));
+
+    if (!json.is_object()) {
+      return group;
+    }
+
+    group.id =
+        json.contains("id") && json["id"].is_string() ? juce::String(json["id"].get<std::string>()) : juce::String();
+    group.groupKey = json.contains("group") && json["group"].is_string()
+                         ? juce::String(json["group"].get<std::string>())
+                         : juce::String();
+    group.verb = json.contains("verb") && json["verb"].is_string() ? juce::String(json["verb"].get<std::string>())
+                                                                   : juce::String();
+    group.activityCount = json.value("activity_count", 0);
+    group.actorCount = json.value("actor_count", 0);
 
     // Parse activities array
-    auto activitiesVar = json.getProperty("activities", juce::var());
-    if (activitiesVar.isArray()) {
-      for (int i = 0; i < activitiesVar.size(); ++i) {
+    if (json.contains("activities") && json["activities"].is_array()) {
+      for (const auto &activityJson : json["activities"]) {
         try {
-          auto jsonStr = juce::JSON::toString(activitiesVar[i]);
-          auto jsonObj = nlohmann::json::parse(jsonStr.toStdString());
-          auto result = Sidechain::SerializableModel<FeedPost>::createFromJson(jsonObj);
+          auto result = Sidechain::SerializableModel<FeedPost>::createFromJson(activityJson);
           if (result.isOk()) {
             auto post = *result.getValue();
             if (post.isValid())
@@ -56,13 +63,17 @@ struct AggregatedFeedGroup {
     }
 
     // Parse timestamps
-    juce::String createdStr = json.getProperty("created_at", "").toString();
-    if (createdStr.isNotEmpty())
-      group.createdAt = juce::Time::fromISO8601(createdStr);
+    if (json.contains("created_at") && json["created_at"].is_string()) {
+      juce::String createdStr(json["created_at"].get<std::string>());
+      if (createdStr.isNotEmpty())
+        group.createdAt = juce::Time::fromISO8601(createdStr);
+    }
 
-    juce::String updatedStr = json.getProperty("updated_at", "").toString();
-    if (updatedStr.isNotEmpty())
-      group.updatedAt = juce::Time::fromISO8601(updatedStr);
+    if (json.contains("updated_at") && json["updated_at"].is_string()) {
+      juce::String updatedStr(json["updated_at"].get<std::string>());
+      if (updatedStr.isNotEmpty())
+        group.updatedAt = juce::Time::fromISO8601(updatedStr);
+    }
 
     return group;
   }

@@ -101,7 +101,7 @@ void AppStore::sendMessage(const juce::String &channelId, const juce::String &te
   Log::info("AppStore::sendMessage - ✓ Message object created successfully");
 
   Log::info("AppStore::sendMessage - Sending message to Stream.io via StreamChatClient");
-  juce::var extraData;
+  nlohmann::json extraData;
   streamChatClient->sendMessage(
       "messaging", channelId, text, extraData,
       [this, channelId, msg, messageId](const Outcome<StreamChatClient::Message> &result) {
@@ -358,7 +358,7 @@ rxcpp::observable<Message> AppStore::sendMessageObservable(const juce::String &c
            juce::String userId = stateManager.user->getState().userId;
            juce::String username = stateManager.user->getState().username;
 
-           juce::var extraData;
+           nlohmann::json extraData;
            streamChatClient->sendMessage(
                "messaging", channelId, text, extraData,
                [this, observer, channelId, text, userId, username](const Outcome<StreamChatClient::Message> &result) {

@@ -40,16 +40,7 @@ juce::String Story::getExpirationText() const {
  * @return true if MIDI data is present and contains events, false otherwise
  */
 bool Story::hasMIDI() const {
-  if (!midiData.isObject())
-    return false;
-
-  // Check if there are any events
-  if (midiData.hasProperty("events")) {
-    auto *events = midiData["events"].getArray();
-    return events && !events->isEmpty();
-  }
-
-  return false;
+  return midiData.hasEvents();
 }
 
 /** Parse Story from JSON response
@@ -216,6 +207,11 @@ void to_json(nlohmann::json &j, const Story &story) {
       {"user_avatar_url", Json::fromJuceString(story.userAvatarUrl)},
   };
 
+  // Add MIDI data if present
+  if (story.midiData.hasEvents()) {
+    j["midi_data"] = story.midiData.toJson();
+  }
+
   // Add genres array
   std::vector<std::string> genresVec;
   for (const auto &genre : story.genres) {
@@ -252,6 +248,13 @@ void from_json(const nlohmann::json &j, Story &story) {
   JSON_OPTIONAL_STRING(j, "username", story.username, "");
   JSON_OPTIONAL_STRING(j, "user_display_name", story.userDisplayName, "");
   JSON_OPTIONAL_STRING(j, "user_avatar_url", story.userAvatarUrl, "");
+
+  // Parse MIDI data (embedded JSON object)
+  if (j.contains("midi_data") && j["midi_data"].is_object()) {
+    story.midiData = MIDIData::fromJson(j["midi_data"]);
+  } else {
+    story.midiData = MIDIData();
+  }
 
   // Parse timestamps
   if (j.contains("created_at") && !j["created_at"].is_null()) {

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../../audio/MIDICapture.h"
 #include <JuceHeader.h>
 #include <vector>
 
@@ -41,8 +42,8 @@ public:
   // ==============================================================================
   // MIDI data management
 
-  // Set MIDI data from JSON (from MIDICapture::getMIDIDataAsJSON)
-  void setMIDIData(const juce::var &midiData);
+  // Set MIDI data from typed struct
+  void setMIDIData(const MIDIData &midiData);
 
   // Clear all MIDI data
   void clearMIDIData();
@@ -129,7 +130,7 @@ private:
   juce::Colour getChannelColor(int channel) const;
 
   // Parse MIDI events into notes
-  void parseMIDIEvents(const juce::var &events);
+  void parseMIDIEvents(const std::vector<MIDIEvent> &events);
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(NoteWaterfall)
 };

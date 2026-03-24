@@ -37,10 +37,16 @@ struct Playlist : public SerializableModel<Playlist> {
   // User's role in this playlist (if applicable)
   juce::String userRole; // "owner", "editor", "viewer", or empty
 
-  // Parse from JSON response
+  /** Parse from JSON response
+   *  @deprecated Use SerializableModel<Playlist>::createFromJson() with nlohmann::json instead
+   */
+  [[deprecated("Use SerializableModel<Playlist>::createFromJson() with nlohmann::json instead")]]
   static Playlist fromJSON(const juce::var &json);
 
-  // Convert to JSON for upload
+  /** Convert to JSON for upload
+   *  @deprecated Use SerializableModel<Playlist>::toJson() with nlohmann::json instead
+   */
+  [[deprecated("Use SerializableModel<Playlist>::toJson() with nlohmann::json instead")]]
   juce::var toJSON() const;
 
   // Check if user can edit this playlist
@@ -127,7 +133,10 @@ struct PlaylistEntry {
   juce::String postKey;
   juce::StringArray postGenres;
 
-  // Parse from JSON response
+  /** Parse from JSON response
+   *  @deprecated Use nlohmann::json with typed models instead
+   */
+  [[deprecated("Use nlohmann::json with typed models instead")]]
   static PlaylistEntry fromJSON(const juce::var &json);
 };
 
@@ -144,7 +153,10 @@ struct PlaylistCollaborator {
   juce::String role; // "owner", "editor", "viewer"
   juce::Time addedAt;
 
-  // Parse from JSON response
+  /** Parse from JSON response
+   *  @deprecated Use nlohmann::json with typed models instead
+   */
+  [[deprecated("Use nlohmann::json with typed models instead")]]
   static PlaylistCollaborator fromJSON(const juce::var &json);
 };
 

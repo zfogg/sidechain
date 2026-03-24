@@ -21,7 +21,10 @@ struct MIDIChallengeConstraints {
   double durationMin = 0.0; // 0 means no constraint
   double durationMax = 0.0; // 0 means no constraint
 
-  // Parse from JSON
+  /** Parse from JSON
+   *  @deprecated Use nlohmann::json with typed models instead
+   */
+  [[deprecated("Use nlohmann::json with typed models instead")]]
   static MIDIChallengeConstraints fromJSON(const juce::var &json);
 };
 
@@ -54,7 +57,10 @@ struct MIDIChallenge : public SerializableModel<MIDIChallenge> {
     return id.isNotEmpty() && title.isNotEmpty();
   }
 
-  // Parse from JSON response
+  /** Parse from JSON response
+   *  @deprecated Use SerializableModel<MIDIChallenge>::createFromJson() with nlohmann::json instead
+   */
+  [[deprecated("Use SerializableModel<MIDIChallenge>::createFromJson() with nlohmann::json instead")]]
   static MIDIChallenge fromJSON(const juce::var &json);
 
   // Check if challenge is currently accepting submissions
@@ -98,7 +104,10 @@ struct MIDIChallengeEntry : public SerializableModel<MIDIChallengeEntry> {
     return id.isNotEmpty() && challengeId.isNotEmpty() && userId.isNotEmpty();
   }
 
-  // Parse from JSON response
+  /** Parse from JSON response
+   *  @deprecated Use SerializableModel<MIDIChallengeEntry>::createFromJson() with nlohmann::json instead
+   */
+  [[deprecated("Use SerializableModel<MIDIChallengeEntry>::createFromJson() with nlohmann::json instead")]]
   static MIDIChallengeEntry fromJSON(const juce::var &json);
 };
 

@@ -868,9 +868,9 @@ void StoryRecording::confirmRecording() {
     juce::StringArray savedGenres = storyGenres;
 
     // Get normalized and validated MIDI data (only for DAW)
-    juce::var midiData = juce::var();
+    MIDIData midiData;
     if (currentRecordingSource == RecordingSource::DAW) {
-      midiData = midiCapture.getNormalizedMIDIDataAsJSON();
+      midiData = midiCapture.getNormalizedMIDIData();
     }
 
     // Reset state BEFORE calling callback to prevent any repaint

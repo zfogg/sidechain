@@ -210,23 +210,20 @@ void MessageThread::sendMessage() {
     return;
 
   // Build extraData with attachments and metadata
-  juce::var extraData;
-  if (auto obj = std::make_unique<juce::DynamicObject>()) {
-    // Add audio snippet flag if present
-    if (hasAudioSnippet) {
-      obj->setProperty("has_audio_snippet", true);
-      // The audioSnippetRecorder->onRecordingComplete callback will handle
-      // encoding the audio and creating the attachment with type="audio"
-    }
+  nlohmann::json extraData = nlohmann::json::object();
 
-    // Handle reply if user was replying to a message
-    if (replyingToMessageId.isNotEmpty()) {
-      obj->setProperty("reply_to", replyingToMessage.id);
-      obj->setProperty("reply_to_text", replyingToMessage.text);
-      obj->setProperty("reply_to_user_id", replyingToMessage.userId);
-    }
+  // Add audio snippet flag if present
+  if (hasAudioSnippet) {
+    extraData["has_audio_snippet"] = true;
+    // The audioSnippetRecorder->onRecordingComplete callback will handle
+    // encoding the audio and creating the attachment with type="audio"
+  }
 
-    extraData = juce::var(obj.get());
+  // Handle reply if user was replying to a message
+  if (replyingToMessageId.isNotEmpty()) {
+    extraData["reply_to"] = replyingToMessage.id.toStdString();
+    extraData["reply_to_text"] = replyingToMessage.text.toStdString();
+    extraData["reply_to_user_id"] = replyingToMessage.userId.toStdString();
   }
 
   // Send message through StreamChatClient using observable API
@@ -257,18 +254,24 @@ void MessageThread::toggleReaction(const juce::String &, const juce::String &) {
 bool MessageThread::hasUserReacted(const StreamChatClient::Message &message, const juce::String &reactionType) const {
   // Check if current user has reacted with this reaction type
   // Reactions structure: { "👍": ["user1", "user2"], "❤️": ["user3"] }
-  if (!message.reactions.isObject()) {
+  if (!message.reactions.is_object()) {
     return false;
   }
 
-  auto reactionArray = message.reactions.getProperty(reactionType, juce::var());
-  if (!reactionArray.isArray()) {
+  std::string reactionKey = reactionType.toStdString();
+  if (!message.reactions.contains(reactionKey)) {
+    return false;
+  }
+
+  const auto &reactionArray = message.reactions[reactionKey];
+  if (!reactionArray.is_array()) {
     return false;
   }
 
   // Check if currentUserId is in the reaction array
-  for (int i = 0; i < reactionArray.size(); ++i) {
-    if (reactionArray[i].toString() == currentUserId) {
+  std::string currentUserIdStd = currentUserId.toStdString();
+  for (const auto &userId : reactionArray) {
+    if (userId.is_string() && userId.get<std::string>() == currentUserIdStd) {
       return true;
     }
   }
@@ -277,29 +280,33 @@ bool MessageThread::hasUserReacted(const StreamChatClient::Message &message, con
 }
 int MessageThread::getReactionCount(const StreamChatClient::Message &message, const juce::String &reactionType) const {
   // Return count of users who reacted with this reaction type
-  if (!message.reactions.isObject()) {
+  if (!message.reactions.is_object()) {
     return 0;
   }
 
-  auto reactionArray = message.reactions.getProperty(reactionType, juce::var());
-  if (!reactionArray.isArray()) {
+  std::string reactionKey = reactionType.toStdString();
+  if (!message.reactions.contains(reactionKey)) {
     return 0;
   }
 
-  return reactionArray.size();
+  const auto &reactionArray = message.reactions[reactionKey];
+  if (!reactionArray.is_array()) {
+    return 0;
+  }
+
+  return static_cast<int>(reactionArray.size());
 }
 std::vector<juce::String> MessageThread::getReactionTypes(const StreamChatClient::Message &message) const {
   // Return all reaction types (emoji) on this message
   std::vector<juce::String> types;
 
-  if (!message.reactions.isObject()) {
+  if (!message.reactions.is_object()) {
     return types;
   }
 
-  // Iterate through all properties in the reactions object to get reaction types
-  auto &properties = message.reactions.getDynamicObject()->getProperties();
-  for (int i = 0; i < properties.size(); ++i) {
-    types.push_back(properties.getName(i).toString());
+  // Iterate through all keys in the reactions object to get reaction types
+  for (const auto &[key, value] : message.reactions.items()) {
+    types.push_back(juce::String(key));
   }
 
   return types;
@@ -376,8 +383,8 @@ juce::Rectangle<int> MessageThread::getCancelReplyButtonBounds() const {
 bool MessageThread::hasAudioAttachment(const StreamChatClient::Message &message) const {
   // Check if message has audio attachments
   // Audio attachments are stored in message.extraData["audio_url"] or similar
-  if (message.extraData.isObject()) {
-    if (message.extraData.hasProperty("audio_url") || message.extraData.hasProperty("audio_attachment")) {
+  if (message.extraData.is_object()) {
+    if (message.extraData.contains("audio_url") || message.extraData.contains("audio_attachment")) {
       return true;
     }
   }
@@ -436,8 +443,8 @@ void MessageThread::drawAudioAttachment(juce::Graphics &g, const StreamChatClien
 
   // Format duration from message attachment duration field
   juce::String durationStr = "0:00";
-  if (message.extraData.isObject()) {
-    double durationSeconds = Json::getDouble(message.extraData, "audio_duration", 0.0);
+  if (message.extraData.is_object()) {
+    double durationSeconds = message.extraData.value("audio_duration", 0.0);
     if (durationSeconds > 0) {
       int minutes = static_cast<int>(durationSeconds) / 60;
       int seconds = static_cast<int>(durationSeconds) % 60;
@@ -458,11 +465,11 @@ void MessageThread::playAudioAttachment(const StreamChatClient::Message &message
 
   // Find audio attachment URL from message extraData
   juce::String audioUrl;
-  if (message.extraData.isObject()) {
-    if (message.extraData.hasProperty("audio_url")) {
-      audioUrl = message.extraData["audio_url"].toString();
-    } else if (message.extraData.hasProperty("audio_attachment")) {
-      audioUrl = message.extraData["audio_attachment"].toString();
+  if (message.extraData.is_object()) {
+    if (message.extraData.contains("audio_url")) {
+      audioUrl = juce::String(message.extraData["audio_url"].get<std::string>());
+    } else if (message.extraData.contains("audio_attachment")) {
+      audioUrl = juce::String(message.extraData["audio_attachment"].get<std::string>());
     }
   }
 
@@ -528,7 +535,7 @@ int MessageThread::calculateMessageHeight(const StreamChatClient::Message &messa
   if (!message.text.isEmpty()) {
     height += message.text.length() / 20; // Rough estimate based on text length
   }
-  if (message.extraData.hasProperty("post_id") || message.extraData.hasProperty("story_id")) {
+  if (message.extraData.contains("post_id") || message.extraData.contains("story_id")) {
     height += 80; // Height for preview
   }
   return height;
@@ -548,8 +555,8 @@ bool MessageThread::isOwnMessage(const StreamChatClient::Message &message) const
 
 juce::String MessageThread::getReplyToMessageId(const StreamChatClient::Message &message) const {
   // Extract parent message ID from extraData if this is a reply
-  if (message.extraData.hasProperty("reply_to")) {
-    return message.extraData["reply_to"].toString();
+  if (message.extraData.contains("reply_to")) {
+    return juce::String(message.extraData["reply_to"].get<std::string>());
   }
   return "";
 }
@@ -587,10 +594,8 @@ std::optional<StreamChatClient::Message> MessageThread::findParentMessage(const 
 
       // Store reply info in extraData if this message itself is a reply
       if (message->replyToId.isNotEmpty()) {
-        auto *extraObj = new juce::DynamicObject();
-        extraObj->setProperty("reply_to_id", message->replyToId);
-        extraObj->setProperty("reply_to_sender", message->replyToSenderId);
-        result.extraData = juce::var(extraObj);
+        result.extraData["reply_to_id"] = message->replyToId.toStdString();
+        result.extraData["reply_to_sender"] = message->replyToSenderId.toStdString();
       }
 
       return result;
@@ -651,16 +656,16 @@ void MessageThread::scrollToMessage(const juce::String &messageId) {
 }
 
 bool MessageThread::hasSharedPost(const StreamChatClient::Message &message) const {
-  return message.extraData.hasProperty("post_id");
+  return message.extraData.contains("post_id");
 }
 bool MessageThread::hasSharedStory(const StreamChatClient::Message &message) const {
-  return message.extraData.hasProperty("story_id");
+  return message.extraData.contains("story_id");
 }
 
 void MessageThread::drawSharedPostPreview(juce::Graphics &g, const StreamChatClient::Message &message,
                                           juce::Rectangle<int> bounds) {
   // Draw post preview within bounds - includes thumbnail, title, artist
-  if (!Json::hasKey(message.extraData, "post_id")) {
+  if (!message.extraData.contains("post_id")) {
     return;
   }
 
@@ -673,9 +678,9 @@ void MessageThread::drawSharedPostPreview(juce::Graphics &g, const StreamChatCli
   g.drawRect(bounds, 1);
 
   // Extract post data from extraData
-  juce::String postId = Json::getString(message.extraData, "post_id");
-  juce::String postTitle = Json::getString(message.extraData, "post_title");
-  juce::String artistName = Json::getString(message.extraData, "artist_name");
+  juce::String postId = juce::String(message.extraData.value("post_id", ""));
+  juce::String postTitle = juce::String(message.extraData.value("post_title", ""));
+  juce::String artistName = juce::String(message.extraData.value("artist_name", ""));
 
   // Draw icon (♪ music note)
   auto iconBounds = bounds.removeFromLeft(bounds.getHeight()).reduced(8);
@@ -696,7 +701,7 @@ void MessageThread::drawSharedPostPreview(juce::Graphics &g, const StreamChatCli
 void MessageThread::drawSharedStoryPreview(juce::Graphics &g, const StreamChatClient::Message &message,
                                            juce::Rectangle<int> bounds) {
   // Draw story preview within bounds - includes thumbnail with story gradient
-  if (!Json::hasKey(message.extraData, "story_id")) {
+  if (!message.extraData.contains("story_id")) {
     return;
   }
 
@@ -709,8 +714,8 @@ void MessageThread::drawSharedStoryPreview(juce::Graphics &g, const StreamChatCl
   g.drawRect(bounds, 2);
 
   // Extract story data
-  juce::String storyId = Json::getString(message.extraData, "story_id");
-  juce::String storyAuthor = Json::getString(message.extraData, "story_author");
+  juce::String storyId = juce::String(message.extraData.value("story_id", ""));
+  juce::String storyAuthor = juce::String(message.extraData.value("story_author", ""));
 
   // Draw story label
   g.setColour(SidechainColors::textPrimary());
@@ -725,7 +730,7 @@ void MessageThread::drawSharedStoryPreview(juce::Graphics &g, const StreamChatCl
 }
 
 int MessageThread::getSharedContentHeight(const StreamChatClient::Message &message) const {
-  if (Json::hasKey(message.extraData, "post_id") || Json::hasKey(message.extraData, "story_id")) {
+  if (message.extraData.contains("post_id") || message.extraData.contains("story_id")) {
     return 100; // Standard preview height
   }
   return 0;

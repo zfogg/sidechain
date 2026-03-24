@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../../audio/MIDICapture.h"
 #include "../../audio/ProgressiveKeyDetector.h"
 #include "../../ui/animations/Easing.h"
 #include "../../ui/animations/TransitionAnimation.h"
@@ -40,7 +41,7 @@ public:
   // ==============================================================================
   // Callback when recording is complete and ready for upload
   // Includes MIDI data (captured during recording or imported from file)
-  std::function<void(const juce::AudioBuffer<float> &, const juce::var &midiData)> onRecordingComplete;
+  std::function<void(const juce::AudioBuffer<float> &, const MIDIData &midiData)> onRecordingComplete;
 
   // Callback when user wants to discard recording
   std::function<void()> onRecordingDiscarded;
@@ -106,7 +107,7 @@ private:
   juce::Rectangle<int> viewDraftsButtonArea; // View drafts button
 
   // Imported MIDI data
-  juce::var importedMidiData;
+  MIDIData importedMidiData;
   bool hasImportedMidi = false;
 
   // ==============================================================================

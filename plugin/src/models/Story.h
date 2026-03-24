@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../audio/MIDICapture.h"
 #include "../util/SerializableModel.h"
 #include "../util/json/JsonValidation.h"
 #include "../util/Json.h"
@@ -30,7 +31,7 @@ struct Story : public SerializableModel<Story> {
   float audioDuration = 0.0f; // Duration in seconds (5-60)
   juce::String filename;      // Display filename for audio
   juce::String midiFilename;  // Display filename for MIDI
-  juce::var midiData;         // MIDI events for visualization (embedded)
+  MIDIData midiData;          // MIDI events for visualization (embedded)
   juce::String midiPatternId; // ID of standalone MIDI pattern (for download)
   juce::String waveformData;  // SVG waveform (legacy, deprecated)
   juce::String waveformUrl;   // CDN URL to waveform PNG image
@@ -140,14 +141,15 @@ struct StoryHighlight {
   juce::String getCoverUrl() const;
 
   /** Parse from JSON response
-   *  @param json JSON var containing highlight data
-   *  @return StoryHighlight instance parsed from JSON
+   *  @deprecated Use nlohmann::json with typed models instead
    */
+  [[deprecated("Use nlohmann::json with typed models instead")]]
   static StoryHighlight fromJSON(const juce::var &json);
 
   /** Convert to JSON for creation/update
-   *  @return JSON var representation of this highlight
+   *  @deprecated Use nlohmann::json with typed models instead
    */
+  [[deprecated("Use nlohmann::json with typed models instead")]]
   juce::var toJSON() const;
 };
 

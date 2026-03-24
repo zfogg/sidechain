@@ -831,98 +831,6 @@ void AppStore::handleFetchError(FeedType feedType, const juce::String &error) {
   stateManager.posts->setState(newState);
 }
 
-void AppStore::handleSavedPostsLoaded(Outcome<juce::var> result) {
-  if (!result.isOk()) {
-    PostsState errorState = stateManager.posts->getState();
-    errorState.savedPosts.isLoading = false;
-    errorState.savedPosts.error = result.getError();
-    stateManager.posts->setState(errorState);
-    return;
-  }
-
-  auto data = result.getValue();
-  if (!data.isObject()) {
-    PostsState errorState = stateManager.posts->getState();
-    errorState.savedPosts.isLoading = false;
-    errorState.savedPosts.error = "Invalid saved posts response";
-    stateManager.posts->setState(errorState);
-    return;
-  }
-
-  auto postsArray = data.getProperty("posts", juce::var());
-  auto totalCount = static_cast<int>(data.getProperty("total", 0));
-
-  if (!postsArray.isArray()) {
-    PostsState errorState = stateManager.posts->getState();
-    errorState.savedPosts.isLoading = false;
-    errorState.savedPosts.error = "Invalid posts array in response";
-    stateManager.posts->setState(errorState);
-    return;
-  }
-
-  // Use JsonArrayParser with validation
-  auto loadedPosts = JsonArrayParser<FeedPost>::parseWithValidation(
-      postsArray, [](const FeedPost &post) { return post.isValid(); }, "saved posts");
-
-  PostsState successState = stateManager.posts->getState();
-  successState.savedPosts.posts = std::move(loadedPosts);
-  successState.savedPosts.isLoading = false;
-  successState.savedPosts.totalCount = totalCount;
-  successState.savedPosts.offset += static_cast<int>(successState.savedPosts.posts.size());
-  successState.savedPosts.hasMore = successState.savedPosts.offset < totalCount;
-  successState.savedPosts.error = "";
-  successState.savedPosts.lastUpdated = Utils::StateHelpers::now();
-  stateManager.posts->setState(successState);
-
-  Util::logDebug("AppStore", "Loaded " + juce::String(successState.savedPosts.posts.size()) + " saved posts");
-}
-
-void AppStore::handleArchivedPostsLoaded(Outcome<juce::var> result) {
-  if (!result.isOk()) {
-    PostsState errorState = stateManager.posts->getState();
-    errorState.archivedPosts.isLoading = false;
-    errorState.archivedPosts.error = result.getError();
-    stateManager.posts->setState(errorState);
-    return;
-  }
-
-  auto data = result.getValue();
-  if (!data.isObject()) {
-    PostsState errorState = stateManager.posts->getState();
-    errorState.archivedPosts.isLoading = false;
-    errorState.archivedPosts.error = "Invalid archived posts response";
-    stateManager.posts->setState(errorState);
-    return;
-  }
-
-  auto postsArray = data.getProperty("posts", juce::var());
-  auto totalCount = static_cast<int>(data.getProperty("total", 0));
-
-  if (!postsArray.isArray()) {
-    PostsState errorState = stateManager.posts->getState();
-    errorState.archivedPosts.isLoading = false;
-    errorState.archivedPosts.error = "Invalid posts array in response";
-    stateManager.posts->setState(errorState);
-    return;
-  }
-
-  // Use JsonArrayParser with validation
-  auto loadedPosts = JsonArrayParser<FeedPost>::parseWithValidation(
-      postsArray, [](const FeedPost &post) { return post.isValid(); }, "archived posts");
-
-  PostsState successState = stateManager.posts->getState();
-  successState.archivedPosts.posts = std::move(loadedPosts);
-  successState.archivedPosts.isLoading = false;
-  successState.archivedPosts.totalCount = totalCount;
-  successState.archivedPosts.offset += static_cast<int>(successState.archivedPosts.posts.size());
-  successState.archivedPosts.hasMore = successState.archivedPosts.offset < totalCount;
-  successState.archivedPosts.error = "";
-  successState.archivedPosts.lastUpdated = Utils::StateHelpers::now();
-  stateManager.posts->setState(successState);
-
-  Util::logDebug("AppStore", "Loaded " + juce::String(successState.archivedPosts.posts.size()) + " archived posts");
-}
-
 bool AppStore::isCurrentFeedCached() const {
   auto state = stateManager.posts->getState();
   auto feedType = state.currentFeedType;
@@ -984,11 +892,14 @@ FeedResponse AppStore::parseJsonResponse(const nlohmann::json &json) {
     response.total = json.value("total", 0);
   }
 
-  // Parse posts from JSON array
+  // Parse posts from JSON array using SerializableModel API
   for (const auto &postJson : postsArray) {
-    auto post = FeedPost::fromJson(postJson);
-    if (post.isValid()) {
-      response.posts.add(post);
+    auto result = Sidechain::SerializableModel<FeedPost>::createFromJson(postJson);
+    if (result.isOk()) {
+      auto post = *result.getValue();
+      if (post.isValid()) {
+        response.posts.add(post);
+      }
     }
   }
 

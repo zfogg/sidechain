@@ -2,6 +2,8 @@
 #include "PluginProcessor.h"
 #include "audio/NotificationSound.h"
 
+#include <nlohmann/json.hpp>
+
 #include "util/Async.h"
 #include "util/Colors.h"
 #include "util/Constants.h"
@@ -223,10 +225,9 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   // Create RecordingComponent
   recordingComponent = std::make_unique<Recording>(audioProcessor);
   recordingComponent->onRecordingComplete = [this](const juce::AudioBuffer<float> &recordedAudio,
-                                                   const juce::var &midiData) {
+                                                   const MIDIData &midiData) {
     if (uploadComponent) {
       // Use MIDI data passed from Recording (either captured or imported)
-
       uploadComponent->setAudioToUpload(recordedAudio, audioProcessor.getCurrentSampleRate(), midiData);
       showView(AppView::Upload);
     }
@@ -305,26 +306,30 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   // Create StoryRecording
   storyRecordingComponent = std::make_unique<StoryRecording>(audioProcessor);
   storyRecordingComponent->onRecordingComplete = [this](const juce::AudioBuffer<float> &recordedAudio,
-                                                        const juce::var &midiData, int bpm, const juce::String &key,
+                                                        const MIDIData &midiData, int bpm, const juce::String &key,
                                                         const juce::StringArray &genres) {
     // Upload story
     if (networkClient && recordedAudio.getNumSamples() > 0) {
-      networkClient->uploadStory(recordedAudio, audioProcessor.getCurrentSampleRate(), midiData, bpm, key, genres,
-                                 [this](Outcome<juce::var> result) {
+      // Convert MIDIData to nlohmann::json for network layer
+      nlohmann::json midiDataJson = midiData.toJson();
+      networkClient->uploadStory(recordedAudio, audioProcessor.getCurrentSampleRate(), midiDataJson, bpm, key, genres,
+                                 [this](Outcome<nlohmann::json> result) {
                                    juce::MessageManager::callAsync([this, result]() {
                                      if (result.isOk()) {
                                        Log::info("Story uploaded successfully");
 
                                        // Extract story ID from response
                                        juce::String storyId;
-                                       auto response = result.getValue();
-                                       if (Json::isObject(response)) {
+                                       const auto &response = result.getValue();
+                                       if (response.is_object()) {
                                          // Try "story" object first, then direct "id" property
-                                         auto storyObj = Json::getObject(response, "story");
-                                         if (Json::isObject(storyObj)) {
-                                           storyId = Json::getString(storyObj, "id");
-                                         } else {
-                                           storyId = Json::getString(response, "id");
+                                         if (response.contains("story") && response["story"].is_object()) {
+                                           const auto &storyObj = response["story"];
+                                           if (storyObj.contains("id") && storyObj["id"].is_string()) {
+                                             storyId = juce::String(storyObj["id"].get<std::string>());
+                                           }
+                                         } else if (response.contains("id") && response["id"].is_string()) {
+                                           storyId = juce::String(response["id"].get<std::string>());
                                          }
                                        }
 
@@ -402,31 +407,32 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     dialog->addButton("Create", 1);
     dialog->addButton("Cancel", 0);
     // Use deleteWhenDismissed=true to let JUCE handle cleanup safely
-    dialog->enterModalState(
-        true, juce::ModalCallbackFunction::create([this, dialog](int result) {
-          if (result == 1) {
-            juce::String playlistName = dialog->getTextEditorContents("name").trim();
-            if (playlistName.isEmpty()) {
-              juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Error",
-                                                     "Playlist name cannot be empty.");
-              return;
-            }
+    dialog->enterModalState(true, juce::ModalCallbackFunction::create([this, dialog](int result) {
+                              if (result == 1) {
+                                juce::String playlistName = dialog->getTextEditorContents("name").trim();
+                                if (playlistName.isEmpty()) {
+                                  juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Error",
+                                                                         "Playlist name cannot be empty.");
+                                  return;
+                                }
 
-            if (networkClient) {
-              networkClient->createPlaylist(playlistName, "", false, true, [this](Outcome<juce::var> createResult) {
-                juce::MessageManager::callAsync([this, createResult]() {
-                  if (createResult.isOk()) {
-                    playlistsComponent->refresh();
-                  } else {
-                    juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Error",
-                                                           "Failed to create playlist: " + createResult.getError());
-                  }
-                });
-              });
-            }
-          }
-        }),
-        true);
+                                if (networkClient) {
+                                  networkClient->createPlaylist(
+                                      playlistName, "", false, true, [this](Outcome<nlohmann::json> createResult) {
+                                        juce::MessageManager::callAsync([this, createResult]() {
+                                          if (createResult.isOk()) {
+                                            playlistsComponent->refresh();
+                                          } else {
+                                            juce::AlertWindow::showMessageBoxAsync(
+                                                juce::MessageBoxIconType::WarningIcon, "Error",
+                                                "Failed to create playlist: " + createResult.getError());
+                                          }
+                                        });
+                                      });
+                                }
+                              }
+                            }),
+                            true);
   };
   addChildComponent(playlistsComponent.get());
 
@@ -1646,27 +1652,31 @@ void SidechainAudioProcessorEditor::checkForActiveStories() {
   juce::String currentUserId = appStore.getUserState().userId;
 
   // Fetch stories feed and check if current user has any active stories
-  networkClient->getStoriesFeed([this, currentUserId](Outcome<juce::var> result) {
+  networkClient->getStoriesFeed([this, currentUserId](Outcome<nlohmann::json> result) {
     juce::MessageManager::callAsync([this, result, currentUserId]() {
       bool hasStory = false;
 
-      if (result.isOk() && result.getValue().isObject()) {
-        auto response = result.getValue();
-        if (response.hasProperty("stories")) {
-          auto *storiesArray = response["stories"].getArray();
-          if (storiesArray) {
-            // Check if any story belongs to current user and is not expired
-            for (const auto &storyVar : *storiesArray) {
-              juce::String storyUserId = storyVar["user_id"].toString();
-              if (storyUserId == currentUserId) {
-                // Check expiration
-                juce::String expiresAtStr = storyVar["expires_at"].toString();
-                if (expiresAtStr.isNotEmpty()) {
-                  juce::Time expiresAt = juce::Time::fromISO8601(expiresAtStr);
-                  if (expiresAt.toMilliseconds() > 0 && juce::Time::getCurrentTime() < expiresAt) {
-                    hasStory = true;
-                    break;
-                  }
+      if (result.isOk() && result.getValue().is_object()) {
+        const auto &response = result.getValue();
+        if (response.contains("stories") && response["stories"].is_array()) {
+          const auto &storiesArray = response["stories"];
+          // Check if any story belongs to current user and is not expired
+          for (const auto &storyJson : storiesArray) {
+            juce::String storyUserId;
+            if (storyJson.contains("user_id") && storyJson["user_id"].is_string()) {
+              storyUserId = juce::String(storyJson["user_id"].get<std::string>());
+            }
+            if (storyUserId == currentUserId) {
+              // Check expiration
+              juce::String expiresAtStr;
+              if (storyJson.contains("expires_at") && storyJson["expires_at"].is_string()) {
+                expiresAtStr = juce::String(storyJson["expires_at"].get<std::string>());
+              }
+              if (expiresAtStr.isNotEmpty()) {
+                juce::Time expiresAt = juce::Time::fromISO8601(expiresAtStr);
+                if (expiresAt.toMilliseconds() > 0 && juce::Time::getCurrentTime() < expiresAt) {
+                  hasStory = true;
+                  break;
                 }
               }
             }
@@ -1787,53 +1797,80 @@ void SidechainAudioProcessorEditor::showUserStory(const juce::String &userId) {
     return;
 
   // Fetch stories for this user
-  networkClient->getStoriesFeed([this, userId](Outcome<juce::var> result) {
+  networkClient->getStoriesFeed([this, userId](Outcome<nlohmann::json> result) {
     juce::MessageManager::callAsync([this, result, userId]() {
-      if (!result.isOk() || !result.getValue().isObject()) {
+      if (!result.isOk() || !result.getValue().is_object()) {
         Log::error("PluginEditor: Failed to fetch stories: " + result.getError());
         return;
       }
 
-      auto response = result.getValue();
-      if (!response.hasProperty("stories")) {
+      const auto &response = result.getValue();
+      if (!response.contains("stories") || !response["stories"].is_array()) {
         Log::warn("PluginEditor: No stories in response");
         return;
       }
 
-      auto *storiesArray = response["stories"].getArray();
-      if (!storiesArray) {
-        Log::warn("PluginEditor: Stories array is null");
-        return;
-      }
+      const auto &storiesArray = response["stories"];
 
       // Filter stories for this user
       std::vector<StoryData> userStories;
       int startIndex = 0;
-      for (int i = 0; i < storiesArray->size(); ++i) {
-        const auto &storyVar = (*storiesArray)[i];
-        juce::String storyUserId = storyVar["user_id"].toString();
+      for (size_t i = 0; i < storiesArray.size(); ++i) {
+        const auto &storyJson = storiesArray[i];
+        juce::String storyUserId;
+        if (storyJson.contains("user_id") && storyJson["user_id"].is_string()) {
+          storyUserId = juce::String(storyJson["user_id"].get<std::string>());
+        }
 
         if (storyUserId == userId) {
           StoryData story;
-          story.id = storyVar["id"].toString();
+          story.id = storyJson.contains("id") && storyJson["id"].is_string()
+                         ? juce::String(storyJson["id"].get<std::string>())
+                         : "";
           story.userId = storyUserId;
-          story.username = storyVar.hasProperty("user") ? storyVar["user"]["username"].toString() : "";
-          story.userAvatarUrl = storyVar.hasProperty("user") ? storyVar["user"]["avatar_url"].toString() : "";
-          story.audioUrl = storyVar["audio_url"].toString();
-          story.audioDuration = static_cast<float>(storyVar["audio_duration"]);
-          story.midiData = storyVar["midi_data"];
-          story.midiPatternId = storyVar["midi_pattern_id"].toString();
-          story.viewCount = static_cast<int>(storyVar["view_count"]);
-          story.viewed = static_cast<bool>(storyVar["viewed"]);
+          story.username = (storyJson.contains("user") && storyJson["user"].is_object() &&
+                            storyJson["user"].contains("username") && storyJson["user"]["username"].is_string())
+                               ? juce::String(storyJson["user"]["username"].get<std::string>())
+                               : "";
+          story.userAvatarUrl =
+              (storyJson.contains("user") && storyJson["user"].is_object() &&
+               storyJson["user"].contains("avatar_url") && storyJson["user"]["avatar_url"].is_string())
+                  ? juce::String(storyJson["user"]["avatar_url"].get<std::string>())
+                  : "";
+          story.audioUrl = storyJson.contains("audio_url") && storyJson["audio_url"].is_string()
+                               ? juce::String(storyJson["audio_url"].get<std::string>())
+                               : "";
+          story.audioDuration = storyJson.contains("audio_duration") && storyJson["audio_duration"].is_number()
+                                    ? static_cast<float>(storyJson["audio_duration"].get<double>())
+                                    : 0.0f;
+          // Parse midi_data into typed MIDIData struct
+          if (storyJson.contains("midi_data") && storyJson["midi_data"].is_object()) {
+            story.midiData = MIDIData::fromJson(storyJson["midi_data"]);
+          }
+          story.midiPatternId = storyJson.contains("midi_pattern_id") && storyJson["midi_pattern_id"].is_string()
+                                    ? juce::String(storyJson["midi_pattern_id"].get<std::string>())
+                                    : "";
+          story.viewCount = storyJson.contains("view_count") && storyJson["view_count"].is_number()
+                                ? storyJson["view_count"].get<int>()
+                                : 0;
+          story.viewed = storyJson.contains("viewed") && storyJson["viewed"].is_boolean()
+                             ? storyJson["viewed"].get<bool>()
+                             : false;
 
           // Parse timestamps
-          juce::String expiresAtStr = storyVar["expires_at"].toString();
+          juce::String expiresAtStr;
+          if (storyJson.contains("expires_at") && storyJson["expires_at"].is_string()) {
+            expiresAtStr = juce::String(storyJson["expires_at"].get<std::string>());
+          }
           if (expiresAtStr.isNotEmpty())
             story.expiresAt = juce::Time::fromISO8601(expiresAtStr);
           else
             story.expiresAt = juce::Time::getCurrentTime() + juce::RelativeTime::hours(24);
 
-          juce::String createdAtStr = storyVar["created_at"].toString();
+          juce::String createdAtStr;
+          if (storyJson.contains("created_at") && storyJson["created_at"].is_string()) {
+            createdAtStr = juce::String(storyJson["created_at"].get<std::string>());
+          }
           if (createdAtStr.isNotEmpty())
             story.createdAt = juce::Time::fromISO8601(createdAtStr);
           else
@@ -1865,52 +1902,74 @@ void SidechainAudioProcessorEditor::showHighlightStories(const Sidechain::StoryH
     return;
 
   // Fetch the highlight with its stories
-  networkClient->getHighlight(highlight.id, [this, highlightName = highlight.name](Outcome<juce::var> result) {
+  networkClient->getHighlight(highlight.id, [this, highlightName = highlight.name](Outcome<nlohmann::json> result) {
     juce::MessageManager::callAsync([this, result, highlightName]() {
-      if (!result.isOk() || !result.getValue().isObject()) {
+      if (!result.isOk() || !result.getValue().is_object()) {
         Log::error("PluginEditor: Failed to fetch highlight: " + result.getError());
         return;
       }
 
-      auto response = result.getValue();
+      const auto &response = result.getValue();
 
       // Parse stories from the highlight response
       std::vector<StoryData> highlightStories;
 
       // The response may have stories nested in different ways
-      juce::var storiesVar;
-      if (response.hasProperty("stories"))
-        storiesVar = response["stories"];
-      else if (response.hasProperty("highlighted_stories"))
-        storiesVar = response["highlighted_stories"];
+      const nlohmann::json *storiesArrayPtr = nullptr;
+      if (response.contains("stories") && response["stories"].is_array())
+        storiesArrayPtr = &response["stories"];
+      else if (response.contains("highlighted_stories") && response["highlighted_stories"].is_array())
+        storiesArrayPtr = &response["highlighted_stories"];
 
-      if (storiesVar.isArray()) {
-        auto *storiesArray = storiesVar.getArray();
-        if (!storiesArray) {
-          Log::warn("PluginEditor: Stories array is null despite isArray() check");
-          return;
-        }
-        for (int i = 0; i < storiesArray->size(); ++i) {
-          const auto &storyVar = (*storiesArray)[i];
+      if (storiesArrayPtr != nullptr) {
+        const auto &storiesArray = *storiesArrayPtr;
+        for (size_t i = 0; i < storiesArray.size(); ++i) {
+          const auto &storyEntry = storiesArray[i];
 
           // Handle nested "story" property from highlighted_stories join table
-          juce::var storyData = storyVar.hasProperty("story") ? storyVar["story"] : storyVar;
+          const nlohmann::json &storyData =
+              (storyEntry.contains("story") && storyEntry["story"].is_object()) ? storyEntry["story"] : storyEntry;
 
           StoryData story;
-          story.id = storyData["id"].toString();
-          story.userId = storyData["user_id"].toString();
-          story.username = storyData.hasProperty("user") ? storyData["user"]["username"].toString() : "";
-          story.userAvatarUrl = storyData.hasProperty("user") ? storyData["user"]["avatar_url"].toString() : "";
-          story.audioUrl = storyData["audio_url"].toString();
-          story.audioDuration = static_cast<float>(storyData["audio_duration"]);
-          story.midiData = storyData["midi_data"];
-          story.midiPatternId = storyData["midi_pattern_id"].toString();
-          story.viewCount = static_cast<int>(storyData["view_count"]);
+          story.id = storyData.contains("id") && storyData["id"].is_string()
+                         ? juce::String(storyData["id"].get<std::string>())
+                         : "";
+          story.userId = storyData.contains("user_id") && storyData["user_id"].is_string()
+                             ? juce::String(storyData["user_id"].get<std::string>())
+                             : "";
+          story.username = (storyData.contains("user") && storyData["user"].is_object() &&
+                            storyData["user"].contains("username") && storyData["user"]["username"].is_string())
+                               ? juce::String(storyData["user"]["username"].get<std::string>())
+                               : "";
+          story.userAvatarUrl =
+              (storyData.contains("user") && storyData["user"].is_object() &&
+               storyData["user"].contains("avatar_url") && storyData["user"]["avatar_url"].is_string())
+                  ? juce::String(storyData["user"]["avatar_url"].get<std::string>())
+                  : "";
+          story.audioUrl = storyData.contains("audio_url") && storyData["audio_url"].is_string()
+                               ? juce::String(storyData["audio_url"].get<std::string>())
+                               : "";
+          story.audioDuration = storyData.contains("audio_duration") && storyData["audio_duration"].is_number()
+                                    ? static_cast<float>(storyData["audio_duration"].get<double>())
+                                    : 0.0f;
+          // Parse midi_data into typed MIDIData struct
+          if (storyData.contains("midi_data") && storyData["midi_data"].is_object()) {
+            story.midiData = MIDIData::fromJson(storyData["midi_data"]);
+          }
+          story.midiPatternId = storyData.contains("midi_pattern_id") && storyData["midi_pattern_id"].is_string()
+                                    ? juce::String(storyData["midi_pattern_id"].get<std::string>())
+                                    : "";
+          story.viewCount = storyData.contains("view_count") && storyData["view_count"].is_number()
+                                ? storyData["view_count"].get<int>()
+                                : 0;
           story.viewed = true; // Highlights are already "viewed" stories
 
           // Parse timestamps - highlights don't expire
           story.expiresAt = juce::Time::getCurrentTime() + juce::RelativeTime::days(365 * 10);
-          juce::String createdAtStr = storyData["created_at"].toString();
+          juce::String createdAtStr;
+          if (storyData.contains("created_at") && storyData["created_at"].is_string()) {
+            createdAtStr = juce::String(storyData["created_at"].get<std::string>());
+          }
           if (createdAtStr.isNotEmpty())
             story.createdAt = juce::Time::fromISO8601(createdAtStr);
           else
@@ -2483,7 +2542,7 @@ void SidechainAudioProcessorEditor::sendTestMessageOnStartup() {
 
   Log::info("sendTestMessageOnStartup: 📨 Sending test message to conversation");
   streamChatClient->sendMessage(
-      channelType, channelId, testMessage, juce::var(),
+      channelType, channelId, testMessage, nlohmann::json(),
       [this, channelType, channelId](Outcome<StreamChatClient::Message> msgResult) {
         if (!msgResult.isOk()) {
           Log::error("sendTestMessageOnStartup: Failed to send message - " + msgResult.getError());
@@ -2892,7 +2951,7 @@ void SidechainAudioProcessorEditor::setupNotifications() {
   };
   notificationList->onMarkAllReadClicked = [this]() {
     if (networkClient) {
-      networkClient->markNotificationsRead([this](Outcome<juce::var> response) {
+      networkClient->markNotificationsRead([this](Outcome<nlohmann::json> response) {
         if (response.isOk()) {
           // Refresh notifications to update read state
           fetchNotifications();
@@ -2921,7 +2980,7 @@ void SidechainAudioProcessorEditor::showNotificationPanel() {
 
   // Mark notifications as seen (clears badge)
   if (networkClient) {
-    networkClient->markNotificationsSeen([this](Outcome<juce::var> response) {
+    networkClient->markNotificationsSeen([this](Outcome<nlohmann::json> response) {
       if (response.isOk() && notificationBell) {
         notificationBell->clearBadge();
       }
@@ -3159,63 +3218,71 @@ void SidechainAudioProcessorEditor::pollOAuthStatus() {
   }
 
   juce::String endpoint = juce::String(Constants::Endpoints::AUTH_OAUTH_POLL) + "?session_id=" + oauthSessionId;
-  networkClient->get(endpoint, [this, capturedSessionId = oauthSessionId](Outcome<juce::var> responseOutcome) {
+  networkClient->get(endpoint, [this, capturedSessionId = oauthSessionId](Outcome<nlohmann::json> responseOutcome) {
     // Check if this is still the active session
     if (oauthSessionId != capturedSessionId)
       return;
 
-    if (responseOutcome.isError() || !responseOutcome.getValue().isObject()) {
+    if (responseOutcome.isError() || !responseOutcome.getValue().is_object()) {
       Log::warn("OAuth poll: connection failed or invalid response");
       return; // Keep polling, might be temporary network issue
     }
 
-    auto responseData = responseOutcome.getValue();
-    juce::String status = Json::getString(responseData, "status");
+    const auto &responseData = responseOutcome.getValue();
+    juce::String status;
+    if (responseData.contains("status") && responseData["status"].is_string()) {
+      status = juce::String(responseData["status"].get<std::string>());
+    }
 
     if (status == "complete") {
       // Success! Extract auth data
       stopOAuthPolling();
 
-      juce::var authData = responseData["auth"];
-      if (authData.isObject() && authData.hasProperty("token")) {
-        juce::String token = authData["token"].toString();
-        juce::String userEmail = "";
-        juce::String userName = "";
-        juce::String responseProfilePicUrl = "";
+      if (responseData.contains("auth") && responseData["auth"].is_object()) {
+        const auto &authData = responseData["auth"];
+        if (authData.contains("token") && authData["token"].is_string()) {
+          juce::String token = juce::String(authData["token"].get<std::string>());
+          juce::String userEmail = "";
+          juce::String userName = "";
+          juce::String responseProfilePicUrl = "";
 
-        if (authData.hasProperty("user")) {
-          juce::var userData = authData["user"];
-          if (userData.hasProperty("email"))
-            userEmail = userData["email"].toString();
-          if (userData.hasProperty("username"))
-            userName = userData["username"].toString();
-          else if (userData.hasProperty("display_name"))
-            userName = userData["display_name"].toString();
-          // Extract profile picture URL from OAuth response
-          if (userData.hasProperty("profile_picture_url"))
-            responseProfilePicUrl = userData["profile_picture_url"].toString();
+          if (authData.contains("user") && authData["user"].is_object()) {
+            const auto &userData = authData["user"];
+            if (userData.contains("email") && userData["email"].is_string())
+              userEmail = juce::String(userData["email"].get<std::string>());
+            if (userData.contains("username") && userData["username"].is_string())
+              userName = juce::String(userData["username"].get<std::string>());
+            else if (userData.contains("display_name") && userData["display_name"].is_string())
+              userName = juce::String(userData["display_name"].get<std::string>());
+            // Extract profile picture URL from OAuth response
+            if (userData.contains("profile_picture_url") && userData["profile_picture_url"].is_string())
+              responseProfilePicUrl = juce::String(userData["profile_picture_url"].get<std::string>());
+          }
+
+          if (userName.isEmpty() && userEmail.isNotEmpty())
+            userName = userEmail.upToFirstOccurrenceOf("@", false, false);
+
+          Log::info("OAuth success! User: " + userName);
+
+          // Hide OAuth waiting screen before transitioning
+          if (authComponent)
+            authComponent->hideOAuthWaiting();
+
+          // Note: We DO NOT use the OAuth profile picture directly
+          // Instead, we fetch the user's actual profile from the backend in onLoginSuccess
+          // The backend profile will have their S3 profile picture if they've uploaded one
+          // We only use OAuth profile picture as a fallback if they don't have an S3 picture yet
+
+          onLoginSuccess(userName, userEmail, token);
         }
-
-        if (userName.isEmpty() && userEmail.isNotEmpty())
-          userName = userEmail.upToFirstOccurrenceOf("@", false, false);
-
-        Log::info("OAuth success! User: " + userName);
-
-        // Hide OAuth waiting screen before transitioning
-        if (authComponent)
-          authComponent->hideOAuthWaiting();
-
-        // Note: We DO NOT use the OAuth profile picture directly
-        // Instead, we fetch the user's actual profile from the backend in onLoginSuccess
-        // The backend profile will have their S3 profile picture if they've uploaded one
-        // We only use OAuth profile picture as a fallback if they don't have an S3 picture yet
-
-        onLoginSuccess(userName, userEmail, token);
       }
     } else if (status == "error") {
       // OAuth failed
       stopOAuthPolling();
-      juce::String errorMsg = Json::getString(responseData, "message", "Authentication failed");
+      juce::String errorMsg = "Authentication failed";
+      if (responseData.contains("message") && responseData["message"].is_string()) {
+        errorMsg = juce::String(responseData["message"].get<std::string>());
+      }
       if (authComponent) {
         authComponent->hideOAuthWaiting();
         authComponent->showError(errorMsg);

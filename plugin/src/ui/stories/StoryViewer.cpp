@@ -450,7 +450,7 @@ void StoryViewer::drawStoryContent(juce::Graphics &g) {
   drawWaveform(g, waveformBounds);
 
   // Piano roll shows MIDI if available
-  if (story->midiData.isObject() && pianoRoll) {
+  if (story->midiData.hasEvents() && pianoRoll) {
     pianoRoll->setVisible(true);
     pianoRoll->setMIDIData(story->midiData);
     pianoRoll->setPlaybackPosition(playbackPosition);
@@ -971,7 +971,7 @@ void StoryViewer::loadCurrentStory() {
   }
 
   // Set up MIDI visualization
-  if (pianoRoll && story->midiData.isObject()) {
+  if (pianoRoll && story->midiData.hasEvents()) {
     pianoRoll->setMIDIData(story->midiData);
     pianoRoll->setVisible(true);
 

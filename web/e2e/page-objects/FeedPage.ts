@@ -36,7 +36,8 @@ export class FeedPage {
     this.trendingButton = page.locator('button:has-text("Trending"), button:has-text("🔥")').first()
     this.forYouButton = page.locator('button:has-text("For You"), button:has-text("✨")').first()
 
-    this.postCards = page.locator('[data-testid="post-card"], .bg-card.border, [class*="Post"]')
+    // Use data-testid first, fallback to class-based selectors for compatibility
+    this.postCards = page.locator('[data-testid="post-card"], .bg-card.border.rounded-lg')
     this.emptyState = page.locator('text=/no activity|no posts|empty|📭|📈/i')
     this.loadingSpinner = page.locator('[data-testid="spinner"], [class*="Spinner"], [class*="Loading"]')
     this.errorMessage = page.locator('text=/error|failed|unable/i')
@@ -248,15 +249,13 @@ export class PostCardElement {
     this.postTitle = cardLocator.locator('h2, h3, [class*="Title"]').first()
     this.postDescription = cardLocator.locator('p', { has: cardLocator }).nth(1)
 
-    // Action buttons row - find the container with multiple ghost buttons
-    const actionButtonRow = cardLocator.locator('.flex.gap-2 button[class*="ghost"]')
-    // Buttons are in order: Like, Comment, Save, Repost/Share
-    this.likeButton = actionButtonRow.nth(0)
+    // Action buttons - using data-testid for reliability
+    this.likeButton = cardLocator.locator('[data-testid="like-button"]')
     this.likeCount = cardLocator.locator('text=/\\d+/').first()
-    this.commentButton = actionButtonRow.nth(1)
+    this.commentButton = cardLocator.locator('[data-testid="comment-button"]')
     this.commentCount = cardLocator.locator('text=/\\d+ Comments/i').first()
-    this.saveButton = actionButtonRow.nth(2)
-    this.shareButton = actionButtonRow.nth(3)
+    this.saveButton = cardLocator.locator('[data-testid="save-button"]')
+    this.shareButton = cardLocator.locator('[data-testid="repost-button"]')
     // Play button in audio player section
     this.playButton = cardLocator.locator('button:has(svg), [data-testid="play-button"]').first()
     this.followButton = cardLocator.locator('button:has-text("Follow"), button:has-text("Following")').first()

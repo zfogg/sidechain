@@ -2,6 +2,7 @@
 #include "../../network/NetworkClient.h"
 #include "../../stores/AppStore.h"
 #include "../../util/Log.h"
+#include <nlohmann/json.hpp>
 
 TwoFactorSettings::TwoFactorSettings(AppStore *store)
     : AppStoreComponent(
@@ -703,17 +704,19 @@ void TwoFactorSettings::doRegenerateBackupCodes() {
                                 isProcessing = true;
                                 repaint();
 
-                                networkClient->regenerateBackupCodes(code, [this](auto regenResult) {
+                                networkClient->regenerateBackupCodes(code, [this](Outcome<nlohmann::json> regenResult) {
                                   isProcessing = false;
 
                                   if (regenResult.isOk()) {
-                                    auto data = regenResult.getValue();
-                                    if (data.isObject()) {
-                                      auto codes = data.getProperty("backup_codes", juce::var());
+                                    const auto &data = regenResult.getValue();
+                                    if (data.is_object()) {
                                       backupCodes.clear();
-                                      if (codes.isArray()) {
-                                        for (int i = 0; i < codes.size(); ++i)
-                                          backupCodes.add(codes[i].toString());
+                                      if (data.contains("backup_codes") && data["backup_codes"].is_array()) {
+                                        for (const auto &codeItem : data["backup_codes"]) {
+                                          if (codeItem.is_string()) {
+                                            backupCodes.add(juce::String(codeItem.get<std::string>()));
+                                          }
+                                        }
                                       }
                                       backupCodesRemaining = backupCodes.size();
 

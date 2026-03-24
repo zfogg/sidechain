@@ -645,8 +645,8 @@ void Recording::confirmRecording() {
     Log::debug("Recording::confirmRecording: Created audio copy for callback");
 
     // Get MIDI data - either from capture or from import
-    juce::var midiData;
-    if (hasImportedMidi && !importedMidiData.isVoid()) {
+    MIDIData midiData;
+    if (hasImportedMidi && importedMidiData.hasEvents()) {
       // Use imported MIDI data
       midiData = importedMidiData;
       Log::info("Recording::confirmRecording: Using imported MIDI data");
@@ -660,7 +660,7 @@ void Recording::confirmRecording() {
     // from accessing the original buffer while it's being modified
     recordedAudio.setSize(0, 0);
     currentState = State::Idle;
-    importedMidiData = juce::var(); // Clear imported MIDI
+    importedMidiData = MIDIData(); // Clear imported MIDI
     hasImportedMidi = false;
     Log::debug("Recording::confirmRecording: State reset to Idle before callback");
 
@@ -779,11 +779,11 @@ void Recording::importMidiFile(const juce::File &file) {
     return;
   }
 
-  // Convert MIDI file to our JSON format
-  juce::Array<juce::var> eventsArray;
-  double tempo = 120.0; // Default tempo
-  int timeSignatureNum = 4;
-  int timeSignatureDen = 4;
+  // Convert MIDI file to our typed MIDIData structure
+  MIDIData midiData;
+  midiData.tempo = 120.0; // Default tempo
+  midiData.timeSignatureNumerator = 4;
+  midiData.timeSignatureDenominator = 4;
 
   // Get time format - convert to seconds
   short timeFormat = midiFile.getTimeFormat();
@@ -792,8 +792,10 @@ void Recording::importMidiFile(const juce::File &file) {
   if (timeFormat > 0) {
     // PPQN format - ticksPerQuarterNote
     double ticksPerQuarterNote = static_cast<double>(timeFormat);
-    ticksPerSecond = ticksPerQuarterNote * (tempo / 60.0);
+    ticksPerSecond = ticksPerQuarterNote * (midiData.tempo / 60.0);
   }
+
+  double maxTime = 0.0;
 
   // Process all tracks
   for (int track = 0; track < midiFile.getNumTracks(); ++track) {
@@ -806,55 +808,56 @@ void Recording::importMidiFile(const juce::File &file) {
       const juce::MidiMessage &message = eventHolder->message;
       double timeInSeconds = message.getTimeStamp() / ticksPerSecond;
 
+      // Track max time for totalTime
+      if (timeInSeconds > maxTime) {
+        maxTime = timeInSeconds;
+      }
+
       // Look for tempo changes
       if (message.isTempoMetaEvent()) {
-        tempo = message.getTempoSecondsPerQuarterNote() > 0 ? 60.0 / message.getTempoSecondsPerQuarterNote() : 120.0;
+        midiData.tempo =
+            message.getTempoSecondsPerQuarterNote() > 0 ? 60.0 / message.getTempoSecondsPerQuarterNote() : 120.0;
         // Update ticks conversion
         if (timeFormat > 0) {
-          ticksPerSecond = static_cast<double>(timeFormat) * (tempo / 60.0);
+          ticksPerSecond = static_cast<double>(timeFormat) * (midiData.tempo / 60.0);
         }
       }
       // Look for time signature
       else if (message.isTimeSignatureMetaEvent()) {
         int numerator, denominator;
         message.getTimeSignatureInfo(numerator, denominator);
-        timeSignatureNum = numerator;
-        timeSignatureDen = denominator;
+        midiData.timeSignatureNumerator = numerator;
+        midiData.timeSignatureDenominator = denominator;
       }
       // Note on
       else if (message.isNoteOn()) {
-        juce::DynamicObject::Ptr event = new juce::DynamicObject();
-        event->setProperty("time", timeInSeconds);
-        event->setProperty("type", "note_on");
-        event->setProperty("note", message.getNoteNumber());
-        event->setProperty("velocity", message.getVelocity());
-        event->setProperty("channel", message.getChannel() - 1); // JUCE uses 1-based channels
-        eventsArray.add(juce::var(event.get()));
+        MIDIEvent event;
+        event.time = timeInSeconds;
+        event.type = "note_on";
+        event.note = message.getNoteNumber();
+        event.velocity = message.getVelocity();
+        event.channel = message.getChannel() - 1; // JUCE uses 1-based channels
+        midiData.events.push_back(event);
       }
       // Note off
       else if (message.isNoteOff()) {
-        juce::DynamicObject::Ptr event = new juce::DynamicObject();
-        event->setProperty("time", timeInSeconds);
-        event->setProperty("type", "note_off");
-        event->setProperty("note", message.getNoteNumber());
-        event->setProperty("velocity", 0);
-        event->setProperty("channel", message.getChannel() - 1);
-        eventsArray.add(juce::var(event.get()));
+        MIDIEvent event;
+        event.time = timeInSeconds;
+        event.type = "note_off";
+        event.note = message.getNoteNumber();
+        event.velocity = 0;
+        event.channel = message.getChannel() - 1;
+        midiData.events.push_back(event);
       }
     }
   }
 
-  // Build the MIDI data JSON structure
-  juce::DynamicObject::Ptr midiData = new juce::DynamicObject();
-  midiData->setProperty("events", eventsArray);
-  midiData->setProperty("tempo", tempo);
-  midiData->setProperty("time_signature", juce::String(timeSignatureNum) + "/" + juce::String(timeSignatureDen));
-
-  importedMidiData = juce::var(midiData.get());
+  midiData.totalTime = maxTime;
+  importedMidiData = midiData;
   hasImportedMidi = true;
 
-  Log::info("Recording::importMidiFile: Successfully imported " + juce::String(eventsArray.size()) +
-            " MIDI events, tempo: " + juce::String(tempo, 1) + " BPM");
+  Log::info("Recording::importMidiFile: Successfully imported " + juce::String(midiData.events.size()) +
+            " MIDI events, tempo: " + juce::String(midiData.tempo, 1) + " BPM");
 
   repaint();
 }

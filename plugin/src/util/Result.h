@@ -3,6 +3,7 @@
 #include "Log.h"
 #include <JuceHeader.h>
 #include <functional>
+#include <nlohmann/json.hpp>
 #include <optional>
 
 // ==============================================================================
@@ -321,4 +322,4 @@ using VoidOutcome = Outcome<void>;
 using StringOutcome = Outcome<juce::String>;
 using IntOutcome = Outcome<int>;
 using BoolOutcome = Outcome<bool>;
-using JsonOutcome = Outcome<juce::var>;
+using JsonOutcome = Outcome<nlohmann::json>;

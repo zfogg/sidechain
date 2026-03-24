@@ -1,26 +1,11 @@
 #include "MidiChallengeSubmission.h"
 #include "../../network/NetworkClient.h"
 #include "../../util/Async.h"
-#include "../../util/Json.h"
 #include "../../util/Log.h"
 #include "../../util/Result.h"
 #include "../recording/Upload.h"
 #include "core/PluginProcessor.h"
 #include <nlohmann/json.hpp>
-
-namespace {
-// Helper to convert juce::var to nlohmann::json
-nlohmann::json varToNlohmannJson(const juce::var &v) {
-  if (v.isVoid())
-    return nlohmann::json();
-  auto jsonStr = juce::JSON::toString(v);
-  try {
-    return nlohmann::json::parse(jsonStr.toStdString());
-  } catch (...) {
-    return nlohmann::json();
-  }
-}
-} // namespace
 
 // ==============================================================================
 MidiChallengeSubmission::MidiChallengeSubmission(SidechainAudioProcessor &processor, NetworkClient &network,
@@ -40,7 +25,7 @@ MidiChallengeSubmission::MidiChallengeSubmission(SidechainAudioProcessor &proces
     if (!postId.isEmpty() && !challenge.id.isEmpty()) {
       // Submit the post to the challenge
       networkClient.submitMIDIChallengeEntry(
-          challenge.id, "", postId, varToNlohmannJson(midiData), "", [this](const Outcome<nlohmann::json> &outcome) {
+          challenge.id, "", postId, midiData.toJson(), "", [this](const Outcome<nlohmann::json> &outcome) {
             if (outcome.isOk()) {
               Log::info("MidiChallengeSubmission: Challenge submission successful");
               submissionState = SubmissionState::Success;
@@ -77,7 +62,7 @@ void MidiChallengeSubmission::setChallenge(const Sidechain::MIDIChallenge &ch) {
 }
 
 void MidiChallengeSubmission::setAudioToUpload(const juce::AudioBuffer<float> &audio, double sampleRate,
-                                               const juce::var &midi) {
+                                               const MIDIData &midi) {
   audioBuffer = audio;
   audioSampleRate = sampleRate;
   midiData = midi;
@@ -413,7 +398,7 @@ juce::Rectangle<int> MidiChallengeSubmission::getUploadComponentBounds() const {
 }
 
 // ==============================================================================
-void MidiChallengeSubmission::validateConstraints(double bpm, const juce::String &key, const juce::var &midi,
+void MidiChallengeSubmission::validateConstraints(double bpm, const juce::String &key, const MIDIData &midi,
                                                   double durationSeconds) {
   // Reset all checks
   bpmCheck = ConstraintCheck();
@@ -505,34 +490,18 @@ bool MidiChallengeSubmission::allConstraintsPassed() const {
   return bpmCheck.passed && keyCheck.passed && scaleCheck.passed && noteCountCheck.passed && durationCheck.passed;
 }
 
-int MidiChallengeSubmission::countMIDINotes(const juce::var &midi) const {
-  if (midi.isVoid() || !midi.hasProperty("events"))
-    return 0;
-
-  auto events = midi["events"];
-  if (!events.isArray())
-    return 0;
-
+int MidiChallengeSubmission::countMIDINotes(const MIDIData &midi) const {
   int noteCount = 0;
-  for (int i = 0; i < events.size(); ++i) {
-    auto event = events[i];
-    if (event.hasProperty("type")) {
-      juce::String type = Json::getString(event, "type");
-      if (type == "note_on" || type == "noteOn")
-        noteCount++;
-    }
+  for (const auto &event : midi.events) {
+    if (event.type == "note_on" || event.type == "noteOn")
+      noteCount++;
   }
   return noteCount;
 }
 
-bool MidiChallengeSubmission::checkMIDIScale(const juce::var &midi, const juce::String &requiredScale) const {
+bool MidiChallengeSubmission::checkMIDIScale(const MIDIData &midi, const juce::String &requiredScale) const {
   // Validate MIDI against the required scale
-  if (midi.isVoid() || !midi.hasProperty("events")) {
-    return false;
-  }
-
-  auto events = midi.getProperty("events", juce::var());
-  if (!events.isArray()) {
+  if (midi.isEmpty()) {
     return false;
   }
 
@@ -556,20 +525,13 @@ bool MidiChallengeSubmission::checkMIDIScale(const juce::var &midi, const juce::
   auto &allowedNotes = it->second;
 
   // Check each MIDI note event
-  for (int i = 0; i < events.size(); ++i) {
-    auto event = events[i];
-    if (event.hasProperty("type")) {
-      juce::String type = Json::getString(event, "type");
-      if (type == "note_on" || type == "noteOn") {
-        if (event.hasProperty("note")) {
-          int midiNote = static_cast<int>(event.getProperty("note", juce::var(0)));
-          int noteInScale = midiNote % 12; // Normalize to 0-11
-          if (allowedNotes.find(noteInScale) == allowedNotes.end()) {
-            Log::warn("MidiChallengeSubmission: MIDI note " + juce::String(midiNote) + " (scale degree " +
-                      juce::String(noteInScale) + ") is not in scale " + requiredScale);
-            return false;
-          }
-        }
+  for (const auto &event : midi.events) {
+    if (event.type == "note_on" || event.type == "noteOn") {
+      int noteInScale = event.note % 12; // Normalize to 0-11
+      if (allowedNotes.find(noteInScale) == allowedNotes.end()) {
+        Log::warn("MidiChallengeSubmission: MIDI note " + juce::String(event.note) + " (scale degree " +
+                  juce::String(noteInScale) + ") is not in scale " + requiredScale);
+        return false;
       }
     }
   }
@@ -583,9 +545,9 @@ void MidiChallengeSubmission::submitEntry(const juce::String &postId, const juce
   repaint();
 
   // If we have MIDI data, upload it first to get a pattern ID
-  if (!midiData.isVoid() && midiData.hasProperty("events")) {
+  if (midiData.hasEvents()) {
     networkClient.uploadMIDI(
-        varToNlohmannJson(midiData), "MIDI Challenge Entry", "MIDI pattern for challenge entry", true,
+        midiData.toJson(), "MIDI Challenge Entry", "MIDI pattern for challenge entry", true,
         [this, postId, audioUrl](Outcome<nlohmann::json> uploadResult) {
           juce::MessageManager::callAsync([this, postId, audioUrl, uploadResult]() {
             juce::String midiPatternId = "";
@@ -608,7 +570,7 @@ void MidiChallengeSubmission::submitEntry(const juce::String &postId, const juce
 
 void MidiChallengeSubmission::submitChallengeEntry(const juce::String &postId, const juce::String &audioUrl,
                                                    const juce::String &midiPatternId) {
-  networkClient.submitMIDIChallengeEntry(challenge.id, audioUrl, postId, varToNlohmannJson(midiData), midiPatternId,
+  networkClient.submitMIDIChallengeEntry(challenge.id, audioUrl, postId, midiData.toJson(), midiPatternId,
                                          [this](Outcome<nlohmann::json> result) {
                                            juce::MessageManager::callAsync([this, result]() {
                                              if (result.isOk()) {

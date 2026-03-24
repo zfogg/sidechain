@@ -354,14 +354,13 @@ void UserPickerDialog::loadRecentConversations() {
 
         for (const auto &channel : channels) {
           // Skip group channels for "recent" section (use members array size)
-          if (channel.members.isArray() && channel.members.size() > 2)
+          if (channel.members.is_array() && channel.members.size() > 2)
             continue;
 
           // Get the other user from the channel
-          if (channel.members.isArray()) {
-            for (int i = 0; i < channel.members.size(); ++i) {
-              auto member = channel.members[i];
-              juce::String userId = member.getProperty("user_id", "").toString();
+          if (channel.members.is_array()) {
+            for (const auto &member : channel.members) {
+              juce::String userId = juce::String(member.value("user_id", ""));
 
               // Skip self and duplicates
               if (userId == safeThis->currentUserId || userId.isEmpty())
@@ -374,9 +373,9 @@ void UserPickerDialog::loadRecentConversations() {
               // Create UserItem from member data
               UserItem user;
               user.userId = userId;
-              user.username = member.getProperty("username", "").toString();
-              user.displayName = member.getProperty("display_name", "").toString();
-              user.profilePictureUrl = member.getProperty("avatar_url", "").toString();
+              user.username = juce::String(member.value("username", ""));
+              user.displayName = juce::String(member.value("display_name", ""));
+              user.profilePictureUrl = juce::String(member.value("avatar_url", ""));
 
               safeThis->recentUsers.push_back(user);
 

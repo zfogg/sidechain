@@ -2,6 +2,7 @@
 #include "DAWProjectFolder.h"
 #include "Log.h"
 #include "../network/StreamChatClient.h"
+#include <nlohmann/json.hpp>
 
 PresenceManager::PresenceManager(StreamChatClient *chat) : juce::Thread("PresenceManager"), streamChat(chat) {
   detectDAW();
@@ -27,10 +28,10 @@ void PresenceManager::stop() {
     if (streamChat && streamChat->isAuthenticated()) {
       isOnline.store(false);
 
-      juce::var extraData(new juce::DynamicObject());
-      extraData.getDynamicObject()->setProperty("in_studio", false);
-      extraData.getDynamicObject()->setProperty("daw_type", "");
-      extraData.getDynamicObject()->setProperty("last_active", juce::Time::currentTimeMillis());
+      nlohmann::json extraData = nlohmann::json::object();
+      extraData["in_studio"] = false;
+      extraData["daw_type"] = "";
+      extraData["last_active"] = juce::Time::currentTimeMillis();
 
       streamChat->updateStatus("offline", extraData, [](Outcome<void> result) {
         if (result.isError()) {
@@ -87,10 +88,10 @@ void PresenceManager::sendPresenceUpdate() {
   }
 
   // Build extra data with presence info
-  juce::var extraData(new juce::DynamicObject());
-  extraData.getDynamicObject()->setProperty("in_studio", isInStudio.load());
-  extraData.getDynamicObject()->setProperty("daw_type", detectedDAW);
-  extraData.getDynamicObject()->setProperty("last_active", juce::Time::currentTimeMillis());
+  nlohmann::json extraData = nlohmann::json::object();
+  extraData["in_studio"] = isInStudio.load();
+  extraData["daw_type"] = detectedDAW.toStdString();
+  extraData["last_active"] = juce::Time::currentTimeMillis();
 
   // Determine status string
   juce::String statusStr = isOnline.load() ? "online" : "offline";

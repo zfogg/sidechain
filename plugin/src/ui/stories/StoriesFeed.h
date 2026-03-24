@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../../audio/MIDICapture.h"
 #include "../../models/FeedPost.h"
 #include "../../stores/AppStore.h"
 #include "../common/AppStoreComponent.h"
@@ -21,7 +22,7 @@ struct StoryData {
   juce::String filename;     // Display filename for audio
   juce::String midiFilename; // Display filename for MIDI
   float audioDuration = 0.0f;
-  juce::var midiData;
+  MIDIData midiData;
   juce::String midiPatternId; // ID of standalone MIDI pattern (for download)
   int viewCount = 0;
   bool viewed = false;

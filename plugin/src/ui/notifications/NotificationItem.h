@@ -3,6 +3,7 @@
 #include "../../models/AggregatedFeedGroup.h"
 #include "../../models/Notification.h"
 #include <JuceHeader.h>
+#include <nlohmann/json.hpp>
 
 // ==============================================================================
 /**
@@ -29,8 +30,8 @@ struct NotificationItem {
   juce::String targetType;    // "loop", "user", "comment"
   juce::String targetPreview; // Preview text or title
 
-  // Parse from JSON response (old format for backward compatibility)
-  static NotificationItem fromJson(const juce::var &json);
+  // Parse from JSON response
+  static NotificationItem fromJson(const nlohmann::json &json);
 
   // Create from typed Notification model
   static NotificationItem fromNotification(const Sidechain::Notification &notif);
