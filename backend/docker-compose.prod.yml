@@ -331,19 +331,6 @@ services:
     networks:
       - sidechain
 
-  watchtower:
-    image: containrrr/watchtower:latest
-    container_name: sidechain-watchtower
-    restart: unless-stopped
-    cpus: 0.1
-    mem_limit: 128m
-    memswap_limit: 128m
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    command: --interval 30 --cleanup sidechain-backend sidechain-audio-analysis sidechain-gorse sidechain-postgres sidechain-redis sidechain-elasticsearch sidechain-caddy sidechain-prometheus sidechain-grafana
-    networks:
-      - sidechain
-
 volumes:
   postgres_data:
     driver: local
