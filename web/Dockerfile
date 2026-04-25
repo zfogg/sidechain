@@ -17,25 +17,28 @@ COPY . .
 RUN bun run build
 
 # Stage 2: Runtime
-FROM oven/bun:1-alpine
+FROM caddy:2-alpine
 
 WORKDIR /app
 
 # Copy built application from builder
 COPY --from=builder /app/dist ./dist
-COPY package.json ./
+
+# Copy Caddyfile
+COPY Caddyfile /etc/caddy/Caddyfile
 
 # Create non-root user for security
-RUN addgroup -g 1001 -S bunuser && adduser -S bunuser -u 1001
+RUN addgroup -g 1001 -S caddy && adduser -S caddy -u 1001 && \
+    chown -R caddy:caddy /app
 
-USER bunuser
+USER caddy
 
 # Expose port
-EXPOSE 3000
+EXPOSE 80
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:80 || exit 1
 
-# Start the application using bun's built-in static file server
-CMD ["bun", "run", "--bun", "vite", "preview", "--host", "0.0.0.0", "--port", "3000"]
+# Start Caddy
+CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile"]
