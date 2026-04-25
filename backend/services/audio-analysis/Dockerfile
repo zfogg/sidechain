@@ -39,30 +39,31 @@ COPY app/ ./app/
 
 # Download Essentia models during build (when network is available)
 RUN mkdir -p /app/models && \
-    BASE="https://essentia.upf.edu/models" && \
-    MODEL_FILES=( \
-        "discogs-effnet-bs64-1.pb:feature-extractors/discogs-effnet/discogs-effnet-bs64-1.pb" \
-        "msd-musicnn-1.pb:autotagging/msd/msd-musicnn-1.pb" \
-        "msd-musicnn-1.json:autotagging/msd/msd-musicnn-1.json" \
-        "mtg_jamendo_genre-discogs-effnet-1.pb:classification-heads/mtg_jamendo_genre/mtg_jamendo_genre-discogs-effnet-1.pb" \
-        "mtg_jamendo_genre-discogs-effnet-1.json:classification-heads/mtg_jamendo_genre/mtg_jamendo_genre-discogs-effnet-1.json" \
-        "mtg_jamendo_moodtheme-discogs-effnet-1.pb:classification-heads/mtg_jamendo_moodtheme/mtg_jamendo_moodtheme-discogs-effnet-1.pb" \
-        "mtg_jamendo_moodtheme-discogs-effnet-1.json:classification-heads/mtg_jamendo_moodtheme/mtg_jamendo_moodtheme-discogs-effnet-1.json" \
-        "mtg_jamendo_instrument-discogs-effnet-1.pb:classification-heads/mtg_jamendo_instrument/mtg_jamendo_instrument-discogs-effnet-1.pb" \
-        "mtg_jamendo_instrument-discogs-effnet-1.json:classification-heads/mtg_jamendo_instrument/mtg_jamendo_instrument-discogs-effnet-1.json" \
-        "voice_instrumental-discogs-effnet-1.pb:classification-heads/voice_instrumental/voice_instrumental-discogs-effnet-1.pb" \
-        "voice_instrumental-discogs-effnet-1.json:classification-heads/voice_instrumental/voice_instrumental-discogs-effnet-1.json" \
-        "danceability-discogs-effnet-1.pb:classification-heads/danceability/danceability-discogs-effnet-1.pb" \
-        "danceability-discogs-effnet-1.json:classification-heads/danceability/danceability-discogs-effnet-1.json" \
-        "emomusic-msd-musicnn-2.pb:classification-heads/emomusic/emomusic-msd-musicnn-2.pb" \
-        "emomusic-msd-musicnn-2.json:classification-heads/emomusic/emomusic-msd-musicnn-2.json" \
-    ) && \
-    for model_pair in "${MODEL_FILES[@]}"; do \
-        IFS=':' read -r filename path <<< "$model_pair"; \
+    /bin/bash -c ' \
+    BASE="https://essentia.upf.edu/models"; \
+    declare -A MODELS=( \
+        [discogs-effnet-bs64-1.pb]="feature-extractors/discogs-effnet/discogs-effnet-bs64-1.pb" \
+        [msd-musicnn-1.pb]="autotagging/msd/msd-musicnn-1.pb" \
+        [msd-musicnn-1.json]="autotagging/msd/msd-musicnn-1.json" \
+        [mtg_jamendo_genre-discogs-effnet-1.pb]="classification-heads/mtg_jamendo_genre/mtg_jamendo_genre-discogs-effnet-1.pb" \
+        [mtg_jamendo_genre-discogs-effnet-1.json]="classification-heads/mtg_jamendo_genre/mtg_jamendo_genre-discogs-effnet-1.json" \
+        [mtg_jamendo_moodtheme-discogs-effnet-1.pb]="classification-heads/mtg_jamendo_moodtheme/mtg_jamendo_moodtheme-discogs-effnet-1.pb" \
+        [mtg_jamendo_moodtheme-discogs-effnet-1.json]="classification-heads/mtg_jamendo_moodtheme/mtg_jamendo_moodtheme-discogs-effnet-1.json" \
+        [mtg_jamendo_instrument-discogs-effnet-1.pb]="classification-heads/mtg_jamendo_instrument/mtg_jamendo_instrument-discogs-effnet-1.pb" \
+        [mtg_jamendo_instrument-discogs-effnet-1.json]="classification-heads/mtg_jamendo_instrument/mtg_jamendo_instrument-discogs-effnet-1.json" \
+        [voice_instrumental-discogs-effnet-1.pb]="classification-heads/voice_instrumental/voice_instrumental-discogs-effnet-1.pb" \
+        [voice_instrumental-discogs-effnet-1.json]="classification-heads/voice_instrumental/voice_instrumental-discogs-effnet-1.json" \
+        [danceability-discogs-effnet-1.pb]="classification-heads/danceability/danceability-discogs-effnet-1.pb" \
+        [danceability-discogs-effnet-1.json]="classification-heads/danceability/danceability-discogs-effnet-1.json" \
+        [emomusic-msd-musicnn-2.pb]="classification-heads/emomusic/emomusic-msd-musicnn-2.pb" \
+        [emomusic-msd-musicnn-2.json]="classification-heads/emomusic/emomusic-msd-musicnn-2.json" \
+    ); \
+    for filename in "${!MODELS[@]}"; do \
         echo "Downloading $filename..."; \
-        wget --tries=3 --timeout=60 --waitretry=5 -O "/app/models/$filename" "$BASE/$path" || exit 1; \
-    done && \
-    echo "All models downloaded successfully."
+        wget --tries=3 --timeout=60 --waitretry=5 -O "/app/models/$filename" "$BASE/${MODELS[$filename]}" || exit 1; \
+    done; \
+    echo "All models downloaded successfully." \
+    '
 
 # Create non-root user for security
 RUN useradd -m -u 1000 appuser && \
