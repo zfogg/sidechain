@@ -12,6 +12,8 @@ COPY . .
 
 # Build the binary with optimizations
 RUN CGO_ENABLED=0 GOOS=linux go build -mod=mod -ldflags="-s -w" -o server ./cmd/server
+RUN GOMAXPROCS=4 GOMEMLIMIT=1500MiB CGO_ENABLED=0 GOOS=linux \
+    go build -p 2 -mod=mod -ldflags="-s -w" -o server ./cmd/server
 
 # Runtime stage
 FROM alpine:3.19
