@@ -37,58 +37,36 @@ RUN uv sync --no-dev --no-editable
 # Copy application code
 COPY app/ ./app/
 
-# Essentia models are downloaded at startup into a volume-mounted directory.
-# This avoids build failures when essentia.upf.edu is down and caches models
-# across container rebuilds via Docker volume.
-COPY <<'ENTRY' /app/entrypoint.sh
-#!/bin/bash
-BASE="https://essentia.upf.edu/models"
-MODELS_DIR="/app/models"
-mkdir -p "$MODELS_DIR"
-
-declare -A MODEL_URLS=(
-    ["discogs-effnet-bs64-1.pb"]="$BASE/feature-extractors/discogs-effnet/discogs-effnet-bs64-1.pb"
-    ["msd-musicnn-1.pb"]="$BASE/autotagging/msd/msd-musicnn-1.pb"
-    ["msd-musicnn-1.json"]="$BASE/autotagging/msd/msd-musicnn-1.json"
-    ["mtg_jamendo_genre-discogs-effnet-1.pb"]="$BASE/classification-heads/mtg_jamendo_genre/mtg_jamendo_genre-discogs-effnet-1.pb"
-    ["mtg_jamendo_genre-discogs-effnet-1.json"]="$BASE/classification-heads/mtg_jamendo_genre/mtg_jamendo_genre-discogs-effnet-1.json"
-    ["mtg_jamendo_moodtheme-discogs-effnet-1.pb"]="$BASE/classification-heads/mtg_jamendo_moodtheme/mtg_jamendo_moodtheme-discogs-effnet-1.pb"
-    ["mtg_jamendo_moodtheme-discogs-effnet-1.json"]="$BASE/classification-heads/mtg_jamendo_moodtheme/mtg_jamendo_moodtheme-discogs-effnet-1.json"
-    ["mtg_jamendo_instrument-discogs-effnet-1.pb"]="$BASE/classification-heads/mtg_jamendo_instrument/mtg_jamendo_instrument-discogs-effnet-1.pb"
-    ["mtg_jamendo_instrument-discogs-effnet-1.json"]="$BASE/classification-heads/mtg_jamendo_instrument/mtg_jamendo_instrument-discogs-effnet-1.json"
-    ["voice_instrumental-discogs-effnet-1.pb"]="$BASE/classification-heads/voice_instrumental/voice_instrumental-discogs-effnet-1.pb"
-    ["voice_instrumental-discogs-effnet-1.json"]="$BASE/classification-heads/voice_instrumental/voice_instrumental-discogs-effnet-1.json"
-    ["danceability-discogs-effnet-1.pb"]="$BASE/classification-heads/danceability/danceability-discogs-effnet-1.pb"
-    ["danceability-discogs-effnet-1.json"]="$BASE/classification-heads/danceability/danceability-discogs-effnet-1.json"
-    ["emomusic-msd-musicnn-2.pb"]="$BASE/classification-heads/emomusic/emomusic-msd-musicnn-2.pb"
-    ["emomusic-msd-musicnn-2.json"]="$BASE/classification-heads/emomusic/emomusic-msd-musicnn-2.json"
-)
-
-MISSING=0
-DOWNLOADED=0
-for model in "${!MODEL_URLS[@]}"; do
-    if [ ! -f "$MODELS_DIR/$model" ] || [ ! -s "$MODELS_DIR/$model" ]; then
-        MISSING=$((MISSING+1))
-        echo "Downloading missing model: $model"
-        wget --tries=3 --timeout=60 --waitretry=5 -O "$MODELS_DIR/$model" "${MODEL_URLS[$model]}" && \
-            DOWNLOADED=$((DOWNLOADED+1)) || \
-            { echo "WARNING: Could not download $model - tagging features may be unavailable"; rm -f "$MODELS_DIR/$model"; }
-    fi
-done
-
-if [ "$MISSING" -gt 0 ]; then
-    echo "Models: $DOWNLOADED/$MISSING downloaded successfully."
-else
-    echo "All models already present."
-fi
-
-exec "$@"
-ENTRY
-RUN chmod +x /app/entrypoint.sh
+# Download Essentia models during build (when network is available)
+RUN mkdir -p /app/models && \
+    BASE="https://essentia.upf.edu/models" && \
+    MODEL_FILES=( \
+        "discogs-effnet-bs64-1.pb:feature-extractors/discogs-effnet/discogs-effnet-bs64-1.pb" \
+        "msd-musicnn-1.pb:autotagging/msd/msd-musicnn-1.pb" \
+        "msd-musicnn-1.json:autotagging/msd/msd-musicnn-1.json" \
+        "mtg_jamendo_genre-discogs-effnet-1.pb:classification-heads/mtg_jamendo_genre/mtg_jamendo_genre-discogs-effnet-1.pb" \
+        "mtg_jamendo_genre-discogs-effnet-1.json:classification-heads/mtg_jamendo_genre/mtg_jamendo_genre-discogs-effnet-1.json" \
+        "mtg_jamendo_moodtheme-discogs-effnet-1.pb:classification-heads/mtg_jamendo_moodtheme/mtg_jamendo_moodtheme-discogs-effnet-1.pb" \
+        "mtg_jamendo_moodtheme-discogs-effnet-1.json:classification-heads/mtg_jamendo_moodtheme/mtg_jamendo_moodtheme-discogs-effnet-1.json" \
+        "mtg_jamendo_instrument-discogs-effnet-1.pb:classification-heads/mtg_jamendo_instrument/mtg_jamendo_instrument-discogs-effnet-1.pb" \
+        "mtg_jamendo_instrument-discogs-effnet-1.json:classification-heads/mtg_jamendo_instrument/mtg_jamendo_instrument-discogs-effnet-1.json" \
+        "voice_instrumental-discogs-effnet-1.pb:classification-heads/voice_instrumental/voice_instrumental-discogs-effnet-1.pb" \
+        "voice_instrumental-discogs-effnet-1.json:classification-heads/voice_instrumental/voice_instrumental-discogs-effnet-1.json" \
+        "danceability-discogs-effnet-1.pb:classification-heads/danceability/danceability-discogs-effnet-1.pb" \
+        "danceability-discogs-effnet-1.json:classification-heads/danceability/danceability-discogs-effnet-1.json" \
+        "emomusic-msd-musicnn-2.pb:classification-heads/emomusic/emomusic-msd-musicnn-2.pb" \
+        "emomusic-msd-musicnn-2.json:classification-heads/emomusic/emomusic-msd-musicnn-2.json" \
+    ) && \
+    for model_pair in "${MODEL_FILES[@]}"; do \
+        IFS=':' read -r filename path <<< "$model_pair"; \
+        echo "Downloading $filename..."; \
+        wget --tries=3 --timeout=60 --waitretry=5 -O "/app/models/$filename" "$BASE/$path" || exit 1; \
+    done && \
+    echo "All models downloaded successfully."
 
 # Create non-root user for security
 RUN useradd -m -u 1000 appuser && \
-    mkdir -p /tmp/audio-analysis /app/models && \
+    mkdir -p /tmp/audio-analysis && \
     chown -R appuser:appuser /app /tmp/audio-analysis
 
 USER appuser
@@ -100,6 +78,4 @@ EXPOSE 8090
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:8090/health || exit 1
 
-# Entrypoint downloads missing models from volume, then starts the app
-ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["/app/.venv/bin/uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8090"]
