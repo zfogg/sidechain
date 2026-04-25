@@ -1,31 +1,13 @@
 services:
-  caddy:
-    image: caddy:2-alpine
-    container_name: sidechain-caddy
-    restart: unless-stopped
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      - backend
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: 128M
-        reservations:
-          cpus: "0.25"
-          memory: 64M
-    networks:
-      - sidechain
-
   backend:
     image: zfogg/sidechain-backend:latest
     container_name: sidechain-backend
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        GOMEMLIMIT: "${GOMEMLIMIT:-1500MiB}"
+        BUILD_PARALLELISM: "${BUILD_PARALLELISM:-4}"
     restart: unless-stopped
     pull_policy: never
     cpus: 1.5
@@ -107,10 +89,10 @@ services:
           "CMD-SHELL",
           "wget --no-verbose --tries=1 --spider http://localhost:8787/health || exit 1",
         ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
+      interval: 5s
+      timeout: 2s
+      retries: 7
+      start_period: 3s
 
     networks:
       - sidechain
@@ -134,10 +116,10 @@ services:
       - essentia_models:/app/models
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8090/health || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 60s
+      interval: 3s
+      timeout: 2s
+      retries: 7
+      start_period: 4s
     networks:
       - sidechain
 
@@ -187,10 +169,10 @@ services:
     healthcheck:
       test:
         ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
-      interval: 15s
-      timeout: 10s
-      retries: 10
-      start_period: 90s
+      interval: 5s
+      timeout: 2s
+      retries: 7
+      start_period: 5s
     networks:
       - sidechain
 
@@ -227,10 +209,10 @@ services:
           "CMD-SHELL",
           "timeout 1 bash -c '</dev/tcp/localhost/8088' 2>/dev/null",
         ]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-      start_period: 3s
+      interval: 3s
+      timeout: 2s
+      retries: 7
+      start_period: 2s
     networks:
       - sidechain
 
@@ -245,9 +227,9 @@ services:
       - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      interval: 2s
+      timeout: 2s
+      retries: 7
     networks:
       - sidechain
 
@@ -279,9 +261,9 @@ services:
           "--spider",
           "http://localhost:9090/-/healthy",
         ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      interval: 3s
+      timeout: 2s
+      retries: 8
     networks:
       - sidechain
 
@@ -325,9 +307,9 @@ services:
           "--spider",
           "http://localhost:3000/api/health",
         ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      interval: 3s
+      timeout: 2s
+      retries: 8
     networks:
       - sidechain
 
@@ -337,10 +319,6 @@ volumes:
   elasticsearch_data:
     driver: local
   redis_data:
-    driver: local
-  caddy_data:
-    driver: local
-  caddy_config:
     driver: local
   prometheus_data:
     driver: local

@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.24-alpine AS builder
+FROM golang:1.26-alpine AS builder
 
 WORKDIR /app
 
@@ -11,12 +11,14 @@ RUN go mod download
 COPY . .
 
 # Build the binary with optimizations
-RUN CGO_ENABLED=0 GOOS=linux go build -mod=mod -ldflags="-s -w" -o server ./cmd/server
-RUN GOMAXPROCS=4 GOMEMLIMIT=1500MiB CGO_ENABLED=0 GOOS=linux \
-    go build -p 2 -mod=mod -ldflags="-s -w" -o server ./cmd/server
+ARG GOMEMLIMIT
+ARG BUILD_PARALLELISM
+
+RUN GOMAXPROCS=${BUILD_PARALLELISM} GOMEMLIMIT=${GOMEMLIMIT} CGO_ENABLED=0 GOOS=linux \
+    go build -p ${BUILD_PARALLELISM} -mod=mod -ldflags="-s -w" -o server ./cmd/server
 
 # Runtime stage
-FROM alpine:3.19
+FROM alpine:3.23
 
 RUN apk add --no-cache ca-certificates tzdata ffmpeg curl \
     && adduser -D -g '' appuser
