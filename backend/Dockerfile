@@ -27,7 +27,8 @@ WORKDIR /app
 
 COPY --from=builder /app/server .
 
-RUN chown -R appuser:appuser /app
+RUN mkdir -p /var/log/sidechain && \
+    chown -R appuser:appuser /app /var/log/sidechain
 
 USER appuser
 
