@@ -177,7 +177,10 @@ services:
       - sidechain
 
   gorse:
-    image: zhenghaoz/gorse-in-one:nightly
+    image: zfogg/sidechain-gorse:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.gorse
     container_name: sidechain-gorse
     restart: unless-stopped
     cpus: 0.5
@@ -194,10 +197,6 @@ services:
       REDIS_URL: "${REDIS_URL:-redis://redis:6379}"
       # Gorse API key
       GORSE_API_KEY: "${GORSE_API_KEY:-sidechain_gorse_api_key}"
-    volumes:
-      - ./gorse.toml.template:/etc/gorse/config.toml.template:ro
-      - ./entrypoint-gorse.sh:/entrypoint-gorse.sh:ro
-    entrypoint: ["/bin/bash", "/entrypoint-gorse.sh"]
     depends_on:
       postgres:
         condition: service_healthy

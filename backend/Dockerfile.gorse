@@ -1,0 +1,8 @@
+FROM zhenghaoz/gorse-in-one:nightly
+
+COPY gorse.toml.template /etc/gorse/config.toml.template
+COPY entrypoint-gorse.sh /entrypoint-gorse.sh
+
+RUN chmod +x /entrypoint-gorse.sh
+
+ENTRYPOINT ["/bin/bash", "/entrypoint-gorse.sh"]
