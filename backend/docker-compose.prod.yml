@@ -222,10 +222,11 @@ services:
     cpus: 0.25
     mem_limit: 256m
     memswap_limit: 256m
+    command: redis-server --requirepass ${REDIS_PASSWORD:-CHANGE_IN_PRODUCTION}
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-CHANGE_IN_PRODUCTION}", "ping"]
       interval: 2s
       timeout: 2s
       retries: 7
