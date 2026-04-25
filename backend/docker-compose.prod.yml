@@ -33,7 +33,7 @@ services:
       - POSTGRES_USER=${POSTGRES_USER:-sidechain}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-CHANGE_IN_PRODUCTION}
       - POSTGRES_DB=${POSTGRES_DB:-sidechain}
-      - DATABASE_URL=${DATABASE_URL:-postgres://sidechain:PASSWORD_HERE@postgres:5432/sidechain_prod?sslmode=require}
+      - DATABASE_URL=${DATABASE_URL:-postgres://sidechain:PASSWORD_HERE@postgres:5432/sidechain_prod?sslmode=disable}
 
       - REDIS_HOST=${REDIS_HOST:-redis}
       - REDIS_PORT=${REDIS_PORT:-6379}
