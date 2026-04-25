@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
       args:
         GOMEMLIMIT: "${GOMEMLIMIT:-1500MiB}"
-        BUILD_PARALLELISM: "${BUILD_PARALLELISM:-4}"
+        BUILD_PARALLELISM: "${BUILD_PARALLELISM:-2}"
     restart: unless-stopped
     pull_policy: never
     cpus: 1.5
